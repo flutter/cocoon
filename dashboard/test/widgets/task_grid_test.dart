@@ -19,7 +19,6 @@ import 'package:flutter_dashboard/widgets/lattice.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
-import 'package:flutter_dashboard/widgets/task_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';
@@ -395,8 +394,10 @@ void main() {
 
     final statusesWithSkips = [
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
         tasks: [
           Task()
             ..name = '1'
@@ -405,8 +406,11 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '2'
@@ -415,8 +419,11 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '3'
@@ -458,8 +465,11 @@ void main() {
 
     final statuses = [
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '1'
@@ -468,8 +478,11 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '1'
@@ -502,50 +515,15 @@ void main() {
     expect(lattice.cells[1].length, 2);
   });
 
-  testWidgets('TaskGrid creates a task icon row and they line up', (
-    WidgetTester tester,
-  ) async {
-    final commitStatuses = [
-      CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
-        tasks: [
-          Task()
-            ..name = 'Task Name 1'
-            ..builderName = 'Task Name 2'
-            ..status = TaskBox.statusSucceeded,
-          Task()
-            ..name = 'Task Name 1'
-            ..builderName = 'Task Name 2'
-            ..status = TaskBox.statusFailed,
-        ],
-      ),
-    ];
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Material(
-          child: TaskGrid(
-            buildState: FakeBuildState(),
-            commitStatuses: commitStatuses,
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TaskIcon), findsNWidgets(2));
-    expect(
-      tester.getTopLeft(find.byType(TaskIcon).at(0)).dy,
-      tester.getTopLeft(find.byType(TaskIcon).at(1)).dy,
-    );
-  });
-
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final commitStatuses = <CommitStatus>[
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = 'Task Name'
@@ -603,8 +581,11 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -627,8 +608,11 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -656,8 +640,11 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -680,8 +667,11 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -723,13 +713,19 @@ void main() {
               ),
               commitStatuses: [
                 CommitStatus(
-                  commit: Commit()..author = 'Cast',
-                  branch: 'master',
+                  commit:
+                      Commit()
+                        ..author = 'Cast'
+                        ..branch = 'master',
+
                   tasks: [taskA3],
                 ),
                 CommitStatus(
-                  commit: Commit()..author = 'Cast',
-                  branch: 'master',
+                  commit:
+                      Commit()
+                        ..author = 'Cast'
+                        ..branch = 'master',
+
                   tasks: [taskB1],
                 ),
               ],
@@ -760,8 +756,11 @@ void main() {
     await precacheTaskIcons(tester);
     final statuses = [
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '1'
@@ -786,8 +785,11 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '1'
@@ -817,8 +819,11 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = '1'
@@ -848,8 +853,11 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: (Commit()..author = 'Author'),
-        branch: 'master',
+        commit:
+            (Commit()
+              ..author = 'Author'
+              ..branch = 'master'),
+
         tasks: [
           Task()
             ..name = '1'
@@ -942,8 +950,11 @@ Future<void> expectTaskBoxColorWithMessage(
                 ),
                 commitStatuses: <CommitStatus>[
                   CommitStatus(
-                    commit: Commit()..author = 'Mathilda',
-                    branch: 'master',
+                    commit:
+                        Commit()
+                          ..author = 'Mathilda'
+                          ..branch = 'master',
+
                     tasks: [Task()..status = message],
                   ),
                 ],

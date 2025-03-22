@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart'
+    show kDebugMode, kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../model/commit.pb.dart';
@@ -86,9 +88,12 @@ class AppEngineCocoonService implements CocoonService {
     try {
       final jsonResponse = jsonDecode(response.body) as Map<String, dynamic>;
       return CocoonResponse<List<CommitStatus>>.data(
-        _commitStatusesFromJson(jsonResponse['Statuses'] as List<Object?>),
+        _commitStatusesFromJson(jsonResponse['Commits'] as List<Object?>),
       );
-    } catch (error) {
+    } catch (error, s) {
+      if (kDebugMode) {
+        print('$error: $s');
+      }
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
   }
@@ -265,23 +270,14 @@ class AppEngineCocoonService implements CocoonService {
     return Uri.https(_baseApiUrl, urlSuffix, queryParameters);
   }
 
-  List<CommitStatus> _commitStatusesFromJson(
-    List<dynamic>? jsonCommitStatuses,
-  ) {
-    assert(jsonCommitStatuses != null);
-
+  List<CommitStatus> _commitStatusesFromJson(List<Object?> commits) {
     final statuses = <CommitStatus>[];
 
-    for (final jsonCommitStatus
-        in jsonCommitStatuses!.cast<Map<String, dynamic>>()) {
-      final checklist = jsonCommitStatus['Checklist'] as Map<String, dynamic>;
+    for (final commit in commits.cast<Map<String, Object?>>()) {
       statuses.add(
         CommitStatus(
-          commit: _commitFromJson(checklist),
-          branch: _branchFromJson(checklist)!,
-          tasks: _tasksFromStagesJson(
-            jsonCommitStatus['Stages'] as List<Object?>,
-          ),
+          commit: _commitFromJson(commit['Commit'] as Map<String, Object?>),
+          tasks: _tasksFromJson(commit['Tasks'] as List<Object?>),
         ),
       );
     }
@@ -289,66 +285,36 @@ class AppEngineCocoonService implements CocoonService {
     return statuses;
   }
 
-  String? _branchFromJson(Map<String, dynamic> jsonChecklist) {
-    final checklist = jsonChecklist['Checklist'] as Map<String, dynamic>;
-    return checklist['Branch'] as String?;
-  }
-
-  Commit _commitFromJson(Map<String, dynamic> jsonChecklist) {
-    final checklist = jsonChecklist['Checklist'] as Map<String, dynamic>;
-    final commit = checklist['Commit'] as Map<String, dynamic>;
+  Commit _commitFromJson(Map<String, Object?> commit) {
     final author = commit['Author'] as Map<String, dynamic>;
 
     final result =
         Commit()
-          ..timestamp = Int64() + (checklist['CreateTimestamp']! as Object)
+          ..timestamp = Int64() + (commit['CreateTimestamp']!)
           ..sha = commit['Sha'] as String
           ..author = author['Login'] as String
           ..authorAvatarUrl = author['avatar_url'] as String
-          ..repository = checklist['FlutterRepositoryPath'] as String
-          ..branch = checklist['Branch'] as String;
+          ..repository = commit['FlutterRepositoryPath'] as String
+          ..branch = commit['Branch'] as String;
     if (commit['Message'] != null) {
       result.message = commit['Message'] as String;
     }
     return result;
   }
 
-  List<Task> _tasksFromStagesJson(List<dynamic> json) {
-    final tasks = <Task>[];
-
-    for (final jsonStage in json.cast<Map<String, dynamic>>()) {
-      tasks.addAll(_tasksFromJson(jsonStage['Tasks'] as List<Object?>));
-    }
-
-    return tasks;
+  List<Task> _tasksFromJson(List<Object?> json) {
+    return [...json.cast<Map<String, Object?>>().map(_taskFromJson)];
   }
 
-  List<Task> _tasksFromJson(List<dynamic> json) {
-    final tasks = <Task>[];
-
-    for (final jsonTask in json.cast<Map<String, dynamic>>()) {
-      tasks.add(_taskFromJson(jsonTask));
-    }
-
-    return tasks;
-  }
-
-  Task _taskFromJson(Map<String, dynamic> json) {
-    final taskData = json['Task'] as Map<String, dynamic>;
-
-    final task =
-        Task()
-          ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
-          ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
-          ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
-          ..name = taskData['Name'] as String
-          ..attempts = taskData['Attempts'] as int
-          ..isFlaky = taskData['Flaky'] as bool
-          ..status = taskData['Status'] as String;
-
-    task
+  Task _taskFromJson(Map<String, Object?> taskData) {
+    return Task()
+      ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
+      ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
+      ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
+      ..attempts = taskData['Attempts'] as int
+      ..isFlaky = taskData['Flaky'] as bool
+      ..status = taskData['Status'] as String
       ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
       ..builderName = taskData['BuilderName'] as String? ?? '';
-    return task;
   }
 }

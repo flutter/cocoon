@@ -183,7 +183,6 @@ class DevelopmentCocoonService implements CocoonService {
         branch,
       );
       final status = CommitStatus(
-        branch: branch,
         commit: commit,
         tasks: _createFakeTasks(commitTimestamp, commit, random),
       );

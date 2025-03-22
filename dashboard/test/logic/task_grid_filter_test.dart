@@ -27,30 +27,24 @@ void main() {
     );
 
     expect(
+      filter.matchesCommit(CommitStatus(commit: Commit(), tasks: [])),
+      true,
+    );
+    expect(
       filter.matchesCommit(
-        CommitStatus(branch: '', commit: Commit(), tasks: []),
+        CommitStatus(commit: Commit()..author = 'joe', tasks: []),
       ),
       true,
     );
     expect(
       filter.matchesCommit(
-        CommitStatus(branch: '', commit: Commit()..author = 'joe', tasks: []),
+        CommitStatus(commit: Commit()..sha = '0x45c3fd', tasks: []),
       ),
       true,
     );
     expect(
       filter.matchesCommit(
-        CommitStatus(branch: '', commit: Commit()..sha = '0x45c3fd', tasks: []),
-      ),
-      true,
-    );
-    expect(
-      filter.matchesCommit(
-        CommitStatus(
-          branch: '',
-          commit: Commit()..message = 'LGTM!',
-          tasks: [],
-        ),
+        CommitStatus(commit: Commit()..message = 'LGTM!', tasks: []),
       ),
       true,
     );
@@ -498,23 +492,19 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..author = 'foo', tasks: []),
+          CommitStatus(commit: Commit()..author = 'foo', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..author = 'blah foo blah',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..author = 'blah foo blah', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..author = 'fo', tasks: []),
+          CommitStatus(commit: Commit()..author = 'fo', tasks: []),
         ),
         false,
       );
@@ -530,37 +520,25 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..author = 'z bc',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..author = 'z bc', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..author = 'z bc z',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..author = 'z bc z', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..author = 'z b c',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..author = 'z b c', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..author = 'foo', tasks: []),
+          CommitStatus(commit: Commit()..author = 'foo', tasks: []),
         ),
         false,
       );
@@ -576,27 +554,19 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..message = 'foo',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..message = 'foo', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..message = 'blah foo blah',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..message = 'blah foo blah', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..message = 'fo', tasks: []),
+          CommitStatus(commit: Commit()..message = 'fo', tasks: []),
         ),
         false,
       );
@@ -612,41 +582,25 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..message = 'z bc',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..message = 'z bc', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..message = 'z bc z',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..message = 'z bc z', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..message = 'z b c',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..message = 'z b c', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..message = 'foo',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..message = 'foo', tasks: []),
         ),
         false,
       );
@@ -662,23 +616,19 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..sha = 'foo', tasks: []),
+          CommitStatus(commit: Commit()..sha = 'foo', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(
-            branch: '',
-            commit: Commit()..sha = 'blah foo blah',
-            tasks: [],
-          ),
+          CommitStatus(commit: Commit()..sha = 'blah foo blah', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..sha = 'fo', tasks: []),
+          CommitStatus(commit: Commit()..sha = 'fo', tasks: []),
         ),
         false,
       );
@@ -694,25 +644,25 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..sha = 'z bc', tasks: []),
+          CommitStatus(commit: Commit()..sha = 'z bc', tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..sha = 'z bc z', tasks: []),
+          CommitStatus(commit: Commit()..sha = 'z bc z', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..sha = 'z b c', tasks: []),
+          CommitStatus(commit: Commit()..sha = 'z b c', tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(branch: '', commit: Commit()..sha = 'foo', tasks: []),
+          CommitStatus(commit: Commit()..sha = 'foo', tasks: []),
         ),
         false,
       );

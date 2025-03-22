@@ -792,7 +792,6 @@ void main() {
         cocoonService: cocoonService,
         statuses: [
           CommitStatus(
-            branch: 'master',
             commit: commit,
             tasks: [
               Task(

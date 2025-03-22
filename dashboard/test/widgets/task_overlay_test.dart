@@ -47,8 +47,9 @@ class TestGrid extends StatelessWidget {
             commit:
                 (Commit()
                   ..author = 'Fats Domino'
-                  ..sha = '24e8c0a2'),
-            branch: 'master',
+                  ..sha = '24e8c0a2'
+                  ..branch = 'master'),
+
             tasks: [task],
           ),
         ],

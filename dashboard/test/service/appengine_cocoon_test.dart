@@ -30,7 +30,6 @@ void main() {
       final statuses = await service.fetchCommitStatuses(repo: 'flutter');
 
       final expectedStatus = CommitStatus(
-        branch: 'master',
         commit:
             Commit()
               ..timestamp = Int64(123456789)
@@ -44,7 +43,6 @@ void main() {
             ..createTimestamp = Int64(1569353940885)
             ..startTimestamp = Int64(1569354594672)
             ..endTimestamp = Int64(1569354700642)
-            ..name = 'linux'
             ..attempts = 1
             ..isFlaky = false
             ..status = 'Succeeded'
@@ -53,6 +51,7 @@ void main() {
         ],
       );
 
+      expect(statuses.error, isNull);
       expect(statuses.data!.length, 1);
       expect(statuses.data!.first, expectedStatus);
     });
