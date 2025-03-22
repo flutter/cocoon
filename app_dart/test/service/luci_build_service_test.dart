@@ -1456,7 +1456,7 @@ void main() {
         expect(
           userData,
           PostsubmitUserData(
-            commitKey: 'flutter/flutter/master/1',
+            commitKey: 'flutter/packages/master/0',
             taskKey: '1',
             firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
               '0_task1_1',

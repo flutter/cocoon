@@ -97,9 +97,9 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     }
 
     final preUserData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
+    final slug = RepositorySlug(preUserData.repoOwner, preUserData.repoName);
+    var rescheduled = false;
     if (githubChecksService.taskFailed(build.status)) {
-      var rescheduled = false;
-      final slug = RepositorySlug(preUserData.repoOwner, preUserData.repoName);
       final currentAttempt = _nextAttempt(tagSet);
       final maxAttempt = await _getMaxAttempt(
         slug,
@@ -118,16 +118,14 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
           userData: preUserData,
         );
       }
-      await githubChecksService.updateCheckStatus(
-        checkRunId: preUserData.checkRunId,
-        build: build,
-        luciBuildService: luciBuildService,
-        slug: slug,
-        rescheduled: rescheduled,
-      );
-    } else {
-      log.info('This repo does not support checks API');
     }
+    await githubChecksService.updateCheckStatus(
+      checkRunId: preUserData.checkRunId,
+      build: build,
+      luciBuildService: luciBuildService,
+      slug: slug,
+      rescheduled: rescheduled,
+    );
     return Body.empty;
   }
 
