@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 const double _kGoldenDiffTolerance = 0.005;
 
@@ -50,7 +51,8 @@ class CocoonFileComparator extends LocalFileComparator {
       final error = await generateFailureOutput(result, golden, basedir);
       if (!kIsWeb && Platform.environment.containsKey('LUCI_CONTEXT')) {
         stderr.writeln(
-          '$golden has failed. For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:',
+          '${p.join(basedir.toFilePath(), golden.toFilePath())} has failed. '
+          'For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:',
         );
         stderr.writeln(base64Encode(imageBytes));
         stderr.writeln('#[/IMAGE]');
