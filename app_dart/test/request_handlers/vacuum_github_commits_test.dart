@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
@@ -150,6 +152,13 @@ void main() {
     });
 
     test('inserts all relevant fields of the commit', () async {
+      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
+      //
+      // ignore: discarded_futures
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
+      });
+
       githubCommits = <String>['1'];
       expect(db.values.values.whereType<Commit>().length, 0);
       await tester.get<Body>(handler);
@@ -170,6 +179,13 @@ void main() {
     });
 
     test('skips commits for which transaction commit fails', () async {
+      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
+      //
+      // ignore: discarded_futures
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
+      });
+
       githubCommits = <String>['2', '3', '4'];
 
       /// This test is simulating an existing branch, which must already
