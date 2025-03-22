@@ -223,7 +223,7 @@ void main() {
         cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
         githubChecksService: GithubChecksService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
@@ -438,7 +438,7 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -536,7 +536,7 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            buildStatusProvider: (_, _) => buildStatusService,
+            buildStatusProvider: (_) => buildStatusService,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
@@ -741,7 +741,7 @@ void main() {
             cache: cache,
             config: config,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-            buildStatusProvider: (_, _) => buildStatusService,
+            buildStatusProvider: (_) => buildStatusService,
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -843,7 +843,7 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -946,7 +946,7 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            buildStatusProvider: (_, _) => buildStatusService,
+            buildStatusProvider: (_) => buildStatusService,
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -1040,7 +1040,7 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1151,7 +1151,7 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1313,7 +1313,7 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1649,7 +1649,7 @@ targets:
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_, _) => buildStatusService,
+              buildStatusProvider: (_) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1753,7 +1753,7 @@ targets:
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_, _) => buildStatusService,
+              buildStatusProvider: (_) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1867,7 +1867,7 @@ targets:
                 cache: cache,
                 config: config,
                 datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-                buildStatusProvider: (_, _) => buildStatusService,
+                buildStatusProvider: (_) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
@@ -1939,7 +1939,7 @@ targets:
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_, _) => buildStatusService,
+              buildStatusProvider: (_) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -2053,7 +2053,7 @@ targets:
                 cache: cache,
                 config: config,
                 datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-                buildStatusProvider: (_, _) => buildStatusService,
+                buildStatusProvider: (_) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
@@ -2225,7 +2225,7 @@ targets:
                 cache: cache,
                 config: config,
                 datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-                buildStatusProvider: (_, _) => buildStatusService,
+                buildStatusProvider: (_) => buildStatusService,
                 githubChecksService: gitHubChecksService,
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
@@ -2625,7 +2625,7 @@ targets:
             cache: cache,
             config: config,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-            buildStatusProvider: (_, _) => buildStatusService,
+            buildStatusProvider: (_) => buildStatusService,
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2672,7 +2672,7 @@ targets:
               githubClient: MockGitHub(),
               firestoreService: mockFirestoreService,
             ),
-            buildStatusProvider: (_, _) => buildStatusService,
+            buildStatusProvider: (_) => buildStatusService,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
@@ -2968,7 +2968,7 @@ targets:
             firestoreService: mockFirestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 0,
           ),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3113,7 +3113,7 @@ targets:
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3267,7 +3267,7 @@ targets:
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3410,7 +3410,7 @@ targets:
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3543,7 +3543,7 @@ targets:
             firestoreService: mockFirestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 29,
           ),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,

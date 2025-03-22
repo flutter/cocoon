@@ -92,7 +92,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
     });
 
@@ -111,7 +111,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       final result = (await decodeHandlerBody<String>())!;
@@ -130,7 +130,7 @@ void main() {
         handler = GetGreenCommits(
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
         );
 
         final result = (await decodeHandlerBody<String>())!;
@@ -150,7 +150,7 @@ void main() {
         handler = GetGreenCommits(
           config: config,
           datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-          buildStatusProvider: (_, _) => buildStatusService,
+          buildStatusProvider: (_) => buildStatusService,
         );
 
         final result = (await decodeHandlerBody<String>())!;
@@ -168,7 +168,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       final result = (await decodeHandlerBody<String>())!;
@@ -189,7 +189,7 @@ void main() {
       handler = GetGreenCommits(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       final result = (await decodeHandlerBody<String>())!;

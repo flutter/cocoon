@@ -34,9 +34,8 @@ class GetBuildStatus extends RequestHandler<Body> {
   }
 
   Future<BuildStatusResponse> createResponse() async {
-    final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(datastore, firestoreService);
+    final buildStatusService = buildStatusProvider(firestoreService);
     final repoName = request!.uri.queryParameters[kRepoParam] ?? 'flutter';
     final slug = RepositorySlug('flutter', repoName);
     final status = (await buildStatusService.calculateCumulativeStatus(slug))!;

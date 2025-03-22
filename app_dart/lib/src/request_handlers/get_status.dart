@@ -45,9 +45,8 @@ final class GetStatus extends RequestHandler<Body> {
     final branch =
         request!.uri.queryParameters[kBranchParam] ??
         Config.defaultBranch(slug);
-    final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(datastore, firestoreService);
+    final buildStatusService = buildStatusProvider(firestoreService);
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null

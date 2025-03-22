@@ -80,7 +80,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
     });
 
@@ -103,7 +103,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       tester.request = FakeHttpRequest();
@@ -121,7 +121,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       tester.request = FakeHttpRequest(
@@ -164,7 +164,7 @@ void main() {
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       tester.request = FakeHttpRequest(
