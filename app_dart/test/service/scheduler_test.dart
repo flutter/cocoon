@@ -178,6 +178,16 @@ void main() {
         ),
       ).thenAnswer((_) async => []);
 
+      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
+      //
+      // This retains the behavior that was setup across the Scheduler before
+      // where no "initial commits" were stored in Datastore.
+      //
+      // ignore: discarded_futures
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
+      });
+
       config = FakeConfig(
         tabledataResource: tabledataResource,
         dbValue: db,
@@ -753,6 +763,13 @@ void main() {
 
       test('does not schedule tasks against non-merged PRs', () async {
         final notMergedPr = generatePullRequest(merged: false);
+
+        // This preserves the behavior before, where the read layer before
+        // went through Datastore, and would check for an existing commit.
+        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+          return Document();
+        });
+
         await scheduler.addPullRequest(notMergedPr);
 
         expect(
@@ -763,9 +780,11 @@ void main() {
       });
 
       test('does not schedule tasks against already added PRs', () async {
-        // Existing commits should not be duplicated.
-        final commit = shaToCommit('1');
-        db.values[commit.key] = commit;
+        // This preserves the behavior before, where the read layer before
+        // went through Datastore, and would check for an existing commit.
+        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+          return Document();
+        });
 
         final alreadyLandedPr = generatePullRequest(headSha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);

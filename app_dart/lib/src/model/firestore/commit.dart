@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:path/path.dart' as p;
@@ -35,14 +37,35 @@ final class Commit extends Document {
     FirestoreService firestore, {
     required String sha,
   }) async {
+    final commit = await tryFromFirestoreBySha(firestore, sha: sha);
+    if (commit == null) {
+      throw StateError('No commit "$sha" found');
+    }
+    return commit;
+  }
+
+  /// Returns [Commit] from [firestore] by the given [sha].
+  ///
+  /// If the commit does not exist, returns `null`.
+  static Future<Commit?> tryFromFirestoreBySha(
+    FirestoreService firestore, {
+    required String sha,
+  }) async {
     final documentName = p.join(
       kDatabase,
       'documents',
       kCommitCollectionId,
       sha,
     );
-    final document = await firestore.getDocument(documentName);
-    return Commit.fromDocument(commitDocument: document);
+    try {
+      final document = await firestore.getDocument(documentName);
+      return Commit.fromDocument(commitDocument: document);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == HttpStatus.notFound) {
+        return null;
+      }
+      rethrow;
+    }
   }
 
   /// Create [Commit] from a Commit Document.

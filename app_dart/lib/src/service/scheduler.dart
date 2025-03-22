@@ -72,7 +72,6 @@ class Scheduler {
   final GithubChecksService githubChecksService;
   final FusionTester fusionTester;
   final CiYamlFetcher _ciYamlFetcher;
-  late DatastoreService datastore;
   LuciBuildService luciBuildService;
 
   Future<StagingConclusion> Function({
@@ -134,7 +133,6 @@ class Scheduler {
   ///   * Schedule tasks listed in its scheduler config
   /// Otherwise, ignore it.
   Future<void> addCommits(List<Commit> commits) async {
-    datastore = datastoreProvider(config.db);
     final newCommits = await _getMissingCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
     for (var commit in newCommits) {
@@ -147,7 +145,7 @@ class Scheduler {
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
   Future<void> addPullRequest(PullRequest pr) async {
-    datastore = datastoreProvider(config.db);
+    final datastore = datastoreProvider(config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged!) {
       log.warn(
@@ -184,7 +182,7 @@ class Scheduler {
       timestamp: pr.mergedAt!.millisecondsSinceEpoch,
     );
 
-    if (await _commitExistsInDatastore(mergedCommit)) {
+    if (await _commitExistsInDatastore(sha: mergedCommit.sha!)) {
       log.debug('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
@@ -262,6 +260,7 @@ class Scheduler {
       log.info(
         'Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}',
       );
+      final datastore = datastoreProvider(config.db);
       await datastore.withTransaction<void>((Transaction transaction) async {
         transaction.queueMutations(inserts: <Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
@@ -334,7 +333,7 @@ class Scheduler {
     commits.sort((Commit a, Commit b) => b.timestamp!.compareTo(a.timestamp!));
     for (var commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
-      if (!await _commitExistsInDatastore(commit)) {
+      if (!await _commitExistsInDatastore(sha: commit.sha!)) {
         newCommits.add(commit);
       }
     }
@@ -345,16 +344,15 @@ class Scheduler {
 
   /// Whether [Commit] already exists in [datastore].
   ///
-  /// Datastore is Cocoon's source of truth for what commits have been scheduled.
-  /// Since webhooks or cron jobs can schedule commits, we must verify a commit
-  /// has not already been scheduled.
-  Future<bool> _commitExistsInDatastore(Commit commit) async {
-    try {
-      await datastore.db.lookupValue<Commit>(commit.key);
-    } on KeyNotFoundException {
-      return false;
-    }
-    return true;
+  /// Firestore is Cocoon's source of truth for what commits have been
+  /// scheduled. Since webhooks or cron jobs can schedule commits, we must
+  /// verify a commit has not already been scheduled.
+  Future<bool> _commitExistsInDatastore({required String sha}) async {
+    final commit = await firestore_commmit.Commit.tryFromFirestoreBySha(
+      await config.createFirestoreService(),
+      sha: sha,
+    );
+    return commit != null;
   }
 
   /// Cancel all incomplete targets against a pull request.
@@ -782,15 +780,12 @@ $s
       'Attempting to read merge group targets from ci.yaml for $headSha',
     );
 
-    final commit = Commit(
-      branch: baseRef.substring('refs/heads/'.length),
-      repository: slug.fullName,
-      sha: headSha,
-    );
-
-    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
-      commit,
-      validate: commit.branch == Config.defaultBranch(commit.slug),
+    final branch = baseRef.substring('refs/heads/'.length);
+    final ciYaml = await _ciYamlFetcher.getCiYaml(
+      slug: slug,
+      commitBranch: baseRef.substring('refs/heads/'.length),
+      commitSha: headSha,
+      validate: branch == Config.defaultBranch(slug),
     );
     log.info(
       'ci.yaml loaded successfully; collecting merge group targets for $headSha',
@@ -913,18 +908,17 @@ $s
     PullRequest pullRequest, {
     CiType type = CiType.any,
   }) async {
-    final commit = Commit(
-      branch: pullRequest.base!.ref,
-      repository: pullRequest.base!.repo!.fullName,
-      sha: pullRequest.head!.sha,
-    );
     log.info(
       'Attempting to read presubmit targets from ci.yaml for ${pullRequest.number}',
     );
 
-    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
-      commit,
-      validate: commit.branch == Config.defaultBranch(commit.slug),
+    final branch = pullRequest.base!.ref!;
+    final slug = pullRequest.base!.repo!.slug();
+    final ciYaml = await _ciYamlFetcher.getCiYaml(
+      commitBranch: branch,
+      commitSha: pullRequest.head!.sha!,
+      slug: pullRequest.base!.repo!.slug(),
+      validate: branch == Config.defaultBranch(slug),
     );
 
     log.info('ci.yaml loaded successfully.');
@@ -1481,7 +1475,7 @@ $stacktrace
             final sha = checkRunEvent.checkRun!.headSha!;
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
-            datastore = datastoreProvider(config.db);
+            final datastore = datastoreProvider(config.db);
             final commitKey = Commit.createKey(
               db: datastore.db,
               slug: slug,
