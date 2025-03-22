@@ -7,6 +7,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -65,29 +66,6 @@ void main() {
     config.githubClient = mockGitHubClient;
   });
 
-  test(
-    'Requests without repo_owner and repo_name do not update checks',
-    () async {
-      tester.message = createPushMessage(
-        Int64(1),
-        status: bbv2.Status.SUCCESS,
-        builder: 'Linux Host Engine',
-        addBuildSet: false,
-      );
-
-      await tester.post(handler);
-
-      verifyNever(
-        mockGithubChecksService.updateCheckStatus(
-          build: anyNamed('build'),
-          checkRunId: anyNamed('checkRunId'),
-          luciBuildService: anyNamed('luciBuildService'),
-          slug: anyNamed('slug'),
-        ),
-      );
-    },
-  );
-
   test('Requests with repo_owner and repo_name update checks', () async {
     when(
       mockGithubChecksService.updateCheckStatus(
@@ -100,17 +78,17 @@ void main() {
 
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
 
-    const userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'repo_name': 'cocoon',
-      'check_run_id': 1,
-    };
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux Host Engine',
-      userData: userDataMap,
+      userData: PresubmitUserData(
+        repoOwner: 'flutter',
+        repoName: 'flutter',
+        commitBranch: 'master',
+        commitSha: 'abc',
+        checkRunId: 1,
+      ),
     );
 
     await tester.post(handler);
@@ -135,19 +113,18 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'commit_branch': 'master',
-      'commit_sha': 'abc',
-      'repo_name': 'flutter',
-      'check_run_id': 1,
-    };
-
+    final userData = PresubmitUserData(
+      repoOwner: 'flutter',
+      repoName: 'flutter',
+      commitBranch: 'master',
+      commitSha: 'abc',
+      checkRunId: 1,
+    );
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: userData,
     );
 
     final buildsPubSub = createBuild(
@@ -162,7 +139,7 @@ void main() {
         build: buildsPubSub.build,
         builderName: 'Linux Coverage',
         nextAttempt: 0,
-        userDataMap: userDataMap,
+        userData: userData,
       ),
     );
     verify(
@@ -187,19 +164,17 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'commit_branch': 'master',
-      'commit_sha': 'abc',
-      'repo_name': 'flutter',
-      'check_run_id': 1,
-    };
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux presubmit_max_attempts=2',
-      userData: userDataMap,
+      userData: PresubmitUserData(
+        repoOwner: 'flutter',
+        repoName: 'flutter',
+        commitBranch: 'master',
+        commitSha: 'abc',
+        checkRunId: 1,
+      ),
     );
     await tester.post(handler);
 
@@ -226,19 +201,17 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'commit_branch': 'master',
-      'commit_sha': 'abc',
-      'repo_name': 'flutter',
-      'check_run_id': 1,
-    };
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.INFRA_FAILURE,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: PresubmitUserData(
+        repoOwner: 'flutter',
+        repoName: 'flutter',
+        commitBranch: 'master',
+        commitSha: 'abc',
+        checkRunId: 1,
+      ),
       // Merge queue should get extra requeues by default, even without presubmit_max_attempts > 1.
       extraTags: [InMergeQueueBuildTag().toStringPair()],
     );
@@ -248,7 +221,7 @@ void main() {
         build: anyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),
-        userDataMap: anyNamed('userDataMap'),
+        userData: anyNamed('userData'),
       ),
     ).thenAnswer(
       (_) async => bbv2.Build(
@@ -278,7 +251,7 @@ void main() {
         build: anyNamed('build'),
         builderName: 'Linux A',
         nextAttempt: 2,
-        userDataMap: anyNamed('userDataMap'),
+        userData: anyNamed('userData'),
       ),
     ).called(1);
     verify(
@@ -303,21 +276,20 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    // when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
-    const userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'commit_branch': 'master',
-      'commit_sha': 'abc',
-      'repo_name': 'flutter',
-      'check_run_id': 1,
-    };
+    final userData = PresubmitUserData(
+      repoOwner: 'flutter',
+      repoName: 'flutter',
+      commitSha: 'abc',
+      commitBranch: 'master',
+      checkRunId: 1,
+    );
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
-      userData: userDataMap,
+      userData: userData,
     );
 
     final buildsPubSub = createBuild(
@@ -331,7 +303,7 @@ void main() {
       mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux C',
-        userDataMap: userDataMap,
+        userData: userData,
         nextAttempt: 1,
       ),
     );
@@ -357,21 +329,19 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-    //  when(mockGithubChecksService.currentAttempt(any)).thenAnswer((_) => 1);
 
-    final userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'commit_branch': Config.defaultBranch(Config.flutterSlug),
-      'commit_sha': 'abc',
-      'repo_name': 'flutter',
-      'check_run_id': 1,
-    };
-
+    final userData = PresubmitUserData(
+      repoOwner: 'flutter',
+      repoName: 'flutter',
+      checkRunId: 1,
+      commitSha: 'abc',
+      commitBranch: Config.defaultBranch(Config.flutterSlug),
+    );
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux C',
-      userData: userDataMap,
+      userData: userData,
     );
 
     final buildsPubSub = createBuild(
@@ -385,7 +355,7 @@ void main() {
       mockLuciBuildService.reschedulePresubmitBuild(
         build: buildsPubSub.build,
         builderName: 'Linux C',
-        userDataMap: userDataMap,
+        userData: userData,
         nextAttempt: 1,
       ),
     );
@@ -412,19 +382,17 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
-    const userDataMap = <String, dynamic>{
-      'repo_owner': 'flutter',
-      'commit_branch': 'master',
-      'commit_sha': 'abc',
-      'repo_name': 'flutter',
-      'check_run_id': 1,
-    };
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux presubmit_max_attempts=2',
-      userData: userDataMap,
+      userData: PresubmitUserData(
+        repoOwner: 'flutter',
+        repoName: 'flutter',
+        checkRunId: 1,
+        commitSha: 'abc',
+        commitBranch: 'master',
+      ),
     );
 
     when(
@@ -432,7 +400,7 @@ void main() {
         build: captureAnyNamed('build'),
         builderName: anyNamed('builderName'),
         nextAttempt: anyNamed('nextAttempt'),
-        userDataMap: anyNamed('userDataMap'),
+        userData: anyNamed('userData'),
       ),
     ).thenAnswer((_) async {
       return bbv2.Build(
@@ -464,7 +432,7 @@ void main() {
                 build: captureAnyNamed('build'),
                 builderName: anyNamed('builderName'),
                 nextAttempt: anyNamed('nextAttempt'),
-                userDataMap: anyNamed('userDataMap'),
+                userData: anyNamed('userData'),
               ),
             ).captured[0]
             as bbv2.Build;

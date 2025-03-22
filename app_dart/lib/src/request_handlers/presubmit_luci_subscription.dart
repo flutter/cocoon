@@ -13,7 +13,6 @@ import 'package:meta/meta.dart';
 import '../model/appengine/commit.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/luci/user_data.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
@@ -21,6 +20,7 @@ import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
+import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -96,47 +96,30 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    var userDataMap = <String, dynamic>{};
-    try {
-      userDataMap =
-          json.decode(String.fromCharCodes(pubSubCallBack.userData))
-              as Map<String, dynamic>;
-      log.info('User data was not base64 encoded.');
-    } on FormatException {
-      userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      log.info('Decoding base64 encoded user data.');
-    }
-
-    if (userDataMap.containsKey('repo_owner') &&
-        userDataMap.containsKey('repo_name')) {
-      final slug = RepositorySlug(
-        userDataMap['repo_owner'] as String,
-        userDataMap['repo_name'] as String,
-      );
-
+    final preUserData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
+    if (githubChecksService.taskFailed(build.status)) {
       var rescheduled = false;
-      if (githubChecksService.taskFailed(build.status)) {
-        final currentAttempt = _nextAttempt(tagSet);
-        final maxAttempt = await _getMaxAttempt(
-          slug,
-          builderName,
-          tagSet,
-          commitBranch: userDataMap['commit_branch'] as String,
-          commitSha: userDataMap['commit_sha'] as String,
+      final slug = RepositorySlug(preUserData.repoOwner, preUserData.repoName);
+      final currentAttempt = _nextAttempt(tagSet);
+      final maxAttempt = await _getMaxAttempt(
+        slug,
+        builderName,
+        tagSet,
+        commitBranch: preUserData.commitBranch,
+        commitSha: preUserData.commitSha,
+      );
+      if (currentAttempt < maxAttempt) {
+        rescheduled = true;
+        log.info('Rerunning failed task: $builderName');
+        await luciBuildService.reschedulePresubmitBuild(
+          builderName: builderName,
+          build: build,
+          nextAttempt: currentAttempt + 1,
+          userData: preUserData,
         );
-        if (currentAttempt < maxAttempt) {
-          rescheduled = true;
-          log.info('Rerunning failed task: $builderName');
-          await luciBuildService.reschedulePresubmitBuild(
-            builderName: builderName,
-            build: build,
-            nextAttempt: currentAttempt + 1,
-            userDataMap: userDataMap,
-          );
-        }
       }
       await githubChecksService.updateCheckStatus(
-        checkRunId: userDataMap['check_run_id'] as int,
+        checkRunId: preUserData.checkRunId,
         build: build,
         luciBuildService: luciBuildService,
         slug: slug,

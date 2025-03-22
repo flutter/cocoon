@@ -23,7 +23,6 @@ import '../model/firestore/commit.dart' as firestore_commit;
 import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../model/github/checks.dart' as cocoon_checks;
-import '../model/luci/user_data.dart';
 import '../service/datastore.dart';
 import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
@@ -31,6 +30,7 @@ import 'luci_build_service/cipd_version.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/firestore_task_document_name.dart';
 import 'luci_build_service/pending_task.dart';
+import 'luci_build_service/user_data.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to
@@ -288,13 +288,13 @@ class LuciBuildService {
       checkRuns.add(checkRun);
 
       final slug = pullRequest.base!.repo!.slug();
-
-      final userData = <String, dynamic>{
-        'builder_name': target.value.name,
-        'check_run_id': checkRun.id,
-        'commit_sha': commitSha,
-        'commit_branch': pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-      };
+      final userData = PresubmitUserData(
+        repoOwner: slug.owner,
+        repoName: slug.name,
+        commitSha: commitSha,
+        commitBranch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        checkRunId: checkRun.id!,
+      );
 
       final properties = target.getProperties();
       properties.putIfAbsent(
@@ -504,7 +504,7 @@ class LuciBuildService {
     required String builderName,
     required bbv2.Build build,
     required int nextAttempt,
-    required Map<String, dynamic> userDataMap,
+    required PresubmitUserData userData,
   }) async {
     final tags = BuildTags.fromStringPairs(build.tags);
     tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: nextAttempt));
@@ -515,7 +515,7 @@ class LuciBuildService {
       properties: build.input.properties,
       notify: bbv2.NotificationConfig(
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
-        userData: UserData.encodeUserDataToBytes(userDataMap),
+        userData: userData.toBytes(),
       ),
     );
     if (build.input.hasGitilesCommit()) {
@@ -801,16 +801,11 @@ class LuciBuildService {
     required String checkName,
     required int pullRequestNumber,
     required CipdVersion cipdVersion,
+    required PresubmitUserData userData,
     Map<String, Object?>? properties,
     BuildTags? tags,
-    Map<String, dynamic>? userData,
     List<bbv2.RequestedDimension>? dimensions,
   }) {
-    final processedUserData = userData ?? <String, dynamic>{};
-    processedUserData['repo_owner'] = slug.owner;
-    processedUserData['repo_name'] = slug.name;
-    processedUserData['user_agent'] = 'flutter-cocoon';
-
     final builderId = bbv2.BuilderID.create();
     builderId.bucket = 'try';
     builderId.project = 'flutter';
@@ -837,8 +832,7 @@ class LuciBuildService {
     final notificationConfig = bbv2.NotificationConfig().createEmptyInstance();
     notificationConfig.pubsubTopic =
         'projects/flutter-dashboard/topics/build-bucket-presubmit';
-    notificationConfig.userData =
-        UserData.encodeUserDataToBytes(processedUserData)!;
+    notificationConfig.userData = userData.toBytes();
     scheduleBuildRequest.notify = notificationConfig;
 
     // If we received initial tags, create a defensive copy, otherwise create an empty list.
@@ -899,15 +893,13 @@ class LuciBuildService {
     log.info('Task commit_key: $commitKey for task name: ${task.name}');
     log.info('Task task_key: $taskKey for task name: ${task.name}');
 
-    final rawUserData = <String, dynamic>{
-      'commit_key': commitKey,
-      'task_key': taskKey,
-    };
-
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
+    final CheckRun? checkRun;
     if (!target.value.bringup &&
         config.postsubmitSupportedRepos.contains(target.slug)) {
-      await createPostsubmitCheckRun(commit, target, rawUserData);
+      checkRun = await createPostsubmitCheckRun(commit, target);
+    } else {
+      checkRun = null;
     }
 
     tags.addOrReplace(UserAgentBuildTag.flutterCocoon);
@@ -921,7 +913,12 @@ class LuciBuildService {
       taskName: task.name!,
       currentAttempt: currentAttempt.attemptNumber,
     );
-    rawUserData['firestore_task_document_name'] = firestoreTask.documentName;
+    final userData = PostsubmitUserData(
+      commitKey: commitKey,
+      taskKey: taskKey,
+      firestoreTaskDocumentName: firestoreTask,
+      checkRunId: checkRun?.id,
+    );
 
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties.addAll(properties ?? <String, Object?>{});
@@ -966,7 +963,7 @@ class LuciBuildService {
       notify: bbv2.NotificationConfig(
         pubsubTopic:
             'projects/flutter-dashboard/topics/build-bucket-postsubmit',
-        userData: UserData.encodeUserDataToBytes(rawUserData),
+        userData: userData.toBytes(),
       ),
       tags: tags.toStringPairs(),
       properties: propertiesStruct,
@@ -988,10 +985,14 @@ class LuciBuildService {
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
 
-    final rawUserData = <String, dynamic>{};
-
-    await createPostsubmitCheckRun(commit, target, rawUserData);
-
+    final checkRun = await createPostsubmitCheckRun(commit, target);
+    final preUserData = PresubmitUserData(
+      checkRunId: checkRun.id!,
+      repoOwner: target.slug.owner,
+      repoName: target.slug.name,
+      commitBranch: commit.branch!,
+      commitSha: commit.sha!,
+    );
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties['git_branch'] = commit.branch!;
 
@@ -1031,7 +1032,7 @@ class LuciBuildService {
         // IMPORTANT: We're not post-submit yet, so we want to handle updates to
         // the MQ differently.
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
-        userData: UserData.encodeUserDataToBytes(rawUserData),
+        userData: preUserData.toBytes(),
       ),
       tags:
           BuildTags([
@@ -1051,26 +1052,20 @@ class LuciBuildService {
   }
 
   /// Creates postsubmit check runs for prod targets in supported repositories.
-  Future<void> createPostsubmitCheckRun(
+  @useResult
+  Future<CheckRun> createPostsubmitCheckRun(
     Commit commit,
     Target target,
-    Map<String, dynamic> rawUserData,
   ) async {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
     // there is no PR to look up later. The check run is important because it
     // informs the staging document setup for Merge Groups in triggerMergeGroupTargets.
-    final checkRun = await githubChecksUtil.createCheckRun(
+    return githubChecksUtil.createCheckRun(
       config,
       target.slug,
       commit.sha!,
       target.value.name,
     );
-    rawUserData['check_run_id'] = checkRun.id;
-    rawUserData['commit_sha'] = commit.sha;
-    rawUserData['commit_branch'] = commit.branch;
-    rawUserData['builder_name'] = target.value.name;
-    rawUserData['repo_owner'] = target.slug.owner;
-    rawUserData['repo_name'] = target.slug.name;
   }
 
   /// Check to auto-rerun TOT test failures.

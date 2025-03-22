@@ -17,11 +17,12 @@ import 'package:cocoon_service/src/model/firestore/commit.dart'
     as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
-import 'package:cocoon_service/src/model/luci/user_data.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
+import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
@@ -419,19 +420,20 @@ void main() {
         'projects/flutter-dashboard/topics/build-bucket-presubmit',
       );
 
-      final userDataMap = UserData.decodeUserDataBytes(
+      final userData = PresubmitUserData.fromBytes(
         scheduleBuild.notify.userData,
       );
 
-      expect(userDataMap, <String, dynamic>{
-        'repo_owner': 'flutter',
-        'repo_name': 'flutter',
-        'user_agent': 'flutter-cocoon',
-        'check_run_id': 1,
-        'commit_sha': 'abc',
-        'commit_branch': 'master',
-        'builder_name': 'Linux 1',
-      });
+      expect(
+        userData,
+        PresubmitUserData(
+          repoOwner: 'flutter',
+          repoName: 'flutter',
+          commitSha: 'abc',
+          checkRunId: 1,
+          commitBranch: 'master',
+        ),
+      );
 
       final properties = scheduleBuild.properties.fields;
       final dimensions = scheduleBuild.dimensions;
@@ -521,19 +523,19 @@ void main() {
         'projects/flutter-dashboard/topics/build-bucket-presubmit',
       );
 
-      final userDataMap = UserData.decodeUserDataBytes(
+      final userData = PresubmitUserData.fromBytes(
         scheduleBuild.notify.userData,
       );
-
-      expect(userDataMap, <String, dynamic>{
-        'repo_owner': 'flutter',
-        'repo_name': 'flutter',
-        'user_agent': 'flutter-cocoon',
-        'check_run_id': 1,
-        'commit_sha': 'abc',
-        'commit_branch': 'master',
-        'builder_name': 'Linux 1',
-      });
+      expect(
+        userData,
+        PresubmitUserData(
+          repoOwner: 'flutter',
+          repoName: 'flutter',
+          commitSha: 'abc',
+          checkRunId: 1,
+          commitBranch: 'master',
+        ),
+      );
 
       final properties = scheduleBuild.properties.fields;
       final dimensions = scheduleBuild.dimensions;
@@ -722,19 +724,19 @@ void main() {
         'projects/flutter-dashboard/topics/build-bucket-presubmit',
       );
 
-      final userDataMap = UserData.decodeUserDataBytes(
+      final userData = PresubmitUserData.fromBytes(
         scheduleBuild.notify.userData,
       );
-
-      expect(userDataMap, <String, dynamic>{
-        'repo_owner': 'flutter',
-        'repo_name': 'flutter',
-        'user_agent': 'flutter-cocoon',
-        'check_run_id': 1,
-        'commit_sha': 'abc',
-        'commit_branch': 'master',
-        'builder_name': 'Linux 1',
-      });
+      expect(
+        userData,
+        PresubmitUserData(
+          repoOwner: 'flutter',
+          repoName: 'flutter',
+          commitSha: 'abc',
+          checkRunId: 1,
+          commitBranch: 'master',
+        ),
+      );
 
       final properties = scheduleBuild.properties.fields;
       final dimensions = scheduleBuild.dimensions;
@@ -821,19 +823,19 @@ void main() {
           'projects/flutter-dashboard/topics/build-bucket-presubmit',
         );
 
-        final userDataMap = UserData.decodeUserDataBytes(
+        final userData = PresubmitUserData.fromBytes(
           scheduleBuild.notify.userData,
         );
-
-        expect(userDataMap, <String, dynamic>{
-          'repo_owner': 'flutter',
-          'repo_name': 'flutter',
-          'user_agent': 'flutter-cocoon',
-          'check_run_id': 1,
-          'commit_sha': 'abc',
-          'commit_branch': 'master',
-          'builder_name': 'Linux 1',
-        });
+        expect(
+          userData,
+          PresubmitUserData(
+            repoOwner: 'flutter',
+            repoName: 'flutter',
+            commitSha: 'abc',
+            checkRunId: 1,
+            commitBranch: 'master',
+          ),
+        );
 
         final properties = scheduleBuild.properties.fields;
         final dimensions = scheduleBuild.dimensions;
@@ -897,19 +899,19 @@ void main() {
         'projects/flutter-dashboard/topics/build-bucket-presubmit',
       );
 
-      final userDataMap = UserData.decodeUserDataBytes(
+      final userData = PresubmitUserData.fromBytes(
         scheduleBuild.notify.userData,
       );
-
-      expect(userDataMap, <String, dynamic>{
-        'repo_owner': 'flutter',
-        'repo_name': 'flutter',
-        'user_agent': 'flutter-cocoon',
-        'check_run_id': 1,
-        'commit_sha': 'abc',
-        'commit_branch': 'master',
-        'builder_name': 'Linux 1',
-      });
+      expect(
+        userData,
+        PresubmitUserData(
+          repoOwner: 'flutter',
+          repoName: 'flutter',
+          commitSha: 'abc',
+          checkRunId: 1,
+          commitBranch: 'master',
+        ),
+      );
 
       final properties = scheduleBuild.properties.fields;
       final dimensions = scheduleBuild.dimensions;
@@ -1073,21 +1075,20 @@ void main() {
         'projects/flutter-dashboard/topics/build-bucket-postsubmit',
       );
 
-      final userDataMap = UserData.decodeUserDataBytes(
+      final userData = PostsubmitUserData.fromBytes(
         scheduleBuild.notify.userData,
       );
-
-      expect(userDataMap, <String, dynamic>{
-        'commit_key': 'flutter/flutter/master/1',
-        'task_key': '1',
-        'check_run_id': 1,
-        'commit_sha': '0',
-        'commit_branch': 'master',
-        'builder_name': 'Linux 1',
-        'repo_owner': 'flutter',
-        'repo_name': 'packages',
-        'firestore_task_document_name': '0_task1_1',
-      });
+      expect(
+        userData,
+        PostsubmitUserData(
+          commitKey: 'flutter/flutter/master/1',
+          taskKey: '1',
+          firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
+            '0_task1_1',
+          ),
+          checkRunId: 1,
+        ),
+      );
 
       final properties = scheduleBuild.properties.fields;
       expect(properties, <String, bbv2.Value>{
@@ -1172,21 +1173,20 @@ void main() {
           'projects/flutter-dashboard/topics/build-bucket-postsubmit',
         );
 
-        final userDataMap = UserData.decodeUserDataBytes(
+        final userData = PostsubmitUserData.fromBytes(
           scheduleBuild.notify.userData,
         );
-
-        expect(userDataMap, <String, dynamic>{
-          'commit_key': 'flutter/flutter/master/1',
-          'task_key': '1',
-          'check_run_id': 1,
-          'commit_sha': '0',
-          'commit_branch': 'master',
-          'builder_name': 'Linux 1',
-          'repo_owner': 'flutter',
-          'repo_name': 'packages',
-          'firestore_task_document_name': '0_task1_1',
-        });
+        expect(
+          userData,
+          PostsubmitUserData(
+            commitKey: 'flutter/flutter/master/1',
+            taskKey: '1',
+            firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
+              '0_task1_1',
+            ),
+            checkRunId: 1,
+          ),
+        );
 
         final properties = scheduleBuild.properties.fields;
         expect(properties, <String, bbv2.Value>{
@@ -1264,21 +1264,20 @@ void main() {
           'projects/flutter-dashboard/topics/build-bucket-postsubmit',
         );
 
-        final userData = UserData.decodeUserDataBytes(
+        final userData = PostsubmitUserData.fromBytes(
           scheduleBuild.notify.userData,
         );
-
-        expect(userData, <String, dynamic>{
-          'commit_key': 'flutter/flutter/master/1',
-          'task_key': '1',
-          'check_run_id': 1,
-          'commit_sha': '0',
-          'commit_branch': 'master',
-          'builder_name': 'Linux 1',
-          'repo_owner': 'flutter',
-          'repo_name': 'packages',
-          'firestore_task_document_name': '0_task1_1',
-        });
+        expect(
+          userData,
+          PostsubmitUserData(
+            commitKey: 'flutter/flutter/master/1',
+            taskKey: '1',
+            firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
+              '0_task1_1',
+            ),
+            checkRunId: 1,
+          ),
+        );
       },
     );
 
@@ -1451,15 +1450,20 @@ void main() {
           scheduleBuild.notify.pubsubTopic,
           'projects/flutter-dashboard/topics/build-bucket-postsubmit',
         );
-        final userData = UserData.decodeUserDataBytes(
+        final userData = PostsubmitUserData.fromBytes(
           scheduleBuild.notify.userData,
         );
-        // No check run related data.
-        expect(userData, <String, dynamic>{
-          'commit_key': 'flutter/packages/master/0',
-          'task_key': '1',
-          'firestore_task_document_name': '0_task1_1',
-        });
+        expect(
+          userData,
+          PostsubmitUserData(
+            commitKey: 'flutter/flutter/master/1',
+            taskKey: '1',
+            firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
+              '0_task1_1',
+            ),
+            checkRunId: null,
+          ),
+        );
       },
     );
 
@@ -1691,7 +1695,13 @@ void main() {
         builderName: 'mybuild',
         build: rescheduleBuild.build,
         nextAttempt: 2,
-        userDataMap: {},
+        userData: PresubmitUserData(
+          repoOwner: 'flutter',
+          repoName: 'flutter',
+          commitBranch: 'master',
+          commitSha: 'abc123',
+          checkRunId: 1234,
+        ),
       );
       expect(build.id, Int64(1));
       expect(build.status, bbv2.Status.SUCCESS);
@@ -1727,7 +1737,13 @@ void main() {
         builderName: 'mybuild',
         build: rescheduleBuild.build,
         nextAttempt: 2,
-        userDataMap: {},
+        userData: PresubmitUserData(
+          repoOwner: 'flutter',
+          repoName: 'flutter',
+          commitBranch: 'master',
+          commitSha: 'abc123',
+          checkRunId: 1234,
+        ),
       );
       expect(build.id, Int64(1));
       expect(build.status, bbv2.Status.SUCCESS);
@@ -2216,17 +2232,19 @@ void main() {
           contains(bbv2.StringPair(key: 'in_merge_queue', value: 'true')),
         );
 
-        final userDataMap = UserData.decodeUserDataBytes(
+        final userData = PresubmitUserData.fromBytes(
           scheduleBuild.notify.userData,
         );
-        expect(userDataMap, <String, dynamic>{
-          'repo_owner': 'flutter',
-          'repo_name': 'flutter',
-          'check_run_id': 1,
-          'commit_sha': 'abc1234',
-          'commit_branch': 'gh-readonly-queue/master/pr-1234-abcd',
-          'builder_name': builderName,
-        });
+        expect(
+          userData,
+          PresubmitUserData(
+            repoOwner: 'flutter',
+            repoName: 'flutter',
+            checkRunId: 1,
+            commitSha: 'abc1234',
+            commitBranch: 'gh-readonly-queue/master/pr-1234-abcd',
+          ),
+        );
 
         final properties = scheduleBuild.properties.fields;
         final dimensions = scheduleBuild.dimensions;

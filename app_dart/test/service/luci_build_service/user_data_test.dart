@@ -21,7 +21,7 @@ void main() {
 
   group('PresubmitUserData', () {
     test('should encode to JSON', () {
-      const userData = PresubmitUserData(
+      final userData = PresubmitUserData(
         checkRunId: 1234,
         commitSha: 'abc123',
         commitBranch: 'main',
@@ -46,7 +46,7 @@ void main() {
           'repo_owner': 'repo-owner',
           'repo_name': 'repo-name',
         }),
-        const PresubmitUserData(
+        PresubmitUserData(
           checkRunId: 1234,
           commitSha: 'abc123',
           commitBranch: 'main',
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('should encode/decode to bytes', () {
-      const userData = PresubmitUserData(
+      final userData = PresubmitUserData(
         checkRunId: 1234,
         commitSha: 'abc123',
         commitBranch: 'main',
@@ -80,7 +80,7 @@ void main() {
     });
 
     test('should for legacy, support base64 encoded JSON strings', () {
-      const userData = PresubmitUserData(
+      final userData = PresubmitUserData(
         checkRunId: 1234,
         commitSha: 'abc123',
         commitBranch: 'main',

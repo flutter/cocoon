@@ -72,7 +72,7 @@ sealed class BuildBucketUserData {
 /// Represents the data passed to Buildbucket as part of a presubmit build.
 @JsonSerializable(checked: true)
 final class PresubmitUserData extends BuildBucketUserData {
-  const PresubmitUserData({
+  PresubmitUserData({
     required this.repoOwner,
     required this.repoName,
     required this.commitBranch,
@@ -127,7 +127,7 @@ final class PresubmitUserData extends BuildBucketUserData {
 /// Represents the data passed to Buildbucket as part of a postsubmit build.
 @JsonSerializable(checked: true, includeIfNull: false)
 final class PostsubmitUserData extends BuildBucketUserData {
-  const PostsubmitUserData({
+  PostsubmitUserData({
     required this.checkRunId,
     required this.taskKey,
     required this.commitKey,
