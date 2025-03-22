@@ -783,8 +783,10 @@ void main() {
         // This preserves the behavior before, where the read layer before
         // went through Datastore, and would check for an existing commit.
         when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-          return Document();
+          return generateFirestoreCommit(1);
         });
+        final commit = shaToCommit('1');
+        db.values[commit.key] = commit;
 
         final alreadyLandedPr = generatePullRequest(headSha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);
