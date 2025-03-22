@@ -73,7 +73,7 @@ void main() {
         authenticationProvider: FakeAuthenticationProvider(
           clientContext: clientContext,
         ),
-        buildStatusServiceProvider: (_, _) => buildStatusService,
+        buildStatusServiceProvider: (_) => buildStatusService,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 

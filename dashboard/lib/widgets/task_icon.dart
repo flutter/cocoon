@@ -31,16 +31,11 @@ class TaskIcon extends StatelessWidget {
     // different assets.
     final blendFilter = brightness == Brightness.dark ? Colors.white : null;
 
-    if (qualifiedTask.isGoogleTest) {
-      return Image.asset('assets/googleLogo.png', color: blendFilter);
-    }
-
-    if (qualifiedTask.task == null ||
-        !(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
+    if (!(qualifiedTask.isLuci || qualifiedTask.isDartInternal)) {
       return Icon(Icons.help, color: blendFilter);
     }
 
-    final matchedName = qualifiedTask.task!.toLowerCase();
+    final matchedName = qualifiedTask.task.toLowerCase();
     final isWebTest =
         matchedName.contains('_web') || matchedName.contains('web_');
     final isToolTest =
@@ -92,10 +87,10 @@ class TaskIcon extends StatelessWidget {
       data: IconThemeData(size: TaskBox.of(context) - 5),
       child: InkWell(
         onTap: () async {
-          await launchUrl(Uri.parse(qualifiedTask.sourceConfigurationUrl));
+          await launchUrl(qualifiedTask.sourceConfigurationUrl);
         },
         child: Tooltip(
-          message: '${qualifiedTask.task} (${qualifiedTask.stage})',
+          message: qualifiedTask.task,
           child: Align(alignment: Alignment.bottomCenter, child: icon),
         ),
       ),

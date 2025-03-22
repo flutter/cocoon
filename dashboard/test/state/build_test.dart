@@ -729,13 +729,13 @@ CommitStatus _createCommitStatus(
   String repo = 'flutter',
 }) {
   return CommitStatus(
-    branch: branch,
     commit:
         Commit()
           // Author is set so we don't have to dig through all the nested fields
           // while debugging
           ..author = keyValue
-          ..repository = 'flutter/$repo',
+          ..repository = 'flutter/$repo'
+          ..branch = branch,
     tasks: [],
   );
 }

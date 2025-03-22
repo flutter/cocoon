@@ -413,7 +413,7 @@ class BuildState extends ChangeNotifier {
     assert(statuses.isNotEmpty);
 
     final exampleStatus = statuses.first;
-    return exampleStatus.branch == _currentBranch;
+    return exampleStatus.commit.branch == _currentBranch;
   }
 
   @override

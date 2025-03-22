@@ -197,7 +197,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// Check the values in the [QualifiedTask] for compatibility with the
   /// properties of this filter and return [true] iff the commit column should be displayed.
   bool matchesTask(QualifiedTask qualifiedTask) {
-    if (!_taskProperty.matches(qualifiedTask.task!)) {
+    if (!_taskProperty.matches(qualifiedTask.task)) {
       return false;
     }
 
@@ -219,8 +219,7 @@ class TaskGridFilter extends FilterPropertySource {
     });
     return orderedOSFilter.entries
             .firstWhereOrNull(
-              (MapEntry<String, bool> os) =>
-                  qualifiedTask.task!.toLowerCase().contains(os.key),
+              (os) => qualifiedTask.task.toLowerCase().contains(os.key),
             )
             ?.value ??
         true; // Unrecognized stages always pass.

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -36,7 +37,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
           onPressed: () async {
-            if (task.stageName == 'dart-internal') {
+            if (isTaskFromDartInternalBuilder(builderName: task.builderName)) {
               await launchUrl(
                 _dartInternalLogUrl(task.builderName, buildNumberList[i]),
               );

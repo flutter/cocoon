@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -70,13 +71,7 @@ class DartInternalSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    // Only publish the parent release_builder builds to the datastore.
-    // TODO(drewroengoogle): Remove this regex in favor of supporting *all* dart-internal build results.
-    // Issue: https://github.com/flutter/flutter/issues/134674
-    final regex = RegExp(
-      r'(Linux|Mac|Windows)\s+(engine_release_builder|packaging_release_builder|flutter_release_builder)',
-    );
-    if (!regex.hasMatch(builder)) {
+    if (!isTaskFromDartInternalBuilder(builderName: builder)) {
       log.info('Ignoring builder that is not a release builder');
       return Body.empty;
     }

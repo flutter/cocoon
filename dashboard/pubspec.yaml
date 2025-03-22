@@ -11,6 +11,8 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
+  cocoon_common:
+    path: ../packages/cocoon_common
   collection: any # Match Flutter SDK
   firebase_core: 3.12.1 # Rolled by dependabot
   firebase_crashlytics: 4.3.4 # Rolled by dependabot

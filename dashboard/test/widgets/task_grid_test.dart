@@ -8,7 +8,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
-import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
@@ -20,7 +19,6 @@ import 'package:flutter_dashboard/widgets/lattice.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_dashboard/widgets/task_grid.dart';
-import 'package:flutter_dashboard/widgets/task_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';
@@ -396,33 +394,38 @@ void main() {
 
     final statusesWithSkips = [
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusSucceeded,
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSucceeded,
@@ -462,22 +465,26 @@ void main() {
 
     final statuses = [
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = StageName.cocoon
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = StageName.luci
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
@@ -508,57 +515,19 @@ void main() {
     expect(lattice.cells[1].length, 2);
   });
 
-  testWidgets('TaskGrid creates a task icon row and they line up', (
-    WidgetTester tester,
-  ) async {
-    final commitStatuses = [
-      CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
-        tasks: [
-          Task()
-            ..name = 'Task Name'
-            ..builderName = 'Task Name'
-            ..stageName = 'Stage Nome 1'
-            ..status = TaskBox.statusSucceeded,
-          Task()
-            ..name = 'Task Name'
-            ..builderName = 'Task Name'
-            ..stageName = 'Stage Nome 2'
-            ..status = TaskBox.statusFailed,
-        ],
-      ),
-    ];
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Material(
-          child: TaskGrid(
-            buildState: FakeBuildState(),
-            commitStatuses: commitStatuses,
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TaskIcon), findsNWidgets(2));
-    expect(
-      tester.getTopLeft(find.byType(TaskIcon).at(0)).dy,
-      tester.getTopLeft(find.byType(TaskIcon).at(1)).dy,
-    );
-  });
-
   testWidgets('TaskGrid honors moreStatusesExist', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
     final commitStatuses = <CommitStatus>[
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
             ..name = 'Task Name'
             ..name = 'Task Name'
-            ..stageName = 'Stage Nome'
             ..status = TaskBox.statusSucceeded,
         ],
       ),
@@ -612,11 +581,13 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 2,
                 ],
@@ -637,11 +608,13 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
                     ..attempts = 1,
                 ],
@@ -667,14 +640,15 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
-                    ..attempts = 1
-                    ..isTestFlaky = true,
+                    ..attempts = 2,
                 ],
               ),
             ],
@@ -693,14 +667,15 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit: Commit()..author = 'Cast',
-                branch: 'master',
+                commit:
+                    Commit()
+                      ..author = 'Cast'
+                      ..branch = 'master',
+
                 tasks: [
                   Task()
-                    ..stageName = 'A'
                     ..status = 'Succeeded'
-                    ..attempts = 1
-                    ..isTestFlaky = false,
+                    ..attempts = 1,
                 ],
               ),
             ],
@@ -716,21 +691,17 @@ void main() {
     (WidgetTester tester) async {
       final taskA3 =
           Task()
-            ..stageName = 'A'
             ..builderName = '1'
             ..name = 'A'
             ..status = TaskBox.statusSucceeded
-            ..attempts = 3
-            ..isTestFlaky = true;
+            ..attempts = 3;
 
       final taskB1 =
           Task()
-            ..stageName = 'B'
             ..builderName = '2'
             ..name = 'B'
             ..status = TaskBox.statusSucceeded
-            ..attempts = 1
-            ..isTestFlaky = false;
+            ..attempts = 1;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -742,13 +713,19 @@ void main() {
               ),
               commitStatuses: [
                 CommitStatus(
-                  commit: Commit()..author = 'Cast',
-                  branch: 'master',
+                  commit:
+                      Commit()
+                        ..author = 'Cast'
+                        ..branch = 'master',
+
                   tasks: [taskA3],
                 ),
                 CommitStatus(
-                  commit: Commit()..author = 'Cast',
-                  branch: 'master',
+                  commit:
+                      Commit()
+                        ..author = 'Cast'
+                        ..branch = 'master',
+
                   tasks: [taskB1],
                 ),
               ],
@@ -768,8 +745,8 @@ void main() {
       final myCells = cells.first;
       expect(myCells.length, 3);
       myCells.removeAt(0); // the first element is the github author box.
-      expect(myCells[0].taskName, 'A');
-      expect(myCells[1].taskName, 'B');
+      expect(myCells[0].taskName, '1');
+      expect(myCells[1].taskName, '2');
     },
   );
 
@@ -779,66 +756,62 @@ void main() {
     await precacheTaskIcons(tester);
     final statuses = [
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..status = TaskBox.statusInProgress,
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..attempts = 2
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..attempts = 2
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..attempts = 2
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..attempts = 2
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..attempts = 2
@@ -846,35 +819,33 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: Commit()..author = 'Author',
-        branch: 'master',
+        commit:
+            Commit()
+              ..author = 'Author'
+              ..branch = 'master',
+
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..isFlaky = true
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..isFlaky = true
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..isFlaky = true
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..isFlaky = true
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..isFlaky = true
@@ -882,39 +853,37 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit: (Commit()..author = 'Author'),
-        branch: 'master',
+        commit:
+            (Commit()
+              ..author = 'Author'
+              ..branch = 'master'),
+
         tasks: [
           Task()
-            ..stageName = 'A'
             ..name = '1'
             ..builderName = '1'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusFailed,
           Task()
-            ..stageName = 'A'
             ..name = '2'
             ..builderName = '2'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusNew,
           Task()
-            ..stageName = 'A'
             ..name = '3'
             ..builderName = '3'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusSkipped,
           Task()
-            ..stageName = 'A'
             ..name = '4'
             ..builderName = '4'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..stageName = 'A'
             ..name = '5'
             ..builderName = '5'
             ..attempts = 2
@@ -981,8 +950,11 @@ Future<void> expectTaskBoxColorWithMessage(
                 ),
                 commitStatuses: <CommitStatus>[
                   CommitStatus(
-                    commit: Commit()..author = 'Mathilda',
-                    branch: 'master',
+                    commit:
+                        Commit()
+                          ..author = 'Mathilda'
+                          ..branch = 'master',
+
                     tasks: [Task()..status = message],
                   ),
                 ],

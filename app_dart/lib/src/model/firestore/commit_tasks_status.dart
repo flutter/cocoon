@@ -29,7 +29,7 @@ class CommitTasksStatus {
   /// added here to provide build list explicitly.
   ///
   /// Note we use the lastest run as the `task`, surfacing on the dashboard.
-  List<FullTask> toFullTasks(List<Task> tasks) {
+  List<FullTask> collateTasksByTaskName() {
     final fullTasksMap = <String, FullTask>{};
     for (var task in tasks) {
       if (!fullTasksMap.containsKey(task.taskName)) {
@@ -45,13 +45,6 @@ class CommitTasksStatus {
       }
     }
     return fullTasksMap.entries.map((entry) => entry.value).toList();
-  }
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Commit': commit.facade,
-      'Tasks': toFullTasks(tasks).map((e) => e.toJson()).toList(),
-    };
   }
 }
 
