@@ -1209,24 +1209,24 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<BatchWriteResponse>.value(BatchWriteResponse());
         });
-        final commit = generateFirestoreCommit(
+        final commit = generateCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           branch: 'independent_agent',
           owner: 'abc',
           repo: 'cocoon',
         );
-        final commitToT = generateFirestoreCommit(
+        final commitToT = generateCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
           branch: 'master',
           owner: 'abc',
           repo: 'cocoon',
         );
-        // config.db.values[commit.key] = commit;
-        // config.db.values[commitToT.key] = commitToT;
-        // final task = generateFirestoreTask(1, name: 'test1', parent: commit);
-        // config.db.values[task.key] = task;
+        config.db.values[commit.key] = commit;
+        config.db.values[commitToT.key] = commitToT;
+        final task = generateTask(1, name: 'test1', parent: commit);
+        config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].
         ciYamlFetcher.setCiYamlFrom(r'''

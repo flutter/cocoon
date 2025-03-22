@@ -93,7 +93,7 @@ final class _SerializableCommitStatus {
     };
   }
 
-  // Copied from https://github.com/flutter/cocoon/blob/f220a6d764715499867ae7883aa24c040307e5f8/app_dart/lib/src/model/appengine/stage.dart#L143-L160.
+  // Partial copy from https://github.com/flutter/cocoon/blob/f220a6d764715499867ae7883aa24c040307e5f8/app_dart/lib/src/model/appengine/stage.dart#L143-L160.
   String _determineCommitStatus() {
     final fullTasks = status.collateTasksByTaskName();
     if (fullTasks.isEmpty) {
@@ -105,10 +105,7 @@ final class _SerializableCommitStatus {
     if (fullTasks.any((t) => Task.taskFailStatusSet.contains(t.task.status))) {
       return Task.statusFailed;
     }
-    return fullTasks
-            .map<String?>((t) => t.task.status)
-            .reduce((a, b) => a == b ? a : null) ??
-        Task.statusInProgress;
+    return Task.statusInProgress;
   }
 }
 
@@ -139,13 +136,13 @@ final class _SerializableTask {
   Map<String, Object?> toJson() {
     return {
       'CreateTimestamp': task.task.createTimestamp,
-      'StartTimestamp': task.task..startTimestamp,
-      'EndTimestamp': task.task..endTimestamp,
-      'Attempts': task.task..attempts,
-      'Flaky': task.task..testFlaky,
-      'Status': task.task..status,
+      'StartTimestamp': task.task.startTimestamp,
+      'EndTimestamp': task.task.endTimestamp,
+      'Attempts': task.task.attempts,
+      'Flaky': task.task.testFlaky,
+      'Status': task.task.status,
       'BuildNumberList': task.buildList.join(','),
-      'BuilderName': task.task..taskName,
+      'BuilderName': task.task.taskName,
     };
   }
 }

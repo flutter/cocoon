@@ -3,12 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/foundation.dart'
-    show kDebugMode, kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import '../model/commit.pb.dart';
@@ -90,10 +88,7 @@ class AppEngineCocoonService implements CocoonService {
       return CocoonResponse<List<CommitStatus>>.data(
         _commitStatusesFromJson(jsonResponse['Commits'] as List<Object?>),
       );
-    } catch (error, s) {
-      if (kDebugMode) {
-        print('$error: $s');
-      }
+    } catch (error) {
       return CocoonResponse<List<CommitStatus>>.error(error.toString());
     }
   }
