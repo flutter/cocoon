@@ -31,7 +31,6 @@ import 'luci_build_service/cipd_version.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/firestore_task_document_name.dart';
 import 'luci_build_service/pending_task.dart';
-import 'luci_build_service/user_data.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
 /// and cancel builds for github repos. It uses [config.luciTryBuilders] to

@@ -15,13 +15,12 @@ import '../../ci_yaml.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
-import '../model/luci/user_data.dart';
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
+import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -65,25 +64,9 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       jsonDecode(message.data!) as Map<String, dynamic>,
     );
     final buildsPubSub = pubSubCallBack.buildPubsub;
+    final postUserData = PostsubmitUserData.fromBytes(pubSubCallBack.userData);
 
-    var userDataMap = <String, dynamic>{};
-    try {
-      userDataMap =
-          json.decode(String.fromCharCodes(pubSubCallBack.userData))
-              as Map<String, dynamic>;
-      log.info('User data was not base64 encoded.');
-    } on FormatException {
-      userDataMap = UserData.decodeUserDataBytes(pubSubCallBack.userData);
-      log.info('Decoding base64 encoded user data.');
-    }
-
-    // collect userData
-    if (userDataMap.isEmpty) {
-      log.info('User data is empty');
-      return Body.empty;
-    }
-
-    log.debug('userData=$userDataMap');
+    log.debug('userData=$postUserData');
 
     if (!buildsPubSub.hasBuild()) {
       log.warn('No build was found in message.');
@@ -100,33 +83,21 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     log.info('build ${build.toProto3Json()}');
 
-    final rawTaskKey = userDataMap['task_key'] as String?;
-    final rawCommitKey = userDataMap['commit_key'] as String?;
-    final taskDocumentName =
-        userDataMap['firestore_task_document_name'] as String?;
-    if (taskDocumentName == null) {
-      throw const BadRequestException(
-        'userData does not contain firestore_task_document_name',
-      );
-    }
-
     final commitKey = Key<String>(
       Key<dynamic>.emptyKey(Partition(null)),
       Commit,
-      rawCommitKey,
+      postUserData.commitKey,
     );
     Task? task;
     firestore.Task? firestoreTask;
     log.info(
-      'Looking up task document $kDatabase/documents/${firestore.kTaskCollectionId}/$taskDocumentName...',
+      'Looking up task document: ${postUserData.firestoreTaskDocumentName}',
     );
-    final taskId = int.parse(rawTaskKey!);
-    final taskKey = Key<int>(commitKey, Task, taskId);
+    final taskKey = Key<int>(commitKey, Task, int.parse(postUserData.taskKey));
     task = await datastore.lookupByValue<Task>(taskKey);
     firestoreTask = await firestore.Task.fromFirestore(
-      firestoreService: firestoreService,
-      documentName:
-          '$kDatabase/documents/${firestore.kTaskCollectionId}/$taskDocumentName',
+      firestoreService,
+      postUserData.firestoreTaskDocumentName,
     );
     log.info('Found $firestoreTask');
 
@@ -196,7 +167,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         build: build,
-        checkRunId: userDataMap['check_run_id'] as int,
+        checkRunId: postUserData.checkRunId!,
         luciBuildService: scheduler.luciBuildService,
         slug: commit.slug,
       );

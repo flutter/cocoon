@@ -14,27 +14,23 @@ PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
       json,
       ($checkedConvert) {
         final val = PresubmitUserData(
+          repoOwner: $checkedConvert('repo_owner', (v) => v as String),
+          repoName: $checkedConvert('repo_name', (v) => v as String),
+          commitBranch: $checkedConvert('commit_branch', (v) => v as String),
+          commitSha: $checkedConvert('commit_sha', (v) => v as String),
           checkRunId: $checkedConvert(
             'check_run_id',
             (v) => (v as num).toInt(),
           ),
-          repoOwner: $checkedConvert('repo_owner', (v) => v as String),
-          repoName: $checkedConvert('repo_name', (v) => v as String),
-          builderName: $checkedConvert('builder_name', (v) => v as String),
-          commitSha: $checkedConvert('commit_sha', (v) => v as String),
-          commitBranch: $checkedConvert('commit_branch', (v) => v as String),
-          userAgent: $checkedConvert('user_agent', (v) => v as String),
         );
         return val;
       },
       fieldKeyMap: const {
-        'checkRunId': 'check_run_id',
         'repoOwner': 'repo_owner',
         'repoName': 'repo_name',
-        'builderName': 'builder_name',
-        'commitSha': 'commit_sha',
         'commitBranch': 'commit_branch',
-        'userAgent': 'user_agent',
+        'commitSha': 'commit_sha',
+        'checkRunId': 'check_run_id',
       },
     );
 
@@ -42,11 +38,9 @@ Map<String, dynamic> _$PresubmitUserDataToJson(PresubmitUserData instance) =>
     <String, dynamic>{
       'repo_owner': instance.repoOwner,
       'repo_name': instance.repoName,
-      'check_run_id': instance.checkRunId,
-      'builder_name': instance.builderName,
-      'commit_sha': instance.commitSha,
       'commit_branch': instance.commitBranch,
-      'user_agent': instance.userAgent,
+      'commit_sha': instance.commitSha,
+      'check_run_id': instance.checkRunId,
     };
 
 PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
@@ -59,21 +53,17 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
             'check_run_id',
             (v) => (v as num?)?.toInt(),
           ),
-          repoName: $checkedConvert('repo_name', (v) => v as String),
-          repoOwner: $checkedConvert('repo_owner', (v) => v as String),
           taskKey: $checkedConvert('task_key', (v) => v as String),
           commitKey: $checkedConvert('commit_key', (v) => v as String),
           firestoreTaskDocumentName: $checkedConvert(
             'firestore_task_document_name',
-            (v) => FirestoreTaskDocumentName._parse(v as String),
+            (v) => FirestoreTaskDocumentName.parse(v as String),
           ),
         );
         return val;
       },
       fieldKeyMap: const {
         'checkRunId': 'check_run_id',
-        'repoName': 'repo_name',
-        'repoOwner': 'repo_owner',
         'taskKey': 'task_key',
         'commitKey': 'commit_key',
         'firestoreTaskDocumentName': 'firestore_task_document_name',
@@ -82,12 +72,10 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) =>
     <String, dynamic>{
-      'repo_owner': instance.repoOwner,
-      'repo_name': instance.repoName,
       if (instance.checkRunId case final value?) 'check_run_id': value,
       'task_key': instance.taskKey,
       'commit_key': instance.commitKey,
-      if (FirestoreTaskDocumentName._toJson(instance.firestoreTaskDocumentName)
-          case final value?)
-        'firestore_task_document_name': value,
+      'firestore_task_document_name': PostsubmitUserData._documentToString(
+        instance.firestoreTaskDocumentName,
+      ),
     };
