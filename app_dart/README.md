@@ -93,7 +93,7 @@ $ gcloud datastore indexes create index.yaml
 * Starting server
 
 ```sh
-dart bin/local_server.dart
+dart run tool/local_server.dart
 ```
 
 If you see Serving requests at 0.0.0.0:8080 the dev server is working.
