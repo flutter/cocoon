@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/model/appengine/cocoon_config.dart';
@@ -30,7 +31,7 @@ Future<void> main() async {
       'fake-secret',
     ),
   ]);
-  final config = Config(dbService, cache);
+  final config = Config(dbService, cache, FakeSecretManager());
   final authProvider = AuthenticationProvider(config: config);
   final AuthenticationProvider swarmingAuthProvider =
       SwarmingAuthenticationProvider(config: config);
