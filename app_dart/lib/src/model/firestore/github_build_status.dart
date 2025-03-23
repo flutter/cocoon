@@ -7,7 +7,6 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
-import '../appengine/github_build_status_update.dart';
 
 const String kGithubBuildStatusCollectionId = 'githubBuildStatuses';
 const String kGithubBuildStatusPrNumberField = 'prNumber';
@@ -103,34 +102,4 @@ class GithubBuildStatus extends Document {
           ..write(')');
     return buf.toString();
   }
-}
-
-/// Generates GithubGoldStatus document based on datastore GithubGoldStatusUpdate data model.
-GithubBuildStatus githubBuildStatusToDocument(
-  GithubBuildStatusUpdate githubBuildStatus,
-) {
-  return GithubBuildStatus.fromDocument(
-    githubBuildStatus: Document(
-      name:
-          '$kDatabase/documents/$kGithubBuildStatusCollectionId/${githubBuildStatus.head}_${githubBuildStatus.pr}',
-      fields: <String, Value>{
-        kGithubBuildStatusUpdateTimeMillisField: Value(
-          stringValue: githubBuildStatus.updateTimeMillis.toString(),
-        ),
-        kGithubBuildStatusHeadField: Value(stringValue: githubBuildStatus.head),
-        kGithubBuildStatusPrNumberField: Value(
-          integerValue: githubBuildStatus.pr.toString(),
-        ),
-        kGithubBuildStatusRepositoryField: Value(
-          stringValue: githubBuildStatus.repository,
-        ),
-        kGithubBuildStatusStatusField: Value(
-          stringValue: githubBuildStatus.status,
-        ),
-        kGithubBuildStatusUpdatesField: Value(
-          integerValue: githubBuildStatus.updates.toString(),
-        ),
-      },
-    ),
-  );
 }

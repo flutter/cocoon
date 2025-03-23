@@ -8,8 +8,8 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/github_build_status_update.dart';
 import '../model/firestore/commit_tasks_status.dart';
+import '../model/firestore/github_build_status.dart';
 import '../model/firestore/task.dart';
 
 /// Branches that are used to calculate the tree status.
@@ -151,25 +151,25 @@ interface class BuildStatusService {
 }
 
 @immutable
-class BuildStatus {
+final class BuildStatus {
   const BuildStatus._(this.value, [this.failedTasks = const <String>[]])
     : assert(
-        value == GithubBuildStatusUpdate.statusSuccess ||
-            value == GithubBuildStatusUpdate.statusFailure ||
-            value == GithubBuildStatusUpdate.statusNeutral,
+        value == GithubBuildStatus.statusSuccess ||
+            value == GithubBuildStatus.statusFailure ||
+            value == GithubBuildStatus.statusNeutral,
       );
   factory BuildStatus.success() =>
-      const BuildStatus._(GithubBuildStatusUpdate.statusSuccess);
+      const BuildStatus._(GithubBuildStatus.statusSuccess);
   factory BuildStatus.failure([List<String> failedTasks = const <String>[]]) =>
-      BuildStatus._(GithubBuildStatusUpdate.statusFailure, failedTasks);
+      BuildStatus._(GithubBuildStatus.statusFailure, failedTasks);
   factory BuildStatus.neutral() =>
-      const BuildStatus._(GithubBuildStatusUpdate.statusNeutral);
+      const BuildStatus._(GithubBuildStatus.statusNeutral);
 
   final String value;
   final List<String> failedTasks;
 
   bool get succeeded {
-    return value == GithubBuildStatusUpdate.statusSuccess;
+    return value == GithubBuildStatus.statusSuccess;
   }
 
   String get githubStatus => value;
