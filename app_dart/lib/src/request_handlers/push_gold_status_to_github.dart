@@ -15,31 +15,24 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/github_gold_status_update.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
-import '../service/datastore.dart';
 
 @immutable
 class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   PushGoldStatusToGithub({
     required super.config,
     required super.authenticationProvider,
-    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
     http.Client? goldClient,
     this.ingestionDelay = const Duration(seconds: 10),
-  }) : datastoreProvider =
-           datastoreProvider ?? DatastoreService.defaultProvider,
-       goldClient = goldClient ?? http.Client();
+  }) : goldClient = goldClient ?? http.Client();
 
-  final DatastoreServiceProvider datastoreProvider;
   final http.Client goldClient;
   final Duration ingestionDelay;
 
   @override
   Future<Body> get() async {
-    final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
 
     if (authContext!.clientContext.isDevelopmentEnvironment) {
@@ -47,24 +40,21 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       return Body.empty;
     }
 
-    await _sendStatusUpdates(datastore, firestoreService, Config.flutterSlug);
+    await _sendStatusUpdates(firestoreService, Config.flutterSlug);
 
     return Body.empty;
   }
 
   Future<void> _sendStatusUpdates(
-    DatastoreService datastore,
     FirestoreService firestoreService,
     RepositorySlug slug,
   ) async {
     final gitHubClient = await config.createGitHubClient(slug: slug);
-    final statusUpdates = <GithubGoldStatusUpdate>[];
     final githubGoldStatuses = <GithubGoldStatus>[];
     log.debug('Beginning Gold checks...');
     await for (PullRequest pr in gitHubClient.pullRequests.list(slug)) {
       assert(pr.number != null);
       // Get last known Gold status from firestore.
-      final lastUpdate = await datastore.queryLastGoldUpdate(slug, pr);
       final githubGoldStatus = await firestoreService.queryLastGoldStatus(
         slug,
         pr.number!,
@@ -257,11 +247,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
               pr.head!.sha!,
               statusRequest,
             );
-            lastUpdate.status = statusRequest.state!;
-            lastUpdate.head = pr.head!.sha;
-            lastUpdate.updates = (lastUpdate.updates ?? 0) + 1;
-            lastUpdate.description = statusRequest.description!;
-            statusUpdates.add(lastUpdate);
 
             githubGoldStatus.setStatus(statusRequest.state!);
             githubGoldStatus.setHead(pr.head!.sha!);
@@ -279,8 +264,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         log.debug('This PR does not execute golden file tests.');
       }
     }
-    await datastore.insert(statusUpdates);
-    log.debug('Committed all updates for $slug');
     await updateGithubGoldStatusDocuments(githubGoldStatuses, firestoreService);
     log.debug('Saved all updates to firestore for $slug');
   }
@@ -352,14 +335,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
           '${pr.head!.sha}.',
         );
 
-        return GithubGoldStatusUpdate.statusCompleted;
+        return GithubGoldStatus.statusCompleted;
       } else {
         log.debug(
           'Tryjob for #${pr.number} at sha ${pr.head!.sha} generated new '
           'images.',
         );
 
-        return GithubGoldStatusUpdate.statusRunning;
+        return GithubGoldStatus.statusRunning;
       }
     } on FormatException catch (e) {
       throw BadRequestException(

@@ -9,20 +9,16 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
-import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -51,7 +47,6 @@ void main() {
     var checkRuns = <dynamic>[];
     late MockClient mockHttpClient;
     late RepositorySlug slug;
-    late RetryOptions retryOptions;
 
     setUp(() {
       clientContext = FakeClientContext();
@@ -64,11 +59,6 @@ void main() {
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockClient(
         (_) async => http.Response('{}', HttpStatus.ok),
-      );
-      retryOptions = const RetryOptions(
-        delayFactor: Duration(microseconds: 1),
-        maxDelay: Duration(microseconds: 2),
-        maxAttempts: 2,
       );
 
       githubGraphQLClient.mutateResultForOptions =
@@ -92,9 +82,6 @@ void main() {
       handler = PushGoldStatusToGithub(
         config: config,
         authenticationProvider: auth,
-        datastoreProvider: (DatastoreDB db) {
-          return DatastoreService(db, 5, retryOptions: retryOptions);
-        },
         goldClient: mockHttpClient,
         ingestionDelay: Duration.zero,
       );
@@ -177,24 +164,6 @@ void main() {
         config.githubClient = github;
         clientContext.isDevelopmentEnvironment = false;
       });
-
-      GithubGoldStatusUpdate newStatusUpdate(
-        RepositorySlug slug,
-        PullRequest pr,
-        String statusUpdate,
-        String sha,
-        String description,
-      ) {
-        return GithubGoldStatusUpdate(
-          key: db.emptyKey.append(GithubGoldStatusUpdate, id: pr.number),
-          status: statusUpdate,
-          pr: pr.number!,
-          head: sha,
-          updates: 0,
-          description: description,
-          repository: slug.fullName,
-        );
-      }
 
       GithubGoldStatus newGithubGoldStatus(
         RepositorySlug slug,
@@ -330,7 +299,7 @@ void main() {
           githubGoldStatus = newGithubGoldStatus(
             slug,
             pr,
-            GithubGoldStatusUpdate.statusRunning,
+            GithubGoldStatus.statusRunning,
             'abc',
             config.flutterGoldPendingValue!,
           );
@@ -379,7 +348,7 @@ void main() {
           githubGoldStatus = newGithubGoldStatus(
             slug,
             pr,
-            GithubGoldStatusUpdate.statusCompleted,
+            GithubGoldStatus.statusCompleted,
             'abc',
             config.flutterGoldSuccessValue!,
           );
@@ -430,7 +399,7 @@ void main() {
             githubGoldStatus = newGithubGoldStatus(
               slug,
               pr,
-              GithubGoldStatusUpdate.statusRunning,
+              GithubGoldStatus.statusRunning,
               'abc',
               config.flutterGoldChangesValue!,
             );
@@ -460,13 +429,6 @@ void main() {
             handler = PushGoldStatusToGithub(
               config: config,
               authenticationProvider: auth,
-              datastoreProvider: (DatastoreDB db) {
-                return DatastoreService(
-                  config.db,
-                  5,
-                  retryOptions: retryOptions,
-                );
-              },
               goldClient: mockHttpClient,
               ingestionDelay: Duration.zero,
             );
@@ -758,11 +720,8 @@ void main() {
           // New commit
           final flutterPr = newPullRequest(123, 'f-abc', 'master');
           prsFromGitHub = <PullRequest>[flutterPr];
-          final status = newStatusUpdate(slug, flutterPr, '', '', '');
           githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
           expect(githubGoldStatus!.updates, 0);
-
-          db.values[status.key] = status;
 
           // Checks running
           checkRuns = <dynamic>[
@@ -780,8 +739,6 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.status, GithubGoldStatusUpdate.statusRunning);
           expect(log, hasNoWarningsOrHigher);
 
           final captured =
@@ -819,8 +776,6 @@ void main() {
           // New commit
           final pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
@@ -843,17 +798,12 @@ void main() {
           handler = PushGoldStatusToGithub(
             config: config,
             authenticationProvider: auth,
-            datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(config.db, 5, retryOptions: retryOptions);
-            },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
           );
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
           expect(log, hasNoWarningsOrHigher);
 
           final captured =
@@ -892,8 +842,6 @@ void main() {
           // New commit
           final pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
@@ -916,17 +864,12 @@ void main() {
           handler = PushGoldStatusToGithub(
             config: config,
             authenticationProvider: auth,
-            datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(config.db, 5, retryOptions: retryOptions);
-            },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
           );
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
           expect(log, hasNoWarningsOrHigher);
 
           final captured =
@@ -985,8 +928,6 @@ void main() {
           // New commit
           final pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final status = newStatusUpdate(slug, pr, '', '', '');
-          db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
           // Checks completed
@@ -1009,17 +950,12 @@ void main() {
           handler = PushGoldStatusToGithub(
             config: config,
             authenticationProvider: auth,
-            datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(config.db, 5, retryOptions: retryOptions);
-            },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
           );
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 1);
-          expect(status.status, GithubGoldStatusUpdate.statusCompleted);
           expect(log, hasNoWarningsOrHigher);
 
           final captured =
@@ -1060,8 +996,6 @@ void main() {
             // New commit
             final pr = newPullRequest(123, 'abc', 'master');
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(slug, pr, '', '', '');
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
             // Checks completed
@@ -1084,13 +1018,6 @@ void main() {
             handler = PushGoldStatusToGithub(
               config: config,
               authenticationProvider: auth,
-              datastoreProvider: (DatastoreDB db) {
-                return DatastoreService(
-                  config.db,
-                  5,
-                  retryOptions: retryOptions,
-                );
-              },
               goldClient: mockHttpClient,
               ingestionDelay: Duration.zero,
             );
@@ -1106,8 +1033,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 1);
-            expect(status.status, GithubGoldStatusUpdate.statusRunning);
             expect(log, hasNoWarningsOrHigher);
 
             final captured =
@@ -1149,18 +1074,10 @@ void main() {
             // Same commit
             final pr = newPullRequest(123, 'abc', 'master');
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(
-              slug,
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(
               slug,
               pr,
-              GithubGoldStatusUpdate.statusRunning,
+              GithubGoldStatus.statusRunning,
               'abc',
               config.flutterGoldPendingValue!,
             );
@@ -1185,13 +1102,6 @@ void main() {
             handler = PushGoldStatusToGithub(
               config: config,
               authenticationProvider: auth,
-              datastoreProvider: (DatastoreDB db) {
-                return DatastoreService(
-                  config.db,
-                  5,
-                  retryOptions: retryOptions,
-                );
-              },
               goldClient: mockHttpClient,
               ingestionDelay: Duration.zero,
             );
@@ -1207,7 +1117,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 1);
             expect(log, hasNoWarningsOrHigher);
 
             final captured =
@@ -1249,18 +1158,10 @@ void main() {
             // Same commit
             final pr = newPullRequest(123, 'abc', 'master');
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(
-              slug,
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(
               slug,
               pr,
-              GithubGoldStatusUpdate.statusRunning,
+              GithubGoldStatus.statusRunning,
               'abc',
               config.flutterGoldPendingValue!,
             );
@@ -1285,13 +1186,6 @@ void main() {
             handler = PushGoldStatusToGithub(
               config: config,
               authenticationProvider: auth,
-              datastoreProvider: (DatastoreDB db) {
-                return DatastoreService(
-                  config.db,
-                  5,
-                  retryOptions: retryOptions,
-                );
-              },
               goldClient: mockHttpClient,
               ingestionDelay: Duration.zero,
             );
@@ -1307,7 +1201,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 1);
             expect(log, hasNoWarningsOrHigher);
 
             final captured =
@@ -1363,18 +1256,10 @@ void main() {
             // Same commit: abc
             final pr = newPullRequest(123, 'abc', 'master');
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(
-              slug,
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(
               slug,
               pr,
-              GithubGoldStatusUpdate.statusRunning,
+              GithubGoldStatus.statusRunning,
               'abc',
               config.flutterGoldPendingValue!,
             );
@@ -1399,13 +1284,6 @@ void main() {
             handler = PushGoldStatusToGithub(
               config: config,
               authenticationProvider: auth,
-              datastoreProvider: (DatastoreDB db) {
-                return DatastoreService(
-                  config.db,
-                  5,
-                  retryOptions: retryOptions,
-                );
-              },
               goldClient: mockHttpClient,
               ingestionDelay: Duration.zero,
             );
@@ -1420,8 +1298,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 1);
-            expect(status.status, GithubGoldStatusUpdate.statusCompleted);
             expect(log, hasNoWarningsOrHigher);
 
             final captured =
@@ -1463,18 +1339,10 @@ void main() {
             // New commit, draft PR
             final pr = newPullRequest(123, 'abc', 'master', draft: true);
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(
-              slug,
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(
               slug,
               pr,
-              GithubGoldStatusUpdate.statusRunning,
+              GithubGoldStatus.statusRunning,
               'abc',
               config.flutterGoldPendingValue!,
             );
@@ -1497,7 +1365,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 0);
             expect(log, hasNoWarningsOrHigher);
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
@@ -1526,18 +1393,10 @@ void main() {
             // New commit, draft PR
             final pr = newPullRequest(123, 'abc', 'master', draft: true);
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(
-              slug,
-              pr,
-              GithubGoldStatusUpdate.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(
               slug,
               pr,
-              GithubGoldStatusUpdate.statusRunning,
+              GithubGoldStatus.statusRunning,
               'abc',
               config.flutterGoldPendingValue!,
             );
@@ -1560,7 +1419,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 0);
             expect(log, hasNoWarningsOrHigher);
             verifyNever(
               mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
@@ -1589,8 +1447,6 @@ void main() {
             // New commit
             final pr = newPullRequest(123, 'abc', 'master');
             prsFromGitHub = <PullRequest>[pr];
-            final status = newStatusUpdate(slug, pr, '', '', '');
-            db.values[status.key] = status;
             githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
             // Checks failed
@@ -1604,8 +1460,6 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            expect(status.updates, 1);
-            expect(status.status, GithubGoldStatusUpdate.statusRunning);
             expect(log, hasNoWarningsOrHigher);
 
             final captured =
@@ -1648,20 +1502,10 @@ void main() {
           final completedPR = newPullRequest(123, 'abc', 'master');
           final followUpPR = newPullRequest(456, 'def', 'master');
           prsFromGitHub = <PullRequest>[completedPR, followUpPR];
-          final completedStatus = newStatusUpdate(
-            slug,
-            completedPR,
-            GithubGoldStatusUpdate.statusCompleted,
-            'abc',
-            config.flutterGoldSuccessValue!,
-          );
-          final followUpStatus = newStatusUpdate(slug, followUpPR, '', '', '');
-          db.values[completedStatus.key] = completedStatus;
-          db.values[followUpStatus.key] = followUpStatus;
           githubGoldStatus = newGithubGoldStatus(
             slug,
             completedPR,
-            GithubGoldStatusUpdate.statusCompleted,
+            GithubGoldStatus.statusCompleted,
             'abc',
             config.flutterGoldSuccessValue!,
           );
@@ -1697,9 +1541,6 @@ void main() {
           handler = PushGoldStatusToGithub(
             config: config,
             authenticationProvider: auth,
-            datastoreProvider: (DatastoreDB db) {
-              return DatastoreService(config.db, 5, retryOptions: retryOptions);
-            },
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
           );
@@ -1714,22 +1555,12 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(completedStatus.updates, 0);
-          expect(followUpStatus.updates, 1);
           expect(githubGoldStatus!.updates, 0);
           expect(githubGoldStatusNext!.updates, 1);
-          expect(
-            completedStatus.status,
-            GithubGoldStatusUpdate.statusCompleted,
-          );
-          expect(followUpStatus.status, GithubGoldStatusUpdate.statusCompleted);
-          expect(
-            githubGoldStatus!.status,
-            GithubGoldStatusUpdate.statusCompleted,
-          );
+          expect(githubGoldStatus!.status, GithubGoldStatus.statusCompleted);
           expect(
             githubGoldStatusNext!.status,
-            GithubGoldStatusUpdate.statusCompleted,
+            GithubGoldStatus.statusCompleted,
           );
           expect(log, hasNoWarningsOrHigher);
         },
@@ -1741,18 +1572,10 @@ void main() {
           // Same commit
           final pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
-          final status = newStatusUpdate(
-            slug,
-            pr,
-            GithubGoldStatusUpdate.statusRunning,
-            'abc',
-            config.flutterGoldPendingValue!,
-          );
-          db.values[status.key] = status;
           githubGoldStatus = newGithubGoldStatus(
             slug,
             pr,
-            GithubGoldStatusUpdate.statusRunning,
+            GithubGoldStatus.statusRunning,
             'abc',
             config.flutterGoldPendingValue!,
           );
@@ -1768,7 +1591,6 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(status.updates, 0);
           expect(log, hasNoWarningsOrHigher);
           verifyNever(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
@@ -1795,8 +1617,6 @@ void main() {
         // New commit
         final pr = newPullRequest(123, 'abc', 'master');
         prsFromGitHub = <PullRequest>[pr];
-        final status = newStatusUpdate(slug, pr, '', '', '');
-        db.values[status.key] = status;
         githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
 
         // Checks completed
@@ -1831,9 +1651,6 @@ void main() {
         handler = PushGoldStatusToGithub(
           config: config,
           authenticationProvider: auth,
-          datastoreProvider: (DatastoreDB db) {
-            return DatastoreService(config.db, 5, retryOptions: retryOptions);
-          },
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
         );
