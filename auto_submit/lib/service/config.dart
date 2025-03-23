@@ -5,12 +5,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/bigquery.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -270,12 +269,7 @@ class Config {
   }
 
   Future<BigqueryService> createBigQueryService() async {
-    final accessClientProvider = AccessClientProvider();
-    return BigqueryService(accessClientProvider);
-  }
-
-  Future<TabledataResource> createTabledataResourceApi() async {
-    return (await createBigQueryService()).defaultTabledata();
+    return BigqueryService.from(const GoogleAuthProvider());
   }
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {

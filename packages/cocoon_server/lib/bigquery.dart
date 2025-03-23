@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:googleapis/bigquery/v2.dart';
 
-import 'access_client_provider.dart';
 import 'big_query_pull_request_record.dart';
+import 'google_auth_provider.dart';
 
 const String _insertPullRequestDml = r'''
 INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
@@ -32,26 +32,25 @@ INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
 ''';
 
 class BigqueryService {
-  const BigqueryService(this.accessClientProvider);
-
-  /// AccessClientProvider for OAuth 2.0 authenticated access client
-  final AccessClientProvider accessClientProvider;
-
-  /// Return a [TabledataResource] with an authenticated [client]
-  Future<TabledataResource> defaultTabledata() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.bigqueryScope],
+  /// Creates a [BigqueryService] using Google API authentication.
+  static Future<BigqueryService> from(GoogleAuthProvider authProvider) async {
+    final client = await authProvider.createClient(
+      scopes: const [BigqueryApi.bigqueryScope],
     );
-    return BigqueryApi(client).tabledata;
+    return BigqueryService.forTesting(BigqueryApi(client).jobs);
   }
+
+  /// Creates a [BigqueryService] delegating to a mocked [JobsResource] API.
+  ///
+  /// TODO(matanlurey): This is a bad API. Ideally [BigqueryService] would
+  /// have a combination of internal and external tests, and internal tests
+  /// might use this API (annotated with `@visibleForTesting`), but external
+  /// tests would use mocks or a specially made `FakeBigqueryService`.
+  const BigqueryService.forTesting(this._defaultJobs);
+  final JobsResource _defaultJobs;
 
   /// Return a [JobsResource] with an authenticated [client]
-  Future<JobsResource> defaultJobs() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.bigqueryScope],
-    );
-    return BigqueryApi(client).jobs;
-  }
+  Future<JobsResource> defaultJobs() async => _defaultJobs;
 
   /// Insert a new pull request record into the database.
   Future<void> insertPullRequestRecord({

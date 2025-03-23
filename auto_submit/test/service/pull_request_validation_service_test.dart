@@ -10,6 +10,7 @@ import 'package:auto_submit/service/pull_request_validation_service.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
@@ -39,7 +40,7 @@ void main() {
   late RepositorySlug slug;
 
   late MockJobsResource jobsResource;
-  late FakeBigqueryService bigqueryService;
+  late BigqueryService bigqueryService;
 
   setUp(() {
     githubGraphQLClient = FakeGraphQLClient();
@@ -60,7 +61,7 @@ void main() {
     slug = RepositorySlug('flutter', 'cocoon');
 
     jobsResource = MockJobsResource();
-    bigqueryService = FakeBigqueryService(jobsResource);
+    bigqueryService = BigqueryService.forTesting(jobsResource);
     config.bigqueryService = bigqueryService;
     config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(
       sampleConfigNoOverride,

@@ -13,6 +13,7 @@ import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/validation_service.dart';
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/bigquery_testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
@@ -45,7 +46,7 @@ void main() {
     late FakeGraphQLClient githubGraphQLClient;
     late FakeGithubService githubService;
     late MockJobsResource jobsResource;
-    late FakeBigqueryService bigqueryService;
+    late BigqueryService bigqueryService;
     late MockPullRequestsService pullRequests;
     final gitHub = MockGitHub();
     late FakePubSub pubsub;
@@ -152,7 +153,7 @@ void main() {
       githubService.createCommentData = createCommentMock;
       githubService.commitData = commitMock;
       jobsResource = MockJobsResource();
-      bigqueryService = FakeBigqueryService(jobsResource);
+      bigqueryService = BigqueryService.forTesting(jobsResource);
       config = FakeConfig(
         githubService: githubService,
         githubGraphQLClient: githubGraphQLClient,

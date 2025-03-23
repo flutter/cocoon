@@ -7,7 +7,6 @@ import 'dart:async' as _i4;
 import 'dart:typed_data' as _i9;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as _i8;
-import 'package:cocoon_server/access_client_provider.dart' as _i6;
 import 'package:github/src/common.dart' as _i3;
 import 'package:googleapis/bigquery/v2.dart' as _i5;
 import 'package:http/http.dart' as _i2;
@@ -283,45 +282,6 @@ class _FakeJobList_45 extends _i1.SmartFake implements _i5.JobList {
 class _FakeQueryResponse_46 extends _i1.SmartFake implements _i5.QueryResponse {
   _FakeQueryResponse_46(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
-}
-
-/// A class which mocks [AccessClientProvider].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockAccessClientProvider extends _i1.Mock
-    implements _i6.AccessClientProvider {
-  @override
-  _i4.Future<_i2.Client> createAccessClient({
-    List<String>? scopes = const [
-      'https://www.googleapis.com/auth/cloud-platform',
-    ],
-    _i2.Client? baseClient,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#createAccessClient, [], {
-              #scopes: scopes,
-              #baseClient: baseClient,
-            }),
-            returnValue: _i4.Future<_i2.Client>.value(
-              _FakeClient_0(
-                this,
-                Invocation.method(#createAccessClient, [], {
-                  #scopes: scopes,
-                  #baseClient: baseClient,
-                }),
-              ),
-            ),
-            returnValueForMissingStub: _i4.Future<_i2.Client>.value(
-              _FakeClient_0(
-                this,
-                Invocation.method(#createAccessClient, [], {
-                  #scopes: scopes,
-                  #baseClient: baseClient,
-                }),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Client>);
 }
 
 /// A class which mocks [GitHub].

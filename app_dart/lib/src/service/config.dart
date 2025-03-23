@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
@@ -494,13 +494,11 @@ class Config {
   }
 
   Future<FirestoreService> createFirestoreService() async {
-    final accessClientProvider = AccessClientProvider();
-    return FirestoreService(accessClientProvider);
+    return FirestoreService.from(const GoogleAuthProvider());
   }
 
   Future<BigqueryService> createBigQueryService() async {
-    final accessClientProvider = AccessClientProvider();
-    return BigqueryService(accessClientProvider);
+    return BigqueryService.from(const GoogleAuthProvider());
   }
 
   Future<TabledataResource> createTabledataResourceApi() async {

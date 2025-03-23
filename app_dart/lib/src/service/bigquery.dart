@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:googleapis/bigquery/v2.dart';
 
 /// The sql query to query the build statistic from the
@@ -85,26 +85,30 @@ limit @LIMIT
 ''';
 
 class BigqueryService {
-  const BigqueryService(this.accessClientProvider);
+  /// Creates a [BigqueryService] using Google API authentication.
+  static Future<BigqueryService> from(GoogleAuthProvider authProvider) async {
+    final client = await authProvider.createClient(
+      scopes: const [BigqueryApi.bigqueryScope],
+    );
+    final api = BigqueryApi(client);
+    return BigqueryService.forTesting(api.tabledata, api.jobs);
+  }
 
-  /// AccessClientProvider for OAuth 2.0 authenticated access client
-  final AccessClientProvider accessClientProvider;
+  /// Creates a [BigqueryService] delegating to a mocked APIs.
+  ///
+  /// TODO(matanlurey): This is a bad API. Ideally [BigqueryService] would
+  /// have a combination of internal and external tests, and internal tests
+  /// might use this API (annotated with `@visibleForTesting`), but external
+  /// tests would use mocks or a specially made `FakeBigqueryService`.
+  const BigqueryService.forTesting(this._defaultTabledata, this._defaultJobs);
+  final TabledataResource _defaultTabledata;
+  final JobsResource _defaultJobs;
 
   /// Return a [TabledataResource] with an authenticated [client]
-  Future<TabledataResource> defaultTabledata() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.bigqueryScope],
-    );
-    return BigqueryApi(client).tabledata;
-  }
+  Future<TabledataResource> defaultTabledata() async => _defaultTabledata;
 
   /// Return a [JobsResource] with an authenticated [client]
-  Future<JobsResource> defaultJobs() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.bigqueryScope],
-    );
-    return BigqueryApi(client).jobs;
-  }
+  Future<JobsResource> defaultJobs() async => _defaultJobs;
 
   /// Return the top [limit] number of current builder statistic.
   ///

@@ -2,16 +2,29 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server_test/google_auth_provider.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import '../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();
+
+  final alwaysThrowsHttpClient = MockClient((_) async {
+    throw UnimplementedError();
+  });
+
+  late FirestoreService firestoreService;
+
+  setUp(() async {
+    firestoreService = await FirestoreService.from(
+      FakeGoogleAuthProvider.withFixedClient(alwaysThrowsHttpClient),
+    );
+  });
 
   test('creates writes correctly from documents', () async {
     final documents = <Document>[
@@ -31,7 +44,6 @@ void main() {
   });
 
   group('getValueFromFilter', () {
-    final firestoreService = FirestoreService(AccessClientProvider());
     test('int object', () async {
       const Object intValue = 1;
       expect(firestoreService.getValueFromFilter(intValue).integerValue, '1');
@@ -52,7 +64,6 @@ void main() {
   });
 
   group('generateFilter', () {
-    final firestoreService = FirestoreService(AccessClientProvider());
     test('a composite filter with a single field filter', () async {
       final filterMap = <String, Object>{'intField =': 1};
       const compositeFilterOp = kCompositeFilterOpAnd;
@@ -124,7 +135,6 @@ void main() {
   });
 
   group('documentsFromQueryResponse', () {
-    final firestoreService = FirestoreService(AccessClientProvider());
     late List<RunQueryResponseElement> runQueryResponseElements;
     test('when null document returns', () async {
       runQueryResponseElements = <RunQueryResponseElement>[
@@ -150,7 +160,6 @@ void main() {
   });
 
   group('generateOrders', () {
-    final firestoreService = FirestoreService(AccessClientProvider());
     Map<String, String>? orderMap;
     test('when there is no orderMap', () async {
       orderMap = null;
