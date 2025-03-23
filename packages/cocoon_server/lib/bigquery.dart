@@ -40,25 +40,14 @@ class BigqueryService {
     return BigqueryService.forTesting(BigqueryApi(client).jobs);
   }
 
-  /// Creates a [BigqueryService] delegating to a mocked [JobsResource] API.
-  ///
-  /// TODO(matanlurey): This is a bad API. Ideally [BigqueryService] would
-  /// have a combination of internal and external tests, and internal tests
-  /// might use this API (annotated with `@visibleForTesting`), but external
-  /// tests would use mocks or a specially made `FakeBigqueryService`.
   const BigqueryService.forTesting(this._defaultJobs);
   final JobsResource _defaultJobs;
-
-  /// Return a [JobsResource] with an authenticated [client]
-  Future<JobsResource> defaultJobs() async => _defaultJobs;
 
   /// Insert a new pull request record into the database.
   Future<void> insertPullRequestRecord({
     required String projectId,
     required PullRequestRecord pullRequestRecord,
   }) async {
-    final jobsResource = await defaultJobs();
-
     final queryRequest = QueryRequest(
       query: _insertPullRequestDml,
       queryParameters: <QueryParameter>[
@@ -86,7 +75,7 @@ class BigqueryService {
       useLegacySql: false,
     );
 
-    final queryResponse = await jobsResource.query(queryRequest, projectId);
+    final queryResponse = await _defaultJobs.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
         'Insert pull request $pullRequestRecord did not complete.',

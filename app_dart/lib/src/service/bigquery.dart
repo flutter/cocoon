@@ -107,9 +107,6 @@ class BigqueryService {
   /// Return a [TabledataResource] with an authenticated [client]
   Future<TabledataResource> defaultTabledata() async => _defaultTabledata;
 
-  /// Return a [JobsResource] with an authenticated [client]
-  Future<JobsResource> defaultJobs() async => _defaultJobs;
-
   /// Return the top [limit] number of current builder statistic.
   ///
   /// See getBuilderStatisticQuery to get the detail information about the table
@@ -119,7 +116,6 @@ class BigqueryService {
     int limit = 100,
     String bucket = 'prod',
   }) async {
-    final jobsResource = await defaultJobs();
     final query = QueryRequest.fromJson(<String, Object>{
       'query':
           bucket == 'staging'
@@ -134,7 +130,7 @@ class BigqueryService {
       ],
       'useLegacySql': false,
     });
-    final response = await jobsResource.query(query, projectId);
+    final response = await _defaultJobs.query(query, projectId);
     if (!response.jobComplete!) {
       throw 'job does not complete';
     }
@@ -174,7 +170,6 @@ class BigqueryService {
     String? builder,
     int? limit,
   }) async {
-    final jobsResource = await defaultJobs();
     final query = QueryRequest.fromJson(<String, Object>{
       'query': getRecordsQuery,
       'parameterMode': 'NAMED',
@@ -192,7 +187,7 @@ class BigqueryService {
       ],
       'useLegacySql': false,
     });
-    final response = await jobsResource.query(query, projectId);
+    final response = await _defaultJobs.query(query, projectId);
     if (!response.jobComplete!) {
       throw 'job does not complete';
     }
