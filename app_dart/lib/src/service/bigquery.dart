@@ -104,8 +104,8 @@ class BigqueryService {
   final TabledataResource _defaultTabledata;
   final JobsResource _defaultJobs;
 
-  /// Return a [TabledataResource] with an authenticated [client]
-  Future<TabledataResource> defaultTabledata() async => _defaultTabledata;
+  /// A [TabledataResource] with an authenticated client.
+  TabledataResource get tabledata => _defaultTabledata;
 
   /// Return the top [limit] number of current builder statistic.
   ///

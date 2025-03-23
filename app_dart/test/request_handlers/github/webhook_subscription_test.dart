@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -98,7 +99,10 @@ void main() {
         'dependabot',
         'dependabot[bot]',
       },
-      tabledataResource: tabledataResource,
+      bigqueryService: BigqueryService.forTesting(
+        tabledataResource,
+        MockJobsResource(),
+      ),
       wrongHeadBranchPullRequestMessageValue:
           'wrongHeadBranchPullRequestMessage',
       wrongBaseBranchPullRequestMessageValue:

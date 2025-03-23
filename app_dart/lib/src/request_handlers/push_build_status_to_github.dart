@@ -170,10 +170,8 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       'Branch': branch,
       'Repo': slug.name,
     };
-    await insertBigquery(
-      bigqueryTableName,
-      bigqueryData,
-      await config.createTabledataResourceApi(),
-    );
+
+    final bigquery = await config.createBigQueryService();
+    await insertBigquery(bigqueryTableName, bigqueryData, bigquery.tabledata);
   }
 }

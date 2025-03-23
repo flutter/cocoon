@@ -17,6 +17,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
@@ -188,7 +189,10 @@ void main() {
         ],
       );
       config = FakeConfig(
-        tabledataResource: tabledataResource,
+        bigqueryService: BigqueryService.forTesting(
+          tabledataResource,
+          MockJobsResource(),
+        ),
         dbValue: db,
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),

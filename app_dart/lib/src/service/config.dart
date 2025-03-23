@@ -12,7 +12,6 @@ import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart' as gh;
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -499,10 +498,6 @@ class Config {
 
   Future<BigqueryService> createBigQueryService() async {
     return BigqueryService.from(const GoogleAuthProvider());
-  }
-
-  Future<TabledataResource> createTabledataResourceApi() async {
-    return (await createBigQueryService()).defaultTabledata();
   }
 
   /// Default GitHub service when the repository does not matter.
