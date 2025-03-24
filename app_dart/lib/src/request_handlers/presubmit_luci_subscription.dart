@@ -96,8 +96,8 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final preUserData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
-    final slug = RepositorySlug(preUserData.repoOwner, preUserData.repoName);
+    final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
+    final slug = RepositorySlug(userData.repoOwner, userData.repoName);
     var rescheduled = false;
     if (githubChecksService.taskFailed(build.status)) {
       final currentAttempt = _nextAttempt(tagSet);
@@ -105,8 +105,8 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         slug,
         builderName,
         tagSet,
-        commitBranch: preUserData.commitBranch,
-        commitSha: preUserData.commitSha,
+        commitBranch: userData.commitBranch,
+        commitSha: userData.commitSha,
       );
       if (currentAttempt < maxAttempt) {
         rescheduled = true;
@@ -115,12 +115,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
           builderName: builderName,
           build: build,
           nextAttempt: currentAttempt + 1,
-          userData: preUserData,
+          userData: userData,
         );
       }
     }
     await githubChecksService.updateCheckStatus(
-      checkRunId: preUserData.checkRunId,
+      checkRunId: userData.checkRunId,
       build: build,
       luciBuildService: luciBuildService,
       slug: slug,

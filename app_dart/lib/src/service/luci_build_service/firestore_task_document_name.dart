@@ -57,9 +57,7 @@ final class FirestoreTaskDocumentName {
   /// Parses `{commitSha}_{taskName}_{currentAttempt}`.
   ///
   /// This is gross because the [taskName] could also include underscores.
-  static final _parseDocumentName = RegExp(
-    r'([^_]*)_((?:[^_]+_)*[^_]+)_([^_]*)',
-  );
+  static final _parseDocumentName = RegExp(r'([a-z0-9]+)_(.*)_([0-9]+)$');
 
   /// The commit SHA of the code being built.
   final String commitSha;

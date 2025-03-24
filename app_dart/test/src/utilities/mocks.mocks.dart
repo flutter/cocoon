@@ -6,7 +6,7 @@
 import 'dart:async' as _i19;
 import 'dart:convert' as _i25;
 import 'dart:io' as _i24;
-import 'dart:typed_data' as _i41;
+import 'dart:typed_data' as _i40;
 
 import 'package:appengine/appengine.dart' as _i9;
 import 'package:buildbucket/buildbucket_pb.dart' as _i7;
@@ -20,17 +20,16 @@ import 'package:cocoon_service/src/model/appengine/github_build_status_update.da
 import 'package:cocoon_service/src/model/appengine/github_gold_status_update.dart'
     as _i18;
 import 'package:cocoon_service/src/model/appengine/key_helper.dart' as _i11;
-import 'package:cocoon_service/src/model/appengine/stage.dart' as _i39;
 import 'package:cocoon_service/src/model/appengine/task.dart' as _i38;
-import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i45;
+import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i44;
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart' as _i28;
-import 'package:cocoon_service/src/model/firestore/commit.dart' as _i42;
+import 'package:cocoon_service/src/model/firestore/commit.dart' as _i41;
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart'
     as _i22;
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
     as _i21;
-import 'package:cocoon_service/src/model/firestore/task.dart' as _i43;
-import 'package:cocoon_service/src/model/github/checks.dart' as _i48;
+import 'package:cocoon_service/src/model/firestore/task.dart' as _i42;
+import 'package:cocoon_service/src/model/github/checks.dart' as _i47;
 import 'package:cocoon_service/src/service/access_token_provider.dart' as _i30;
 import 'package:cocoon_service/src/service/bigquery.dart' as _i15;
 import 'package:cocoon_service/src/service/commit_service.dart' as _i32;
@@ -39,16 +38,16 @@ import 'package:cocoon_service/src/service/datastore.dart' as _i8;
 import 'package:cocoon_service/src/service/gerrit_service.dart' as _i26;
 import 'package:cocoon_service/src/service/github_service.dart' as _i16;
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart'
-    as _i44;
+    as _i43;
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
     as _i34;
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
-    as _i46;
+    as _i45;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
-    as _i50;
+    as _i49;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
-    as _i47;
-import 'package:fixnum/fixnum.dart' as _i49;
+    as _i46;
+import 'package:fixnum/fixnum.dart' as _i48;
 import 'package:gcloud/db.dart' as _i10;
 import 'package:github/github.dart' as _i12;
 import 'package:github/hooks.dart' as _i33;
@@ -61,11 +60,11 @@ import 'package:http/http.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i31;
 import 'package:neat_cache/neat_cache.dart' as _i29;
-import 'package:process/process.dart' as _i51;
+import 'package:process/process.dart' as _i50;
 import 'package:retry/retry.dart' as _i36;
 
-import '../../service/cache_service_test.dart' as _i40;
-import 'mocks.dart' as _i52;
+import '../../service/cache_service_test.dart' as _i39;
+import 'mocks.dart' as _i51;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -1625,14 +1624,6 @@ class MockDatastoreService extends _i1.Mock implements _i8.DatastoreService {
           as _i19.Stream<_i38.FullTask>);
 
   @override
-  _i19.Future<List<_i39.Stage>> queryTasksGroupedByStage(_i37.Commit? commit) =>
-      (super.noSuchMethod(
-            Invocation.method(#queryTasksGroupedByStage, [commit]),
-            returnValue: _i19.Future<List<_i39.Stage>>.value(<_i39.Stage>[]),
-          )
-          as _i19.Future<List<_i39.Stage>>);
-
-  @override
   _i19.Future<_i17.GithubBuildStatusUpdate> queryLastStatusUpdate(
     _i12.RepositorySlug? slug,
     _i12.PullRequest? pr,
@@ -1746,35 +1737,35 @@ class MockDatastoreService extends _i1.Mock implements _i8.DatastoreService {
 /// A class which mocks [FakeEntry].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFakeEntry extends _i1.Mock implements _i40.FakeEntry {
+class MockFakeEntry extends _i1.Mock implements _i39.FakeEntry {
   MockFakeEntry() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i41.Uint8List get value =>
+  _i40.Uint8List get value =>
       (super.noSuchMethod(
             Invocation.getter(#value),
-            returnValue: _i41.Uint8List(0),
+            returnValue: _i40.Uint8List(0),
           )
-          as _i41.Uint8List);
+          as _i40.Uint8List);
 
   @override
-  set value(_i41.Uint8List? _value) => super.noSuchMethod(
+  set value(_i40.Uint8List? _value) => super.noSuchMethod(
     Invocation.setter(#value, _value),
     returnValueForMissingStub: null,
   );
 
   @override
-  _i19.Future<_i41.Uint8List> get([
-    _i19.Future<_i41.Uint8List?> Function()? create,
+  _i19.Future<_i40.Uint8List> get([
+    _i19.Future<_i40.Uint8List?> Function()? create,
     Duration? ttl,
   ]) =>
       (super.noSuchMethod(
             Invocation.method(#get, [create, ttl]),
-            returnValue: _i19.Future<_i41.Uint8List>.value(_i41.Uint8List(0)),
+            returnValue: _i19.Future<_i40.Uint8List>.value(_i40.Uint8List(0)),
           )
-          as _i19.Future<_i41.Uint8List>);
+          as _i19.Future<_i40.Uint8List>);
 
   @override
   _i19.Future<void> purge({int? retries = 0}) =>
@@ -1786,12 +1777,12 @@ class MockFakeEntry extends _i1.Mock implements _i40.FakeEntry {
           as _i19.Future<void>);
 
   @override
-  _i19.Future<_i41.Uint8List?> set(_i41.Uint8List? value, [Duration? ttl]) =>
+  _i19.Future<_i40.Uint8List?> set(_i40.Uint8List? value, [Duration? ttl]) =>
       (super.noSuchMethod(
             Invocation.method(#set, [value, ttl]),
-            returnValue: _i19.Future<_i41.Uint8List?>.value(),
+            returnValue: _i19.Future<_i40.Uint8List?>.value(),
           )
-          as _i19.Future<_i41.Uint8List?>);
+          as _i19.Future<_i40.Uint8List?>);
 }
 
 /// A class which mocks [FirestoreService].
@@ -1869,7 +1860,7 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
           as _i19.Future<_i20.CommitResponse>);
 
   @override
-  _i19.Future<List<_i42.Commit>> queryRecentCommits({
+  _i19.Future<List<_i41.Commit>> queryRecentCommits({
     int? limit = 100,
     int? timestamp,
     String? branch,
@@ -1882,12 +1873,12 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
               #branch: branch,
               #slug: slug,
             }),
-            returnValue: _i19.Future<List<_i42.Commit>>.value(<_i42.Commit>[]),
+            returnValue: _i19.Future<List<_i41.Commit>>.value(<_i41.Commit>[]),
           )
-          as _i19.Future<List<_i42.Commit>>);
+          as _i19.Future<List<_i41.Commit>>);
 
   @override
-  _i19.Future<List<_i43.Task>> queryRecentTasksByName({
+  _i19.Future<List<_i42.Task>> queryRecentTasksByName({
     int? limit = 100,
     required String? name,
   }) =>
@@ -1896,17 +1887,17 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
               #limit: limit,
               #name: name,
             }),
-            returnValue: _i19.Future<List<_i43.Task>>.value(<_i43.Task>[]),
+            returnValue: _i19.Future<List<_i42.Task>>.value(<_i42.Task>[]),
           )
-          as _i19.Future<List<_i43.Task>>);
+          as _i19.Future<List<_i42.Task>>);
 
   @override
-  _i19.Future<List<_i43.Task>> queryCommitTasks(String? commitSha) =>
+  _i19.Future<List<_i42.Task>> queryCommitTasks(String? commitSha) =>
       (super.noSuchMethod(
             Invocation.method(#queryCommitTasks, [commitSha]),
-            returnValue: _i19.Future<List<_i43.Task>>.value(<_i43.Task>[]),
+            returnValue: _i19.Future<List<_i42.Task>>.value(<_i42.Task>[]),
           )
-          as _i19.Future<List<_i43.Task>>);
+          as _i19.Future<List<_i42.Task>>);
 
   @override
   _i19.Future<_i21.GithubGoldStatus> queryLastGoldStatus(
@@ -4914,7 +4905,7 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
   _i19.Future<Iterable<_i7.Build>> getBuilds({
     required String? builderName,
     required String? bucket,
-    required _i44.BuildTags? tags,
+    required _i43.BuildTags? tags,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getBuilds, [], {
@@ -4927,10 +4918,10 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
           as _i19.Future<Iterable<_i7.Build>>);
 
   @override
-  _i19.Future<List<_i45.Target>> scheduleTryBuilds({
-    required List<_i45.Target>? targets,
+  _i19.Future<List<_i44.Target>> scheduleTryBuilds({
+    required List<_i44.Target>? targets,
     required _i12.PullRequest? pullRequest,
-    required _i46.EngineArtifacts? engineArtifacts,
+    required _i45.EngineArtifacts? engineArtifacts,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleTryBuilds, [], {
@@ -4938,9 +4929,9 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
             }),
-            returnValue: _i19.Future<List<_i45.Target>>.value(<_i45.Target>[]),
+            returnValue: _i19.Future<List<_i44.Target>>.value(<_i44.Target>[]),
           )
-          as _i19.Future<List<_i45.Target>>);
+          as _i19.Future<List<_i44.Target>>);
 
   @override
   _i19.Future<void> cancelBuilds({
@@ -4975,7 +4966,7 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
   @override
   _i19.Future<List<_i7.Build?>> failedBuilds({
     required _i12.PullRequest? pullRequest,
-    required List<_i45.Target>? targets,
+    required List<_i44.Target>? targets,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#failedBuilds, [], {
@@ -4991,7 +4982,7 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
     required String? builderName,
     required _i7.Build? build,
     required int? nextAttempt,
-    required _i47.PresubmitUserData? userData,
+    required _i46.PresubmitUserData? userData,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#reschedulePresubmitBuild, [], {
@@ -5029,11 +5020,11 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
 
   @override
   _i19.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
-    _i48.CheckRunEvent? checkRunEvent, {
+    _i47.CheckRunEvent? checkRunEvent, {
     required _i37.Commit? commit,
     required _i38.Task? task,
-    required _i45.Target? target,
-    required _i43.Task? taskDocument,
+    required _i44.Target? target,
+    required _i42.Task? taskDocument,
     required _i8.DatastoreService? datastore,
     required _i14.FirestoreService? firestoreService,
   }) =>
@@ -5057,7 +5048,7 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
 
   @override
   _i19.Future<_i7.Build> getBuildById(
-    _i49.Int64? id, {
+    _i48.Int64? id, {
     _i7.BuildMask? buildMask,
   }) =>
       (super.noSuchMethod(
@@ -5086,25 +5077,25 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
           as _i19.Future<Set<String>>);
 
   @override
-  _i19.Future<List<_i50.PendingTask>> schedulePostsubmitBuilds({
+  _i19.Future<List<_i49.PendingTask>> schedulePostsubmitBuilds({
     required _i37.Commit? commit,
-    required List<_i50.PendingTask>? toBeScheduled,
+    required List<_i49.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#schedulePostsubmitBuilds, [], {
               #commit: commit,
               #toBeScheduled: toBeScheduled,
             }),
-            returnValue: _i19.Future<List<_i50.PendingTask>>.value(
-              <_i50.PendingTask>[],
+            returnValue: _i19.Future<List<_i49.PendingTask>>.value(
+              <_i49.PendingTask>[],
             ),
           )
-          as _i19.Future<List<_i50.PendingTask>>);
+          as _i19.Future<List<_i49.PendingTask>>);
 
   @override
   _i19.Future<void> scheduleMergeGroupBuilds({
     required _i37.Commit? commit,
-    required List<_i45.Target>? targets,
+    required List<_i44.Target>? targets,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleMergeGroupBuilds, [], {
@@ -5119,7 +5110,7 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
   @override
   _i19.Future<_i12.CheckRun> createPostsubmitCheckRun(
     _i37.Commit? commit,
-    _i45.Target? target,
+    _i44.Target? target,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#createPostsubmitCheckRun, [commit, target]),
@@ -5135,12 +5126,12 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
   @override
   _i19.Future<bool> checkRerunBuilder({
     required _i37.Commit? commit,
-    required _i45.Target? target,
+    required _i44.Target? target,
     required _i38.Task? task,
     required _i8.DatastoreService? datastore,
-    required _i43.Task? taskDocument,
+    required _i42.Task? taskDocument,
     required _i14.FirestoreService? firestoreService,
-    Iterable<_i44.BuildTag>? tags = const [],
+    Iterable<_i43.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
       (super.noSuchMethod(
@@ -5162,7 +5153,7 @@ class MockLuciBuildService extends _i1.Mock implements _i14.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i51.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i50.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -6226,7 +6217,7 @@ class MockBeginTransactionResponse extends _i1.Mock
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i52.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i51.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }
@@ -6453,35 +6444,35 @@ class MockPullRequestLabelProcessor extends _i1.Mock
 /// A class which mocks [Cache].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCache extends _i1.Mock implements _i29.Cache<_i41.Uint8List> {
+class MockCache extends _i1.Mock implements _i29.Cache<_i40.Uint8List> {
   MockCache() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i29.Entry<_i41.Uint8List> operator [](String? key) =>
+  _i29.Entry<_i40.Uint8List> operator [](String? key) =>
       (super.noSuchMethod(
             Invocation.method(#[], [key]),
-            returnValue: _FakeEntry_79<_i41.Uint8List>(
+            returnValue: _FakeEntry_79<_i40.Uint8List>(
               this,
               Invocation.method(#[], [key]),
             ),
           )
-          as _i29.Entry<_i41.Uint8List>);
+          as _i29.Entry<_i40.Uint8List>);
 
   @override
-  _i29.Cache<_i41.Uint8List> withPrefix(String? prefix) =>
+  _i29.Cache<_i40.Uint8List> withPrefix(String? prefix) =>
       (super.noSuchMethod(
             Invocation.method(#withPrefix, [prefix]),
-            returnValue: _FakeCache_80<_i41.Uint8List>(
+            returnValue: _FakeCache_80<_i40.Uint8List>(
               this,
               Invocation.method(#withPrefix, [prefix]),
             ),
           )
-          as _i29.Cache<_i41.Uint8List>);
+          as _i29.Cache<_i40.Uint8List>);
 
   @override
-  _i29.Cache<S> withCodec<S>(_i25.Codec<S, _i41.Uint8List>? codec) =>
+  _i29.Cache<S> withCodec<S>(_i25.Codec<S, _i40.Uint8List>? codec) =>
       (super.noSuchMethod(
             Invocation.method(#withCodec, [codec]),
             returnValue: _FakeCache_80<S>(
@@ -6492,13 +6483,13 @@ class MockCache extends _i1.Mock implements _i29.Cache<_i41.Uint8List> {
           as _i29.Cache<S>);
 
   @override
-  _i29.Cache<_i41.Uint8List> withTTL(Duration? ttl) =>
+  _i29.Cache<_i40.Uint8List> withTTL(Duration? ttl) =>
       (super.noSuchMethod(
             Invocation.method(#withTTL, [ttl]),
-            returnValue: _FakeCache_80<_i41.Uint8List>(
+            returnValue: _FakeCache_80<_i40.Uint8List>(
               this,
               Invocation.method(#withTTL, [ttl]),
             ),
           )
-          as _i29.Cache<_i41.Uint8List>);
+          as _i29.Cache<_i40.Uint8List>);
 }

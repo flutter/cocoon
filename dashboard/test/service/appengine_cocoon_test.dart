@@ -4,7 +4,6 @@
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
@@ -31,7 +30,6 @@ void main() {
       final statuses = await service.fetchCommitStatuses(repo: 'flutter');
 
       final expectedStatus = CommitStatus(
-        branch: 'master',
         commit:
             Commit()
               ..timestamp = Int64(123456789)
@@ -45,17 +43,15 @@ void main() {
             ..createTimestamp = Int64(1569353940885)
             ..startTimestamp = Int64(1569354594672)
             ..endTimestamp = Int64(1569354700642)
-            ..name = 'linux'
             ..attempts = 1
             ..isFlaky = false
-            ..stageName = 'chromebot'
             ..status = 'Succeeded'
-            ..isTestFlaky = false
             ..buildNumberList = '123'
             ..builderName = 'Linux',
         ],
       );
 
+      expect(statuses.error, isNull);
       expect(statuses.data!.length, 1);
       expect(statuses.data!.first, expectedStatus);
     });
@@ -140,7 +136,7 @@ void main() {
           return Response('', 200);
         }),
       );
-      task = Task()..stageName = StageName.luci;
+      task = Task();
     });
 
     test('should return true if request succeeds', () async {

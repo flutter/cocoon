@@ -548,15 +548,10 @@ class Scheduler {
     // support this optimization.
     //
     // So, to avoid making it impossible to create a release branch, or to
-    // update the existing release branch (i.e. hot fixes), we only apply the
-    // optimization on the "master" branch.
-    //
-    // In theory, many moons from now when maintained release branches are
-    // guaranteed to include the flutter/recipes change we could remove this
-    // check.
-    final refuseLogPrefix =
-        'Refusing to skip engine builds for PR#$prNumber branch';
-    if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
+    // or to update the existing release branch (i.e. hot fixes), we skip this
+    // optimziation on that specific branch.
+    final refuseLogPrefix = 'Refusing to skip engine builds for PR#$prNumber';
+    if (prBranch == 'flutter-3.29-candidate.0') {
       log.info(
         '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
       );

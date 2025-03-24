@@ -64,9 +64,9 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       jsonDecode(message.data!) as Map<String, dynamic>,
     );
     final buildsPubSub = pubSubCallBack.buildPubsub;
-    final postUserData = PostsubmitUserData.fromBytes(pubSubCallBack.userData);
+    final userData = PostsubmitUserData.fromBytes(pubSubCallBack.userData);
 
-    log.debug('userData=$postUserData');
+    log.debug('userData=$userData');
 
     if (!buildsPubSub.hasBuild()) {
       log.warn('No build was found in message.');
@@ -86,18 +86,16 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     final commitKey = Key<String>(
       Key<dynamic>.emptyKey(Partition(null)),
       Commit,
-      postUserData.commitKey,
+      userData.commitKey,
     );
     Task? task;
     firestore.Task? firestoreTask;
-    log.info(
-      'Looking up task document: ${postUserData.firestoreTaskDocumentName}',
-    );
-    final taskKey = Key<int>(commitKey, Task, int.parse(postUserData.taskKey));
+    log.info('Looking up task document: ${userData.firestoreTaskDocumentName}');
+    final taskKey = Key<int>(commitKey, Task, int.parse(userData.taskKey));
     task = await datastore.lookupByValue<Task>(taskKey);
     firestoreTask = await firestore.Task.fromFirestore(
       firestoreService,
-      postUserData.firestoreTaskDocumentName,
+      userData.firestoreTaskDocumentName,
     );
     log.info('Found $firestoreTask');
 
@@ -167,7 +165,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       log.info('Updating check status for ${target.getTestName}');
       await githubChecksService.updateCheckStatus(
         build: build,
-        checkRunId: postUserData.checkRunId!,
+        checkRunId: userData.checkRunId!,
         luciBuildService: scheduler.luciBuildService,
         slug: commit.slug,
       );
