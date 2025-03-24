@@ -793,13 +793,7 @@ void main() {
         statuses: [
           CommitStatus(
             commit: commit,
-            tasks: [
-              Task(
-                name: 'Task',
-                builderName: 'Builder',
-                status: TaskBox.statusNew,
-              ),
-            ],
+            tasks: [Task(builderName: 'Builder', status: TaskBox.statusNew)],
           ),
         ],
       );
