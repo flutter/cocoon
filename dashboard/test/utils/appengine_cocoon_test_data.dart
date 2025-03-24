@@ -5,94 +5,35 @@
 // This is based off data the Cocoon backend sends out from v1.
 // It doesn't map directly to protos since the backend does
 // not use protos yet.
-const String luciJsonGetStatsResponse = '''
-      {
-        "Statuses": [
-          {
-          "Checklist": {
-            "Key": "iamatestkey",
-            "Checklist": {
-              "Branch": "master",
-              "FlutterRepositoryPath": "flutter/cocoon",
-              "CreateTimestamp": 123456789,
-              "Commit": {
-                "Sha": "ShaShankHash",
-                "Author": {
-                  "Login": "ShaSha",
-                  "avatar_url": "https://flutter.dev"
-                  }
-                }
-              }
-            },
-            "Stages": [
-              {
-                "Name": "chromebot",
-                "Status": "Succeeded",
-                "Tasks": [
-                  {
-                    "Key": "taskKey1",
-                    "Task": {
-                      "Attempts": 1,
-                      "CreateTimestamp": 1569353940885,
-                      "EndTimestamp": 1569354700642,
-                      "Flaky": false,
-                      "Name": "linux",
-                      "Reason": "",
-                      "RequiredCapabilities": ["linux"],
-                      "ReservedForAgentID": "",
-                      "StageName": "chromebot",
-                      "StartTimestamp": 1569354594672,
-                      "Status": "Succeeded",
-                      "TimeoutInMinutes": 0,
-                      "BuildNumberList": "123",
-                      "BuilderName": "Linux",
-                      "LuciBucket": "luci.flutter.try"
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-  }
-''';
-
-const String luciJsonGetStatsResponseFirestore = '''
-      {
-        "Statuses": [
-          {
-          "Commit": {
-            "DocumentName": "commit/document/name",
-            "Branch": "master",
-            "RepositoryPath": "flutter/cocoon",
-            "CreateTimestamp": 123456789,
-            "Sha": "ShaShankHash",
-            "Author": "ShaSha",
-            "Avatar": "https://flutter.dev",
-            "Message": "message"
-            },
-          "Tasks": [
-            {
-              "Task": {
-                "DocumentName": "task/document/name",
-                "Status": "Succeeded",
-                "Attempts": 1,
-                "CreateTimestamp": 1569353940885,
-                "EndTimestamp": 1569354700642,
-                "Bringup": false,
-                "TaskName": "linux",
-                "StartTimestamp": 1569354594672,
-                "BuildNumber": 123,
-                "TestFlaky": false,
-                "CommitSha": "testSha"
-              },
-              "BuildList": "123"
-            }
-          ]
+const String luciJsonGetStatsResponse = '''{
+  "Commits": [
+    {
+      "Commit": {
+        "Branch": "master",
+        "FlutterRepositoryPath": "flutter/cocoon",
+        "CreateTimestamp": 123456789,
+        "Sha": "ShaShankHash",
+        "Author": {
+          "Login": "ShaSha",
+          "avatar_url": "https://flutter.dev"
+        }
+      },
+      "Status": "Succeeded",
+      "Tasks": [
+        {
+          "Attempts": 1,
+          "CreateTimestamp": 1569353940885,
+          "EndTimestamp": 1569354700642,
+          "Flaky": false,
+          "StartTimestamp": 1569354594672,
+          "Status": "Succeeded",
+          "BuildNumberList": "123",
+          "BuilderName": "Linux"
         }
       ]
-  }
-''';
+    }
+  ]
+}''';
 
 const String jsonGetBranchesResponse = '''[
   {

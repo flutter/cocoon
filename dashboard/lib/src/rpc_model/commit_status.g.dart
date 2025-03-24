@@ -17,7 +17,6 @@ CommitStatus _$CommitStatusFromJson(Map<String, dynamic> json) =>
           'tasks',
           (v) => CommitStatus._tasksFromJson(v as List),
         ),
-        branch: $checkedConvert('branch', (v) => v as String),
       );
       return val;
     });
@@ -26,5 +25,4 @@ Map<String, dynamic> _$CommitStatusToJson(CommitStatus instance) =>
     <String, dynamic>{
       'commit': CommitStatus._commitToJson(instance.commit),
       'tasks': CommitStatus._tasksToJson(instance.tasks),
-      'branch': instance.branch,
     };

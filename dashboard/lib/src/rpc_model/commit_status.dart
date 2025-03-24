@@ -15,11 +15,8 @@ part 'commit_status.g.dart';
 @JsonSerializable(checked: true)
 @immutable
 final class CommitStatus extends Model {
-  CommitStatus({
-    required this.commit,
-    required Iterable<Task> tasks,
-    required this.branch,
-  }) : tasks = List.unmodifiable(tasks);
+  CommitStatus({required this.commit, required Iterable<Task> tasks})
+    : tasks = List.unmodifiable(tasks);
 
   factory CommitStatus.fromJson(Map<String, Object?> json) {
     return _$CommitStatusFromJson(json);
@@ -29,7 +26,7 @@ final class CommitStatus extends Model {
   final Commit commit;
 
   static Map<String, Object?> _commitToJson(Commit commit) {
-    return commit.writeToJsonMap();
+    return commit.toProto3Json() as Map<String, Object?>;
   }
 
   static Commit _commitFromJson(Map<String, Object?> json) {
@@ -40,7 +37,7 @@ final class CommitStatus extends Model {
   final List<Task> tasks;
 
   static List<Object?> _tasksToJson(List<Task> tasks) {
-    return tasks.map((t) => t.writeToJsonMap()).toList();
+    return tasks.map((t) => t.toProto3Json()).toList();
   }
 
   static List<Task> _tasksFromJson(List<Object?> tasks) {
@@ -50,22 +47,18 @@ final class CommitStatus extends Model {
         .toList();
   }
 
-  @JsonKey(name: 'branch')
-  final String branch;
-
   static final _listEq = const ListEquality<void>().equals;
 
   @override
   bool operator ==(Object other) {
     return other is CommitStatus &&
         commit == other.commit &&
-        branch == other.branch &&
         _listEq(tasks, other.tasks);
   }
 
   @override
   int get hashCode {
-    return Object.hash(commit, branch, Object.hashAll(tasks));
+    return Object.hash(commit, Object.hashAll(tasks));
   }
 
   @override
