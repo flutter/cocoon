@@ -131,7 +131,10 @@ Server createServer({
           config: config,
           buildBucketClient: buildBucketClient,
         ),
-    '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(config: config),
+    '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
+      config: config,
+      luciBuildService: luciBuildService,
+    ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
       authenticationProvider: authProvider,

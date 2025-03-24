@@ -22,10 +22,11 @@ import '../../service/datastore.dart';
 class VacuumStaleTasks extends RequestHandler<Body> {
   const VacuumStaleTasks({
     required super.config,
+    required LuciBuildService luciBuildService,
     @visibleForTesting
     this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.nowValue,
-  });
+  }) : _luciBuildService = luciBuildService;
 
   final DatastoreServiceProvider datastoreProvider;
 
@@ -35,6 +36,8 @@ class VacuumStaleTasks extends RequestHandler<Body> {
   /// Tasks that are in progress without a build for this duration will be
   /// reset.
   static const Duration kTimeoutLimit = Duration(hours: 3);
+
+  final LuciBuildService _luciBuildService;
 
   @override
   Future<Body> get() async {
@@ -69,7 +72,24 @@ class VacuumStaleTasks extends RequestHandler<Body> {
     final now = DateTime.now();
     for (var fullTask in tasks) {
       final task = fullTask.task;
-      if (task.status == Task.statusInProgress && task.buildNumber == null) {
+      if (task.status != Task.statusInProgress) {
+        // TODO(matanlurey): Change the query instead of doing in-memory filtering.
+        // This should probably wait until we migrate to Firestore.
+        continue;
+      }
+      if (task.buildNumber case final buildNumber?) {
+        final build = await _luciBuildService.getProdBuilds(
+          builderName: task.builderName,
+          sha: fullTask.commit.sha,
+        );
+        if (build.isEmpty) {
+          log.warn(
+            'Requested an update for build#$buildNumber (${task.builderName}, sha=${fullTask.commit.sha}), but no response.',
+          );
+          continue;
+        }
+        task.updateFromBuildbucketBuild(build.first);
+      } else {
         // If the task hasn't been assigned a build, see if it's been waiting
         // longer than the timeout, and if so reset it back to New as a
         // mitigation for https://github.com/flutter/flutter/issues/122117 until
@@ -83,9 +103,9 @@ class VacuumStaleTasks extends RequestHandler<Body> {
         }
       }
     }
+
     log.info('Vacuuming stale tasks: $tasksToBeReset');
     await datastore.insert(tasksToBeReset);
-
     await updateTaskDocuments(tasksToBeReset);
   }
 

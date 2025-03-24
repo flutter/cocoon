@@ -4,7 +4,6 @@
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
@@ -48,8 +47,9 @@ class TestGrid extends StatelessWidget {
             commit:
                 (Commit()
                   ..author = 'Fats Domino'
-                  ..sha = '24e8c0a2'),
-            branch: 'master',
+                  ..sha = '24e8c0a2'
+                  ..branch = 'master'),
+
             tasks: [task],
           ),
         ],
@@ -81,7 +81,6 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..isFlaky =
               false // As opposed to the next test.
@@ -151,7 +150,6 @@ void main() {
     final flakyTask =
         Task()
           ..attempts = 3
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..isFlaky =
               true // This is the point of this test.
@@ -218,7 +216,6 @@ void main() {
     final timeTask =
         Task()
           ..attempts = 1
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..isFlaky = false
           ..status = TaskBox.statusSucceeded
@@ -264,7 +261,6 @@ void main() {
     final timeTask =
         Task()
           ..attempts = 1
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..status = TaskBox.statusInProgress
           ..isFlaky = false
@@ -308,7 +304,6 @@ void main() {
     final timeTask =
         Task()
           ..attempts = 1
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..status = TaskBox.statusNew
           ..isFlaky = false
@@ -355,10 +350,7 @@ void main() {
             home: Scaffold(
               body: TestGrid(
                 buildState: buildState,
-                task:
-                    Task()
-                      ..stageName = 'luci'
-                      ..status = TaskBox.statusSucceeded,
+                task: Task()..status = TaskBox.statusSucceeded,
               ),
             ),
           ),
@@ -395,7 +387,6 @@ void main() {
                 buildState: buildState,
                 task:
                     Task()
-                      ..stageName = 'chromebot'
                       ..status = TaskBox.statusSucceeded
                       ..buildNumberList = '123',
               ),
@@ -427,7 +418,7 @@ void main() {
                 buildState: buildState,
                 task:
                     Task()
-                      ..stageName = 'dart-internal'
+                      ..builderName = 'Linux flutter_release_builder'
                       ..status = TaskBox.statusSucceeded
                       ..buildNumberList = '123',
               ),
@@ -451,7 +442,6 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..status = TaskBox.statusSucceeded
           ..isFlaky = false;
@@ -496,7 +486,6 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..status = TaskBox.statusSucceeded
           ..isFlaky = false;
@@ -547,7 +536,6 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..stageName = StageName.luci
           ..name = 'Tasky McTaskFace'
           ..isFlaky = false
           ..status = TaskBox.statusNew;

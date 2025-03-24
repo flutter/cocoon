@@ -5,10 +5,9 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/appengine/stage.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
+import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -77,13 +76,11 @@ void main() {
         keyHelperValue: keyHelper,
         firestoreService: mockFirestoreService,
       );
-      buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[],
-      );
+      buildStatusService = FakeBuildStatusService(commitTasksStatuses: []);
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
     });
 
@@ -93,38 +90,38 @@ void main() {
       );
 
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-      expect(result, containsPair('Statuses', isEmpty));
+      expect(result, containsPair('Commits', isEmpty));
     });
 
     test('reports statuses without input commit key', () async {
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1, sha: commit1.sha), const <Stage>[]),
-          CommitStatus(generateCommit(2, sha: commit2.sha), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
         ],
       );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       tester.request = FakeHttpRequest();
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-      expect(result, containsPair('Statuses', hasLength(2)));
+      expect(result, containsPair('Commits', hasLength(2)));
     });
 
     test('reports statuses with input commit key', () async {
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1, sha: commit1.sha), const <Stage>[]),
-          CommitStatus(generateCommit(2, sha: commit2.sha), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
         ],
       );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       tester.request = FakeHttpRequest(
@@ -134,24 +131,18 @@ void main() {
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
       expect(
         result,
-        containsPair('Statuses', [
-          <String, dynamic>{
-            'Checklist': <String, dynamic>{
-              'Checklist': <String, dynamic>{
-                'FlutterRepositoryPath': 'flutter/flutter',
-                'CreateTimestamp': 1,
-                'Commit': <String, dynamic>{
-                  'Sha': '${commit1.sha}',
-                  'Message': null,
-                  'Author': <String, dynamic>{
-                    'Login': null,
-                    'avatar_url': null,
-                  },
-                },
-                'Branch': 'master',
-              },
+        containsPair('Commits', [
+          {
+            'Commit': {
+              'FlutterRepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 1,
+              'Sha': '${commit1.sha}',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
+              'Branch': 'master',
             },
-            'Stages': <String>[],
+            'Tasks': <void>[],
+            'Status': 'In Progress',
           },
         ]),
       );
@@ -159,15 +150,19 @@ void main() {
 
     test('reports statuses with input branch', () async {
       buildStatusService = FakeBuildStatusService(
-        commitStatuses: <CommitStatus>[
-          CommitStatus(generateCommit(1, sha: commit1.sha), const <Stage>[]),
-          CommitStatus(generateCommit(2, sha: commit2.sha), const <Stage>[]),
+        commitTasksStatuses: [
+          CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), [
+            generateFirestoreTask(1),
+          ]),
+          CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), [
+            generateFirestoreTask(1),
+          ]),
         ],
       );
       handler = GetStatus(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_, _) => buildStatusService,
+        buildStatusProvider: (_) => buildStatusService,
       );
 
       tester.request = FakeHttpRequest(
@@ -176,42 +171,52 @@ void main() {
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
       expect(
         result,
-        containsPair('Statuses', [
+        containsPair('Commits', [
           {
-            'Checklist': <String, dynamic>{
-              'Checklist': <String, dynamic>{
-                'FlutterRepositoryPath': 'flutter/flutter',
-                'CreateTimestamp': 1,
-                'Commit': <String, dynamic>{
-                  'Sha': '${commit1.sha}',
-                  'Message': null,
-                  'Author': <String, dynamic>{
-                    'Login': null,
-                    'avatar_url': null,
-                  },
-                },
-                'Branch': 'master',
-              },
+            'Commit': {
+              'FlutterRepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 1,
+              'Sha': '1',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
+              'Branch': 'master',
             },
-            'Stages': <String>[],
+            'Tasks': [
+              {
+                'CreateTimestamp': 0,
+                'StartTimestamp': 0,
+                'EndTimestamp': 0,
+                'Attempts': 1,
+                'Flaky': false,
+                'Status': 'New',
+                'BuildNumberList': '',
+                'BuilderName': 'task1',
+              },
+            ],
+            'Status': 'In Progress',
           },
           {
-            'Checklist': <String, dynamic>{
-              'Checklist': <String, dynamic>{
-                'FlutterRepositoryPath': 'flutter/flutter',
-                'CreateTimestamp': 2,
-                'Commit': <String, dynamic>{
-                  'Sha': '${commit2.sha}',
-                  'Message': null,
-                  'Author': <String, dynamic>{
-                    'Login': null,
-                    'avatar_url': null,
-                  },
-                },
-                'Branch': 'master',
-              },
+            'Commit': {
+              'FlutterRepositoryPath': 'flutter/flutter',
+              'CreateTimestamp': 2,
+              'Sha': '2',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
+              'Branch': 'master',
             },
-            'Stages': <String>[],
+            'Tasks': [
+              {
+                'CreateTimestamp': 0,
+                'StartTimestamp': 0,
+                'EndTimestamp': 0,
+                'Attempts': 1,
+                'Flaky': false,
+                'Status': 'New',
+                'BuildNumberList': '',
+                'BuilderName': 'task1',
+              },
+            ],
+            'Status': 'In Progress',
           },
         ]),
       );

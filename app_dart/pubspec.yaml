@@ -56,7 +56,7 @@ dev_dependencies:
     path: ../packages/cocoon_common_test
   cocoon_server_test:
     path: ../packages/cocoon_server_test
-  dart_flutter_team_lints: 3.5.0
+  dart_flutter_team_lints: 3.5.1
   fake_async: ^1.3.3
   json_serializable: ^6.9.4
   mockito: ^5.4.5
