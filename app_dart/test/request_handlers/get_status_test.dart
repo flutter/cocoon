@@ -131,11 +131,9 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 1,
-              'Commit': {
-                'Sha': '${commit1.sha}',
-                'Message': 'test message',
-                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
-              },
+              'Sha': '${commit1.sha}',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',
             },
             'Tasks': <void>[],
@@ -172,11 +170,9 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 1,
-              'Commit': {
-                'Sha': '1',
-                'Message': 'test message',
-                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
-              },
+              'Sha': '1',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',
             },
             'Tasks': [
@@ -197,11 +193,9 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 2,
-              'Commit': {
-                'Sha': '2',
-                'Message': 'test message',
-                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
-              },
+              'Sha': '2',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',
             },
             'Tasks': [

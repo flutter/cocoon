@@ -3537,15 +3537,17 @@ targets:
       });
 
       test(
-        'still runs engine builds (>= 30 files in changedFilesCount)',
+        'still runs engine builds (>=X files in changedFilesCount)',
         () async {
           fakeFusion.isFusion = (_, _) => true;
           getFilesChanged.cannedFiles = [
             // Irrelevant, never called.
           ];
+          config.maxFilesChangedForSkippingEnginePhaseValue = 1000;
+
           final pullRequest = generatePullRequest(
             authorLogin: 'joe-flutter',
-            changedFilesCount: 30,
+            changedFilesCount: config.maxFilesChangedForSkippingEnginePhase,
           );
 
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -3581,7 +3583,7 @@ targets:
       });
 
       // Regression test for https://github.com/flutter/flutter/issues/162403.
-      test('engine builds still run for release branches', () async {
+      test('engine builds still run for flutter-3.29-candidate.0', () async {
         fakeFusion.isFusion = (_, _) => true;
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(
@@ -3591,9 +3593,10 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.engineArtifacts,
-          isA<UnnecessaryEngineArtifacts>(),
-          reason:
-              'When scheduling engine builds, there is no concept of an engine prebuilt.',
+          EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.head!.sha!,
+          ),
+          reason: 'Release candidates use an "existing" dart-internal build',
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
