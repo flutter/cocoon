@@ -484,9 +484,17 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
-          engineArtifacts = const EngineArtifacts.noFrameworkTests(
-            reason: 'This is the engine phase of the build',
-          );
+
+          // Even though this appears to be an engine build, it could be a
+          // release candidate build, where the engine artifacts are built
+          // via the dart-internal builder.
+          //
+          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
+          // consequences for engine builds, as it just won't be used (it is
+          // only understood by the Flutter CLI).
+          //
+          // See https://github.com/flutter/flutter/issues/165810.
+          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',

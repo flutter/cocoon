@@ -3664,9 +3664,10 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.engineArtifacts,
-          isA<UnnecessaryEngineArtifacts>(),
-          reason:
-              'When scheduling engine builds, there is no concept of an engine prebuilt.',
+          EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.head!.sha!,
+          ),
+          reason: 'Release candidates use an "existing" dart-internal build',
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
