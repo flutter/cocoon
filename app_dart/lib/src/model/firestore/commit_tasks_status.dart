@@ -58,7 +58,7 @@ class CommitTasksStatus {
     }
 
     // Sort build numbers, and return.
-    final fullTasks = fullTasksMap.values.toList();
+    final fullTasks = [...fullTasksMap.values];
     for (final fullTask in fullTasks) {
       fullTask.buildList.sort();
     }
