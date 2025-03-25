@@ -301,7 +301,7 @@ class TaskOverlayContents extends StatelessWidget {
                       child: ListBody(
                         children: <Widget>[
                           SelectableText(
-                            task.name,
+                            task.builderName,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           Text(

@@ -19,14 +19,11 @@ class Task extends $pb.GeneratedMessage {
     $fixnum.Int64? createTimestamp,
     $fixnum.Int64? startTimestamp,
     $fixnum.Int64? endTimestamp,
-    $core.String? name,
     $core.int? attempts,
     $core.bool? isFlaky,
-    $core.String? stageName,
     $core.String? status,
     $core.String? buildNumberList,
     $core.String? builderName,
-    $core.bool? isTestFlaky,
   }) {
     final $result = create();
     if (createTimestamp != null) {
@@ -38,17 +35,11 @@ class Task extends $pb.GeneratedMessage {
     if (endTimestamp != null) {
       $result.endTimestamp = endTimestamp;
     }
-    if (name != null) {
-      $result.name = name;
-    }
     if (attempts != null) {
       $result.attempts = attempts;
     }
     if (isFlaky != null) {
       $result.isFlaky = isFlaky;
-    }
-    if (stageName != null) {
-      $result.stageName = stageName;
     }
     if (status != null) {
       $result.status = status;
@@ -58,9 +49,6 @@ class Task extends $pb.GeneratedMessage {
     }
     if (builderName != null) {
       $result.builderName = builderName;
-    }
-    if (isTestFlaky != null) {
-      $result.isTestFlaky = isTestFlaky;
     }
     return $result;
   }
@@ -79,15 +67,12 @@ class Task extends $pb.GeneratedMessage {
     ..aInt64(3, _omitFieldNames ? '' : 'createTimestamp')
     ..aInt64(4, _omitFieldNames ? '' : 'startTimestamp')
     ..aInt64(5, _omitFieldNames ? '' : 'endTimestamp')
-    ..aOS(6, _omitFieldNames ? '' : 'name')
     ..a<$core.int>(7, _omitFieldNames ? '' : 'attempts', $pb.PbFieldType.O3)
     ..aOB(8, _omitFieldNames ? '' : 'isFlaky')
-    ..aOS(13, _omitFieldNames ? '' : 'stageName')
     ..aOS(14, _omitFieldNames ? '' : 'status')
     ..aOS(16, _omitFieldNames ? '' : 'buildNumberList',
         protoName: 'buildNumberList')
     ..aOS(17, _omitFieldNames ? '' : 'builderName', protoName: 'builderName')
-    ..aOB(19, _omitFieldNames ? '' : 'isTestFlaky')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -147,101 +132,65 @@ class Task extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearEndTimestamp() => clearField(5);
 
-  @$pb.TagNumber(6)
-  $core.String get name => $_getSZ(3);
-  @$pb.TagNumber(6)
-  set name($core.String v) {
-    $_setString(3, v);
-  }
-
-  @$pb.TagNumber(6)
-  $core.bool hasName() => $_has(3);
-  @$pb.TagNumber(6)
-  void clearName() => clearField(6);
-
   @$pb.TagNumber(7)
-  $core.int get attempts => $_getIZ(4);
+  $core.int get attempts => $_getIZ(3);
   @$pb.TagNumber(7)
   set attempts($core.int v) {
-    $_setSignedInt32(4, v);
+    $_setSignedInt32(3, v);
   }
 
   @$pb.TagNumber(7)
-  $core.bool hasAttempts() => $_has(4);
+  $core.bool hasAttempts() => $_has(3);
   @$pb.TagNumber(7)
   void clearAttempts() => clearField(7);
 
   @$pb.TagNumber(8)
-  $core.bool get isFlaky => $_getBF(5);
+  $core.bool get isFlaky => $_getBF(4);
   @$pb.TagNumber(8)
   set isFlaky($core.bool v) {
-    $_setBool(5, v);
+    $_setBool(4, v);
   }
 
   @$pb.TagNumber(8)
-  $core.bool hasIsFlaky() => $_has(5);
+  $core.bool hasIsFlaky() => $_has(4);
   @$pb.TagNumber(8)
   void clearIsFlaky() => clearField(8);
 
-  @$pb.TagNumber(13)
-  $core.String get stageName => $_getSZ(6);
-  @$pb.TagNumber(13)
-  set stageName($core.String v) {
-    $_setString(6, v);
-  }
-
-  @$pb.TagNumber(13)
-  $core.bool hasStageName() => $_has(6);
-  @$pb.TagNumber(13)
-  void clearStageName() => clearField(13);
-
   @$pb.TagNumber(14)
-  $core.String get status => $_getSZ(7);
+  $core.String get status => $_getSZ(5);
   @$pb.TagNumber(14)
   set status($core.String v) {
-    $_setString(7, v);
+    $_setString(5, v);
   }
 
   @$pb.TagNumber(14)
-  $core.bool hasStatus() => $_has(7);
+  $core.bool hasStatus() => $_has(5);
   @$pb.TagNumber(14)
   void clearStatus() => clearField(14);
 
   @$pb.TagNumber(16)
-  $core.String get buildNumberList => $_getSZ(8);
+  $core.String get buildNumberList => $_getSZ(6);
   @$pb.TagNumber(16)
   set buildNumberList($core.String v) {
-    $_setString(8, v);
+    $_setString(6, v);
   }
 
   @$pb.TagNumber(16)
-  $core.bool hasBuildNumberList() => $_has(8);
+  $core.bool hasBuildNumberList() => $_has(6);
   @$pb.TagNumber(16)
   void clearBuildNumberList() => clearField(16);
 
   @$pb.TagNumber(17)
-  $core.String get builderName => $_getSZ(9);
+  $core.String get builderName => $_getSZ(7);
   @$pb.TagNumber(17)
   set builderName($core.String v) {
-    $_setString(9, v);
+    $_setString(7, v);
   }
 
   @$pb.TagNumber(17)
-  $core.bool hasBuilderName() => $_has(9);
+  $core.bool hasBuilderName() => $_has(7);
   @$pb.TagNumber(17)
   void clearBuilderName() => clearField(17);
-
-  @$pb.TagNumber(19)
-  $core.bool get isTestFlaky => $_getBF(10);
-  @$pb.TagNumber(19)
-  set isTestFlaky($core.bool v) {
-    $_setBool(10, v);
-  }
-
-  @$pb.TagNumber(19)
-  $core.bool hasIsTestFlaky() => $_has(10);
-  @$pb.TagNumber(19)
-  void clearIsTestFlaky() => clearField(19);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

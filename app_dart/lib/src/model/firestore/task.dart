@@ -4,10 +4,12 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
+import '../../service/luci_build_service/firestore_task_document_name.dart';
 import '../appengine/commit.dart';
 import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
@@ -42,11 +44,18 @@ class Task extends Document {
   /// Lookup [Task] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
-  static Future<Task> fromFirestore({
-    required FirestoreService firestoreService,
-    required String documentName,
-  }) async {
-    final document = await firestoreService.getDocument(documentName);
+  static Future<Task> fromFirestore(
+    FirestoreService firestoreService,
+    FirestoreTaskDocumentName documentName,
+  ) async {
+    final document = await firestoreService.getDocument(
+      p.posix.join(
+        kDatabase,
+        'documents',
+        kTaskCollectionId,
+        documentName.documentName,
+      ),
+    );
     return Task.fromDocument(taskDocument: document);
   }
 

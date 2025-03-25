@@ -8,19 +8,9 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/commit.dart' as datastore;
 import '../model/appengine/github_build_status_update.dart';
-import '../model/appengine/stage.dart';
 import '../model/firestore/commit_tasks_status.dart';
 import '../model/firestore/task.dart';
-import 'datastore.dart';
-
-/// Function signature for a [BuildStatusService] provider.
-typedef BuildStatusServiceProvider =
-    BuildStatusService Function(
-      DatastoreService datastoreService,
-      FirestoreService firestoreService,
-    );
 
 /// Branches that are used to calculate the tree status.
 const Set<String> defaultBranches = <String>{
@@ -29,19 +19,9 @@ const Set<String> defaultBranches = <String>{
 };
 
 /// Class that calculates the current build status.
-class BuildStatusService {
-  const BuildStatusService(this.datastoreService, this.firestoreService);
-
-  final DatastoreService datastoreService;
-  final FirestoreService firestoreService;
-
-  /// Creates and returns a [DatastoreService] using [db] and [maxEntityGroups].
-  static BuildStatusService defaultProvider(
-    DatastoreService datastoreService,
-    FirestoreService firestoreService,
-  ) {
-    return BuildStatusService(datastoreService, firestoreService);
-  }
+interface class BuildStatusService {
+  const BuildStatusService(this._config);
+  final Config _config;
 
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
@@ -141,32 +121,16 @@ class BuildStatusService {
     String? branch,
     required RepositorySlug slug,
   }) async* {
-    final commits = await firestoreService.queryRecentCommits(
+    final firestore = await _config.createFirestoreService();
+    final commits = await firestore.queryRecentCommits(
       limit: limit,
       timestamp: timestamp,
       branch: branch,
       slug: slug,
     );
     for (var commit in commits) {
-      final tasks = await firestoreService.queryCommitTasks(commit.sha!);
+      final tasks = await firestore.queryCommitTasks(commit.sha!);
       yield CommitTasksStatus(commit, tasks);
-    }
-  }
-
-  Stream<CommitStatus> retrieveCommitStatus({
-    required int limit,
-    int? timestamp,
-    String? branch,
-    required RepositorySlug slug,
-  }) async* {
-    await for (datastore.Commit commit in datastoreService.queryRecentCommits(
-      limit: limit,
-      timestamp: timestamp,
-      branch: branch,
-      slug: slug,
-    )) {
-      final stages = await datastoreService.queryTasksGroupedByStage(commit);
-      yield CommitStatus(commit, stages);
     }
   }
 
@@ -184,19 +148,6 @@ class BuildStatusService {
     return task.attempts! > 1 &&
         (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
-}
-
-@immutable
-class CommitStatus {
-  /// Creates a new [CommitStatus].
-  const CommitStatus(this.commit, this.stages);
-
-  /// The commit against which all the tasks in [stages] are run.
-  final datastore.Commit commit;
-
-  /// The partitioned stages, each of which holds a bucket of tasks that
-  /// belong in the stage.
-  final List<Stage> stages;
 }
 
 @immutable

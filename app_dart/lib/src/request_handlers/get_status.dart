@@ -7,27 +7,24 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/firestore/commit.dart' as firestore;
+import '../model/firestore/commit.dart';
+import '../model/firestore/commit_tasks_status.dart';
+import '../model/firestore/task.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
-import '../service/datastore.dart';
 
 @immutable
 final class GetStatus extends RequestHandler<Body> {
   const GetStatus({
     required super.config,
-    @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting
-    this.buildStatusProvider = BuildStatusService.defaultProvider,
+    required BuildStatusService buildStatusService,
     @visibleForTesting DateTime Function() now = DateTime.now,
-  }) : _now = now;
+  }) : _now = now,
+       _buildStatusService = buildStatusService;
 
-  final DatastoreServiceProvider datastoreProvider;
-  final BuildStatusServiceProvider buildStatusProvider;
+  final BuildStatusService _buildStatusService;
   final DateTime Function() _now;
 
   static const String kLastCommitShaParam = 'lastCommitSha';
@@ -44,46 +41,100 @@ final class GetStatus extends RequestHandler<Body> {
     final branch =
         request!.uri.queryParameters[kBranchParam] ??
         Config.defaultBranch(slug);
-    final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(datastore, firestoreService);
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null
-            ? (await firestore.Commit.fromFirestoreBySha(
+            ? (await Commit.fromFirestoreBySha(
               firestoreService,
               sha: lastCommitSha,
             )).createTimestamp
             : _now().millisecondsSinceEpoch;
 
-    final statuses =
-        await buildStatusService
-            .retrieveCommitStatus(
+    final commits =
+        await _buildStatusService
+            .retrieveCommitStatusFirestore(
               limit: commitNumber,
               timestamp: lastCommitTimestamp,
               branch: branch,
               slug: slug,
             )
-            .map(SerializableCommitStatus.new)
+            .map(_SerializableCommitStatus.new)
             .toList();
 
-    return Body.forJson(<String, dynamic>{'Statuses': statuses});
+    return Body.forJson({'Commits': commits.map((e) => e.toJson()).toList()});
   }
 }
 
-/// The serialized representation of a [CommitStatus].
-// TODO(tvolkert): Directly serialize [CommitStatus] once frontends migrate to new format.
-class SerializableCommitStatus {
-  const SerializableCommitStatus(this.status);
+// TODO(matanlurey): These are all temporary (private) classes that marshal
+// these objects into the JSON format expected by the frontend, which we control
+// e2e so they can evolve.
+//
+// It would be better to move the dashboard/lib/src/rpc_model into the
+// packages/cocoon_common package, and then use that representation for both
+// the frontend and backend (we're never going to deploy them independently).
 
-  final CommitStatus status;
+final class _SerializableCommitStatus {
+  const _SerializableCommitStatus(this.status);
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'Checklist': <String, dynamic>{
-        'Checklist': SerializableCommit(status.commit).facade,
-      },
-      'Stages': status.stages,
+  final CommitTasksStatus status;
+
+  Map<String, Object?> toJson() {
+    return {
+      'Commit': _SerializableCommit(status.commit).toJson(),
+      'Tasks': [...status.collateTasksByTaskName().map(_SerializableTask.new)],
+      'Status': _determineCommitStatus(),
+    };
+  }
+
+  // Partial copy from https://github.com/flutter/cocoon/blob/f220a6d764715499867ae7883aa24c040307e5f8/app_dart/lib/src/model/appengine/stage.dart#L143-L160.
+  String _determineCommitStatus() {
+    final fullTasks = status.collateTasksByTaskName();
+    if (fullTasks.isEmpty) {
+      return Task.statusInProgress;
+    }
+    if (fullTasks.every((t) => t.task.status == Task.statusSucceeded)) {
+      return Task.statusSucceeded;
+    }
+    if (fullTasks.any((t) => Task.taskFailStatusSet.contains(t.task.status))) {
+      return Task.statusFailed;
+    }
+    return Task.statusInProgress;
+  }
+}
+
+final class _SerializableCommit {
+  const _SerializableCommit(this.commit);
+
+  final Commit commit;
+
+  Map<String, Object?> toJson() {
+    return {
+      'FlutterRepositoryPath': commit.repositoryPath,
+      'CreateTimestamp': commit.createTimestamp,
+      'Sha': commit.sha,
+      'Message': commit.message,
+      'Author': {'Login': commit.author, 'avatar_url': commit.avatar},
+      'Branch': commit.branch,
+    };
+  }
+}
+
+final class _SerializableTask {
+  const _SerializableTask(this.task);
+
+  final FullTask task;
+
+  Map<String, Object?> toJson() {
+    return {
+      'CreateTimestamp': task.task.createTimestamp,
+      'StartTimestamp': task.task.startTimestamp,
+      'EndTimestamp': task.task.endTimestamp,
+      'Attempts': task.task.attempts,
+      'Flaky': task.task.bringup,
+      'Status': task.task.status,
+      'BuildNumberList': task.buildList.join(','),
+      'BuilderName': task.task.taskName,
     };
   }
 }

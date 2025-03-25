@@ -619,7 +619,7 @@ void main() {
       when(
         cocoonService.rerunTask(
           idToken: argThat(equals(idToken), named: 'idToken'),
-          taskName: argThat(equals(task.name), named: 'taskName'),
+          taskName: argThat(equals(task.builderName), named: 'taskName'),
           commitSha: anyNamed('commitSha'),
           repo: anyNamed('repo'),
           branch: anyNamed('branch'),
@@ -644,7 +644,7 @@ void main() {
       when(
         cocoonService.rerunTask(
           idToken: argThat(equals(idToken), named: 'idToken'),
-          taskName: argThat(equals(task.name), named: 'taskName'),
+          taskName: argThat(equals(task.builderName), named: 'taskName'),
           commitSha: anyNamed('commitSha'),
           repo: anyNamed('repo'),
           branch: anyNamed('branch'),
@@ -729,13 +729,13 @@ CommitStatus _createCommitStatus(
   String repo = 'flutter',
 }) {
   return CommitStatus(
-    branch: branch,
     commit:
         Commit()
           // Author is set so we don't have to dig through all the nested fields
           // while debugging
           ..author = keyValue
-          ..repository = 'flutter/$repo',
+          ..repository = 'flutter/$repo'
+          ..branch = branch,
     tasks: [],
   );
 }

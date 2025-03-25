@@ -15,7 +15,6 @@ import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:fixnum/fixnum.dart';
@@ -166,7 +165,6 @@ void main() {
     webhook = GithubWebhookSubscription(
       config: config,
       cache: CacheService(inMemory: true),
-      datastoreProvider: (_) => DatastoreService(config.db, 5),
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,

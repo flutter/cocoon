@@ -239,7 +239,7 @@ class _TaskGridState extends State<TaskGrid> {
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
           var weightStatus = task.status;
-          if (task.isFlaky || task.isTestFlaky) {
+          if (task.isFlaky || task.attempts > 1) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
           } else if (task.attempts > 1) {
@@ -276,12 +276,7 @@ class _TaskGridState extends State<TaskGrid> {
           if (scoreComparison != 0) {
             return scoreComparison;
           }
-          // If the scores are identical, break ties on the name of the task.
-          // We do that because otherwise the sort order isn't stable.
-          if (a.stage != b.stage) {
-            return a.stage!.compareTo(b.stage!);
-          }
-          return a.task!.compareTo(b.task!);
+          return a.task.compareTo(b.task);
         });
 
     // 4: GENERATE RESULTING LIST OF LISTS
@@ -291,7 +286,7 @@ class _TaskGridState extends State<TaskGrid> {
         ...tasks.map<LatticeCell>(
           (QualifiedTask task) => LatticeCell(
             builder: (BuildContext context) => TaskIcon(qualifiedTask: task),
-            taskName: task.stage,
+            taskName: task.task,
           ),
         ),
       ],
@@ -342,7 +337,7 @@ class _TaskGridState extends State<TaskGrid> {
     }
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
-      if (task.attempts > 1 || task.isTestFlaky) {
+      if (task.attempts > 1) {
         canvas.drawCircle(
           rect.center,
           (rect.shortestSide / 2.0) - 6.0,
@@ -353,7 +348,7 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   WidgetBuilder? _builderFor(Task task) {
-    if (task.attempts > 1 || task.isTestFlaky) {
+    if (task.attempts > 1) {
       return (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(4.0),

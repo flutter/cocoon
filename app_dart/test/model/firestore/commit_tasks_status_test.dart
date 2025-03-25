@@ -4,7 +4,6 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:test/test.dart';
 
 import '../../src/utilities/entity_generators.dart';
@@ -12,132 +11,37 @@ import '../../src/utilities/entity_generators.dart';
 void main() {
   useTestLoggerPerTest();
 
-  group('CommitTasksStatus', () {
-    test('generates json correctly', () async {
-      final commit = generateFirestoreCommit(1, sha: 'sha1');
-      final commitTasksStatus = CommitTasksStatus(commit, <Task>[]);
-      expect(commitTasksStatus.toJson(), <String, dynamic>{
-        'Commit': <String, dynamic>{
-          'DocumentName': 'sha1',
-          'RepositoryPath': 'flutter/flutter',
-          'CreateTimestamp': 1,
-          'Sha': 'sha1',
-          'Message': 'test message',
-          'Author': 'author',
-          'Avatar': 'avatar',
-          'Branch': 'master',
-        },
-        'Tasks': isEmpty,
-      });
+  group('collateTasksByTaskName', () {
+    test('surfaces the latest task as FullTask.task', () {
+      final status = CommitTasksStatus(generateFirestoreCommit(1), [
+        generateFirestoreTask(1, attempts: 2, buildNumber: 1002),
+        generateFirestoreTask(1, attempts: 3, buildNumber: 1003),
+        generateFirestoreTask(1, attempts: 1, buildNumber: 1001),
+      ]);
+
+      final collate = status.collateTasksByTaskName();
+      expect(collate, [
+        isA<FullTask>()
+            .having((t) => t.task.taskName, 'task.taskName', 'task1')
+            .having((t) => t.task.attempts, 'task.attempts', 3)
+            .having((t) => t.buildList, 'buildList', [1001, 1002, 1003]),
+      ]);
     });
 
-    test('generates json when a task does not have a build number', () async {
-      final commit = generateFirestoreCommit(1, sha: 'sha1');
-      final task = generateFirestoreTask(1);
-      final commitTasksStatus = CommitTasksStatus(commit, <Task>[task]);
-      expect(commitTasksStatus.toJson(), <String, dynamic>{
-        'Commit': <String, dynamic>{
-          'DocumentName': 'sha1',
-          'RepositoryPath': 'flutter/flutter',
-          'CreateTimestamp': 1,
-          'Sha': 'sha1',
-          'Message': 'test message',
-          'Author': 'author',
-          'Avatar': 'avatar',
-          'Branch': 'master',
-        },
-        'Tasks': [
-          <String, dynamic>{
-            'Task': <String, dynamic>{
-              'DocumentName': 'testSha_task1_1',
-              'CommitSha': 'testSha',
-              'CreateTimestamp': 0,
-              'StartTimestamp': 0,
-              'EndTimestamp': 0,
-              'TaskName': 'task1',
-              'Attempts': 1,
-              'Bringup': false,
-              'TestFlaky': false,
-              'BuildNumber': null,
-              'Status': 'New',
-            },
-            'BuildList': '',
-          },
-        ],
-      });
-    });
+    test('skips null build numbers', () {
+      final status = CommitTasksStatus(generateFirestoreCommit(1), [
+        generateFirestoreTask(1, attempts: 2, buildNumber: 1002),
+        generateFirestoreTask(1, attempts: 3, buildNumber: null),
+        generateFirestoreTask(1, attempts: 1, buildNumber: 1001),
+      ]);
 
-    test('generates json when a task has a build number', () async {
-      final commit = generateFirestoreCommit(1, sha: 'sha1');
-      final task = generateFirestoreTask(1, buildNumber: 123);
-      final commitTasksStatus = CommitTasksStatus(commit, <Task>[task]);
-      expect(commitTasksStatus.toJson(), <String, dynamic>{
-        'Commit': <String, dynamic>{
-          'DocumentName': 'sha1',
-          'RepositoryPath': 'flutter/flutter',
-          'CreateTimestamp': 1,
-          'Sha': 'sha1',
-          'Message': 'test message',
-          'Author': 'author',
-          'Avatar': 'avatar',
-          'Branch': 'master',
-        },
-        'Tasks': [
-          <String, dynamic>{
-            'Task': <String, dynamic>{
-              'DocumentName': 'testSha_task1_1',
-              'CommitSha': 'testSha',
-              'CreateTimestamp': 0,
-              'StartTimestamp': 0,
-              'EndTimestamp': 0,
-              'TaskName': 'task1',
-              'Attempts': 1,
-              'Bringup': false,
-              'TestFlaky': false,
-              'BuildNumber': 123,
-              'Status': 'New',
-            },
-            'BuildList': '123',
-          },
-        ],
-      });
-    });
-
-    test('generates json when a task has multiple reruns', () async {
-      final commit = generateFirestoreCommit(1, sha: 'sha1');
-      final task1 = generateFirestoreTask(1, buildNumber: 123);
-      final task2 = generateFirestoreTask(1, buildNumber: 124);
-      final commitTasksStatus = CommitTasksStatus(commit, <Task>[task2, task1]);
-      expect(commitTasksStatus.toJson(), <String, dynamic>{
-        'Commit': <String, dynamic>{
-          'DocumentName': 'sha1',
-          'RepositoryPath': 'flutter/flutter',
-          'CreateTimestamp': 1,
-          'Sha': 'sha1',
-          'Message': 'test message',
-          'Author': 'author',
-          'Avatar': 'avatar',
-          'Branch': 'master',
-        },
-        'Tasks': [
-          <String, dynamic>{
-            'Task': <String, dynamic>{
-              'DocumentName': 'testSha_task1_1',
-              'CommitSha': 'testSha',
-              'CreateTimestamp': 0,
-              'StartTimestamp': 0,
-              'EndTimestamp': 0,
-              'TaskName': 'task1',
-              'Attempts': 1,
-              'Bringup': false,
-              'TestFlaky': false,
-              'BuildNumber': 124,
-              'Status': 'New',
-            },
-            'BuildList': '124,123',
-          },
-        ],
-      });
+      final collate = status.collateTasksByTaskName();
+      expect(collate, [
+        isA<FullTask>()
+            .having((t) => t.task.taskName, 'task.taskName', 'task1')
+            .having((t) => t.task.attempts, 'task.attempts', 3)
+            .having((t) => t.buildList, 'buildList', [1001, 1002]),
+      ]);
     });
   });
 }

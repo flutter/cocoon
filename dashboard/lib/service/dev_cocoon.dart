@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:fixnum/fixnum.dart';
 
-import '../logic/qualified_task.dart';
 import '../model/commit.pb.dart';
 import '../model/task.pb.dart';
 import '../src/rpc_model.dart';
@@ -184,7 +183,6 @@ class DevelopmentCocoonService implements CocoonService {
         branch,
       );
       final status = CommitStatus(
-        branch: branch,
         commit: commit,
         tasks: _createFakeTasks(commitTimestamp, commit, random),
       );
@@ -338,7 +336,7 @@ class DevelopmentCocoonService implements CocoonService {
     }
     return List<Task>.generate(
       _repoTaskCount[commit.repository]!,
-      (int i) => _createFakeTask(commitTimestamp, i, StageName.luci, random),
+      (int i) => _createFakeTask(commitTimestamp, i, random),
     );
   }
 
@@ -372,12 +370,7 @@ class DevelopmentCocoonService implements CocoonService {
     TaskBox.statusCancelled: 1,
   };
 
-  Task _createFakeTask(
-    int commitTimestamp,
-    int index,
-    String stageName,
-    math.Random random,
-  ) {
+  Task _createFakeTask(int commitTimestamp, int index, math.Random random) {
     final age = (now.millisecondsSinceEpoch - commitTimestamp) ~/ _commitGap;
     assert(age >= 0);
     // The [statusesProbability] list is an list of proportional
@@ -427,13 +420,10 @@ class DevelopmentCocoonService implements CocoonService {
           ..endTimestamp = Int64(
             commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60),
           )
-          ..name = 'Linux_android $index'
           ..builderName = 'Linux_android $index'
           ..attempts = attempts
           ..isFlaky = index == now.millisecondsSinceEpoch % 13
-          ..stageName = stageName
-          ..status = status
-          ..isTestFlaky = index == now.millisecondsSinceEpoch % 17;
+          ..status = status;
 
     return task;
   }

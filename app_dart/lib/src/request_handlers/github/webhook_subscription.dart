@@ -17,7 +17,6 @@ import '../../model/github/checks.dart';
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/commit_service.dart';
-import '../../service/datastore.dart';
 import '../../service/github_service.dart';
 import '../../service/scheduler/process_check_run_result.dart';
 
@@ -68,7 +67,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     required this.gerritService,
     required this.commitService,
-    this.datastoreProvider = DatastoreService.defaultProvider,
     required this.fusionTester,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
@@ -83,8 +81,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
-
-  final DatastoreServiceProvider datastoreProvider;
 
   final FusionTester fusionTester;
 

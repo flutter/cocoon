@@ -6,13 +6,11 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -20,23 +18,16 @@ void main() {
   useTestLoggerPerTest();
 
   group('BuildStatusProvider', () {
-    late FakeDatastoreDB db;
+    late FakeConfig config;
     late BuildStatusService buildStatusService;
-    FakeConfig config;
-    DatastoreService datastoreService;
     late MockFirestoreService mockFirestoreService;
 
     final slug = RepositorySlug('flutter', 'flutter');
 
     setUp(() {
-      db = FakeDatastoreDB();
       mockFirestoreService = MockFirestoreService();
-      config = FakeConfig(dbValue: db, firestoreService: mockFirestoreService);
-      datastoreService = DatastoreService(config.db, 5);
-      buildStatusService = BuildStatusService.defaultProvider(
-        datastoreService,
-        mockFirestoreService,
-      );
+      config = FakeConfig()..firestoreService = mockFirestoreService;
+      buildStatusService = BuildStatusService(config);
     });
 
     group('calculateStatus', () {

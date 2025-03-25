@@ -792,16 +792,8 @@ void main() {
         cocoonService: cocoonService,
         statuses: [
           CommitStatus(
-            branch: 'master',
             commit: commit,
-            tasks: [
-              Task(
-                stageName: 'A',
-                name: 'Task',
-                builderName: 'Builder',
-                status: TaskBox.statusNew,
-              ),
-            ],
+            tasks: [Task(builderName: 'Builder', status: TaskBox.statusNew)],
           ),
         ],
       );

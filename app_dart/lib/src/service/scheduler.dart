@@ -27,7 +27,6 @@ import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
-import 'build_status_provider.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
@@ -58,7 +57,6 @@ class Scheduler {
     required this.getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.buildStatusProvider = BuildStatusService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
     this.initializeCiStagingDocument = CiStaging.initializeDocument,
@@ -68,7 +66,6 @@ class Scheduler {
   }) : _ciYamlFetcher = ciYamlFetcher;
 
   final GetFilesChanged getFilesChanged;
-  final BuildStatusServiceProvider buildStatusProvider;
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
@@ -484,9 +481,17 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
-          engineArtifacts = const EngineArtifacts.noFrameworkTests(
-            reason: 'This is the engine phase of the build',
-          );
+
+          // Even though this appears to be an engine build, it could be a
+          // release candidate build, where the engine artifacts are built
+          // via the dart-internal builder.
+          //
+          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
+          // consequences for engine builds, as it just won't be used (it is
+          // only understood by the Flutter CLI).
+          //
+          // See https://github.com/flutter/flutter/issues/165810.
+          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',

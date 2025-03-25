@@ -9,6 +9,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
+import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -144,8 +145,12 @@ void main() {
         return Future<Document>.value(firestoreTask);
       });
       final resultedTask = await Task.fromFirestore(
-        firestoreService: mockFirestoreService,
-        documentName: 'test',
+        mockFirestoreService,
+        FirestoreTaskDocumentName(
+          commitSha: 'abc123',
+          taskName: 'test',
+          currentAttempt: 1,
+        ),
       );
       expect(resultedTask.name, firestoreTask.name);
       expect(resultedTask.fields, firestoreTask.fields);
