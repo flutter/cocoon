@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/branch.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -311,20 +310,6 @@ class FakeConfig implements Config {
   @override
   Set<gh.RepositorySlug> get postsubmitSupportedRepos =>
       postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug};
-
-  @override
-  Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
-    if (supportedBranchesValue == null) {
-      throw Exception(
-        'Test must set suportedBranchesValue to be able to use Config.getBranches',
-      );
-    }
-    return supportedBranchesValue!.map(
-      (String branch) => Branch(
-        key: db.emptyKey.append<String>(Branch, id: '${slug.fullName}/$branch'),
-      ),
-    );
-  }
 
   @override
   String get autosubmitBot => 'auto-submit[bot]';
