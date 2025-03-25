@@ -59,8 +59,8 @@ abstract base class CiYamlFetcher {
   }) async {
     return getCiYaml(
       slug: commit.slug,
-      commitSha: commit.sha!,
-      commitBranch: commit.branch!,
+      commitSha: commit.sha,
+      commitBranch: commit.branch,
       validate: validate,
     );
   }
@@ -114,8 +114,8 @@ final class _CiYamlFetcher extends CiYamlFetcher {
     final totCommit = await _fetchTipOfTreeCommit(slug: slug);
     final totYaml = await _getCiYaml(
       slug: totCommit.slug,
-      commitSha: totCommit.sha!,
-      commitBranch: totCommit.branch!,
+      commitSha: totCommit.sha,
+      commitBranch: totCommit.branch,
       validate: validate,
       isFusionCommit: isFusion,
     );

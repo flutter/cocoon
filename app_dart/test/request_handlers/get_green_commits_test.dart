@@ -111,7 +111,7 @@ void main() {
       );
 
       final result = (await decodeHandlerBody<String>())!;
-      expect(result, <String>[commit2.sha!, commit1.sha!]);
+      expect(result, <String>[commit2.sha, commit1.sha]);
     });
 
     test(
@@ -129,7 +129,7 @@ void main() {
         );
 
         final result = (await decodeHandlerBody<String>())!;
-        expect(result, <String>[commit2.sha!]);
+        expect(result, <String>[commit2.sha]);
       },
     );
 
@@ -148,7 +148,7 @@ void main() {
         );
 
         final result = (await decodeHandlerBody<String>())!;
-        expect(result, <String>[commit2.sha!]);
+        expect(result, <String>[commit2.sha]);
       },
     );
 
@@ -165,7 +165,7 @@ void main() {
       );
 
       final result = (await decodeHandlerBody<String>())!;
-      expect(result, <String>[commit2.sha!, commit1.sha!]);
+      expect(result, <String>[commit2.sha, commit1.sha]);
     });
 
     test('should return branched commits', () async {
@@ -176,7 +176,7 @@ void main() {
       );
       tester.request = FakeHttpRequest(
         queryParametersValue: <String, String>{
-          GetGreenCommits.kBranchParam: commitBranched.branch!,
+          GetGreenCommits.kBranchParam: commitBranched.branch,
         },
       );
       handler = GetGreenCommits(
@@ -185,7 +185,7 @@ void main() {
       );
 
       final result = (await decodeHandlerBody<String>())!;
-      expect(result, <String>[commitBranched.sha!]);
+      expect(result, <String>[commitBranched.sha]);
     });
   });
 }

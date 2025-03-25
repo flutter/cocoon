@@ -29,7 +29,7 @@ void main() {
       });
       final resultedCommit = await Commit.fromFirestoreBySha(
         mockFirestoreService,
-        sha: commit.sha!,
+        sha: commit.sha,
       );
       expect(resultedCommit.name, commit.name);
       expect(resultedCommit.fields, commit.fields);
