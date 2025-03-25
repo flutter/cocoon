@@ -920,7 +920,7 @@ $s
     final ciYaml = await _ciYamlFetcher.getCiYaml(
       commitBranch: branch,
       commitSha: pullRequest.head!.sha!,
-      slug: pullRequest.base!.repo!.slug(),
+      slug: slug,
       validate: branch == Config.defaultBranch(slug),
     );
 

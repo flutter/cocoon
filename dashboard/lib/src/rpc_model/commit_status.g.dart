@@ -7,19 +7,19 @@ part of 'commit_status.dart';
 // **************************************************************************
 
 CommitStatus _$CommitStatusFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'CommitStatus',
-      json,
-      ($checkedConvert) {
-        final val = CommitStatus(
-          commit: $checkedConvert('commit',
-              (v) => CommitStatus._commitFromJson(v as Map<String, Object?>)),
-          tasks: $checkedConvert(
-              'tasks', (v) => CommitStatus._tasksFromJson(v as List)),
-        );
-        return val;
-      },
-    );
+    $checkedCreate('CommitStatus', json, ($checkedConvert) {
+      final val = CommitStatus(
+        commit: $checkedConvert(
+          'commit',
+          (v) => CommitStatus._commitFromJson(v as Map<String, Object?>),
+        ),
+        tasks: $checkedConvert(
+          'tasks',
+          (v) => CommitStatus._tasksFromJson(v as List),
+        ),
+      );
+      return val;
+    });
 
 Map<String, dynamic> _$CommitStatusToJson(CommitStatus instance) =>
     <String, dynamic>{
