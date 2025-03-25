@@ -30,21 +30,39 @@ class CommitTasksStatus {
   ///
   /// Note we use the lastest run as the `task`, surfacing on the dashboard.
   List<FullTask> collateTasksByTaskName() {
+    // Create an initial map of { task-name -> FullTask(latestTask, []) }
     final fullTasksMap = <String, FullTask>{};
-    for (var task in tasks) {
-      if (!fullTasksMap.containsKey(task.taskName)) {
-        if (task.buildNumber == null) {
-          fullTasksMap[task.taskName!] = FullTask(task, <int>[]);
+    for (final task in tasks) {
+      final FullTask taskToAddBuildNumber;
+      // If task.taskName already exists
+      if (fullTasksMap[task.taskName!] case final fullTask?) {
+        // If this task is newer than the existing task, use the new task
+        if (task.attempts! > fullTask.task.attempts!) {
+          taskToAddBuildNumber = FullTask(task, fullTask.buildList);
         } else {
-          fullTasksMap[task.taskName!] = FullTask(task, <int>[
-            task.buildNumber!,
-          ]);
+          // Otherwise, just reference the existing (newer) task
+          taskToAddBuildNumber = fullTask;
         }
-      } else if (fullTasksMap.containsKey(task.taskName)) {
-        fullTasksMap[task.taskName]!.buildList.add(task.buildNumber!);
+      } else {
+        // Otherwise, use this task as the latest task (so far)
+        taskToAddBuildNumber = FullTask(task, []);
       }
+
+      // If the task has a build number, add it to the list
+      if (task.buildNumber case final buildNumber?) {
+        taskToAddBuildNumber.buildList.add(buildNumber);
+      }
+
+      // And store it for the next loop
+      fullTasksMap[task.taskName!] = taskToAddBuildNumber;
     }
-    return fullTasksMap.entries.map((entry) => entry.value).toList();
+
+    // Sort build numbers, and return.
+    final fullTasks = [...fullTasksMap.values];
+    for (final fullTask in fullTasks) {
+      fullTask.buildList.sort();
+    }
+    return fullTasks;
   }
 }
 

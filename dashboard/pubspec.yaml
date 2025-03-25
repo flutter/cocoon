@@ -34,7 +34,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: 2.4.13 # Rolled by dependabot
-  dart_flutter_team_lints: 3.5.0
+  dart_flutter_team_lints: 3.5.1
   flutter_test:
     sdk: flutter
   json_serializable: ^6.9.0

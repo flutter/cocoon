@@ -112,11 +112,9 @@ final class _SerializableCommit {
     return {
       'FlutterRepositoryPath': commit.repositoryPath,
       'CreateTimestamp': commit.createTimestamp,
-      'Commit': {
-        'Sha': commit.sha,
-        'Message': commit.message,
-        'Author': {'Login': commit.author, 'avatar_url': commit.avatar},
-      },
+      'Sha': commit.sha,
+      'Message': commit.message,
+      'Author': {'Login': commit.author, 'avatar_url': commit.avatar},
       'Branch': commit.branch,
     };
   }
@@ -133,7 +131,7 @@ final class _SerializableTask {
       'StartTimestamp': task.task.startTimestamp,
       'EndTimestamp': task.task.endTimestamp,
       'Attempts': task.task.attempts,
-      'Flaky': task.task.testFlaky,
+      'Flaky': task.task.bringup,
       'Status': task.task.status,
       'BuildNumberList': task.buildList.join(','),
       'BuilderName': task.task.taskName,

@@ -81,7 +81,7 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..isFlaky =
               false // As opposed to the next test.
           ..status = TaskBox.statusFailed
@@ -110,7 +110,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text(expectedTask.name), findsNothing);
+    expect(find.text(expectedTask.builderName), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
 
     await expectGoldenMatches(
@@ -121,7 +121,7 @@ void main() {
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    expect(find.text(expectedTask.name), findsOneWidget);
+    expect(find.text(expectedTask.builderName), findsOneWidget);
     expect(find.text(expectedTaskInfoString), findsOneWidget);
 
     await expectGoldenMatches(
@@ -134,7 +134,7 @@ void main() {
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    expect(find.text(expectedTask.name), findsNothing);
+    expect(find.text(expectedTask.builderName), findsNothing);
     expect(find.text(expectedTaskInfoString), findsNothing);
 
     await expectGoldenMatches(
@@ -150,7 +150,7 @@ void main() {
     final flakyTask =
         Task()
           ..attempts = 3
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..isFlaky =
               true // This is the point of this test.
           ..status = TaskBox.statusFailed
@@ -185,7 +185,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text(flakyTask.name), findsNothing);
+    expect(find.text(flakyTask.builderName), findsNothing);
     expect(find.text(flakyTaskInfoString), findsNothing);
 
     await expectGoldenMatches(
@@ -196,7 +196,7 @@ void main() {
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    expect(find.text(flakyTask.name), findsOneWidget);
+    expect(find.text(flakyTask.builderName), findsOneWidget);
     expect(find.text(flakyTaskInfoString), findsOneWidget);
 
     await expectGoldenMatches(
@@ -216,7 +216,7 @@ void main() {
     final timeTask =
         Task()
           ..attempts = 1
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..isFlaky = false
           ..status = TaskBox.statusSucceeded
           ..createTimestamp = int64FromDateTime(createTime)
@@ -261,7 +261,7 @@ void main() {
     final timeTask =
         Task()
           ..attempts = 1
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..status = TaskBox.statusInProgress
           ..isFlaky = false
           ..createTimestamp = int64FromDateTime(createTime)
@@ -304,7 +304,7 @@ void main() {
     final timeTask =
         Task()
           ..attempts = 1
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..status = TaskBox.statusNew
           ..isFlaky = false
           ..createTimestamp = int64FromDateTime(createTime);
@@ -442,7 +442,7 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..status = TaskBox.statusSucceeded
           ..isFlaky = false;
 
@@ -486,7 +486,7 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..status = TaskBox.statusSucceeded
           ..isFlaky = false;
 
@@ -536,7 +536,7 @@ void main() {
     final expectedTask =
         Task()
           ..attempts = 3
-          ..name = 'Tasky McTaskFace'
+          ..builderName = 'Tasky McTaskFace'
           ..isFlaky = false
           ..status = TaskBox.statusNew;
 

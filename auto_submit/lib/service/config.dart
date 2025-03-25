@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -19,7 +20,6 @@ import 'package:retry/retry.dart';
 import '../configuration/repository_configuration.dart';
 import '../configuration/repository_configuration_manager.dart';
 import '../foundation/providers.dart';
-import '../service/secrets.dart';
 import 'github_service.dart';
 
 class CocoonGitHubRequestException implements Exception {
@@ -310,7 +310,7 @@ class Config {
   }
 
   Future<String> _generateGithubJwt() async {
-    final rawKey = await secretManager.get(kGithubKey);
+    final rawKey = await secretManager.getString(kGithubKey);
     final sb = StringBuffer();
     sb.writeln(rawKey.substring(0, 32));
     sb.writeln(
@@ -321,7 +321,7 @@ class Config {
     final builder = JWTBuilder();
     final now = DateTime.now();
     builder
-      ..issuer = await secretManager.get(kGithubAppId)
+      ..issuer = await secretManager.getString(kGithubAppId)
       ..issuedAt = now
       ..expiresAt = now.add(const Duration(minutes: 10));
     final signer = JWTRsaSha256Signer(privateKey: privateKey);
@@ -358,7 +358,7 @@ class Config {
   }
 
   Future<Uint8List> _getValueFromSecretManager(String key) async {
-    final value = await secretManager.get(key);
+    final value = await secretManager.getString(key);
     return Uint8List.fromList(value.codeUnits);
   }
 }

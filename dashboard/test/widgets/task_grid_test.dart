@@ -400,7 +400,6 @@ void main() {
               ..branch = 'master',
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
         ],
@@ -413,7 +412,6 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusSucceeded,
         ],
@@ -426,7 +424,6 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSucceeded,
         ],
@@ -472,7 +469,6 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
         ],
@@ -485,7 +481,6 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusSucceeded,
         ],
@@ -526,8 +521,7 @@ void main() {
 
         tasks: [
           Task()
-            ..name = 'Task Name'
-            ..name = 'Task Name'
+            ..builderName = 'Task Name'
             ..status = TaskBox.statusSucceeded,
         ],
       ),
@@ -692,14 +686,12 @@ void main() {
       final taskA3 =
           Task()
             ..builderName = '1'
-            ..name = 'A'
             ..status = TaskBox.statusSucceeded
             ..attempts = 3;
 
       final taskB1 =
           Task()
             ..builderName = '2'
-            ..name = 'B'
             ..status = TaskBox.statusSucceeded
             ..attempts = 1;
 
@@ -763,23 +755,18 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..status = TaskBox.statusFailed,
           Task()
-            ..name = '2'
             ..builderName = '2'
             ..status = TaskBox.statusNew,
           Task()
-            ..name = '3'
             ..builderName = '3'
             ..status = TaskBox.statusSkipped,
           Task()
-            ..name = '4'
             ..builderName = '4'
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..name = '5'
             ..builderName = '5'
             ..status = TaskBox.statusInProgress,
         ],
@@ -792,27 +779,22 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..attempts = 2
             ..status = TaskBox.statusFailed,
           Task()
-            ..name = '2'
             ..builderName = '2'
             ..attempts = 2
             ..status = TaskBox.statusNew,
           Task()
-            ..name = '3'
             ..builderName = '3'
             ..attempts = 2
             ..status = TaskBox.statusSkipped,
           Task()
-            ..name = '4'
             ..builderName = '4'
             ..attempts = 2
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..name = '5'
             ..builderName = '5'
             ..attempts = 2
             ..status = TaskBox.statusInProgress,
@@ -826,27 +808,22 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..isFlaky = true
             ..status = TaskBox.statusFailed,
           Task()
-            ..name = '2'
             ..builderName = '2'
             ..isFlaky = true
             ..status = TaskBox.statusNew,
           Task()
-            ..name = '3'
             ..builderName = '3'
             ..isFlaky = true
             ..status = TaskBox.statusSkipped,
           Task()
-            ..name = '4'
             ..builderName = '4'
             ..isFlaky = true
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..name = '5'
             ..builderName = '5'
             ..isFlaky = true
             ..status = TaskBox.statusInProgress,
@@ -860,31 +837,26 @@ void main() {
 
         tasks: [
           Task()
-            ..name = '1'
             ..builderName = '1'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusFailed,
           Task()
-            ..name = '2'
             ..builderName = '2'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusNew,
           Task()
-            ..name = '3'
             ..builderName = '3'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusSkipped,
           Task()
-            ..name = '4'
             ..builderName = '4'
             ..attempts = 2
             ..isFlaky = true
             ..status = TaskBox.statusSucceeded,
           Task()
-            ..name = '5'
             ..builderName = '5'
             ..attempts = 2
             ..isFlaky = true

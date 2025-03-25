@@ -12,7 +12,8 @@ import 'package:auto_submit/requests/check_revert_request.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/readiness_check.dart';
 import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/secrets.dart';
+import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/secret_manager.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -26,7 +27,10 @@ Future<void> main() async {
     final cache = Cache.inMemoryCacheProvider(kCacheSize);
     final config = Config(
       cacheProvider: cache,
-      secretManager: CloudSecretManager(),
+      secretManager: await SecretManager.create(
+        AccessClientProvider(),
+        projectId: Config.flutterGcpProjectId,
+      ),
     );
     const authProvider = CronAuthProvider();
 

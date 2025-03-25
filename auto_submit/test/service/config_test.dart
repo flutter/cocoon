@@ -7,7 +7,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:auto_submit/service/config.dart';
-import 'package:auto_submit/service/secrets.dart';
+import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -25,7 +25,7 @@ void main() {
     late CacheProvider cacheProvider;
     late Config config;
     late MockClient mockClient;
-    final secretManager = LocalSecretManager();
+    late FakeSecretManager secretManager;
     final flutterSlug = RepositorySlug('flutter', 'flutter');
     final testSlug = RepositorySlug('test', 'test');
     const kCacheSize = 1024;
@@ -35,6 +35,7 @@ void main() {
       mockClient = MockClient(
         (_) async => http.Response(userInstallation, HttpStatus.ok),
       );
+      secretManager = FakeSecretManager();
       config = Config(
         cacheProvider: cacheProvider,
         httpProvider: () => mockClient,
@@ -47,8 +48,8 @@ void main() {
       mockClient = MockClient(
         (_) async => http.Response('{}', HttpStatus.internalServerError),
       );
-      secretManager.put(Config.kGithubKey, _fakeKey);
-      secretManager.put(Config.kGithubAppId, '1');
+      secretManager.putString(Config.kGithubKey, _fakeKey);
+      secretManager.putString(Config.kGithubAppId, '1');
       config = Config(
         cacheProvider: cacheProvider,
         httpProvider: () => mockClient,

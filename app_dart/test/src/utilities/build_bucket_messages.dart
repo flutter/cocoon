@@ -6,17 +6,17 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
-import 'package:cocoon_service/src/model/luci/user_data.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 
 PushMessage createPushMessage(
   Int64 id, {
+  required BuildBucketUserData userData,
   String? project = 'flutter',
   String? bucket = 'try',
   String? builder = 'Windows Engine Drone',
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
-  Map<String, dynamic>? userData = const {},
   bool? addBuildSet = true,
   List<bbv2.StringPair> extraTags = const [],
 }) {
@@ -41,12 +41,12 @@ PushMessage createPushMessage(
 
 bbv2.PubSubCallBack createPubSubCallBack(
   Int64 id, {
+  required BuildBucketUserData userData,
   String? project = 'flutter',
   String? bucket = 'try',
   String? builder = 'Windows Engine Drone',
   int number = 259942,
   bbv2.Status? status = bbv2.Status.SCHEDULED,
-  Map<String, dynamic>? userData = const {},
   List<bbv2.StringPair> extraTags = const [],
 }) {
   // this contains BuildsV2PubSub and UserData (List<int>).
@@ -59,10 +59,9 @@ bbv2.PubSubCallBack createPubSubCallBack(
     status: status,
     extraTags: extraTags,
   );
-  final userDataBytes = UserData.encodeUserDataToBytes(userData!);
   return bbv2.PubSubCallBack(
     buildPubsub: buildsPubSub,
-    userData: userDataBytes,
+    userData: userData.toBytes(),
   );
 }
 

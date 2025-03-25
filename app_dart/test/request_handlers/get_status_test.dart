@@ -131,11 +131,9 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 1,
-              'Commit': {
-                'Sha': '${commit1.sha}',
-                'Message': 'test message',
-                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
-              },
+              'Sha': '${commit1.sha}',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',
             },
             'Tasks': <void>[],
@@ -152,7 +150,7 @@ void main() {
             generateFirestoreTask(1),
           ]),
           CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), [
-            generateFirestoreTask(1),
+            generateFirestoreTask(1, bringup: true),
           ]),
         ],
       );
@@ -172,11 +170,9 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 1,
-              'Commit': {
-                'Sha': '1',
-                'Message': 'test message',
-                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
-              },
+              'Sha': '1',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',
             },
             'Tasks': [
@@ -197,11 +193,9 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 2,
-              'Commit': {
-                'Sha': '2',
-                'Message': 'test message',
-                'Author': {'Login': 'author', 'avatar_url': 'avatar'},
-              },
+              'Sha': '2',
+              'Message': 'test message',
+              'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',
             },
             'Tasks': [
@@ -210,7 +204,7 @@ void main() {
                 'StartTimestamp': 0,
                 'EndTimestamp': 0,
                 'Attempts': 1,
-                'Flaky': false,
+                'Flaky': true,
                 'Status': 'New',
                 'BuildNumberList': '',
                 'BuilderName': 'task1',

@@ -141,7 +141,7 @@ void main() {
 
     test('should return true if request succeeds', () async {
       final response = await service.rerunTask(
-        taskName: task.name,
+        taskName: task.builderName,
         idToken: 'fakeAccessToken',
         repo: 'flutter',
         commitSha: 'abc123',
@@ -152,7 +152,7 @@ void main() {
 
     test('should set error in response if ID token is null', () async {
       final response = await service.rerunTask(
-        taskName: task.name,
+        taskName: task.builderName,
         idToken: null,
         repo: 'flutter',
         commitSha: 'abc123',
@@ -217,7 +217,7 @@ void main() {
         );
 
         final response = await service.rerunTask(
-          taskName: task.name,
+          taskName: task.builderName,
           idToken: 'fakeAccessToken',
           repo: 'flutter',
           commitSha: 'abc123',

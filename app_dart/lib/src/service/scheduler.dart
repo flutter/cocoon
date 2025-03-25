@@ -479,9 +479,17 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
-          engineArtifacts = const EngineArtifacts.noFrameworkTests(
-            reason: 'This is the engine phase of the build',
-          );
+
+          // Even though this appears to be an engine build, it could be a
+          // release candidate build, where the engine artifacts are built
+          // via the dart-internal builder.
+          //
+          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
+          // consequences for engine builds, as it just won't be used (it is
+          // only understood by the Flutter CLI).
+          //
+          // See https://github.com/flutter/flutter/issues/165810.
+          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
@@ -543,15 +551,10 @@ class Scheduler {
     // support this optimization.
     //
     // So, to avoid making it impossible to create a release branch, or to
-    // update the existing release branch (i.e. hot fixes), we only apply the
-    // optimization on the "master" branch.
-    //
-    // In theory, many moons from now when maintained release branches are
-    // guaranteed to include the flutter/recipes change we could remove this
-    // check.
-    final refuseLogPrefix =
-        'Refusing to skip engine builds for PR#$prNumber branch';
-    if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
+    // or to update the existing release branch (i.e. hot fixes), we skip this
+    // optimziation on that specific branch.
+    final refuseLogPrefix = 'Refusing to skip engine builds for PR#$prNumber';
+    if (prBranch == 'flutter-3.29-candidate.0') {
       log.info(
         '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
       );
