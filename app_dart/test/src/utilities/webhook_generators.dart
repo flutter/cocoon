@@ -28,6 +28,7 @@ PushMessage generateGithubWebhookMessage({
   bool includeChanges = false,
   bool withAutosubmit = false,
   bool withRevertOf = false,
+  DateTime? closedAt,
 }) {
   final data =
       (pb.GithubWebhookMessage.create()
@@ -47,6 +48,7 @@ PushMessage generateGithubWebhookMessage({
               includeChanges: includeChanges,
               withAutosubmit: withAutosubmit,
               withRevertOf: withRevertOf,
+              closedAt: closedAt,
             ))
           .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -66,6 +68,7 @@ String _generatePullRequestEvent(
   bool isMergeable = true,
   String mergeCommitSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c',
   bool includeChanges = false,
+  DateTime? closedAt,
   required bool withAutosubmit,
   required bool withRevertOf,
 }) {
@@ -111,7 +114,7 @@ String _generatePullRequestEvent(
     "body": "The body",
     "created_at": "2019-07-03T07:14:35Z",
     "updated_at": "2019-07-03T16:34:53Z",
-    "closed_at": null,
+    "closed_at": ${closedAt == null ? 'null' : '"${closedAt.toUtc().toIso8601String()}"'},
     "merged_at": "2019-07-03T16:34:53Z",
     "merge_commit_sha": "$mergeCommitSha",
     "assignee": null,

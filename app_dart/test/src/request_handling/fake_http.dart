@@ -678,10 +678,7 @@ class FakeHttpResponse extends FakeOutbound implements HttpResponse {
   set deadline(Duration? value) => throw UnsupportedError('Unsupported');
 
   @override
-  String get reasonPhrase => 'reason';
-
-  @override
-  set reasonPhrase(String value) => throw UnsupportedError('Unsupported');
+  String reasonPhrase = 'reason';
 
   @override
   int statusCode = HttpStatus.ok;
