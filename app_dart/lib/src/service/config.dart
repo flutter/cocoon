@@ -6,14 +6,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart' as gh;
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -508,17 +507,11 @@ class Config {
   }
 
   Future<FirestoreService> createFirestoreService() async {
-    final accessClientProvider = AccessClientProvider();
-    return FirestoreService(accessClientProvider);
+    return FirestoreService.from(const GoogleAuthProvider());
   }
 
   Future<BigqueryService> createBigQueryService() async {
-    final accessClientProvider = AccessClientProvider();
-    return BigqueryService(accessClientProvider);
-  }
-
-  Future<TabledataResource> createTabledataResourceApi() async {
-    return (await createBigQueryService()).defaultTabledata();
+    return BigqueryService.from(const GoogleAuthProvider());
   }
 
   /// Default GitHub service when the repository does not matter.

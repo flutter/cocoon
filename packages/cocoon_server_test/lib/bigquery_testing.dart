@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_server/bigquery.dart';
-import 'package:googleapis/bigquery/v2.dart';
-
-import 'mocks.dart';
-
 const String revertRequestRecordResponse = '''
 {
   "jobComplete": true,
@@ -176,14 +171,3 @@ const String selectReviewRequestRecordsResponse = '''
 ''';
 
 const String expectedProjectId = 'flutter-dashboard';
-
-class FakeBigqueryService extends BigqueryService {
-  FakeBigqueryService(this.jobsResource) : super(MockAccessClientProvider());
-
-  JobsResource jobsResource;
-
-  @override
-  Future<JobsResource> defaultJobs() async {
-    return jobsResource;
-  }
-}

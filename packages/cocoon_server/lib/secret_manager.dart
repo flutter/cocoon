@@ -10,13 +10,13 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'access_client_provider.dart';
+import 'google_auth_provider.dart';
 
 /// Wraps Google Cloud [Secret Manager](https://cloud.google.com/security/products/secret-manager).
 abstract base class SecretManager {
   /// Returns a [SecretManager] using the access client [provided] provided.
   static Future<SecretManager> create(
-    AccessClientProvider provider, {
+    GoogleAuthProvider provider, {
     String? projectId,
     Iterable<String>? scopes,
     http.Client? baseClient,
@@ -27,7 +27,7 @@ abstract base class SecretManager {
       throw StateError('Missing APPLICATION_ID and projectId not set');
     }
 
-    final client = await provider.createAccessClient(
+    final client = await provider.createClient(
       scopes: [...scopes],
       baseClient: baseClient,
     );
