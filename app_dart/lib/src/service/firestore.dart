@@ -142,7 +142,7 @@ class FirestoreService {
       filterMap,
       orderMap: orderMap,
     );
-    return documents.map((d) => Task.fromDocument(taskDocument: d)).toList();
+    return [...documents.map(Task.fromDocument)];
   }
 
   /// Returns all tasks running against the speificed [commitSha].
@@ -156,9 +156,7 @@ class FirestoreService {
       filterMap,
       orderMap: orderMap,
     );
-    return documents
-        .map((Document document) => Task.fromDocument(taskDocument: document))
-        .toList();
+    return [...documents.map(Task.fromDocument)];
   }
 
   /// Queries the last updated Gold status for the [slug] and [prNumber].

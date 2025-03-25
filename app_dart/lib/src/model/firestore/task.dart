@@ -10,14 +10,13 @@ import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../../service/luci_build_service/firestore_task_document_name.dart';
-import '../appengine/commit.dart';
 import '../appengine/task.dart' as datastore;
-import '../ci_yaml/target.dart';
 import 'base.dart';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
 const int kTaskInitialAttempt = 1;
+
 const String kTaskBringupField = 'bringup';
 const String kTaskBuildNumberField = 'buildNumber';
 const String kTaskCommitShaField = 'commitSha';
@@ -44,14 +43,79 @@ class Task extends Document with BaseDocumentMixin {
         documentName.documentName,
       ),
     );
-    return Task.fromDocument(taskDocument: document);
+    return Task.fromDocument(document);
+  }
+
+  factory Task({
+    required String builderName,
+    required int currentAttempt,
+    required String commitSha,
+    required bool bringup,
+    required int createTimestamp,
+    required int startTimestamp,
+    required int endTimestamp,
+    required String status,
+    required bool testFlaky,
+    required int? buildNumber,
+  }) {
+    final name = FirestoreTaskDocumentName(
+      taskName: builderName,
+      currentAttempt: currentAttempt,
+      commitSha: commitSha,
+    );
+    return Task._(
+      {
+        kTaskNameField: Value(stringValue: builderName),
+        kTaskCommitShaField: Value(stringValue: commitSha),
+        kTaskBringupField: Value(booleanValue: bringup),
+        if (buildNumber != null)
+          kTaskBuildNumberField: Value(integerValue: '$buildNumber'),
+        kTaskCreateTimestampField: Value(integerValue: '$createTimestamp'),
+        kTaskStartTimestampField: Value(integerValue: '$startTimestamp'),
+        kTaskEndTimestampField: Value(integerValue: '$endTimestamp'),
+        kTaskStatusField: Value(stringValue: status),
+        kTaskTestFlakyField: Value(booleanValue: testFlaky),
+      },
+      name: p.posix.join(
+        kDatabase,
+        'documents',
+        kTaskCollectionId,
+        name.documentName,
+      ),
+    );
   }
 
   /// Create [Task] from a task Document.
-  static Task fromDocument({required Document taskDocument}) {
-    return Task()
-      ..fields = taskDocument.fields!
-      ..name = taskDocument.name!;
+  factory Task.fromDocument(Document document) {
+    return Task._(document.fields!, name: document.name!);
+  }
+
+  factory Task.fromDatastore(datastore.Task task) {
+    final commitSha = task.commitKey!.id!.split('/').last;
+    final int? buildNumber;
+    if (task.buildNumberList case final list? when list.isNotEmpty) {
+      buildNumber = int.parse(list.split(',').last);
+    } else {
+      buildNumber = null;
+    }
+    return Task(
+      builderName: task.builderName!,
+      currentAttempt: task.attempts!,
+      commitSha: commitSha,
+      bringup: task.isFlaky!,
+      buildNumber: buildNumber,
+      createTimestamp: task.createTimestamp!,
+      startTimestamp: task.startTimestamp!,
+      endTimestamp: task.endTimestamp!,
+      status: task.status,
+      testFlaky: task.isTestFlaky!,
+    );
+  }
+
+  Task._(Map<String, Value> fields, {required String name}) {
+    this
+      ..fields = fields
+      ..name = name;
   }
 
   /// The task was cancelled.
@@ -262,60 +326,4 @@ class Task extends Document with BaseDocumentMixin {
     ];
     return completedStatuses.contains(status);
   }
-}
-
-/// Generates task documents based on targets.
-List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
-  final iterableDocuments = targets.map(
-    (Target target) => Task.fromDocument(
-      taskDocument: Document(
-        name:
-            '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
-        fields: <String, Value>{
-          kTaskCreateTimestampField: Value(
-            integerValue: commit.timestamp!.toString(),
-          ),
-          kTaskEndTimestampField: Value(
-            integerValue: kTaskDefaultTimestampValue.toString(),
-          ),
-          kTaskBringupField: Value(booleanValue: target.value.bringup),
-          kTaskNameField: Value(stringValue: target.value.name),
-          kTaskStartTimestampField: Value(
-            integerValue: kTaskDefaultTimestampValue.toString(),
-          ),
-          kTaskStatusField: Value(stringValue: Task.statusNew),
-          kTaskTestFlakyField: Value(booleanValue: false),
-          kTaskCommitShaField: Value(stringValue: commit.sha),
-        },
-      ),
-    ),
-  );
-  return iterableDocuments.toList();
-}
-
-/// Generates task document based on datastore task data model.
-Task taskToDocument(datastore.Task task) {
-  final commitSha = task.commitKey!.id!.split('/').last;
-  return Task.fromDocument(
-    taskDocument: Document(
-      name:
-          '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
-      fields: <String, Value>{
-        kTaskCreateTimestampField: Value(
-          integerValue: task.createTimestamp.toString(),
-        ),
-        kTaskEndTimestampField: Value(
-          integerValue: task.endTimestamp.toString(),
-        ),
-        kTaskBringupField: Value(booleanValue: task.isFlaky),
-        kTaskNameField: Value(stringValue: task.name),
-        kTaskStartTimestampField: Value(
-          integerValue: task.startTimestamp.toString(),
-        ),
-        kTaskStatusField: Value(stringValue: task.status),
-        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
-        kTaskCommitShaField: Value(stringValue: commitSha),
-      },
-    ),
-  );
 }
