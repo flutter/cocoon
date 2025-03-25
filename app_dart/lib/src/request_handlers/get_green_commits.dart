@@ -14,7 +14,6 @@ import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
 import '../service/config.dart';
-import '../service/datastore.dart';
 
 /// Returns [List<String>] of the commit shas that had all passing tests.
 ///
@@ -33,20 +32,19 @@ import '../service/datastore.dart';
 /// GET: /api/public/get-green-commits?repo=$repo
 
 @immutable
-class GetGreenCommits extends RequestHandler<Body> {
+final class GetGreenCommits extends RequestHandler<Body> {
   const GetGreenCommits({
     required super.config,
-    @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  }) : buildStatusProvider =
-           buildStatusProvider ?? BuildStatusService.defaultProvider;
+    required BuildStatusService buildStatusService,
+  }) : _buildStatusService = buildStatusService;
 
-  final DatastoreServiceProvider datastoreProvider;
-  final BuildStatusServiceProvider buildStatusProvider;
+  final BuildStatusService _buildStatusService;
 
-  static const String kBranchParam = 'branch';
-  static const String kRepoParam = 'repo';
+  @visibleForTesting
+  static const kBranchParam = 'branch';
+
+  @visibleForTesting
+  static const kRepoParam = 'repo';
 
   @override
   Future<Body> get() async {
@@ -56,12 +54,10 @@ class GetGreenCommits extends RequestHandler<Body> {
     final branch =
         request!.uri.queryParameters[kBranchParam] ??
         Config.defaultBranch(slug);
-    final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(firestoreService);
     final commitNumber = config.commitNumber;
 
     final greenCommits =
-        await buildStatusService
+        await _buildStatusService
             .retrieveCommitStatusFirestore(
               limit: commitNumber,
               branch: branch,

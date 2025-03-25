@@ -10,7 +10,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handling/authentication.dart';
@@ -147,16 +146,13 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     required String commitBranch,
     required String commitSha,
   }) async {
-    final commit = Commit(
-      branch: commitBranch,
-      repository: slug.fullName,
-      sha: commitSha,
-    );
     final CiYamlSet ciYaml;
     try {
-      ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
-        commit,
-        validate: commit.branch == Config.defaultBranch(commit.slug),
+      ciYaml = await ciYamlFetcher.getCiYaml(
+        commitSha: commitSha,
+        commitBranch: commitBranch,
+        slug: slug,
+        validate: commitSha == Config.defaultBranch(slug),
       );
     } on FormatException {
       // If ci.yaml no longer passes validation (for example, because a builder
@@ -173,8 +169,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     if (!targets.any((element) => element.value.name == builderName)) {
       // do not reschedule
       log.warn(
-        'Did not find builder with name: $builderName in ciYaml for '
-        '${commit.sha}',
+        'Did not find builder with name: $builderName in ciYaml for $commitSha',
       );
       final availableBuilderList =
           ciYaml.presubmitTargets().map((Target e) => e.value.name).toList();

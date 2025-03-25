@@ -18,20 +18,19 @@ import '../service/build_status_provider.dart';
 import '../service/datastore.dart';
 
 @immutable
-class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
+final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   const PushBuildStatusToGithub({
     required super.config,
     required super.authenticationProvider,
+    required BuildStatusService buildStatusService,
     @visibleForTesting DatastoreServiceProvider? datastoreProvider,
-    @visibleForTesting BuildStatusServiceProvider? buildStatusServiceProvider,
   }) : datastoreProvider =
            datastoreProvider ?? DatastoreService.defaultProvider,
-       buildStatusServiceProvider =
-           buildStatusServiceProvider ?? BuildStatusService.defaultProvider;
+       _buildStatusService = buildStatusService;
 
-  final BuildStatusServiceProvider buildStatusServiceProvider;
+  final BuildStatusService _buildStatusService;
   final DatastoreServiceProvider datastoreProvider;
-  static const String fullNameRepoParam = 'repo';
+  static const _fullNameRepoParam = 'repo';
 
   @override
   Future<Body> get() async {
@@ -42,13 +41,11 @@ class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     final repository =
-        request!.uri.queryParameters[fullNameRepoParam] ?? 'flutter/flutter';
+        request!.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
     final slug = RepositorySlug.full(repository);
     final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusServiceProvider(firestoreService);
-
-    final status = (await buildStatusService.calculateCumulativeStatus(slug))!;
+    final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
     await _insertBigquery(
       slug,
       status.githubStatus,

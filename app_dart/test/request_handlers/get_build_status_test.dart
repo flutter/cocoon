@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
+import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -37,7 +38,10 @@ void main() {
     config.firestoreService = mockFirestoreService;
 
     tester = RequestHandlerTester();
-    handler = GetBuildStatus(config: config);
+    handler = GetBuildStatus(
+      config: config,
+      buildStatusService: BuildStatusService(config),
+    );
   });
 
   test('passing status', () async {

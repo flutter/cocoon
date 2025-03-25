@@ -27,7 +27,6 @@ import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
-import 'build_status_provider.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'datastore.dart';
@@ -58,7 +57,6 @@ class Scheduler {
     required this.getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     this.datastoreProvider = DatastoreService.defaultProvider,
-    this.buildStatusProvider = BuildStatusService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
     this.initializeCiStagingDocument = CiStaging.initializeDocument,
@@ -68,7 +66,6 @@ class Scheduler {
   }) : _ciYamlFetcher = ciYamlFetcher;
 
   final GetFilesChanged getFilesChanged;
-  final BuildStatusServiceProvider buildStatusProvider;
   final CacheService cache;
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
