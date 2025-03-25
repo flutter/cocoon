@@ -134,27 +134,20 @@ firestore_commit.Commit generateFirestoreCommit(
   String? owner = 'flutter',
   String repo = 'flutter',
   int? createTimestamp,
-  String? message = 'test message',
-  String? author = 'author',
-  String? avatar = 'avatar',
+  String message = 'test message',
+  String author = 'author',
+  String avatar = 'avatar',
 }) {
-  final commit =
-      firestore_commit.Commit()
-        ..name = sha ?? '$i'
-        ..fields = <String, Value>{
-          firestore_commit.kCommitCreateTimestampField: Value(
-            integerValue: (createTimestamp ?? i).toString(),
-          ),
-          firestore_commit.kCommitRepositoryPathField: Value(
-            stringValue: '$owner/$repo',
-          ),
-          firestore_commit.kCommitBranchField: Value(stringValue: branch),
-          firestore_commit.kCommitMessageField: Value(stringValue: message),
-          firestore_commit.kCommitAuthorField: Value(stringValue: author),
-          firestore_commit.kCommitAvatarField: Value(stringValue: avatar),
-          firestore_commit.kCommitShaField: Value(stringValue: sha ?? '$i'),
-        };
-  return commit;
+  sha ??= '$i';
+  return firestore_commit.Commit(
+    createTimestamp: createTimestamp ?? i,
+    repositoryPath: '$owner/$repo',
+    branch: branch,
+    message: message,
+    author: author,
+    avatar: avatar,
+    sha: sha,
+  )..name = sha;
 }
 
 GithubGoldStatus generateFirestoreGithubGoldStatus(

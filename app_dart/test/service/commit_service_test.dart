@@ -116,7 +116,7 @@ void main() {
       final insertedCommitDocument = batchWriteRequest.writes![0].update!;
       expect(
         insertedCommitDocument.name,
-        '$kDatabase/documents/${firestore.kCommitCollectionId}/$sha',
+        '$kDatabase/documents/${firestore.Commit.collectionId}/$sha',
       );
     });
 

@@ -120,7 +120,7 @@ void main() {
       );
 
       tester.request = FakeHttpRequest(
-        queryParametersValue: {GetStatus.kLastCommitShaParam: commit2.sha!},
+        queryParametersValue: {GetStatus.kLastCommitShaParam: commit2.sha},
       );
 
       final result = (await decodeHandlerBody<Map<String, Object?>>())!;
@@ -131,7 +131,7 @@ void main() {
             'Commit': {
               'FlutterRepositoryPath': 'flutter/flutter',
               'CreateTimestamp': 1,
-              'Sha': '${commit1.sha}',
+              'Sha': commit1.sha,
               'Message': 'test message',
               'Author': {'Login': 'author', 'avatar_url': 'avatar'},
               'Branch': 'master',

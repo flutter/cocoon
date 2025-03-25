@@ -4,6 +4,7 @@
 
 import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
 class FakeBuildStatusService implements BuildStatusService {
@@ -27,21 +28,13 @@ class FakeBuildStatusService implements BuildStatusService {
     String? branch,
     required RepositorySlug slug,
   }) {
-    if (commitTasksStatuses == null) {
-      throw AssertionError();
-    }
-    commitTasksStatuses!.sort(
-      (CommitTasksStatus a, CommitTasksStatus b) =>
-          a.commit.createTimestamp!.compareTo(b.commit.createTimestamp!),
-    );
-
+    commitTasksStatuses!.sortBy((c) => c.commit.createTimestamp);
     return Stream<CommitTasksStatus>.fromIterable(
       commitTasksStatuses!.where(
         (CommitTasksStatus commitTasksStatus) =>
-            ((commitTasksStatus.commit.createTimestamp == null ||
-                    timestamp == null)
+            ((timestamp == null)
                 ? true
-                : commitTasksStatus.commit.createTimestamp! < timestamp) &&
+                : commitTasksStatus.commit.createTimestamp < timestamp) &&
             commitTasksStatus.commit.branch == branch,
       ),
     );

@@ -276,7 +276,15 @@ class Scheduler {
     log.info(
       'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.value.name}"').join(', ')}',
     );
-    final commitDocument = firestore_commmit.commitToCommitDocument(commit);
+    final commitDocument = firestore_commmit.Commit(
+      author: commit.author!,
+      avatar: commit.authorAvatarUrl!,
+      branch: commit.branch!,
+      createTimestamp: commit.timestamp!,
+      message: commit.message!,
+      repositoryPath: commit.repository!,
+      sha: commit.sha!,
+    );
     final taskDocuments = firestore.targetsToTaskDocuments(commit, targets);
     final writes = documentsToWrites([
       ...taskDocuments,

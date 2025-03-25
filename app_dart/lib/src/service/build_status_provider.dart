@@ -129,7 +129,7 @@ interface class BuildStatusService {
       slug: slug,
     );
     for (var commit in commits) {
-      final tasks = await firestore.queryCommitTasks(commit.sha!);
+      final tasks = await firestore.queryCommitTasks(commit.sha);
       yield CommitTasksStatus(commit, tasks);
     }
   }
