@@ -9,15 +9,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
-    final luciTask =
-        Task()
-          ..name = 'abc'
-          ..builderName = 'def';
+    final luciTask = Task()..builderName = 'abc';
 
     expect(
       QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,
       Uri.parse(
-        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/def',
+        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/abc',
       ),
     );
   });

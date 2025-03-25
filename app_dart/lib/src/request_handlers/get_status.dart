@@ -136,7 +136,7 @@ final class _SerializableTask {
       'StartTimestamp': task.task.startTimestamp,
       'EndTimestamp': task.task.endTimestamp,
       'Attempts': task.task.attempts,
-      'Flaky': task.task.testFlaky,
+      'Flaky': task.task.bringup,
       'Status': task.task.status,
       'BuildNumberList': task.buildList.join(','),
       'BuilderName': task.task.taskName,

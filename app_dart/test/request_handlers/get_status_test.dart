@@ -155,7 +155,7 @@ void main() {
             generateFirestoreTask(1),
           ]),
           CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), [
-            generateFirestoreTask(1),
+            generateFirestoreTask(1, bringup: true),
           ]),
         ],
       );
@@ -210,7 +210,7 @@ void main() {
                 'StartTimestamp': 0,
                 'EndTimestamp': 0,
                 'Attempts': 1,
-                'Flaky': false,
+                'Flaky': true,
                 'Status': 'New',
                 'BuildNumberList': '',
                 'BuilderName': 'task1',
