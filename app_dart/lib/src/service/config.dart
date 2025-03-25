@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -31,7 +32,7 @@ import 'luci_build_service/cipd_version.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(this._db, this._cache);
+  Config(this._db, this._cache, this._secrets);
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -65,8 +66,8 @@ class Config {
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
   final DatastoreDB _db;
-
   final CacheService _cache;
+  final SecretManager _secrets;
 
   /// List of Github presubmit supported repos.
   ///
@@ -145,7 +146,10 @@ class Config {
   }
 
   Future<List<String>> _getReleaseAccounts() async {
-    final releaseAccountsConcat = await _getSingleValue('ReleaseAccounts');
+    // Previously: Datastore/CocoonConfig/name=ReleaseAccounts
+    final releaseAccountsConcat = await _getSingleValue(
+      'APP_DART_RELEASE_ACCOUNTS',
+    );
     return releaseAccountsConcat.split(',');
   }
 
@@ -153,27 +157,30 @@ class Config {
     final cacheValue = await _cache.getOrCreate(
       configCacheName,
       id,
-      createFn: () => _getValueFromDatastore(id),
+      createFn: () => _secrets.getBytes(id),
       ttl: configCacheTtl,
     );
-
     return String.fromCharCodes(cacheValue!);
   }
 
-  Future<Uint8List> _getValueFromDatastore(String id) async {
-    final result = await _db.lookupOrNull<CocoonConfig>(
-      _db.emptyKey.append(CocoonConfig, id: id),
-    );
-    return Uint8List.fromList(result!.value.codeUnits);
-  }
-
   // GitHub App properties.
+
+  // Previously: Datastore/CocoonConfig/name=githubapp_private_pem
   Future<String> get githubPrivateKey =>
-      _getSingleValue('githubapp_private_pem');
-  Future<String> get githubPublicKey => _getSingleValue('githubapp_public_pem');
-  Future<String> get githubAppId => _getSingleValue('githubapp_id');
+      _getSingleValue('APP_DART_GITHUBAPP_PRIVATE_PEM');
+
+  // Previously: Datastore/CocoonConfig/name=githubapp_public_pem
+  Future<String> get githubPublicKey =>
+      _getSingleValue('APP_DART_GITHUBAPP_PUBLIC_PEM');
+
+  // Previously: Datastore/CocoonConfig/name=githubapp_id
+  Future<String> get githubAppId => _getSingleValue('APP_DART_GITHUBAPP_ID');
+
+  // Previously: Datastore/CocoonConfig/name=githubapp_id
   Future<Map<String, dynamic>> get githubAppInstallations async {
-    final installations = await _getSingleValue('githubapp_installations');
+    final installations = await _getSingleValue(
+      'APP_DART_GITHUBAPP_INSTALLATIONS',
+    );
     return jsonDecode(installations) as Map<String, dynamic>;
   }
 
@@ -221,12 +228,18 @@ class Config {
   /// List of GitHub accounts related to releases.
   Future<List<String>> get releaseAccounts => _getReleaseAccounts();
 
-  Future<String> get oauthClientId => _getSingleValue('OAuthClientId');
+  // Previously: Datastore/CocoonConfig/name=OAuthClientId
+  Future<String> get oauthClientId =>
+      _getSingleValue('APP_DART_OAUTH_CLIENT_ID');
 
   /// Webhook secret for the "Flutter Roll on Borg" GitHub App.
-  Future<String> get frobWebhookKey => _getSingleValue('FrobWebhookKey');
+  // Previously: Datastore/CocoonConfig/name=FrobWebhookKey
+  Future<String> get frobWebhookKey =>
+      _getSingleValue('APP_DART_FROB_WEBHOOK_KEY');
 
-  Future<String> get githubOAuthToken => _getSingleValue('GitHubPRToken');
+  // Previously: Datastore/CocoonConfig/name=GitHubPRToken
+  Future<String> get githubOAuthToken =>
+      _getSingleValue('APP_DART_GITHUB_PR_TOKEN');
 
   String get wrongBaseBranchPullRequestMessage =>
       'This pull request was opened against a branch other than '
@@ -261,7 +274,8 @@ class Config {
       '__Reviewers__: Use caution before merging pull requests to release '
       'branches. Ensure the proper procedure has been followed.';
 
-  Future<String> get webhookKey => _getSingleValue('WebhookKey');
+  // Previously: Datastore/CocoonConfig/name=WebhookKey
+  Future<String> get webhookKey => _getSingleValue('APP_DART_WEBHOOK_KEY');
 
   String get mergeConflictPullRequestMessage =>
       'This pull request is not '

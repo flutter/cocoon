@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
@@ -18,7 +20,14 @@ Future<void> main() async {
     useLoggingPackageAdaptor();
 
     final cache = CacheService(inMemory: false);
-    final config = Config(dbService, cache);
+    final config = Config(
+      dbService,
+      cache,
+      await SecretManager.create(
+        AccessClientProvider(),
+        projectId: Config.flutterGcpProjectId,
+      ),
+    );
     final authProvider = AuthenticationProvider(config: config);
     final AuthenticationProvider swarmingAuthProvider =
         SwarmingAuthenticationProvider(config: config);
