@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
@@ -22,14 +21,18 @@ void main() {
 
   group('Task', () {
     test('disallows illegal status', () {
-      final task = Task();
+      final task = Task.fromDocument(
+        Document()
+          ..name = 'name'
+          ..fields = {},
+      );
       expect(() => task.setStatus('unknown'), throwsArgumentError);
     });
 
     test('creates task document correctly from task data model', () async {
       final task = generateTask(1);
       final commitSha = task.commitKey!.id!.split('/').last;
-      final taskDocument = taskToDocument(task);
+      final taskDocument = Task.fromDatastore(task);
       expect(
         taskDocument.name,
         '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
@@ -42,49 +45,6 @@ void main() {
       expect(taskDocument.status, task.status);
       expect(taskDocument.testFlaky, task.isTestFlaky);
       expect(taskDocument.commitSha, commitSha);
-    });
-
-    test('creates task documents correctly from targets', () async {
-      final commit = generateCommit(1);
-      final targets = <Target>[
-        generateTarget(1, platform: 'Mac'),
-        generateTarget(2, platform: 'Linux'),
-      ];
-      final taskDocuments = targetsToTaskDocuments(commit, targets);
-      expect(taskDocuments.length, 2);
-      expect(
-        taskDocuments[0].name,
-        '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${targets[0].value.name}_$kTaskInitialAttempt',
-      );
-      expect(
-        taskDocuments[0].fields![kTaskCreateTimestampField]!.integerValue,
-        commit.timestamp.toString(),
-      );
-      expect(
-        taskDocuments[0].fields![kTaskEndTimestampField]!.integerValue,
-        '0',
-      );
-      expect(taskDocuments[0].fields![kTaskBringupField]!.booleanValue, false);
-      expect(
-        taskDocuments[0].fields![kTaskNameField]!.stringValue,
-        targets[0].value.name,
-      );
-      expect(
-        taskDocuments[0].fields![kTaskStartTimestampField]!.integerValue,
-        '0',
-      );
-      expect(
-        taskDocuments[0].fields![kTaskStatusField]!.stringValue,
-        Task.statusNew,
-      );
-      expect(
-        taskDocuments[0].fields![kTaskTestFlakyField]!.booleanValue,
-        false,
-      );
-      expect(
-        taskDocuments[0].fields![kTaskCommitShaField]!.stringValue,
-        commit.sha,
-      );
     });
 
     group('updateFromBuild', () {
@@ -170,24 +130,6 @@ void main() {
       expect(task.status, Task.statusNew);
       expect(task.testFlaky, false);
     });
-  });
-
-  test('task facade', () {
-    final taskDocument = generateFirestoreTask(1);
-    final expectedResult = <String, dynamic>{
-      kTaskDocumentName: taskDocument.name,
-      kTaskCommitSha: taskDocument.commitSha,
-      kTaskCreateTimestamp: taskDocument.createTimestamp,
-      kTaskStartTimestamp: taskDocument.startTimestamp,
-      kTaskEndTimestamp: taskDocument.endTimestamp,
-      kTaskTaskName: taskDocument.taskName,
-      kTaskAttempts: taskDocument.attempts,
-      kTaskBringup: taskDocument.bringup,
-      kTaskTestFlaky: taskDocument.testFlaky,
-      kTaskBuildNumber: taskDocument.buildNumber,
-      kTaskStatus: taskDocument.status,
-    };
-    expect(taskDocument.facade, expectedResult);
   });
 }
 

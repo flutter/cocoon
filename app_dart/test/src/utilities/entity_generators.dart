@@ -78,7 +78,7 @@ Task generateTask(
   key: (parent ?? generateCommit(i)).key.append(Task, id: i),
   attempts: attempts,
   isFlaky: isFlaky,
-  builderName: builderName,
+  builderName: builderName ?? name ?? 'task$i',
   buildNumber: buildNumber,
   buildNumberList: buildNumber != null ? '$buildNumber' : null,
   createTimestamp: created?.millisecondsSinceEpoch ?? 0,
@@ -98,33 +98,18 @@ firestore.Task generateFirestoreTask(
   DateTime? ended,
   String? commitSha,
 }) {
-  final taskName = name ?? 'task$i';
-  final sha = commitSha ?? 'testSha';
-  final task =
-      firestore.Task()
-        ..name = '${sha}_${taskName}_$attempts'
-        ..fields = <String, Value>{
-          firestore.kTaskCreateTimestampField: Value(
-            integerValue: (created?.millisecondsSinceEpoch ?? 0).toString(),
-          ),
-          firestore.kTaskStartTimestampField: Value(
-            integerValue: (started?.millisecondsSinceEpoch ?? 0).toString(),
-          ),
-          firestore.kTaskEndTimestampField: Value(
-            integerValue: (ended?.millisecondsSinceEpoch ?? 0).toString(),
-          ),
-          firestore.kTaskBringupField: Value(booleanValue: bringup),
-          firestore.kTaskTestFlakyField: Value(booleanValue: testFlaky),
-          firestore.kTaskStatusField: Value(stringValue: status),
-          firestore.kTaskNameField: Value(stringValue: taskName),
-          firestore.kTaskCommitShaField: Value(stringValue: sha),
-        };
-  if (buildNumber != null) {
-    task.fields![firestore.kTaskBuildNumberField] = Value(
-      integerValue: buildNumber.toString(),
-    );
-  }
-  return task;
+  return firestore.Task(
+    builderName: name ?? 'task$i',
+    currentAttempt: attempts,
+    commitSha: commitSha ?? 'testSha',
+    bringup: bringup,
+    buildNumber: buildNumber,
+    createTimestamp: created?.millisecondsSinceEpoch ?? 0,
+    startTimestamp: started?.millisecondsSinceEpoch ?? 0,
+    endTimestamp: ended?.millisecondsSinceEpoch ?? 0,
+    status: status,
+    testFlaky: testFlaky,
+  );
 }
 
 firestore_commit.Commit generateFirestoreCommit(

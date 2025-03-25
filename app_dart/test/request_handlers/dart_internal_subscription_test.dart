@@ -191,7 +191,7 @@ void main() {
     final batchWriteRequest = captured[0] as BatchWriteRequest;
     expect(batchWriteRequest.writes!.length, 1);
     final insertedTaskDocument = firestore.Task.fromDocument(
-      taskDocument: batchWriteRequest.writes![0].update!,
+      batchWriteRequest.writes![0].update!,
     );
     expect(insertedTaskDocument.taskName, expectedTask.name);
   });
@@ -280,7 +280,7 @@ void main() {
     final batchWriteRequest = captured[0] as BatchWriteRequest;
     expect(batchWriteRequest.writes!.length, 1);
     final insertedTaskDocument = firestore.Task.fromDocument(
-      taskDocument: batchWriteRequest.writes![0].update!,
+      batchWriteRequest.writes![0].update!,
     );
     expect(insertedTaskDocument.status, expectedTask.status);
   });

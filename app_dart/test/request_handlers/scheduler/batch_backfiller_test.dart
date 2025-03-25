@@ -254,7 +254,7 @@ void main() {
       final commitResponse = captured[0] as List<Write>;
       expect(commitResponse.length, 1);
       final taskDocuemnt = firestore.Task.fromDocument(
-        taskDocument: commitResponse[0].update!,
+        commitResponse[0].update!,
       );
       expect(taskDocuemnt.status, firestore.Task.statusInProgress);
     });
