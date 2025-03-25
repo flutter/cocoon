@@ -20,11 +20,9 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/branch.dart';
 import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'bigquery.dart';
-import 'datastore.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
 
@@ -137,13 +135,6 @@ class Config {
   static const Duration configCacheTtl = Duration(hours: 12);
 
   Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
-
-  Future<Iterable<Branch>> getBranches(gh.RepositorySlug slug) async {
-    final datastore = DatastoreService(db, defaultMaxEntityGroups);
-    final branches = await datastore.queryBranches().toList();
-
-    return branches.where((Branch branch) => branch.slug == slug);
-  }
 
   Future<List<String>> _getReleaseAccounts() async {
     // Previously: Datastore/CocoonConfig/name=ReleaseAccounts
