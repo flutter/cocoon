@@ -12,10 +12,6 @@ import '../model/appengine/github_build_status_update.dart';
 import '../model/firestore/commit_tasks_status.dart';
 import '../model/firestore/task.dart';
 
-/// Function signature for a [BuildStatusService] provider.
-typedef BuildStatusServiceProvider =
-    BuildStatusService Function(FirestoreService firestoreService);
-
 /// Branches that are used to calculate the tree status.
 const Set<String> defaultBranches = <String>{
   'refs/heads/main',
@@ -23,14 +19,9 @@ const Set<String> defaultBranches = <String>{
 };
 
 /// Class that calculates the current build status.
-class BuildStatusService {
-  const BuildStatusService(this.firestoreService);
-  final FirestoreService firestoreService;
-
-  /// Creates and returns a [BuildStatusService].
-  static BuildStatusService defaultProvider(FirestoreService firestoreService) {
-    return BuildStatusService(firestoreService);
-  }
+interface class BuildStatusService {
+  const BuildStatusService(this._config);
+  final Config _config;
 
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
@@ -130,14 +121,15 @@ class BuildStatusService {
     String? branch,
     required RepositorySlug slug,
   }) async* {
-    final commits = await firestoreService.queryRecentCommits(
+    final firestore = await _config.createFirestoreService();
+    final commits = await firestore.queryRecentCommits(
       limit: limit,
       timestamp: timestamp,
       branch: branch,
       slug: slug,
     );
     for (var commit in commits) {
-      final tasks = await firestoreService.queryCommitTasks(commit.sha!);
+      final tasks = await firestore.queryCommitTasks(commit.sha!);
       yield CommitTasksStatus(commit, tasks);
     }
   }

@@ -10,22 +10,16 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import '../service/build_status_provider.dart';
-import '../service/datastore.dart';
 
 @immutable
 class GetBuildStatus extends RequestHandler<Body> {
   const GetBuildStatus({
     required super.config,
-    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
-    @visibleForTesting BuildStatusServiceProvider? buildStatusProvider,
-  }) : datastoreProvider =
-           datastoreProvider ?? DatastoreService.defaultProvider,
-       buildStatusProvider =
-           buildStatusProvider ?? BuildStatusService.defaultProvider;
-  final DatastoreServiceProvider datastoreProvider;
-  final BuildStatusServiceProvider buildStatusProvider;
+    required BuildStatusService buildStatusService,
+  }) : _buildStatusService = buildStatusService;
 
-  static const String kRepoParam = 'repo';
+  final BuildStatusService _buildStatusService;
+  static const _kRepoParam = 'repo';
 
   @override
   Future<Body> get() async {
@@ -34,11 +28,9 @@ class GetBuildStatus extends RequestHandler<Body> {
   }
 
   Future<BuildStatusResponse> createResponse() async {
-    final firestoreService = await config.createFirestoreService();
-    final buildStatusService = buildStatusProvider(firestoreService);
-    final repoName = request!.uri.queryParameters[kRepoParam] ?? 'flutter';
+    final repoName = request!.uri.queryParameters[_kRepoParam] ?? 'flutter';
     final slug = RepositorySlug('flutter', repoName);
-    final status = (await buildStatusService.calculateCumulativeStatus(slug))!;
+    final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
     return BuildStatusResponse()
       ..buildStatus =
           status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure

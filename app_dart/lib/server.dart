@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'cocoon_service.dart';
 import 'src/request_handlers/trigger_workflow.dart';
+import 'src/service/build_status_provider.dart';
 import 'src/service/commit_service.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
 
@@ -26,6 +27,7 @@ Server createServer({
   required GerritService gerritService,
   required Scheduler scheduler,
   required CiYamlFetcher ciYamlFetcher,
+  required BuildStatusService buildStatusService,
   FusionTester? fusionTester,
 }) {
   fusionTester ??= FusionTester();
@@ -92,6 +94,7 @@ Server createServer({
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
       authenticationProvider: authProvider,
+      buildStatusService: buildStatusService,
     ),
     '/api/push-gold-status-to-github': PushGoldStatusToGithub(
       config: config,
@@ -176,13 +179,19 @@ Server createServer({
     '/api/public/build-status': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetBuildStatus(config: config),
+      delegate: GetBuildStatus(
+        config: config,
+        buildStatusService: buildStatusService,
+      ),
       ttl: const Duration(seconds: 15),
     ),
     '/api/public/build-status-badge': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetBuildStatusBadge(config: config),
+      delegate: GetBuildStatusBadge(
+        config: config,
+        buildStatusService: buildStatusService,
+      ),
       ttl: const Duration(seconds: 15),
     ),
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
@@ -243,10 +252,16 @@ Server createServer({
     '/api/public/get-status': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetStatus(config: config),
+      delegate: GetStatus(
+        config: config,
+        buildStatusService: buildStatusService,
+      ),
     ),
 
-    '/api/public/get-green-commits': GetGreenCommits(config: config),
+    '/api/public/get-green-commits': GetGreenCommits(
+      config: config,
+      buildStatusService: buildStatusService,
+    ),
 
     /// Record GitHub API quota usage in BigQuery.
     ///

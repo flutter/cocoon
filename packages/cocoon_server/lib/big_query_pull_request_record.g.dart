@@ -21,7 +21,7 @@ PullRequestRecord _$PullRequestRecordFromJson(Map<String, dynamic> json) =>
       organization: json['organization'] as String?,
       repository: json['repository'] as String?,
       author: json['author'] as String?,
-      prNumber: json['pr_number'] as int?,
+      prNumber: (json['pr_number'] as num?)?.toInt(),
       prCommit: json['pr_commit'] as String?,
       prRequestType: json['pr_request_type'] as String?,
     );

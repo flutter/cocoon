@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../src/datastore/fake_config.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -17,6 +18,7 @@ void main() {
   useTestLoggerPerTest();
 
   group('BuildStatusProvider', () {
+    late FakeConfig config;
     late BuildStatusService buildStatusService;
     late MockFirestoreService mockFirestoreService;
 
@@ -24,9 +26,8 @@ void main() {
 
     setUp(() {
       mockFirestoreService = MockFirestoreService();
-      buildStatusService = BuildStatusService.defaultProvider(
-        mockFirestoreService,
-      );
+      config = FakeConfig()..firestoreService = mockFirestoreService;
+      buildStatusService = BuildStatusService(config);
     });
 
     group('calculateStatus', () {

@@ -8,8 +8,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
@@ -79,8 +77,7 @@ void main() {
       buildStatusService = FakeBuildStatusService(commitTasksStatuses: []);
       handler = GetStatus(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
     });
 
@@ -102,8 +99,7 @@ void main() {
       );
       handler = GetStatus(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
 
       tester.request = FakeHttpRequest();
@@ -120,8 +116,7 @@ void main() {
       );
       handler = GetStatus(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
 
       tester.request = FakeHttpRequest(
@@ -155,14 +150,13 @@ void main() {
             generateFirestoreTask(1),
           ]),
           CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), [
-            generateFirestoreTask(1),
+            generateFirestoreTask(1, bringup: true),
           ]),
         ],
       );
       handler = GetStatus(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
-        buildStatusProvider: (_) => buildStatusService,
+        buildStatusService: buildStatusService,
       );
 
       tester.request = FakeHttpRequest(
@@ -210,7 +204,7 @@ void main() {
                 'StartTimestamp': 0,
                 'EndTimestamp': 0,
                 'Attempts': 1,
-                'Flaky': false,
+                'Flaky': true,
                 'Status': 'New',
                 'BuildNumberList': '',
                 'BuilderName': 'task1',

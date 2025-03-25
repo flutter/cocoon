@@ -28,7 +28,7 @@ import 'package:cocoon_service/src/model/firestore/github_build_status.dart'
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
     as _i20;
 import 'package:cocoon_service/src/model/firestore/task.dart' as _i41;
-import 'package:cocoon_service/src/model/github/checks.dart' as _i45;
+import 'package:cocoon_service/src/model/github/checks.dart' as _i46;
 import 'package:cocoon_service/src/service/access_token_provider.dart' as _i29;
 import 'package:cocoon_service/src/service/bigquery.dart' as _i14;
 import 'package:cocoon_service/src/service/commit_service.dart' as _i31;
@@ -43,8 +43,10 @@ import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
     as _i44;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
-    as _i47;
-import 'package:fixnum/fixnum.dart' as _i46;
+    as _i48;
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
+    as _i45;
+import 'package:fixnum/fixnum.dart' as _i47;
 import 'package:gcloud/db.dart' as _i9;
 import 'package:github/github.dart' as _i11;
 import 'package:github/hooks.dart' as _i32;
@@ -57,11 +59,11 @@ import 'package:http/http.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i30;
 import 'package:neat_cache/neat_cache.dart' as _i28;
-import 'package:process/process.dart' as _i48;
+import 'package:process/process.dart' as _i49;
 import 'package:retry/retry.dart' as _i35;
 
 import '../../service/cache_service_test.dart' as _i38;
-import 'mocks.dart' as _i49;
+import 'mocks.dart' as _i50;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -4921,14 +4923,14 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
     required String? builderName,
     required _i6.Build? build,
     required int? nextAttempt,
-    required Map<String, dynamic>? userDataMap,
+    required _i45.PresubmitUserData? userData,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#reschedulePresubmitBuild, [], {
               #builderName: builderName,
               #build: build,
               #nextAttempt: nextAttempt,
-              #userDataMap: userDataMap,
+              #userData: userData,
             }),
             returnValue: _i18.Future<_i6.Build>.value(
               _FakeBuild_4(
@@ -4937,7 +4939,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
                   #builderName: builderName,
                   #build: build,
                   #nextAttempt: nextAttempt,
-                  #userDataMap: userDataMap,
+                  #userData: userData,
                 }),
               ),
             ),
@@ -4959,7 +4961,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i18.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
-    _i45.CheckRunEvent? checkRunEvent, {
+    _i46.CheckRunEvent? checkRunEvent, {
     required _i36.Commit? commit,
     required _i37.Task? task,
     required _i43.Target? target,
@@ -4987,7 +4989,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i18.Future<_i6.Build> getBuildById(
-    _i46.Int64? id, {
+    _i47.Int64? id, {
     _i6.BuildMask? buildMask,
   }) =>
       (super.noSuchMethod(
@@ -5016,20 +5018,20 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
           as _i18.Future<Set<String>>);
 
   @override
-  _i18.Future<List<_i47.PendingTask>> schedulePostsubmitBuilds({
+  _i18.Future<List<_i48.PendingTask>> schedulePostsubmitBuilds({
     required _i36.Commit? commit,
-    required List<_i47.PendingTask>? toBeScheduled,
+    required List<_i48.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#schedulePostsubmitBuilds, [], {
               #commit: commit,
               #toBeScheduled: toBeScheduled,
             }),
-            returnValue: _i18.Future<List<_i47.PendingTask>>.value(
-              <_i47.PendingTask>[],
+            returnValue: _i18.Future<List<_i48.PendingTask>>.value(
+              <_i48.PendingTask>[],
             ),
           )
-          as _i18.Future<List<_i47.PendingTask>>);
+          as _i18.Future<List<_i48.PendingTask>>);
 
   @override
   _i18.Future<void> scheduleMergeGroupBuilds({
@@ -5047,21 +5049,20 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
           as _i18.Future<void>);
 
   @override
-  _i18.Future<void> createPostsubmitCheckRun(
+  _i18.Future<_i11.CheckRun> createPostsubmitCheckRun(
     _i36.Commit? commit,
     _i43.Target? target,
-    Map<String, dynamic>? rawUserData,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#createPostsubmitCheckRun, [
-              commit,
-              target,
-              rawUserData,
-            ]),
-            returnValue: _i18.Future<void>.value(),
-            returnValueForMissingStub: _i18.Future<void>.value(),
+            Invocation.method(#createPostsubmitCheckRun, [commit, target]),
+            returnValue: _i18.Future<_i11.CheckRun>.value(
+              _FakeCheckRun_37(
+                this,
+                Invocation.method(#createPostsubmitCheckRun, [commit, target]),
+              ),
+            ),
           )
-          as _i18.Future<void>);
+          as _i18.Future<_i11.CheckRun>);
 
   @override
   _i18.Future<bool> checkRerunBuilder({
@@ -5093,7 +5094,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i48.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -6157,7 +6158,7 @@ class MockBeginTransactionResponse extends _i1.Mock
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i49.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }

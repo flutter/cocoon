@@ -9,8 +9,9 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart'
     as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
@@ -122,19 +123,6 @@ void main() {
     tester = SubscriptionTester(request: request);
   });
 
-  test('throws exception when task document name is not in message', () async {
-    const userDataMap = <String, dynamic>{'commit_key': 'flutter/main/abc123'};
-
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.SUCCESS,
-      builder: '',
-      userData: userDataMap,
-    );
-
-    expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
-  });
-
   test('updates task based on message', () async {
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux A');
     final commit = generateCommit(
@@ -146,18 +134,20 @@ void main() {
       name: 'Linux A',
       parent: commit,
     );
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
       number: 63405,
     );
 
@@ -208,19 +198,21 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SCHEDULED,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
@@ -247,19 +239,21 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.STARTED,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     expect(task.status, Task.statusSucceeded);
@@ -286,32 +280,26 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
 
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
-
+    final userData = PostsubmitUserData(
+      checkRunId: null,
+      taskKey: '${task.key.id}',
+      commitKey: '${task.key.parent?.id}',
+      firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        commitSha: commit.sha!,
+        taskName: task.name!,
+        currentAttempt: task.attempts!,
+      ),
+    );
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.STARTED,
       builder: 'Linux B',
-      userData: userDataMap,
+      userData: userData,
     );
 
     expect(task.status, Task.statusSucceeded);
     expect(task.attempts, 1);
-    expect(await tester.post(handler), Body.empty);
-  });
-
-  test('does not fail on empty user data', () async {
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.SUCCESS,
-      builder: 'Linux A',
-    );
     expect(await tester.post(handler), Body.empty);
   });
 
@@ -338,19 +326,21 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.FAILURE,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     expect(firestoreTask!.status, firestore.Task.statusFailed);
@@ -394,19 +384,21 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.CANCELED,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInfraFailure);
@@ -452,19 +444,21 @@ void main() {
       );
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
-      final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-      final userDataMap = <String, dynamic>{
-        'task_key': '${task.key.id}',
-        'commit_key': '${task.key.parent?.id}',
-        'firestore_task_document_name': taskDocumentName,
-      };
 
       tester.message = createPushMessage(
         Int64(1),
         status: bbv2.Status.INFRA_FAILURE,
         builder: 'Linux A',
-        userData: userDataMap,
+        userData: PostsubmitUserData(
+          checkRunId: null,
+          taskKey: '${task.key.id}',
+          commitKey: '${task.key.parent?.id}',
+          firestoreTaskDocumentName: FirestoreTaskDocumentName(
+            commitSha: commit.sha!,
+            taskName: task.name!,
+            currentAttempt: task.attempts!,
+          ),
+        ),
       );
 
       expect(task.status, Task.statusInfraFailure);
@@ -510,20 +504,21 @@ void main() {
     );
     config.db.values[commit.key] = commit;
     config.db.values[task.key] = task;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-      'check_run_id': 1,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux A',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: 1,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     await tester.post(handler);
@@ -559,19 +554,21 @@ void main() {
     );
     config.db.values[commit.key] = commit;
     config.db.values[task.key] = task;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux bringup',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     await tester.post(handler);
@@ -612,19 +609,21 @@ void main() {
     );
     config.db.values[commit.key] = commit;
     config.db.values[task.key] = task;
-    final taskDocumentName = '${commit.sha}_${task.name}_${task.attempts}';
-
-    final userDataMap = <String, dynamic>{
-      'task_key': '${task.key.id}',
-      'commit_key': '${task.key.parent?.id}',
-      'firestore_task_document_name': taskDocumentName,
-    };
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux bringup',
-      userData: userDataMap,
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          commitSha: commit.sha!,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
     );
 
     await tester.post(handler);

@@ -101,6 +101,7 @@ class BigqueryService {
   /// might use this API (annotated with `@visibleForTesting`), but external
   /// tests would use mocks or a specially made `FakeBigqueryService`.
   const BigqueryService.forTesting(this._defaultTabledata, this._defaultJobs);
+
   final TabledataResource _defaultTabledata;
   final JobsResource _defaultJobs;
 

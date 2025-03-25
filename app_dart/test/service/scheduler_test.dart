@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
-import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -37,7 +36,6 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
-import '../src/service/fake_build_status_provider.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
@@ -133,7 +131,6 @@ void main() {
   late CacheService cache;
   late FakeConfig config;
   late FakeDatastoreDB db;
-  late FakeBuildStatusService buildStatusService;
   late FakeCiYamlFetcher ciYamlFetcher;
   late MockFirestoreService mockFirestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
@@ -182,11 +179,6 @@ void main() {
         ),
       ).thenAnswer((_) async => []);
 
-      buildStatusService = FakeBuildStatusService(
-        commitTasksStatuses: [
-          CommitTasksStatus(generateFirestoreCommit(1), []),
-        ],
-      );
       config = FakeConfig(
         bigqueryService: BigqueryService.forTesting(
           tabledataResource,
@@ -227,7 +219,6 @@ void main() {
         cache: cache,
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-        buildStatusProvider: (_) => buildStatusService,
         githubChecksService: GithubChecksService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
@@ -431,18 +422,9 @@ void main() {
             toBeScheduled: captureAnyNamed('toBeScheduled'),
           ),
         ).thenAnswer((_) async => []);
-        buildStatusService = FakeBuildStatusService(
-          commitTasksStatuses: [
-            CommitTasksStatus(
-              generateFirestoreCommit(1, repo: 'packages', branch: 'main'),
-              [],
-            ),
-          ],
-        );
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -528,19 +510,10 @@ void main() {
               ],
             );
           });
-          buildStatusService = FakeBuildStatusService(
-            commitTasksStatuses: [
-              CommitTasksStatus(
-                generateFirestoreCommit(1, repo: 'packages', branch: 'main'),
-                [],
-              ),
-            ],
-          );
           config.batchSizeValue = 1;
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            buildStatusProvider: (_) => buildStatusService,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
@@ -745,7 +718,6 @@ void main() {
             cache: cache,
             config: config,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-            buildStatusProvider: (_) => buildStatusService,
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -835,11 +807,6 @@ void main() {
       test('rerequested ci.yaml check retriggers presubmit', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
-        buildStatusService = FakeBuildStatusService(
-          commitTasksStatuses: [
-            CommitTasksStatus(generateFirestoreCommit(1), []),
-          ],
-        );
         config = FakeConfig(
           githubService: mockGithubService,
           firestoreService: mockFirestoreService,
@@ -847,7 +814,6 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -931,11 +897,6 @@ void main() {
         () async {
           final mockGithubService = MockGithubService();
           final mockGithubClient = MockGitHub();
-          buildStatusService = FakeBuildStatusService(
-            commitTasksStatuses: [
-              CommitTasksStatus(generateFirestoreCommit(1), []),
-            ],
-          );
           config = FakeConfig(
             githubService: mockGithubService,
             firestoreService: mockFirestoreService,
@@ -950,7 +911,6 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            buildStatusProvider: (_) => buildStatusService,
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -1032,11 +992,6 @@ void main() {
       test('rerequested merge queue guard check is ignored', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
-        buildStatusService = FakeBuildStatusService(
-          commitTasksStatuses: [
-            CommitTasksStatus(generateFirestoreCommit(1), []),
-          ],
-        );
         config = FakeConfig(
           githubService: mockGithubService,
           firestoreService: mockFirestoreService,
@@ -1044,7 +999,6 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1129,11 +1083,6 @@ void main() {
           dbValue: db,
           firestoreService: mockFirestoreService,
         );
-        buildStatusService = FakeBuildStatusService(
-          commitTasksStatuses: [
-            CommitTasksStatus(generateFirestoreCommit(1), []),
-          ],
-        );
 
         when(callbacks.findPullRequestForSha(any, any)).thenAnswer((inv) async {
           return pullRequest;
@@ -1155,7 +1104,6 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1317,7 +1265,6 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          buildStatusProvider: (_) => buildStatusService,
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -1653,7 +1600,6 @@ targets:
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1757,7 +1703,6 @@ targets:
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1871,7 +1816,6 @@ targets:
                 cache: cache,
                 config: config,
                 datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-                buildStatusProvider: (_) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
@@ -1943,7 +1887,6 @@ targets:
               cache: cache,
               config: config,
               datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-              buildStatusProvider: (_) => buildStatusService,
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -2057,7 +2000,6 @@ targets:
                 cache: cache,
                 config: config,
                 datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-                buildStatusProvider: (_) => buildStatusService,
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
@@ -2229,7 +2171,6 @@ targets:
                 cache: cache,
                 config: config,
                 datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-                buildStatusProvider: (_) => buildStatusService,
                 githubChecksService: gitHubChecksService,
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
@@ -2629,7 +2570,6 @@ targets:
             cache: cache,
             config: config,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
-            buildStatusProvider: (_) => buildStatusService,
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2662,11 +2602,6 @@ targets:
         () async {
           final mockGithubService = MockGithubService();
           getFilesChanged.cannedFiles = null;
-          buildStatusService = FakeBuildStatusService(
-            commitTasksStatuses: [
-              CommitTasksStatus(generateFirestoreCommit(1), []),
-            ],
-          );
           scheduler = Scheduler(
             cache: cache,
             config: FakeConfig(
@@ -2676,7 +2611,6 @@ targets:
               githubClient: MockGitHub(),
               firestoreService: mockFirestoreService,
             ),
-            buildStatusProvider: (_) => buildStatusService,
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
@@ -2972,7 +2906,6 @@ targets:
             firestoreService: mockFirestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 0,
           ),
-          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3117,7 +3050,6 @@ targets:
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3271,7 +3203,6 @@ targets:
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3414,7 +3345,6 @@ targets:
             githubClient: MockGitHub(),
             firestoreService: mockFirestoreService,
           ),
-          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
@@ -3547,7 +3477,6 @@ targets:
             firestoreService: mockFirestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 29,
           ),
-          buildStatusProvider: (_) => buildStatusService,
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,

@@ -19,8 +19,7 @@ import 'get_build_status.dart';
 class GetBuildStatusBadge extends GetBuildStatus {
   const GetBuildStatusBadge({
     required super.config,
-    @visibleForTesting super.datastoreProvider,
-    @visibleForTesting super.buildStatusProvider,
+    required super.buildStatusService,
   });
 
   /// Provides a template that is easily injectable.

@@ -32,7 +32,7 @@ void main() {
   });
 
   test('delegates withCreateClient (with baseClient)', () async {
-    late final List<String> capturedScopes;
+    final capturedScopes = <String>[];
     late final http.Client? capturedBaseClient;
     final mockClient = http_testing.MockClient((_) async {
       throw UnimplementedError();
@@ -42,7 +42,7 @@ void main() {
       required scopes,
       http.Client? baseClient,
     }) {
-      capturedScopes = scopes;
+      capturedScopes.addAll(scopes);
       capturedBaseClient = baseClient;
       return mockClient;
     });
