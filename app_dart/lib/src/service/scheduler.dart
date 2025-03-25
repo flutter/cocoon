@@ -1629,7 +1629,8 @@ $stacktrace
 
     log.info('Uploading commit ${commit.sha} info to bigquery.');
 
-    final tabledataResource = await config.createTabledataResourceApi();
+    final bigquery = await config.createBigQueryService();
+    final tabledataResource = bigquery.tabledata;
     final tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     /// Consolidate [commits] together

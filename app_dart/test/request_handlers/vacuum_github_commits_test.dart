@@ -9,6 +9,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
@@ -98,7 +99,10 @@ void main() {
       yieldedCommitCount = 0;
       db = FakeDatastoreDB();
       config = FakeConfig(
-        tabledataResource: tabledataResourceApi,
+        bigqueryService: BigqueryService.forTesting(
+          tabledataResourceApi,
+          MockJobsResource(),
+        ),
         githubService: githubService,
         firestoreService: mockFirestoreService,
         dbValue: db,

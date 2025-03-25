@@ -12,7 +12,6 @@ import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
-import 'package:googleapis/bigquery/v2.dart';
 import 'package:graphql/client.dart';
 
 import '../request_handling/fake_authentication.dart';
@@ -40,7 +39,6 @@ class FakeConfig implements Config {
     this.releaseBranchPullRequestMessageValue,
     this.webhookKeyValue,
     this.loggingServiceValue,
-    this.tabledataResource,
     this.githubService,
     this.bigqueryService,
     this.firestoreService,
@@ -72,7 +70,6 @@ class FakeConfig implements Config {
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
-  TabledataResource? tabledataResource;
   BigqueryService? bigqueryService;
   FirestoreService? firestoreService;
   GithubService? githubService;
@@ -127,10 +124,6 @@ class FakeConfig implements Config {
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async =>
       githubGraphQLClient!;
-
-  @override
-  Future<TabledataResource> createTabledataResourceApi() async =>
-      tabledataResource!;
 
   @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;

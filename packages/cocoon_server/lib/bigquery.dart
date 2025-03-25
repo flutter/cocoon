@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:googleapis/bigquery/v2.dart';
 
-import 'access_client_provider.dart';
 import 'big_query_pull_request_record.dart';
+import 'google_auth_provider.dart';
 
 const String _insertPullRequestDml = r'''
 INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
@@ -32,34 +32,22 @@ INSERT INTO `flutter-dashboard.autosubmit.pull_requests` (
 ''';
 
 class BigqueryService {
-  const BigqueryService(this.accessClientProvider);
-
-  /// AccessClientProvider for OAuth 2.0 authenticated access client
-  final AccessClientProvider accessClientProvider;
-
-  /// Return a [TabledataResource] with an authenticated [client]
-  Future<TabledataResource> defaultTabledata() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.bigqueryScope],
+  /// Creates a [BigqueryService] using Google API authentication.
+  static Future<BigqueryService> from(GoogleAuthProvider authProvider) async {
+    final client = await authProvider.createClient(
+      scopes: const [BigqueryApi.bigqueryScope],
     );
-    return BigqueryApi(client).tabledata;
+    return BigqueryService.forTesting(BigqueryApi(client).jobs);
   }
 
-  /// Return a [JobsResource] with an authenticated [client]
-  Future<JobsResource> defaultJobs() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[BigqueryApi.bigqueryScope],
-    );
-    return BigqueryApi(client).jobs;
-  }
+  const BigqueryService.forTesting(this._defaultJobs);
+  final JobsResource _defaultJobs;
 
   /// Insert a new pull request record into the database.
   Future<void> insertPullRequestRecord({
     required String projectId,
     required PullRequestRecord pullRequestRecord,
   }) async {
-    final jobsResource = await defaultJobs();
-
     final queryRequest = QueryRequest(
       query: _insertPullRequestDml,
       queryParameters: <QueryParameter>[
@@ -87,7 +75,7 @@ class BigqueryService {
       useLegacySql: false,
     );
 
-    final queryResponse = await jobsResource.query(queryRequest, projectId);
+    final queryResponse = await _defaultJobs.query(queryRequest, projectId);
     if (!queryResponse.jobComplete!) {
       throw BigQueryException(
         'Insert pull request $pullRequestRecord did not complete.',

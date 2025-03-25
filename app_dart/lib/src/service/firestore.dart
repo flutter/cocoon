@@ -5,8 +5,10 @@
 import 'dart:async';
 
 import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:http/http.dart' as http;
 
 import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
@@ -41,21 +43,24 @@ final kFieldMapRegExp = RegExp(
 );
 
 class FirestoreService {
-  const FirestoreService(this.accessClientProvider);
-
-  /// AccessClientProvider for OAuth 2.0 authenticated access client
-  final AccessClientProvider accessClientProvider;
-
-  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
-  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
-    final client = await accessClientProvider.createAccessClient(
-      scopes: const <String>[FirestoreApi.datastoreScope],
+  /// Creates a [BigqueryService] using Google API authentication.
+  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
+    final client = await authProvider.createClient(
+      scopes: const [FirestoreApi.datastoreScope],
       baseClient: FirestoreBaseClient(
         projectId: Config.flutterGcpProjectId,
         databaseId: Config.flutterGcpFirestoreDatabase,
       ),
     );
-    return FirestoreApi(client).projects.databases.documents;
+    return FirestoreService._(client);
+  }
+
+  const FirestoreService._(this._client);
+  final http.Client _client;
+
+  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
+  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
+    return FirestoreApi(_client).projects.databases.documents;
   }
 
   /// Gets a document based on name.
