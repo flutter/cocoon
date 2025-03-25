@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -77,6 +78,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       content: ciContent,
       ciYaml: ciYaml,
     );
+    log.info(
+      'The following builders are eligible to be marked no longer flaky:\n'
+      '${eligibleBuilders.map((b) => b.name).join('\n')}',
+    );
     final testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
 
     for (final info in eligibleBuilders) {
@@ -91,7 +96,20 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         builder: info.name,
         limit: kRecordNumber,
       );
+      log.debug(
+        builderRecords
+            .map(
+              (t) =>
+                  '${t.commit}: ${t.isFailed
+                      ? 'failed '
+                      : t.isFlaky
+                      ? 'flaky'
+                      : 'ok'}',
+            )
+            .join('\n'),
+      );
       if (_shouldDeflake(builderRecords)) {
+        log.info('${info.name}: Build data shows flakiness reduction');
         await _deflakyPullRequest(
           gitHub,
           slug,
@@ -102,6 +120,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
         // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
         await Future<void>.delayed(config.githubRequestDelay);
+      } else {
+        log.info('${info.name}: Build data inconclusive. Keeping flaky status');
       }
     }
     return Body.forJson(const <String, dynamic>{'Status': 'success'});
