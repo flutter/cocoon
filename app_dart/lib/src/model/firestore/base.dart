@@ -25,7 +25,7 @@ mixin BaseDocumentMixin on g.Document {
     // }
     //
     // So instead of copying that, we'll just use what they do.
-    return value.toJson().values.first;
+    return value.toJson().values.firstOrNull;
   }
 
   @override
