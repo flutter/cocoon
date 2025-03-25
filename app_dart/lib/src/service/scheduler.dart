@@ -182,7 +182,7 @@ class Scheduler {
       timestamp: pr.mergedAt!.millisecondsSinceEpoch,
     );
 
-    if (await _commitExistsInDatastore(sha: mergedCommit.sha!)) {
+    if (await _commitExistsInFirestore(sha: mergedCommit.sha!)) {
       log.debug('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
@@ -333,7 +333,7 @@ class Scheduler {
     commits.sort((Commit a, Commit b) => b.timestamp!.compareTo(a.timestamp!));
     for (var commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
-      if (!await _commitExistsInDatastore(sha: commit.sha!)) {
+      if (!await _commitExistsInFirestore(sha: commit.sha!)) {
         newCommits.add(commit);
       }
     }
@@ -347,7 +347,7 @@ class Scheduler {
   /// Firestore is Cocoon's source of truth for what commits have been
   /// scheduled. Since webhooks or cron jobs can schedule commits, we must
   /// verify a commit has not already been scheduled.
-  Future<bool> _commitExistsInDatastore({required String sha}) async {
+  Future<bool> _commitExistsInFirestore({required String sha}) async {
     final commit = await firestore_commmit.Commit.tryFromFirestoreBySha(
       await config.createFirestoreService(),
       sha: sha,
