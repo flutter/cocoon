@@ -8,7 +8,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
@@ -22,7 +21,7 @@ import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
-import '../service/luci_build_service/user_data.dart';
+import '../service/luci_build_service/firestore_task_document_name.dart';
 import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -199,19 +198,14 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     // Prepares Firestore task.
-    final documentName = FirestoreTaskDocumentName(
+    final firestoreTask = FirestoreTaskDocumentName(
       commitSha: commitSha,
       taskName: taskName,
       currentAttempt: task.attempts!,
     );
     final taskDocument = await firestore.Task.fromFirestore(
-      firestoreService: firestoreService,
-      documentName: p.join(
-        kDatabase,
-        'documents',
-        firestore.kTaskCollectionId,
-        '$documentName',
-      ),
+      firestoreService,
+      firestoreTask,
     );
 
     final isRerunning = await luciBuildService.checkRerunBuilder(

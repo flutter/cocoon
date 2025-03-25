@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 
 import 'package:github/github.dart' as github;
@@ -95,17 +96,17 @@ void main() {
       when(
         mockGithubChecksUtil.getCheckRun(any, any, any),
       ).thenAnswer((_) async => checkRun);
-      final userData = <String, dynamic>{
-        'check_run_id': 1,
-        'repo_owner': 'flutter',
-        'repo_name': 'cocoon',
-        'user_login': 'engine-flutter-autoroll',
-      };
       when(
         mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
-          userDataMap: userData,
+          userData: PresubmitUserData(
+            repoOwner: 'flutter',
+            repoName: 'cocoon',
+            checkRunId: checkRun.id!,
+            commitBranch: 'master',
+            commitSha: 'abc123',
+          ),
           nextAttempt: 1,
         ),
       ).thenAnswer(
@@ -139,17 +140,17 @@ void main() {
       when(
         mockGithubChecksUtil.getCheckRun(any, any, any),
       ).thenAnswer((_) async => checkRun);
-      final userData = <String, dynamic>{
-        'check_run_id': 1,
-        'repo_owner': 'flutter',
-        'repo_name': 'cocoon',
-        'user_login': 'test-account',
-      };
       when(
         mockLuciBuildService.reschedulePresubmitBuild(
           builderName: 'Linux Coverage',
           build: _fakeBuild,
-          userDataMap: userData,
+          userData: PresubmitUserData(
+            repoOwner: 'flutter',
+            repoName: 'cocoon',
+            checkRunId: checkRun.id!,
+            commitBranch: 'master',
+            commitSha: 'abc123',
+          ),
           nextAttempt: 1,
         ),
       ).thenAnswer(
