@@ -109,24 +109,20 @@ class FirestoreService {
     timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= Config.defaultBranch(slug);
     final filterMap = <String, Object>{
-      '$kCommitBranchField =': branch,
-      '$kCommitRepositoryPathField =': slug.fullName,
-      '$kCommitCreateTimestampField <': timestamp,
+      '${Commit.fieldBranch} =': branch,
+      '${Commit.fieldRepositoryPath} =': slug.fullName,
+      '${Commit.fieldCreateTimestamp} <': timestamp,
     };
     final orderMap = <String, String>{
-      kCommitCreateTimestampField: kQueryOrderDescending,
+      Commit.fieldCreateTimestamp: kQueryOrderDescending,
     };
     final documents = await query(
-      kCommitCollectionId,
+      Commit.collectionId,
       filterMap,
       orderMap: orderMap,
       limit: limit,
     );
-    return documents
-        .map(
-          (Document document) => Commit.fromDocument(commitDocument: document),
-        )
-        .toList();
+    return [...documents.map(Commit.fromDocument)];
   }
 
   /// Queries for recent [Task] by [name].
