@@ -13,6 +13,7 @@ import '../../service/luci_build_service/firestore_task_document_name.dart';
 import '../appengine/commit.dart';
 import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
+import 'base.dart';
 
 const String kTaskCollectionId = 'tasks';
 const int kTaskDefaultTimestampValue = 0;
@@ -27,20 +28,7 @@ const String kTaskStartTimestampField = 'startTimestamp';
 const String kTaskStatusField = 'status';
 const String kTaskTestFlakyField = 'testFlaky';
 
-/// Task Json keys.
-const String kTaskAttempts = 'Attempts';
-const String kTaskBringup = 'Bringup';
-const String kTaskBuildNumber = 'BuildNumber';
-const String kTaskCommitSha = 'CommitSha';
-const String kTaskCreateTimestamp = 'CreateTimestamp';
-const String kTaskDocumentName = 'DocumentName';
-const String kTaskEndTimestamp = 'EndTimestamp';
-const String kTaskStartTimestamp = 'StartTimestamp';
-const String kTaskStatus = 'Status';
-const String kTaskTaskName = 'TaskName';
-const String kTaskTestFlaky = 'TestFlaky';
-
-class Task extends Document {
+class Task extends Document with BaseDocumentMixin {
   /// Lookup [Task] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -273,39 +261,6 @@ class Task extends Document {
       statusSucceeded,
     ];
     return completedStatuses.contains(status);
-  }
-
-  Map<String, dynamic> get facade {
-    return <String, dynamic>{
-      kTaskDocumentName: name,
-      kTaskCommitSha: commitSha,
-      kTaskCreateTimestamp: createTimestamp,
-      kTaskStartTimestamp: startTimestamp,
-      kTaskEndTimestamp: endTimestamp,
-      kTaskTaskName: taskName,
-      kTaskAttempts: attempts,
-      kTaskBringup: bringup,
-      kTaskTestFlaky: testFlaky,
-      kTaskBuildNumber: buildNumber,
-      kTaskStatus: status,
-    };
-  }
-
-  @override
-  String toString() {
-    final buf =
-        StringBuffer()
-          ..write('$runtimeType(')
-          ..write('$kTaskBuildNumberField: $buildNumber')
-          ..write(', $kTaskCreateTimestampField: $createTimestamp')
-          ..write(', $kTaskStartTimestampField: $startTimestamp')
-          ..write(', $kTaskEndTimestampField: $endTimestamp')
-          ..write(', $kTaskNameField: $name')
-          ..write(', $kTaskBringupField: $bringup')
-          ..write(', $kTaskTestFlakyField: $testFlaky')
-          ..write(', $kTaskStatusField: $status')
-          ..write(')');
-    return buf.toString();
   }
 }
 
