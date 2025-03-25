@@ -1326,7 +1326,7 @@ targets:
         );
         expect(
           await scheduler.processCheckRun(checkRunEvent),
-          isA<RecoverableErrorResult>().having(
+          isA<UserErrorResult>().having(
             (e) => e.message,
             'message',
             contains('Asked to reschedule presubmits for unknown sha/PR'),

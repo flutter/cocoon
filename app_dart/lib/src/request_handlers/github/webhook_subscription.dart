@@ -60,6 +60,8 @@ const Set<String> knownCommentCodeExtensions = <String>{
 // breakages across Cocoon.
 @immutable
 class GithubWebhookSubscription extends SubscriptionHandler {
+  static const _estimatedGitOnBorgMaximumSyncDuration = Duration(minutes: 5);
+
   /// Creates a subscription for processing GitHub webhooks.
   const GithubWebhookSubscription({
     required super.cache,
@@ -114,7 +116,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         final result = await scheduler.processCheckRun(checkRunEvent);
-        return result.toBody(response!);
+        result.writeResponse(response!);
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final branch =
@@ -182,7 +184,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     switch (eventAction) {
       case 'closed':
         final result = await _processPullRequestClosed(pullRequestEvent);
-        return result.toBody(response!);
+        result.writeResponse(response!);
       case 'edited':
         await _checkForTests(pullRequestEvent);
         // In the event of the base ref changing we want to start new checks.
@@ -469,7 +471,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return const ProcessCheckRunResult.success();
     }
     final duration = _now().difference(pr.closedAt!);
-    if (duration < const Duration(minutes: 15)) {
+    if (duration < _estimatedGitOnBorgMaximumSyncDuration) {
       return ProcessCheckRunResult.internalError(
         '${pr.mergeCommitSha!} was not found on GoB (duration=$duration). Retry.',
       );
@@ -900,7 +902,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return PullRequestEvent.fromJson(
         json.decode(request) as Map<String, dynamic>,
       );
-    } on FormatException {
+    } on FormatException catch (e) {
+      log.warn('Failed to parse $request', e);
       return null;
     }
   }
