@@ -170,6 +170,11 @@ void main() {
       db = FakeDatastoreDB();
 
       mockFirestoreService = MockFirestoreService();
+      // This preserves the behavior before, where the read layer before
+      // went through Datastore, and would check for an existing commit.
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
+      });
       when(
         // ignore: discarded_futures
         mockFirestoreService.queryRecentTasksByName(
@@ -753,6 +758,13 @@ void main() {
 
       test('does not schedule tasks against non-merged PRs', () async {
         final notMergedPr = generatePullRequest(merged: false);
+
+        // This preserves the behavior before, where the read layer before
+        // went through Datastore, and would check for an existing commit.
+        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+          return Document();
+        });
+
         await scheduler.addPullRequest(notMergedPr);
 
         expect(
@@ -763,7 +775,11 @@ void main() {
       });
 
       test('does not schedule tasks against already added PRs', () async {
-        // Existing commits should not be duplicated.
+        // This preserves the behavior before, where the read layer before
+        // went through Datastore, and would check for an existing commit.
+        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+          return generateFirestoreCommit(1);
+        });
         final commit = shaToCommit('1');
         db.values[commit.key] = commit;
 

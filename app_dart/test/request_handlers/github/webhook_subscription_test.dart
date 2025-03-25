@@ -335,6 +335,16 @@ void main() {
       () async {
         const issueNumber = 123;
 
+        // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
+        //
+        // This retains the behavior that was setup across the Scheduler before
+        // where no "initial commits" were stored in Datastore.
+        //
+        // ignore: discarded_futures
+        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+          return generateFirestoreCommit(1);
+        });
+
         tester.message = generateGithubWebhookMessage(
           action: 'closed',
           number: issueNumber,
@@ -360,6 +370,13 @@ void main() {
 
     test('Removes temporary revert branches upon merging the PR', () async {
       const issueNumber = 123;
+
+      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
+      //
+      // ignore: discarded_futures
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        return generateFirestoreCommit(1);
+      });
 
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
@@ -2426,6 +2443,13 @@ void foo() {
 
     test('Schedule tasks when pull request is closed and merged', () async {
       const issueNumber = 123;
+
+      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
+      //
+      // ignore: discarded_futures
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
+      });
 
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
