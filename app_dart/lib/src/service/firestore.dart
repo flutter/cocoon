@@ -135,8 +135,8 @@ class FirestoreService {
     int limit = 100,
     required String name,
   }) async {
-    final filterMap = {'$kTaskNameField =': name};
-    final orderMap = {kTaskCreateTimestampField: kQueryOrderDescending};
+    final filterMap = {'${Task.fieldBringup} =': name};
+    final orderMap = {Task.fieldCreateTimestamp: kQueryOrderDescending};
     final documents = await query(
       kTaskCollectionId,
       filterMap,
@@ -147,9 +147,9 @@ class FirestoreService {
 
   /// Returns all tasks running against the speificed [commitSha].
   Future<List<Task>> queryCommitTasks(String commitSha) async {
-    final filterMap = <String, Object>{'$kTaskCommitShaField =': commitSha};
+    final filterMap = <String, Object>{'${Task.fieldCommitSha} =': commitSha};
     final orderMap = <String, String>{
-      kTaskCreateTimestampField: kQueryOrderDescending,
+      Task.fieldCreateTimestamp: kQueryOrderDescending,
     };
     final documents = await query(
       kTaskCollectionId,
