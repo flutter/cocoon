@@ -7,6 +7,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/config.dart' show Config;
 import 'package:github/github.dart';
@@ -59,7 +60,10 @@ void main() {
       issuesService = MockIssuesService();
       repositoriesService = MockRepositoriesService();
       config = FakeConfig(
-        tabledataResource: tabledataResourceApi,
+        bigqueryService: BigqueryService.forTesting(
+          tabledataResourceApi,
+          MockJobsResource(),
+        ),
         githubService: githubService,
         dbValue: db,
         firestoreService: mockFirestoreService,

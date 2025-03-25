@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
@@ -18,10 +19,13 @@ void main() {
     FakeDatastoreDB datastore;
     late CacheService cacheService;
     late Config config;
+    late FakeSecretManager secrets;
+
     setUp(() {
       datastore = FakeDatastoreDB();
       cacheService = CacheService(inMemory: true);
-      config = Config(datastore, cacheService);
+      secrets = FakeSecretManager();
+      config = Config(datastore, cacheService, secrets);
     });
     test('githubAppInstallations when builder config does not exist', () async {
       const configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
@@ -29,7 +33,7 @@ void main() {
 
       await cacheService.set(
         Config.configCacheName,
-        'githubapp_installations',
+        'APP_DART_GITHUBAPP_INSTALLATIONS',
         cachedValue,
       );
       final installation = await config.githubAppInstallations;

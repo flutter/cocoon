@@ -14,12 +14,12 @@ import 'package:test/expect.dart';
 import 'package:test/scaffolding.dart';
 
 void main() {
-  late FakeBigqueryService service;
+  late BigqueryService service;
   late MockJobsResource jobsResource;
 
   setUp(() {
     jobsResource = MockJobsResource();
-    service = FakeBigqueryService(jobsResource);
+    service = BigqueryService.forTesting(jobsResource);
   });
 
   test('Insert pull request record is successful.', () async {

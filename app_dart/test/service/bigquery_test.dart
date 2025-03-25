@@ -6,11 +6,12 @@ import 'dart:convert';
 
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/service/fake_bigquery_service.dart';
+import '../src/utilities/mocks.dart';
 
 const String semanticsIntegrationTestResponse = '''
 {
@@ -50,11 +51,12 @@ const String expectedProjectId = 'project-id';
 void main() {
   useTestLoggerPerTest();
 
-  late FakeBigqueryService service;
+  late BigqueryService service;
   late MockJobsResource jobsResource;
+
   setUp(() {
     jobsResource = MockJobsResource();
-    service = FakeBigqueryService(jobsResource);
+    service = BigqueryService.forTesting(MockTabledataResource(), jobsResource);
   });
 
   test('can handle unsuccessful job query', () async {

@@ -12,7 +12,7 @@ import 'package:auto_submit/requests/check_revert_request.dart';
 import 'package:auto_submit/requests/github_webhook.dart';
 import 'package:auto_submit/requests/readiness_check.dart';
 import 'package:auto_submit/service/config.dart';
-import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -28,7 +28,7 @@ Future<void> main() async {
     final config = Config(
       cacheProvider: cache,
       secretManager: await SecretManager.create(
-        AccessClientProvider(),
+        const GoogleAuthProvider(),
         projectId: Config.flutterGcpProjectId,
       ),
     );

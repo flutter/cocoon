@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -64,6 +65,8 @@ void main() {
   /// Name of an example release head branch name.
   const kReleaseHeadRef = 'cherrypicks-flutter-2.12-candidate.4';
 
+  late DateTime fakeNow;
+
   setUp(() {
     request = FakeHttpRequest();
     db = FakeDatastoreDB();
@@ -98,7 +101,10 @@ void main() {
         'dependabot',
         'dependabot[bot]',
       },
-      tabledataResource: tabledataResource,
+      bigqueryService: BigqueryService.forTesting(
+        tabledataResource,
+        MockJobsResource(),
+      ),
       wrongHeadBranchPullRequestMessageValue:
           'wrongHeadBranchPullRequestMessage',
       wrongBaseBranchPullRequestMessageValue:
@@ -163,6 +169,8 @@ void main() {
 
     mockPullRequestLabelProcessor = MockPullRequestLabelProcessor();
     gerritService = FakeGerritService();
+
+    fakeNow = DateTime.now();
     webhook = GithubWebhookSubscription(
       config: config,
       cache: CacheService(inMemory: true),
@@ -176,6 +184,7 @@ void main() {
             required GithubService githubService,
             required PullRequest pullRequest,
           }) => mockPullRequestLabelProcessor,
+      now: () => fakeNow,
     );
   });
 
@@ -2460,29 +2469,56 @@ void foo() {
     });
 
     test(
-      'Fail when pull request is closed and merged, but merged commit is not found on GoB',
+      'fail (allow retries) when pull request is closed and merged, but merged commit is not found on GoB',
       () async {
         const issueNumber = 123;
 
+        final mergedSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c';
         tester.message = generateGithubWebhookMessage(
           action: 'closed',
           number: issueNumber,
           merged: true,
           baseSha: 'unknown_sha',
+          closedAt: fakeNow.subtract(const Duration(minutes: 1)),
+          mergeCommitSha: mergedSha,
         );
 
-        expect(db.values.values.whereType<Commit>().length, 0);
-        try {
-          await tester.post(webhook);
-        } catch (e) {
-          expect(
-            e.toString(),
-            matches(
-              r'HTTP 500: (.+) was not found on GoB\. Failing so this event can be retried\.\.\.',
-            ),
-          );
-        }
-        expect(db.values.values.whereType<Commit>().length, 0);
+        expect(db.values.values.whereType<Commit>(), isEmpty);
+        await tester.post(webhook);
+
+        expect(tester.response.statusCode, HttpStatus.internalServerError);
+        expect(
+          tester.response.reasonPhrase,
+          contains('$mergedSha was not found on GoB'),
+        );
+        expect(db.values.values.whereType<Commit>(), isEmpty);
+      },
+    );
+
+    test(
+      'fail (do not retry, it is very old) when pull request is closed and merged, but merged commit is not found on GoB',
+      () async {
+        const issueNumber = 123;
+
+        final mergedSha = 'fd6b46416c18de36ce87d0241994b2da180cab4c';
+        tester.message = generateGithubWebhookMessage(
+          action: 'closed',
+          number: issueNumber,
+          merged: true,
+          baseSha: 'unknown_sha',
+          closedAt: fakeNow.subtract(const Duration(minutes: 5)),
+          mergeCommitSha: mergedSha,
+        );
+
+        expect(db.values.values.whereType<Commit>(), isEmpty);
+        await tester.post(webhook);
+
+        expect(tester.response.statusCode, HttpStatus.notFound);
+        expect(
+          tester.response.reasonPhrase,
+          contains('$mergedSha was not found on GoB'),
+        );
+        expect(db.values.values.whereType<Commit>(), isEmpty);
       },
     );
 
