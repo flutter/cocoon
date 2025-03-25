@@ -376,7 +376,7 @@ class BuildState extends ChangeNotifier {
     }
     final response = await cocoonService.rerunTask(
       idToken: await authService.idToken,
-      taskName: task.name,
+      taskName: task.builderName,
       commitSha: commit.sha,
       repo: _currentRepo,
       branch: _currentBranch,

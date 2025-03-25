@@ -24,12 +24,9 @@ abstract interface class GetFilesChanged {
 
 /// Uses []"List pull requests files"](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests-files).
 ///
-/// This implementation has a limitation where if 30 files are returned we
-/// consider the result [InconclusiveFilesChanged], as there are unknown
-/// additional pages of results that could exceed our GitHub burst API capacity
-/// to retrieve.
-///
-/// See <https://github.com/flutter/flutter/issues/161462>.
+/// This implementation has a limitation where if too many files are returned we
+/// consider the result [InconclusiveFilesChanged], as we aren't sure we can get
+/// every page of results.
 final class GithubApiGetFilesChanged implements GetFilesChanged {
   /// Creates from [GithubService].
   const GithubApiGetFilesChanged(this._config);
@@ -47,17 +44,12 @@ final class GithubApiGetFilesChanged implements GetFilesChanged {
         reason: 'An error occurred: $e',
       );
     }
-    // As currently implemented, the GitHub REST API returns a
-    // maximum of 30 changed files, meaning that if we get 30 files, there is a
-    // good chance *more* file were changed, we just do not know which ones.
-    //
-    // As a result, it's unsafe to filter out targets based on runIf. It actually
-    // might even be unsafe for smaller amounts of files if the patch diffs are
-    // really big, but for now just using the number of files.
-    if (files.length >= 30) {
+    if (files.length >= _config.maxFilesChangedForSkippingEnginePhase) {
       return InconclusiveFilesChanged(
         pullRequestNumber: pullRequestNumber,
-        reason: '>= 30 files were changed, not confident about result size.',
+        reason:
+            '>= ${_config.maxFilesChangedForSkippingEnginePhase} '
+            'files were changed, not confident about result size.',
       );
     }
     return SuccessfulFilesChanged(

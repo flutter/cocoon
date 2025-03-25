@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
@@ -25,10 +27,12 @@ void main() {
     late RequestHandlerTester tester;
     late VacuumStaleTasks handler;
     late MockFirestoreService mockFirestoreService;
+    late MockLuciBuildService luciBuildService;
 
     final commit = generateCommit(1);
 
     setUp(() {
+      luciBuildService = MockLuciBuildService();
       mockFirestoreService = MockFirestoreService();
       config = FakeConfig(firestoreService: mockFirestoreService);
       config.db.values[commit.key] = commit;
@@ -37,24 +41,40 @@ void main() {
       handler = VacuumStaleTasks(
         config: config,
         datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
+        luciBuildService: luciBuildService,
       );
     });
 
-    test('skips when tasks have a build number', () async {
-      final originalTasks = <Task>[
-        generateTask(
-          1,
-          status: Task.statusInProgress,
-          parent: commit,
-          buildNumber: 123,
+    test('queries LUCI when tasks have a build number', () async {
+      final task = generateTask(
+        1,
+        status: Task.statusInProgress,
+        builderName: 'Linux gosh_darnit',
+        parent: commit,
+        buildNumber: 123,
+      );
+
+      when(
+        luciBuildService.getProdBuilds(
+          builderName: argThat(equals(task.builderName), named: 'builderName'),
+          sha: argThat(equals(commit.sha), named: 'sha'),
         ),
-      ];
-      await config.db.commit(inserts: originalTasks);
+      ).thenAnswer((_) async {
+        return [
+          generateBbv2Build(
+            Int64(123456789),
+            buildNumber: 123,
+            name: task.builderName!,
+            status: bbv2.Status.SUCCESS,
+          ),
+        ];
+      });
+      await config.db.commit(inserts: [task]);
 
       await tester.get(handler);
 
       final tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0].status, Task.statusInProgress);
+      expect(tasks[0].status, Task.statusSucceeded);
     });
 
     test(

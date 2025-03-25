@@ -420,7 +420,6 @@ class DevelopmentCocoonService implements CocoonService {
           ..endTimestamp = Int64(
             commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60),
           )
-          ..name = 'Linux_android $index'
           ..builderName = 'Linux_android $index'
           ..attempts = attempts
           ..isFlaky = index == now.millisecondsSinceEpoch % 13

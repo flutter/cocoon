@@ -182,7 +182,7 @@ class Scheduler {
       timestamp: pr.mergedAt!.millisecondsSinceEpoch,
     );
 
-    if (await _commitExistsInDatastore(sha: mergedCommit.sha!)) {
+    if (await _commitExistsInFirestore(sha: mergedCommit.sha!)) {
       log.debug('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
@@ -333,7 +333,7 @@ class Scheduler {
     commits.sort((Commit a, Commit b) => b.timestamp!.compareTo(a.timestamp!));
     for (var commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
-      if (!await _commitExistsInDatastore(sha: commit.sha!)) {
+      if (!await _commitExistsInFirestore(sha: commit.sha!)) {
         newCommits.add(commit);
       }
     }
@@ -347,7 +347,7 @@ class Scheduler {
   /// Firestore is Cocoon's source of truth for what commits have been
   /// scheduled. Since webhooks or cron jobs can schedule commits, we must
   /// verify a commit has not already been scheduled.
-  Future<bool> _commitExistsInDatastore({required String sha}) async {
+  Future<bool> _commitExistsInFirestore({required String sha}) async {
     final commit = await firestore_commmit.Commit.tryFromFirestoreBySha(
       await config.createFirestoreService(),
       sha: sha,
@@ -479,9 +479,17 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
             checkRunGuard: '$lock',
           );
-          engineArtifacts = const EngineArtifacts.noFrameworkTests(
-            reason: 'This is the engine phase of the build',
-          );
+
+          // Even though this appears to be an engine build, it could be a
+          // release candidate build, where the engine artifacts are built
+          // via the dart-internal builder.
+          //
+          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
+          // consequences for engine builds, as it just won't be used (it is
+          // only understood by the Flutter CLI).
+          //
+          // See https://github.com/flutter/flutter/issues/165810.
+          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
@@ -543,15 +551,10 @@ class Scheduler {
     // support this optimization.
     //
     // So, to avoid making it impossible to create a release branch, or to
-    // update the existing release branch (i.e. hot fixes), we only apply the
-    // optimization on the "master" branch.
-    //
-    // In theory, many moons from now when maintained release branches are
-    // guaranteed to include the flutter/recipes change we could remove this
-    // check.
-    final refuseLogPrefix =
-        'Refusing to skip engine builds for PR#$prNumber branch';
-    if (prBranch != Config.defaultBranch(Config.flutterSlug)) {
+    // or to update the existing release branch (i.e. hot fixes), we skip this
+    // optimziation on that specific branch.
+    final refuseLogPrefix = 'Refusing to skip engine builds for PR#$prNumber';
+    if (prBranch == 'flutter-3.29-candidate.0') {
       log.info(
         '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
       );

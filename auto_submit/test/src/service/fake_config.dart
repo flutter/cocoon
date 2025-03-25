@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
-import 'package:auto_submit/service/secrets.dart';
 import 'package:cocoon_server/bigquery.dart';
+import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -27,7 +27,7 @@ class FakeConfig extends Config {
     this.bigqueryService,
   }) : super(
          cacheProvider: Cache.inMemoryCacheProvider(4),
-         secretManager: LocalSecretManager(),
+         secretManager: FakeSecretManager(),
        );
 
   GitHub? githubClient;

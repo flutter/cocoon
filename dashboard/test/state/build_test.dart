@@ -619,7 +619,7 @@ void main() {
       when(
         cocoonService.rerunTask(
           idToken: argThat(equals(idToken), named: 'idToken'),
-          taskName: argThat(equals(task.name), named: 'taskName'),
+          taskName: argThat(equals(task.builderName), named: 'taskName'),
           commitSha: anyNamed('commitSha'),
           repo: anyNamed('repo'),
           branch: anyNamed('branch'),
@@ -644,7 +644,7 @@ void main() {
       when(
         cocoonService.rerunTask(
           idToken: argThat(equals(idToken), named: 'idToken'),
-          taskName: argThat(equals(task.name), named: 'taskName'),
+          taskName: argThat(equals(task.builderName), named: 'taskName'),
           commitSha: anyNamed('commitSha'),
           repo: anyNamed('repo'),
           branch: anyNamed('branch'),
