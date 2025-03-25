@@ -11,11 +11,9 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/github_build_status_update.dart';
 import '../model/firestore/github_build_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/build_status_provider.dart';
-import '../service/datastore.dart';
 
 @immutable
 final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
@@ -23,13 +21,9 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     required super.config,
     required super.authenticationProvider,
     required BuildStatusService buildStatusService,
-    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
-  }) : datastoreProvider =
-           datastoreProvider ?? DatastoreService.defaultProvider,
-       _buildStatusService = buildStatusService;
+  }) : _buildStatusService = buildStatusService;
 
   final BuildStatusService _buildStatusService;
-  final DatastoreServiceProvider datastoreProvider;
   static const _fullNameRepoParam = 'repo';
 
   @override
@@ -43,7 +37,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final repository =
         request!.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
     final slug = RepositorySlug.full(repository);
-    final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
     final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
     await _insertBigquery(
@@ -52,7 +45,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       Config.defaultBranch(slug),
       config,
     );
-    await _updatePRs(slug, status.githubStatus, datastore, firestoreService);
+    await _updatePRs(slug, status.githubStatus, firestoreService);
     log.debug('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
@@ -61,11 +54,9 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   Future<void> _updatePRs(
     RepositorySlug slug,
     String realStatus,
-    DatastoreService datastore,
     FirestoreService firestoreService,
   ) async {
     final github = await config.createGitHubClient(slug: slug);
-    final updates = <GithubBuildStatusUpdate>[];
     final githubBuildStatuses = <GithubBuildStatus>[];
     await for (PullRequest pr in github.pullRequests.list(
       slug,
@@ -79,7 +70,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         );
         continue;
       }
-      final update = await datastore.queryLastStatusUpdate(slug, pr);
       final githubBuildStatus = await firestoreService.queryLastBuildStatus(
         slug,
         pr.number!,
@@ -114,10 +104,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
           await github.repositories.createStatus(slug, pr.head!.sha!, request);
           final currentTimeMillisecondsSinceEpoch =
               DateTime.now().millisecondsSinceEpoch;
-          update.status = status;
-          update.updates = (update.updates ?? 0) + 1;
-          update.updateTimeMillis = currentTimeMillisecondsSinceEpoch;
-          updates.add(update);
 
           githubBuildStatus.setStatus(status);
           githubBuildStatus.setUpdates((githubBuildStatus.updates ?? 0) + 1);
@@ -133,7 +119,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         }
       }
     }
-    await datastore.insert(updates);
     await updateGithubBuildStatusDocuments(githubBuildStatuses);
   }
 

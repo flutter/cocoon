@@ -786,7 +786,7 @@ $s
     final branch = baseRef.substring('refs/heads/'.length);
     final ciYaml = await _ciYamlFetcher.getCiYaml(
       slug: slug,
-      commitBranch: baseRef.substring('refs/heads/'.length),
+      commitBranch: branch,
       commitSha: headSha,
       validate: branch == Config.defaultBranch(slug),
     );

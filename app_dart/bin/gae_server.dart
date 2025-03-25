@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_server/access_client_provider.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
@@ -24,7 +24,7 @@ Future<void> main() async {
       dbService,
       cache,
       await SecretManager.create(
-        AccessClientProvider(),
+        const GoogleAuthProvider(),
         projectId: Config.flutterGcpProjectId,
       ),
     );

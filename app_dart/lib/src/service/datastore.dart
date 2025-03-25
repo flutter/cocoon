@@ -9,15 +9,13 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
 import 'package:gcloud/db.dart';
-import 'package:github/github.dart' show PullRequest, RepositorySlug;
+import 'package:github/github.dart' show RepositorySlug;
 import 'package:grpc/grpc.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
-import '../model/appengine/github_build_status_update.dart';
-import '../model/appengine/github_gold_status_update.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/exceptions.dart';
 import 'config.dart';
@@ -158,72 +156,6 @@ class DatastoreService {
         query.filter('name =', taskName);
       }
       yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
-    }
-  }
-
-  Future<GithubBuildStatusUpdate> queryLastStatusUpdate(
-    RepositorySlug slug,
-    PullRequest pr,
-  ) async {
-    final query =
-        db.query<GithubBuildStatusUpdate>()
-          ..filter('repository =', slug.fullName)
-          ..filter('pr =', pr.number)
-          ..filter('head =', pr.head!.sha);
-    final previousStatusUpdates = await query.run().toList();
-
-    if (previousStatusUpdates.isEmpty) {
-      return GithubBuildStatusUpdate(
-        key: db.emptyKey.append<int>(GithubBuildStatusUpdate),
-        repository: slug.fullName,
-        pr: pr.number!,
-        head: pr.head!.sha,
-        updates: 0,
-        updateTimeMillis: DateTime.now().millisecondsSinceEpoch,
-      );
-    } else {
-      /// Duplicate cases rarely happen. It happens only when race condition
-      /// occurs in app engine. When multiple records exist, the latest one
-      /// is returned.
-      if (previousStatusUpdates.length > 1) {
-        return previousStatusUpdates.reduce(
-          (GithubBuildStatusUpdate current, GithubBuildStatusUpdate next) =>
-              current.updateTimeMillis! < next.updateTimeMillis!
-                  ? next
-                  : current,
-        );
-      }
-      return previousStatusUpdates.single;
-    }
-  }
-
-  Future<GithubGoldStatusUpdate> queryLastGoldUpdate(
-    RepositorySlug slug,
-    PullRequest pr,
-  ) async {
-    final query =
-        db.query<GithubGoldStatusUpdate>()
-          ..filter('repository =', slug.fullName)
-          ..filter('pr =', pr.number);
-    final previousStatusUpdates = await query.run().toList();
-
-    if (previousStatusUpdates.isEmpty) {
-      return GithubGoldStatusUpdate(
-        pr: pr.number!,
-        head: '',
-        status: '',
-        updates: 0,
-        description: '',
-        repository: slug.fullName,
-      );
-    } else {
-      if (previousStatusUpdates.length > 1) {
-        throw StateError(
-          'GithubGoldStatusUpdate should have no more than one entry on '
-          'repository ${slug.fullName}, pr ${pr.number}.',
-        );
-      }
-      return previousStatusUpdates.single;
     }
   }
 

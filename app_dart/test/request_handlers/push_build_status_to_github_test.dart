@@ -10,8 +10,6 @@ import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/config.dart' show Config;
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
@@ -78,7 +76,6 @@ void main() {
           clientContext: clientContext,
         ),
         buildStatusService: buildStatusService,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
       );
 
       slug = RepositorySlug('flutter', 'flutter');
