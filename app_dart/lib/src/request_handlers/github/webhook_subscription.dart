@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -72,8 +71,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.fusionTester,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
+    @visibleForTesting DateTime Function() now = DateTime.now,
     // Gets the initial github events from this sub after the webhook uploads them.
-  }) : super(subscriptionName: 'github-webhooks-sub');
+  }) : _now = now,
+       super(subscriptionName: 'github-webhooks-sub');
+
+  final DateTime Function() _now;
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
@@ -103,35 +106,15 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     log.debug(webhook.payload);
     switch (webhook.event) {
       case 'pull_request':
-        await _handlePullRequest(webhook.payload);
-        break;
+        return _handlePullRequest(webhook.payload);
       case 'merge_group':
         await _handleMergeGroup(webhook.payload);
         break;
       case 'check_run':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-        switch (await scheduler.processCheckRun(checkRunEvent)) {
-          case SuccessResult():
-            break;
-          case InternalErrorResult(
-            :final message,
-            :final error,
-            :final stackTrace,
-          ):
-            log.error(message, error, stackTrace);
-            throw InternalServerError(
-              'Failed to process check_run event. checkRunEvent: $checkRunEvent',
-            );
-          case RecoverableErrorResult(:final message):
-            log.info(
-              'User error state for check_run event ($checkRunEvent): $message',
-            );
-            response!.statusCode = HttpStatus.badRequest;
-            response!.reasonPhrase = message;
-            return Body.empty;
-        }
-        break;
+        final result = await scheduler.processCheckRun(checkRunEvent);
+        return result.toBody(response!);
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final branch =
@@ -175,7 +158,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// retried with exponential backoff within that time period. The GoB mirror
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
-  Future<void> _handlePullRequest(String rawRequest) async {
+  Future<Body> _handlePullRequest(String rawRequest) async {
     final pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
@@ -198,8 +181,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     log.info('$crumb: processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
-        await _processPullRequestClosed(pullRequestEvent);
-        break;
+        final result = await _processPullRequestClosed(pullRequestEvent);
+        return result.toBody(response!);
       case 'edited':
         await _checkForTests(pullRequestEvent);
         // In the event of the base ref changing we want to start new checks.
@@ -241,6 +224,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
+    return Body.empty;
   }
 
   Future<void> _processLabels(PullRequest pullRequest) async {
@@ -431,7 +415,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     await gitHubClient.pullRequests.createReview(slug, review);
   }
 
-  Future<void> _processPullRequestClosed(
+  @useResult
+  Future<ProcessCheckRunResult> _processPullRequestClosed(
     PullRequestEvent pullRequestEvent,
   ) async {
     final pr = pullRequestEvent.pullRequest!;
@@ -446,45 +431,52 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
     );
 
-    if (pr.merged!) {
-      log.debug('Pull request ${pr.number} was closed and merged.');
+    if (!pr.merged!) {
+      return const ProcessCheckRunResult.success();
+    }
 
-      // To avoid polluting the repo with temporary revert branches, delete the
-      // branch after the reverted PR is merged.
-      //
-      // This can be done no ealier than the event declaring the PR both
-      // 'closed' and merged, because:
-      //
-      // * If the branch is deleted before the PR reaches 'closed', then GitHub
-      //   will force-close the PR because the branch is the source of all the
-      //   code changes in the PR. In a previous iteration, Cocoon used to
-      //   delete the branch immediately after merging it. However, with merge
-      //   queues a PR is not merged by Cocoon anymore. It stays open while in
-      //   the merge queue. Deleting the branch while in the queue would close
-      //   the PR and not merge it.
-      // * If a PR is closed but not merged, the author may still want to reopen
-      //   the PR. That would not be possible if the source branch was deleted.
-      final isRevertPullRequest =
-          pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
-      if (isRevertPullRequest) {
-        log.info(
-          'Revert merged successfully, deleting branch ${pr.head!.ref!}',
-        );
-        final slug = pullRequestEvent.repository!.slug();
-        final githubService = await config.createGithubService(slug);
-        await githubService.deleteBranch(slug, pr.head!.ref!);
-      }
+    log.debug('Pull request ${pr.number} was closed and merged.');
 
-      if (await _commitExistsInGob(pr)) {
-        log.debug(
-          'Merged commit was found on GoB mirror. Scheduling postsubmit tasks...',
-        );
-        return scheduler.addPullRequest(pr);
-      }
-      throw InternalServerError(
-        '${pr.mergeCommitSha!} was not found on GoB. Failing so this event can be retried...',
+    // To avoid polluting the repo with temporary revert branches, delete the
+    // branch after the reverted PR is merged.
+    //
+    // This can be done no ealier than the event declaring the PR both
+    // 'closed' and merged, because:
+    //
+    // * If the branch is deleted before the PR reaches 'closed', then GitHub
+    //   will force-close the PR because the branch is the source of all the
+    //   code changes in the PR. In a previous iteration, Cocoon used to
+    //   delete the branch immediately after merging it. However, with merge
+    //   queues a PR is not merged by Cocoon anymore. It stays open while in
+    //   the merge queue. Deleting the branch while in the queue would close
+    //   the PR and not merge it.
+    // * If a PR is closed but not merged, the author may still want to reopen
+    //   the PR. That would not be possible if the source branch was deleted.
+    final isRevertPullRequest =
+        pr.labels?.any((label) => label.name == Config.revertOfLabel) == true;
+    if (isRevertPullRequest) {
+      log.info('Revert merged successfully, deleting branch ${pr.head!.ref!}');
+      final slug = pullRequestEvent.repository!.slug();
+      final githubService = await config.createGithubService(slug);
+      await githubService.deleteBranch(slug, pr.head!.ref!);
+    }
+
+    if (await _commitExistsInGob(pr)) {
+      log.debug(
+        'Merged commit was found on GoB mirror. Scheduling postsubmit tasks...',
+      );
+      await scheduler.addPullRequest(pr);
+      return const ProcessCheckRunResult.success();
+    }
+    final duration = _now().difference(pr.closedAt!);
+    if (duration < const Duration(minutes: 15)) {
+      return ProcessCheckRunResult.internalError(
+        '${pr.mergeCommitSha!} was not found on GoB (duration=$duration). Retry.',
       );
     }
+    return ProcessCheckRunResult.missingEntity(
+      '${pr.mergeCommitSha!} was not found on GoB (duration=$duration).',
+    );
   }
 
   Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {

@@ -5,7 +5,13 @@
 /// @docImport 'package:cocoon_service/src/service/scheduler.dart';
 library;
 
+import 'dart:io';
+
+import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
+
+import '../../request_handling/body.dart';
+import '../../request_handling/exceptions.dart';
 
 /// Possible results for [Scheduler.processCheckRun].
 @immutable
@@ -13,11 +19,16 @@ sealed class ProcessCheckRunResult {
   const factory ProcessCheckRunResult.success() = SuccessResult._;
   const factory ProcessCheckRunResult.userError(String message) =
       RecoverableErrorResult._;
+  const factory ProcessCheckRunResult.missingEntity(String message) =
+      MissingEntityErrorResult._;
   const factory ProcessCheckRunResult.internalError(
     String message, {
     Object? error,
     StackTrace? stackTrace,
   }) = InternalErrorResult._;
+
+  /// Return an HTTP request of this type.
+  Body toBody(HttpResponse response);
 }
 
 /// Successful.
@@ -29,6 +40,11 @@ final class SuccessResult implements ProcessCheckRunResult {
 
   @override
   int get hashCode => (SuccessResult).hashCode;
+
+  @override
+  Body toBody(HttpResponse response) {
+    return Body.empty;
+  }
 
   @override
   String toString() {
@@ -54,8 +70,45 @@ final class RecoverableErrorResult implements ProcessCheckRunResult {
   }
 
   @override
+  Body toBody(HttpResponse response) {
+    response.statusCode = HttpStatus.badRequest;
+    response.reasonPhrase = message;
+    return Body.empty;
+  }
+
+  @override
   String toString() {
     return 'ProcessCheckResult.userError($message)';
+  }
+}
+
+/// An expected entity was missing, and a retry should not be performed.
+final class MissingEntityErrorResult implements ProcessCheckRunResult {
+  const MissingEntityErrorResult._(this.message);
+
+  /// What should be displayed to the user.
+  final String message;
+
+  @override
+  bool operator ==(Object other) {
+    return other is MissingEntityErrorResult && message == other.message;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(MissingEntityErrorResult, message);
+  }
+
+  @override
+  Body toBody(HttpResponse response) {
+    response.statusCode = HttpStatus.notFound;
+    response.reasonPhrase = message;
+    return Body.empty;
+  }
+
+  @override
+  String toString() {
+    return 'ProcessCheckResult.missingEntity($message)';
   }
 }
 
@@ -83,6 +136,12 @@ final class InternalErrorResult implements ProcessCheckRunResult {
   @override
   int get hashCode {
     return Object.hash(InternalErrorResult, message, error, stackTrace);
+  }
+
+  @override
+  Body toBody(HttpResponse response) {
+    log.error(message, error, stackTrace);
+    throw InternalServerError('Failed to process: $message');
   }
 
   @override
