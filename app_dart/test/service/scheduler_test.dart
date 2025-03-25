@@ -170,6 +170,11 @@ void main() {
       db = FakeDatastoreDB();
 
       mockFirestoreService = MockFirestoreService();
+      // This preserves the behavior before, where the read layer before
+      // went through Datastore, and would check for an existing commit.
+      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
+      });
       when(
         // ignore: discarded_futures
         mockFirestoreService.queryRecentTasksByName(
