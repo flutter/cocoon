@@ -128,5 +128,37 @@ void main() {
       ]);
       expect(pr.id, 1234);
     });
+
+    // Regression test for https://github.com/flutter/flutter/issues/166014.
+    test('deserializes issue labels', () async {
+      final fullPullRequest = generatePullRequest(id: 1233).toJson();
+      fullPullRequest['labels'] = [
+        IssueLabel(name: 'override: foo').toJson(),
+        IssueLabel(name: 'override: bar').toJson(),
+      ];
+
+      when(firestoreService.query(any, any)).thenAnswer(
+        (_) async => [
+          Document(
+            fields: {
+              PrCheckRuns.kPullRequestField: Value(
+                stringValue: json.encode(fullPullRequest),
+              ),
+            },
+            name: 'pr1234',
+          ),
+        ],
+      );
+
+      final prCheckRun = await PrCheckRuns.findPullRequestFor(
+        firestoreService,
+        1234,
+        'check-run',
+      );
+      expect(prCheckRun.labels, [
+        isA<IssueLabel>().having((l) => l.name, 'name', 'override: foo'),
+        isA<IssueLabel>().having((l) => l.name, 'name', 'override: bar'),
+      ]);
+    });
   });
 }
