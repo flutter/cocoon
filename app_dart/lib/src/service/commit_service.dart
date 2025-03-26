@@ -121,11 +121,8 @@ class CommitService {
           repositoryPath: commit.repository!,
           sha: commit.sha!,
         );
-        final writes = documentsToWrites([commitDocument], exists: false);
-        await firestoreService.batchWriteDocuments(
-          BatchWriteRequest(writes: writes),
-          kDatabase,
-        );
+
+        await firestoreService.insert(commitDocument);
       } catch (e) {
         log.warn('Failed to insert new branched commit in Firestore', e);
       }

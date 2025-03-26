@@ -1153,11 +1153,7 @@ class LuciBuildService {
     final newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
     taskDocument.resetAsRetry(attempt: newAttempt);
     taskDocument.setStatus(firestore.Task.statusInProgress);
-    final writes = documentsToWrites([taskDocument], exists: false);
-    await firestoreService.batchWriteDocuments(
-      BatchWriteRequest(writes: writes),
-      kDatabase,
-    );
+    await firestoreService.insert(taskDocument);
 
     return newAttempt;
   }
