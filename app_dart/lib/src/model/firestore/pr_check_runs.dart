@@ -47,10 +47,20 @@ class PrCheckRuns extends Document {
   }
 
   /// The json string of the pullrequest belonging to this document.
-  PullRequest get pullRequest => PullRequest.fromJson(
-    json.decode(fields![kPullRequestField]!.stringValue!)
-        as Map<String, Object?>,
-  );
+  PullRequest get pullRequest {
+    final jsonData =
+        jsonDecode(fields![kPullRequestField]!.stringValue!)
+            as Map<String, Object?>;
+    final result = PullRequest.fromJson(jsonData);
+
+    // Workaround for https://github.com/flutter/flutter/issues/166022.
+    if (jsonData['labels'] case final List<Object?> labelData) {
+      result.labels = [
+        ...labelData.cast<Map<String, Object?>>().map(IssueLabel.fromJson),
+      ];
+    }
+    return result;
+  }
 
   /// The head sha at the time this document was created for testing.
   String get sha => fields![kShaField]!.stringValue!;
