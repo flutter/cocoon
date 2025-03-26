@@ -54,6 +54,13 @@ base class Firestore {
   @protected
   String getFullPath(String path) => p.posix.join(_databasePath, path);
 
+  /// Direct access to [g.FirestoreApi].
+  ///
+  /// This is used as a migration aid so that all (existing) calls to older
+  /// implementations of [Firestore] within `app_dart` do not have to
+  /// immediately start using `this`.
+  g.FirestoreApi get apiDuringMigration => _api;
+
   /// Returns the [Document] at the _relative_ [path] within Firestore.
   ///
   /// If the document was not found, returns `null`.
