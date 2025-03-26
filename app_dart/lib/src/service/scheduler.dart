@@ -285,8 +285,9 @@ class Scheduler {
       repositoryPath: commit.repository!,
       sha: commit.sha!,
     );
+    final taskDocuments = firestore.targetsToTaskDocuments(commit, targets);
     final writes = documentsToWrites([
-      ...[...tasks.map(firestore.Task.fromDatastore)],
+      ...taskDocuments,
       commitDocument,
     ], exists: false);
     // TODO(keyonghan): remove try catch logic after validated to work.

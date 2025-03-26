@@ -10,22 +10,37 @@ import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../../service/luci_build_service/firestore_task_document_name.dart';
+import '../appengine/commit.dart';
 import '../appengine/task.dart' as datastore;
-import 'base.dart';
+import '../ci_yaml/target.dart';
 
 const String kTaskCollectionId = 'tasks';
+const int kTaskDefaultTimestampValue = 0;
+const int kTaskInitialAttempt = 1;
+const String kTaskBringupField = 'bringup';
+const String kTaskBuildNumberField = 'buildNumber';
+const String kTaskCommitShaField = 'commitSha';
+const String kTaskCreateTimestampField = 'createTimestamp';
+const String kTaskEndTimestampField = 'endTimestamp';
+const String kTaskNameField = 'name';
+const String kTaskStartTimestampField = 'startTimestamp';
+const String kTaskStatusField = 'status';
+const String kTaskTestFlakyField = 'testFlaky';
 
-final class Task extends Document with BaseDocumentMixin {
-  static const fieldBringup = 'bringup';
-  static const fieldBuildNumber = 'buildNumber';
-  static const fieldCommitSha = 'commitSha';
-  static const fieldCreateTimestamp = 'createTimestamp';
-  static const fieldEndTimestamp = 'endTimestamp';
-  static const fieldName = 'name';
-  static const fieldStartTimestamp = 'startTimestamp';
-  static const fieldStatus = 'status';
-  static const fieldTestFlaky = 'testFlaky';
+/// Task Json keys.
+const String kTaskAttempts = 'Attempts';
+const String kTaskBringup = 'Bringup';
+const String kTaskBuildNumber = 'BuildNumber';
+const String kTaskCommitSha = 'CommitSha';
+const String kTaskCreateTimestamp = 'CreateTimestamp';
+const String kTaskDocumentName = 'DocumentName';
+const String kTaskEndTimestamp = 'EndTimestamp';
+const String kTaskStartTimestamp = 'StartTimestamp';
+const String kTaskStatus = 'Status';
+const String kTaskTaskName = 'TaskName';
+const String kTaskTestFlaky = 'TestFlaky';
 
+class Task extends Document {
   /// Lookup [Task] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -41,79 +56,14 @@ final class Task extends Document with BaseDocumentMixin {
         documentName.documentName,
       ),
     );
-    return Task.fromDocument(document);
-  }
-
-  factory Task({
-    required String builderName,
-    required int currentAttempt,
-    required String commitSha,
-    required bool bringup,
-    required int createTimestamp,
-    required int startTimestamp,
-    required int endTimestamp,
-    required String status,
-    required bool testFlaky,
-    required int? buildNumber,
-  }) {
-    final name = FirestoreTaskDocumentName(
-      taskName: builderName,
-      currentAttempt: currentAttempt,
-      commitSha: commitSha,
-    );
-    return Task._(
-      {
-        fieldName: Value(stringValue: builderName),
-        fieldCommitSha: Value(stringValue: commitSha),
-        fieldBringup: Value(booleanValue: bringup),
-        if (buildNumber != null)
-          fieldBuildNumber: Value(integerValue: '$buildNumber'),
-        fieldCreateTimestamp: Value(integerValue: '$createTimestamp'),
-        fieldStartTimestamp: Value(integerValue: '$startTimestamp'),
-        fieldEndTimestamp: Value(integerValue: '$endTimestamp'),
-        fieldStatus: Value(stringValue: status),
-        fieldTestFlaky: Value(booleanValue: testFlaky),
-      },
-      name: p.posix.join(
-        kDatabase,
-        'documents',
-        kTaskCollectionId,
-        name.documentName,
-      ),
-    );
+    return Task.fromDocument(taskDocument: document);
   }
 
   /// Create [Task] from a task Document.
-  factory Task.fromDocument(Document document) {
-    return Task._(document.fields!, name: document.name!);
-  }
-
-  factory Task.fromDatastore(datastore.Task task) {
-    final commitSha = task.commitKey!.id!.split('/').last;
-    final int? buildNumber;
-    if (task.buildNumberList case final list? when list.isNotEmpty) {
-      buildNumber = int.parse(list.split(',').last);
-    } else {
-      buildNumber = null;
-    }
-    return Task(
-      builderName: task.builderName!,
-      currentAttempt: task.attempts!,
-      commitSha: commitSha,
-      bringup: task.isFlaky!,
-      buildNumber: buildNumber,
-      createTimestamp: task.createTimestamp!,
-      startTimestamp: task.startTimestamp!,
-      endTimestamp: task.endTimestamp!,
-      status: task.status,
-      testFlaky: task.isTestFlaky!,
-    );
-  }
-
-  Task._(Map<String, Value> fields, {required String name}) {
-    this
-      ..fields = fields
-      ..name = name;
+  static Task fromDocument({required Document taskDocument}) {
+    return Task()
+      ..fields = taskDocument.fields!
+      ..name = taskDocument.name!;
   }
 
   /// The task was cancelled.
@@ -170,7 +120,7 @@ final class Task extends Document with BaseDocumentMixin {
   /// This is _not_ when the task first started running, as tasks start out in
   /// the 'New' state until they've been picked up by an [Agent].
   int? get createTimestamp =>
-      int.parse(fields![fieldCreateTimestamp]!.integerValue!);
+      int.parse(fields![kTaskCreateTimestampField]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
   /// running.
@@ -178,20 +128,21 @@ final class Task extends Document with BaseDocumentMixin {
   /// Tasks may be run more than once. If this task has been run more than
   /// once, this timestamp represents when the task was most recently started.
   int? get startTimestamp =>
-      int.parse(fields![fieldStartTimestamp]!.integerValue!);
+      int.parse(fields![kTaskStartTimestampField]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
-  int? get endTimestamp => int.parse(fields![fieldEndTimestamp]!.integerValue!);
+  int? get endTimestamp =>
+      int.parse(fields![kTaskEndTimestampField]!.integerValue!);
 
   /// The name of the task.
   ///
   /// This is a human-readable name, typically a test name (e.g.
   /// "hello_world__memory").
-  String? get taskName => fields![fieldName]!.stringValue!;
+  String? get taskName => fields![kTaskNameField]!.stringValue!;
 
   /// The sha of the task commit.
-  String? get commitSha => fields![fieldCommitSha]!.stringValue!;
+  String? get commitSha => fields![kTaskCommitShaField]!.stringValue!;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
@@ -206,7 +157,7 @@ final class Task extends Document with BaseDocumentMixin {
   ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
   ///
   /// A flaky (`bringup: true`) task will not block the tree.
-  bool? get bringup => fields![fieldBringup]!.booleanValue!;
+  bool? get bringup => fields![kTaskBringupField]!.booleanValue!;
 
   /// Whether the test execution of this task shows flake.
   ///
@@ -214,19 +165,19 @@ final class Task extends Document with BaseDocumentMixin {
   ///
   /// See also:
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
-  bool? get testFlaky => fields![fieldTestFlaky]!.booleanValue!;
+  bool? get testFlaky => fields![kTaskTestFlakyField]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
   int? get buildNumber =>
-      fields!.containsKey(fieldBuildNumber)
-          ? int.parse(fields![fieldBuildNumber]!.integerValue!)
+      fields!.containsKey(kTaskBuildNumberField)
+          ? int.parse(fields![kTaskBuildNumberField]!.integerValue!)
           : null;
 
   /// The status of the task.
   ///
   /// Legal values and their meanings are defined in [legalStatusValues].
   String get status {
-    final taskStatus = fields![fieldStatus]!.stringValue!;
+    final taskStatus = fields![kTaskStatusField]!.stringValue!;
     if (!legalStatusValues.contains(taskStatus)) {
       throw ArgumentError('Invalid state: "$taskStatus"');
     }
@@ -237,30 +188,34 @@ final class Task extends Document with BaseDocumentMixin {
     if (!legalStatusValues.contains(value)) {
       throw ArgumentError('Invalid state: "$value"');
     }
-    fields![fieldStatus] = Value(stringValue: value);
+    fields![kTaskStatusField] = Value(stringValue: value);
     return value;
   }
 
   void setEndTimestamp(int endTimestamp) {
-    fields![fieldEndTimestamp] = Value(integerValue: endTimestamp.toString());
+    fields![kTaskEndTimestampField] = Value(
+      integerValue: endTimestamp.toString(),
+    );
   }
 
   void setTestFlaky(bool testFlaky) {
-    fields![fieldTestFlaky] = Value(booleanValue: testFlaky);
+    fields![kTaskTestFlakyField] = Value(booleanValue: testFlaky);
   }
 
   void updateFromBuild(bbv2.Build build) {
-    fields![fieldBuildNumber] = Value(integerValue: build.number.toString());
+    fields![kTaskBuildNumberField] = Value(
+      integerValue: build.number.toString(),
+    );
 
-    fields![fieldCreateTimestamp] = Value(
+    fields![kTaskCreateTimestampField] = Value(
       integerValue:
           build.createTime.toDateTime().millisecondsSinceEpoch.toString(),
     );
-    fields![fieldStartTimestamp] = Value(
+    fields![kTaskStartTimestampField] = Value(
       integerValue:
           build.startTime.toDateTime().millisecondsSinceEpoch.toString(),
     );
-    fields![fieldEndTimestamp] = Value(
+    fields![kTaskEndTimestampField] = Value(
       integerValue:
           build.endTime.toDateTime().millisecondsSinceEpoch.toString(),
     );
@@ -272,16 +227,20 @@ final class Task extends Document with BaseDocumentMixin {
     name =
         '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
     fields = <String, Value>{
-      fieldCreateTimestamp: Value(
+      kTaskCreateTimestampField: Value(
         integerValue: DateTime.now().millisecondsSinceEpoch.toString(),
       ),
-      fieldEndTimestamp: Value(integerValue: '0'),
-      fieldBringup: Value(booleanValue: bringup),
-      fieldName: Value(stringValue: taskName),
-      fieldStartTimestamp: Value(integerValue: '0'),
-      fieldStatus: Value(stringValue: Task.statusNew),
-      fieldTestFlaky: Value(booleanValue: false),
-      fieldCommitSha: Value(stringValue: commitSha),
+      kTaskEndTimestampField: Value(
+        integerValue: kTaskDefaultTimestampValue.toString(),
+      ),
+      kTaskBringupField: Value(booleanValue: bringup),
+      kTaskNameField: Value(stringValue: taskName),
+      kTaskStartTimestampField: Value(
+        integerValue: kTaskDefaultTimestampValue.toString(),
+      ),
+      kTaskStatusField: Value(stringValue: Task.statusNew),
+      kTaskTestFlakyField: Value(booleanValue: false),
+      kTaskCommitShaField: Value(stringValue: commitSha),
     };
   }
 
@@ -315,4 +274,93 @@ final class Task extends Document with BaseDocumentMixin {
     ];
     return completedStatuses.contains(status);
   }
+
+  Map<String, dynamic> get facade {
+    return <String, dynamic>{
+      kTaskDocumentName: name,
+      kTaskCommitSha: commitSha,
+      kTaskCreateTimestamp: createTimestamp,
+      kTaskStartTimestamp: startTimestamp,
+      kTaskEndTimestamp: endTimestamp,
+      kTaskTaskName: taskName,
+      kTaskAttempts: attempts,
+      kTaskBringup: bringup,
+      kTaskTestFlaky: testFlaky,
+      kTaskBuildNumber: buildNumber,
+      kTaskStatus: status,
+    };
+  }
+
+  @override
+  String toString() {
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write('$kTaskBuildNumberField: $buildNumber')
+          ..write(', $kTaskCreateTimestampField: $createTimestamp')
+          ..write(', $kTaskStartTimestampField: $startTimestamp')
+          ..write(', $kTaskEndTimestampField: $endTimestamp')
+          ..write(', $kTaskNameField: $name')
+          ..write(', $kTaskBringupField: $bringup')
+          ..write(', $kTaskTestFlakyField: $testFlaky')
+          ..write(', $kTaskStatusField: $status')
+          ..write(')');
+    return buf.toString();
+  }
+}
+
+/// Generates task documents based on targets.
+List<Task> targetsToTaskDocuments(Commit commit, List<Target> targets) {
+  final iterableDocuments = targets.map(
+    (Target target) => Task.fromDocument(
+      taskDocument: Document(
+        name:
+            '$kDatabase/documents/$kTaskCollectionId/${commit.sha}_${target.value.name}_$kTaskInitialAttempt',
+        fields: <String, Value>{
+          kTaskCreateTimestampField: Value(
+            integerValue: commit.timestamp!.toString(),
+          ),
+          kTaskEndTimestampField: Value(
+            integerValue: kTaskDefaultTimestampValue.toString(),
+          ),
+          kTaskBringupField: Value(booleanValue: target.value.bringup),
+          kTaskNameField: Value(stringValue: target.value.name),
+          kTaskStartTimestampField: Value(
+            integerValue: kTaskDefaultTimestampValue.toString(),
+          ),
+          kTaskStatusField: Value(stringValue: Task.statusNew),
+          kTaskTestFlakyField: Value(booleanValue: false),
+          kTaskCommitShaField: Value(stringValue: commit.sha),
+        },
+      ),
+    ),
+  );
+  return iterableDocuments.toList();
+}
+
+/// Generates task document based on datastore task data model.
+Task taskToDocument(datastore.Task task) {
+  final commitSha = task.commitKey!.id!.split('/').last;
+  return Task.fromDocument(
+    taskDocument: Document(
+      name:
+          '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
+      fields: <String, Value>{
+        kTaskCreateTimestampField: Value(
+          integerValue: task.createTimestamp.toString(),
+        ),
+        kTaskEndTimestampField: Value(
+          integerValue: task.endTimestamp.toString(),
+        ),
+        kTaskBringupField: Value(booleanValue: task.isFlaky),
+        kTaskNameField: Value(stringValue: task.name),
+        kTaskStartTimestampField: Value(
+          integerValue: task.startTimestamp.toString(),
+        ),
+        kTaskStatusField: Value(stringValue: task.status),
+        kTaskTestFlakyField: Value(booleanValue: task.isTestFlaky),
+        kTaskCommitShaField: Value(stringValue: commitSha),
+      },
+    ),
+  );
 }

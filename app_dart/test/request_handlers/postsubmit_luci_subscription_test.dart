@@ -354,7 +354,9 @@ void main() {
     final batchWriteRequest = captured[0] as BatchWriteRequest;
     expect(batchWriteRequest.writes!.length, 1);
     final insertedTaskDocument = batchWriteRequest.writes![0].update!;
-    final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
+    final resultTask = firestore.Task.fromDocument(
+      taskDocument: insertedTaskDocument,
+    );
     expect(resultTask.status, firestore.Task.statusInProgress);
     expect(resultTask.attempts, 2);
   });
@@ -410,7 +412,9 @@ void main() {
     final batchWriteRequest = captured[0] as BatchWriteRequest;
     expect(batchWriteRequest.writes!.length, 1);
     final insertedTaskDocument = batchWriteRequest.writes![0].update!;
-    final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
+    final resultTask = firestore.Task.fromDocument(
+      taskDocument: insertedTaskDocument,
+    );
     expect(resultTask.status, firestore.Task.statusInProgress);
     expect(resultTask.attempts, 2);
   });
@@ -468,7 +472,9 @@ void main() {
       final batchWriteRequest = captured[0] as BatchWriteRequest;
       expect(batchWriteRequest.writes!.length, 1);
       final insertedTaskDocument = batchWriteRequest.writes![0].update!;
-      final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
+      final resultTask = firestore.Task.fromDocument(
+        taskDocument: insertedTaskDocument,
+      );
       expect(resultTask.status, firestore.Task.statusInProgress);
       expect(resultTask.attempts, 2);
     },

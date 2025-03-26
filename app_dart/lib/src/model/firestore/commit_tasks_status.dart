@@ -73,19 +73,9 @@ class FullTask {
   final Task task;
   final List<int> buildList;
 
-  Map<String, Object?> toJson() {
-    return {
-      'Task': {
-        'DocumentName': task.name,
-        'TaskName': task.taskName,
-        'CommitSha': task.commitSha,
-        'CreateTimestamp': task.createTimestamp,
-        'StartTimestamp': task.startTimestamp,
-        'EndTimestamp': task.endTimestamp,
-        'Status': task.status,
-        'Bringup': task.bringup,
-        'TestFlaky': task.testFlaky,
-      },
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'Task': task.facade,
       'BuildList': buildList.join(','),
     };
   }

@@ -146,9 +146,8 @@ class BatchBackfiller extends RequestHandler {
     if (tasks.isEmpty) {
       return;
     }
-    final writes = documentsToWrites([
-      ...tasks.map(firestore.Task.fromDatastore),
-    ], exists: true);
+    final taskDocuments = tasks.map(firestore.taskToDocument).toList();
+    final writes = documentsToWrites(taskDocuments, exists: true);
     final firestoreService = await config.createFirestoreService();
     await firestoreService.writeViaTransaction(writes);
   }

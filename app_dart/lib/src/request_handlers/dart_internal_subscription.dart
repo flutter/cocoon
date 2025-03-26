@@ -107,9 +107,8 @@ class DartInternalSubscription extends SubscriptionHandler {
     await datastore.insert(<Task>[taskToInsert]);
     try {
       final firestoreService = await config.createFirestoreService();
-      final writes = documentsToWrites([
-        firestore.Task.fromDatastore(taskToInsert),
-      ]);
+      final taskDocument = firestore.taskToDocument(taskToInsert);
+      final writes = documentsToWrites([taskDocument]);
       await firestoreService.batchWriteDocuments(
         BatchWriteRequest(writes: writes),
         kDatabase,

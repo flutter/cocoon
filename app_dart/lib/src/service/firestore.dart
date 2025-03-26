@@ -135,28 +135,30 @@ class FirestoreService {
     int limit = 100,
     required String name,
   }) async {
-    final filterMap = {'${Task.fieldBringup} =': name};
-    final orderMap = {Task.fieldCreateTimestamp: kQueryOrderDescending};
+    final filterMap = {'$kTaskNameField =': name};
+    final orderMap = {kTaskCreateTimestampField: kQueryOrderDescending};
     final documents = await query(
       kTaskCollectionId,
       filterMap,
       orderMap: orderMap,
     );
-    return [...documents.map(Task.fromDocument)];
+    return documents.map((d) => Task.fromDocument(taskDocument: d)).toList();
   }
 
   /// Returns all tasks running against the speificed [commitSha].
   Future<List<Task>> queryCommitTasks(String commitSha) async {
-    final filterMap = <String, Object>{'${Task.fieldCommitSha} =': commitSha};
+    final filterMap = <String, Object>{'$kTaskCommitShaField =': commitSha};
     final orderMap = <String, String>{
-      Task.fieldCreateTimestamp: kQueryOrderDescending,
+      kTaskCreateTimestampField: kQueryOrderDescending,
     };
     final documents = await query(
       kTaskCollectionId,
       filterMap,
       orderMap: orderMap,
     );
-    return [...documents.map(Task.fromDocument)];
+    return documents
+        .map((Document document) => Task.fromDocument(taskDocument: document))
+        .toList();
   }
 
   /// Queries the last updated Gold status for the [slug] and [prNumber].
