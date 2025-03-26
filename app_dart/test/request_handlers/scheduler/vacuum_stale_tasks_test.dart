@@ -134,10 +134,10 @@ void main() {
       final commitResponse = captured[0] as List<Write>;
       expect(commitResponse.length, 2);
       final taskDocuemnt1 = firestore.Task.fromDocument(
-        taskDocument: commitResponse[0].update!,
+        commitResponse[0].update!,
       );
       final taskDocuemnt2 = firestore.Task.fromDocument(
-        taskDocument: commitResponse[0].update!,
+        commitResponse[0].update!,
       );
       expect(taskDocuemnt1.status, firestore.Task.statusNew);
       expect(taskDocuemnt2.status, firestore.Task.statusNew);
