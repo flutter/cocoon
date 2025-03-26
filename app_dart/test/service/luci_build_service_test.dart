@@ -560,6 +560,54 @@ void main() {
       expect(dimensions[0].value, 'abc');
     });
 
+    // Regression test for https://github.com/flutter/flutter/issues/166014.
+    test('provides override labels for flutter/packages', () async {
+      when(
+        callbacks.initializePrCheckRuns(
+          firestoreService: anyNamed('firestoreService'),
+          pullRequest: anyNamed('pullRequest'),
+          checks: anyNamed('checks'),
+        ),
+      ).thenAnswer((inv) async {
+        return Document(name: '1234-56-7890', fields: {});
+      });
+      when(
+        mockGithubChecksUtil.createCheckRun(any, any, any, any),
+      ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux repo_check'));
+
+      await service.scheduleTryBuilds(
+        pullRequest: generatePullRequest(
+          repo: 'packages',
+          labels: [
+            IssueLabel(name: 'override: no versioning needed'),
+            IssueLabel(name: 'override: no changelog needed'),
+          ],
+        ),
+        targets: targets,
+        engineArtifacts: EngineArtifacts.usingExistingEngine(
+          commitSha: pullRequest.base!.sha!,
+        ),
+      );
+
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubsub.messages.single);
+      expect(batchRequest.requests.single.scheduleBuild, isNotNull);
+
+      final scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      final properties = scheduleBuild.properties.fields;
+      expect(
+        properties,
+        containsPair(
+          'overrides',
+          isA<bbv2.Value>().having(
+            (v) => v.listValue.values.map((v) => v.stringValue),
+            'listValue',
+            ['override: no versioning needed', 'override: no changelog needed'],
+          ),
+        ),
+      );
+    });
+
     group('CIPD', () {
       final loggedFallingBackToDefaultRecipe = bufferedLoggerOf(
         contains(logThat(message: contains('Falling back to default recipe'))),

@@ -302,7 +302,6 @@ class LuciBuildService {
         () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
       );
 
-      // final String json = jsonEncode(properties);
       final struct = bbv2.Struct.create();
       struct.mergeFromProto3Json(properties);
 
@@ -313,6 +312,9 @@ class LuciBuildService {
 
       if (labels != null && labels.isNotEmpty) {
         properties[propertiesGithubBuildLabelName] = labels;
+        log.info(
+          'Found overrides: labels for PR#${pullRequest.number}: $labels.',
+        );
       }
 
       if (isFusion) {
