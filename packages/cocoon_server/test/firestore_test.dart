@@ -12,7 +12,7 @@
 ])
 import 'dart:io';
 
-import 'package:cocoon_server/src/firestore/firestore.dart';
+import 'package:cocoon_server/firestore.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

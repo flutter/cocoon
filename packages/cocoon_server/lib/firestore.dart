@@ -11,8 +11,8 @@ import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import '../../access_client_provider.dart';
-import '../../google_auth_provider.dart';
+import 'access_client_provider.dart';
+import 'google_auth_provider.dart';
 
 /// A lightweight typed wrapper on top of [g.FirestoreApi].
 base class Firestore {
@@ -37,7 +37,6 @@ base class Firestore {
   }
 
   /// Creates a [Firestore] instance that delegates to [g.FirestoreApi].
-  @visibleForTesting
   Firestore.fromApi(
     this._api, {
     required String projectId,
@@ -51,6 +50,9 @@ base class Firestore {
 
   final g.FirestoreApi _api;
   final String _databasePath;
+
+  @protected
+  String getFullPath(String path) => p.posix.join(_databasePath, path);
 
   /// Returns the [Document] at the _relative_ [path] within Firestore.
   ///
@@ -66,7 +68,7 @@ base class Firestore {
   /// ```
   @useResult
   Future<g.Document?> tryGetByPath(String path) async {
-    final fullPath = p.posix.join(_databasePath, path);
+    final fullPath = getFullPath(path);
     try {
       return await _api.projects.databases.documents.get(fullPath);
     } on g.DetailedApiRequestError catch (e) {
@@ -116,7 +118,7 @@ base class Firestore {
     try {
       return await _api.projects.databases.documents.createDocument(
         document,
-        p.posix.join(_databasePath, 'documents'),
+        getFullPath('documents'),
         p.dirname(path),
         documentId: p.basename(path),
       );
@@ -141,6 +143,7 @@ base class Firestore {
   /// ```dart
   /// await firestore.tryInsertByPath('tasks/task-that-might-exist', document);
   /// ```
+  @nonVirtual
   Future<g.Document> insertByPath(String path, g.Document document) async {
     final inserted = await tryInsertByPath(path, document);
     if (inserted == null) {
@@ -175,9 +178,7 @@ base class Firestore {
   Future<List<bool>> tryInsertAll(Map<String, g.Document> documents) async {
     final flatDocs = [
       for (final MapEntry(key: path, value: doc) in documents.entries)
-        g.Document()
-          ..name = p.posix.join(_databasePath, path)
-          ..fields = {...?doc.fields},
+        g.Document(name: getFullPath(path), fields: {...?doc.fields}),
     ];
     final response = await _api.projects.databases.documents.batchWrite(
       g.BatchWriteRequest(
