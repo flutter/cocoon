@@ -7,9 +7,11 @@ import 'dart:async';
 import 'package:cocoon_server/firestore.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
+import 'package:googleapis/firestore/v1.dart' as g;
+import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/firestore/base.dart';
 import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
@@ -60,13 +62,56 @@ class FirestoreService {
   const FirestoreService._(this._newApi);
   final Firestore _newApi;
 
+  String _resolvePath<T extends AppDocument<T>>(T document) {
+    return _newApi.resolvePath(document.metadata.relativePath(document));
+  }
+
+  /// Inserts a [document].
+  ///
+  /// If the document already exists, returns `null`, otherwise returns the
+  /// updated document.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryInsert(task);
+  /// ```
+  @useResult
+  Future<T?> tryInsert<T extends AppDocument<T>>(T document) async {
+    final inserted = await _newApi.tryInsertByPath(
+      _resolvePath(document),
+      document,
+    );
+    if (inserted == null) {
+      return null;
+    }
+    return document.metadata.fromDocument(inserted);
+  }
+
+  /// Inserts a [document].
+  ///
+  /// The document must not already exist.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.insert(task);
+  /// ```
+  Future<T> insert<T extends AppDocument<T>>(T document) async {
+    final inserted = await _newApi.insertByPath(
+      _resolvePath(document),
+      document,
+    );
+    return document.metadata.fromDocument(inserted);
+  }
+
   /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
-  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
+  Future<g.ProjectsDatabasesDocumentsResource> documentResource() async {
     return _newApi.apiDuringMigration.projects.databases.documents;
   }
 
   /// Gets a document based on name.
-  Future<Document> getDocument(String name) async {
+  Future<g.Document> getDocument(String name) async {
     final databasesDocumentsResource = await documentResource();
     return databasesDocumentsResource.get(name);
   }
@@ -77,8 +122,8 @@ class FirestoreService {
   /// Each write succeeds or fails independently.
   ///
   /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
-  Future<BatchWriteResponse> batchWriteDocuments(
-    BatchWriteRequest request,
+  Future<g.BatchWriteResponse> batchWriteDocuments(
+    g.BatchWriteRequest request,
     String database,
   ) async {
     final databasesDocumentsResource = await documentResource();
@@ -88,14 +133,14 @@ class FirestoreService {
   /// Writes [writes] to Firestore within a transaction.
   ///
   /// This is an atomic operation: either all writes succeed or all writes fail.
-  Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
+  Future<g.CommitResponse> writeViaTransaction(List<g.Write> writes) async {
     final databasesDocumentsResource = await documentResource();
-    final beginTransactionRequest = BeginTransactionRequest(
-      options: TransactionOptions(readWrite: ReadWrite()),
+    final beginTransactionRequest = g.BeginTransactionRequest(
+      options: g.TransactionOptions(readWrite: g.ReadWrite()),
     );
     final beginTransactionResponse = await databasesDocumentsResource
         .beginTransaction(beginTransactionRequest, kDatabase);
-    final commitRequest = CommitRequest(
+    final commitRequest = g.CommitRequest(
       transaction: beginTransactionResponse.transaction,
       writes: writes,
     );
@@ -176,24 +221,26 @@ class FirestoreService {
     final githubGoldStatuses =
         documents
             .map(
-              (Document document) =>
+              (g.Document document) =>
                   GithubGoldStatus.fromDocument(githubGoldStatus: document),
             )
             .toList();
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
-        githubGoldStatus: Document(
+        githubGoldStatus: g.Document(
           name:
               '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
-          fields: <String, Value>{
-            kGithubGoldStatusPrNumberField: Value(
+          fields: <String, g.Value>{
+            kGithubGoldStatusPrNumberField: g.Value(
               integerValue: prNumber.toString(),
             ),
-            kGithubGoldStatusHeadField: Value(stringValue: ''),
-            kGithubGoldStatusStatusField: Value(stringValue: ''),
-            kGithubGoldStatusUpdatesField: Value(integerValue: '0'),
-            kGithubGoldStatusDescriptionField: Value(stringValue: ''),
-            kGithubGoldStatusRepositoryField: Value(stringValue: slug.fullName),
+            kGithubGoldStatusHeadField: g.Value(stringValue: ''),
+            kGithubGoldStatusStatusField: g.Value(stringValue: ''),
+            kGithubGoldStatusUpdatesField: g.Value(integerValue: '0'),
+            kGithubGoldStatusDescriptionField: g.Value(stringValue: ''),
+            kGithubGoldStatusRepositoryField: g.Value(
+              stringValue: slug.fullName,
+            ),
           },
         ),
       );
@@ -225,26 +272,26 @@ class FirestoreService {
     final githubBuildStatuses =
         documents
             .map(
-              (Document document) =>
+              (g.Document document) =>
                   GithubBuildStatus.fromDocument(githubBuildStatus: document),
             )
             .toList();
     if (githubBuildStatuses.isEmpty) {
       return GithubBuildStatus.fromDocument(
-        githubBuildStatus: Document(
+        githubBuildStatus: g.Document(
           name:
               '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
-          fields: <String, Value>{
-            kGithubBuildStatusPrNumberField: Value(
+          fields: <String, g.Value>{
+            kGithubBuildStatusPrNumberField: g.Value(
               integerValue: prNumber.toString(),
             ),
-            kGithubBuildStatusHeadField: Value(stringValue: head),
-            kGithubBuildStatusStatusField: Value(stringValue: ''),
-            kGithubBuildStatusUpdatesField: Value(integerValue: '0'),
-            kGithubBuildStatusUpdateTimeMillisField: Value(
+            kGithubBuildStatusHeadField: g.Value(stringValue: head),
+            kGithubBuildStatusStatusField: g.Value(stringValue: ''),
+            kGithubBuildStatusUpdatesField: g.Value(integerValue: '0'),
+            kGithubBuildStatusUpdateTimeMillisField: g.Value(
               integerValue: DateTime.now().millisecondsSinceEpoch.toString(),
             ),
-            kGithubBuildStatusRepositoryField: Value(
+            kGithubBuildStatusRepositoryField: g.Value(
               stringValue: slug.fullName,
             ),
           },
@@ -262,21 +309,21 @@ class FirestoreService {
   }
 
   /// Returns Firestore [Value] based on corresponding object type.
-  Value getValueFromFilter(Object comparisonOject) {
+  g.Value getValueFromFilter(Object comparisonOject) {
     if (comparisonOject is int) {
-      return Value(integerValue: comparisonOject.toString());
+      return g.Value(integerValue: comparisonOject.toString());
     } else if (comparisonOject is bool) {
-      return Value(booleanValue: comparisonOject);
+      return g.Value(booleanValue: comparisonOject);
     }
-    return Value(stringValue: comparisonOject as String);
+    return g.Value(stringValue: comparisonOject as String);
   }
 
   /// Generates Firestore query filter based on "human" read conditions.
-  Filter generateFilter(
+  g.Filter generateFilter(
     Map<String, Object> filterMap,
     String compositeFilterOp,
   ) {
-    final filters = <Filter>[];
+    final filters = <g.Filter>[];
     filterMap.forEach((filterString, comparisonOject) {
       final match = kFieldMapRegExp.firstMatch(filterString);
       if (match == null) {
@@ -289,28 +336,34 @@ class FirestoreService {
 
       final value = getValueFromFilter(comparisonOject);
       filters.add(
-        Filter(
-          fieldFilter: FieldFilter(
-            field: FieldReference(fieldPath: '`${name.trim()}`'),
+        g.Filter(
+          fieldFilter: g.FieldFilter(
+            field: g.FieldReference(fieldPath: '`${name.trim()}`'),
             op: kRelationMapping[comparison],
             value: value,
           ),
         ),
       );
     });
-    return Filter(
-      compositeFilter: CompositeFilter(filters: filters, op: compositeFilterOp),
+    return g.Filter(
+      compositeFilter: g.CompositeFilter(
+        filters: filters,
+        op: compositeFilterOp,
+      ),
     );
   }
 
-  List<Order>? generateOrders(Map<String, String>? orderMap) {
+  List<g.Order>? generateOrders(Map<String, String>? orderMap) {
     if (orderMap == null || orderMap.isEmpty) {
       return null;
     }
-    final orders = <Order>[];
+    final orders = <g.Order>[];
     orderMap.forEach((field, direction) {
       orders.add(
-        Order(field: FieldReference(fieldPath: field), direction: direction),
+        g.Order(
+          field: g.FieldReference(fieldPath: field),
+          direction: direction,
+        ),
       );
     });
     return orders;
@@ -327,7 +380,7 @@ class FirestoreService {
   /// Note
   ///   1. the space in the key, which will be used to retrieve the field name and operator.
   ///   2. the value could be any type, like int, string, bool, etc.
-  Future<List<Document>> query(
+  Future<List<g.Document>> query(
     String collectionId,
     Map<String, Object> filterMap, {
     int? limit,
@@ -335,13 +388,13 @@ class FirestoreService {
     String compositeFilterOp = kCompositeFilterOpAnd,
   }) async {
     final databasesDocumentsResource = await documentResource();
-    final from = <CollectionSelector>[
-      CollectionSelector(collectionId: collectionId),
+    final from = <g.CollectionSelector>[
+      g.CollectionSelector(collectionId: collectionId),
     ];
     final filter = generateFilter(filterMap, compositeFilterOp);
     final orders = generateOrders(orderMap);
-    final runQueryRequest = RunQueryRequest(
-      structuredQuery: StructuredQuery(
+    final runQueryRequest = g.RunQueryRequest(
+      structuredQuery: g.StructuredQuery(
         from: from,
         where: filter,
         orderBy: orders,
@@ -356,10 +409,10 @@ class FirestoreService {
   }
 
   /// Retrieve documents based on query response.
-  List<Document> documentsFromQueryResponse(
-    List<RunQueryResponseElement> runQueryResponseElements,
+  List<g.Document> documentsFromQueryResponse(
+    List<g.RunQueryResponseElement> runQueryResponseElements,
   ) {
-    final documents = <Document>[];
+    final documents = <g.Document>[];
     for (var runQueryResponseElement in runQueryResponseElements) {
       if (runQueryResponseElement.document != null) {
         documents.add(runQueryResponseElement.document!);
@@ -374,12 +427,12 @@ class FirestoreService {
 /// Null `exists` means either update when a document exists or insert when a document doesn't.
 /// `exists = false` means inserting a new document, assuming a document doesn't exist.
 /// `exists = true` means updating an existing document, assuming it exisits.
-List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
+List<g.Write> documentsToWrites(List<g.Document> documents, {bool? exists}) {
   return documents
       .map(
-        (Document document) => Write(
+        (g.Document document) => g.Write(
           update: document,
-          currentDocument: Precondition(exists: exists),
+          currentDocument: g.Precondition(exists: exists),
         ),
       )
       .toList();

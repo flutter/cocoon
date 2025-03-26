@@ -51,8 +51,15 @@ base class Firestore {
   final g.FirestoreApi _api;
   final String _databasePath;
 
-  @protected
-  String getFullPath(String path) => p.posix.join(_databasePath, path);
+  /// Returns the full database path to the provided relative [path].
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// print(firestore.resolvePath('task/task-name'));
+  /// // Outputs: projects/project-id/databases/database-id/documents/task/task-name
+  /// ```
+  String resolvePath(String path) => p.posix.join(_databasePath, path);
 
   /// Direct access to [g.FirestoreApi].
   ///
@@ -75,7 +82,7 @@ base class Firestore {
   /// ```
   @useResult
   Future<g.Document?> tryGetByPath(String path) async {
-    final fullPath = getFullPath(path);
+    final fullPath = resolvePath(path);
     try {
       return await _api.projects.databases.documents.get(fullPath);
     } on g.DetailedApiRequestError catch (e) {
@@ -125,7 +132,7 @@ base class Firestore {
     try {
       return await _api.projects.databases.documents.createDocument(
         document,
-        getFullPath('documents'),
+        resolvePath('documents'),
         p.dirname(path),
         documentId: p.basename(path),
       );
@@ -185,7 +192,7 @@ base class Firestore {
   Future<List<bool>> tryInsertAll(Map<String, g.Document> documents) async {
     final flatDocs = [
       for (final MapEntry(key: path, value: doc) in documents.entries)
-        g.Document(name: getFullPath(path), fields: {...?doc.fields}),
+        g.Document(name: resolvePath(path), fields: {...?doc.fields}),
     ];
     final response = await _api.projects.databases.documents.batchWrite(
       g.BatchWriteRequest(

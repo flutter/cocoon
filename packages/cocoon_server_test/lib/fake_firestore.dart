@@ -54,7 +54,7 @@ final class FakeFirestore extends Firestore {
     }
 
     final inserted = _clone(document);
-    inserted.name = getFullPath(path);
+    inserted.name = resolvePath(path);
     inserted.updateTime = inserted.updateTime = _now().toIso8601String();
     _documents.add(inserted);
     return _clone(inserted);
