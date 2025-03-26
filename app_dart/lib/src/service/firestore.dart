@@ -135,7 +135,7 @@ class FirestoreService {
     int limit = 100,
     required String name,
   }) async {
-    final filterMap = {'${Task.fieldBringup} =': name};
+    final filterMap = {'${Task.fieldName} =': name};
     final orderMap = {Task.fieldCreateTimestamp: kQueryOrderDescending};
     final documents = await query(
       kTaskCollectionId,
