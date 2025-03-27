@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:meta/meta.dart';
 
@@ -59,7 +60,7 @@ const Set<String> knownCommentCodeExtensions = <String>{
 // breakages across Cocoon.
 @immutable
 class GithubWebhookSubscription extends SubscriptionHandler {
-  static const _estimatedGitOnBorgMaximumSyncDuration = Duration(minutes: 5);
+  static const _estimatedGitOnBorgMaximumSyncDuration = Duration(minutes: 15);
 
   /// Creates a subscription for processing GitHub webhooks.
   const GithubWebhookSubscription({
@@ -106,8 +107,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'pull_request':
         return _handlePullRequest(webhook.payload);
       case 'merge_group':
-        await _handleMergeGroup(webhook.payload);
-        break;
+        final result = await _handleMergeGroup(
+          webhook.payload,
+          messagePublishedOn: DateTime.parse(message.publishTime!),
+        );
+        result.writeResponse(response!);
       case 'check_run':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
@@ -250,7 +254,11 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// The commit SHAs in the merge group are not the same as the commit SHAs in
   /// the pull request. Merge group SHAs are rewritten while they are stacked on
   /// top of each other.
-  Future<void> _handleMergeGroup(String rawRequest) async {
+  @useResult
+  Future<ProcessCheckRunResult> _handleMergeGroup(
+    String rawRequest, {
+    required DateTime messagePublishedOn,
+  }) async {
     final request = json.decode(rawRequest);
 
     if (request is! Map<String, Object?>) {
@@ -274,7 +282,27 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         log.info('Checks requests for merge queue @ $headSha');
 
         if (!await _shaExistsInGob(slug, headSha)) {
-          throw InternalServerError(
+          // There is a chance the branch has been deleted, and this is a stale
+          // merge queue pub-sub message that will *never* complete. Check and
+          // see if the message is a tad-old (>=15m), and if it is, check if
+          // the cooresponding branch on GitHub has been deleted.
+          //
+          // See https://github.com/flutter/flutter/issues/166078.
+          final duration = _now().difference(messagePublishedOn);
+          if (duration >= _estimatedGitOnBorgMaximumSyncDuration) {
+            // Check GitHub.
+            final githubService = await config.createGithubService(slug);
+            try {
+              await githubService.getReference(slug, mergeGroup.headRef);
+            } on github.NotFound {
+              final message =
+                  '$slug/$headSha was not found on GoB and appears deleted on '
+                  'github.';
+              log.info(message);
+              return ProcessCheckRunResult.missingEntity(message);
+            }
+          }
+          return ProcessCheckRunResult.internalError(
             '$slug/$headSha was not found on GoB. Failing so this event can be retried',
           );
         }
@@ -303,6 +331,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           );
         }
     }
+
+    return const ProcessCheckRunResult.success();
   }
 
   Future<bool> _commitExistsInGob(PullRequest pr) async {
