@@ -37,6 +37,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_get_files_changed.dart';
@@ -132,7 +133,7 @@ void main() {
   late FakeConfig config;
   late FakeDatastoreDB db;
   late FakeCiYamlFetcher ciYamlFetcher;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
   late FakeFusionTester fakeFusion;
@@ -170,15 +171,15 @@ void main() {
       getFilesChanged = FakeGetFilesChanged();
       db = FakeDatastoreDB();
 
-      mockFirestoreService = MockFirestoreService();
+      firestoreService = FakeFirestoreService();
       // This preserves the behavior before, where the read layer before
       // went through Datastore, and would check for an existing commit.
-      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+      when(firestoreService.mock.getDocument(any)).thenAnswer((_) async {
         throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
       });
       when(
         // ignore: discarded_futures
-        mockFirestoreService.queryRecentTasksByName(
+        firestoreService.mock.queryRecentTasksByName(
           name: anyNamed('name'),
           limit: anyNamed('limit'),
         ),
@@ -192,7 +193,7 @@ void main() {
         dbValue: db,
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),
-        firestoreService: mockFirestoreService,
+        firestoreService: firestoreService,
         supportedReposValue: <RepositorySlug>{
           Config.flutterSlug,
           Config.packagesSlug,
@@ -309,7 +310,7 @@ void main() {
       });
 
       test('inserts all relevant fields of the commit', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -337,7 +338,7 @@ void main() {
       });
 
       test('skips commits for which transaction commit fails', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -376,7 +377,7 @@ void main() {
       });
 
       test('skips commits for which task transaction fails', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -415,7 +416,7 @@ void main() {
       });
 
       test('schedules cocoon based targets', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -472,11 +473,11 @@ void main() {
       test(
         'schedules cocoon based targets - multiple batch requests',
         () async {
-          when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer(
-            (Invocation invocation) {
-              return Future<CommitResponse>.value(CommitResponse());
-            },
-          );
+          when(
+            firestoreService.mock.writeViaTransaction(captureAny),
+          ).thenAnswer((Invocation invocation) {
+            return Future<CommitResponse>.value(CommitResponse());
+          });
           final mockBuildBucketClient = MockBuildBucketClient();
           final luciBuildService = FakeLuciBuildService(
             config: config,
@@ -540,7 +541,7 @@ void main() {
 
     group('add pull request', () {
       test('creates expected commit', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -560,7 +561,7 @@ void main() {
 
         final List<Object?> captured =
             verify(
-              mockFirestoreService.writeViaTransaction(captureAny),
+              firestoreService.mock.writeViaTransaction(captureAny),
             ).captured;
         expect(captured.length, 1);
         final commitResponse = captured[0] as List<Write>;
@@ -571,7 +572,7 @@ void main() {
         fakeFusion.isFusion = (_, _) => true;
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -600,11 +601,11 @@ void main() {
           fakeFusion.isFusion = (_, _) => true;
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
-          when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer(
-            (Invocation invocation) {
-              return Future<CommitResponse>.value(CommitResponse());
-            },
-          );
+          when(
+            firestoreService.mock.writeViaTransaction(captureAny),
+          ).thenAnswer((Invocation invocation) {
+            return Future<CommitResponse>.value(CommitResponse());
+          });
           final mergedPr = generatePullRequest(
             branch: 'flutter-0.42-candidate.0',
           );
@@ -621,7 +622,7 @@ void main() {
       );
 
       test('schedules tasks against merged PRs', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -638,7 +639,7 @@ void main() {
         // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
         fakeFusion.isFusion = (_, _) => true;
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -660,7 +661,7 @@ void main() {
         );
         final captured =
             verify(
-              mockFirestoreService.writeViaTransaction(captureAny),
+              firestoreService.mock.writeViaTransaction(captureAny),
             ).captured.cast<List<Write>>();
         expect(
           captured.first.map((write) => write.update?.name),
@@ -679,11 +680,11 @@ void main() {
       test(
         'guarantees scheduling of tasks against merged release branch PR',
         () async {
-          when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer(
-            (Invocation invocation) {
-              return Future<CommitResponse>.value(CommitResponse());
-            },
-          );
+          when(
+            firestoreService.mock.writeViaTransaction(captureAny),
+          ).thenAnswer((Invocation invocation) {
+            return Future<CommitResponse>.value(CommitResponse());
+          });
           final mergedPr = generatePullRequest(
             branch: 'flutter-3.2-candidate.5',
           );
@@ -704,11 +705,11 @@ void main() {
       test(
         'Release candidate branch commit filters builders not in default branch',
         () async {
-          when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer(
-            (Invocation invocation) {
-              return Future<CommitResponse>.value(CommitResponse());
-            },
-          );
+          when(
+            firestoreService.mock.writeViaTransaction(captureAny),
+          ).thenAnswer((Invocation invocation) {
+            return Future<CommitResponse>.value(CommitResponse());
+          });
 
           ciYamlFetcher.setCiYamlFrom(r'''
           enabled_branches:
@@ -765,7 +766,7 @@ void main() {
 
         // This preserves the behavior before, where the read layer before
         // went through Datastore, and would check for an existing commit.
-        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        when(firestoreService.mock.getDocument(any)).thenAnswer((_) async {
           return Document();
         });
 
@@ -781,7 +782,7 @@ void main() {
       test('does not schedule tasks against already added PRs', () async {
         // This preserves the behavior before, where the read layer before
         // went through Datastore, and would check for an existing commit.
-        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
+        when(firestoreService.mock.getDocument(any)).thenAnswer((_) async {
           return generateFirestoreCommit(1);
         });
         final commit = shaToCommit('1');
@@ -799,7 +800,7 @@ void main() {
       });
 
       test('creates expected commit from release branch PR', () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
+        when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<CommitResponse>.value(CommitResponse());
@@ -825,7 +826,7 @@ void main() {
         final mockGithubClient = MockGitHub();
         config = FakeConfig(
           githubService: mockGithubService,
-          firestoreService: mockFirestoreService,
+          firestoreService: firestoreService,
         );
         scheduler = Scheduler(
           cache: cache,
@@ -915,7 +916,7 @@ void main() {
           final mockGithubClient = MockGitHub();
           config = FakeConfig(
             githubService: mockGithubService,
-            firestoreService: mockFirestoreService,
+            firestoreService: firestoreService,
           );
 
           final pullRequest = generatePullRequest();
@@ -1010,7 +1011,7 @@ void main() {
         final mockGithubClient = MockGitHub();
         config = FakeConfig(
           githubService: mockGithubService,
-          firestoreService: mockFirestoreService,
+          firestoreService: firestoreService,
         );
         scheduler = Scheduler(
           cache: cache,
@@ -1095,10 +1096,7 @@ void main() {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the datastore.
         db = FakeDatastoreDB();
-        config = FakeConfig(
-          dbValue: db,
-          firestoreService: mockFirestoreService,
-        );
+        config = FakeConfig(dbValue: db, firestoreService: firestoreService);
 
         when(callbacks.findPullRequestForSha(any, any)).thenAnswer((inv) async {
           return pullRequest;
@@ -1163,19 +1161,14 @@ void main() {
         config = FakeConfig(
           dbValue: db,
           postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')},
-          firestoreService: mockFirestoreService,
+          firestoreService: firestoreService,
         );
-        when(mockFirestoreService.queryCommitTasks(captureAny)).thenAnswer((
+        when(firestoreService.mock.queryCommitTasks(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<List<firestore.Task>>.value(<firestore.Task>[
             generateFirestoreTask(1, name: 'test1'),
           ]);
-        });
-        when(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<BatchWriteResponse>.value(BatchWriteResponse());
         });
         final commit = generateCommit(
           1,
@@ -1943,7 +1936,7 @@ targets:
               return checkRuns.last;
             });
 
-            when(mockFirestoreService.documentResource()).thenAnswer((_) async {
+            when(firestoreService.documentResource()).thenAnswer((_) async {
               final resource = MockProjectsDatabasesDocumentsResource();
               when(
                 resource.createDocument(
@@ -2228,11 +2221,7 @@ targets:
               );
 
               verify(
-                callbacks.findPullRequestFor(
-                  mockFirestoreService,
-                  1,
-                  'Bar bar',
-                ),
+                callbacks.findPullRequestFor(firestoreService, 1, 'Bar bar'),
               ).called(1);
               verifyNever(
                 gitHubChecksService.findMatchingPullRequest(any, any, any),
@@ -2625,7 +2614,7 @@ targets:
               dbValue: db,
               githubService: mockGithubService,
               githubClient: MockGitHub(),
-              firestoreService: mockFirestoreService,
+              firestoreService: firestoreService,
             ),
             datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
@@ -2919,7 +2908,7 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
+            firestoreService: firestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 0,
           ),
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
@@ -3064,7 +3053,7 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
+            firestoreService: firestoreService,
           ),
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
@@ -3217,7 +3206,7 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
+            firestoreService: firestoreService,
           ),
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
@@ -3359,7 +3348,7 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
+            firestoreService: firestoreService,
           ),
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
@@ -3467,7 +3456,7 @@ targets:
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         // ignore: discarded_futures
-        when(mockFirestoreService.documentResource()).thenAnswer((_) async {
+        when(firestoreService.documentResource()).thenAnswer((_) async {
           final resource = MockProjectsDatabasesDocumentsResource();
           when(
             resource.createDocument(
@@ -3490,7 +3479,7 @@ targets:
             dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: mockFirestoreService,
+            firestoreService: firestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 29,
           ),
           datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
@@ -3515,7 +3504,7 @@ targets:
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
 
           // Verify we don't try writing anything to Firestore (Fusion workflow).
-          verifyZeroInteractions(mockFirestoreService);
+          verifyZeroInteractions(firestoreService.mock);
           expect(
             fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
             ['Linux A'],

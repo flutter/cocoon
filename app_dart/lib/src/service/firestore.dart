@@ -43,27 +43,13 @@ final kFieldMapRegExp = RegExp(
   '(${kRelationMapping.keys.join("|")})',
 );
 
-/// An application-specific storage API around Google Firestore.
-///
-/// This API is in a state of flux, where the non-app specific APIs are being
-/// migrated to a common API (https://github.com/flutter/flutter/issues/165931).
-class FirestoreService {
-  /// Creates a [BigqueryService] using Google API authentication.
-  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
-    return FirestoreService._(
-      await Firestore.from(
-        authProvider,
-        projectId: Config.flutterGcpProjectId,
-        databaseId: Config.flutterGcpFirestoreDatabase,
-      ),
-    );
-  }
-
-  const FirestoreService._(this._newApi);
-  final Firestore _newApi;
+@visibleForTesting
+mixin FirestoreServiceMixin {
+  @protected
+  Firestore get api;
 
   String _resolvePath<T extends AppDocument<T>>(T document) {
-    return _newApi.resolvePath(document.metadata.relativePath(document));
+    return api.resolvePath(document.metadata.relativePath(document));
   }
 
   /// Inserts a [document].
@@ -78,7 +64,7 @@ class FirestoreService {
   /// ```
   @useResult
   Future<T?> tryInsert<T extends AppDocument<T>>(T document) async {
-    final inserted = await _newApi.tryInsertByPath(
+    final inserted = await api.tryInsertByPath(
       _resolvePath(document),
       document,
     );
@@ -98,16 +84,36 @@ class FirestoreService {
   /// await firestore.insert(task);
   /// ```
   Future<T> insert<T extends AppDocument<T>>(T document) async {
-    final inserted = await _newApi.insertByPath(
-      _resolvePath(document),
-      document,
-    );
+    final inserted = await api.insertByPath(_resolvePath(document), document);
     return document.metadata.fromDocument(inserted);
   }
+}
+
+/// An application-specific storage API around Google Firestore.
+///
+/// This API is in a state of flux, where the non-app specific APIs are being
+/// migrated to a common API (https://github.com/flutter/flutter/issues/165931).
+class FirestoreService with FirestoreServiceMixin {
+  /// Creates a [BigqueryService] using Google API authentication.
+  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
+    return FirestoreService._(
+      await Firestore.from(
+        authProvider,
+        projectId: Config.flutterGcpProjectId,
+        databaseId: Config.flutterGcpFirestoreDatabase,
+      ),
+    );
+  }
+
+  const FirestoreService._(this.api);
+
+  @override
+  @protected
+  final Firestore api;
 
   /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
   Future<g.ProjectsDatabasesDocumentsResource> documentResource() async {
-    return _newApi.apiDuringMigration.projects.databases.documents;
+    return api.apiDuringMigration.projects.databases.documents;
   }
 
   /// Gets a document based on name.
