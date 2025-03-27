@@ -14,10 +14,20 @@ import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:gcloud/db.dart';
+import 'package:logging/logging.dart';
 
 Future<void> main() async {
   await withAppEngineServices(() async {
     useLoggingPackageAdaptor();
+
+    // This is bad, and I should feel bad, but I won't because the logging system
+    // is inherently bad. We're allocating the logger (or getting back one) and
+    // then turning it off - there is no way to "filter". Luckily; the library
+    // does not set the level for the logger, making this just a little brittle.
+    for (final logName in ['neat_cache', 'neat_cache:redis']) {
+      final log = Logger(logName);
+      log.level = Level.WARNING;
+    }
 
     final cache = CacheService(inMemory: false);
     final config = Config(
