@@ -176,7 +176,8 @@ class BatchBackfiller extends RequestHandler {
       ),
     ];
     log.debug(
-      'high priority backfill (${highPriorityBackfill.length}): $highPriorityBackfill');
+      'high priority backfill (${highPriorityBackfill.length}): $highPriorityBackfill',
+    );
     log.debug(
       'normal priority backfill (${normalPriorityBackfill.length}): $normalPriorityBackfill',
     );
