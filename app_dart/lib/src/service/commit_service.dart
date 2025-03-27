@@ -8,7 +8,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
@@ -121,11 +120,8 @@ class CommitService {
           repositoryPath: commit.repository!,
           sha: commit.sha!,
         );
-        final writes = documentsToWrites([commitDocument], exists: false);
-        await firestoreService.batchWriteDocuments(
-          BatchWriteRequest(writes: writes),
-          kDatabase,
-        );
+
+        await firestoreService.insert(commitDocument);
       } catch (e) {
         log.warn('Failed to insert new branched commit in Firestore', e);
       }

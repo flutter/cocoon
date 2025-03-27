@@ -15,7 +15,7 @@ import 'base.dart';
 
 const String kTaskCollectionId = 'tasks';
 
-final class Task extends Document with BaseDocumentMixin {
+final class Task extends Document with AppDocument<Task> {
   static const fieldBringup = 'bringup';
   static const fieldBuildNumber = 'buildNumber';
   static const fieldCommitSha = 'commitSha';
@@ -115,6 +115,20 @@ final class Task extends Document with BaseDocumentMixin {
       ..fields = fields
       ..name = name;
   }
+
+  @override
+  late final metadata = AppDocumentMetadata<Task>(
+    collectionId: kTaskCollectionId,
+    documentName: (t) {
+      final id = FirestoreTaskDocumentName(
+        commitSha: commitSha!,
+        taskName: taskName!,
+        currentAttempt: attempts!,
+      );
+      return id.documentName;
+    },
+    fromDocument: Task.fromDocument,
+  );
 
   /// The task was cancelled.
   static const String statusCancelled = 'Cancelled';

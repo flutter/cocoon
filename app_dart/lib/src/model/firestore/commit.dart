@@ -12,7 +12,7 @@ import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
 import 'base.dart';
 
-final class Commit extends Document with BaseDocumentMixin {
+final class Commit extends Document with AppDocument<Commit> {
   static const collectionId = 'commits';
   static const fieldAvatar = 'avatar';
   static const fieldBranch = 'branch';
@@ -82,6 +82,13 @@ final class Commit extends Document with BaseDocumentMixin {
       ..fields = fields
       ..name = name;
   }
+
+  @override
+  late final metadata = AppDocumentMetadata<Commit>(
+    collectionId: collectionId,
+    documentName: (c) => c.sha,
+    fromDocument: Commit.fromDocument,
+  );
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
