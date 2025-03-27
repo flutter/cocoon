@@ -124,7 +124,12 @@ class Scheduler {
   /// This description appears next to the Github check run in the pull request
   /// and merge queue UI.
   static const String kMergeQueueLockDescription =
-      'This is only here to block the merge queue; nothing to see here in PRs';
+      'The merge queue guard is a GitHub check that prevents a PR from being '
+      'merged or enqueued before it is ready. It becomes green automatically '
+      'when all tests pass. No manual action is required. If you suspect that '
+      'this check is not working correctly, contact #hackers-infra on Discord. '
+      'If you need to merge your PR without tests (a rare situation, typically '
+      'an emergency), then you can use the `emergency` label.';
 
   /// Ensure [commits] exist in Cocoon.
   ///
