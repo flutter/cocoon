@@ -110,17 +110,17 @@ class BatchBackfiller extends RequestHandler {
     backfill = getFilteredBackfill(backfill);
 
     log.debug('Backfilling ${backfill.length} builds');
-    log.debug(backfill.map((tuple) => tuple.first.value.name).toString());
+    log.debug('${[...backfill.map((tuple) => tuple.first.value.name)]}');
 
     // Update tasks status as in progress to avoid duplicate scheduling.
-    final backfillTasks = backfill.map((tuple) => tuple.second.task).toList();
+    final backfillTasks = [...backfill.map((tuple) => tuple.second.task)];
     try {
       await datastore.withTransaction<void>((transaction) async {
         transaction.queueMutations(inserts: backfillTasks);
         await transaction.commit();
         log.debug(
           'Updated ${backfillTasks.length} tasks: '
-          '${backfillTasks.map((e) => e.name).toList()} when backfilling.',
+          '${[...backfillTasks.map((e) => e.name)]} when backfilling.',
         );
       });
       // TODO(keyonghan): remove try catch logic after validated to work.
@@ -165,18 +165,21 @@ class BatchBackfiller extends RequestHandler {
       return backfill;
     }
     final filteredBackfill = <Tuple<Target, FullTask, int>>[];
-    final highPriorityBackfill =
-        backfill
-            .where(
-              (element) => element.third == LuciBuildService.kRerunPriority,
-            )
-            .toList();
-    final normalPriorityBackfill =
-        backfill
-            .where(
-              (element) => element.third != LuciBuildService.kRerunPriority,
-            )
-            .toList();
+    final highPriorityBackfill = [
+      ...backfill.where(
+        (element) => element.third == LuciBuildService.kRerunPriority,
+      ),
+    ];
+    final normalPriorityBackfill = [
+      ...backfill.where(
+        (element) => element.third != LuciBuildService.kRerunPriority,
+      ),
+    ];
+    log.debug(
+      'high priority backfill (${highPriorityBackfill.length}): $highPriorityBackfill');
+    log.debug(
+      'normal priority backfill (${normalPriorityBackfill.length}): $normalPriorityBackfill',
+    );
     if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
       highPriorityBackfill.shuffle();
       filteredBackfill.addAll(
