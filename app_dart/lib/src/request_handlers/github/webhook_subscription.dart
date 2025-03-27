@@ -294,10 +294,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             final githubService = await config.createGithubService(slug);
             try {
               await githubService.getReference(slug, mergeGroup.headRef);
+              log.info(
+                '$slug/$headSha was not found on GoB, but was found on GitHub.',
+              );
             } on github.NotFound {
               final message =
                   '$slug/$headSha was not found on GoB and appears deleted on '
-                  'github.';
+                  'GitHub.';
               log.info(message);
               return ProcessCheckRunResult.missingEntity(message);
             }
