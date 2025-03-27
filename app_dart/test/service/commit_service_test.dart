@@ -4,12 +4,10 @@
 
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
