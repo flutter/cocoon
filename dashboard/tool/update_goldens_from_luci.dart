@@ -41,11 +41,13 @@ void main(List<String> args) async {
       return;
     }
 
+    io.stderr.writeln('Running in ${p.join(root, 'dashboard', 'test')}');
     final lines = (await utf8.decodeStream(response)).split('\n');
     final match = RegExp(r'^Shell:\s(.*)\shas failed.*#\[IMAGE\]:$');
     for (var i = 0; i < lines.length; i++) {
       if (match.matchAsPrefix(lines[i]) case final match?) {
-        final image = match.group(1)!;
+        final absoluteLuciUrl = match.group(1)!;
+        final image = absoluteLuciUrl.split('dashboard/test/').last;
         final bytes = base64Decode(lines[i + 1].substring('Shell: '.length));
         await io.File(
           p.join(root, 'dashboard', 'test', image),

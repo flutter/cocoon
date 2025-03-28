@@ -219,57 +219,65 @@ class TaskOverlayContents extends StatelessWidget {
     ),
   };
 
-  @override
-  Widget build(BuildContext context) {
-    final qualifiedTask = QualifiedTask.fromTask(task);
+  static String _describeTaskRunning(Task task, {required DateTime now}) {
+    final buffer = StringBuffer();
 
-    final now = Now.of(context);
     final createTime = DateTime.fromMillisecondsSinceEpoch(
       task.createTimestamp.toInt(),
     );
     final startTime = DateTime.fromMillisecondsSinceEpoch(
       task.startTimestamp.toInt(),
     );
+
+    // Q1: Is the task queuing (waiting to be scheduled, or waiting for LUCI)?
+    // If yes, explain how long it is has been waiting
+    // If no, explain how long it did wait
+    var wasQueued = false;
+    if (task.status == TaskBox.statusNew) {
+      final queuedFor = now.difference(createTime);
+      buffer.writeln('Waiting for backfill for ${queuedFor.inMinutes} minutes');
+    } else if (task.status == TaskBox.statusInProgress &&
+        (task.buildNumberList.isEmpty ||
+            task.attempts > task.buildNumberList.split(',').length)) {
+      // TODO(matanlurey): Change buildNumberList to List<int>.
+      final queuedFor = now.difference(createTime);
+      buffer.writeln('Queuing for ${queuedFor.inMinutes} minutes');
+    } else {
+      wasQueued = true;
+      final queuedFor = startTime.difference(createTime);
+      buffer.writeln('Queued for ${queuedFor.inMinutes} minutes');
+    }
+
     final endTime = DateTime.fromMillisecondsSinceEpoch(
       task.endTimestamp.toInt(),
     );
 
-    final queueDuration =
-        task.startTimestamp == 0
-            ? now!.difference(createTime)
-            : startTime.difference(createTime);
-    final runDuration =
-        task.endTimestamp == 0
-            ? now!.difference(startTime)
-            : endTime.difference(startTime);
+    switch (task.status) {
+      case TaskBox.statusInProgress when wasQueued:
+        final ranFor = now.difference(startTime);
+        buffer.write('Running for ${ranFor.inMinutes} minutes');
+      case TaskBox.statusSkipped:
+        buffer.write('Skipped');
+      case TaskBox.statusCancelled:
+        buffer.write('Cancelled');
+      case TaskBox.statusSucceeded:
+      case TaskBox.statusFailed:
+      case TaskBox.statusInfraFailure:
+        final ranFor = endTime.difference(startTime);
+        buffer.write('Ran for ${ranFor.inMinutes} minutes');
+    }
 
-    // There are 3 possible states for queue time:
-    //   1. Task is waiting to be scheduled (in queue)
-    //   2. Task has been scheduled (out of queue)
-    //   3. Task will never be scheduled (skipped).
-    final queueText = switch (task.status) {
-      TaskBox.statusNew => 'Queueing for ${queueDuration.inMinutes} minutes',
-      TaskBox.statusSkipped => 'Not scheduled or skipped',
-      _ => 'Queue time: ${queueDuration.inMinutes} minutes',
-    };
+    return buffer.toString();
+  }
 
-    // There are 4 possible states for the runtime:
-    //   1. Task has not run yet (new)
-    //   2. Task is running (in progress)
-    //   3. Task ran (other status)
-    //   4. Task will never run (skipped)
-    final runText = switch (task.status) {
-      TaskBox.statusNew => '',
-      TaskBox.statusInProgress =>
-        'Running for ${runDuration.inMinutes} minutes',
-      TaskBox.statusSkipped => '',
-      _ => 'Run time: ${runDuration.inMinutes} minutes',
-    };
+  @override
+  Widget build(BuildContext context) {
+    final qualifiedTask = QualifiedTask.fromTask(task);
+    final now = Now.of(context);
 
-    final summaryText = <String>[
+    final summaryText = [
       'Attempts: ${task.attempts}',
-      if (runText.isNotEmpty) runText,
-      queueText,
+      _describeTaskRunning(task, now: now!),
       if (task.isFlaky) 'Flaky: ${task.isFlaky}',
     ].join('\n');
 
