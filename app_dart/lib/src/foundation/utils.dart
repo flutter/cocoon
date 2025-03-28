@@ -69,9 +69,6 @@ http.Client _defaultHttpClientProvider() => http.Client();
 class FusionTester {
   final HttpClientProvider _httpClientProvider;
 
-  /// This is a lightweight in memory cache for commit-sha to isFusion
-  final _isFusionMap = <String, bool>{};
-
   FusionTester({
     http.Client Function() httpClientProvider = _defaultHttpClientProvider,
   }) : _httpClientProvider = httpClientProvider;
@@ -83,70 +80,7 @@ class FusionTester {
     Duration timeout = _githubTimeout,
     RetryOptions retryOptions = _githubRetryOptions,
   }) async {
-    final cacheKey = '${slug.fullName}/$sha';
-    final cacheHit = _isFusionMap[cacheKey];
-    if (cacheHit != null) {
-      log.info('isFusionRef: cache hit for $cacheKey = $cacheHit');
-      return cacheHit;
-    }
-    final isFusion =
-        _isFusionMap[cacheKey] = await _isFusionBasedRefReal(
-          slug,
-          sha,
-          timeout,
-          retryOptions,
-        );
-    return isFusion;
-  }
-
-  Future<bool> _isFusionBasedRefReal(
-    RepositorySlug slug,
-    String sha,
-    Duration timeout,
-    RetryOptions retryOptions,
-  ) async {
-    if (slug != Config.flutterSlug) {
-      log.debug('isFusionRef: not a fusion ref - wrong slug($slug)');
-      return false;
-    }
-    try {
-      final files = await Future.wait([
-        githubFileContent(
-          slug,
-          'DEPS',
-          httpClientProvider: _httpClientProvider,
-          ref: sha,
-          timeout: timeout,
-          retryOptions: retryOptions,
-        ),
-        githubFileContent(
-          slug,
-          'engine/src/.gn',
-          httpClientProvider: _httpClientProvider,
-          ref: sha,
-          timeout: timeout,
-          retryOptions: retryOptions,
-        ),
-      ]);
-      if (files.any((contents) => contents.isEmpty)) {
-        log.debug(
-          'isFusionRef: not a fusion ref - DEPS or engine/src/.gn is empty',
-        );
-        return false;
-      }
-
-      log.debug('isFusionRef: fusion ref - ');
-      return true;
-    } on NotFoundException catch (e) {
-      log.debug(
-        "isFusionRef: 'DEPS' or 'engine/src/.gn' not found a fusion ref.",
-        e,
-      );
-      return false;
-    } catch (e) {
-      log.warn('isFusionRef: unknown error while testing', e);
-      rethrow;
-    }
+    return slug == Config.flutterSlug;
   }
 }
 
