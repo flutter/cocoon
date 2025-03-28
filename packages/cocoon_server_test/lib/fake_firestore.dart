@@ -69,4 +69,26 @@ final class FakeFirestore extends Firestore {
     }
     return results;
   }
+
+  @override
+  Future<List<bool>> tryUpsertAll(Map<String, g.Document> documents) async {
+    final results = <bool>[];
+    for (final MapEntry(key: path, value: document) in documents.entries) {}
+    return results;
+  }
+
+  @override
+  Future<List<bool>> tryUpdateAll(Map<String, g.Document> documents) {
+    return super.tryUpdateAll(documents);
+  }
+
+  @override
+  Future<g.Document?> tryUpdateByPath(String path, g.Document document) {
+    return super.tryUpdateByPath(path, document);
+  }
+
+  @override
+  Future<g.Document> upsertByPath(String path, g.Document document) {
+    return super.upsertByPath(path, document);
+  }
 }

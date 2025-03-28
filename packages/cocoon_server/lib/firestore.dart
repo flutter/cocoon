@@ -56,7 +56,7 @@ base class Firestore {
   /// ## Example
   ///
   /// ```dart
-  /// print(firestore.resolvePath('task/task-name'));
+  /// print(firestore.resolvePath('documents/task/task-name'));
   /// // Outputs: projects/project-id/databases/database-id/documents/task/task-name
   /// ```
   String resolvePath(String path) => p.posix.join(_databasePath, path);
@@ -166,8 +166,94 @@ base class Firestore {
     return inserted;
   }
 
+  /// Upserts the [Document] at the _relative_ [path] to [document].
+  ///
+  /// If the document already exists, it is updated, otherwise it is inserted.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.upsertByPath('tasks/task-that-might-exist', document);
+  /// ```
+  @useResult
+  Future<g.Document> upsertByPath(String path, g.Document document) async {
+    return await _api.projects.databases.documents.patch(
+      document,
+      resolvePath(p.posix.join('documents', path)),
+    );
+  }
+
+  /// Updates the [Document] at the _relative_ [path] to [document].
+  ///
+  /// If the document was found, it is updated, otherwise `null` is returned.
+  ///
+  /// If it is invalid within your app to update a document that does not exist,
+  /// i.e. you would ignore the result, use [updateByPath].
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryUpdateByPath('tasks/task-that-might-exist', document);
+  /// ```
+  @useResult
+  Future<g.Document?> tryUpdateByPath(String path, g.Document document) async {
+    try {
+      return await _api.projects.databases.documents.patch(
+        document,
+        resolvePath(p.posix.join('documents', path)),
+      );
+    } on g.DetailedApiRequestError catch (e) {
+      if (e.status == HttpStatus.notFound) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// Updates the [Document] at the _relative_ [path] to [document].
+  ///
+  /// If the document was found, it is updated, otherwise `null` is returned.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.updateByPath('tasks/task-that-might-exist', document);
+  /// ```
+  @nonVirtual
+  Future<g.Document> updateByPath(String path, g.Document document) async {
+    final inserted = await tryUpdateByPath(path, document);
+    if (inserted == null) {
+      throw StateError('No document found at "$path"');
+    }
+    return inserted;
+  }
+
   /// See <https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto>.
   static const _gRPC$Status$OK = 0;
+
+  Future<List<bool>> _tryBatchWrite(
+    Map<String, g.Document> documents, {
+    required g.Precondition? currentDocument,
+  }) async {
+    final flatDocs = [
+      for (final MapEntry(key: path, value: doc) in documents.entries)
+        g.Document(name: resolvePath(path), fields: {...?doc.fields}),
+    ];
+    final response = await _api.projects.databases.documents.batchWrite(
+      g.BatchWriteRequest(
+        writes: [
+          for (final document in flatDocs)
+            g.Write(update: document, currentDocument: currentDocument),
+        ],
+      ),
+      _databasePath,
+    );
+    return [
+      for (final status in response.status!) status.code == _gRPC$Status$OK,
+    ];
+  }
+
+  static final _insertDoesNotExistsAlready = g.Precondition(exists: false);
 
   /// Inserts _all_ [documents] into the database.
   ///
@@ -190,24 +276,64 @@ base class Firestore {
   /// });
   /// ```
   Future<List<bool>> tryInsertAll(Map<String, g.Document> documents) async {
-    final flatDocs = [
-      for (final MapEntry(key: path, value: doc) in documents.entries)
-        g.Document(name: resolvePath(path), fields: {...?doc.fields}),
-    ];
-    final response = await _api.projects.databases.documents.batchWrite(
-      g.BatchWriteRequest(
-        writes: [
-          for (final document in flatDocs)
-            g.Write(
-              update: document,
-              currentDocument: g.Precondition(exists: false),
-            ),
-        ],
-      ),
-      _databasePath,
+    return _tryBatchWrite(
+      documents,
+      currentDocument: _insertDoesNotExistsAlready,
     );
-    return [
-      for (final status in response.status!) status.code == _gRPC$Status$OK,
-    ];
+  }
+
+  static final g.Precondition? _insertOrUpdateIfExistsAlready = null;
+
+  /// Upserts _all_ [documents] into the database.
+  ///
+  /// Each key of [documents] is interpreted as the _path_ (similar to an
+  /// operation like [insertByPath]), and each value is interpeted as the
+  /// cooresponding document.
+  ///
+  /// If the document already exists, it's _updated_, otherwise it's _inserted_.
+  ///
+  /// Returns a list of boolean values indicating whether each individual
+  /// document was successfully upserted, with a value of `true` indicating
+  /// _yes_ and a value of `false` indicating _no_.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryUpsertAll({
+  ///   'tasks/new-task-1': taskDocument1,
+  ///   'tasks/new-task-2': taskDocument2,
+  /// });
+  /// ```
+  Future<List<bool>> tryUpsertAll(Map<String, g.Document> documents) async {
+    return _tryBatchWrite(
+      documents,
+      currentDocument: _insertOrUpdateIfExistsAlready,
+    );
+  }
+
+  static final _updateMustAlreadyExist = g.Precondition(exists: true);
+
+  /// Updates _all_ [documents] into the database.
+  ///
+  /// Each key of [documents] is interpreted as the _path_ (similar to an
+  /// operation like [insertByPath]), and each value is interpeted as the
+  /// cooresponding document.
+  ///
+  /// If the document does not exist no changes are made.
+  ///
+  /// Returns a list of boolean values indicating whether each individual
+  /// document was successfully updated, with a value of `true` indicating
+  /// _yes_ and a value of `false` indicating _no_.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryUpdateAll({
+  ///   'tasks/new-task-1': taskDocument1,
+  ///   'tasks/new-task-2': taskDocument2,
+  /// });
+  /// ```
+  Future<List<bool>> tryUpdateAll(Map<String, g.Document> documents) async {
+    return _tryBatchWrite(documents, currentDocument: _updateMustAlreadyExist);
   }
 }
