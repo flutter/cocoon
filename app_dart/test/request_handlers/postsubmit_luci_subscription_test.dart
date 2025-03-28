@@ -166,7 +166,7 @@ void main() {
     // Firestore checks after API call.
     final updated = firestore.Task.fromDocument(
       await firestoreService.api.getByPath(
-        firestoreTask!.metadata.relativePath(firestoreTask!),
+        firestoreTask!.runtimeMetadata.relativePath(firestoreTask!),
       ),
     );
     expect(updated.status, Task.statusSucceeded);

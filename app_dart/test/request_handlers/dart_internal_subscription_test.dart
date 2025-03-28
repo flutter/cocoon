@@ -256,13 +256,15 @@ void main() {
 
     expect(taskInDb.toString(), equals(expectedTask.toString()));
 
-    final inserted = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/HASH12345_Linux packaging_release_builder_2',
+    expect(
+      firestoreService,
+      hasModelOf(
+        firestore.Task.metadata,
+        (m) => m
+            .having((t) => t.taskName, 'taskName', expectedTask.name)
+            .having((t) => t.status, 'status', expectedTask.status),
       ),
     );
-    expect(inserted.taskName, expectedTask.name);
-    expect(inserted.status, expectedTask.status);
   });
 
   test('ignores message with empty build data', () async {

@@ -49,7 +49,7 @@ mixin FirestoreServiceMixin {
   Firestore get api;
 
   String _resolvePath<T extends AppDocument<T>>(T document) {
-    return api.resolvePath(document.metadata.relativePath(document));
+    return api.resolvePath(document.runtimeMetadata.relativePath(document));
   }
 
   /// Inserts a [document].
@@ -71,7 +71,7 @@ mixin FirestoreServiceMixin {
     if (inserted == null) {
       return null;
     }
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 
   /// Inserts a [document].
@@ -85,7 +85,7 @@ mixin FirestoreServiceMixin {
   /// ```
   Future<T> insert<T extends AppDocument<T>>(T document) async {
     final inserted = await api.insertByPath(_resolvePath(document), document);
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 
   /// Upserts a [document].
@@ -99,7 +99,7 @@ mixin FirestoreServiceMixin {
   /// ```
   Future<T> upsert<T extends AppDocument<T>>(T document) async {
     final upserted = await api.upsertByPath(_resolvePath(document), document);
-    return document.metadata.fromDocument(upserted);
+    return document.runtimeMetadata.fromDocument(upserted);
   }
 
   /// Updates a [document].
@@ -118,7 +118,7 @@ mixin FirestoreServiceMixin {
     if (updated == null) {
       return null;
     }
-    return document.metadata.fromDocument(updated);
+    return document.runtimeMetadata.fromDocument(updated);
   }
 
   /// Inserts a [document].
@@ -132,7 +132,7 @@ mixin FirestoreServiceMixin {
   /// ```
   Future<T> update<T extends AppDocument<T>>(T document) async {
     final inserted = await api.updateByPath(_resolvePath(document), document);
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 }
 

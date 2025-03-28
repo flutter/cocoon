@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:cocoon_server/firestore.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:http/testing.dart';
@@ -29,6 +31,11 @@ final class FakeFirestore extends Firestore {
       ..createTime = document.createTime
       ..updateTime = document.updateTime;
   }
+
+  /// Documents stored in memory.
+  ///
+  /// This list is unmodifiable.
+  late final List<g.Document> documents = UnmodifiableListView(_documents);
 
   int? _getReferenceByPath(String path) {
     for (var i = 0; i < _documents.length; i++) {

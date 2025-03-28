@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_server_test/fake_firestore.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
@@ -10,6 +13,7 @@ import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:test/test.dart';
 
 import '../utilities/mocks.dart';
 
@@ -29,7 +33,10 @@ final class FakeFirestoreService
     implements FirestoreService {
   /// The raw [FakeFirestore] implementation that operates in-memory.
   @override
-  final api = FakeFirestore(projectId: 'project-id', databaseId: 'datbase-id');
+  final FakeFirestore api = FakeFirestore(
+    projectId: 'project-id',
+    databaseId: 'datbase-id',
+  );
 
   /// A mock [FirestoreService] for legacy methods that don't use [api].
   final mock = MockFirestoreService();
@@ -142,5 +149,55 @@ final class FakeFirestoreService
   @override
   Future<CommitResponse> writeViaTransaction(List<Write> writes) {
     return mock.writeViaTransaction(writes);
+  }
+
+  @override
+  String toString() {
+    return 'FakeFirestoreService ${const JsonEncoder.withIndent('  ').convert(api.documents)}';
+  }
+}
+
+/// Checks that a task matching [matcher] exists in [FakeFirestoreService].
+///
+/// ## Example
+///
+/// ```dart
+/// expect(
+///   fakeFirestoreService,
+///   hasModelOf(Task.metadata, (m) => m.having((t) => t.status, 'status', Task.statusSucceeded))
+/// );
+/// ```
+Matcher hasModelOf<T extends AppDocument<T>>(
+  AppDocumentMetadata<T> metadata,
+  Matcher Function(TypeMatcher<T>) match,
+) {
+  return _HasModel(metadata, match);
+}
+
+final class _HasModel<T extends AppDocument<T>> extends Matcher {
+  const _HasModel(this.metadata, this.match);
+  final AppDocumentMetadata<T> metadata;
+  final Matcher Function(TypeMatcher<T>) match;
+
+  @override
+  Description describe(Description description) {
+    final match = this.match(isA<T>());
+    description = description.add('has a $T where ');
+    return match.describe(description);
+  }
+
+  @override
+  bool matches(Object? item, _) {
+    if (item is! FakeFirestoreService) {
+      return false;
+    }
+    for (final document in item.api.documents) {
+      final model = metadata.fromDocument(document);
+      final match = this.match(isA<T>());
+      if (match.matches(model, {})) {
+        return true;
+      }
+    }
+    return false;
   }
 }
