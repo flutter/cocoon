@@ -11,16 +11,17 @@ import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/config.dart' show Config;
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_build_status_provider.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -30,7 +31,7 @@ void main() {
 
   group('PushStatusToGithub', () {
     late FakeBuildStatusService buildStatusService;
-    late MockFirestoreService mockFirestoreService;
+    late FakeFirestoreService firestoreService;
     late FakeClientContext clientContext;
     late FakeConfig config;
     late FakeDatastoreDB db;
@@ -47,7 +48,7 @@ void main() {
     GithubBuildStatus? githubBuildStatus;
 
     setUp(() async {
-      mockFirestoreService = MockFirestoreService();
+      firestoreService = FakeFirestoreService();
       clientContext = FakeClientContext();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       clientContext.isDevelopmentEnvironment = false;
@@ -66,7 +67,7 @@ void main() {
         ),
         githubService: githubService,
         dbValue: db,
-        firestoreService: mockFirestoreService,
+        firestoreService: firestoreService,
         githubClient: github,
       );
       tester = ApiRequestHandlerTester(context: authContext);
@@ -82,7 +83,7 @@ void main() {
       githubBuildStatus = null;
 
       when(
-        mockFirestoreService.queryLastBuildStatus(slug, 123, 'sha1'),
+        firestoreService.queryLastBuildStatus(slug!, 123, 'sha1'),
       ).thenAnswer((Invocation invocation) {
         return Future<GithubBuildStatus>.value(githubBuildStatus);
       });
@@ -167,11 +168,6 @@ void main() {
     test(
       'updates github and datastore if status has changed since last update',
       () async {
-        when(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<BatchWriteResponse>.value(BatchWriteResponse());
-        });
         final pr = generatePullRequest(id: 1, headSha: 'sha1');
         when(
           pullRequestsService.list(any, base: anyNamed('base')),
@@ -187,26 +183,22 @@ void main() {
         expect(githubBuildStatus!.updateTimeMillis, isNotNull);
         expect(githubBuildStatus!.status, BuildStatus.success().githubStatus);
 
-        final captured =
-            verify(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-            ).captured;
-        expect(captured.length, 2);
-        final batchWriteRequest = captured[0] as BatchWriteRequest;
-        expect(batchWriteRequest.writes!.length, 1);
-        final updatedDocument = GithubBuildStatus.fromDocument(
-          githubBuildStatus: batchWriteRequest.writes![0].update!,
+        expect(
+          firestoreService,
+          existsInStorage(GithubBuildStatus.metadata, [
+            isGithubBuildStatus
+              ..hasPrNumber(1)
+              ..hasRepository('flutter/flutter')
+              ..hasHead('sha1')
+              ..hasStatus(GithubBuildStatus.statusSuccess)
+              ..hasUpdateTimeMillis(isNotNull)
+              ..hasUpdates(1),
+          ]),
         );
-        expect(updatedDocument.updates, githubBuildStatus!.updates);
       },
     );
 
     test('updates github and datastore if status is neutral', () async {
-      when(
-        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<BatchWriteResponse>.value(BatchWriteResponse());
-      });
       final pr = generatePullRequest(
         id: 1,
         headSha: 'sha1',
@@ -228,18 +220,18 @@ void main() {
       expect(githubBuildStatus!.updateTimeMillis, isNotNull);
       expect(githubBuildStatus!.status, BuildStatus.neutral().githubStatus);
 
-      final captured =
-          verify(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          ).captured;
-      expect(captured.length, 2);
-      final batchWriteRequest = captured[0] as BatchWriteRequest;
-      expect(batchWriteRequest.writes!.length, 1);
-      final updatedDocument = GithubBuildStatus.fromDocument(
-        githubBuildStatus: batchWriteRequest.writes![0].update!,
+      expect(
+        firestoreService,
+        existsInStorage(GithubBuildStatus.metadata, [
+          isGithubBuildStatus
+            ..hasPrNumber(1)
+            ..hasRepository('flutter/flutter')
+            ..hasHead('sha1')
+            ..hasStatus(GithubBuildStatus.statusNeutral)
+            ..hasUpdateTimeMillis(isNotNull)
+            ..hasUpdates(1),
+        ]),
       );
-      expect(updatedDocument.updates, githubBuildStatus!.updates);
-      expect(updatedDocument.status, GithubBuildStatus.statusNeutral);
     });
   });
 }

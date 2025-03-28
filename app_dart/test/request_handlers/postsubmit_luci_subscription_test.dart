@@ -18,6 +18,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
@@ -97,11 +98,6 @@ void main() {
         <firestore_commit.Commit>[firestoreCommit!],
       );
     });
-    when(
-      firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-    ).thenAnswer((Invocation invocation) {
-      return Future<BatchWriteResponse>.value(BatchWriteResponse());
-    });
     final luciBuildService = FakeLuciBuildService(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
@@ -161,6 +157,7 @@ void main() {
     // Firestore checks before API call.
     expect(firestoreTask!.status, Task.statusNew);
     expect(firestoreTask!.buildNumber, null);
+    await firestoreService.insert(firestoreTask!);
 
     await tester.post(handler);
 
@@ -168,17 +165,12 @@ void main() {
     expect(task.endTimestamp, 1717430718072);
 
     // Firestore checks after API call.
-    final captured =
-        verify(
-          firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final updatedDocument = batchWriteRequest.writes![0].update!;
-    expect(updatedDocument.name, firestoreTask!.name);
-    expect(firestoreTask!.status, Task.statusSucceeded);
-    expect(firestoreTask!.buildNumber, 63405);
+    expect(
+      firestoreService,
+      existsInStorage(firestore.Task.metadata, [
+        isTask.hasStatus(Task.statusSucceeded).hasBuildNumber(63405),
+      ]),
+    );
   });
 
   test('skips task processing when build is with scheduled status', () async {
@@ -348,13 +340,16 @@ void main() {
     expect(firestoreTask!.attempts, 1);
     expect(await tester.post(handler), Body.empty);
 
-    final savedTask = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-      ),
+    expect(
+      firestoreService,
+      existsInStorage(firestore.Task.metadata, [
+        isTask
+            .hasStatus(firestore.Task.statusInProgress)
+            .hasAttempts(2)
+            .hasCommitSha('87f88734747805589f2131753620d61b22922822')
+            .hasTaskName('Linux A'),
+      ]),
     );
-    expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
@@ -401,13 +396,16 @@ void main() {
     expect(firestoreTask!.attempts, 1);
     expect(await tester.post(handler), Body.empty);
 
-    final savedTask = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-      ),
+    expect(
+      firestoreService,
+      existsInStorage(firestore.Task.metadata, [
+        isTask
+            .hasStatus(firestore.Task.statusInProgress)
+            .hasAttempts(2)
+            .hasCommitSha('87f88734747805589f2131753620d61b22922822')
+            .hasTaskName('Linux A'),
+      ]),
     );
-    expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
   });
 
   test(
@@ -456,13 +454,16 @@ void main() {
       expect(task.attempts, 1);
       expect(await tester.post(handler), Body.empty);
 
-      final savedTask = firestore.Task.fromDocument(
-        await firestoreService.api.getByPath(
-          'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-        ),
+      expect(
+        firestoreService,
+        existsInStorage(firestore.Task.metadata, [
+          isTask
+              .hasStatus(firestore.Task.statusInProgress)
+              .hasAttempts(2)
+              .hasCommitSha('87f88734747805589f2131753620d61b22922822')
+              .hasTaskName('Linux A'),
+        ]),
       );
-      expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
     },
   );
 
@@ -507,6 +508,7 @@ void main() {
       ),
     );
 
+    await firestoreService.insert(firestoreTask!);
     await tester.post(handler);
     verify(
       mockGithubChecksService.updateCheckStatus(
@@ -557,6 +559,7 @@ void main() {
       ),
     );
 
+    await firestoreService.insert(firestoreTask!);
     await tester.post(handler);
     verifyNever(
       mockGithubChecksService.updateCheckStatus(
@@ -612,6 +615,7 @@ void main() {
       ),
     );
 
+    await firestoreService.insert(firestoreTask!);
     await tester.post(handler);
     verifyNever(
       mockGithubChecksService.updateCheckStatus(

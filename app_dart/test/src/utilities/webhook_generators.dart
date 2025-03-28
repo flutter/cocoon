@@ -1136,7 +1136,10 @@ PushMessage generateMergeGroupMessage({
   required String repository,
   required String action,
   required String message,
+  DateTime? publishTime,
   String? reason,
+  String? headSha,
+  String? headRef,
 }) {
   if (action == 'destroyed' &&
       !MergeGroupEvent.destroyReasons.contains(reason)) {
@@ -1152,24 +1155,35 @@ PushMessage generateMergeGroupMessage({
       message: message,
       repository: repository,
       reason: reason,
+      headSha: headSha,
+      headRef: headRef,
     ),
   );
-  return PushMessage(data: webhookMessage.writeToJson(), messageId: 'abc123');
+  publishTime ??= DateTime.now();
+  return PushMessage(
+    data: webhookMessage.writeToJson(),
+    messageId: 'abc123',
+    publishTime: publishTime.toUtc().toIso8601String(),
+  );
 }
 
 String generateMergeGroupEventString({
   required String action,
   required String message,
   required String repository,
+  String? headSha,
+  String? headRef,
   String? reason,
 }) {
+  headSha ??= 'c9affbbb12aa40cb3afbe94b9ea6b119a256bebf';
+  headRef ??= 'refs/heads/gh-readonly-queue/main/pr-15-$headSha';
   return '''
 {
 "action": "$action",
 ${reason != null ? '"reason": "$reason",' : ''}
 "merge_group": {
-  "head_sha": "c9affbbb12aa40cb3afbe94b9ea6b119a256bebf",
-  "head_ref": "refs/heads/gh-readonly-queue/main/pr-15-172355550dde5881b0269972ea4cbe5a6d0561bc",
+  "head_sha": "$headSha",
+  "head_ref": "$headRef",
   "base_sha": "172355550dde5881b0269972ea4cbe5a6d0561bc",
   "base_ref": "refs/heads/main",
   "head_commit": {

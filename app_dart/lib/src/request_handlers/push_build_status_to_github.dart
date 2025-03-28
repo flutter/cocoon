@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -128,12 +127,8 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     if (githubBuildStatuses.isEmpty) {
       return;
     }
-    final writes = documentsToWrites(githubBuildStatuses);
     final firestoreService = await config.createFirestoreService();
-    await firestoreService.batchWriteDocuments(
-      BatchWriteRequest(writes: writes),
-      kDatabase,
-    );
+    await firestoreService.upsertAll(githubBuildStatuses);
   }
 
   Future<void> _insertBigquery(

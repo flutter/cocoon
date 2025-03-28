@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../../ci_yaml.dart';
@@ -18,7 +17,6 @@ import '../model/firestore/task.dart' as firestore;
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
-import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler.dart';
@@ -107,14 +105,8 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
       task.updateFromBuildbucketBuild(build);
       await datastore.insert(<Task>[task]);
-      final writes = documentsToWrites([firestoreTask], exists: true);
-      await firestoreService.batchWriteDocuments(
-        BatchWriteRequest(writes: writes),
-        kDatabase,
-      );
-      log.debug(
-        'Updated datastore from $oldTaskStatus to ${firestoreTask.status}',
-      );
+      await firestoreService.update(firestoreTask);
+      log.debug('Updated from $oldTaskStatus to ${firestoreTask.status}');
     } else {
       log.debug(
         'skip processing for build with status scheduled or task with status '

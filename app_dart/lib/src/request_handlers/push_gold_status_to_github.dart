@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:gql/language.dart' as lang;
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
@@ -275,11 +274,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
     if (githubGoldStatuses.isEmpty) {
       return;
     }
-    final writes = documentsToWrites(githubGoldStatuses);
-    await firestoreService.batchWriteDocuments(
-      BatchWriteRequest(writes: writes),
-      kDatabase,
-    );
+    await firestoreService.upsertAll(githubGoldStatuses);
   }
 
   /// Returns a GitHub Status for the given state and description.

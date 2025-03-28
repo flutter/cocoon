@@ -7,6 +7,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
+import 'base.dart';
 
 const String kGithubBuildStatusCollectionId = 'githubBuildStatuses';
 const String kGithubBuildStatusPrNumberField = 'prNumber';
@@ -18,7 +19,7 @@ const String kGithubBuildStatusUpdatesField = 'updates';
 
 /// Class that represents an update having been posted to a GitHub PR on the
 /// status of the Flutter build.
-class GithubBuildStatus extends Document {
+class GithubBuildStatus extends Document with AppDocument<GithubBuildStatus> {
   /// Lookup [GithubBuildStatus] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -27,20 +28,30 @@ class GithubBuildStatus extends Document {
     required String documentName,
   }) async {
     final document = await firestoreService.getDocument(documentName);
-    return GithubBuildStatus.fromDocument(githubBuildStatus: document);
+    return GithubBuildStatus.fromDocument(document);
   }
 
+  static final metadata = AppDocumentMetadata<GithubBuildStatus>(
+    collectionId: kGithubBuildStatusCollectionId,
+    // FIXME: Look up what the actual document name is.
+    documentName: (status) {
+      return '${status.slug.owner}_${status.slug.name}_${status.prNumber}';
+    },
+    fromDocument: GithubBuildStatus.fromDocument,
+  );
+
+  @override
+  AppDocumentMetadata<GithubBuildStatus> get runtimeMetadata => metadata;
+
   /// Create [GithubBuildStatus] from a GithubBuildStatus Document.
-  static GithubBuildStatus fromDocument({required Document githubBuildStatus}) {
+  static GithubBuildStatus fromDocument(Document githubBuildStatus) {
     return GithubBuildStatus()
       ..fields = githubBuildStatus.fields!
       ..name = githubBuildStatus.name!;
   }
 
   static const String statusSuccess = 'success';
-
   static const String statusFailure = 'failure';
-
   static const String statusNeutral = 'neutral';
 
   int? get prNumber =>
@@ -84,22 +95,5 @@ class GithubBuildStatus extends Document {
       integerValue: updateTimeMillis.toString(),
     );
     return updateTimeMillis;
-  }
-
-  @override
-  String toString() {
-    final buf =
-        StringBuffer()
-          ..write('$runtimeType(')
-          ..write(', $kGithubBuildStatusRepositoryField: $repository')
-          ..write(', $kGithubBuildStatusPrNumberField: $prNumber')
-          ..write(', $kGithubBuildStatusHeadField: $head')
-          ..write(', $kGithubBuildStatusStatusField: $status')
-          ..write(', $kGithubBuildStatusUpdatesField: $updates')
-          ..write(
-            ', $kGithubBuildStatusUpdateTimeMillisField: $updateTimeMillis',
-          )
-          ..write(')');
-    return buf.toString();
   }
 }

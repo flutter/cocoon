@@ -49,7 +49,7 @@ mixin FirestoreServiceMixin {
   Firestore get api;
 
   String _resolvePath<T extends AppDocument<T>>(T document) {
-    return api.resolvePath(document.metadata.relativePath(document));
+    return api.resolvePath(document.runtimeMetadata.relativePath(document));
   }
 
   /// Inserts a [document].
@@ -71,7 +71,7 @@ mixin FirestoreServiceMixin {
     if (inserted == null) {
       return null;
     }
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 
   /// Inserts a [document].
@@ -85,7 +85,117 @@ mixin FirestoreServiceMixin {
   /// ```
   Future<T> insert<T extends AppDocument<T>>(T document) async {
     final inserted = await api.insertByPath(_resolvePath(document), document);
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
+  }
+
+  /// Upserts a [document].
+  ///
+  /// If the document already exists, updates it, otherwise inserts it.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.upsert(task);
+  /// ```
+  Future<T> upsert<T extends AppDocument<T>>(T document) async {
+    final upserted = await api.upsertByPath(_resolvePath(document), document);
+    return document.runtimeMetadata.fromDocument(upserted);
+  }
+
+  /// Updates a [document].
+  ///
+  /// If the document does not exists, return `null`, otherwise returns the
+  /// updated document.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryUpdate(task);
+  /// ```
+  @useResult
+  Future<T?> tryUpdate<T extends AppDocument<T>>(T document) async {
+    final updated = await api.tryUpdateByPath(_resolvePath(document), document);
+    if (updated == null) {
+      return null;
+    }
+    return document.runtimeMetadata.fromDocument(updated);
+  }
+
+  /// Inserts a [document].
+  ///
+  /// The document must already exist.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.update(task);
+  /// ```
+  Future<T> update<T extends AppDocument<T>>(T document) async {
+    final inserted = await api.updateByPath(_resolvePath(document), document);
+    return document.runtimeMetadata.fromDocument(inserted);
+  }
+
+  void _checkBatchResults(Iterable<String> paths, List<bool> results) {
+    if (paths.length != results.length) {
+      throw ArgumentError('The number of paths and results must be the same.');
+    }
+    final failedPaths = <String>[];
+    var i = 0;
+    for (final path in paths) {
+      if (!results[i]) {
+        failedPaths.add(path);
+      }
+      i++;
+    }
+    if (failedPaths.isNotEmpty) {
+      throw BatchWriteException(failedPaths);
+    }
+  }
+
+  /// Inserts a list of [documents].
+  ///
+  /// Each document must not already exist.
+  Future<void> insertAll<T extends AppDocument<T>>(
+    Iterable<T> documents,
+  ) async {
+    final paths = {
+      for (final document in documents) _resolvePath(document): document,
+    };
+    _checkBatchResults(paths.keys, await api.tryInsertAll(paths));
+  }
+
+  /// Updates a list of [documents].
+  ///
+  /// Each document must already exist.
+  Future<void> updateAll<T extends AppDocument<T>>(
+    Iterable<T> documents,
+  ) async {
+    final paths = {
+      for (final document in documents) _resolvePath(document): document,
+    };
+    _checkBatchResults(paths.keys, await api.tryUpdateAll(paths));
+  }
+
+  /// Upserts a list of [documents].
+  ///
+  /// Each document may or may not already exist.
+  Future<void> upsertAll<T extends AppDocument<T>>(
+    Iterable<T> documents,
+  ) async {
+    final paths = {
+      for (final document in documents) _resolvePath(document): document,
+    };
+    _checkBatchResults(paths.keys, await api.tryUpsertAll(paths));
+  }
+}
+
+final class BatchWriteException implements Exception {
+  BatchWriteException(this.failedPaths);
+  final List<String> failedPaths;
+
+  @override
+  String toString() {
+    return 'BatchWriteException: $failedPaths';
   }
 }
 
@@ -120,20 +230,6 @@ class FirestoreService with FirestoreServiceMixin {
   Future<g.Document> getDocument(String name) async {
     final databasesDocumentsResource = await documentResource();
     return databasesDocumentsResource.get(name);
-  }
-
-  /// Batch writes documents to Firestore.
-  ///
-  /// It does not apply the write operations atomically and can apply them out of order.
-  /// Each write succeeds or fails independently.
-  ///
-  /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
-  Future<g.BatchWriteResponse> batchWriteDocuments(
-    g.BatchWriteRequest request,
-    String database,
-  ) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.batchWrite(request, database);
   }
 
   /// Writes [writes] to Firestore within a transaction.
@@ -224,16 +320,12 @@ class FirestoreService with FirestoreServiceMixin {
       '$kGithubGoldStatusRepositoryField =': slug.fullName,
     };
     final documents = await query(kGithubGoldStatusCollectionId, filterMap);
-    final githubGoldStatuses =
-        documents
-            .map(
-              (g.Document document) =>
-                  GithubGoldStatus.fromDocument(githubGoldStatus: document),
-            )
-            .toList();
+    final githubGoldStatuses = [
+      ...documents.map(GithubGoldStatus.fromDocument),
+    ];
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
-        githubGoldStatus: g.Document(
+        g.Document(
           name:
               '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
           fields: <String, g.Value>{
@@ -276,15 +368,10 @@ class FirestoreService with FirestoreServiceMixin {
     };
     final documents = await query(kGithubBuildStatusCollectionId, filterMap);
     final githubBuildStatuses =
-        documents
-            .map(
-              (g.Document document) =>
-                  GithubBuildStatus.fromDocument(githubBuildStatus: document),
-            )
-            .toList();
+        documents.map(GithubBuildStatus.fromDocument).toList();
     if (githubBuildStatuses.isEmpty) {
       return GithubBuildStatus.fromDocument(
-        githubBuildStatus: g.Document(
+        g.Document(
           name:
               '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
           fields: <String, g.Value>{

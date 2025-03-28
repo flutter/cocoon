@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.d
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -23,8 +22,10 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -39,7 +40,7 @@ void main() {
     late FakeClientContext clientContext;
     FakeAuthenticatedContext authContext;
     late FakeAuthenticationProvider auth;
-    late MockFirestoreService mockFirestoreService;
+    late FakeFirestoreService firestoreService;
     late FakeDatastoreDB db;
     late ApiRequestHandlerTester tester;
     late PushGoldStatusToGithub handler;
@@ -50,12 +51,12 @@ void main() {
 
     setUp(() {
       clientContext = FakeClientContext();
-      mockFirestoreService = MockFirestoreService();
+      firestoreService = FakeFirestoreService();
       authContext = FakeAuthenticatedContext(clientContext: clientContext);
       auth = FakeAuthenticationProvider(clientContext: clientContext);
       githubGraphQLClient = FakeGraphQLClient();
       db = FakeDatastoreDB();
-      config = FakeConfig(dbValue: db, firestoreService: mockFirestoreService);
+      config = FakeConfig(dbValue: db, firestoreService: firestoreService);
       tester = ApiRequestHandlerTester(context: authContext);
       mockHttpClient = MockClient(
         (_) async => http.Response('{}', HttpStatus.ok),
@@ -129,24 +130,17 @@ void main() {
         });
 
         // ignore: discarded_futures
-        when(mockFirestoreService.queryLastGoldStatus(slug, 123)).thenAnswer((
+        when(firestoreService.queryLastGoldStatus(slug, 123)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<GithubGoldStatus>.value(githubGoldStatus);
         });
 
         // ignore: discarded_futures
-        when(mockFirestoreService.queryLastGoldStatus(slug, 456)).thenAnswer((
+        when(firestoreService.queryLastGoldStatus(slug, 456)).thenAnswer((
           Invocation invocation,
         ) {
           return Future<GithubGoldStatus>.value(githubGoldStatusNext);
-        });
-
-        when(
-          // ignore: discarded_futures
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<BatchWriteResponse>.value(BatchWriteResponse());
         });
 
         when(
@@ -320,8 +314,9 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -369,8 +364,9 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -444,8 +440,9 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, isEmpty),
             );
             expect(log, hasNoWarningsOrHigher);
 
@@ -485,8 +482,9 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, isEmpty),
             );
             expect(log, hasNoWarningsOrHigher);
 
@@ -524,8 +522,9 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -556,8 +555,9 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -604,8 +604,9 @@ void main() {
 
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, isEmpty),
             );
             expect(log, hasNoWarningsOrHigher);
 
@@ -655,8 +656,9 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -699,8 +701,9 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -741,21 +744,19 @@ void main() {
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            githubGoldStatus: batchWriteRequest.writes![0].update!,
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, [
+              isGithubGoldStatus
+                ..hasPrNumber(flutterPr.number!)
+                ..hasRepository(slug.name)
+                ..hasHead(flutterPr.head!.sha)
+                ..hasStatus(GithubGoldStatus.statusRunning)
+                ..hasUpdates(1)
+                ..hasDescription(config.flutterGoldPendingValue),
+            ]),
           );
-          expect(updatedDocument.updates, 1);
+
           // Should not apply labels or make comments
           verifyNever(
             issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
@@ -806,21 +807,18 @@ void main() {
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            githubGoldStatus: batchWriteRequest.writes![0].update!,
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, [
+              isGithubGoldStatus
+                ..hasPrNumber(pr.number!)
+                ..hasRepository(slug.name)
+                ..hasHead(pr.head!.sha)
+                ..hasStatus(GithubGoldStatus.statusRunning)
+                ..hasUpdates(1)
+                ..hasDescription(config.flutterGoldPendingValue),
+            ]),
           );
-          expect(updatedDocument.updates, 1);
 
           // Should not label or comment
           verifyNever(
@@ -872,21 +870,18 @@ void main() {
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            githubGoldStatus: batchWriteRequest.writes![0].update!,
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, [
+              isGithubGoldStatus
+                ..hasPrNumber(pr.number!)
+                ..hasRepository(slug.name)
+                ..hasHead(pr.head!.sha)
+                ..hasStatus(GithubGoldStatus.statusRunning)
+                ..hasUpdates(1)
+                ..hasDescription(config.flutterGoldPendingValue),
+            ]),
           );
-          expect(updatedDocument.updates, 1);
 
           // Should not label or comment
           verifyNever(
@@ -958,21 +953,18 @@ void main() {
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            githubGoldStatus: batchWriteRequest.writes![0].update!,
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, [
+              isGithubGoldStatus
+                ..hasPrNumber(pr.number!)
+                ..hasRepository(slug.name)
+                ..hasHead(pr.head!.sha)
+                ..hasStatus(GithubGoldStatus.statusRunning)
+                ..hasUpdates(1)
+                ..hasDescription(config.flutterGoldPendingValue),
+            ]),
           );
-          expect(updatedDocument.updates, 1);
 
           // Should not label or comment
           verifyNever(
@@ -1035,21 +1027,18 @@ void main() {
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
 
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              githubGoldStatus: batchWriteRequest.writes![0].update!,
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, [
+                isGithubGoldStatus
+                  ..hasPrNumber(pr.number!)
+                  ..hasRepository(slug.name)
+                  ..hasHead(pr.head!.sha)
+                  ..hasStatus(GithubGoldStatus.statusRunning)
+                  ..hasUpdates(1)
+                  ..hasDescription(config.flutterGoldPendingValue),
+              ]),
             );
-            expect(updatedDocument.updates, 1);
 
             // Should label and comment
             verify(
@@ -1119,21 +1108,18 @@ void main() {
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
 
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              githubGoldStatus: batchWriteRequest.writes![0].update!,
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, [
+                isGithubGoldStatus
+                  ..hasPrNumber(pr.number!)
+                  ..hasRepository(slug.name)
+                  ..hasHead(pr.head!.sha)
+                  ..hasStatus(GithubGoldStatus.statusRunning)
+                  ..hasUpdates(1)
+                  ..hasDescription(config.flutterGoldPendingValue),
+              ]),
             );
-            expect(updatedDocument.updates, 1);
 
             // Should apply labels and make comment
             verify(
@@ -1203,21 +1189,18 @@ void main() {
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
 
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              githubGoldStatus: batchWriteRequest.writes![0].update!,
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, [
+                isGithubGoldStatus
+                  ..hasPrNumber(pr.number!)
+                  ..hasRepository(slug.name)
+                  ..hasHead(pr.head!.sha)
+                  ..hasStatus(GithubGoldStatus.statusRunning)
+                  ..hasUpdates(1)
+                  ..hasDescription(config.flutterGoldPendingValue),
+              ]),
             );
-            expect(updatedDocument.updates, 1);
 
             // Should apply labels and make comment
             verify(
@@ -1300,21 +1283,18 @@ void main() {
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
 
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              githubGoldStatus: batchWriteRequest.writes![0].update!,
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, [
+                isGithubGoldStatus
+                  ..hasPrNumber(pr.number!)
+                  ..hasRepository(slug.name)
+                  ..hasHead(pr.head!.sha)
+                  ..hasStatus(GithubGoldStatus.statusCompleted)
+                  ..hasUpdates(1)
+                  ..hasDescription(config.flutterGoldSuccessValue!),
+              ]),
             );
-            expect(updatedDocument.updates, 1);
 
             // Should not label or comment
             verifyNever(
@@ -1366,8 +1346,9 @@ void main() {
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, isEmpty),
             );
 
             // Should not apply labels or make comments
@@ -1420,8 +1401,9 @@ void main() {
             final body = await tester.get<Body>(handler);
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, isEmpty),
             );
 
             // Should not apply labels or make comments
@@ -1462,21 +1444,18 @@ void main() {
             expect(body, same(Body.empty));
             expect(log, hasNoWarningsOrHigher);
 
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              githubGoldStatus: batchWriteRequest.writes![0].update!,
+            expect(
+              firestoreService,
+              existsInStorage(GithubGoldStatus.metadata, [
+                isGithubGoldStatus
+                  ..hasPrNumber(pr.number!)
+                  ..hasRepository(slug.name)
+                  ..hasHead(pr.head!.sha)
+                  ..hasStatus(GithubGoldStatus.statusRunning)
+                  ..hasUpdates(1)
+                  ..hasDescription(config.flutterGoldPendingValue),
+              ]),
             );
-            expect(updatedDocument.updates, 1);
 
             // Should not apply labels or make comments
             verifyNever(
@@ -1592,8 +1571,9 @@ void main() {
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
 
           // Should not apply labels or make comments
@@ -1672,32 +1652,31 @@ void main() {
         test('when no updates are needed', () async {
           await handler.updateGithubGoldStatusDocuments(
             <GithubGoldStatus>[],
-            mockFirestoreService,
+            firestoreService,
           );
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, isEmpty),
           );
         });
 
         test('when updates are needed', () async {
           await handler.updateGithubGoldStatusDocuments(<GithubGoldStatus>[
             generateFirestoreGithubGoldStatus(1),
-          ], mockFirestoreService);
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            githubGoldStatus: batchWriteRequest.writes![0].update!,
+          ], firestoreService);
+
+          expect(
+            firestoreService,
+            existsInStorage(GithubGoldStatus.metadata, [
+              isGithubGoldStatus
+                ..hasPrNumber(1)
+                ..hasRepository('flutter/flutter')
+                ..hasHead('abc')
+                ..hasStatus(GithubGoldStatus.statusRunning)
+                ..hasUpdates(1)
+                ..hasDescription(config.flutterGoldPendingValue),
+            ]),
           );
-          expect(updatedDocument.head, 'sha1');
         });
       });
     });

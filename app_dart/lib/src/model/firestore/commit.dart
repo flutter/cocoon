@@ -84,7 +84,8 @@ final class Commit extends Document with AppDocument<Commit> {
   }
 
   @override
-  late final metadata = AppDocumentMetadata<Commit>(
+  AppDocumentMetadata<Commit> get runtimeMetadata => metadata;
+  static final metadata = AppDocumentMetadata<Commit>(
     collectionId: collectionId,
     documentName: (c) => c.sha,
     fromDocument: Commit.fromDocument,

@@ -12,6 +12,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_datastore.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.mocks.dart';
@@ -100,10 +101,15 @@ void main() {
       expect(commit.authorAvatarUrl, avatarUrl);
       expect(commit.branch, branch);
 
-      final insertedCommit = firestore.Commit.fromDocument(
-        await firestoreService.api.getByPath('commits/${commit.sha}'),
+      expect(
+        firestoreService,
+        existsInStorage(firestore.Commit.metadata, [
+          isCommit
+              .hasSha(sha)
+              .hasBranch(branch)
+              .hasRepositoryPath('$owner/$repository'),
+        ]),
       );
-      expect(insertedCommit.sha, commit.sha);
     });
 
     test('does not add commit to db if it exists in the datastore', () async {

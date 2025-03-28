@@ -30,6 +30,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_fusion_tester.dart';
@@ -1393,11 +1394,6 @@ void main() {
 
     test('reschedule using checkrun event successfully', () async {
       when(
-        firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<BatchWriteResponse>.value(BatchWriteResponse());
-      });
-      when(
         mockGithubChecksUtil.createCheckRun(any, any, any, any),
       ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
@@ -1851,12 +1847,6 @@ void main() {
           output: anyNamed('output'),
         ),
       ).thenAnswer((realInvocation) async => generateCheckRun(1));
-      when(
-        // ignore: discarded_futures
-        firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<BatchWriteResponse>.value(BatchWriteResponse());
-      });
       // ignore: discarded_futures
       when(firestoreService.mock.getDocument(captureAny)).thenAnswer((
         Invocation invocation,
@@ -2131,13 +2121,12 @@ void main() {
       expect(rerunFlag, isTrue);
       expect(firestoreTask!.attempts, 2);
 
-      final savedTask = firestore.Task.fromDocument(
-        await firestoreService.api.getByPath(
-          'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-        ),
+      expect(
+        firestoreService,
+        existsInStorage(firestore.Task.metadata, [
+          isTask.hasAttempts(2).hasStatus(firestore.Task.statusInProgress),
+        ]),
       );
-      expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
     });
   });
 
@@ -2183,12 +2172,6 @@ void main() {
       ).thenAnswer((realInvocation) async => generateCheckRun(1));
 
       firestoreService = FakeFirestoreService();
-      when(
-        // ignore: discarded_futures
-        firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<BatchWriteResponse>.value(BatchWriteResponse());
-      });
       // ignore: discarded_futures
       when(firestoreService.mock.getDocument(captureAny)).thenAnswer((
         Invocation invocation,

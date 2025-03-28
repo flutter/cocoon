@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_server_test/fake_firestore.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
@@ -10,6 +13,7 @@ import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:test/test.dart';
 
 import '../utilities/mocks.dart';
 
@@ -29,18 +33,13 @@ final class FakeFirestoreService
     implements FirestoreService {
   /// The raw [FakeFirestore] implementation that operates in-memory.
   @override
-  final api = FakeFirestore(projectId: 'project-id', databaseId: 'datbase-id');
+  final FakeFirestore api = FakeFirestore(
+    projectId: 'project-id',
+    databaseId: 'datbase-id',
+  );
 
   /// A mock [FirestoreService] for legacy methods that don't use [api].
   final mock = MockFirestoreService();
-
-  @override
-  Future<BatchWriteResponse> batchWriteDocuments(
-    BatchWriteRequest request,
-    String database,
-  ) {
-    return mock.batchWriteDocuments(request, database);
-  }
 
   @override
   Future<ProjectsDatabasesDocumentsResource> documentResource() {
@@ -142,5 +141,50 @@ final class FakeFirestoreService
   @override
   Future<CommitResponse> writeViaTransaction(List<Write> writes) {
     return mock.writeViaTransaction(writes);
+  }
+
+  @override
+  String toString() {
+    return 'FakeFirestoreService ${const JsonEncoder.withIndent('  ').convert(api.documents)}';
+  }
+}
+
+/// Checks that the models described by [metadata] match storage of [matcher].
+///
+/// ## Example
+///
+/// ```dart
+/// expect(
+///   fakeFirestoreService,
+///   inStorage(Task.metadata, hasLength(1)),
+/// );
+/// ```
+Matcher existsInStorage<T extends AppDocument<T>>(
+  AppDocumentMetadata<T> metadata,
+  Object? matcherOrCollection,
+) {
+  return _InStorage(metadata, wrapMatcher(matcherOrCollection));
+}
+
+final class _InStorage<T extends AppDocument<T>> extends Matcher {
+  const _InStorage(this.metadata, this.matcher);
+  final AppDocumentMetadata<T> metadata;
+  final Matcher matcher;
+
+  @override
+  Description describe(Description description) {
+    description = description.add('is storing $T instances where ');
+    return matcher.describe(description);
+  }
+
+  @override
+  bool matches(Object? item, _) {
+    if (item is! FakeFirestoreService) {
+      return false;
+    }
+    return matcher.matches(
+      item.api.documents.where((d) => metadata.isPathTo(d.name!)),
+      {},
+    );
   }
 }

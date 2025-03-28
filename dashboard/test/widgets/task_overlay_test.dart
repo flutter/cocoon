@@ -90,9 +90,9 @@ void main() {
           ..endTimestamp = int64FromDateTime(finishTime);
 
     final expectedTaskInfoString =
-        'Attempts: ${expectedTask.attempts}\n'
-        'Run time: 40 minutes\n'
-        'Queue time: 2 minutes';
+        'Attempts: 3\n'
+        'Queued for 2 minutes\n'
+        'Ran for 40 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
@@ -159,9 +159,9 @@ void main() {
           ..endTimestamp = int64FromDateTime(finishTime);
 
     final flakyTaskInfoString =
-        'Attempts: ${flakyTask.attempts}\n'
-        'Run time: 40 minutes\n'
-        'Queue time: 2 minutes\n'
+        'Attempts: 3\n'
+        'Queued for 2 minutes\n'
+        'Ran for 40 minutes\n'
         'Flaky: true';
 
     await tester.pumpWidget(
@@ -224,9 +224,9 @@ void main() {
           ..endTimestamp = int64FromDateTime(finishTime);
 
     final timeTaskInfoString =
-        'Attempts: ${timeTask.attempts}\n'
-        'Run time: 8 minutes\n'
-        'Queue time: 2 minutes';
+        'Attempts: 1\n'
+        'Queued for 2 minutes\n'
+        'Ran for 8 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
@@ -268,9 +268,8 @@ void main() {
           ..startTimestamp = int64FromDateTime(startTime);
 
     final timeTaskInfoString =
-        'Attempts: ${timeTask.attempts}\n'
-        'Running for 9 minutes\n'
-        'Queue time: 2 minutes';
+        'Attempts: 1\n'
+        'Queuing for 11 minutes\n';
 
     await tester.pumpWidget(
       Now.fixed(
@@ -295,7 +294,7 @@ void main() {
     expect(find.text(timeTaskInfoString), findsOneWidget);
   });
 
-  testWidgets('TaskOverlay computes durations correctly for queueing task', (
+  testWidgets('TaskOverlay computes durations correctly for waiting task', (
     WidgetTester tester,
   ) async {
     /// Create a queue time of 2 minutes
@@ -310,8 +309,49 @@ void main() {
           ..createTimestamp = int64FromDateTime(createTime);
 
     final timeTaskInfoString =
-        'Attempts: ${timeTask.attempts}\n'
-        'Queueing for 2 minutes';
+        'Attempts: 1\n'
+        'Waiting for backfill for 2 minutes\n';
+
+    await tester.pumpWidget(
+      Now.fixed(
+        dateTime: nowTime,
+        child: TaskBox(
+          cellSize: _cellSize,
+          child: MaterialApp(
+            home: Scaffold(
+              body: TestGrid(buildState: buildState, task: timeTask),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text(timeTaskInfoString), findsNothing);
+
+    // open the overlay to show the task summary
+    await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
+    await tester.pump();
+
+    expect(find.text(timeTaskInfoString), findsOneWidget);
+  });
+
+  testWidgets('TaskOverlay computes durations correctly for queuing task', (
+    WidgetTester tester,
+  ) async {
+    /// Create a queue time of 2 minutes
+    final createTime = nowTime.subtract(const Duration(minutes: 11));
+
+    final timeTask =
+        Task()
+          ..attempts = 1
+          ..builderName = 'Tasky McTaskFace'
+          ..status = TaskBox.statusInProgress
+          ..isFlaky = false
+          ..createTimestamp = int64FromDateTime(createTime);
+
+    final timeTaskInfoString =
+        'Attempts: 1\n'
+        'Queuing for 11 minutes\n';
 
     await tester.pumpWidget(
       Now.fixed(

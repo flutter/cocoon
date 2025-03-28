@@ -7,6 +7,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
+import 'base.dart';
 
 const String kGithubGoldStatusCollectionId = 'githubGoldStatuses';
 const String kGithubGoldStatusPrNumberField = 'prNumber';
@@ -16,7 +17,7 @@ const String kGithubGoldStatusDescriptionField = 'description';
 const String kGithubGoldStatusUpdatesField = 'updates';
 const String kGithubGoldStatusRepositoryField = 'repository';
 
-class GithubGoldStatus extends Document {
+class GithubGoldStatus extends Document with AppDocument<GithubGoldStatus> {
   /// Lookup [GithubGoldStatus] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -25,15 +26,27 @@ class GithubGoldStatus extends Document {
     required String documentName,
   }) async {
     final document = await firestoreService.getDocument(documentName);
-    return GithubGoldStatus.fromDocument(githubGoldStatus: document);
+    return GithubGoldStatus.fromDocument(document);
   }
 
   /// Create [GithubGoldStatus] from a GithubGoldStatus Document.
-  static GithubGoldStatus fromDocument({required Document githubGoldStatus}) {
+  static GithubGoldStatus fromDocument(Document githubGoldStatus) {
     return GithubGoldStatus()
       ..fields = githubGoldStatus.fields!
       ..name = githubGoldStatus.name!;
   }
+
+  static final metadata = AppDocumentMetadata<GithubGoldStatus>(
+    collectionId: kGithubGoldStatusCollectionId,
+    fromDocument: GithubGoldStatus.fromDocument,
+    // FIXME: Verify this is correct.
+    documentName: (status) {
+      return '${status.slug.owner}_${status.slug.name}_${status.prNumber}';
+    },
+  );
+
+  @override
+  AppDocumentMetadata<GithubGoldStatus> get runtimeMetadata => metadata;
 
   // The flutter-gold status cannot report a `failure` status
   // due to auto-rollers. This is why we hold a `pending` status
@@ -90,19 +103,4 @@ class GithubGoldStatus extends Document {
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repository!);
-
-  @override
-  String toString() {
-    final buf =
-        StringBuffer()
-          ..write('$runtimeType(')
-          ..write(', $kGithubGoldStatusPrNumberField: $prNumber')
-          ..write(', $kGithubGoldStatusHeadField: $head')
-          ..write(', $kGithubGoldStatusStatusField: $status')
-          ..write(', $kGithubGoldStatusDescriptionField $description')
-          ..write(', $kGithubGoldStatusUpdatesField: $updates')
-          ..write(', $kGithubGoldStatusRepositoryField: $repository')
-          ..write(')');
-    return buf.toString();
-  }
 }

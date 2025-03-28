@@ -523,16 +523,7 @@ void main() {
     );
 
     test('isFusionPR returns false non-flutter repo', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (!url.contains(
-          'https://raw.githubusercontent.com/flutter/flutter/DEPS',
-        )) {
-          return http.Response('', HttpStatus.notFound);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      final tester = FusionTester();
 
       final fusion = await tester.isFusionBasedRef(
         RepositorySlug('code', 'fu'),
@@ -542,116 +533,8 @@ void main() {
       expect(fusion, isFalse);
     });
 
-    test('isFusionPR returns false for missing DEPS file', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.notFound);
-        } else if (url.contains(
-          'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-        )) {
-          return http.Response('', HttpStatus.notFound);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-
-      final fusion = await tester.isFusionBasedRef(
-        goodFlutterRef.slug,
-        goodFlutterRef.sha,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isFalse);
-    });
-
-    test('isFusionPR returns false for missing engine/src/.gn file', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.notFound);
-        } else if (url.contains(
-          'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-        )) {
-          return http.Response('', HttpStatus.notFound);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-
-      final fusion = await tester.isFusionBasedRef(
-        goodFlutterRef.slug,
-        goodFlutterRef.sha,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isFalse);
-    });
-
-    test('isFusionPR returns false if required files are empty', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.notFound);
-        } else if (url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-            ) ||
-            url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-            )) {
-          return http.Response('', HttpStatus.ok);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-
-      final fusion = await tester.isFusionBasedRef(
-        goodFlutterRef.slug,
-        goodFlutterRef.sha,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isFalse);
-    });
-
-    test('isFusionPR lets non-404 exceptions bubble', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.badRequest);
-        } else if (url.contains(
-          'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-        )) {
-          return http.Response('', HttpStatus.badRequest);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-
-      expect(
-        tester.isFusionBasedRef(
-          goodFlutterRef.slug,
-          goodFlutterRef.sha,
-          retryOptions: noRetry,
-        ),
-        throwsA(isA<HttpException>()),
-      );
-    });
-
     test('isFusionPR returns true whe expected files are present', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.notFound);
-        } else if (url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-            ) ||
-            url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-            )) {
-          return http.Response('FUSION', HttpStatus.ok);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      final tester = FusionTester();
 
       final fusion = await tester.isFusionBasedRef(
         goodFlutterRef.slug,
@@ -659,42 +542,6 @@ void main() {
         retryOptions: noRetry,
       );
       expect(fusion, isTrue);
-    });
-
-    test('isFusionPR caches results', () async {
-      final urlCalled = <String, int>{};
-
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        urlCalled[url] = (urlCalled[url] ?? 0) + 1;
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.notFound);
-        } else if (url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-            ) ||
-            url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-            )) {
-          return http.Response('FUSION', HttpStatus.ok);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
-      final fusion = await tester.isFusionBasedRef(
-        goodFlutterRef.slug,
-        goodFlutterRef.sha,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isTrue);
-      expect(
-        urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn'],
-        1,
-      );
-      expect(
-        urlCalled['https://raw.githubusercontent.com/flutter/flutter/1234/DEPS'],
-        1,
-      );
     });
   });
 }

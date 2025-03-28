@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:cocoon_server/firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:http/testing.dart';
 
@@ -31,25 +32,31 @@ final class FakeFirestore extends Firestore {
       ..updateTime = document.updateTime;
   }
 
-  g.Document? _getReferenceByPath(String path) {
-    return _documents.firstWhereOrNull((d) {
-      if (d.name case final name?) {
-        return name.endsWith(path);
+  /// Documents stored in memory.
+  ///
+  /// This list is unmodifiable.
+  late final List<g.Document> documents = UnmodifiableListView(_documents);
+
+  int? _getReferenceByPath(String path) {
+    for (var i = 0; i < _documents.length; i++) {
+      final document = _documents[i];
+      if (document.name case final name? when name.endsWith(path)) {
+        return i;
       }
-      return false;
-    });
+    }
+    return null;
   }
 
   @override
   Future<g.Document?> tryGetByPath(String path) async {
-    final result = _getReferenceByPath(path);
-    return result == null ? null : _clone(result);
+    final index = _getReferenceByPath(path);
+    return index == null ? null : _clone(_documents[index]);
   }
 
   @override
   Future<g.Document?> tryInsertByPath(String path, g.Document document) async {
-    final existing = _getReferenceByPath(path);
-    if (existing != null) {
+    final index = _getReferenceByPath(path);
+    if (index != null) {
       return null;
     }
 
@@ -61,11 +68,60 @@ final class FakeFirestore extends Firestore {
   }
 
   @override
+  Future<g.Document?> tryUpdateByPath(String path, g.Document document) async {
+    final index = _getReferenceByPath(path);
+    if (index == null) {
+      return null;
+    }
+
+    final updated = _clone(_documents[index]);
+    updated.fields = {...?document.fields};
+    updated.updateTime = _now().toIso8601String();
+    _documents[index] = updated;
+    return _clone(updated);
+  }
+
+  @override
+  Future<g.Document> upsertByPath(String path, g.Document document) async {
+    final index = _getReferenceByPath(path);
+    if (index == null) {
+      return insertByPath(path, document);
+    } else {
+      return updateByPath(path, document);
+    }
+  }
+
+  @override
   Future<List<bool>> tryInsertAll(Map<String, g.Document> documents) async {
     final results = <bool>[];
     for (final MapEntry(key: path, value: document) in documents.entries) {
       final inserted = await tryInsertByPath(path, document);
       results.add(inserted != null);
+    }
+    return results;
+  }
+
+  @override
+  Future<List<bool>> tryUpsertAll(Map<String, g.Document> documents) async {
+    final results = <bool>[];
+    for (final MapEntry(key: path, value: document) in documents.entries) {
+      final inserted = await tryInsertByPath(path, document);
+      if (inserted == null) {
+        final updated = await tryUpdateByPath(path, document);
+        results.add(updated != null);
+      } else {
+        results.add(true);
+      }
+    }
+    return results;
+  }
+
+  @override
+  Future<List<bool>> tryUpdateAll(Map<String, g.Document> documents) async {
+    final results = <bool>[];
+    for (final MapEntry(key: path, value: document) in documents.entries) {
+      final updated = await tryUpdateByPath(path, document);
+      results.add(updated != null);
     }
     return results;
   }

@@ -14,14 +14,15 @@ import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 
@@ -76,7 +77,7 @@ void main() {
   late FakeHttpRequest request;
   late MockBuildBucketClient buildBucketClient;
   late SubscriptionTester tester;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestoreService;
   late Commit commit;
 
   // ignore: unused_local_variable
@@ -90,8 +91,8 @@ void main() {
   const fakeBranch = 'test-branch';
 
   setUp(() async {
-    mockFirestoreService = MockFirestoreService();
-    config = FakeConfig(firestoreService: mockFirestoreService);
+    firestoreService = FakeFirestoreService();
+    config = FakeConfig(firestoreService: firestoreService);
     buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
@@ -134,13 +135,7 @@ void main() {
   });
 
   test('creates a new task successfully', () async {
-    when(
-      mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-    ).thenAnswer((Invocation invocation) {
-      return Future<BatchWriteResponse>.value(BatchWriteResponse());
-    });
     tester.message = const PushMessage(data: buildMessageJson);
-
     await tester.post(handler);
 
     verify(buildBucketClient.getBuild(any)).called(1);
@@ -183,25 +178,15 @@ void main() {
 
     expect(taskInDb.toString(), equals(expectedTask.toString()));
 
-    final captured =
-        verify(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final insertedTaskDocument = firestore.Task.fromDocument(
-      batchWriteRequest.writes![0].update!,
+    expect(
+      firestoreService,
+      existsInStorage(firestore.Task.metadata, [
+        isTask.hasTaskName(expectedTask.name).hasStatus(expectedTask.status),
+      ]),
     );
-    expect(insertedTaskDocument.taskName, expectedTask.name);
   });
 
   test('updates an existing task successfully', () async {
-    when(
-      mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-    ).thenAnswer((Invocation invocation) {
-      return Future<BatchWriteResponse>.value(BatchWriteResponse());
-    });
     const existingTaskId = 123;
     final fakeTask = Task(
       attempts: 1,
@@ -271,18 +256,12 @@ void main() {
     );
 
     expect(taskInDb.toString(), equals(expectedTask.toString()));
-
-    final captured =
-        verify(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final insertedTaskDocument = firestore.Task.fromDocument(
-      batchWriteRequest.writes![0].update!,
+    expect(
+      firestoreService,
+      existsInStorage(firestore.Task.metadata, [
+        isTask.hasTaskName(expectedTask.name).hasStatus(expectedTask.status),
+      ]),
     );
-    expect(insertedTaskDocument.status, expectedTask.status);
   });
 
   test('ignores message with empty build data', () async {

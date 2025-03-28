@@ -117,13 +117,14 @@ final class Task extends Document with AppDocument<Task> {
   }
 
   @override
-  late final metadata = AppDocumentMetadata<Task>(
+  AppDocumentMetadata<Task> get runtimeMetadata => metadata;
+  static final metadata = AppDocumentMetadata<Task>(
     collectionId: kTaskCollectionId,
     documentName: (t) {
       final id = FirestoreTaskDocumentName(
-        commitSha: commitSha!,
-        taskName: taskName!,
-        currentAttempt: attempts!,
+        commitSha: t.commitSha!,
+        taskName: t.taskName!,
+        currentAttempt: t.attempts!,
       );
       return id.documentName;
     },
