@@ -255,14 +255,15 @@ void main() {
     );
 
     expect(taskInDb.toString(), equals(expectedTask.toString()));
-
     expect(
       firestoreService,
-      hasModelOf(
+      inStorage(
         firestore.Task.metadata,
-        (m) => m
-            .having((t) => t.taskName, 'taskName', expectedTask.name)
-            .having((t) => t.status, 'status', expectedTask.status),
+        equals([
+          isA<firestore.Task>()
+              .having((t) => t.taskName, 'taskName', expectedTask.name)
+              .having((t) => t.status, 'status', expectedTask.status),
+        ]),
       ),
     );
   });

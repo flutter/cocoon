@@ -157,33 +157,32 @@ final class FakeFirestoreService
   }
 }
 
-/// Checks that a task matching [matcher] exists in [FakeFirestoreService].
+/// Checks that the models described by [metadata] match storage of [matcher].
 ///
 /// ## Example
 ///
 /// ```dart
 /// expect(
 ///   fakeFirestoreService,
-///   hasModelOf(Task.metadata, (m) => m.having((t) => t.status, 'status', Task.statusSucceeded))
+///   inStorage(Task.metadata, hasLength(1)),
 /// );
 /// ```
-Matcher hasModelOf<T extends AppDocument<T>>(
+Matcher inStorage<T extends AppDocument<T>>(
   AppDocumentMetadata<T> metadata,
-  Matcher Function(TypeMatcher<T>) match,
+  Matcher matcher,
 ) {
-  return _HasModel(metadata, match);
+  return _InStorage(metadata, matcher);
 }
 
-final class _HasModel<T extends AppDocument<T>> extends Matcher {
-  const _HasModel(this.metadata, this.match);
+final class _InStorage<T extends AppDocument<T>> extends Matcher {
+  const _InStorage(this.metadata, this.matcher);
   final AppDocumentMetadata<T> metadata;
-  final Matcher Function(TypeMatcher<T>) match;
+  final Matcher matcher;
 
   @override
   Description describe(Description description) {
-    final match = this.match(isA<T>());
-    description = description.add('has a $T where ');
-    return match.describe(description);
+    description = description.add('is storing $T instances where ');
+    return matcher.describe(description);
   }
 
   @override
@@ -191,13 +190,11 @@ final class _HasModel<T extends AppDocument<T>> extends Matcher {
     if (item is! FakeFirestoreService) {
       return false;
     }
-    for (final document in item.api.documents) {
-      final model = metadata.fromDocument(document);
-      final match = this.match(isA<T>());
-      if (match.matches(model, {})) {
-        return true;
-      }
-    }
-    return false;
+    return matcher.matches(
+      item.api.documents
+          .where((d) => metadata.isPathTo(d.name!))
+          .map(metadata.fromDocument),
+      {},
+    );
   }
 }

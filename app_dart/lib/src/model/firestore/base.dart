@@ -28,7 +28,9 @@ final class AppDocumentMetadata<T extends AppDocument<T>> {
   final String Function(T) _documentName;
 
   /// Whether [path] is a path to this type of document.
-  bool isPathA(String path) => p.posix.dirname(path) == _collectionId;
+  bool isPathTo(String path) {
+    return p.posix.basename(p.posix.dirname(path)) == _collectionId;
+  }
 
   /// Creates a new instance of [T].
   ///
