@@ -120,9 +120,10 @@ class FakeGithubService implements GithubService {
     return <String>['abc/def'];
   }
 
+  GitReference Function() getReferenceValue = GitReference.new;
   @override
   Future<GitReference> getReference(RepositorySlug slug, String ref) async {
-    return GitReference();
+    return getReferenceValue();
   }
 
   @override
