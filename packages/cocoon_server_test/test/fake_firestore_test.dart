@@ -119,4 +119,128 @@ void main() {
       ),
     );
   });
+
+  test('updates a document', () async {
+    final task = await firestore.insertByPath(
+      'tasks/existing-task',
+      g.Document(fields: {'gold_coins': g.Value(integerValue: '1001')}),
+    );
+
+    task.fields!['gold_coins'] = g.Value(integerValue: '2002');
+    await firestore.updateByPath('tasks/existing-task', task);
+
+    await expectLater(
+      firestore.tryGetByPath('tasks/existing-task'),
+      completion(
+        isA<g.Document>().having(
+          (d) => jsonDecode(jsonEncode(d.toJson()))['fields'],
+          'toJson()',
+          {
+            'gold_coins': {'integerValue': '2002'},
+          },
+        ),
+      ),
+    );
+  });
+
+  test('upserts a document', () async {
+    final task = await firestore.upsertByPath(
+      'tasks/existing-task',
+      g.Document(fields: {'gold_coins': g.Value(integerValue: '1001')}),
+    );
+
+    task.fields!['gold_coins'] = g.Value(integerValue: '2002');
+    final _ = await firestore.upsertByPath('tasks/existing-task', task);
+
+    await expectLater(
+      firestore.tryGetByPath('tasks/existing-task'),
+      completion(
+        isA<g.Document>().having(
+          (d) => jsonDecode(jsonEncode(d.toJson()))['fields'],
+          'toJson()',
+          {
+            'gold_coins': {'integerValue': '2002'},
+          },
+        ),
+      ),
+    );
+  });
+
+  test('upserts multiple documents', () async {
+    await expectLater(
+      firestore.tryUpsertAll({
+        'tasks/task-1': g.Document(
+          fields: {'gold_coins': g.Value(integerValue: '1001')},
+        ),
+        'tasks/task-2': g.Document(
+          fields: {'gold_coins': g.Value(integerValue: '2002')},
+        ),
+      }),
+      completion([true, true]),
+    );
+
+    await expectLater(
+      firestore.tryGetByPath('tasks/task-1'),
+      completion(
+        isA<g.Document>().having(
+          (d) => jsonDecode(jsonEncode(d.toJson()))['fields'],
+          'toJson()',
+          {
+            'gold_coins': {'integerValue': '1001'},
+          },
+        ),
+      ),
+    );
+
+    await expectLater(
+      firestore.tryGetByPath('tasks/task-2'),
+      completion(
+        isA<g.Document>().having(
+          (d) => jsonDecode(jsonEncode(d.toJson()))['fields'],
+          'toJson()',
+          {
+            'gold_coins': {'integerValue': '2002'},
+          },
+        ),
+      ),
+    );
+
+    await expectLater(
+      firestore.tryUpsertAll({
+        'tasks/task-1': g.Document(
+          fields: {'gold_coins': g.Value(integerValue: '3003')},
+        ),
+        'tasks/task-2': g.Document(
+          fields: {'gold_coins': g.Value(integerValue: '4004')},
+        ),
+      }),
+      completion([true, true]),
+    );
+
+    await expectLater(
+      firestore.tryGetByPath('tasks/task-1'),
+      completion(
+        isA<g.Document>().having(
+          (d) => jsonDecode(jsonEncode(d.toJson()))['fields'],
+          'toJson()',
+          {
+            'gold_coins': {'integerValue': '3003'},
+          },
+        ),
+      ),
+    );
+
+    await expectLater(
+      firestore.tryGetByPath('tasks/task-2'),
+      completion(
+        isA<g.Document>().having(
+          (d) => jsonDecode(jsonEncode(d.toJson()))['fields'],
+          'toJson()',
+          {
+            'gold_coins': {'integerValue': '4004'},
+          },
+        ),
+      ),
+    );
+  });
 }
