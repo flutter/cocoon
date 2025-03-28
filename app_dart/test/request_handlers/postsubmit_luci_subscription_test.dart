@@ -97,11 +97,6 @@ void main() {
         <firestore_commit.Commit>[firestoreCommit!],
       );
     });
-    when(
-      firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-    ).thenAnswer((Invocation invocation) {
-      return Future<BatchWriteResponse>.value(BatchWriteResponse());
-    });
     final luciBuildService = FakeLuciBuildService(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
@@ -161,6 +156,7 @@ void main() {
     // Firestore checks before API call.
     expect(firestoreTask!.status, Task.statusNew);
     expect(firestoreTask!.buildNumber, null);
+    await firestoreService.insert(firestoreTask!);
 
     await tester.post(handler);
 
@@ -168,17 +164,13 @@ void main() {
     expect(task.endTimestamp, 1717430718072);
 
     // Firestore checks after API call.
-    final captured =
-        verify(
-          firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final updatedDocument = batchWriteRequest.writes![0].update!;
-    expect(updatedDocument.name, firestoreTask!.name);
-    expect(firestoreTask!.status, Task.statusSucceeded);
-    expect(firestoreTask!.buildNumber, 63405);
+    final updated = firestore.Task.fromDocument(
+      await firestoreService.api.getByPath(
+        firestoreTask!.metadata.relativePath(firestoreTask!),
+      ),
+    );
+    expect(updated.status, Task.statusSucceeded);
+    expect(updated.buildNumber, 63405);
   });
 
   test('skips task processing when build is with scheduled status', () async {
@@ -507,6 +499,7 @@ void main() {
       ),
     );
 
+    await firestoreService.insert(firestoreTask!);
     await tester.post(handler);
     verify(
       mockGithubChecksService.updateCheckStatus(
@@ -557,6 +550,7 @@ void main() {
       ),
     );
 
+    await firestoreService.insert(firestoreTask!);
     await tester.post(handler);
     verifyNever(
       mockGithubChecksService.updateCheckStatus(
@@ -612,6 +606,7 @@ void main() {
       ),
     );
 
+    await firestoreService.insert(firestoreTask!);
     await tester.post(handler);
     verifyNever(
       mockGithubChecksService.updateCheckStatus(
