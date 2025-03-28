@@ -8,7 +8,6 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -105,18 +104,8 @@ class DartInternalSubscription extends SubscriptionHandler {
 
     log.info('Inserting Task into the datastore: ${taskToInsert.toString()}');
     await datastore.insert(<Task>[taskToInsert]);
-    try {
-      final firestoreService = await config.createFirestoreService();
-      final writes = documentsToWrites([
-        firestore.Task.fromDatastore(taskToInsert),
-      ]);
-      await firestoreService.batchWriteDocuments(
-        BatchWriteRequest(writes: writes),
-        kDatabase,
-      );
-    } catch (e) {
-      log.warn('Failed to insert dart internal task into firestore', e);
-    }
+    final firestoreService = await config.createFirestoreService();
+    await firestoreService.upsert(firestore.Task.fromDatastore(taskToInsert));
 
     return Body.forJson(taskToInsert.toString());
   }
