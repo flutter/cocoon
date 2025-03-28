@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
 
@@ -64,15 +63,7 @@ Duration twoSecondLinearBackoff(int attempt) {
   return const Duration(seconds: 2) * (attempt + 1);
 }
 
-http.Client _defaultHttpClientProvider() => http.Client();
-
 class FusionTester {
-  final HttpClientProvider _httpClientProvider;
-
-  FusionTester({
-    http.Client Function() httpClientProvider = _defaultHttpClientProvider,
-  }) : _httpClientProvider = httpClientProvider;
-
   /// Tests if the [sha] is in flutter/flutter and engine assets are available.
   Future<bool> isFusionBasedRef(
     RepositorySlug slug,

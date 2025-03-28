@@ -523,16 +523,7 @@ void main() {
     );
 
     test('isFusionPR returns false non-flutter repo', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (!url.contains(
-          'https://raw.githubusercontent.com/flutter/flutter/DEPS',
-        )) {
-          return http.Response('', HttpStatus.notFound);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      final tester = FusionTester();
 
       final fusion = await tester.isFusionBasedRef(
         RepositorySlug('code', 'fu'),
@@ -543,22 +534,7 @@ void main() {
     });
 
     test('isFusionPR returns true whe expected files are present', () async {
-      final branchHttpClient = MockClient((req) async {
-        final url = '${req.url}';
-        if (url.contains('flutter.googlesource.com')) {
-          return http.Response('', HttpStatus.notFound);
-        } else if (url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/engine/src/.gn',
-            ) ||
-            url.contains(
-              'https://raw.githubusercontent.com/flutter/flutter/1234/DEPS',
-            )) {
-          return http.Response('FUSION', HttpStatus.ok);
-        }
-        return http.Response('test', HttpStatus.ok);
-      });
-
-      final tester = FusionTester(httpClientProvider: () => branchHttpClient);
+      final tester = FusionTester();
 
       final fusion = await tester.isFusionBasedRef(
         goodFlutterRef.slug,
