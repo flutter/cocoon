@@ -260,3 +260,49 @@ final class TaskMatcher extends Matcher {
     return _delegate.matches(item, {});
   }
 }
+
+CommitMatcher isCommit() => const CommitMatcher._(TypeMatcher<Commit>());
+
+final class CommitMatcher extends Matcher {
+  const CommitMatcher._(this._delegate);
+  final TypeMatcher<Commit> _delegate;
+
+  CommitMatcher sha(Object? matcherOrSha) {
+    return CommitMatcher._(
+      _delegate.having((Commit commit) => commit.sha, 'sha', matcherOrSha),
+    );
+  }
+
+  CommitMatcher branch(Object? matcherOrBranch) {
+    return CommitMatcher._(
+      _delegate.having(
+        (Commit commit) => commit.branch,
+        'branch',
+        matcherOrBranch,
+      ),
+    );
+  }
+
+  CommitMatcher repositoryPath(Object? matcherOrRepository) {
+    return CommitMatcher._(
+      _delegate.having(
+        (Commit commit) => commit.repositoryPath,
+        'repositoryPath',
+        matcherOrRepository,
+      ),
+    );
+  }
+
+  @override
+  Description describe(Description description) {
+    return _delegate.describe(description);
+  }
+
+  @override
+  bool matches(Object? item, _) {
+    if (item is! Commit) {
+      return false;
+    }
+    return _delegate.matches(item, {});
+  }
+}

@@ -102,10 +102,12 @@ void main() {
 
       expect(
         firestoreService,
-        inStorage(
-          firestore.Commit.metadata,
-          equals([isA<firestore.Commit>().having((c) => c.sha, 'sha', sha)]),
-        ),
+        inStorage(firestore.Commit.metadata, [
+          isCommit()
+              .sha(sha)
+              .branch(branch)
+              .repositoryPath('$owner/$repository'),
+        ]),
       );
     });
 
