@@ -169,9 +169,9 @@ final class FakeFirestoreService
 /// ```
 Matcher inStorage<T extends AppDocument<T>>(
   AppDocumentMetadata<T> metadata,
-  Matcher matcher,
+  Object? matcherOrCollection,
 ) {
-  return _InStorage(metadata, matcher);
+  return _InStorage(metadata, wrapMatcher(matcherOrCollection));
 }
 
 final class _InStorage<T extends AppDocument<T>> extends Matcher {
@@ -196,5 +196,67 @@ final class _InStorage<T extends AppDocument<T>> extends Matcher {
           .map(metadata.fromDocument),
       {},
     );
+  }
+}
+
+TaskMatcher isTask() => const TaskMatcher._(TypeMatcher<Task>());
+
+final class TaskMatcher extends Matcher {
+  const TaskMatcher._(this._delegate);
+  final TypeMatcher<Task> _delegate;
+
+  TaskMatcher attempts(Object? matcherOrAttempts) {
+    return TaskMatcher._(
+      _delegate.having(
+        (Task task) => task.attempts,
+        'attempts',
+        matcherOrAttempts,
+      ),
+    );
+  }
+
+  TaskMatcher status(Object? matcherOrStatus) {
+    return TaskMatcher._(
+      _delegate.having((Task task) => task.status, 'status', matcherOrStatus),
+    );
+  }
+
+  TaskMatcher commitSha(Object? matcherOrSha) {
+    return TaskMatcher._(
+      _delegate.having(
+        (Task task) => task.commitSha,
+        'commitSha',
+        matcherOrSha,
+      ),
+    );
+  }
+
+  TaskMatcher taskName(Object? matcherOrName) {
+    return TaskMatcher._(
+      _delegate.having((Task task) => task.taskName, 'taskName', matcherOrName),
+    );
+  }
+
+  TaskMatcher buildNumber(Object? matcherOrBuildNumber) {
+    return TaskMatcher._(
+      _delegate.having(
+        (Task task) => task.buildNumber,
+        'buildNumber',
+        matcherOrBuildNumber,
+      ),
+    );
+  }
+
+  @override
+  Description describe(Description description) {
+    return _delegate.describe(description);
+  }
+
+  @override
+  bool matches(Object? item, _) {
+    if (item is! Task) {
+      return false;
+    }
+    return _delegate.matches(item, {});
   }
 }

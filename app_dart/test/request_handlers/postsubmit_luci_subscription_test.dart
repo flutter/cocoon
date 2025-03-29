@@ -166,14 +166,9 @@ void main() {
     // Firestore checks after API call.
     expect(
       firestoreService,
-      inStorage(
-        firestore.Task.metadata,
-        equals([
-          isA<firestore.Task>()
-              .having((t) => t.status, 'status', Task.statusSucceeded)
-              .having((t) => t.buildNumber, 'buildNumber', 63405),
-        ]),
-      ),
+      inStorage(firestore.Task.metadata, [
+        isTask().status(Task.statusSucceeded).buildNumber(63405),
+      ]),
     );
   });
 
@@ -346,24 +341,13 @@ void main() {
 
     expect(
       firestoreService,
-      inStorage(
-        firestore.Task.metadata,
-        equals([
-          isA<firestore.Task>()
-              .having(
-                (t) => t.status,
-                'status',
-                firestore.Task.statusInProgress,
-              )
-              .having((t) => t.attempts, 'attempts', 2)
-              .having(
-                (t) => t.commitSha,
-                'commitSha',
-                '87f88734747805589f2131753620d61b22922822',
-              )
-              .having((t) => t.taskName, 'taskName', 'Linux A'),
-        ]),
-      ),
+      inStorage(firestore.Task.metadata, [
+        isTask()
+            .status(firestore.Task.statusInProgress)
+            .attempts(2)
+            .commitSha('87f88734747805589f2131753620d61b22922822')
+            .taskName('Linux A'),
+      ]),
     );
   });
 
@@ -413,24 +397,13 @@ void main() {
 
     expect(
       firestoreService,
-      inStorage(
-        firestore.Task.metadata,
-        equals([
-          isA<firestore.Task>()
-              .having(
-                (t) => t.status,
-                'status',
-                firestore.Task.statusInProgress,
-              )
-              .having((t) => t.attempts, 'attempts', 2)
-              .having(
-                (t) => t.commitSha,
-                'commitSha',
-                '87f88734747805589f2131753620d61b22922822',
-              )
-              .having((t) => t.taskName, 'taskName', 'Linux A'),
-        ]),
-      ),
+      inStorage(firestore.Task.metadata, [
+        isTask()
+            .status(firestore.Task.statusInProgress)
+            .attempts(2)
+            .commitSha('87f88734747805589f2131753620d61b22922822')
+            .taskName('Linux A'),
+      ]),
     );
   });
 
@@ -482,24 +455,13 @@ void main() {
 
       expect(
         firestoreService,
-        inStorage(
-          firestore.Task.metadata,
-          equals([
-            isA<firestore.Task>()
-                .having(
-                  (t) => t.status,
-                  'status',
-                  firestore.Task.statusInProgress,
-                )
-                .having((t) => t.attempts, 'attempts', 2)
-                .having(
-                  (t) => t.commitSha,
-                  'commitSha',
-                  '87f88734747805589f2131753620d61b22922822',
-                )
-                .having((t) => t.taskName, 'taskName', 'Linux A'),
-          ]),
-        ),
+        inStorage(firestore.Task.metadata, [
+          isTask()
+              .status(firestore.Task.statusInProgress)
+              .attempts(2)
+              .commitSha('87f88734747805589f2131753620d61b22922822')
+              .taskName('Linux A'),
+        ]),
       );
     },
   );

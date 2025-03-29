@@ -179,14 +179,9 @@ void main() {
 
     expect(
       firestoreService,
-      inStorage(
-        firestore.Task.metadata,
-        equals([
-          isA<firestore.Task>()
-              .having((t) => t.taskName, 'taskName', expectedTask.name)
-              .having((t) => t.status, 'status', expectedTask.status),
-        ]),
-      ),
+      inStorage(firestore.Task.metadata, [
+        isTask().taskName(expectedTask.name).status(expectedTask.status),
+      ]),
     );
   });
 
@@ -262,14 +257,9 @@ void main() {
     expect(taskInDb.toString(), equals(expectedTask.toString()));
     expect(
       firestoreService,
-      inStorage(
-        firestore.Task.metadata,
-        equals([
-          isA<firestore.Task>()
-              .having((t) => t.taskName, 'taskName', expectedTask.name)
-              .having((t) => t.status, 'status', expectedTask.status),
-        ]),
-      ),
+      inStorage(firestore.Task.metadata, [
+        isTask().taskName(expectedTask.name).status(expectedTask.status),
+      ]),
     );
   });
 

@@ -2133,18 +2133,9 @@ void main() {
 
       expect(
         firestoreService,
-        inStorage(
-          firestore.Task.metadata,
-          equals([
-            isA<firestore.Task>()
-                .having((firestore.Task task) => task.attempts, 'attempts', 2)
-                .having(
-                  (firestore.Task task) => task.status,
-                  'status',
-                  firestore.Task.statusInProgress,
-                ),
-          ]),
-        ),
+        inStorage(firestore.Task.metadata, [
+          isTask().attempts(2).status(firestore.Task.statusInProgress),
+        ]),
       );
     });
   });
