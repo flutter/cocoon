@@ -164,13 +164,17 @@ void main() {
     expect(task.endTimestamp, 1717430718072);
 
     // Firestore checks after API call.
-    final updated = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        firestoreTask!.runtimeMetadata.relativePath(firestoreTask!),
+    expect(
+      firestoreService,
+      inStorage(
+        firestore.Task.metadata,
+        equals([
+          isA<firestore.Task>()
+              .having((t) => t.status, 'status', Task.statusSucceeded)
+              .having((t) => t.buildNumber, 'buildNumber', 63405),
+        ]),
       ),
     );
-    expect(updated.status, Task.statusSucceeded);
-    expect(updated.buildNumber, 63405);
   });
 
   test('skips task processing when build is with scheduled status', () async {
@@ -340,13 +344,27 @@ void main() {
     expect(firestoreTask!.attempts, 1);
     expect(await tester.post(handler), Body.empty);
 
-    final savedTask = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
+    expect(
+      firestoreService,
+      inStorage(
+        firestore.Task.metadata,
+        equals([
+          isA<firestore.Task>()
+              .having(
+                (t) => t.status,
+                'status',
+                firestore.Task.statusInProgress,
+              )
+              .having((t) => t.attempts, 'attempts', 2)
+              .having(
+                (t) => t.commitSha,
+                'commitSha',
+                '87f88734747805589f2131753620d61b22922822',
+              )
+              .having((t) => t.taskName, 'taskName', 'Linux A'),
+        ]),
       ),
     );
-    expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
@@ -393,13 +411,27 @@ void main() {
     expect(firestoreTask!.attempts, 1);
     expect(await tester.post(handler), Body.empty);
 
-    final savedTask = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
+    expect(
+      firestoreService,
+      inStorage(
+        firestore.Task.metadata,
+        equals([
+          isA<firestore.Task>()
+              .having(
+                (t) => t.status,
+                'status',
+                firestore.Task.statusInProgress,
+              )
+              .having((t) => t.attempts, 'attempts', 2)
+              .having(
+                (t) => t.commitSha,
+                'commitSha',
+                '87f88734747805589f2131753620d61b22922822',
+              )
+              .having((t) => t.taskName, 'taskName', 'Linux A'),
+        ]),
       ),
     );
-    expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
   });
 
   test(
@@ -448,13 +480,27 @@ void main() {
       expect(task.attempts, 1);
       expect(await tester.post(handler), Body.empty);
 
-      final savedTask = firestore.Task.fromDocument(
-        await firestoreService.api.getByPath(
-          'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
+      expect(
+        firestoreService,
+        inStorage(
+          firestore.Task.metadata,
+          equals([
+            isA<firestore.Task>()
+                .having(
+                  (t) => t.status,
+                  'status',
+                  firestore.Task.statusInProgress,
+                )
+                .having((t) => t.attempts, 'attempts', 2)
+                .having(
+                  (t) => t.commitSha,
+                  'commitSha',
+                  '87f88734747805589f2131753620d61b22922822',
+                )
+                .having((t) => t.taskName, 'taskName', 'Linux A'),
+          ]),
         ),
       );
-      expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
     },
   );
 

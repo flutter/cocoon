@@ -177,12 +177,17 @@ void main() {
 
     expect(taskInDb.toString(), equals(expectedTask.toString()));
 
-    final inserted = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/HASH12345_Linux packaging_release_builder_1',
+    expect(
+      firestoreService,
+      inStorage(
+        firestore.Task.metadata,
+        equals([
+          isA<firestore.Task>()
+              .having((t) => t.taskName, 'taskName', expectedTask.name)
+              .having((t) => t.status, 'status', expectedTask.status),
+        ]),
       ),
     );
-    expect(inserted.taskName, expectedTask.name);
   });
 
   test('updates an existing task successfully', () async {

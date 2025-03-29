@@ -100,10 +100,13 @@ void main() {
       expect(commit.authorAvatarUrl, avatarUrl);
       expect(commit.branch, branch);
 
-      final insertedCommit = firestore.Commit.fromDocument(
-        await firestoreService.api.getByPath('commits/${commit.sha}'),
+      expect(
+        firestoreService,
+        inStorage(
+          firestore.Commit.metadata,
+          equals([isA<firestore.Commit>().having((c) => c.sha, 'sha', sha)]),
+        ),
       );
-      expect(insertedCommit.sha, commit.sha);
     });
 
     test('does not add commit to db if it exists in the datastore', () async {
