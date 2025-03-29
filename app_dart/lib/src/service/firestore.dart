@@ -49,7 +49,7 @@ mixin FirestoreServiceMixin {
   Firestore get api;
 
   String _resolvePath<T extends AppDocument<T>>(T document) {
-    return api.resolvePath(document.metadata.relativePath(document));
+    return api.resolvePath(document.runtimeMetadata.relativePath(document));
   }
 
   /// Inserts a [document].
@@ -71,7 +71,7 @@ mixin FirestoreServiceMixin {
     if (inserted == null) {
       return null;
     }
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 
   /// Inserts a [document].
@@ -85,7 +85,54 @@ mixin FirestoreServiceMixin {
   /// ```
   Future<T> insert<T extends AppDocument<T>>(T document) async {
     final inserted = await api.insertByPath(_resolvePath(document), document);
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
+  }
+
+  /// Upserts a [document].
+  ///
+  /// If the document already exists, updates it, otherwise inserts it.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.upsert(task);
+  /// ```
+  Future<T> upsert<T extends AppDocument<T>>(T document) async {
+    final upserted = await api.upsertByPath(_resolvePath(document), document);
+    return document.runtimeMetadata.fromDocument(upserted);
+  }
+
+  /// Updates a [document].
+  ///
+  /// If the document does not exists, return `null`, otherwise returns the
+  /// updated document.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryUpdate(task);
+  /// ```
+  @useResult
+  Future<T?> tryUpdate<T extends AppDocument<T>>(T document) async {
+    final updated = await api.tryUpdateByPath(_resolvePath(document), document);
+    if (updated == null) {
+      return null;
+    }
+    return document.runtimeMetadata.fromDocument(updated);
+  }
+
+  /// Inserts a [document].
+  ///
+  /// The document must already exist.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.update(task);
+  /// ```
+  Future<T> update<T extends AppDocument<T>>(T document) async {
+    final inserted = await api.updateByPath(_resolvePath(document), document);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 }
 

@@ -2131,13 +2131,12 @@ void main() {
       expect(rerunFlag, isTrue);
       expect(firestoreTask!.attempts, 2);
 
-      final savedTask = firestore.Task.fromDocument(
-        await firestoreService.api.getByPath(
-          'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-        ),
+      expect(
+        firestoreService,
+        inStorage(firestore.Task.metadata, [
+          isTask().attempts(2).status(firestore.Task.statusInProgress),
+        ]),
       );
-      expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
     });
   });
 

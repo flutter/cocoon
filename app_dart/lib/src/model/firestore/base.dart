@@ -27,6 +27,11 @@ final class AppDocumentMetadata<T extends AppDocument<T>> {
   final String _collectionId;
   final String Function(T) _documentName;
 
+  /// Whether [path] is a path to this type of document.
+  bool isPathTo(String path) {
+    return p.posix.basename(p.posix.dirname(path)) == _collectionId;
+  }
+
   /// Creates a new instance of [T].
   ///
   /// If [cloneFrom] is provided, the state is copied, otherwise a default
@@ -46,7 +51,7 @@ mixin AppDocument<T extends AppDocument<T>> on g.Document {
   }
 
   /// Metadata that informs other parts of the app about how to use this entity.
-  AppDocumentMetadata<T> get metadata;
+  AppDocumentMetadata<T> get runtimeMetadata;
 
   static Object? _valueToJson(g.Value value) {
     // Listen, I don't like this, you don't like this, but it's only used to
