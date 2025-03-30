@@ -33,7 +33,6 @@ void main() {
       commitService: CommitService(config: FakeConfig()),
       gerritService: FakeGerritService(),
       scheduler: FakeScheduler(config: FakeConfig()),
-      fusionTester: const FusionTester(),
       ciYamlFetcher: FakeCiYamlFetcher(),
       buildStatusService: FakeBuildStatusService(),
     );

@@ -53,7 +53,6 @@ class Scheduler {
     required this.config,
     required this.githubChecksService,
     required this.luciBuildService,
-    required this.fusionTester,
     required this.getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     this.datastoreProvider = DatastoreService.defaultProvider,
@@ -70,7 +69,6 @@ class Scheduler {
   final Config config;
   final DatastoreServiceProvider datastoreProvider;
   final GithubChecksService githubChecksService;
-  final FusionTester fusionTester;
   final CiYamlFetcher _ciYamlFetcher;
   LuciBuildService luciBuildService;
 
@@ -205,7 +203,7 @@ class Scheduler {
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
     final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-    final isFusion = await fusionTester.isFusionBasedRef(commit.slug);
+    final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       final fusionPostTargets = ciYaml.postsubmitTargets(
         type: CiType.fusionEngine,
@@ -408,11 +406,10 @@ class Scheduler {
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
-    var isFusion = false;
+    final isFusion = slug == Config.flutterSlug;
     do {
       try {
         final sha = pullRequest.head!.sha!;
-        isFusion = await fusionTester.isFusionBasedRef(slug);
         if (!isFusion) {
           unlockMergeGroup = true;
         }
@@ -663,7 +660,7 @@ class Scheduler {
     final mergeGroup = mergeGroupEvent.mergeGroup;
     final headSha = mergeGroup.headSha;
     final slug = mergeGroupEvent.repository!.slug();
-    final isFusion = await fusionTester.isFusionBasedRef(slug);
+    final isFusion = slug == Config.flutterSlug;
 
     final logCrumb =
         'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
@@ -1032,7 +1029,7 @@ $s
 
     final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
 
-    final isFusion = await fusionTester.isFusionBasedRef(slug);
+    final isFusion = slug == Config.flutterSlug;
     if (!isFusion) {
       return true;
     }
@@ -1519,7 +1516,7 @@ $stacktrace
                 );
               }
 
-              final isFusion = await fusionTester.isFusionBasedRef(slug);
+              final isFusion = slug == Config.flutterSlug;
               final List<Target> presubmitTargets;
               final EngineArtifacts engineArtifacts;
               if (isFusion) {

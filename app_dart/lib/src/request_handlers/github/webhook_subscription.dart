@@ -68,7 +68,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     required this.gerritService,
     required this.commitService,
-    required this.fusionTester,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     @visibleForTesting DateTime Function() now = DateTime.now,
@@ -86,8 +85,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
-
-  final FusionTester fusionTester;
 
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
@@ -487,7 +484,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
         case 'flutter':
-          final isFusion = await fusionTester.isFusionBasedRef(slug);
+          final isFusion = slug == Config.flutterSlug;
           final files =
               await gitHubClient.pullRequests
                   .listFiles(slug, pr.number!)

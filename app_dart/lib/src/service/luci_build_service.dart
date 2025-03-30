@@ -40,7 +40,6 @@ class LuciBuildService {
     required this.config,
     required this.cache,
     required this.buildBucketClient,
-    required this.fusionTester,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     this.pubsub = const PubSub(),
@@ -49,8 +48,6 @@ class LuciBuildService {
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
        gerritService = gerritService ?? GerritService(config: config);
-
-  final FusionTester fusionTester;
 
   BuildBucketClient buildBucketClient;
   final CacheService cache;
@@ -245,9 +242,7 @@ class LuciBuildService {
 
     final batchRequestList = <bbv2.BatchRequest_Request>[];
     final commitSha = pullRequest.head!.sha!;
-    final isFusion = await fusionTester.isFusionBasedRef(
-      pullRequest.base!.repo!.slug(),
-    );
+    final isFusion = pullRequest.base!.repo!.slug() == Config.flutterSlug;
     final CipdVersion cipdVersion;
     {
       final baseRef = pullRequest.base!.ref!;
@@ -929,7 +924,7 @@ class LuciBuildService {
     final cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
 
-    final isFusion = await fusionTester.isFusionBasedRef(commit.slug);
+    final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
     }

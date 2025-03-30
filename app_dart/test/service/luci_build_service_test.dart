@@ -83,7 +83,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -175,7 +174,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -281,7 +279,6 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -352,7 +349,6 @@ void main() {
         gerritService: gerritService,
         pubsub: pubsub,
         initializePrCheckRuns: callbacks.initializePrCheckRuns,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -1056,7 +1052,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -1569,7 +1564,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
   });
@@ -1585,7 +1579,6 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -1662,7 +1655,6 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 
@@ -1716,7 +1708,6 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
       rescheduleBuild = createBuild(
         Int64(1),
@@ -1872,7 +1863,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
       datastore = DatastoreService(config.db, 5);
     });
@@ -2205,7 +2195,6 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: const FusionTester(),
       );
     });
 

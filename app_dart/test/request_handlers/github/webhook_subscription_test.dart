@@ -10,7 +10,6 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
@@ -173,7 +172,6 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
-      fusionTester: const FusionTester(),
       pullRequestLabelProcessorProvider:
           ({
             required Config config,

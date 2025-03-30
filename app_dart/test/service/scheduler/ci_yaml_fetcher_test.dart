@@ -52,7 +52,6 @@ void main() {
     ciYamlFetcher = CiYamlFetcher(
       cache: cache,
       config: config,
-      fusionTester: const FusionTester(),
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),
     );

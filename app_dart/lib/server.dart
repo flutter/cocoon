@@ -28,9 +28,7 @@ Server createServer({
   required Scheduler scheduler,
   required CiYamlFetcher ciYamlFetcher,
   required BuildStatusService buildStatusService,
-  FusionTester? fusionTester,
 }) {
-  fusionTester ??= const FusionTester();
   final handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
@@ -74,7 +72,6 @@ Server createServer({
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
-      fusionTester: fusionTester,
     ),
     '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,

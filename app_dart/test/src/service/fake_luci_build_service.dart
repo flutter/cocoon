@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/request_handling/pubsub.dart';
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -29,6 +28,5 @@ class FakeLuciBuildService extends LuciBuildService {
          githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
          gerritService: gerritService ?? FakeGerritService(),
          pubsub: pubsub ?? FakePubSub(),
-         fusionTester: const FusionTester(),
        );
 }

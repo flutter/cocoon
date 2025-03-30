@@ -240,7 +240,6 @@ void main() {
             branchesValue: <String>['master', 'main'],
           ),
         ),
-        fusionTester: const FusionTester(),
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
       );
 
@@ -454,7 +453,6 @@ void main() {
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
-          fusionTester: const FusionTester(),
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -543,7 +541,6 @@ void main() {
             getFilesChanged: getFilesChanged,
             ciYamlFetcher: ciYamlFetcher,
             luciBuildService: luciBuildService,
-            fusionTester: const FusionTester(),
           );
 
           await scheduler.addCommits(
@@ -752,7 +749,6 @@ void main() {
                 branchesValue: <String>['master', 'main'],
               ),
             ),
-            fusionTester: const FusionTester(),
           );
 
           final mergedPr = generatePullRequest(
@@ -866,7 +862,6 @@ void main() {
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
-          fusionTester: const FusionTester(),
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -963,7 +958,6 @@ void main() {
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
             ),
-            fusionTester: const FusionTester(),
             findPullRequestForSha: (_, sha) async {
               return pullRequest;
             },
@@ -1052,7 +1046,6 @@ void main() {
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
-          fusionTester: const FusionTester(),
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -1150,7 +1143,6 @@ void main() {
           ),
           getFilesChanged: getFilesChanged,
           luciBuildService: luci,
-          fusionTester: const FusionTester(),
           findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
         );
@@ -1265,7 +1257,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
-          fusionTester: const FusionTester(),
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString()) as Map<String, dynamic>,
@@ -1306,7 +1297,6 @@ targets:
           ),
           getFilesChanged: getFilesChanged,
           luciBuildService: FakeLuciBuildService(config: config),
-          fusionTester: const FusionTester(),
           findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
         );
@@ -1635,7 +1625,6 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              fusionTester: const FusionTester(),
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
               initializeCiStagingDocument: callbacks.initializeDocument,
             );
@@ -1739,7 +1728,6 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              fusionTester: const FusionTester(),
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
             );
 
@@ -1852,7 +1840,6 @@ targets:
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                fusionTester: const FusionTester(),
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
               );
 
@@ -1923,7 +1910,6 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              fusionTester: const FusionTester(),
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
             );
 
@@ -2036,7 +2022,6 @@ targets:
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                fusionTester: const FusionTester(),
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
               );
 
@@ -2207,7 +2192,6 @@ targets:
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                fusionTester: const FusionTester(),
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 findPullRequestFor: callbacks.findPullRequestFor,
                 initializeCiStagingDocument: callbacks.initializeDocument,
@@ -2612,7 +2596,6 @@ targets:
                 branchesValue: <String>['master', 'main'],
               ),
             ),
-            fusionTester: const FusionTester(),
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2654,7 +2637,6 @@ targets:
                 branchesValue: <String>['master'],
               ),
             ),
-            fusionTester: const FusionTester(),
           );
           await scheduler.triggerPresubmitTargets(
             pullRequest: generatePullRequest(branch: 'main', repo: 'packages'),
@@ -2932,7 +2914,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: const FusionTester(),
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -3074,7 +3055,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: const FusionTester(),
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
 
@@ -3226,7 +3206,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: const FusionTester(),
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
 
@@ -3366,7 +3345,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: const FusionTester(),
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
 
@@ -3498,7 +3476,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: fakeLuciBuildService,
-          fusionTester: const FusionTester(),
         );
       });
 

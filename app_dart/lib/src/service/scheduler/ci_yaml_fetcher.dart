@@ -24,7 +24,6 @@ abstract base class CiYamlFetcher {
   factory CiYamlFetcher({
     required CacheService cache,
     required Config config,
-    required FusionTester fusionTester,
     HttpClientProvider httpClientProvider,
     Duration cacheTtl,
     String subcacheName,
@@ -78,7 +77,6 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   _CiYamlFetcher({
     required CacheService cache,
     required Config config,
-    required FusionTester fusionTester,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
     Duration cacheTtl = const Duration(hours: 1),
     String subcacheName = 'scheduler',
@@ -90,7 +88,6 @@ final class _CiYamlFetcher extends CiYamlFetcher {
        _cacheTtl = cacheTtl,
        _subcacheName = subcacheName,
        _config = config,
-       _fusionTester = fusionTester,
        _retryOptions = retryOptions,
        _httpClientProvider = httpClientProvider,
        super.forTesting();
@@ -100,7 +97,6 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   final Duration _cacheTtl;
   final RetryOptions _retryOptions;
   final Config _config;
-  final FusionTester _fusionTester;
   final HttpClientProvider _httpClientProvider;
 
   @override
@@ -110,7 +106,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
     required String commitBranch,
     bool validate = false,
   }) async {
-    final isFusion = await _fusionTester.isFusionBasedRef(slug);
+    final isFusion = slug == Config.flutterSlug;
     final totCommit = await _fetchTipOfTreeCommit(slug: slug);
     final totYaml = await _getCiYaml(
       slug: totCommit.slug,

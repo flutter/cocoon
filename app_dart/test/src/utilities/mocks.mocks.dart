@@ -4616,17 +4616,6 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
   }
 
   @override
-  _i13.FusionTester get fusionTester =>
-      (super.noSuchMethod(
-            Invocation.getter(#fusionTester),
-            returnValue: _i28.dummyValue<_i13.FusionTester>(
-              this,
-              Invocation.getter(#fusionTester),
-            ),
-          )
-          as _i13.FusionTester);
-
-  @override
   _i13.BuildBucketClient get buildBucketClient =>
       (super.noSuchMethod(
             Invocation.getter(#buildBucketClient),

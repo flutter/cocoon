@@ -50,15 +50,6 @@ final _githubMqBranch = RegExp(
   r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$',
 );
 
-base class FusionTester {
-  const FusionTester();
-
-  /// Tests if the [sha] is in flutter/flutter and engine assets are available.
-  Future<bool> isFusionBasedRef(RepositorySlug slug) async {
-    return slug == Config.flutterSlug;
-  }
-}
-
 const _githubTimeout = Duration(seconds: 5);
 const _githubRetryOptions = RetryOptions(
   maxAttempts: 3,
