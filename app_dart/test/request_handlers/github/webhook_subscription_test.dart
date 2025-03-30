@@ -2506,7 +2506,7 @@ void foo() {
           number: issueNumber,
           merged: true,
           baseSha: 'unknown_sha',
-          closedAt: fakeNow.subtract(const Duration(minutes: 5)),
+          closedAt: fakeNow.subtract(const Duration(minutes: 15)),
           mergeCommitSha: mergedSha,
         );
 
@@ -3238,6 +3238,84 @@ void foo() {
         ),
       );
     });
+
+    test(
+      '<15m merge_group/checks_requested messages are rejected (500) to signal retry',
+      () async {
+        tester.message = generateMergeGroupMessage(
+          repository: 'flutter/flutter',
+          action: 'checks_requested',
+          message: 'test message',
+          reason: MergeGroupEvent.dequeued,
+          publishTime: fakeNow.subtract(const Duration(minutes: 5)),
+          headSha: 'aaaffbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          headRef: 'refs/heads/gh-readonly-queue/main/some-pr',
+        );
+
+        await tester.post(webhook);
+
+        expect(tester.response.statusCode, HttpStatus.internalServerError);
+        expect(tester.response.reasonPhrase, contains('was not found on GoB'));
+      },
+    );
+
+    test(
+      '>=15m merge_group/checks_requested messages are rejected (500) if branch exists to signal retry',
+      () async {
+        gerritService.branchesValue = [
+          'refs/heads/gh-readonly-queue/main/some-pr',
+        ];
+        tester.message = generateMergeGroupMessage(
+          repository: 'flutter/flutter',
+          action: 'checks_requested',
+          message: 'test message',
+          reason: MergeGroupEvent.dequeued,
+          publishTime: fakeNow.subtract(const Duration(minutes: 20)),
+          headSha: 'aaaffbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          headRef: 'refs/heads/gh-readonly-queue/main/some-pr',
+        );
+
+        await tester.post(webhook);
+
+        expect(tester.response.statusCode, HttpStatus.internalServerError);
+        expect(tester.response.reasonPhrase, contains('was not found on GoB'));
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(logThat(message: contains('but was found on GitHub'))),
+          ),
+        );
+      },
+    );
+
+    test(
+      '>=15m merge_group/checks_requested messages are rejected (404) if branch does not exist',
+      () async {
+        githubService.getReferenceValue = () {
+          throw NotFound(githubService.github, 'Not Found');
+        };
+        tester.message = generateMergeGroupMessage(
+          repository: 'flutter/flutter',
+          action: 'checks_requested',
+          message: 'test message',
+          reason: MergeGroupEvent.dequeued,
+          publishTime: fakeNow.subtract(const Duration(minutes: 20)),
+          headSha: 'aaaffbbb12aa40cb3afbe94b9ea6b119a256bebf',
+          headRef: 'refs/heads/gh-readonly-queue/main/some-pr',
+        );
+
+        await tester.post(webhook);
+
+        expect(tester.response.statusCode, HttpStatus.notFound);
+        expect(tester.response.reasonPhrase, contains('was not found on GoB'));
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(logThat(message: contains('appears deleted on GitHub'))),
+          ),
+        );
+      },
+    );
 
     test('destroyed', () async {
       tester.message = generateMergeGroupMessage(
