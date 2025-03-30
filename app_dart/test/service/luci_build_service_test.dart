@@ -784,6 +784,7 @@ void main() {
         'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
         'bringup': bbv2.Value(boolValue: false),
         'git_branch': bbv2.Value(stringValue: 'master'),
+        'is_fusion': bbv2.Value(stringValue: 'true'),
         'git_url': bbv2.Value(
           stringValue: 'https://github.com/flutter/flutter',
         ),
@@ -791,6 +792,8 @@ void main() {
         'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+        'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'abc'),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -964,6 +967,9 @@ void main() {
         'git_repo': bbv2.Value(stringValue: 'flutter'),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+        'is_fusion': bbv2.Value(stringValue: 'true'),
+        'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'abc'),
+        'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
       });
       expect(dimensions.length, 1);
       expect(dimensions[0].key, 'os');
@@ -1055,7 +1061,7 @@ void main() {
     });
 
     test('schedule packages postsubmit builds successfully', () async {
-      final commit = generateCommit(0);
+      final commit = generateCommit(1, branch: 'main', repo: 'packages');
       when(
         mockGithubChecksUtil.createCheckRun(
           any,
@@ -1086,7 +1092,7 @@ void main() {
           },
           slug: Config.packagesSlug,
         ),
-        task: generateTask(1),
+        task: generateTask(1, parent: commit),
         priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
@@ -1114,10 +1120,10 @@ void main() {
       expect(
         userData,
         PostsubmitUserData(
-          commitKey: 'flutter/flutter/master/1',
+          commitKey: 'flutter/packages/main/1',
           taskKey: '1',
           firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
-            '0_task1_1',
+            '1_task1_1',
           ),
           checkRunId: 1,
         ),
@@ -1127,16 +1133,16 @@ void main() {
       expect(properties, <String, bbv2.Value>{
         'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
         'bringup': bbv2.Value(boolValue: false),
-        'git_branch': bbv2.Value(stringValue: 'master'),
-        'git_repo': bbv2.Value(stringValue: 'flutter'),
-        'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/master'),
+        'git_branch': bbv2.Value(stringValue: 'main'),
+        'git_repo': bbv2.Value(stringValue: 'packages'),
+        'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
         'os': bbv2.Value(stringValue: 'debian-10.12'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       });
 
       expect(
         scheduleBuild.exe,
-        bbv2.Executable(cipdVersion: 'refs/heads/master'),
+        bbv2.Executable(cipdVersion: 'refs/heads/main'),
       );
       expect(scheduleBuild.dimensions, isNotEmpty);
       expect(
