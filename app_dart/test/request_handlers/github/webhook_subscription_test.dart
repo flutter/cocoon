@@ -141,7 +141,6 @@ void main() {
       config: config,
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
-      fusionTester: const FusionTester(),
     );
     tester = SubscriptionTester(request: request);
 

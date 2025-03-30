@@ -73,6 +73,12 @@ final class FakeCiYamlFetcher extends CiYamlFetcher {
             pb.Target(name: 'Linux A', scheduler: pb.SchedulerSystem.luci),
           ],
         ),
+        CiType.fusionEngine: pb.SchedulerConfig(
+          enabledBranches: [commitBranch],
+          targets: <pb.Target>[
+            pb.Target(name: 'Linux B', scheduler: pb.SchedulerSystem.luci),
+          ],
+        ),
       },
     );
   }
