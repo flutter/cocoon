@@ -10,6 +10,7 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
@@ -30,7 +31,6 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_build_bucket_client.dart';
-import '../../src/service/fake_fusion_tester.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_scheduler.dart';
@@ -56,7 +56,6 @@ void main() {
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
   late SubscriptionTester tester;
-  late FakeFusionTester fakeFusionTester;
   late MockPullRequestLabelProcessor mockPullRequestLabelProcessor;
 
   /// Name of an example release base branch name.
@@ -137,14 +136,12 @@ void main() {
       ),
     ).thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
-    fakeFusionTester = FakeFusionTester();
-    fakeFusionTester.isFusion = (_) => false;
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler = FakeScheduler(
       config: config,
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
-      fusionTester: fakeFusionTester,
+      fusionTester: const FusionTester(),
     );
     tester = SubscriptionTester(request: request);
 
@@ -177,7 +174,7 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
-      fusionTester: fakeFusionTester,
+      fusionTester: const FusionTester(),
       pullRequestLabelProcessorProvider:
           ({
             required Config config,
@@ -795,8 +792,6 @@ void main() {
       // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
 
-      fakeFusionTester.isFusion = (_) => true;
-
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
@@ -831,8 +826,6 @@ void main() {
     test('Fusion labels engine PRs, no comment for tests', () async {
       // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
-
-      fakeFusionTester.isFusion = (_) => true;
 
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
@@ -1861,6 +1854,14 @@ void foo() {
       );
 
       when(
+        issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
+      ).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      when(
         pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
       ).thenAnswer(
         (_) =>
@@ -2461,6 +2462,7 @@ void foo() {
         merged: true,
         baseSha: 'abc', // Found in pre-populated commits in FakeGerritService.
         mergeCommitSha: 'cde',
+        slug: Config.packagesSlug,
       );
 
       expect(db.values.values.whereType<Commit>().length, 0);
@@ -3187,7 +3189,7 @@ void foo() {
 
     test('checks_requested success for non-fusion repository (simulated)', () async {
       tester.message = generateMergeGroupMessage(
-        repository: 'flutter/flutter',
+        repository: 'flutter/packages',
         action: 'checks_requested',
         message: 'Implement an amazing feature',
       );
@@ -3221,17 +3223,17 @@ void foo() {
             ),
             logThat(
               message: equals(
-                'flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
+                'flutter/packages/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf was found on GoB mirror. Scheduling merge group tasks',
               ),
             ),
             logThat(
               message: equals(
-                'triggerMergeGroupTargets(flutter/flutter, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
+                'triggerMergeGroupTargets(flutter/packages, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
               ),
             ),
             logThat(
               message: equals(
-                'Unlocking Merge Queue Guard for flutter/flutter/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+                'Unlocking Merge Queue Guard for flutter/packages/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
               ),
             ),
           ]),

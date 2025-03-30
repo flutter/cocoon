@@ -636,6 +636,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // ↓↓↓ Begin engine specific paths ↓↓↓
         filename == 'DEPS' || // note: in monorepo; DEPS is still at the root.
         isBuildPythonScript ||
+        filename.endsWith('.gni') ||
+        filename.endsWith('.gn') ||
         filename.startsWith('${engineBasePath}impeller/fixtures/') ||
         filename.startsWith('${engineBasePath}impeller/golden_tests/') ||
         filename.startsWith('${engineBasePath}impeller/playground/') ||
@@ -686,10 +688,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // License goldens are auto-generated.
           !path.startsWith('${engineBasePath}ci/licenses_golden/') &&
           // Build configuration files tell CI what to run.
-          !path.startsWith('${engineBasePath}ci/builders/') &&
-          // Build files don't need unit tests.
-          !path.endsWith('$engineBasePath.gn') &&
-          !path.endsWith('$engineBasePath.gni')) {
+          !path.startsWith('${engineBasePath}ci/builders/')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 
