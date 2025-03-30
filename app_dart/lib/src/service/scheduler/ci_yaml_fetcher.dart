@@ -110,7 +110,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
     required String commitBranch,
     bool validate = false,
   }) async {
-    final isFusion = await _fusionTester.isFusionBasedRef(slug, commitSha);
+    final isFusion = await _fusionTester.isFusionBasedRef(slug);
     final totCommit = await _fetchTipOfTreeCommit(slug: slug);
     final totYaml = await _getCiYaml(
       slug: totCommit.slug,

@@ -231,15 +231,6 @@ void main() {
       });
     });
 
-    group('GitHubBackoffCalculator', () {
-      test('twoSecondLinearBackoff', () {
-        expect(twoSecondLinearBackoff(0), const Duration(seconds: 2));
-        expect(twoSecondLinearBackoff(1), const Duration(seconds: 4));
-        expect(twoSecondLinearBackoff(2), const Duration(seconds: 6));
-        expect(twoSecondLinearBackoff(3), const Duration(seconds: 8));
-      });
-    });
-
     group('bigquery', () {
       late FakeTabledataResource tabledataResourceApi;
 
@@ -507,41 +498,6 @@ void main() {
           expect(result.single, targets[1]);
         },
       );
-    });
-  });
-
-  group('Fusion Tests', () {
-    const noRetry = RetryOptions(
-      maxAttempts: 1,
-      delayFactor: Duration.zero,
-      maxDelay: Duration.zero,
-    );
-
-    final goodFlutterRef = (
-      slug: RepositorySlug.full('flutter/flutter'),
-      sha: '1234',
-    );
-
-    test('isFusionPR returns false non-flutter repo', () async {
-      final tester = FusionTester();
-
-      final fusion = await tester.isFusionBasedRef(
-        RepositorySlug('code', 'fu'),
-        goodFlutterRef.sha,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isFalse);
-    });
-
-    test('isFusionPR returns true whe expected files are present', () async {
-      final tester = FusionTester();
-
-      final fusion = await tester.isFusionBasedRef(
-        goodFlutterRef.slug,
-        goodFlutterRef.sha,
-        retryOptions: noRetry,
-      );
-      expect(fusion, isTrue);
     });
   });
 }

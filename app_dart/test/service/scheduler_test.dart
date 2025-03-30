@@ -256,7 +256,7 @@ void main() {
 
     test('fusion, getPresubmitTargets supports two ci.yamls', () async {
       ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-      fakeFusion.isFusion = (_, _) => true;
+      fakeFusion.isFusion = (_) => true;
 
       final presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
 
@@ -569,7 +569,7 @@ void main() {
       });
 
       test('run all tasks if regular release candidate branch', () async {
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
@@ -598,7 +598,7 @@ void main() {
       test(
         'skips all tasks if experimental release candidate branch',
         () async {
-          fakeFusion.isFusion = (_, _) => true;
+          fakeFusion.isFusion = (_) => true;
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
           when(
@@ -637,7 +637,7 @@ void main() {
       test('schedules tasks against merged PRs (fusion)', () async {
         // NOTE: The scheduler doesn't actually do anything except for write backfill requests - unless its a release.
         // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
         when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
@@ -922,7 +922,7 @@ void main() {
           final pullRequest = generatePullRequest();
 
           // Enable fusion (modern flutter/flutter merged)
-          fakeFusion.isFusion = (_, _) => true;
+          fakeFusion.isFusion = (_) => true;
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
           config.maxFilesChangedForSkippingEnginePhaseValue = 0;
           scheduler = Scheduler(
@@ -1297,7 +1297,7 @@ targets:
 
       group('completed action', () {
         test('works for non fusion cases', () async {
-          fakeFusion.isFusion = (_, _) => false;
+          fakeFusion.isFusion = (_) => false;
           expect(
             await scheduler.processCheckRun(
               cocoon_checks.CheckRunEvent.fromJson(
@@ -1310,7 +1310,7 @@ targets:
 
         group('in fusion', () {
           setUp(() {
-            fakeFusion.isFusion = (_, _) => true;
+            fakeFusion.isFusion = (_) => true;
           });
 
           test(
@@ -2516,7 +2516,7 @@ targets:
       });
 
       test('Unlocks merge group on revert request.', () async {
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
 
         final releasePullRequest = generatePullRequest(
           labels: [IssueLabel(name: 'revert of')],
@@ -2888,7 +2888,7 @@ targets:
 
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
 
         when(
           callbacks.initializeDocument(
@@ -3033,7 +3033,7 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
 
         when(
           callbacks.initializeDocument(
@@ -3187,7 +3187,7 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         when(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
@@ -3328,7 +3328,7 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
 
         when(
           callbacks.initializeDocument(
@@ -3497,7 +3497,7 @@ targets:
       test(
         'does not run if running outside of Fusion (legacy releases)',
         () async {
-          fakeFusion.isFusion = (_, _) => false;
+          fakeFusion.isFusion = (_) => false;
           getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
           final pullRequest = generatePullRequest(authorLogin: allowListedUser);
 
@@ -3514,7 +3514,7 @@ targets:
       );
 
       test('still runs engine builds (DEPS)', () async {
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         getFilesChanged.cannedFiles = [
           'DEPS',
           'packages/flutter/lib/material.dart',
@@ -3530,7 +3530,7 @@ targets:
       });
 
       test('still runs engine builds (engine/**)', () async {
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         getFilesChanged.cannedFiles = [
           'engine/src/flutter/BUILD.gn',
           'packages/flutter/lib/material.dart',
@@ -3548,7 +3548,7 @@ targets:
       test(
         'still runs engine builds (>=X files in changedFilesCount)',
         () async {
-          fakeFusion.isFusion = (_, _) => true;
+          fakeFusion.isFusion = (_) => true;
           getFilesChanged.cannedFiles = [
             // Irrelevant, never called.
           ];
@@ -3569,7 +3569,7 @@ targets:
       );
 
       test('skips engine builds', () async {
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: allowListedUser);
 
@@ -3593,7 +3593,7 @@ targets:
 
       // Regression test for https://github.com/flutter/flutter/issues/162403.
       test('engine builds still run for flutter-3.29-candidate.0', () async {
-        fakeFusion.isFusion = (_, _) => true;
+        fakeFusion.isFusion = (_) => true;
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(
           branch: 'flutter-3.29-candidate.0',

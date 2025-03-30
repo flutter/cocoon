@@ -247,7 +247,6 @@ class LuciBuildService {
     final commitSha = pullRequest.head!.sha!;
     final isFusion = await fusionTester.isFusionBasedRef(
       pullRequest.base!.repo!.slug(),
-      commitSha,
     );
     final CipdVersion cipdVersion;
     {
@@ -930,10 +929,7 @@ class LuciBuildService {
     final cipdExe = 'refs/heads/${commit.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
 
-    final isFusion = await fusionTester.isFusionBasedRef(
-      commit.slug,
-      commit.sha!,
-    );
+    final isFusion = await fusionTester.isFusionBasedRef(commit.slug);
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
     }

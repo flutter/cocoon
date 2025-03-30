@@ -381,7 +381,7 @@ void main() {
         mockGithubChecksUtil.createCheckRun(any, any, any, any),
       ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-      (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+      (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
       final scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
@@ -484,7 +484,7 @@ void main() {
         mockGithubChecksUtil.createCheckRun(any, any, any, any),
       ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-      (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+      (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
       final scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
@@ -633,7 +633,7 @@ void main() {
       test(
         'uses the default recipe without warning outside of flutter/flutter',
         () async {
-          (service.fusionTester as FakeFusionTester).isFusion = (_, _) => false;
+          (service.fusionTester as FakeFusionTester).isFusion = (_) => false;
           await service.scheduleTryBuilds(
             pullRequest: generatePullRequest(repo: 'packages'),
             targets: targets,
@@ -657,7 +657,7 @@ void main() {
       test(
         'uses the default recipe without warning when using flutter/flutter master',
         () async {
-          (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+          (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
           await service.scheduleTryBuilds(
             pullRequest: generatePullRequest(repo: 'flutter', branch: 'master'),
             targets: targets,
@@ -681,7 +681,7 @@ void main() {
       test(
         'fallsback to the default recipe if the branch is not found on gerrit',
         () async {
-          (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+          (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
           await service.scheduleTryBuilds(
             pullRequest: generatePullRequest(
               repo: 'flutter',
@@ -706,7 +706,7 @@ void main() {
       );
 
       test('uses the CIPD branch if the branch is found on gerrit', () async {
-        (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+        (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
         gerritService.branchesValue = [
           'refs/heads/master',
           'refs/heads/3.7.0-19.0.pre',
@@ -832,7 +832,7 @@ void main() {
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-        (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+        (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
         final scheduledTargets = await service.scheduleTryBuilds(
           pullRequest: pullRequest,
@@ -1007,7 +1007,7 @@ void main() {
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-        (service.fusionTester as FakeFusionTester).isFusion = (_, _) => true;
+        (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
         await service.scheduleTryBuilds(
           pullRequest: pullRequest,
@@ -1167,7 +1167,7 @@ void main() {
     test(
       'schedule packages postsubmit builds successfully with fusion',
       () async {
-        fusionTester.isFusion = (_, _) => true;
+        fusionTester.isFusion = (_) => true;
         final commit = generateCommit(0);
         when(
           mockGithubChecksUtil.createCheckRun(
@@ -2215,7 +2215,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester()..isFusion = (_, _) => true,
+        fusionTester: FakeFusionTester()..isFusion = (_) => true,
       );
     });
 

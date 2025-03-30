@@ -138,7 +138,7 @@ void main() {
     ).thenAnswer((_) async => PullRequest());
     fakeBuildBucketClient = FakeBuildBucketClient();
     fakeFusionTester = FakeFusionTester();
-    fakeFusionTester.isFusion = (_, _) => false;
+    fakeFusionTester.isFusion = (_) => false;
     mockGithubChecksUtil = MockGithubChecksUtil();
     scheduler = FakeScheduler(
       config: config,
@@ -795,7 +795,7 @@ void main() {
       // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
 
-      fakeFusionTester.isFusion = (_, _) => true;
+      fakeFusionTester.isFusion = (_) => true;
 
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
@@ -832,7 +832,7 @@ void main() {
       // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
 
-      fakeFusionTester.isFusion = (_, _) => true;
+      fakeFusionTester.isFusion = (_) => true;
 
       tester.message = generateGithubWebhookMessage(
         action: 'opened',

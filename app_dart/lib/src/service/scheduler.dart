@@ -205,10 +205,7 @@ class Scheduler {
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
     final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
-    final isFusion = await fusionTester.isFusionBasedRef(
-      commit.slug,
-      commit.sha!,
-    );
+    final isFusion = await fusionTester.isFusionBasedRef(commit.slug);
     if (isFusion) {
       final fusionPostTargets = ciYaml.postsubmitTargets(
         type: CiType.fusionEngine,
@@ -415,7 +412,7 @@ class Scheduler {
     do {
       try {
         final sha = pullRequest.head!.sha!;
-        isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+        isFusion = await fusionTester.isFusionBasedRef(slug);
         if (!isFusion) {
           unlockMergeGroup = true;
         }
@@ -666,7 +663,7 @@ class Scheduler {
     final mergeGroup = mergeGroupEvent.mergeGroup;
     final headSha = mergeGroup.headSha;
     final slug = mergeGroupEvent.repository!.slug();
-    final isFusion = await fusionTester.isFusionBasedRef(slug, headSha);
+    final isFusion = await fusionTester.isFusionBasedRef(slug);
 
     final logCrumb =
         'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
@@ -1035,7 +1032,7 @@ $s
 
     final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
 
-    final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+    final isFusion = await fusionTester.isFusionBasedRef(slug);
     if (!isFusion) {
       return true;
     }
@@ -1522,7 +1519,7 @@ $stacktrace
                 );
               }
 
-              final isFusion = await fusionTester.isFusionBasedRef(slug, sha);
+              final isFusion = await fusionTester.isFusionBasedRef(slug);
               final List<Target> presubmitTargets;
               final EngineArtifacts engineArtifacts;
               if (isFusion) {

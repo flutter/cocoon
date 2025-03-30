@@ -30,7 +30,7 @@ Server createServer({
   required BuildStatusService buildStatusService,
   FusionTester? fusionTester,
 }) {
-  fusionTester ??= FusionTester();
+  fusionTester ??= const FusionTester();
   final handlers = <String, RequestHandler<dynamic>>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,

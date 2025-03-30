@@ -341,7 +341,7 @@ void main() {
   });
 
   test('merges targets from dual .ci.yaml in a fusion repo', () async {
-    fusionTester.isFusion = (_, _) => true;
+    fusionTester.isFusion = (_) => true;
 
     httpClient = MockClient((request) async {
       if (request.url.host != 'raw.githubusercontent.com') {

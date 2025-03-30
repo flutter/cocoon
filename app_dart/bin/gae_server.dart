@@ -46,7 +46,7 @@ Future<void> main() async {
       accessTokenService: AccessTokenService.defaultProvider(config),
     );
 
-    final fusionTester = FusionTester();
+    const fusionTester = FusionTester();
 
     /// LUCI service class to communicate with buildBucket service.
     final luciBuildService = LuciBuildService(
