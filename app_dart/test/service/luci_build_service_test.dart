@@ -32,7 +32,6 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_firestore_service.dart';
-import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -84,7 +83,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -176,7 +175,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         gerritService: FakeGerritService(),
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -282,7 +281,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -353,7 +352,7 @@ void main() {
         gerritService: gerritService,
         pubsub: pubsub,
         initializePrCheckRuns: callbacks.initializePrCheckRuns,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -380,8 +379,6 @@ void main() {
       when(
         mockGithubChecksUtil.createCheckRun(any, any, any, any),
       ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-
-      (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
       final scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
@@ -483,8 +480,6 @@ void main() {
       when(
         mockGithubChecksUtil.createCheckRun(any, any, any, any),
       ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-
-      (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
       final scheduledTargets = await service.scheduleTryBuilds(
         pullRequest: pullRequest,
@@ -633,7 +628,6 @@ void main() {
       test(
         'uses the default recipe without warning outside of flutter/flutter',
         () async {
-          (service.fusionTester as FakeFusionTester).isFusion = (_) => false;
           await service.scheduleTryBuilds(
             pullRequest: generatePullRequest(repo: 'packages'),
             targets: targets,
@@ -657,7 +651,6 @@ void main() {
       test(
         'uses the default recipe without warning when using flutter/flutter master',
         () async {
-          (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
           await service.scheduleTryBuilds(
             pullRequest: generatePullRequest(repo: 'flutter', branch: 'master'),
             targets: targets,
@@ -681,7 +674,6 @@ void main() {
       test(
         'fallsback to the default recipe if the branch is not found on gerrit',
         () async {
-          (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
           await service.scheduleTryBuilds(
             pullRequest: generatePullRequest(
               repo: 'flutter',
@@ -706,7 +698,6 @@ void main() {
       );
 
       test('uses the CIPD branch if the branch is found on gerrit', () async {
-        (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
         gerritService.branchesValue = [
           'refs/heads/master',
           'refs/heads/3.7.0-19.0.pre',
@@ -831,8 +822,6 @@ void main() {
         when(
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
-
-        (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
 
         final scheduledTargets = await service.scheduleTryBuilds(
           pullRequest: pullRequest,
@@ -1007,8 +996,6 @@ void main() {
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux 1'));
 
-        (service.fusionTester as FakeFusionTester).isFusion = (_) => true;
-
         await service.scheduleTryBuilds(
           pullRequest: pullRequest,
           targets: targets,
@@ -1049,7 +1036,6 @@ void main() {
   group('schedulePostsubmitBuilds', () {
     late DatastoreService datastore;
     late FakeFirestoreService firestoreService;
-    late FakeFusionTester fusionTester;
 
     setUp(() {
       config = FakeConfig();
@@ -1058,14 +1044,13 @@ void main() {
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
-      fusionTester = FakeFusionTester();
       service = LuciBuildService(
         config: config,
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: fusionTester,
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -1167,7 +1152,6 @@ void main() {
     test(
       'schedule packages postsubmit builds successfully with fusion',
       () async {
-        fusionTester.isFusion = (_) => true;
         final commit = generateCommit(0);
         when(
           mockGithubChecksUtil.createCheckRun(
@@ -1579,7 +1563,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
   });
@@ -1595,7 +1579,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -1672,7 +1656,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
     });
 
@@ -1726,7 +1710,7 @@ void main() {
         cache: cache,
         buildBucketClient: mockBuildBucketClient,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
       rescheduleBuild = createBuild(
         Int64(1),
@@ -1882,7 +1866,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester(),
+        fusionTester: const FusionTester(),
       );
       datastore = DatastoreService(config.db, 5);
     });
@@ -2215,7 +2199,7 @@ void main() {
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubsub,
-        fusionTester: FakeFusionTester()..isFusion = (_) => true,
+        fusionTester: const FusionTester(),
       );
     });
 
