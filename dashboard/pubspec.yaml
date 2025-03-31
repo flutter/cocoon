@@ -26,7 +26,7 @@ dependencies:
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
   protobuf: 3.1.0 # Rolled by dependabot
-  provider: 6.1.2 # Rolled by dependabot
+  provider: 6.1.4 # Rolled by dependabot
   truncate: 3.0.1 # Rolled by dependabot
   url_launcher: 6.3.1 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
