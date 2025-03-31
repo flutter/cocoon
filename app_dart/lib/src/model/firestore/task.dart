@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'commit.dart';
+library;
+
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:path/path.dart' as p;
@@ -15,6 +18,23 @@ import 'base.dart';
 
 const String kTaskCollectionId = 'tasks';
 
+/// Representation of each task (column) per _row_ on https://flutter-dashboard.appspot.com/#/build.
+///
+/// Provides enough information to render a build status without querying LUCI,
+/// and is also used to do some light analysis-based tasks (based on recent
+/// tasks). Each [commitSha] is associated with a [Commit.sha].
+///
+/// This documents layout is currently:
+/// ```
+///  /projects/flutter-dashboard/databases/cocoon/commits/
+///    document: <this.commitSha>_<this.taskName>_<attempts>
+/// ```
+///
+/// Note that the [attempts] field is _synthetic_, that is, there is no
+/// cooresponding concrete field on the document itself. We should probably fix
+/// that (https://github.com/flutter/flutter/issues/166229).
+///
+/// See also: [FirestoreTaskDocumentName].
 final class Task extends Document with AppDocument<Task> {
   static const fieldBringup = 'bringup';
   static const fieldBuildNumber = 'buildNumber';

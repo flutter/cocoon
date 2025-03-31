@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/commit_tasks_status.dart';
+import '../service/build_status_provider/commit_tasks_status.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';

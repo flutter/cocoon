@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'commit.dart';
-import 'task.dart';
+import '../../model/firestore/commit.dart';
+import '../../model/firestore/task.dart';
 
 /// Class that holds the status for all tasks corresponding to a particular
 /// commit.

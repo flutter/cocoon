@@ -16,6 +16,13 @@ const String kGithubGoldStatusDescriptionField = 'description';
 const String kGithubGoldStatusUpdatesField = 'updates';
 const String kGithubGoldStatusRepositoryField = 'repository';
 
+/// A update having been posted to a GitHub PR on the status of the build.
+///
+/// This documents layout is currently:
+/// ```
+///  /projects/flutter-dashboard/databases/cocoon/commits/
+///    document: <this.slug.owner>_<this.slug.name>_<this.prNumber>
+/// ```
 class GithubGoldStatus extends Document {
   /// Lookup [GithubGoldStatus] from Firestore.
   ///

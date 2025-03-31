@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'task.dart';
+library;
+
 import 'dart:io';
 
 import 'package:github/github.dart';
@@ -12,6 +15,17 @@ import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
 import 'base.dart';
 
+/// Representation of each commit (row) on https://flutter-dashboard.appspot.com/#/build.
+///
+/// Provides enough information to render a build status without querying GitHub
+/// for commit information, and is a (non-enforced) parent document of [Task],
+/// where each [Commit] has many tasks associated by [Task.commitSha].
+///
+/// This documents layout is currently:
+/// ```
+///  /projects/flutter-dashboard/databases/cocoon/commits/
+///    document: <this.sha>
+/// ```
 final class Commit extends Document with AppDocument<Commit> {
   static const collectionId = 'commits';
   static const fieldAvatar = 'avatar';
