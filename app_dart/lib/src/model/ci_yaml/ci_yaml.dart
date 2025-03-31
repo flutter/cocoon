@@ -189,9 +189,7 @@ class CiYaml {
     var enabledTargets = _filterEnabledTargets(presubmitTargets);
 
     if (enabledTargets.isEmpty) {
-      throw Exception(
-        '$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.',
-      );
+      throw BranchNotEnabledForThisCiYamlException(branch: branch);
     }
     // Filter targets removed from main.
     if (totTargetNames!.isNotEmpty) {
@@ -509,5 +507,16 @@ class DependencyValidator {
       );
       throw FormatException(fullException);
     }
+  }
+}
+
+final class BranchNotEnabledForThisCiYamlException implements Exception {
+  BranchNotEnabledForThisCiYamlException({required this.branch});
+
+  final String branch;
+
+  @override
+  String toString() {
+    return '$branch is not enabled for this .ci.yaml.\nAdd it to run tests against this PR.';
   }
 }
