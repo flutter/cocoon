@@ -320,12 +320,13 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         );
       }
       final patchsets = jsonResponseTriage['patchsets'] as List<dynamic>;
+      // Note: there can be multiple patchsets with the same id, ensure that
+      // all are collected.
       var untriaged = 0;
       for (var i = 0; i < patchsets.length; i++) {
         final patchset = patchsets[i] as Map<String, dynamic>;
         if (patchset['patchset_id'] == pr.head!.sha) {
-          untriaged = patchset['new_untriaged_images'] as int;
-          break;
+          untriaged += patchset['new_untriaged_images'] as int;
         }
       }
 

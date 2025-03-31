@@ -1069,6 +1069,87 @@ void main() {
         );
 
         test(
+          'new commit, checks complete, change detected, multiple duplicate patchsets, should comment',
+          () async {
+            // New commit
+            final pr = newPullRequest(123, 'abc', 'master');
+            prsFromGitHub = <PullRequest>[pr];
+            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+            // Checks completed
+            checkRuns = <dynamic>[
+              <String, String>{
+                'name': 'framework',
+                'status': 'completed',
+                'conclusion': 'success',
+              },
+            ];
+
+            // Change detected by Gold
+            mockHttpClient = MockClient((http.Request request) async {
+              if (request.url.toString() ==
+                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+                return http.Response(
+                  tryjobDigestsDuplicatePatchsets(pr),
+                  HttpStatus.ok,
+                );
+              }
+              throw const HttpException('Unexpected http request');
+            });
+            handler = PushGoldStatusToGithub(
+              config: config,
+              authenticationProvider: auth,
+              goldClient: mockHttpClient,
+              ingestionDelay: Duration.zero,
+            );
+
+            // Have not already commented for this commit.
+            when(
+              issuesService.listCommentsByIssue(slug, pr.number!),
+            ).thenAnswer(
+              (_) => Stream<IssueComment>.value(
+                IssueComment()..body = 'some other comment',
+              ),
+            );
+
+            final body = await tester.get<Body>(handler);
+            expect(body, same(Body.empty));
+            expect(log, hasNoWarningsOrHigher);
+
+            final captured =
+                verify(
+                  mockFirestoreService.batchWriteDocuments(
+                    captureAny,
+                    captureAny,
+                  ),
+                ).captured;
+            expect(captured.length, 2);
+            // The first element corresponds to the `status`.
+            final batchWriteRequest = captured[0] as BatchWriteRequest;
+            expect(batchWriteRequest.writes!.length, 1);
+            final updatedDocument = GithubGoldStatus.fromDocument(
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
+            );
+            expect(updatedDocument.updates, 1);
+
+            // Should label and comment
+            verify(
+              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+                kGoldenFileLabel,
+              ]),
+            ).called(1);
+
+            verify(
+              issuesService.createComment(
+                slug,
+                pr.number!,
+                argThat(contains(config.flutterGoldCommentID(pr))),
+              ),
+            ).called(1);
+          },
+        );
+
+        test(
           'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
           () async {
             // Same commit
@@ -1755,6 +1836,32 @@ String tryjobDigests(PullRequest pr) {
     {
       "changelist_id": "${pr.number!}",
       "patchsets": [
+        {
+          "new_images": 1,
+          "new_untriaged_images": 1,
+          "total_untriaged_images": 1,
+          "patchset_id": "${pr.head!.sha!}",
+          "patchset_order": 1
+        }
+      ],
+      "outdated": false
+    }
+  ''';
+}
+
+/// JSON response template for Skia Gold untriaged tryjob status request.
+String tryjobDigestsDuplicatePatchsets(PullRequest pr) {
+  return '''
+    {
+      "changelist_id": "${pr.number!}",
+      "patchsets": [
+        {
+          "new_images": 0,
+          "new_untriaged_images": 0,
+          "total_untriaged_images": 0,
+          "patchset_id": "${pr.head!.sha!}",
+          "patchset_order": 1
+        },
         {
           "new_images": 1,
           "new_untriaged_images": 1,

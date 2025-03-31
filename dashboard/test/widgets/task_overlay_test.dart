@@ -49,7 +49,6 @@ class TestGrid extends StatelessWidget {
                   ..author = 'Fats Domino'
                   ..sha = '24e8c0a2'
                   ..branch = 'master'),
-
             tasks: [task],
           ),
         ],
