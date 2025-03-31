@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
@@ -17,7 +16,6 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 
 import 'fake_ci_yaml_fetcher.dart';
-import 'fake_fusion_tester.dart';
 import 'fake_get_files_changed.dart';
 import 'fake_luci_build_service.dart';
 
@@ -29,7 +27,6 @@ class FakeScheduler extends Scheduler {
     GetFilesChanged? getFilesChanged,
     required super.config,
     GithubChecksUtil? githubChecksUtil,
-    FusionTester? fusionTester,
     CiYamlFetcher? ciYamlFetcher,
   }) : super(
          cache: CacheService(inMemory: true),
@@ -45,7 +42,6 @@ class FakeScheduler extends Scheduler {
                buildBucketClient: buildbucket,
                githubChecksUtil: githubChecksUtil,
              ),
-         fusionTester: fusionTester ?? FakeFusionTester(),
          ciYamlFetcher: ciYamlFetcher ?? FakeCiYamlFetcher(),
        );
 

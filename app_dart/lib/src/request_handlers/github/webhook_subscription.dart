@@ -69,7 +69,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     required this.gerritService,
     required this.commitService,
-    required this.fusionTester,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     @visibleForTesting DateTime Function() now = DateTime.now,
@@ -87,8 +86,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
 
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
-
-  final FusionTester fusionTester;
 
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
@@ -520,10 +517,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     if (kNeedsTests.contains(slug) && isTipOfTree) {
       switch (slug.name) {
         case 'flutter':
-          final isFusion = await fusionTester.isFusionBasedRef(
-            slug,
-            pr.head!.sha!,
-          );
+          final isFusion = slug == Config.flutterSlug;
           final files =
               await gitHubClient.pullRequests
                   .listFiles(slug, pr.number!)
@@ -672,6 +666,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // ↓↓↓ Begin engine specific paths ↓↓↓
         filename == 'DEPS' || // note: in monorepo; DEPS is still at the root.
         isBuildPythonScript ||
+        filename.endsWith('.gni') ||
+        filename.endsWith('.gn') ||
         filename.startsWith('${engineBasePath}impeller/fixtures/') ||
         filename.startsWith('${engineBasePath}impeller/golden_tests/') ||
         filename.startsWith('${engineBasePath}impeller/playground/') ||
@@ -722,10 +718,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           // License goldens are auto-generated.
           !path.startsWith('${engineBasePath}ci/licenses_golden/') &&
           // Build configuration files tell CI what to run.
-          !path.startsWith('${engineBasePath}ci/builders/') &&
-          // Build files don't need unit tests.
-          !path.endsWith('$engineBasePath.gn') &&
-          !path.endsWith('$engineBasePath.gni')) {
+          !path.startsWith('${engineBasePath}ci/builders/')) {
         needsTests = !_allChangesAreCodeComments(file);
       }
 

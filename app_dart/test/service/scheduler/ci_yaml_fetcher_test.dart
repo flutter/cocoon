@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/firestore/commit.dart' as firestore;
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -19,7 +18,6 @@ import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
-import '../../src/service/fake_fusion_tester.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -36,17 +34,14 @@ void main() {
 
   late CacheService cache;
   late FakeConfig config;
-  late FakeFusionTester fusionTester;
   late MockClient httpClient;
   late MockFirestoreService firestoreService;
-  late firestore.Commit totCommit;
 
   late CiYamlFetcher ciYamlFetcher;
 
   setUp(() {
     cache = CacheService(inMemory: true);
     config = FakeConfig();
-    fusionTester = FakeFusionTester();
     httpClient = MockClient((request) async {
       return http.Response('Missing file: ${request.url}', HttpStatus.notFound);
     });
@@ -54,15 +49,9 @@ void main() {
     firestoreService = MockFirestoreService();
     config.firestoreService = firestoreService;
 
-    totCommit = generateFirestoreCommit(
-      1,
-      sha: 'bf58e0e6dffbfd759a3b2b5c56a2b5b115506c91',
-    );
-
     ciYamlFetcher = CiYamlFetcher(
       cache: cache,
       config: config,
-      fusionTester: fusionTester,
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),
     );
@@ -81,7 +70,14 @@ void main() {
         branch: argThat(equals(branch), named: 'branch'),
       ),
     ).thenAnswer((_) async {
-      return [totCommit];
+      return [
+        generateFirestoreCommit(
+          1,
+          sha: 'bf58e0e6dffbfd759a3b2b5c56a2b5b115506c91',
+          owner: slug.owner,
+          repo: slug.name,
+        ),
+      ];
     });
   }
 
@@ -93,7 +89,7 @@ void main() {
 
       // Extract the URL request ($slug/$ref/$file);
       final [owner, repository, ref, ...path] = request.url.pathSegments;
-      expect('$owner/$repository', Config.flutterSlug.fullName);
+      expect('$owner/$repository', Config.packagesSlug.fullName);
       expect(p.joinAll(path), kCiYamlPath);
 
       if (ref == totSha || ref == currentSha) {
@@ -103,12 +99,12 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     final ciYaml = await ciYamlFetcher.getCiYaml(
-      slug: Config.flutterSlug,
+      slug: Config.packagesSlug,
       commitSha: currentSha,
-      commitBranch: 'master',
+      commitBranch: 'main',
       validate: true,
     );
 
@@ -130,7 +126,7 @@ void main() {
 
       // Extract the URL request (mirrors/$slug/+/$ref/$path)
       final [_, repository, _, ref, ...path] = request.url.pathSegments;
-      expect(repository, Config.flutterSlug.name);
+      expect(repository, Config.packagesSlug.name);
       expect(p.joinAll(path), kCiYamlPath);
 
       // GoB returns all text data as base64-encoded?
@@ -144,12 +140,12 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     final ciYaml = await ciYamlFetcher.getCiYaml(
-      slug: Config.flutterSlug,
+      slug: Config.packagesSlug,
       commitSha: currentSha,
-      commitBranch: 'master',
+      commitBranch: 'main',
       validate: true,
     );
 
@@ -167,7 +163,7 @@ void main() {
 
       // Extract the URL request ($slug/$ref/$file);
       final [owner, repository, ref, ...path] = request.url.pathSegments;
-      expect('$owner/$repository', Config.flutterSlug.fullName);
+      expect('$owner/$repository', Config.packagesSlug.fullName);
       expect(p.joinAll(path), kCiYamlPath);
 
       if (ref == totSha || ref == currentSha) {
@@ -177,10 +173,10 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
-      generateCommit(1, sha: currentSha),
+      generateCommit(1, sha: currentSha, repo: 'packages', branch: 'main'),
       validate: true,
     );
 
@@ -198,7 +194,7 @@ void main() {
 
       // Extract the URL request ($slug/$ref/$file);
       final [owner, repository, ref, ...path] = request.url.pathSegments;
-      expect('$owner/$repository', Config.flutterSlug.fullName);
+      expect('$owner/$repository', Config.packagesSlug.fullName);
       expect(p.joinAll(path), kCiYamlPath);
 
       if (ref == totSha || ref == currentSha) {
@@ -208,10 +204,15 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
-      generateFirestoreCommit(1, sha: currentSha),
+      generateFirestoreCommit(
+        1,
+        sha: currentSha,
+        repo: 'packages',
+        branch: 'main',
+      ),
       validate: true,
     );
 
@@ -229,7 +230,7 @@ void main() {
 
       // Extract the URL request ($slug/$ref/$file);
       final [owner, repository, ref, ...path] = request.url.pathSegments;
-      expect('$owner/$repository', Config.flutterSlug.fullName);
+      expect('$owner/$repository', Config.packagesSlug.fullName);
       expect(p.joinAll(path), kCiYamlPath);
 
       // ToT does not have "Linux B"
@@ -245,13 +246,13 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     await expectLater(
       ciYamlFetcher.getCiYaml(
-        slug: Config.flutterSlug,
+        slug: Config.packagesSlug,
         commitSha: currentSha,
-        commitBranch: 'master',
+        commitBranch: 'main',
         validate: true,
       ),
       throwsA(
@@ -272,7 +273,7 @@ void main() {
 
       // Extract the URL request ($slug/$ref/$file);
       final [owner, repository, ref, ...path] = request.url.pathSegments;
-      expect('$owner/$repository', Config.flutterSlug.fullName);
+      expect('$owner/$repository', Config.packagesSlug.fullName);
       expect(p.joinAll(path), kCiYamlPath);
 
       // ToT does not have "Linux B"
@@ -288,10 +289,15 @@ void main() {
       fail('Should not occur. Unexpected request: ${request.url}');
     });
 
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
-      generateFirestoreCommit(1, sha: currentSha),
+      generateFirestoreCommit(
+        1,
+        sha: currentSha,
+        repo: 'packages',
+        branch: 'main',
+      ),
       validate: true,
     );
 
@@ -311,7 +317,6 @@ void main() {
       // Extract the URL request ($slug/$ref/$file);
       final [owner, repository, ref, ...path] = request.url.pathSegments;
       expect('$owner/$repository', Config.flutterSlug.fullName);
-      expect(p.joinAll(path), kCiYamlPath);
 
       if (ref == totSha || ref == currentSha) {
         return http.Response(singleCiYaml, HttpStatus.ok);
@@ -341,8 +346,6 @@ void main() {
   });
 
   test('merges targets from dual .ci.yaml in a fusion repo', () async {
-    fusionTester.isFusion = (_, _) => true;
-
     httpClient = MockClient((request) async {
       if (request.url.host != 'raw.githubusercontent.com') {
         fail('Unexpected host: ${request.url}');

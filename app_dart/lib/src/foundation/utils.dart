@@ -50,31 +50,6 @@ final _githubMqBranch = RegExp(
   r'^gh-readonly-queue\/([^/]+)\/pr-(\d+)-([a-fA-F0-9]+)$',
 );
 
-/// Signature for a function that calculates the backoff duration to wait in
-/// between requests when GitHub responds with an error.
-///
-/// The [attempt] argument is zero-based, so if the first attempt to request
-/// from GitHub fails, and we're backing off before making the second attempt,
-/// the [attempt] argument will be zero.
-typedef GitHubBackoffCalculator = Duration Function(int attempt);
-
-/// Default backoff calculator.
-Duration twoSecondLinearBackoff(int attempt) {
-  return const Duration(seconds: 2) * (attempt + 1);
-}
-
-class FusionTester {
-  /// Tests if the [sha] is in flutter/flutter and engine assets are available.
-  Future<bool> isFusionBasedRef(
-    RepositorySlug slug,
-    String sha, {
-    Duration timeout = _githubTimeout,
-    RetryOptions retryOptions = _githubRetryOptions,
-  }) async {
-    return slug == Config.flutterSlug;
-  }
-}
-
 const _githubTimeout = Duration(seconds: 5);
 const _githubRetryOptions = RetryOptions(
   maxAttempts: 3,

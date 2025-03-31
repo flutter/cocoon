@@ -235,7 +235,7 @@ String checkSuiteTemplate(String action) => '''\
 }
 ''';
 
-const String checkRunString = '''
+String checkRunString({String repository = 'cocoon'}) => '''
 {
     "action": "rerequested",
     "check_run": {
@@ -243,8 +243,8 @@ const String checkRunString = '''
         "node_id": "MDg6Q2hlY2tSdW42NjAwNTMzODk=",
         "head_sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
         "external_id": "",
-        "url": "https://api.github.com/repos/flutter/cocoon/check-runs/660053389",
-        "html_url": "https://github.com/flutter/cocoon/runs/660053389",
+        "url": "https://api.github.com/repos/flutter/$repository/check-runs/660053389",
+        "html_url": "https://github.com/flutter/$repository/runs/660053389",
         "details_url": "https://flutter-dashboard.appspot.com",
         "status": "completed",
         "conclusion": "success",
@@ -255,7 +255,7 @@ const String checkRunString = '''
             "summary": null,
             "text": null,
             "annotations_count": 0,
-            "annotations_url": "https://api.github.com/repos/flutter/cocoon/check-runs/660053389/annotations"
+            "annotations_url": "https://api.github.com/repos/flutter/$repository/check-runs/660053389/annotations"
         },
         "name": "test1",
         "check_suite": {
@@ -265,12 +265,12 @@ const String checkRunString = '''
             "head_sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
             "status": "queued",
             "conclusion": null,
-            "url": "https://api.github.com/repos/flutter/cocoon/check-suites/668083231",
+            "url": "https://api.github.com/repos/flutter/$repository/check-suites/668083231",
             "before": "918f7fdf0337dac0fca0254e1b0e46e79f8e7a37",
             "after": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
             "pull_requests": [
                 {
-                    "url": "https://api.github.com/repos/flutter/cocoon/pulls/1",
+                    "url": "https://api.github.com/repos/flutter/$repository/pulls/1",
                     "id": 415645312,
                     "number": 1,
                     "head": {
@@ -278,8 +278,8 @@ const String checkRunString = '''
                         "sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
                         "repo": {
                             "id": 212688278,
-                            "url": "https://api.github.com/repos/flutter/cocoon",
-                            "name": "cocoon"
+                            "url": "https://api.github.com/repos/flutter/$repository",
+                            "name": "$repository"
                         }
                     },
                     "base": {
@@ -287,8 +287,8 @@ const String checkRunString = '''
                         "sha": "96b953d99588ade4a2b5e9c920813f8f3841b7fb",
                         "repo": {
                             "id": 212688278,
-                            "url": "https://api.github.com/repos/flutter/cocoon",
-                            "name": "cocoon",
+                            "url": "https://api.github.com/repos/flutter/$repository",
+                            "name": "$repository",
                             "owner": {
                               "avatar_url": "",
                               "html_url": "",
@@ -386,7 +386,7 @@ const String checkRunString = '''
         },
         "pull_requests": [
             {
-                "url": "https://api.github.com/repos/flutter/cocoon/pulls/1",
+                "url": "https://api.github.com/repos/flutter/$repository/pulls/1",
                 "id": 415645312,
                 "number": 1,
                 "head": {
@@ -394,8 +394,8 @@ const String checkRunString = '''
                     "sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
                     "repo": {
                         "id": 212688278,
-                        "url": "https://api.github.com/repos/flutter/cocoon",
-                        "name": "cocoon"
+                        "url": "https://api.github.com/repos/flutter/$repository",
+                        "name": "$repository"
                     }
                 },
                 "base": {
@@ -403,8 +403,8 @@ const String checkRunString = '''
                     "sha": "96b953d99588ade4a2b5e9c920813f8f3841b7fb",
                     "repo": {
                         "id": 212688278,
-                        "url": "https://api.github.com/repos/flutter/cocoon",
-                        "name": "cocoon",
+                        "url": "https://api.github.com/repos/flutter/$repository",
+                        "name": "$repository",
                         "owner": {
                           "avatar_url": "",
                           "html_url": "",
@@ -419,11 +419,11 @@ const String checkRunString = '''
     "repository": {
         "id": 212688278,
         "node_id": "MDEwOlJlcG9zaXRvcnkyMTI2ODgyNzg=",
-        "name": "cocoon",
-        "full_name": "flutter/cocoon",
+        "name": "$repository",
+        "full_name": "flutter/$repository",
         "private": false,
         "owner": {
-            "login": "abc",
+            "login": "flutter",
             "id": 54371434,
             "node_id": "MDQ6VXNlcjU0MzcxNDM0",
             "avatar_url": "https://avatars3.githubusercontent.com/u/54371434?v=4",
@@ -442,53 +442,53 @@ const String checkRunString = '''
             "type": "User",
             "site_admin": false
         },
-        "html_url": "https://github.com/flutter/cocoon",
+        "html_url": "https://github.com/flutter/$repository",
         "description": "Flutter's build coordinator and aggregator",
         "fork": true,
-        "url": "https://api.github.com/repos/flutter/cocoon",
-        "forks_url": "https://api.github.com/repos/flutter/cocoon/forks",
-        "keys_url": "https://api.github.com/repos/flutter/cocoon/keys{/key_id}",
-        "collaborators_url": "https://api.github.com/repos/flutter/cocoon/collaborators{/collaborator}",
-        "teams_url": "https://api.github.com/repos/flutter/cocoon/teams",
-        "hooks_url": "https://api.github.com/repos/flutter/cocoon/hooks",
-        "issue_events_url": "https://api.github.com/repos/flutter/cocoon/issues/events{/number}",
-        "events_url": "https://api.github.com/repos/flutter/cocoon/events",
-        "assignees_url": "https://api.github.com/repos/flutter/cocoon/assignees{/user}",
-        "branches_url": "https://api.github.com/repos/flutter/cocoon/branches{/branch}",
-        "tags_url": "https://api.github.com/repos/flutter/cocoon/tags",
-        "blobs_url": "https://api.github.com/repos/flutter/cocoon/git/blobs{/sha}",
-        "git_tags_url": "https://api.github.com/repos/flutter/cocoon/git/tags{/sha}",
-        "git_refs_url": "https://api.github.com/repos/flutter/cocoon/git/refs{/sha}",
-        "trees_url": "https://api.github.com/repos/flutter/cocoon/git/trees{/sha}",
-        "statuses_url": "https://api.github.com/repos/flutter/cocoon/statuses/{sha}",
-        "languages_url": "https://api.github.com/repos/flutter/cocoon/languages",
-        "stargazers_url": "https://api.github.com/repos/flutter/cocoon/stargazers",
-        "contributors_url": "https://api.github.com/repos/flutter/cocoon/contributors",
-        "subscribers_url": "https://api.github.com/repos/flutter/cocoon/subscribers",
-        "subscription_url": "https://api.github.com/repos/flutter/cocoon/subscription",
-        "commits_url": "https://api.github.com/repos/flutter/cocoon/commits{/sha}",
-        "git_commits_url": "https://api.github.com/repos/flutter/cocoon/git/commits{/sha}",
-        "comments_url": "https://api.github.com/repos/flutter/cocoon/comments{/number}",
-        "issue_comment_url": "https://api.github.com/repos/flutter/cocoon/issues/comments{/number}",
-        "contents_url": "https://api.github.com/repos/flutter/cocoon/contents/{+path}",
-        "compare_url": "https://api.github.com/repos/flutter/cocoon/compare/{base}...{head}",
-        "merges_url": "https://api.github.com/repos/flutter/cocoon/merges",
-        "archive_url": "https://api.github.com/repos/flutter/cocoon/{archive_format}{/ref}",
-        "downloads_url": "https://api.github.com/repos/flutter/cocoon/downloads",
-        "issues_url": "https://api.github.com/repos/flutter/cocoon/issues{/number}",
-        "pulls_url": "https://api.github.com/repos/flutter/cocoon/pulls{/number}",
-        "milestones_url": "https://api.github.com/repos/flutter/cocoon/milestones{/number}",
-        "notifications_url": "https://api.github.com/repos/flutter/cocoon/notifications{?since,all,participating}",
-        "labels_url": "https://api.github.com/repos/flutter/cocoon/labels{/name}",
-        "releases_url": "https://api.github.com/repos/flutter/cocoon/releases{/id}",
-        "deployments_url": "https://api.github.com/repos/flutter/cocoon/deployments",
+        "url": "https://api.github.com/repos/flutter/$repository",
+        "forks_url": "https://api.github.com/repos/flutter/$repository/forks",
+        "keys_url": "https://api.github.com/repos/flutter/$repository/keys{/key_id}",
+        "collaborators_url": "https://api.github.com/repos/flutter/$repository/collaborators{/collaborator}",
+        "teams_url": "https://api.github.com/repos/flutter/$repository/teams",
+        "hooks_url": "https://api.github.com/repos/flutter/$repository/hooks",
+        "issue_events_url": "https://api.github.com/repos/flutter/$repository/issues/events{/number}",
+        "events_url": "https://api.github.com/repos/flutter/$repository/events",
+        "assignees_url": "https://api.github.com/repos/flutter/$repository/assignees{/user}",
+        "branches_url": "https://api.github.com/repos/flutter/$repository/branches{/branch}",
+        "tags_url": "https://api.github.com/repos/flutter/$repository/tags",
+        "blobs_url": "https://api.github.com/repos/flutter/$repository/git/blobs{/sha}",
+        "git_tags_url": "https://api.github.com/repos/flutter/$repository/git/tags{/sha}",
+        "git_refs_url": "https://api.github.com/repos/flutter/$repository/git/refs{/sha}",
+        "trees_url": "https://api.github.com/repos/flutter/$repository/git/trees{/sha}",
+        "statuses_url": "https://api.github.com/repos/flutter/$repository/statuses/{sha}",
+        "languages_url": "https://api.github.com/repos/flutter/$repository/languages",
+        "stargazers_url": "https://api.github.com/repos/flutter/$repository/stargazers",
+        "contributors_url": "https://api.github.com/repos/flutter/$repository/contributors",
+        "subscribers_url": "https://api.github.com/repos/flutter/$repository/subscribers",
+        "subscription_url": "https://api.github.com/repos/flutter/$repository/subscription",
+        "commits_url": "https://api.github.com/repos/flutter/$repository/commits{/sha}",
+        "git_commits_url": "https://api.github.com/repos/flutter/$repository/git/commits{/sha}",
+        "comments_url": "https://api.github.com/repos/flutter/$repository/comments{/number}",
+        "issue_comment_url": "https://api.github.com/repos/flutter/$repository/issues/comments{/number}",
+        "contents_url": "https://api.github.com/repos/flutter/$repository/contents/{+path}",
+        "compare_url": "https://api.github.com/repos/flutter/$repository/compare/{base}...{head}",
+        "merges_url": "https://api.github.com/repos/flutter/$repository/merges",
+        "archive_url": "https://api.github.com/repos/flutter/$repository/{archive_format}{/ref}",
+        "downloads_url": "https://api.github.com/repos/flutter/$repository/downloads",
+        "issues_url": "https://api.github.com/repos/flutter/$repository/issues{/number}",
+        "pulls_url": "https://api.github.com/repos/flutter/$repository/pulls{/number}",
+        "milestones_url": "https://api.github.com/repos/flutter/$repository/milestones{/number}",
+        "notifications_url": "https://api.github.com/repos/flutter/$repository/notifications{?since,all,participating}",
+        "labels_url": "https://api.github.com/repos/flutter/$repository/labels{/name}",
+        "releases_url": "https://api.github.com/repos/flutter/$repository/releases{/id}",
+        "deployments_url": "https://api.github.com/repos/flutter/$repository/deployments",
         "created_at": "2019-10-03T21:57:12Z",
         "updated_at": "2019-10-03T21:57:14Z",
         "pushed_at": "2020-05-09T23:42:23Z",
-        "git_url": "git://github.com/flutter/cocoon.git",
-        "ssh_url": "git@github.com:flutter/cocoon.git",
-        "clone_url": "https://github.com/flutter/cocoon.git",
-        "svn_url": "https://github.com/flutter/cocoon",
+        "git_url": "git://github.com/flutter/$repository.git",
+        "ssh_url": "git@github.com:flutter/$repository.git",
+        "clone_url": "https://github.com/flutter/$repository.git",
+        "svn_url": "https://github.com/flutter/$repository",
         "homepage": null,
         "size": 2941,
         "stargazers_count": 0,

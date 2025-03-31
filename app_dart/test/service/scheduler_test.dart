@@ -38,7 +38,6 @@ import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_firestore_service.dart';
-import '../src/service/fake_fusion_tester.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_get_files_changed.dart';
 import '../src/service/fake_github_service.dart';
@@ -86,6 +85,7 @@ targets:
     enabled_branches:
       - stable
     scheduler: luci
+  - name: Linux engine_presubmit
   - name: Linux engine_build
     scheduler: luci
     properties:
@@ -136,16 +136,19 @@ void main() {
   late FakeFirestoreService firestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
-  late FakeFusionTester fakeFusion;
   late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
 
   final pullRequest = generatePullRequest(id: 42);
 
-  Commit shaToCommit(String sha, {String branch = 'master'}) {
+  Commit shaToCommit(
+    String sha, {
+    String branch = 'master',
+    String repository = 'flutter',
+  }) {
     return Commit(
-      key: db.emptyKey.append(Commit, id: 'flutter/flutter/$branch/$sha'),
-      repository: 'flutter/flutter',
+      key: db.emptyKey.append(Commit, id: 'flutter/$repository/$branch/$sha'),
+      repository: 'flutter/$repository',
       sha: sha,
       branch: branch,
       timestamp: int.parse(sha),
@@ -218,7 +221,6 @@ void main() {
         );
       });
 
-      fakeFusion = FakeFusionTester();
       callbacks = MockCallbacks();
 
       scheduler = Scheduler(
@@ -238,7 +240,6 @@ void main() {
             branchesValue: <String>['master', 'main'],
           ),
         ),
-        fusionTester: fakeFusion,
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
       );
 
@@ -256,7 +257,6 @@ void main() {
 
     test('fusion, getPresubmitTargets supports two ci.yamls', () async {
       ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-      fakeFusion.isFusion = (_, _) => true;
 
       final presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
 
@@ -315,13 +315,15 @@ void main() {
         ) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        config.supportedBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['main'];
         expect(db.values.values.whereType<Commit>().length, 0);
-        await scheduler.addCommits(createCommitList(<String>['1']));
+        await scheduler.addCommits(
+          createCommitList(<String>['1'], repo: 'packages', branch: 'main'),
+        );
         expect(db.values.values.whereType<Commit>().length, 1);
         final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/flutter');
-        expect(commit.branch, 'master');
+        expect(commit.repository, 'flutter/packages');
+        expect(commit.branch, 'main');
         expect(commit.sha, '1');
         expect(commit.timestamp, 1);
         expect(commit.author, 'Username');
@@ -343,10 +345,10 @@ void main() {
         ) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        config.supportedBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['main'];
 
         // Existing commits should not be duplicated.
-        final commit = shaToCommit('1');
+        final commit = shaToCommit('1', branch: 'main', repository: 'packages');
         db.values[commit.key] = commit;
 
         db.onCommit = (
@@ -361,7 +363,13 @@ void main() {
           }
         };
         // Commits are expect from newest to oldest timestamps
-        await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
+        await scheduler.addCommits(
+          createCommitList(
+            <String>['2', '3', '4'],
+            repo: 'packages',
+            branch: 'main',
+          ),
+        );
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled 3 tasks, existing commit has none.
         expect(db.values.values.whereType<Task>().length, 2 * 3);
@@ -382,10 +390,10 @@ void main() {
         ) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        config.supportedBranchesValue = <String>['master'];
+        config.supportedBranchesValue = <String>['main'];
 
         // Existing commits should not be duplicated.
-        final commit = shaToCommit('1');
+        final commit = shaToCommit('1', branch: 'main', repository: 'packages');
         db.values[commit.key] = commit;
 
         db.onCommit = (
@@ -400,7 +408,13 @@ void main() {
           }
         };
         // Commits are expect from newest to oldest timestamps
-        await scheduler.addCommits(createCommitList(<String>['2', '3', '4']));
+        await scheduler.addCommits(
+          createCommitList(
+            <String>['2', '3', '4'],
+            repo: 'packages',
+            branch: 'main',
+          ),
+        );
         expect(db.values.values.whereType<Commit>().length, 3);
         // The 2 new commits are scheduled 3 tasks, existing commit has none.
         expect(db.values.values.whereType<Task>().length, 2 * 3);
@@ -439,7 +453,6 @@ void main() {
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
-          fusionTester: fakeFusion,
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -528,7 +541,6 @@ void main() {
             getFilesChanged: getFilesChanged,
             ciYamlFetcher: ciYamlFetcher,
             luciBuildService: luciBuildService,
-            fusionTester: fakeFusion,
           );
 
           await scheduler.addCommits(
@@ -546,13 +558,13 @@ void main() {
         ) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        final mergedPr = generatePullRequest();
+        final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
         final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/flutter');
-        expect(commit.branch, 'master');
+        expect(commit.repository, 'flutter/packages');
+        expect(commit.branch, 'main');
         expect(commit.sha, 'abc');
         expect(commit.timestamp, 1);
         expect(commit.author, 'dash');
@@ -569,7 +581,6 @@ void main() {
       });
 
       test('run all tasks if regular release candidate branch', () async {
-        fakeFusion.isFusion = (_, _) => true;
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
@@ -598,7 +609,6 @@ void main() {
       test(
         'skips all tasks if experimental release candidate branch',
         () async {
-          fakeFusion.isFusion = (_, _) => true;
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
           when(
@@ -627,7 +637,7 @@ void main() {
         ) {
           return Future<CommitResponse>.value(CommitResponse());
         });
-        final mergedPr = generatePullRequest();
+        final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
         await scheduler.addPullRequest(mergedPr);
 
         expect(db.values.values.whereType<Commit>().length, 1);
@@ -637,7 +647,6 @@ void main() {
       test('schedules tasks against merged PRs (fusion)', () async {
         // NOTE: The scheduler doesn't actually do anything except for write backfill requests - unless its a release.
         // When backfills are picked up, they'll go through the same flow (schedulePostsubmitBuilds).
-        fakeFusion.isFusion = (_, _) => true;
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
         when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
@@ -655,6 +664,7 @@ void main() {
             'Linux runIf',
             'Google Internal Roll',
             'Linux Z',
+            'Linux engine_presubmit',
             'Linux runIf engine',
           ],
           reason: 'removes release_build targets (Linux engine_build)',
@@ -670,6 +680,7 @@ void main() {
             'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf_1',
             'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Google Internal Roll_1',
             'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux Z_1',
+            'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux engine_presubmit_1',
             'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf engine_1',
             'projects/flutter-dashboard/databases/cocoon/documents/commits/abc',
           ],
@@ -680,6 +691,7 @@ void main() {
       test(
         'guarantees scheduling of tasks against merged release branch PR',
         () async {
+          ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
           when(
             firestoreService.mock.writeViaTransaction(captureAny),
           ).thenAnswer((Invocation invocation) {
@@ -691,7 +703,7 @@ void main() {
           await scheduler.addPullRequest(mergedPr);
 
           expect(db.values.values.whereType<Commit>().length, 1);
-          expect(db.values.values.whereType<Task>().length, 3);
+          expect(db.values.values.whereType<Task>().length, 6);
           // Ensure all tasks have been marked in progress
           expect(
             db.values.values.whereType<Task>().where(
@@ -719,7 +731,7 @@ void main() {
             - name: Linux A
               properties:
                 custom: abc
-          ''');
+          ''', engine: r'');
           scheduler = Scheduler(
             cache: cache,
             config: config,
@@ -737,7 +749,6 @@ void main() {
                 branchesValue: <String>['master', 'main'],
               ),
             ),
-            fusionTester: fakeFusion,
           );
 
           final mergedPr = generatePullRequest(
@@ -800,6 +811,16 @@ void main() {
       });
 
       test('creates expected commit from release branch PR', () async {
+        ciYamlFetcher.setCiYamlFrom(r'''
+          enabled_branches:
+            - main
+            - flutter-\d+\.\d+-candidate\.\d+
+          targets:
+            - name: Linux A
+              properties:
+                custom: abc
+          ''', engine: r'');
+
         when(firestoreService.mock.writeViaTransaction(captureAny)).thenAnswer((
           Invocation invocation,
         ) {
@@ -841,7 +862,6 @@ void main() {
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
-          fusionTester: fakeFusion,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -864,9 +884,9 @@ void main() {
             generateCheckSuite(668083231),
           ],
         );
-        when(
-          mockGithubService.getPullRequest(any, any),
-        ).thenAnswer((_) async => generatePullRequest());
+        when(mockGithubService.getPullRequest(any, any)).thenAnswer(
+          (_) async => generatePullRequest(repo: 'packages', branch: 'main'),
+        );
         getFilesChanged.cannedFiles = ['abc/def'];
         when(
           mockGithubChecksUtil.createCheckRun(
@@ -885,7 +905,8 @@ void main() {
           });
         });
         final checkRunEventJson =
-            jsonDecode(checkRunString) as Map<String, dynamic>;
+            jsonDecode(checkRunString(repository: 'flutter'))
+                as Map<String, dynamic>;
         checkRunEventJson['check_run']['name'] = Config.kCiYamlCheckName;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
@@ -922,7 +943,6 @@ void main() {
           final pullRequest = generatePullRequest();
 
           // Enable fusion (modern flutter/flutter merged)
-          fakeFusion.isFusion = (_, _) => true;
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
           config.maxFilesChangedForSkippingEnginePhaseValue = 0;
           scheduler = Scheduler(
@@ -938,7 +958,6 @@ void main() {
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
             ),
-            fusionTester: fakeFusion,
             findPullRequestForSha: (_, sha) async {
               return pullRequest;
             },
@@ -980,13 +999,14 @@ void main() {
             return CheckRun.fromJson(const <String, dynamic>{
               'id': 1,
               'started_at': '2020-05-10T02:49:31Z',
-              'name': 'Linux engine_build',
+              'name': 'Linux engine_presubmit',
               'check_suite': <String, dynamic>{'id': 2},
             });
           });
           final checkRunEventJson =
-              jsonDecode(checkRunString) as Map<String, dynamic>;
-          checkRunEventJson['check_run']['name'] = 'Linux engine_build';
+              jsonDecode(checkRunString(repository: 'flutter'))
+                  as Map<String, dynamic>;
+          checkRunEventJson['check_run']['name'] = 'Linux engine_presubmit';
           final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
             checkRunEventJson,
           );
@@ -999,7 +1019,7 @@ void main() {
               any,
               any,
               any,
-              'Linux engine_build',
+              'Linux engine_presubmit',
               output: anyNamed('output'),
             ),
           );
@@ -1026,7 +1046,6 @@ void main() {
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
-          fusionTester: fakeFusion,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -1070,7 +1089,7 @@ void main() {
           });
         });
         final checkRunEventJson =
-            jsonDecode(checkRunString) as Map<String, dynamic>;
+            jsonDecode(checkRunString()) as Map<String, dynamic>;
         checkRunEventJson['check_run']['name'] = Config.kMergeQueueLockName;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
@@ -1124,12 +1143,11 @@ void main() {
           ),
           getFilesChanged: getFilesChanged,
           luciBuildService: luci,
-          fusionTester: fakeFusion,
           findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
         );
 
-        final checkrun = jsonDecode(checkRunString) as Map<String, dynamic>;
+        final checkrun = jsonDecode(checkRunString()) as Map<String, dynamic>;
         checkrun['name'] = checkrun['check_run']['name'] = 'Linux A';
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkrun);
 
@@ -1160,7 +1178,7 @@ void main() {
         db = FakeDatastoreDB();
         config = FakeConfig(
           dbValue: db,
-          postsubmitSupportedReposValue: {RepositorySlug('abc', 'cocoon')},
+          postsubmitSupportedReposValue: {RepositorySlug('flutter', 'cocoon')},
           firestoreService: firestoreService,
         );
         when(firestoreService.mock.queryCommitTasks(captureAny)).thenAnswer((
@@ -1174,14 +1192,14 @@ void main() {
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           branch: 'independent_agent',
-          owner: 'abc',
+          owner: 'flutter',
           repo: 'cocoon',
         );
         final commitToT = generateCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
           branch: 'master',
-          owner: 'abc',
+          owner: 'flutter',
           repo: 'cocoon',
         );
         config.db.values[commit.key] = commit;
@@ -1239,10 +1257,9 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
-          fusionTester: fakeFusion,
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-          jsonDecode(checkRunString) as Map<String, dynamic>,
+          jsonDecode(checkRunString()) as Map<String, dynamic>,
         );
         expect(
           await scheduler.processCheckRun(checkRunEvent),
@@ -1280,7 +1297,6 @@ targets:
           ),
           getFilesChanged: getFilesChanged,
           luciBuildService: FakeLuciBuildService(config: config),
-          fusionTester: fakeFusion,
           findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
         );
@@ -1297,11 +1313,11 @@ targets:
 
       group('completed action', () {
         test('works for non fusion cases', () async {
-          fakeFusion.isFusion = (_, _) => false;
           expect(
             await scheduler.processCheckRun(
               cocoon_checks.CheckRunEvent.fromJson(
-                json.decode(checkRunEventFor()) as Map<String, Object?>,
+                json.decode(checkRunEventFor(repo: 'packages'))
+                    as Map<String, Object?>,
               ),
             ),
             const ProcessCheckRunResult.success(),
@@ -1309,10 +1325,6 @@ targets:
         });
 
         group('in fusion', () {
-          setUp(() {
-            fakeFusion.isFusion = (_, _) => true;
-          });
-
           test(
             'ignores default check runs that have no side effects',
             () async {
@@ -1613,7 +1625,6 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
               initializeCiStagingDocument: callbacks.initializeDocument,
             );
@@ -1690,10 +1701,11 @@ targets:
             );
             expect(result.callCount, 1);
             final captured = result.captured;
-            expect(captured[0], hasLength(2));
+            expect(captured[0], hasLength(3));
             // see the blend of fusionCiYaml and singleCiYaml
             expect(captured[0][0].getTestName, 'A');
             expect(captured[0][1].getTestName, 'Z');
+            expect(captured[0][2].getTestName, 'engine_presubmit');
             expect(captured[1], pullRequest);
           });
 
@@ -1716,7 +1728,6 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
             );
 
@@ -1829,7 +1840,6 @@ targets:
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
               );
 
@@ -1840,7 +1850,7 @@ targets:
               });
 
               final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-                jsonDecode(checkRunString) as Map<String, dynamic>,
+                jsonDecode(checkRunString()) as Map<String, dynamic>,
               );
 
               final mockGithubService = MockGithubService();
@@ -1900,7 +1910,6 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              fusionTester: fakeFusion,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
             );
 
@@ -1967,7 +1976,7 @@ targets:
             });
 
             final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-              jsonDecode(checkRunString) as Map<String, dynamic>,
+              jsonDecode(checkRunString()) as Map<String, dynamic>,
             );
 
             await scheduler.proceedToCiTestingStage(
@@ -2013,7 +2022,6 @@ targets:
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
               );
 
@@ -2184,7 +2192,6 @@ targets:
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                fusionTester: fakeFusion,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 findPullRequestFor: callbacks.findPullRequestFor,
                 initializeCiStagingDocument: callbacks.initializeDocument,
@@ -2264,10 +2271,11 @@ targets:
               );
               expect(result.callCount, 1);
               final captured = result.captured;
-              expect(captured[0], hasLength(2));
+              expect(captured[0], hasLength(3));
               // see the blend of fusionCiYaml and singleCiYaml
               expect(captured[0][0].getTestName, 'A');
               expect(captured[0][1].getTestName, 'Z');
+              expect(captured[0][2].getTestName, 'engine_presubmit');
               expect(captured[1], pullRequest);
             },
           );
@@ -2448,7 +2456,9 @@ targets:
 
       test('triggers expected presubmit build checks', () async {
         getFilesChanged.cannedFiles = ['README.md'];
-        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        await scheduler.triggerPresubmitTargets(
+          pullRequest: generatePullRequest(branch: 'main', repo: 'packages'),
+        );
         expect(
           verify(
             mockGithubChecksUtil.createCheckRun(
@@ -2516,8 +2526,6 @@ targets:
       });
 
       test('Unlocks merge group on revert request.', () async {
-        fakeFusion.isFusion = (_, _) => true;
-
         final releasePullRequest = generatePullRequest(
           labels: [IssueLabel(name: 'revert of')],
         );
@@ -2588,7 +2596,6 @@ targets:
                 branchesValue: <String>['master', 'main'],
               ),
             ),
-            fusionTester: fakeFusion,
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2630,9 +2637,10 @@ targets:
                 branchesValue: <String>['master'],
               ),
             ),
-            fusionTester: fakeFusion,
           );
-          await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+          await scheduler.triggerPresubmitTargets(
+            pullRequest: generatePullRequest(branch: 'main', repo: 'packages'),
+          );
           expect(
             verify(
               mockGithubChecksUtil.createCheckRun(
@@ -2696,20 +2704,19 @@ targets:
                 summary:
                     'If this check is stuck pending, push an empty commit to retrigger the checks',
               ),
-              'Linux A',
-              null,
-              'Linux runIf',
-              null,
             ],
           );
         },
       );
 
       test('ci.yaml validation passes with default config', () async {
-        when(
-          mockGithubChecksUtil.getCheckRun(any, any, any),
-        ).thenAnswer((Invocation invocation) async => createCheckRun(id: 0));
-        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer(
+          (Invocation invocation) async =>
+              createCheckRun(id: 0, repo: 'packages'),
+        );
+        await scheduler.triggerPresubmitTargets(
+          pullRequest: generatePullRequest(repo: 'packages', branch: 'main'),
+        );
         expect(
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -2762,11 +2769,6 @@ targets:
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
           ),
-          (
-            'Merge Queue Guard',
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
-          ),
         ]);
       });
 
@@ -2784,12 +2786,7 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <Object?>[
-            CheckRunStatus.completed,
-            CheckRunConclusion.failure,
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
-          ],
+          <Object?>[CheckRunStatus.completed, CheckRunConclusion.failure],
         );
       });
 
@@ -2888,8 +2885,6 @@ targets:
 
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
-        fakeFusion.isFusion = (_, _) => true;
-
         when(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
@@ -2919,7 +2914,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -3033,8 +3027,6 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        fakeFusion.isFusion = (_, _) => true;
-
         when(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
@@ -3063,7 +3055,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
 
@@ -3187,7 +3178,6 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        fakeFusion.isFusion = (_, _) => true;
         when(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
@@ -3216,7 +3206,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
 
@@ -3328,8 +3317,6 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        fakeFusion.isFusion = (_, _) => true;
-
         when(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
@@ -3358,7 +3345,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          fusionTester: fakeFusion,
           initializeCiStagingDocument: callbacks.initializeDocument,
         );
 
@@ -3490,31 +3476,10 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: fakeLuciBuildService,
-          fusionTester: fakeFusion,
         );
       });
 
-      test(
-        'does not run if running outside of Fusion (legacy releases)',
-        () async {
-          fakeFusion.isFusion = (_, _) => false;
-          getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
-          final pullRequest = generatePullRequest(authorLogin: allowListedUser);
-
-          await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-
-          // Verify we don't try writing anything to Firestore (Fusion workflow).
-          verifyZeroInteractions(firestoreService.mock);
-          expect(
-            fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
-            ['Linux A'],
-            reason: 'Should ignore the Fusion configuration and engine phases',
-          );
-        },
-      );
-
       test('still runs engine builds (DEPS)', () async {
-        fakeFusion.isFusion = (_, _) => true;
         getFilesChanged.cannedFiles = [
           'DEPS',
           'packages/flutter/lib/material.dart',
@@ -3530,7 +3495,6 @@ targets:
       });
 
       test('still runs engine builds (engine/**)', () async {
-        fakeFusion.isFusion = (_, _) => true;
         getFilesChanged.cannedFiles = [
           'engine/src/flutter/BUILD.gn',
           'packages/flutter/lib/material.dart',
@@ -3548,7 +3512,6 @@ targets:
       test(
         'still runs engine builds (>=X files in changedFilesCount)',
         () async {
-          fakeFusion.isFusion = (_, _) => true;
           getFilesChanged.cannedFiles = [
             // Irrelevant, never called.
           ];
@@ -3569,7 +3532,6 @@ targets:
       );
 
       test('skips engine builds', () async {
-        fakeFusion.isFusion = (_, _) => true;
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(authorLogin: allowListedUser);
 
@@ -3593,7 +3555,6 @@ targets:
 
       // Regression test for https://github.com/flutter/flutter/issues/162403.
       test('engine builds still run for flutter-3.29-candidate.0', () async {
-        fakeFusion.isFusion = (_, _) => true;
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
         final pullRequest = generatePullRequest(
           branch: 'flutter-3.29-candidate.0',
