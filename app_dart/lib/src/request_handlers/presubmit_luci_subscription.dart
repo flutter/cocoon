@@ -100,13 +100,24 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     var rescheduled = false;
     if (githubChecksService.taskFailed(build.status)) {
       final currentAttempt = _nextAttempt(tagSet);
-      final maxAttempt = await _getMaxAttempt(
-        slug,
-        builderName,
-        tagSet,
-        commitBranch: userData.commitBranch,
-        commitSha: userData.commitSha,
-      );
+      final int maxAttempt;
+      try {
+        maxAttempt = await _getMaxAttempt(
+          slug,
+          builderName,
+          tagSet,
+          commitBranch: userData.commitBranch,
+          commitSha: userData.commitSha,
+        );
+      } on BranchNotEnabledForThisCiYamlException catch (e) {
+        // TODO(matanlurey): Figure out why this is happening IRL.
+        // Mitigates https://github.com/flutter/flutter/issues/166274 by
+        // marking the request as invalid, instead of failing (as a 500), which
+        // in turn calls this Cloud PubSub message over and over.
+        response!.statusCode = HttpStatus.badRequest;
+        response!.reasonPhrase = '$e';
+        return Body.empty;
+      }
       if (currentAttempt < maxAttempt) {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
