@@ -302,7 +302,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
               return ProcessCheckRunResult.missingEntity(message);
             }
           }
-          return ProcessCheckRunResult.internalError(
+          return ProcessCheckRunResult.retrySoon(
             '$slug/$headSha was not found on GoB. Failing so this event can be retried',
           );
         }
@@ -498,7 +498,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
     final duration = _now().difference(pr.closedAt!);
     if (duration < _estimatedGitOnBorgMaximumSyncDuration) {
-      return ProcessCheckRunResult.internalError(
+      return ProcessCheckRunResult.retrySoon(
         '${pr.mergeCommitSha!} was not found on GoB (duration=$duration). Retry.',
       );
     }

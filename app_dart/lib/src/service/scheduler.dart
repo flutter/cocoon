@@ -1555,7 +1555,7 @@ $stacktrace
                 (target) => checkRunEvent.checkRun!.name == target.value.name,
               );
               if (target == null) {
-                return ProcessCheckRunResult.internalError(
+                return ProcessCheckRunResult.unexpectedError(
                   'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
                   'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
                 );
@@ -1618,7 +1618,7 @@ $stacktrace
 
         // TODO(matanlurey): It would be better to early return above where it is not a success.
         if (!success) {
-          return const ProcessCheckRunResult.internalError(
+          return const ProcessCheckRunResult.unexpectedError(
             'Not successful. See previous log messages',
           );
         }

@@ -13,7 +13,7 @@ import 'package:meta/meta.dart';
 /// Possible results for [Scheduler.processCheckRun].
 ///
 /// It is important to use a precise result type, where possible, as a 500-error
-/// ([ProcessCheckRunResult.internalError]) indicates that a request _could_ be
+/// ([ProcessCheckRunResult.retrySoon]) indicates that a request _could_ be
 /// succeeded at a later point in time, and it is often retried.
 @immutable
 sealed class ProcessCheckRunResult {
@@ -30,12 +30,16 @@ sealed class ProcessCheckRunResult {
   const factory ProcessCheckRunResult.missingEntity(String message) =
       MissingEntityErrorResult._;
 
-  /// The check run crashed, but might succeed later.
-  const factory ProcessCheckRunResult.internalError(
+  /// The check run failed, but could succeed in the near future.
+  const factory ProcessCheckRunResult.retrySoon(String message) =
+      RetrySoonErrorResult._;
+
+  /// The check run crashed.
+  const factory ProcessCheckRunResult.unexpectedError(
     String message, {
     Object? error,
     StackTrace? stackTrace,
-  }) = InternalErrorResult._;
+  }) = UnexpectedErrorResult._;
 
   /// Writes an HTTP response of this type.
   void writeResponse(HttpResponse response);
@@ -120,9 +124,39 @@ final class MissingEntityErrorResult implements ProcessCheckRunResult {
   }
 }
 
-/// Internal error.
-final class InternalErrorResult implements ProcessCheckRunResult {
-  const InternalErrorResult._(this.message, {this.error, this.stackTrace});
+/// An internal error that is expected.
+final class RetrySoonErrorResult implements ProcessCheckRunResult {
+  const RetrySoonErrorResult._(this.message);
+
+  /// What should be displayed to the user.
+  final String message;
+
+  @override
+  bool operator ==(Object other) {
+    return other is UnexpectedErrorResult && message == other.message;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(UnexpectedErrorResult, message);
+  }
+
+  @override
+  void writeResponse(HttpResponse response) {
+    log.info(message);
+    response.statusCode = HttpStatus.serviceUnavailable;
+    response.reasonPhrase = message;
+  }
+
+  @override
+  String toString() {
+    return 'ProcessCheckRunResult.retrySoon($message)';
+  }
+}
+
+/// Internal error that is unexpected.
+final class UnexpectedErrorResult implements ProcessCheckRunResult {
+  const UnexpectedErrorResult._(this.message, {this.error, this.stackTrace});
 
   /// What should be displayed to the user.
   final String message;
@@ -135,7 +169,7 @@ final class InternalErrorResult implements ProcessCheckRunResult {
 
   @override
   bool operator ==(Object other) {
-    return other is InternalErrorResult &&
+    return other is UnexpectedErrorResult &&
         message == other.message &&
         error == other.error &&
         stackTrace == other.stackTrace;
@@ -143,7 +177,7 @@ final class InternalErrorResult implements ProcessCheckRunResult {
 
   @override
   int get hashCode {
-    return Object.hash(InternalErrorResult, message, error, stackTrace);
+    return Object.hash(UnexpectedErrorResult, message, error, stackTrace);
   }
 
   @override
@@ -155,6 +189,6 @@ final class InternalErrorResult implements ProcessCheckRunResult {
 
   @override
   String toString() {
-    return 'ProcessCheckRunResult.internalError($message, error: $error, stackTrace: $stackTrace)';
+    return 'ProcessCheckRunResult.unexpectedError($message, error: $error, stackTrace: $stackTrace)';
   }
 }
