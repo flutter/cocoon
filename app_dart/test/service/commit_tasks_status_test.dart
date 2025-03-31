@@ -6,7 +6,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:test/test.dart';
 
-import '../../src/utilities/entity_generators.dart';
+import '../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();
