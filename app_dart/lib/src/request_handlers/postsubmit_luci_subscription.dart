@@ -86,8 +86,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     // TODO(matanlurey): Figure out why (sometimes) these fields are invalid.
     // See https://github.com/flutter/flutter/issues/16.
-    if (int.tryParse(userData.taskKey) == null ||
-        int.tryParse(userData.commitKey) == null) {
+    if (int.tryParse(userData.taskKey) == null) {
       throw BadRequestException('Invalid userData: $userData');
     }
 
