@@ -409,7 +409,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '2'
@@ -421,7 +420,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '3'
@@ -466,7 +464,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '1'
@@ -478,7 +475,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '1'
@@ -518,7 +514,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = 'Task Name'
@@ -579,7 +574,6 @@ void main() {
                     Commit()
                       ..author = 'Cast'
                       ..branch = 'master',
-
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -606,7 +600,6 @@ void main() {
                     Commit()
                       ..author = 'Cast'
                       ..branch = 'master',
-
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -638,7 +631,6 @@ void main() {
                     Commit()
                       ..author = 'Cast'
                       ..branch = 'master',
-
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -665,7 +657,6 @@ void main() {
                     Commit()
                       ..author = 'Cast'
                       ..branch = 'master',
-
                 tasks: [
                   Task()
                     ..status = 'Succeeded'
@@ -709,7 +700,6 @@ void main() {
                       Commit()
                         ..author = 'Cast'
                         ..branch = 'master',
-
                   tasks: [taskA3],
                 ),
                 CommitStatus(
@@ -717,7 +707,6 @@ void main() {
                       Commit()
                         ..author = 'Cast'
                         ..branch = 'master',
-
                   tasks: [taskB1],
                 ),
               ],
@@ -752,7 +741,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '1'
@@ -776,7 +764,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '1'
@@ -805,7 +792,6 @@ void main() {
             Commit()
               ..author = 'Author'
               ..branch = 'master',
-
         tasks: [
           Task()
             ..builderName = '1'
@@ -834,7 +820,6 @@ void main() {
             (Commit()
               ..author = 'Author'
               ..branch = 'master'),
-
         tasks: [
           Task()
             ..builderName = '1'
@@ -926,7 +911,6 @@ Future<void> expectTaskBoxColorWithMessage(
                         Commit()
                           ..author = 'Mathilda'
                           ..branch = 'master',
-
                     tasks: [Task()..status = message],
                   ),
                 ],
