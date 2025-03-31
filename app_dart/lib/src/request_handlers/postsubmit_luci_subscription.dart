@@ -16,6 +16,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/firestore/task.dart' as firestore;
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
@@ -82,6 +83,12 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
 
     log.info('build ${build.toProto3Json()}');
+
+    // TODO(matanlurey): Figure out why (sometimes) these fields are invalid.
+    // See https://github.com/flutter/flutter/issues/16.
+    if (int.tryParse(userData.taskKey) == null) {
+      throw BadRequestException('Invalid userData: $userData');
+    }
 
     final commitKey = Key<String>(
       Key<dynamic>.emptyKey(Partition(null)),
