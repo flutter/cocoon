@@ -44,7 +44,7 @@ void main() {
   });
 
   test('.internalError', () {
-    ProcessCheckRunResult.internalError(
+    ProcessCheckRunResult.unexpectedError(
       'Did a really bad thing',
       error: StateError('Bad thing detected'),
       stackTrace: StackTrace.current,

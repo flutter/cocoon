@@ -80,15 +80,10 @@ abstract class RequestHandler<T extends Body> {
     );
   }
 
-  /// Responds (using [response]) with the specified [status] and optional
-  /// [body].
+  /// Responds (using [response]) with an optional [body].
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond({
-    int status = HttpStatus.ok,
-    Body body = Body.empty,
-  }) async {
-    response!.statusCode = status;
+  Future<void> _respond({Body body = Body.empty}) async {
     await response!.addStream(body.serialize().cast<List<int>>());
     await response!.flush();
     await response!.close();

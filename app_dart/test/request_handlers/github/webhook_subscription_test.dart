@@ -2485,7 +2485,7 @@ void foo() {
         expect(db.values.values.whereType<Commit>(), isEmpty);
         await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.internalServerError);
+        expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
         expect(
           tester.response.reasonPhrase,
           contains('$mergedSha was not found on GoB'),
@@ -3253,7 +3253,7 @@ void foo() {
 
         await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.internalServerError);
+        expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
         expect(tester.response.reasonPhrase, contains('was not found on GoB'));
       },
     );
@@ -3276,7 +3276,7 @@ void foo() {
 
         await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.internalServerError);
+        expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
         expect(tester.response.reasonPhrase, contains('was not found on GoB'));
         expect(
           log,
