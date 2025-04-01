@@ -10,7 +10,6 @@ import 'package:cocoon_service/src/model/firestore/commit.dart'
     as firestore_commit;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -143,7 +142,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -208,7 +207,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -249,7 +248,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -286,7 +285,7 @@ void main() {
       checkRunId: null,
       taskKey: '${task.key.id}',
       commitKey: '${task.key.parent?.id}',
-      firestoreTaskDocumentName: FirestoreTaskDocumentName(
+      firestoreTaskDocumentName: firestore.TaskId(
         commitSha: commit.sha!,
         taskName: task.name!,
         currentAttempt: task.attempts!,
@@ -336,7 +335,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -389,7 +388,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -444,7 +443,7 @@ void main() {
           checkRunId: null,
           taskKey: '${task.key.id}',
           commitKey: '${task.key.parent?.id}',
-          firestoreTaskDocumentName: FirestoreTaskDocumentName(
+          firestoreTaskDocumentName: firestore.TaskId(
             commitSha: commit.sha!,
             taskName: task.name!,
             currentAttempt: task.attempts!,
@@ -499,7 +498,7 @@ void main() {
         checkRunId: 1,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -549,7 +548,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,
@@ -604,7 +603,7 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: FirestoreTaskDocumentName(
+        firestoreTaskDocumentName: firestore.TaskId(
           commitSha: commit.sha!,
           taskName: task.name!,
           currentAttempt: task.attempts!,

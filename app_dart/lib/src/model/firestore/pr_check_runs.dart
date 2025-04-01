@@ -9,6 +9,7 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../service/firestore.dart';
+import 'base.dart';
 
 /// Pairs the GitHub PR with the check runs associated with it.
 ///
@@ -33,11 +34,20 @@ import '../../service/firestore.dart';
 ///       sha: string
 ///       [*fields]: "test_name": "check_run id"
 /// ```
-class PrCheckRuns extends Document {
+final class PrCheckRuns extends Document with AppDocument<PrCheckRuns> {
   static const kCollectionId = 'prCheckRuns';
   static const kPullRequestField = 'pull_request';
   static const kSlugField = 'slug';
   static const kShaField = 'sha';
+
+  @override
+  AppDocumentMetadata<PrCheckRuns> get runtimeMetadata => metadata;
+
+  /// Description of the document in Firestore.
+  static final metadata = AppDocumentMetadata<PrCheckRuns>(
+    collectionId: kCollectionId,
+    fromDocument: PrCheckRuns.fromDocument,
+  );
 
   /// Create [PrCheckRuns] from a Commit Document.
   static PrCheckRuns fromDocument(Document prCheckRunsDoc) {

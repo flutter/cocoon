@@ -7,6 +7,34 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../service/firestore.dart';
+import 'base.dart';
+
+final class CiStagingId extends AppDocumentId<CiStaging> {
+  CiStagingId({
+    required this.owner,
+    required this.repo,
+    required this.sha,
+    required this.stage,
+  });
+
+  /// The repository owner.
+  final String owner;
+
+  /// The repository name.
+  final String repo;
+
+  /// The commit SHA.
+  final String sha;
+
+  /// The stage of the CI process.
+  final CiStage stage;
+
+  @override
+  String get documentId => [owner, repo, sha, stage].join('_');
+
+  @override
+  AppDocumentMetadata<CiStaging> get runtimeMetadata => CiStaging.metadata;
+}
 
 /// Representation of the current work scheduled for a given stage of monorepo check runs.
 ///
@@ -26,7 +54,7 @@ import '../../service/firestore.dart';
 /// Note that the document ID fields are _synthetic_, that is, there is no
 /// cooresponding concrete field on the document itself. We should probably fix
 /// that (https://github.com/flutter/flutter/issues/166229).
-class CiStaging extends Document {
+final class CiStaging extends Document with AppDocument<CiStaging> {
   /// Firestore collection for the staging documents.
   static const kCollectionId = 'ciStaging';
   static const kRemainingField = 'remaining';
@@ -38,11 +66,20 @@ class CiStaging extends Document {
   static final kSuccessValue = CheckRunConclusion.success.value!;
   static final kFailureValue = CheckRunConclusion.failure.value!;
 
-  static String documentIdFor({
+  static AppDocumentId<CiStaging> documentIdFor({
     required RepositorySlug slug,
     required String sha,
     required CiStage stage,
-  }) => '${slug.owner}_${slug.name}_${sha}_$stage';
+  }) => CiStagingId(owner: slug.owner, repo: slug.name, sha: sha, stage: stage);
+
+  @override
+  AppDocumentMetadata<CiStaging> get runtimeMetadata => metadata;
+
+  /// Description of the document in Firestore.
+  static final metadata = AppDocumentMetadata<CiStaging>(
+    collectionId: kCollectionId,
+    fromDocument: CiStaging.fromDocument,
+  );
 
   /// Returns a firebase documentName used in [fromFirestore].
   static String documentNameFor({
@@ -52,7 +89,7 @@ class CiStaging extends Document {
   }) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(slug: slug, sha: sha, stage: stage);
-    return '$kDocumentParent/$kCollectionId/$docId';
+    return '$kDocumentParent/$kCollectionId/${docId.documentId}';
   }
 
   /// Lookup [Commit] from Firestore.
@@ -63,14 +100,16 @@ class CiStaging extends Document {
     required String documentName,
   }) async {
     final document = await firestoreService.getDocument(documentName);
-    return CiStaging.fromDocument(ciStagingDocument: document);
+    return CiStaging.fromDocument(document);
   }
 
   /// Create [CiStaging] from a Commit Document.
-  static CiStaging fromDocument({required Document ciStagingDocument}) {
-    return CiStaging()
-      ..fields = ciStagingDocument.fields!
-      ..name = ciStagingDocument.name!;
+  CiStaging.fromDocument(Document other) {
+    this
+      ..name = other.name
+      ..fields = {...?other.fields}
+      ..createTime = other.createTime
+      ..updateTime = other.updateTime;
   }
 
   /// The remaining number of checks in this staging.
@@ -348,7 +387,12 @@ For CI stage $stage:
         document,
         kDocumentParent,
         kCollectionId,
-        documentId: documentIdFor(slug: slug, sha: sha, stage: stage),
+        documentId:
+            documentIdFor(
+              slug: slug,
+              sha: sha,
+              stage: stage, //
+            ).documentId,
       );
       log.info('$logCrumb: document created');
       return newDoc;
