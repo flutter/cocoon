@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
@@ -21,52 +20,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/fake_build.dart';
+import '../utils/generate_task_for_tests.dart';
 import '../utils/golden.dart';
 import '../utils/task_icons.dart';
-
-class TestGrid extends StatelessWidget {
-  const TestGrid({
-    required this.buildState,
-    required this.task,
-    this.filter,
-    super.key,
-  });
-
-  final BuildState buildState;
-  final Task task;
-  final TaskGridFilter? filter;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      child: TaskGrid(
-        filter: filter,
-        buildState: buildState,
-        commitStatuses: <CommitStatus>[
-          CommitStatus(
-            commit:
-                (Commit()
-                  ..author = 'Fats Domino'
-                  ..sha = '24e8c0a2'
-                  ..branch = 'master'),
-            tasks: [task],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 const double _cellSize = 36;
 
 void main() {
-  final nowTime = DateTime.utc(2020, 9, 1, 12, 30);
-  final createTime = nowTime.subtract(const Duration(minutes: 52));
-  final startTime = nowTime.subtract(const Duration(minutes: 50));
-  final finishTime = nowTime.subtract(const Duration(minutes: 10));
-
-  Int64 int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
-
   late FakeBuildState buildState;
 
   setUp(() {
@@ -77,31 +37,25 @@ void main() {
   testWidgets('TaskOverlay shows on click', (WidgetTester tester) async {
     await precacheTaskIcons(tester);
 
-    final expectedTask =
-        Task()
-          ..attempts = 3
-          ..builderName = 'Tasky McTaskFace'
-          ..isFlaky =
-              false // As opposed to the next test.
-          ..status = TaskBox.statusFailed
-          ..createTimestamp = int64FromDateTime(createTime)
-          ..startTimestamp = int64FromDateTime(startTime)
-          ..endTimestamp = int64FromDateTime(finishTime);
+    final expectedTask = generateTaskForTest(
+      status: TaskBox.statusFailed,
+      attempts: 3,
+    );
 
     final expectedTaskInfoString =
         'Attempts: 3\n'
         'Queued for 2 minutes\n'
-        'Ran for 40 minutes';
+        'Ran for 48 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             theme: ThemeData(useMaterial3: false),
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: expectedTask),
+              body: _TestGrid(buildState: buildState, task: expectedTask),
             ),
           ),
         ),
@@ -146,32 +100,27 @@ void main() {
     WidgetTester tester,
   ) async {
     await precacheTaskIcons(tester);
-    final flakyTask =
-        Task()
-          ..attempts = 3
-          ..builderName = 'Tasky McTaskFace'
-          ..isFlaky =
-              true // This is the point of this test.
-          ..status = TaskBox.statusFailed
-          ..createTimestamp = int64FromDateTime(createTime)
-          ..startTimestamp = int64FromDateTime(startTime)
-          ..endTimestamp = int64FromDateTime(finishTime);
+    final flakyTask = generateTaskForTest(
+      status: TaskBox.statusFailed,
+      attempts: 3,
+      bringup: true,
+    );
 
     final flakyTaskInfoString =
         'Attempts: 3\n'
         'Queued for 2 minutes\n'
-        'Ran for 40 minutes\n'
+        'Ran for 48 minutes\n'
         'Flaky: true';
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             theme: ThemeData(useMaterial3: false),
             home: Scaffold(
-              body: TestGrid(
+              body: _TestGrid(
                 buildState: buildState,
                 task: flakyTask,
                 // Otherwise the task is not rendered at all.
@@ -208,19 +157,16 @@ void main() {
     WidgetTester tester,
   ) async {
     /// Create a queue time of 2 minutes, run time of 8 minutes
-    final createTime = nowTime.subtract(const Duration(minutes: 11));
-    final startTime = nowTime.subtract(const Duration(minutes: 9));
-    final finishTime = nowTime.subtract(const Duration(minutes: 1));
+    final createTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 11));
+    final startTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 9));
+    final finishTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 1));
 
-    final timeTask =
-        Task()
-          ..attempts = 1
-          ..builderName = 'Tasky McTaskFace'
-          ..isFlaky = false
-          ..status = TaskBox.statusSucceeded
-          ..createTimestamp = int64FromDateTime(createTime)
-          ..startTimestamp = int64FromDateTime(startTime)
-          ..endTimestamp = int64FromDateTime(finishTime);
+    final timeTask = generateTaskForTest(
+      status: TaskBox.statusSucceeded,
+      createTime: createTime,
+      startTime: startTime,
+      finishTime: finishTime,
+    );
 
     final timeTaskInfoString =
         'Attempts: 1\n'
@@ -229,12 +175,12 @@ void main() {
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: timeTask),
+              body: _TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -254,30 +200,28 @@ void main() {
     WidgetTester tester,
   ) async {
     /// Create a queue time of 2 minutes, running time of 9 minutes
-    final createTime = nowTime.subtract(const Duration(minutes: 11));
-    final startTime = nowTime.subtract(const Duration(minutes: 9));
+    final createTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 11));
+    final startTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 9));
 
-    final timeTask =
-        Task()
-          ..attempts = 1
-          ..builderName = 'Tasky McTaskFace'
-          ..status = TaskBox.statusInProgress
-          ..isFlaky = false
-          ..createTimestamp = int64FromDateTime(createTime)
-          ..startTimestamp = int64FromDateTime(startTime);
+    final timeTask = generateTaskForTest(
+      status: TaskBox.statusInProgress,
+      createTime: createTime,
+      startTime: startTime,
+    );
 
     final timeTaskInfoString =
         'Attempts: 1\n'
-        'Queuing for 11 minutes\n';
+        'Queued for 2 minutes\n'
+        'Running for 9 minutes';
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: timeTask),
+              body: _TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -297,15 +241,12 @@ void main() {
     WidgetTester tester,
   ) async {
     /// Create a queue time of 2 minutes
-    final createTime = nowTime.subtract(const Duration(minutes: 2));
+    final createTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 2));
 
-    final timeTask =
-        Task()
-          ..attempts = 1
-          ..builderName = 'Tasky McTaskFace'
-          ..status = TaskBox.statusNew
-          ..isFlaky = false
-          ..createTimestamp = int64FromDateTime(createTime);
+    final timeTask = generateTaskForTest(
+      status: TaskBox.statusNew,
+      createTime: createTime,
+    );
 
     final timeTaskInfoString =
         'Attempts: 1\n'
@@ -313,12 +254,12 @@ void main() {
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: timeTask),
+              body: _TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -338,15 +279,13 @@ void main() {
     WidgetTester tester,
   ) async {
     /// Create a queue time of 2 minutes
-    final createTime = nowTime.subtract(const Duration(minutes: 11));
+    final createTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 11));
 
-    final timeTask =
-        Task()
-          ..attempts = 1
-          ..builderName = 'Tasky McTaskFace'
-          ..status = TaskBox.statusInProgress
-          ..isFlaky = false
-          ..createTimestamp = int64FromDateTime(createTime);
+    final timeTask = generateTaskForTest(
+      status: TaskBox.statusInProgress,
+      createTime: createTime,
+      buildNumberList: '',
+    );
 
     final timeTaskInfoString =
         'Attempts: 1\n'
@@ -354,12 +293,12 @@ void main() {
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: timeTask),
+              body: _TestGrid(buildState: buildState, task: timeTask),
             ),
           ),
         ),
@@ -381,15 +320,15 @@ void main() {
     await precacheTaskIcons(tester);
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             theme: ThemeData(useMaterial3: false),
             home: Scaffold(
-              body: TestGrid(
+              body: _TestGrid(
                 buildState: buildState,
-                task: Task()..status = TaskBox.statusSucceeded,
+                task: generateTaskForTest(status: TaskBox.statusSucceeded),
               ),
             ),
           ),
@@ -417,17 +356,17 @@ void main() {
   ) async {
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
+              body: _TestGrid(
                 buildState: buildState,
-                task:
-                    Task()
-                      ..status = TaskBox.statusSucceeded
-                      ..buildNumberList = '123',
+                task: generateTaskForTest(
+                  status: TaskBox.statusSucceeded,
+                  buildNumberList: '123',
+                ),
               ),
             ),
           ),
@@ -448,18 +387,18 @@ void main() {
   ) async {
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(
+              body: _TestGrid(
                 buildState: buildState,
-                task:
-                    Task()
-                      ..builderName = 'Linux flutter_release_builder'
-                      ..status = TaskBox.statusSucceeded
-                      ..buildNumberList = '123',
+                task: generateTaskForTest(
+                  status: TaskBox.statusSucceeded,
+                  buildNumberList: '123',
+                  builderName: 'Linux flutter_release_builder',
+                ),
               ),
             ),
           ),
@@ -478,24 +417,22 @@ void main() {
   testWidgets('TaskOverlay: RERUN button disabled when user !isAuthenticated', (
     WidgetTester tester,
   ) async {
-    final expectedTask =
-        Task()
-          ..attempts = 3
-          ..builderName = 'Tasky McTaskFace'
-          ..status = TaskBox.statusSucceeded
-          ..isFlaky = false;
+    final expectedTask = generateTaskForTest(
+      status: TaskBox.statusSucceeded,
+      attempts: 3,
+    );
 
     final buildState = FakeBuildState(rerunTaskResult: true);
     when(buildState.authService.isAuthenticated).thenReturn(false);
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: expectedTask),
+              body: _TestGrid(buildState: buildState, task: expectedTask),
             ),
           ),
         ),
@@ -522,24 +459,22 @@ void main() {
   testWidgets('TaskOverlay: successful rerun shows success snackbar message', (
     WidgetTester tester,
   ) async {
-    final expectedTask =
-        Task()
-          ..attempts = 3
-          ..builderName = 'Tasky McTaskFace'
-          ..status = TaskBox.statusSucceeded
-          ..isFlaky = false;
+    final expectedTask = generateTaskForTest(
+      status: TaskBox.statusSucceeded,
+      attempts: 3,
+    );
 
     final buildState = FakeBuildState(rerunTaskResult: true);
     when(buildState.authService.isAuthenticated).thenReturn(true);
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
             home: Scaffold(
-              body: TestGrid(buildState: buildState, task: expectedTask),
+              body: _TestGrid(buildState: buildState, task: expectedTask),
             ),
           ),
         ),
@@ -572,19 +507,17 @@ void main() {
   testWidgets('failed rerun shows errorBrook snackbar message', (
     WidgetTester tester,
   ) async {
-    final expectedTask =
-        Task()
-          ..attempts = 3
-          ..builderName = 'Tasky McTaskFace'
-          ..isFlaky = false
-          ..status = TaskBox.statusNew;
+    final expectedTask = generateTaskForTest(
+      status: TaskBox.statusNew,
+      attempts: 3,
+    );
 
     final buildState = FakeBuildState(rerunTaskResult: false);
     when(buildState.authService.isAuthenticated).thenReturn(true);
 
     await tester.pumpWidget(
       Now.fixed(
-        dateTime: nowTime,
+        dateTime: utc$2020_9_1_12_30,
         child: TaskBox(
           cellSize: _cellSize,
           child: MaterialApp(
@@ -593,7 +526,7 @@ void main() {
               child: Scaffold(
                 body: ErrorBrookWatcher(
                   errors: buildState.errors,
-                  child: TestGrid(buildState: buildState, task: expectedTask),
+                  child: _TestGrid(buildState: buildState, task: expectedTask),
                 ),
               ),
             ),
@@ -682,4 +615,32 @@ void main() {
       const Offset(490.0, 320.0),
     );
   });
+}
+
+final class _TestGrid extends StatelessWidget {
+  const _TestGrid({required this.buildState, required this.task, this.filter});
+
+  final BuildState buildState;
+  final Task task;
+  final TaskGridFilter? filter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      child: TaskGrid(
+        filter: filter,
+        buildState: buildState,
+        commitStatuses: <CommitStatus>[
+          CommitStatus(
+            commit:
+                (Commit()
+                  ..author = 'Fats Domino'
+                  ..sha = '24e8c0a2'
+                  ..branch = 'master'),
+            tasks: [task],
+          ),
+        ],
+      ),
+    );
+  }
 }

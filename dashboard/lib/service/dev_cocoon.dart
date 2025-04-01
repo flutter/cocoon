@@ -413,18 +413,17 @@ class DevelopmentCocoonService implements CocoonService {
     final maxAttempts = _maxAttempts[status]!;
     final attempts =
         minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
-    final task =
-        Task()
-          ..createTimestamp = Int64(commitTimestamp + index)
-          ..startTimestamp = Int64(commitTimestamp + (index * 1000 * 60))
-          ..endTimestamp = Int64(
-            commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60),
-          )
-          ..builderName = 'Linux_android $index'
-          ..attempts = attempts
-          ..isFlaky = index == now.millisecondsSinceEpoch % 13
-          ..status = status;
 
-    return task;
+    return Task(
+      createTimestamp: Int64(commitTimestamp + index),
+      startTimestamp: Int64(commitTimestamp + (index * 1000 * 60)),
+      endTimestamp: Int64(
+        commitTimestamp + (index * 1000 * 60) + (index * 1000 * 60),
+      ),
+      builderName: 'Linux_android $index',
+      attempts: attempts,
+      isFlaky: index == now.millisecondsSinceEpoch % 13,
+      status: status,
+    );
   }
 }
