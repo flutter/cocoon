@@ -10,7 +10,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model/commit_status.dart';
 import 'package:flutter_dashboard/state/build.dart';
@@ -871,7 +870,7 @@ Future<void> expectTaskBoxColorWithMessage(
                         Commit()
                           ..author = 'Mathilda'
                           ..branch = 'master',
-                    tasks: [Task()..status = message],
+                    tasks: [generateTaskForTest(status: message)],
                   ),
                 ],
               ),

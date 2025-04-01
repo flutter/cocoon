@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart' hide Key;
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,7 +20,9 @@ void main() {
           MaterialApp(
             home: Column(
               children: <Widget>[
-                LuciTaskAttemptSummary(task: Task()..buildNumberList = ''),
+                LuciTaskAttemptSummary(
+                  task: generateTaskForTest(status: TaskBox.statusNew),
+                ),
               ],
             ),
           ),
@@ -38,7 +39,12 @@ void main() {
         MaterialApp(
           home: Column(
             children: <Widget>[
-              LuciTaskAttemptSummary(task: Task()..buildNumberList = '123'),
+              LuciTaskAttemptSummary(
+                task: generateTaskForTest(
+                  status: TaskBox.statusFailed,
+                  buildNumberList: '123',
+                ),
+              ),
             ],
           ),
         ),
@@ -55,7 +61,13 @@ void main() {
         MaterialApp(
           home: Column(
             children: <Widget>[
-              LuciTaskAttemptSummary(task: Task()..buildNumberList = '123,456'),
+              LuciTaskAttemptSummary(
+                task: generateTaskForTest(
+                  status: TaskBox.statusSucceeded,
+                  attempts: 2,
+                  buildNumberList: '123,456',
+                ),
+              ),
             ],
           ),
         ),

@@ -25,7 +25,14 @@ void main() {
 
     expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
     expect(
-      filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')),
+      filter.matchesTask(
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'foo',
+          ),
+        ),
+      ),
       true,
     );
 
@@ -129,7 +136,12 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'Good task'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'Good task',
+            ),
+          ),
         ),
         true,
       );
@@ -153,7 +165,12 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'Good task'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'Good task',
+            ),
+          ),
         ),
         true,
       );
@@ -180,21 +197,47 @@ void main() {
     expect(filters[0], filters[1]);
     for (final filter in filters) {
       expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')),
-        true,
-      );
-      expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')),
-        true,
-      );
-      expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'blah foo blah'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'foo',
+            ),
+          ),
         ),
         true,
       );
       expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')),
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'Foo',
+            ),
+          ),
+        ),
+        true,
+      );
+      expect(
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'blah foo blah',
+            ),
+          ),
+        ),
+        true,
+      );
+      expect(
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'fo',
+            ),
+          ),
+        ),
         false,
       );
     }
@@ -209,21 +252,47 @@ void main() {
     expect(filters[0], filters[1]);
     for (final filter in filters) {
       expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')),
-        true,
-      );
-      expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'Foo')),
-        true,
-      );
-      expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'blah fOO blah'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'foo',
+            ),
+          ),
         ),
         true,
       );
       expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'fo')),
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'Foo',
+            ),
+          ),
+        ),
+        true,
+      );
+      expect(
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'blah fOO blah',
+            ),
+          ),
+        ),
+        true,
+      );
+      expect(
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'fo',
+            ),
+          ),
+        ),
         false,
       );
     }
@@ -238,24 +307,46 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'z bc'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'z bc',
+            ),
+          ),
         ),
         true,
       );
       expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'z bc z'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'z bc z',
+            ),
+          ),
         ),
         false,
       );
       expect(
         filter.matchesTask(
-          QualifiedTask.fromTask(Task()..builderName = 'z b c'),
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'z b c',
+            ),
+          ),
         ),
         false,
       );
       expect(
-        filter.matchesTask(QualifiedTask.fromTask(Task()..builderName = 'foo')),
+        filter.matchesTask(
+          QualifiedTask.fromTask(
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'foo',
+            ),
+          ),
+        ),
         false,
       );
     }
@@ -283,26 +374,46 @@ void main() {
 
     expect(
       trueFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = taskName),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: taskName,
+          ),
+        ),
       ),
       true,
     );
     expect(
       trueFilterMap.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = taskName),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: taskName,
+          ),
+        ),
       ),
       true,
     );
 
     expect(
       falseFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = taskName),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: taskName,
+          ),
+        ),
       ),
       false,
     );
     expect(
       falseFilterMap.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = taskName),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: taskName,
+          ),
+        ),
       ),
       false,
     );
@@ -358,133 +469,243 @@ void main() {
 
     expect(
       iosMacFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Mac_ios'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Mac_ios',
+          ),
+        ),
       ),
       true,
     );
     expect(
       iosMacFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Mac'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Mac',
+          ),
+        ),
       ),
       false,
     );
     expect(
       macIosFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Mac_ios'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Mac_ios',
+          ),
+        ),
       ),
       false,
     );
     expect(
       macIosFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Mac'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Mac',
+          ),
+        ),
       ),
       true,
     );
     expect(
       macIosBothTrueFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Mac_ios'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Mac_ios',
+          ),
+        ),
       ),
       true,
     );
     expect(
       macIosBothTrueFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Mac'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Mac',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_android'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_android',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_mokey',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_pixel_7pro',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux pixel_test'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux pixel_test',
+          ),
+        ),
       ),
       false,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux',
+          ),
+        ),
       ),
       false,
     );
     expect(
       linuxAndroidFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_android'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_android',
+          ),
+        ),
       ),
       false,
     );
     expect(
       linuxAndroidFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_mokey',
+          ),
+        ),
       ),
       false,
     );
     expect(
       linuxAndroidFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_pixel_7pro',
+          ),
+        ),
       ),
       false,
     );
     expect(
       linuxAndroidFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux',
+          ),
+        ),
       ),
       true,
     );
     expect(
       linuxAndroidBothTrueFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_android'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_android',
+          ),
+        ),
       ),
       true,
     );
     expect(
       linuxAndroidBothTrueFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_mokey'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_mokey',
+          ),
+        ),
       ),
       true,
     );
     expect(
       linuxAndroidBothTrueFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Linux_pixel_7pro'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Linux_pixel_7pro',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Windows_android'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Windows_android',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Windows_mokey'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Windows_mokey',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidLinuxFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Windows_pixel_7pro'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Windows_pixel_7pro',
+          ),
+        ),
       ),
       true,
     );
     expect(
       androidFalseFilter.matchesTask(
-        QualifiedTask.fromTask(Task()..builderName = 'Anything_android'),
+        QualifiedTask.fromTask(
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Anything_android',
+          ),
+        ),
       ),
       false,
     );
