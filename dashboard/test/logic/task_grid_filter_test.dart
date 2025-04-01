@@ -7,8 +7,11 @@ import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+
+import '../utils/generate_task_for_tests.dart';
 
 void main() {
   void testDefault(TaskGridFilter filter) {
@@ -133,9 +136,11 @@ void main() {
       expect(
         filter.matchesTask(
           QualifiedTask.fromTask(
-            Task()
-              ..builderName = 'Bringup task'
-              ..isFlaky = true,
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'Bringup task',
+              bringup: true,
+            ),
           ),
         ),
         true,
@@ -155,9 +160,11 @@ void main() {
       expect(
         filter.matchesTask(
           QualifiedTask.fromTask(
-            Task()
-              ..builderName = 'Bringup task'
-              ..isFlaky = true,
+            generateTaskForTest(
+              status: TaskBox.statusSucceeded,
+              builderName: 'Bringup task',
+              bringup: true,
+            ),
           ),
         ),
         false,

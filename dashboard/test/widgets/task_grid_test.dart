@@ -23,6 +23,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/fake_flutter_app_icons.dart';
+import '../utils/generate_task_for_tests.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
@@ -399,9 +400,10 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..status = TaskBox.statusSucceeded,
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: '1',
+          ),
         ],
       ),
       CommitStatus(
@@ -410,9 +412,10 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '2'
-            ..status = TaskBox.statusSucceeded,
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: '2',
+          ),
         ],
       ),
       CommitStatus(
@@ -421,9 +424,10 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '3'
-            ..status = TaskBox.statusSucceeded,
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: '3',
+          ),
         ],
       ),
     ];
@@ -465,9 +469,10 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..status = TaskBox.statusSucceeded,
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: '1',
+          ),
         ],
       ),
       CommitStatus(
@@ -476,9 +481,10 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..status = TaskBox.statusSucceeded,
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: '1',
+          ),
         ],
       ),
     ];
@@ -515,9 +521,10 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = 'Task Name'
-            ..status = TaskBox.statusSucceeded,
+          generateTaskForTest(
+            status: TaskBox.statusSucceeded,
+            builderName: 'Task Name',
+          ),
         ],
       ),
     ];
@@ -575,9 +582,10 @@ void main() {
                       ..author = 'Cast'
                       ..branch = 'master',
                 tasks: [
-                  Task()
-                    ..status = 'Succeeded'
-                    ..attempts = 2,
+                  generateTaskForTest(
+                    status: TaskBox.statusSucceeded,
+                    attempts: 2,
+                  ),
                 ],
               ),
             ],
@@ -601,9 +609,10 @@ void main() {
                       ..author = 'Cast'
                       ..branch = 'master',
                 tasks: [
-                  Task()
-                    ..status = 'Succeeded'
-                    ..attempts = 1,
+                  generateTaskForTest(
+                    status: TaskBox.statusSucceeded,
+                    attempts: 1,
+                  ),
                 ],
               ),
             ],
@@ -632,9 +641,10 @@ void main() {
                       ..author = 'Cast'
                       ..branch = 'master',
                 tasks: [
-                  Task()
-                    ..status = 'Succeeded'
-                    ..attempts = 2,
+                  generateTaskForTest(
+                    status: TaskBox.statusSucceeded,
+                    attempts: 2,
+                  ),
                 ],
               ),
             ],
@@ -657,11 +667,7 @@ void main() {
                     Commit()
                       ..author = 'Cast'
                       ..branch = 'master',
-                tasks: [
-                  Task()
-                    ..status = 'Succeeded'
-                    ..attempts = 1,
-                ],
+                tasks: [generateTaskForTest(status: TaskBox.statusSucceeded)],
               ),
             ],
           ),
@@ -674,18 +680,6 @@ void main() {
   testWidgets(
     'TaskGrid shows icon for isTestFlaky tasks with multiple attempts',
     (WidgetTester tester) async {
-      final taskA3 =
-          Task()
-            ..builderName = '1'
-            ..status = TaskBox.statusSucceeded
-            ..attempts = 3;
-
-      final taskB1 =
-          Task()
-            ..builderName = '2'
-            ..status = TaskBox.statusSucceeded
-            ..attempts = 1;
-
       await tester.pumpWidget(
         MaterialApp(
           home: Material(
@@ -700,14 +694,26 @@ void main() {
                       Commit()
                         ..author = 'Cast'
                         ..branch = 'master',
-                  tasks: [taskA3],
+                  tasks: [
+                    generateTaskForTest(
+                      status: TaskBox.statusSucceeded,
+                      builderName: '1',
+                      attempts: 3,
+                    ),
+                  ],
                 ),
                 CommitStatus(
                   commit:
                       Commit()
                         ..author = 'Cast'
                         ..branch = 'master',
-                  tasks: [taskB1],
+                  tasks: [
+                    generateTaskForTest(
+                      status: TaskBox.statusSucceeded,
+                      builderName: '2',
+                      attempts: 1,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -742,21 +748,8 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..status = TaskBox.statusFailed,
-          Task()
-            ..builderName = '2'
-            ..status = TaskBox.statusNew,
-          Task()
-            ..builderName = '3'
-            ..status = TaskBox.statusSkipped,
-          Task()
-            ..builderName = '4'
-            ..status = TaskBox.statusSucceeded,
-          Task()
-            ..builderName = '5'
-            ..status = TaskBox.statusInProgress,
+          for (final status in TaskBox.statusColor.keys)
+            generateTaskForTest(status: status, builderName: 'task_$status'),
         ],
       ),
       CommitStatus(
@@ -765,26 +758,12 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..attempts = 2
-            ..status = TaskBox.statusFailed,
-          Task()
-            ..builderName = '2'
-            ..attempts = 2
-            ..status = TaskBox.statusNew,
-          Task()
-            ..builderName = '3'
-            ..attempts = 2
-            ..status = TaskBox.statusSkipped,
-          Task()
-            ..builderName = '4'
-            ..attempts = 2
-            ..status = TaskBox.statusSucceeded,
-          Task()
-            ..builderName = '5'
-            ..attempts = 2
-            ..status = TaskBox.statusInProgress,
+          for (final status in TaskBox.statusColor.keys)
+            generateTaskForTest(
+              status: status,
+              builderName: 'task_attempts2_$status',
+              attempts: 2,
+            ),
         ],
       ),
       CommitStatus(
@@ -793,26 +772,12 @@ void main() {
               ..author = 'Author'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..isFlaky = true
-            ..status = TaskBox.statusFailed,
-          Task()
-            ..builderName = '2'
-            ..isFlaky = true
-            ..status = TaskBox.statusNew,
-          Task()
-            ..builderName = '3'
-            ..isFlaky = true
-            ..status = TaskBox.statusSkipped,
-          Task()
-            ..builderName = '4'
-            ..isFlaky = true
-            ..status = TaskBox.statusSucceeded,
-          Task()
-            ..builderName = '5'
-            ..isFlaky = true
-            ..status = TaskBox.statusInProgress,
+          for (final status in TaskBox.statusColor.keys)
+            generateTaskForTest(
+              status: status,
+              builderName: 'task_bringup_$status',
+              bringup: true,
+            ),
         ],
       ),
       CommitStatus(
@@ -821,31 +786,13 @@ void main() {
               ..author = 'Author'
               ..branch = 'master'),
         tasks: [
-          Task()
-            ..builderName = '1'
-            ..attempts = 2
-            ..isFlaky = true
-            ..status = TaskBox.statusFailed,
-          Task()
-            ..builderName = '2'
-            ..attempts = 2
-            ..isFlaky = true
-            ..status = TaskBox.statusNew,
-          Task()
-            ..builderName = '3'
-            ..attempts = 2
-            ..isFlaky = true
-            ..status = TaskBox.statusSkipped,
-          Task()
-            ..builderName = '4'
-            ..attempts = 2
-            ..isFlaky = true
-            ..status = TaskBox.statusSucceeded,
-          Task()
-            ..builderName = '5'
-            ..attempts = 2
-            ..isFlaky = true
-            ..status = TaskBox.statusInProgress,
+          for (final status in TaskBox.statusColor.keys)
+            generateTaskForTest(
+              status: status,
+              builderName: 'task_attempts2_bringup_$status',
+              attempts: 2,
+              bringup: true,
+            ),
         ],
       ),
     ];
@@ -857,11 +804,6 @@ void main() {
           child: TaskGrid(
             buildState: FakeBuildState(),
             commitStatuses: statuses,
-            // TODO(matanlurey): Either find a Linux machine, or remove.
-            // To avoid making a golden-file breaking change as part of
-            // https://github.com/flutter/cocoon/pull/4141
-            //
-            // See https://github.com/flutter/flutter/issues/160931.
             filter: TaskGridFilter()..showBringup = true,
           ),
         ),
@@ -870,7 +812,25 @@ void main() {
 
     await expectGoldenMatches(
       find.byType(TaskGrid),
-      'task_grid_test.differentTypes.png',
+      'task_grid_test.filterShowBringup.differentTypes.png',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: false),
+        home: Material(
+          child: TaskGrid(
+            buildState: FakeBuildState(),
+            commitStatuses: statuses,
+            filter: TaskGridFilter(),
+          ),
+        ),
+      ),
+    );
+
+    await expectGoldenMatches(
+      find.byType(TaskGrid),
+      'task_grid_test.filterDefault.differentTypes.png',
     );
   });
 

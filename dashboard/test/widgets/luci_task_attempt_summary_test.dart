@@ -5,10 +5,12 @@
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../utils/fake_url_launcher.dart';
+import '../utils/generate_task_for_tests.dart';
 
 void main() {
   group('LuciTaskAttemptSummary', () {
@@ -73,10 +75,11 @@ void main() {
           home: Column(
             children: <Widget>[
               LuciTaskAttemptSummary(
-                task:
-                    Task()
-                      ..buildNumberList = '123'
-                      ..builderName = 'Linux',
+                task: generateTaskForTest(
+                  status: TaskBox.statusFailed,
+                  buildNumberList: '123',
+                  builderName: 'Linux',
+                ),
               ),
             ],
           ),
@@ -104,10 +107,12 @@ void main() {
             home: Column(
               children: <Widget>[
                 LuciTaskAttemptSummary(
-                  task:
-                      Task()
-                        ..buildNumberList = '123,456'
-                        ..builderName = 'Linux',
+                  task: generateTaskForTest(
+                    status: TaskBox.statusSucceeded,
+                    attempts: 2,
+                    buildNumberList: '123,456',
+                    builderName: 'Linux',
+                  ),
                 ),
               ],
             ),
@@ -136,10 +141,12 @@ void main() {
           home: Column(
             children: <Widget>[
               LuciTaskAttemptSummary(
-                task:
-                    Task()
-                      ..buildNumberList = '123'
-                      ..builderName = 'Linux flutter_release_builder',
+                task: generateTaskForTest(
+                  status: TaskBox.statusSucceeded,
+                  attempts: 2,
+                  buildNumberList: '123',
+                  builderName: 'Linux flutter_release_builder',
+                ),
               ),
             ],
           ),
