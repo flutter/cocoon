@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart' as p;
 
@@ -40,8 +41,43 @@ Future<void> expectGoldenMatches(
 class CocoonFileComparator extends LocalFileComparator {
   CocoonFileComparator(String testFile) : super(Uri.parse(testFile));
 
+  @useResult
+  Future<List<int>?> _tryGetGoldenBytes(Uri golden) async {
+    final goldenFile = _getGoldenFile(golden);
+    if (!goldenFile.existsSync()) {
+      return null;
+    }
+    return super.getGoldenBytes(golden);
+  }
+
+  static bool get _isLuciCi {
+    return !kIsWeb && Platform.environment.containsKey('LUCI_CONTEXT');
+  }
+
+  void _registerTestFailure(Uint8List imageBytes, Uri golden) {
+    stderr.writeln(
+      '${p.join(basedir.toFilePath(), golden.toFilePath())} has failed. '
+      'For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:',
+    );
+    stderr.writeln(base64Encode(imageBytes));
+    stderr.writeln('#[/IMAGE]');
+    addTearDown(() {
+      fail('One or more golden tests failed in this run');
+    });
+  }
+
+  File _getGoldenFile(Uri golden) {
+    return File(p.join(p.fromUri(basedir), p.fromUri(golden.path)));
+  }
+
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    final goldenBytes = await _tryGetGoldenBytes(golden);
+    if (goldenBytes == null && _isLuciCi) {
+      _registerTestFailure(imageBytes, golden);
+      return true;
+    }
+
     final result = await GoldenFileComparator.compareLists(
       imageBytes,
       await getGoldenBytes(golden),
@@ -49,13 +85,9 @@ class CocoonFileComparator extends LocalFileComparator {
 
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
       final error = await generateFailureOutput(result, golden, basedir);
-      if (!kIsWeb && Platform.environment.containsKey('LUCI_CONTEXT')) {
-        stderr.writeln(
-          '${p.join(basedir.toFilePath(), golden.toFilePath())} has failed. '
-          'For your convenience CI provides it as a base64 encoded image below. #[IMAGE]:',
-        );
-        stderr.writeln(base64Encode(imageBytes));
-        stderr.writeln('#[/IMAGE]');
+      if (_isLuciCi) {
+        _registerTestFailure(imageBytes, golden);
+        return true;
       }
       throw FlutterError(error);
     }
