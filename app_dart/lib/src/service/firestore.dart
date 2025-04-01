@@ -231,15 +231,10 @@ class FirestoreService with FirestoreServiceMixin {
     };
     final documents = await query(kGithubGoldStatusCollectionId, filterMap);
     final githubGoldStatuses =
-        documents
-            .map(
-              (g.Document document) =>
-                  GithubGoldStatus.fromDocument(githubGoldStatus: document),
-            )
-            .toList();
+        documents.map(GithubGoldStatus.fromDocument).toList();
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
-        githubGoldStatus: g.Document(
+        g.Document(
           name:
               '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
           fields: <String, g.Value>{
@@ -282,15 +277,10 @@ class FirestoreService with FirestoreServiceMixin {
     };
     final documents = await query(kGithubBuildStatusCollectionId, filterMap);
     final githubBuildStatuses =
-        documents
-            .map(
-              (g.Document document) =>
-                  GithubBuildStatus.fromDocument(githubBuildStatus: document),
-            )
-            .toList();
+        documents.map(GithubBuildStatus.fromDocument).toList();
     if (githubBuildStatuses.isEmpty) {
       return GithubBuildStatus.fromDocument(
-        githubBuildStatus: g.Document(
+        g.Document(
           name:
               '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
           fields: <String, g.Value>{
