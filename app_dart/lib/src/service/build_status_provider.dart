@@ -8,9 +8,9 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/firestore/commit_tasks_status.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/task.dart';
+import 'build_status_provider/commit_tasks_status.dart';
 
 /// Branches that are used to calculate the tree status.
 const Set<String> defaultBranches = <String>{

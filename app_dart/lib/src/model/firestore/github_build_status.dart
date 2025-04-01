@@ -16,8 +16,13 @@ const String kGithubBuildStatusStatusField = 'status';
 const String kGithubBuildStatusUpdateTimeMillisField = 'updateTimeMillis';
 const String kGithubBuildStatusUpdatesField = 'updates';
 
-/// Class that represents an update having been posted to a GitHub PR on the
-/// status of the Flutter build.
+/// A update having been posted to a GitHub PR on the status of the build.
+///
+/// This documents layout is currently:
+/// ```
+///  /projects/flutter-dashboard/databases/cocoon/commits/
+///    document: <this.head>
+/// ```
 class GithubBuildStatus extends Document {
   /// Lookup [GithubBuildStatus] from Firestore.
   ///

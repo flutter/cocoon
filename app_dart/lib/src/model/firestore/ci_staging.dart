@@ -22,6 +22,10 @@ import '../../service/firestore.dart';
 ///       remaining: int >= 0
 ///       [*fields]: string {scheduled, success, failure, skipped}
 /// ```
+///
+/// Note that the document ID fields are _synthetic_, that is, there is no
+/// cooresponding concrete field on the document itself. We should probably fix
+/// that (https://github.com/flutter/flutter/issues/166229).
 class CiStaging extends Document {
   /// Firestore collection for the staging documents.
   static const kCollectionId = 'ciStaging';

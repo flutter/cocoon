@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
-import 'package:cocoon_service/src/model/firestore/commit_tasks_status.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
+import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;

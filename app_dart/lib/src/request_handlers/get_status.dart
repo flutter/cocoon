@@ -8,11 +8,11 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/firestore/commit.dart';
-import '../model/firestore/commit_tasks_status.dart';
 import '../model/firestore/task.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
+import '../service/build_status_provider/commit_tasks_status.dart';
 import '../service/config.dart';
 
 @immutable
