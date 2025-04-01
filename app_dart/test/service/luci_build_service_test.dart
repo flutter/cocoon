@@ -20,7 +20,6 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
-import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -1117,9 +1116,7 @@ void main() {
         PostsubmitUserData(
           commitKey: 'flutter/packages/main/1',
           taskKey: '1',
-          firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
-            '1_task1_1',
-          ),
+          firestoreTaskDocumentName: firestore.TaskId.parse('1_task1_1'),
           checkRunId: 1,
         ),
       );
@@ -1214,9 +1211,7 @@ void main() {
           PostsubmitUserData(
             commitKey: 'flutter/flutter/master/1',
             taskKey: '1',
-            firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
-              '0_task1_1',
-            ),
+            firestoreTaskDocumentName: firestore.TaskId.parse('0_task1_1'),
             checkRunId: 1,
           ),
         );
@@ -1305,9 +1300,7 @@ void main() {
           PostsubmitUserData(
             commitKey: 'flutter/flutter/master/1',
             taskKey: '1',
-            firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
-              '0_task1_1',
-            ),
+            firestoreTaskDocumentName: firestore.TaskId.parse('0_task1_1'),
             checkRunId: 1,
           ),
         );
@@ -1491,9 +1484,7 @@ void main() {
           PostsubmitUserData(
             commitKey: 'flutter/packages/master/0',
             taskKey: '1',
-            firestoreTaskDocumentName: FirestoreTaskDocumentName.parse(
-              '0_task1_1',
-            ),
+            firestoreTaskDocumentName: firestore.TaskId.parse('0_task1_1'),
             checkRunId: null,
           ),
         );

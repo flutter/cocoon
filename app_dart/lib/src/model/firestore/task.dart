@@ -5,16 +5,14 @@
 /// @docImport 'commit.dart';
 library;
 
-import 'dart:convert';
-
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
-import '../../service/luci_build_service/firestore_task_document_name.dart';
 import '../appengine/task.dart' as datastore;
 import 'base.dart';
 
@@ -22,8 +20,8 @@ const String kTaskCollectionId = 'tasks';
 
 /// Represents the [documentName] of a Firestore document.
 @immutable
-final class FirestoreTaskDocumentName {
-  FirestoreTaskDocumentName({
+final class TaskId extends AppDocumentId<Task> {
+  TaskId({
     required this.commitSha,
     required this.taskName,
     required this.currentAttempt,
@@ -37,8 +35,8 @@ final class FirestoreTaskDocumentName {
     }
   }
 
-  /// Parse the inverse of [FirestoreTaskDocumentName.documentName].
-  factory FirestoreTaskDocumentName.parse(String documentName) {
+  /// Parse the inverse of [TaskId.documentName].
+  factory TaskId.parse(String documentName) {
     final result = tryParse(documentName);
     if (result == null) {
       throw FormatException(
@@ -49,16 +47,16 @@ final class FirestoreTaskDocumentName {
     return result;
   }
 
-  /// Tries to parse the inverse of [FirestoreTaskDocumentName.documentName].
+  /// Tries to parse the inverse of [TaskId.documentName].
   ///
   /// If could not be parsed, returns `null`.
-  static FirestoreTaskDocumentName? tryParse(String documentName) {
+  static TaskId? tryParse(String documentName) {
     if (_parseDocumentName.matchAsPrefix(documentName) case final match?) {
       final commitSha = match.group(1)!;
       final taskName = match.group(2)!;
       final currentAttempt = int.tryParse(match.group(3)!);
       if (currentAttempt != null) {
-        return FirestoreTaskDocumentName(
+        return TaskId(
           commitSha: commitSha,
           taskName: taskName,
           currentAttempt: currentAttempt,
@@ -83,22 +81,8 @@ final class FirestoreTaskDocumentName {
   final int currentAttempt;
 
   @override
-  int get hashCode => Object.hash(commitSha, taskName, currentAttempt);
-
-  @override
-  bool operator ==(Object other) {
-    return other is FirestoreTaskDocumentName &&
-        commitSha == other.commitSha &&
-        taskName == other.taskName &&
-        currentAttempt == other.currentAttempt;
-  }
-
-  /// The name as stored in Firestore.
-  String get documentName => '${commitSha}_${taskName}_$currentAttempt';
-
-  @override
-  String toString() {
-    return 'FirestoreTaskDocumentName ${const JsonEncoder.withIndent('  ').convert({'commitSha': commitSha, 'taskName': taskName, 'currentAttempt': currentAttempt})}';
+  String get documentId {
+    return [commitSha, taskName, currentAttempt].join('_');
   }
 }
 
@@ -118,7 +102,7 @@ final class FirestoreTaskDocumentName {
 /// cooresponding concrete field on the document itself. We should probably fix
 /// that (https://github.com/flutter/flutter/issues/166229).
 ///
-/// See also: [FirestoreTaskDocumentName].
+/// See also: [TaskId].
 final class Task extends Document with AppDocument<Task> {
   static const fieldBringup = 'bringup';
   static const fieldBuildNumber = 'buildNumber';
@@ -135,15 +119,10 @@ final class Task extends Document with AppDocument<Task> {
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
   static Future<Task> fromFirestore(
     FirestoreService firestoreService,
-    FirestoreTaskDocumentName documentName,
+    AppDocumentId<Task> id,
   ) async {
     final document = await firestoreService.getDocument(
-      p.posix.join(
-        kDatabase,
-        'documents',
-        kTaskCollectionId,
-        documentName.documentName,
-      ),
+      p.posix.join(kDatabase, 'documents', kTaskCollectionId, id.documentId),
     );
     return Task.fromDocument(document);
   }
@@ -160,7 +139,7 @@ final class Task extends Document with AppDocument<Task> {
     required bool testFlaky,
     required int? buildNumber,
   }) {
-    final name = FirestoreTaskDocumentName(
+    final name = TaskId(
       taskName: builderName,
       currentAttempt: currentAttempt,
       commitSha: commitSha,
@@ -182,7 +161,7 @@ final class Task extends Document with AppDocument<Task> {
         kDatabase,
         'documents',
         kTaskCollectionId,
-        name.documentName,
+        name.documentId,
       ),
     );
   }
@@ -224,12 +203,12 @@ final class Task extends Document with AppDocument<Task> {
   late final metadata = AppDocumentMetadata<Task>(
     collectionId: kTaskCollectionId,
     documentName: (t) {
-      final id = FirestoreTaskDocumentName(
+      final id = TaskId(
         commitSha: commitSha!,
         taskName: taskName!,
         currentAttempt: attempts!,
       );
-      return id.documentName;
+      return id.documentId;
     },
     fromDocument: Task.fromDocument,
   );
