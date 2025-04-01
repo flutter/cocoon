@@ -8,6 +8,68 @@ import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+/// Defines the `documentId` for a given document [T].
+///
+/// The path to a document in Firestore follows the pattern:
+/// ```txt
+/// /projects/<project-id>/databases/<database-id>/documents/<collection-id>/<document-id>
+/// ```
+///
+/// This type is the `<document-id>` for a particular collection type [T].
+///
+/// ## Implementing
+///
+/// There are two ways to use this type: (1) [fromDocumentId] or (2) `extends`.
+///
+/// For simple cases, or for creating an ID from an existing string:
+/// ```dart
+/// AppDocumentId<Commit>.fromDocumentId(commitSha);
+/// ```
+///
+/// For more complex cases, or deriving the ID from multiple distinct fields:
+/// ```dart
+/// final class TaskId extends AppDocumentId<Task> {
+///   // ... fields ...
+///
+///   @override
+///   String get documentId => '$field1_$field2_$field3';
+/// }
+/// ```
+@immutable
+abstract base class AppDocumentId<T extends AppDocument<T>> {
+  const AppDocumentId();
+
+  /// Create an [AppDocumentId] from an existing [documentId].
+  const factory AppDocumentId.fromDocumentId(String documentId) =
+      _AppDocumentId;
+
+  /// The `<document-id>` portion of a [g.Document.name].
+  String get documentId;
+
+  @override
+  @nonVirtual
+  bool operator ==(Object other) {
+    return other is AppDocumentId<T> && documentId == other.documentId;
+  }
+
+  @override
+  @nonVirtual
+  int get hashCode => documentId.hashCode;
+
+  @override
+  @nonVirtual
+  String toString() {
+    return 'AppDocumentId<$T>: $documentId';
+  }
+}
+
+final class _AppDocumentId<T extends AppDocument<T>> extends AppDocumentId<T> {
+  const _AppDocumentId(this.documentId);
+
+  @override
+  final String documentId;
+}
+
 /// Metadata about an [AppDocument].
 @immutable
 final class AppDocumentMetadata<T extends AppDocument<T>> {
