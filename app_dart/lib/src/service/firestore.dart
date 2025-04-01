@@ -9,6 +9,7 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import '../../cocoon_service.dart';
 import '../model/firestore/base.dart';
@@ -48,8 +49,10 @@ mixin FirestoreServiceMixin {
   @protected
   Firestore get api;
 
-  String _resolvePath<T extends AppDocument<T>>(T document) {
-    return api.resolvePath(document.metadata.relativePath(document));
+  String _resolvePath<T extends AppDocument<T>>(AppDocumentId<T> id) {
+    return api.resolvePath(
+      p.posix.join(id.runtimeMetadata.collectionId, id.documentId),
+    );
   }
 
   /// Inserts a [document].
@@ -60,18 +63,18 @@ mixin FirestoreServiceMixin {
   /// ## Example
   ///
   /// ```dart
-  /// await firestore.tryInsert(task);
+  /// await firestore.tryInsert(id, task);
   /// ```
   @useResult
-  Future<T?> tryInsert<T extends AppDocument<T>>(T document) async {
-    final inserted = await api.tryInsertByPath(
-      _resolvePath(document),
-      document,
-    );
+  Future<T?> tryInsert<T extends AppDocument<T>>(
+    AppDocumentId<T> id,
+    T document,
+  ) async {
+    final inserted = await api.tryInsertByPath(_resolvePath(id), document);
     if (inserted == null) {
       return null;
     }
-    return document.metadata.fromDocument(inserted);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 
   /// Inserts a [document].
@@ -81,11 +84,14 @@ mixin FirestoreServiceMixin {
   /// ## Example
   ///
   /// ```dart
-  /// await firestore.insert(task);
+  /// await firestore.insert(id, task);
   /// ```
-  Future<T> insert<T extends AppDocument<T>>(T document) async {
-    final inserted = await api.insertByPath(_resolvePath(document), document);
-    return document.metadata.fromDocument(inserted);
+  Future<T> insert<T extends AppDocument<T>>(
+    AppDocumentId<T> id,
+    T document,
+  ) async {
+    final inserted = await api.insertByPath(_resolvePath(id), document);
+    return document.runtimeMetadata.fromDocument(inserted);
   }
 }
 

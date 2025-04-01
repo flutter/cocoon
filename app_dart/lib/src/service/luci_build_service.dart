@@ -1145,7 +1145,14 @@ class LuciBuildService {
     final newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
     taskDocument.resetAsRetry(attempt: newAttempt);
     taskDocument.setStatus(firestore.Task.statusInProgress);
-    await firestoreService.insert(taskDocument);
+    await firestoreService.insert(
+      firestore.Task.documentIdFor(
+        commitSha: taskDocument.commitSha!,
+        taskName: taskDocument.taskName!,
+        currentAttempt: newAttempt,
+      ),
+      taskDocument,
+    );
 
     return newAttempt;
   }

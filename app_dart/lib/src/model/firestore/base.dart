@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 /// Defines the `documentId` for a given document [T].
 ///
@@ -40,11 +39,16 @@ abstract base class AppDocumentId<T extends AppDocument<T>> {
   const AppDocumentId();
 
   /// Create an [AppDocumentId] from an existing [documentId].
-  const factory AppDocumentId.fromDocumentId(String documentId) =
-      _AppDocumentId;
+  const factory AppDocumentId.fromDocumentId(
+    String documentId, {
+    required AppDocumentMetadata<T> runtimeMetadata,
+  }) = _AppDocumentId;
 
   /// The `<document-id>` portion of a [g.Document.name].
   String get documentId;
+
+  /// Describes the document type [T] in Firestore.
+  AppDocumentMetadata<T> get runtimeMetadata;
 
   @override
   @nonVirtual
@@ -64,36 +68,25 @@ abstract base class AppDocumentId<T extends AppDocument<T>> {
 }
 
 final class _AppDocumentId<T extends AppDocument<T>> extends AppDocumentId<T> {
-  const _AppDocumentId(this.documentId);
+  const _AppDocumentId(this.documentId, {required this.runtimeMetadata});
 
   @override
   final String documentId;
+
+  @override
+  final AppDocumentMetadata<T> runtimeMetadata;
 }
 
 /// Metadata about an [AppDocument].
 @immutable
 final class AppDocumentMetadata<T extends AppDocument<T>> {
-  const AppDocumentMetadata({
-    required String collectionId,
-    required String Function(T) documentName,
+  AppDocumentMetadata({
+    required this.collectionId,
     required T Function(g.Document) fromDocument,
-  }) : _collectionId = collectionId,
-       _documentName = documentName,
-       _fromDocument = fromDocument;
+  }) : _fromDocument = fromDocument;
 
-  /// Returns the relative path of [document] within Firestore.
-  String relativePath(T document) {
-    return p.posix.join(_collectionId, _documentName(document));
-  }
-
-  final String _collectionId;
-  final String Function(T) _documentName;
-
-  /// Creates a new instance of [T].
-  ///
-  /// If [cloneFrom] is provided, the state is copied, otherwise a default
-  /// state is returned.
-  T newInstance([T? cloneFrom]) => fromDocument(cloneFrom ?? g.Document());
+  /// The collection ID of the document type [T].
+  final String collectionId;
 
   /// Creates a new instance of [T] from the provided [document].
   T fromDocument(g.Document document) => _fromDocument(document);
@@ -108,7 +101,7 @@ mixin AppDocument<T extends AppDocument<T>> on g.Document {
   }
 
   /// Metadata that informs other parts of the app about how to use this entity.
-  AppDocumentMetadata<T> get metadata;
+  AppDocumentMetadata<T> get runtimeMetadata;
 
   static Object? _valueToJson(g.Value value) {
     // Listen, I don't like this, you don't like this, but it's only used to

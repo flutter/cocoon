@@ -1975,7 +1975,17 @@ void main() {
         );
 
         // Insert the task attempt+1 ahead of time so that the insert fails.
-        await firestoreService.insert(generateFirestoreTask(1, attempts: 2));
+        {
+          final oldTask = generateFirestoreTask(1, attempts: 2);
+          await firestoreService.insert(
+            firestore.Task.documentIdFor(
+              commitSha: oldTask.commitSha!,
+              taskName: oldTask.taskName!,
+              currentAttempt: oldTask.attempts!,
+            ),
+            oldTask,
+          );
+        }
 
         firestoreCommit = generateFirestoreCommit(1);
         totCommit = generateCommit(1);

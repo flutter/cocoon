@@ -84,6 +84,9 @@ final class TaskId extends AppDocumentId<Task> {
   String get documentId {
     return [commitSha, taskName, currentAttempt].join('_');
   }
+
+  @override
+  AppDocumentMetadata<Task> get runtimeMetadata => Task.metadata;
 }
 
 /// Representation of each task (column) per _row_ on https://flutter-dashboard.appspot.com/#/build.
@@ -113,6 +116,28 @@ final class Task extends Document with AppDocument<Task> {
   static const fieldStartTimestamp = 'startTimestamp';
   static const fieldStatus = 'status';
   static const fieldTestFlaky = 'testFlaky';
+
+  /// Returns a document ID for a task from the given parameters.
+  static AppDocumentId<Task> documentIdFor({
+    required String commitSha,
+    required String taskName,
+    required int currentAttempt,
+  }) {
+    return TaskId(
+      commitSha: commitSha,
+      taskName: taskName,
+      currentAttempt: currentAttempt,
+    );
+  }
+
+  @override
+  AppDocumentMetadata<Task> get runtimeMetadata => metadata;
+
+  /// Description of the document in Firestore.
+  static final metadata = AppDocumentMetadata<Task>(
+    collectionId: kTaskCollectionId,
+    fromDocument: Task.fromDocument,
+  );
 
   /// Lookup [Task] from Firestore.
   ///
@@ -198,20 +223,6 @@ final class Task extends Document with AppDocument<Task> {
       ..fields = fields
       ..name = name;
   }
-
-  @override
-  late final metadata = AppDocumentMetadata<Task>(
-    collectionId: kTaskCollectionId,
-    documentName: (t) {
-      final id = TaskId(
-        commitSha: commitSha!,
-        taskName: taskName!,
-        currentAttempt: attempts!,
-      );
-      return id.documentId;
-    },
-    fromDocument: Task.fromDocument,
-  );
 
   /// The task was cancelled.
   static const String statusCancelled = 'Cancelled';
