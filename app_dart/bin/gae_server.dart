@@ -24,6 +24,7 @@ Future<void> main() async {
     // is inherently bad. We're allocating the logger (or getting back one) and
     // then turning it off - there is no way to "filter". Luckily; the library
     // does not set the level for the logger, making this just a little brittle.
+    hierarchicalLoggingEnabled = true;
     for (final logName in ['neat_cache', 'neat_cache:redis']) {
       final log = Logger(logName);
       log.level = Level.WARNING;
