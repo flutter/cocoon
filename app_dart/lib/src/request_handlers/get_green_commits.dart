@@ -9,10 +9,10 @@ import 'package:meta/meta.dart';
 
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../service/build_status_provider/commit_tasks_status.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
+import '../service/build_status_provider/commit_tasks_status.dart';
 import '../service/config.dart';
 
 /// Returns [List<String>] of the commit shas that had all passing tests.
