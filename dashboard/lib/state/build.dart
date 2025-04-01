@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 import '../logic/brooks.dart';
-import '../model/commit.pb.dart';
-import '../model/task.pb.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
 import '../src/rpc_model.dart';

@@ -37,17 +37,5 @@ final class Branch extends Model {
   final String reference;
 
   @override
-  bool operator ==(Object other) {
-    return other is Branch &&
-        channel == other.channel &&
-        reference == other.reference;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(channel, reference);
-  }
-
-  @override
   Map<String, Object?> toJson() => _$BranchToJson(this);
 }

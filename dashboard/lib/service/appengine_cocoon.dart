@@ -5,12 +5,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
-import '../model/commit.pb.dart';
-import '../model/task.pb.dart';
 import '../src/rpc_model.dart';
 import 'cocoon.dart';
 
@@ -266,47 +263,6 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   List<CommitStatus> _commitStatusesFromJson(List<Object?> commits) {
-    final statuses = <CommitStatus>[];
-
-    for (final commit in commits.cast<Map<String, Object?>>()) {
-      statuses.add(
-        CommitStatus(
-          commit: _commitFromJson(commit['Commit'] as Map<String, Object?>),
-          tasks: _tasksFromJson(commit['Tasks'] as List<Object?>),
-        ),
-      );
-    }
-
-    return statuses;
-  }
-
-  Commit _commitFromJson(Map<String, Object?> commit) {
-    final author = commit['Author'] as Map<String, dynamic>;
-    return Commit(
-      timestamp: Int64() + (commit['CreateTimestamp']!),
-      sha: commit['Sha'] as String,
-      author: author['Login'] as String,
-      authorAvatarUrl: author['avatar_url'] as String,
-      repository: commit['FlutterRepositoryPath'] as String,
-      branch: commit['Branch'] as String,
-      message: commit['Message'] as String?,
-    );
-  }
-
-  List<Task> _tasksFromJson(List<Object?> json) {
-    return [...json.cast<Map<String, Object?>>().map(_taskFromJson)];
-  }
-
-  Task _taskFromJson(Map<String, Object?> taskData) {
-    return Task(
-      createTimestamp: Int64(taskData['CreateTimestamp'] as int),
-      startTimestamp: Int64(taskData['StartTimestamp'] as int),
-      endTimestamp: Int64(taskData['EndTimestamp'] as int),
-      attempts: taskData['Attempts'] as int,
-      isFlaky: taskData['Flaky'] as bool,
-      status: taskData['Status'] as String,
-      buildNumberList: taskData['BuildNumberList'] as String? ?? '',
-      builderName: taskData['BuilderName'] as String? ?? '',
-    );
+    return [...commits.cast<Map<String, Object?>>().map(CommitStatus.fromJson)];
   }
 }

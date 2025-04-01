@@ -6,8 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';

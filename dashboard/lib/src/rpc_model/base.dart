@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// The base type for a model.
@@ -12,13 +13,20 @@ import 'package:meta/meta.dart';
 @immutable
 @internal
 abstract base mixin class Model {
-  @mustBeOverridden
-  @override
-  bool operator ==(Object other);
+  static const _deepEquality = DeepCollectionEquality();
 
-  @mustBeOverridden
   @override
-  int get hashCode;
+  @nonVirtual
+  bool operator ==(Object other) {
+    if (other is! Model || runtimeType != other.runtimeType) {
+      return false;
+    }
+    return _deepEquality.equals(toJson(), other.toJson());
+  }
+
+  @override
+  @nonVirtual
+  int get hashCode => _deepEquality.hash(toJson());
 
   /// Returns a JSON-encodable representation of the model.
   ///

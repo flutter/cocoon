@@ -681,8 +681,8 @@ class MockBuildState extends _i1.Mock implements _i11.BuildState {
 
   @override
   _i6.Future<bool> rerunTask(
-    dynamic task,
-    dynamic commit,
+    _i10.Task? task,
+    _i10.Commit? commit,
   ) =>
       (super.noSuchMethod(
         Invocation.method(

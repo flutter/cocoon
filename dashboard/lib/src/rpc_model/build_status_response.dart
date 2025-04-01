@@ -41,8 +41,6 @@ final class BuildStatusResponse extends Model {
     }
   }
 
-  static final _listEq = const ListEquality<void>().equals;
-
   @JsonKey(
     name: 'buildStatus',
     fromJson: BuildStatus._byName,
@@ -52,16 +50,6 @@ final class BuildStatusResponse extends Model {
 
   @JsonKey(name: 'failingTasks', defaultValue: <String>[])
   final List<String> failingTasks;
-
-  @override
-  bool operator ==(Object other) {
-    return other is BuildStatusResponse &&
-        buildStatus == other.buildStatus &&
-        _listEq(failingTasks, other.failingTasks);
-  }
-
-  @override
-  int get hashCode => Object.hash(buildStatus, Object.hashAll(failingTasks));
 
   @override
   Map<String, Object?> toJson() => _$BuildStatusResponseToJson(this);

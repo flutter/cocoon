@@ -3,16 +3,17 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_author_avatar.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../utils/generate_commit_for_tests.dart';
 
 void main() {
   testWidgets('Authors with same initial have differently coloured avatars', (
     WidgetTester tester,
   ) async {
-    final commit1 = Commit()..author = 'Mike';
-    final commit2 = Commit()..author = 'Michael';
+    final commit1 = generateCommitForTest(author: 'Mike');
+    final commit2 = generateCommitForTest(author: 'Michael');
 
     await tester.pumpWidget(
       MaterialApp(

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:flutter_dashboard/logic/qualified_task.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +25,10 @@ void main() {
   });
 
   test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
-    final dartInternalTask = Task(builderName: 'Linux flutter_release_builder');
+    final dartInternalTask = generateTaskForTest(
+      status: TaskBox.statusSucceeded,
+      builderName: 'Linux flutter_release_builder',
+    );
 
     expect(
       QualifiedTask.fromTask(dartInternalTask).sourceConfigurationUrl,

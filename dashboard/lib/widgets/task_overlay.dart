@@ -8,8 +8,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../logic/qualified_task.dart';
-import '../model/commit.pb.dart';
-import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
 import '../state/build.dart';
 import 'luci_task_attempt_summary.dart';
 import 'now.dart';

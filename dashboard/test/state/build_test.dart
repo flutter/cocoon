@@ -5,17 +5,18 @@
 import 'dart:async';
 
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/fake_flutter_app_icons.dart';
+import '../utils/generate_commit_for_tests.dart';
+import '../utils/generate_task_for_tests.dart';
 import '../utils/mocks.dart';
 import '../utils/output.dart';
 
@@ -582,8 +583,8 @@ void main() {
   group('rerunTask', () {
     late MockCocoonService cocoonService;
     late MockGoogleSignInService authService;
-    final task = Task();
-    final commit = Commit();
+    final task = generateTaskForTest(status: TaskBox.statusFailed);
+    final commit = generateCommitForTest();
 
     setUp(() {
       cocoonService = MockCocoonService();
@@ -729,13 +730,11 @@ CommitStatus _createCommitStatus(
   String repo = 'flutter',
 }) {
   return CommitStatus(
-    commit:
-        Commit()
-          // Author is set so we don't have to dig through all the nested fields
-          // while debugging
-          ..author = keyValue
-          ..repository = 'flutter/$repo'
-          ..branch = branch,
+    commit: generateCommitForTest(
+      author: keyValue,
+      repository: 'flutter/$repo',
+      branch: branch,
+    ),
     tasks: [],
   );
 }

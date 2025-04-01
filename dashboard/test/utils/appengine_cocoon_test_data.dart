@@ -16,7 +16,8 @@ const String luciJsonGetStatsResponse = '''{
         "Author": {
           "Login": "ShaSha",
           "avatar_url": "https://flutter.dev"
-        }
+        },
+        "Message": "This is a commit message"
       },
       "Status": "Succeeded",
       "Tasks": [

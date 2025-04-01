@@ -4,13 +4,12 @@
 
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../utils/generate_commit_for_tests.dart';
 import '../utils/generate_task_for_tests.dart';
 
 void main() {
@@ -23,7 +22,14 @@ void main() {
     expect(filter.showiOS, true);
     expect(filter.showBringup, false);
 
-    expect(filter.matchesTask(QualifiedTask.fromTask(Task())), true);
+    expect(
+      filter.matchesTask(
+        QualifiedTask.fromTask(
+          generateTaskForTest(status: TaskBox.statusSucceeded),
+        ),
+      ),
+      true,
+    );
     expect(
       filter.matchesTask(
         QualifiedTask.fromTask(
@@ -37,24 +43,29 @@ void main() {
     );
 
     expect(
-      filter.matchesCommit(CommitStatus(commit: Commit(), tasks: [])),
-      true,
-    );
-    expect(
       filter.matchesCommit(
-        CommitStatus(commit: Commit()..author = 'joe', tasks: []),
+        CommitStatus(commit: generateCommitForTest(), tasks: []),
       ),
       true,
     );
     expect(
       filter.matchesCommit(
-        CommitStatus(commit: Commit()..sha = '0x45c3fd', tasks: []),
+        CommitStatus(commit: generateCommitForTest(author: 'joe'), tasks: []),
       ),
       true,
     );
     expect(
       filter.matchesCommit(
-        CommitStatus(commit: Commit()..message = 'LGTM!', tasks: []),
+        CommitStatus(commit: generateCommitForTest(sha: '0x45c3fd'), tasks: []),
+      ),
+      true,
+    );
+    expect(
+      filter.matchesCommit(
+        CommitStatus(
+          commit: generateCommitForTest(message: 'LGTM!'),
+          tasks: [],
+        ),
       ),
       true,
     );
@@ -720,19 +731,22 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'foo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(author: 'foo'), tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'blah foo blah', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(author: 'blah foo blah'),
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'fo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(author: 'fo'), tasks: []),
         ),
         false,
       );
@@ -748,25 +762,34 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'z bc', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(author: 'z bc'),
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'z bc z', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(author: 'z bc z'),
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'z b c', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(author: 'z b c'),
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..author = 'foo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(author: 'foo'), tasks: []),
         ),
         false,
       );
@@ -782,19 +805,25 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'foo', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(message: 'foo'),
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'blah foo blah', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(message: 'blah foo blah'),
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'fo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(message: 'fo'), tasks: []),
         ),
         false,
       );
@@ -810,25 +839,37 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'z bc', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(message: 'z bc'),
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'z bc z', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(message: 'z bc z'),
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'z b c', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(message: 'z b c'),
+            tasks: [],
+          ),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..message = 'foo', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(message: 'foo'),
+            tasks: [],
+          ),
         ),
         false,
       );
@@ -844,19 +885,22 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'foo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(sha: 'foo'), tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'blah foo blah', tasks: []),
+          CommitStatus(
+            commit: generateCommitForTest(sha: 'blah foo blah'),
+            tasks: [],
+          ),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'fo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(sha: 'fo'), tasks: []),
         ),
         false,
       );
@@ -872,25 +916,25 @@ void main() {
     for (final filter in filters) {
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'z bc', tasks: []),
+          CommitStatus(commit: generateCommitForTest(sha: 'z bc'), tasks: []),
         ),
         true,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'z bc z', tasks: []),
+          CommitStatus(commit: generateCommitForTest(sha: 'z bc z'), tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'z b c', tasks: []),
+          CommitStatus(commit: generateCommitForTest(sha: 'z b c'), tasks: []),
         ),
         false,
       );
       expect(
         filter.matchesCommit(
-          CommitStatus(commit: Commit()..sha = 'foo', tasks: []),
+          CommitStatus(commit: generateCommitForTest(sha: 'foo'), tasks: []),
         ),
         false,
       );

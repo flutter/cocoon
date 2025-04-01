@@ -6,7 +6,7 @@ import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../model/task.pb.dart';
+import '../src/rpc_model.dart';
 
 /// Show information regarding each attempt for a luci Task.
 ///
