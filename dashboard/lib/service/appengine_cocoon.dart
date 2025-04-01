@@ -282,19 +282,15 @@ class AppEngineCocoonService implements CocoonService {
 
   Commit _commitFromJson(Map<String, Object?> commit) {
     final author = commit['Author'] as Map<String, dynamic>;
-
-    final result =
-        Commit()
-          ..timestamp = Int64() + (commit['CreateTimestamp']!)
-          ..sha = commit['Sha'] as String
-          ..author = author['Login'] as String
-          ..authorAvatarUrl = author['avatar_url'] as String
-          ..repository = commit['FlutterRepositoryPath'] as String
-          ..branch = commit['Branch'] as String;
-    if (commit['Message'] != null) {
-      result.message = commit['Message'] as String;
-    }
-    return result;
+    return Commit(
+      timestamp: Int64() + (commit['CreateTimestamp']!),
+      sha: commit['Sha'] as String,
+      author: author['Login'] as String,
+      authorAvatarUrl: author['avatar_url'] as String,
+      repository: commit['FlutterRepositoryPath'] as String,
+      branch: commit['Branch'] as String,
+      message: commit['Message'] as String?,
+    );
   }
 
   List<Task> _tasksFromJson(List<Object?> json) {

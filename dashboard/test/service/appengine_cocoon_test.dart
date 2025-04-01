@@ -31,14 +31,14 @@ void main() {
       final statuses = await service.fetchCommitStatuses(repo: 'flutter');
 
       final expectedStatus = CommitStatus(
-        commit:
-            Commit()
-              ..timestamp = Int64(123456789)
-              ..sha = 'ShaShankHash'
-              ..author = 'ShaSha'
-              ..authorAvatarUrl = 'https://flutter.dev'
-              ..repository = 'flutter/cocoon'
-              ..branch = 'master',
+        commit: Commit(
+          timestamp: Int64(123456789),
+          sha: 'ShaShankHash',
+          author: 'ShaSha',
+          authorAvatarUrl: 'https://flutter.dev',
+          repository: 'flutter/cocoon',
+          branch: 'master',
+        ),
         tasks: [
           Task(
             createTimestamp: Int64(1569353940885),

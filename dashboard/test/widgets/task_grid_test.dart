@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model/commit_status.dart';
 import 'package:flutter_dashboard/state/build.dart';
@@ -22,6 +21,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../utils/fake_build.dart';
 import '../utils/fake_flutter_app_icons.dart';
+import '../utils/generate_commit_for_tests.dart';
 import '../utils/generate_task_for_tests.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
@@ -394,10 +394,7 @@ void main() {
 
     final statusesWithSkips = [
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
             status: TaskBox.statusSucceeded,
@@ -406,10 +403,7 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
             status: TaskBox.statusSucceeded,
@@ -418,10 +412,7 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
             status: TaskBox.statusSucceeded,
@@ -463,10 +454,7 @@ void main() {
 
     final statuses = [
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
             status: TaskBox.statusSucceeded,
@@ -475,10 +463,7 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
             status: TaskBox.statusSucceeded,
@@ -515,10 +500,7 @@ void main() {
     await precacheTaskIcons(tester);
     final commitStatuses = <CommitStatus>[
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
             status: TaskBox.statusSucceeded,
@@ -576,10 +558,7 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit:
-                    Commit()
-                      ..author = 'Cast'
-                      ..branch = 'master',
+                commit: generateCommitForTest(author: 'Cast'),
                 tasks: [
                   generateTaskForTest(
                     status: TaskBox.statusSucceeded,
@@ -603,10 +582,7 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit:
-                    Commit()
-                      ..author = 'Cast'
-                      ..branch = 'master',
+                commit: generateCommitForTest(author: 'Cast'),
                 tasks: [
                   generateTaskForTest(
                     status: TaskBox.statusSucceeded,
@@ -635,10 +611,7 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit:
-                    Commit()
-                      ..author = 'Cast'
-                      ..branch = 'master',
+                commit: generateCommitForTest(author: 'Cast'),
                 tasks: [
                   generateTaskForTest(
                     status: TaskBox.statusSucceeded,
@@ -662,10 +635,7 @@ void main() {
             ),
             commitStatuses: [
               CommitStatus(
-                commit:
-                    Commit()
-                      ..author = 'Cast'
-                      ..branch = 'master',
+                commit: generateCommitForTest(author: 'Cast'),
                 tasks: [generateTaskForTest(status: TaskBox.statusSucceeded)],
               ),
             ],
@@ -689,10 +659,7 @@ void main() {
               ),
               commitStatuses: [
                 CommitStatus(
-                  commit:
-                      Commit()
-                        ..author = 'Cast'
-                        ..branch = 'master',
+                  commit: generateCommitForTest(author: 'Cast'),
                   tasks: [
                     generateTaskForTest(
                       status: TaskBox.statusSucceeded,
@@ -702,10 +669,7 @@ void main() {
                   ],
                 ),
                 CommitStatus(
-                  commit:
-                      Commit()
-                        ..author = 'Cast'
-                        ..branch = 'master',
+                  commit: generateCommitForTest(author: 'Cast'),
                   tasks: [
                     generateTaskForTest(
                       status: TaskBox.statusSucceeded,
@@ -742,20 +706,14 @@ void main() {
     await precacheTaskIcons(tester);
     final statuses = [
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(author: 'Cast'),
         tasks: [
           for (final status in TaskBox.statusColor.keys)
             generateTaskForTest(status: status, builderName: 'task_$status'),
         ],
       ),
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(author: 'Cast'),
         tasks: [
           for (final status in TaskBox.statusColor.keys)
             generateTaskForTest(
@@ -766,10 +724,7 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit:
-            Commit()
-              ..author = 'Author'
-              ..branch = 'master',
+        commit: generateCommitForTest(author: 'Cast'),
         tasks: [
           for (final status in TaskBox.statusColor.keys)
             generateTaskForTest(
@@ -780,10 +735,7 @@ void main() {
         ],
       ),
       CommitStatus(
-        commit:
-            (Commit()
-              ..author = 'Author'
-              ..branch = 'master'),
+        commit: generateCommitForTest(author: 'Cast'),
         tasks: [
           for (final status in TaskBox.statusColor.keys)
             generateTaskForTest(
@@ -866,10 +818,7 @@ Future<void> expectTaskBoxColorWithMessage(
                 ),
                 commitStatuses: <CommitStatus>[
                   CommitStatus(
-                    commit:
-                        Commit()
-                          ..author = 'Mathilda'
-                          ..branch = 'master',
+                    commit: generateCommitForTest(author: 'Mathilda'),
                     tasks: [generateTaskForTest(status: message)],
                   ),
                 ],

@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
@@ -20,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/fake_build.dart';
+import '../utils/generate_commit_for_tests.dart';
 import '../utils/generate_task_for_tests.dart';
 import '../utils/golden.dart';
 import '../utils/task_icons.dart';
@@ -632,11 +632,10 @@ final class _TestGrid extends StatelessWidget {
         buildState: buildState,
         commitStatuses: <CommitStatus>[
           CommitStatus(
-            commit:
-                (Commit()
-                  ..author = 'Fats Domino'
-                  ..sha = '24e8c0a2'
-                  ..branch = 'master'),
+            commit: generateCommitForTest(
+              author: 'Fats Domino',
+              sha: '24e8c0a2',
+            ),
             tasks: [task],
           ),
         ],
