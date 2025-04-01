@@ -4,12 +4,18 @@
 
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../utils/generate_task_for_tests.dart';
+
 void main() {
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
-    final luciTask = Task()..builderName = 'abc';
+    final luciTask = generateTaskForTest(
+      status: TaskBox.statusSucceeded,
+      builderName: 'abc',
+    );
 
     expect(
       QualifiedTask.fromTask(luciTask).sourceConfigurationUrl,

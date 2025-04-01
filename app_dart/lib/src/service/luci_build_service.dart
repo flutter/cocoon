@@ -570,11 +570,12 @@ class LuciBuildService {
         datastore = datastore,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
-    } catch (e) {
+    } catch (e, s) {
       log.error(
         'updating task ${taskDocument.taskName} of commit '
         '${taskDocument.commitSha}. Skipping rescheduling.',
         e,
+        s,
       );
       return;
     }
@@ -1096,11 +1097,12 @@ class LuciBuildService {
         datastore = datastore,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
-    } catch (e) {
+    } catch (e, s) {
       log.error(
         'Updating task ${taskDocument.taskName} of commit '
         '${taskDocument.commitSha} failure. Skipping rescheduling.',
         e,
+        s,
       );
       return false;
     }

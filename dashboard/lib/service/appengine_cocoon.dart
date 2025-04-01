@@ -302,14 +302,15 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   Task _taskFromJson(Map<String, Object?> taskData) {
-    return Task()
-      ..createTimestamp = Int64(taskData['CreateTimestamp'] as int)
-      ..startTimestamp = Int64(taskData['StartTimestamp'] as int)
-      ..endTimestamp = Int64(taskData['EndTimestamp'] as int)
-      ..attempts = taskData['Attempts'] as int
-      ..isFlaky = taskData['Flaky'] as bool
-      ..status = taskData['Status'] as String
-      ..buildNumberList = taskData['BuildNumberList'] as String? ?? ''
-      ..builderName = taskData['BuilderName'] as String? ?? '';
+    return Task(
+      createTimestamp: Int64(taskData['CreateTimestamp'] as int),
+      startTimestamp: Int64(taskData['StartTimestamp'] as int),
+      endTimestamp: Int64(taskData['EndTimestamp'] as int),
+      attempts: taskData['Attempts'] as int,
+      isFlaky: taskData['Flaky'] as bool,
+      status: taskData['Status'] as String,
+      buildNumberList: taskData['BuildNumberList'] as String? ?? '',
+      builderName: taskData['BuilderName'] as String? ?? '',
+    );
   }
 }

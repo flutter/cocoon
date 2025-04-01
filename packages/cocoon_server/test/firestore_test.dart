@@ -97,9 +97,9 @@ void main() {
     );
   });
 
-  test('should insert a document by path', () async {
-    final expected = g.Document();
-    final created = g.Document();
+  test('should insert a document by path, and ignore document.name', () async {
+    final expected = g.Document(fields: {});
+    final created = g.Document(fields: {}, name: 'Should be stripped');
     when(
       mockDocumentsResource.createDocument(
         any,
@@ -109,10 +109,12 @@ void main() {
       ),
     ).thenAnswer((i) async {
       expect(i.positionalArguments, [
-        created,
+        isA<g.Document>()
+            .having((d) => d.name, 'name', isNull)
+            .having((d) => d.fields, 'fields', expected.fields),
         'projects/project-id/databases/database-id/documents',
         'tasks',
-      ]);
+      ], reason: '${expected.fields}');
       expect(i.namedArguments, containsPair(#documentId, 'new-task'));
       return expected;
     });

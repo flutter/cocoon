@@ -130,8 +130,16 @@ base class Firestore {
   @useResult
   Future<g.Document?> tryInsertByPath(String path, g.Document document) async {
     try {
+      // TODO(matanlurey): Make this an error instead of stripping it off.
+      // Document.name cannot be set on an inserted path, but some documents
+      // use ".name" as a synthetic field (i.e. Task.attempts) where it would
+      // be cumbersome and error-prone to remember to sometimes clear the name.
+      //
+      // See https://github.com/flutter/flutter/issues/166229.
+      final clone = g.Document(fields: {...?document.fields});
+      assert(clone.name == null, 'Name must be null for new documents');
       return await _api.projects.databases.documents.createDocument(
-        document,
+        clone,
         resolvePath('documents'),
         p.dirname(path),
         documentId: p.basename(path),

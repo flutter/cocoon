@@ -8,6 +8,7 @@ import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
+import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Request, Response;
 import 'package:http/testing.dart';
@@ -39,15 +40,16 @@ void main() {
               ..repository = 'flutter/cocoon'
               ..branch = 'master',
         tasks: [
-          Task()
-            ..createTimestamp = Int64(1569353940885)
-            ..startTimestamp = Int64(1569354594672)
-            ..endTimestamp = Int64(1569354700642)
-            ..attempts = 1
-            ..isFlaky = false
-            ..status = 'Succeeded'
-            ..buildNumberList = '123'
-            ..builderName = 'Linux',
+          Task(
+            createTimestamp: Int64(1569353940885),
+            startTimestamp: Int64(1569354594672),
+            endTimestamp: Int64(1569354700642),
+            attempts: 1,
+            isFlaky: false,
+            status: TaskBox.statusSucceeded,
+            buildNumberList: '123',
+            builderName: 'Linux',
+          ),
         ],
       );
 
