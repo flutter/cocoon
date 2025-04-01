@@ -304,18 +304,20 @@ class DevelopmentCocoonService implements CocoonService {
     final author = random.nextInt(_authors.length);
     final message = commitTimestamp % 37 + author;
     final messageInc = _messagePrimes[message % _messagePrimes.length];
-    return Commit()
-      ..author = _authors[author]
-      ..authorAvatarUrl =
-          'https://avatars2.githubusercontent.com/u/${2148558 + author}?v=4'
-      ..message = List<String>.generate(
+    return Commit(
+      author: _authors[author],
+      authorAvatarUrl:
+          'https://avatars2.githubusercontent.com/u/'
+          '${2148558 + author}?v=4',
+      message: List<String>.generate(
         6,
         (int i) => _words[(message + i * messageInc) % _words.length],
-      ).join(' ')
-      ..repository = 'flutter/$repo'
-      ..sha = commitSha
-      ..timestamp = Int64(commitTimestamp)
-      ..branch = branch;
+      ).join(' '),
+      repository: 'flutter/$repo',
+      sha: commitSha,
+      timestamp: Int64(commitTimestamp),
+      branch: branch,
+    );
   }
 
   static const Map<String, int> _repoTaskCount = <String, int>{

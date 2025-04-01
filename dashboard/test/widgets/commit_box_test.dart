@@ -14,17 +14,17 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 
 import '../utils/fake_flutter_app_icons.dart';
 import '../utils/fake_url_launcher.dart';
+import '../utils/generate_commit_for_tests.dart';
 import '../utils/golden.dart';
 
 void main() {
-  final expectedCommit =
-      Commit()
-        ..author = 'AuthoryMcAuthor Face'
-        ..authorAvatarUrl =
-            'https://avatars2.githubusercontent.com/u/2148558?v=4'
-        ..message = 'commit message\n\nreview comments'
-        ..repository = 'flutter/cocoon'
-        ..sha = 'ShaShankRedemption';
+  final expectedCommit = generateCommitForTest(
+    author: 'AuthoryMcAuthor Face',
+    avatarUrl: 'https://avatars2.githubusercontent.com/u/2148558?v=4',
+    message: 'commit message\n\nreview comments',
+    repository: 'flutter/cocoon',
+    sha: 'ShaShankRedemption',
+  );
   final shortSha = expectedCommit.sha.substring(0, 7);
   final Widget basicApp = MaterialApp(
     theme: ThemeData(useMaterial3: false),
