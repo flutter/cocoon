@@ -571,11 +571,12 @@ class LuciBuildService {
         datastore = datastore,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
-    } catch (e) {
+    } catch (e, s) {
       log.error(
         'updating task ${taskDocument.taskName} of commit '
         '${taskDocument.commitSha}. Skipping rescheduling.',
         e,
+        s,
       );
       return;
     }
@@ -1097,11 +1098,12 @@ class LuciBuildService {
         datastore = datastore,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
-    } catch (e) {
+    } catch (e, s) {
       log.error(
         'Updating task ${taskDocument.taskName} of commit '
         '${taskDocument.commitSha} failure. Skipping rescheduling.',
         e,
+        s,
       );
       return false;
     }
@@ -1146,6 +1148,7 @@ class LuciBuildService {
     final newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
     taskDocument.resetAsRetry(attempt: newAttempt);
     taskDocument.setStatus(firestore.Task.statusInProgress);
+
     await firestoreService.insert(taskDocument);
 
     return newAttempt;
