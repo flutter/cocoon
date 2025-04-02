@@ -49,10 +49,12 @@ mixin FirestoreServiceMixin {
   @protected
   Firestore get api;
 
-  String _resolvePath<T extends AppDocument<T>>(AppDocumentId<T> id) {
-    return api.resolvePath(
-      p.posix.join(id.runtimeMetadata.collectionId, id.documentId),
-    );
+  String _resolveDocumentPath<T extends AppDocument<T>>(AppDocumentId<T> id) {
+    return api.resolvePath(_resolveRelativePath(id));
+  }
+
+  String _resolveRelativePath<T extends AppDocument<T>>(AppDocumentId<T> id) {
+    return p.posix.join(id.runtimeMetadata.collectionId, id.documentId);
   }
 
   /// Inserts a [document].
@@ -70,7 +72,10 @@ mixin FirestoreServiceMixin {
     AppDocumentId<T> id,
     T document,
   ) async {
-    final inserted = await api.tryInsertByPath(_resolvePath(id), document);
+    final inserted = await api.tryInsertByPath(
+      _resolveRelativePath(id),
+      document,
+    );
     if (inserted == null) {
       return null;
     }
@@ -90,7 +95,7 @@ mixin FirestoreServiceMixin {
     AppDocumentId<T> id,
     T document,
   ) async {
-    final inserted = await api.insertByPath(_resolvePath(id), document);
+    final inserted = await api.insertByPath(_resolveRelativePath(id), document);
     return document.runtimeMetadata.fromDocument(inserted);
   }
 }
