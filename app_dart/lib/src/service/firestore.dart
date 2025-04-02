@@ -49,9 +49,10 @@ mixin FirestoreServiceMixin {
   @protected
   Firestore get api;
 
-  String _resolveDocumentPath<T extends AppDocument<T>>(AppDocumentId<T> id) {
-    return api.resolvePath(_resolveRelativePath(id));
-  }
+  // TODO(matanlurey): Add in future .tryGet calls.
+  // String _resolveDocumentPath<T extends AppDocument<T>>(AppDocumentId<T> id) {
+  //   return api.resolvePath(_resolveRelativePath(id));
+  // }
 
   String _resolveRelativePath<T extends AppDocument<T>>(AppDocumentId<T> id) {
     return p.posix.join(id.runtimeMetadata.collectionId, id.documentId);
