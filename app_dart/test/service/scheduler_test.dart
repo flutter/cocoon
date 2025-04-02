@@ -1413,7 +1413,10 @@ targets:
                   named: 'stage',
                 ),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(equals('success'), named: 'conclusion'),
+                conclusion: argThat(
+                  equals(TaskConclusion.success),
+                  named: 'conclusion',
+                ),
               ),
             ).called(1);
 
@@ -1469,7 +1472,10 @@ targets:
                   named: 'stage',
                 ),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(equals('success'), named: 'conclusion'),
+                conclusion: argThat(
+                  equals(TaskConclusion.success),
+                  named: 'conclusion',
+                ),
               ),
             ).called(1);
 
@@ -1534,7 +1540,10 @@ targets:
                     named: 'stage',
                   ),
                   checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(equals('success'), named: 'conclusion'),
+                  conclusion: argThat(
+                    equals(TaskConclusion.success),
+                    named: 'conclusion',
+                  ),
                 ),
               ).called(1);
 
@@ -1677,7 +1686,10 @@ targets:
                   named: 'stage',
                 ),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(equals('success'), named: 'conclusion'),
+                conclusion: argThat(
+                  equals(TaskConclusion.success),
+                  named: 'conclusion',
+                ),
               ),
             ).called(1);
 
@@ -1777,7 +1789,10 @@ targets:
                   named: 'stage',
                 ),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(equals('success'), named: 'conclusion'),
+                conclusion: argThat(
+                  equals(TaskConclusion.success),
+                  named: 'conclusion',
+                ),
               ),
             ).called(1);
 
@@ -1790,7 +1805,10 @@ targets:
                 sha: 'testSha',
                 stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
                 checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(equals('success'), named: 'conclusion'),
+                conclusion: argThat(
+                  equals(TaskConclusion.success),
+                  named: 'conclusion',
+                ),
               ),
             ).called(1);
 
@@ -2080,7 +2098,10 @@ targets:
                     named: 'stage',
                   ),
                   checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(equals('success'), named: 'conclusion'),
+                  conclusion: argThat(
+                    equals(TaskConclusion.success),
+                    named: 'conclusion',
+                  ),
                 ),
               ).called(1);
 
@@ -2096,7 +2117,10 @@ targets:
                   sha: 'testSha',
                   stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
                   checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(equals('success'), named: 'conclusion'),
+                  conclusion: argThat(
+                    equals(TaskConclusion.success),
+                    named: 'conclusion',
+                  ),
                 ),
               ).called(1);
 
@@ -2247,7 +2271,10 @@ targets:
                     named: 'stage',
                   ),
                   checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(equals('success'), named: 'conclusion'),
+                  conclusion: argThat(
+                    equals(TaskConclusion.success),
+                    named: 'conclusion',
+                  ),
                 ),
               ).called(1);
 

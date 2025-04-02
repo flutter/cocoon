@@ -86,7 +86,7 @@ abstract class Callbacks {
     required String sha,
     required CiStage stage,
     required String checkRun,
-    required String conclusion,
+    required TaskConclusion conclusion,
   });
 
   // ignore: unreachable_from_main
