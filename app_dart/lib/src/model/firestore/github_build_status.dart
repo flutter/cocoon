@@ -7,6 +7,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
+import 'base.dart';
 
 const String kGithubBuildStatusCollectionId = 'githubBuildStatuses';
 const String kGithubBuildStatusPrNumberField = 'prNumber';
@@ -23,7 +24,23 @@ const String kGithubBuildStatusUpdatesField = 'updates';
 ///  /projects/flutter-dashboard/databases/cocoon/commits/
 ///    document: <this.head>
 /// ```
-class GithubBuildStatus extends Document {
+/*final - TODO(matanlurey): Can't add because of MockFirestoreService. */
+class GithubBuildStatus extends Document with AppDocument<GithubBuildStatus> {
+  static AppDocumentId<GithubBuildStatus> documentIdFor({
+    required String headSha,
+  }) {
+    return AppDocumentId.fromDocumentId(headSha, runtimeMetadata: metadata);
+  }
+
+  @override
+  AppDocumentMetadata<GithubBuildStatus> get runtimeMetadata => metadata;
+
+  /// Description of the document in Firestore.
+  static final metadata = AppDocumentMetadata<GithubBuildStatus>(
+    collectionId: kGithubBuildStatusCollectionId,
+    fromDocument: GithubBuildStatus.fromDocument,
+  );
+
   /// Lookup [GithubBuildStatus] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -32,14 +49,16 @@ class GithubBuildStatus extends Document {
     required String documentName,
   }) async {
     final document = await firestoreService.getDocument(documentName);
-    return GithubBuildStatus.fromDocument(githubBuildStatus: document);
+    return GithubBuildStatus.fromDocument(document);
   }
 
   /// Create [GithubBuildStatus] from a GithubBuildStatus Document.
-  static GithubBuildStatus fromDocument({required Document githubBuildStatus}) {
-    return GithubBuildStatus()
-      ..fields = githubBuildStatus.fields!
-      ..name = githubBuildStatus.name!;
+  GithubBuildStatus.fromDocument(Document other) {
+    this
+      ..name = other.name
+      ..fields = {...?other.fields}
+      ..createTime = other.createTime
+      ..updateTime = other.updateTime;
   }
 
   static const String statusSuccess = 'success';
@@ -89,22 +108,5 @@ class GithubBuildStatus extends Document {
       integerValue: updateTimeMillis.toString(),
     );
     return updateTimeMillis;
-  }
-
-  @override
-  String toString() {
-    final buf =
-        StringBuffer()
-          ..write('$runtimeType(')
-          ..write(', $kGithubBuildStatusRepositoryField: $repository')
-          ..write(', $kGithubBuildStatusPrNumberField: $prNumber')
-          ..write(', $kGithubBuildStatusHeadField: $head')
-          ..write(', $kGithubBuildStatusStatusField: $status')
-          ..write(', $kGithubBuildStatusUpdatesField: $updates')
-          ..write(
-            ', $kGithubBuildStatusUpdateTimeMillisField: $updateTimeMillis',
-          )
-          ..write(')');
-    return buf.toString();
   }
 }
