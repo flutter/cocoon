@@ -129,8 +129,11 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<bool> vacuumGitHubCommits(String idToken) async {
-    return false;
+  Future<CocoonResponse<bool>> vacuumGitHubCommits(String idToken) async {
+    return const CocoonResponse<bool>.error(
+      'Unable to vacuum against fake data. Try building the app to use prod data.',
+      statusCode: 501 /* Not implemented */,
+    );
   }
 
   @override
@@ -143,6 +146,7 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     return const CocoonResponse<bool>.error(
       'Unable to retry against fake data. Try building the app to use prod data.',
+      statusCode: 501 /* Not implemented */,
     );
   }
 
@@ -156,6 +160,7 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     return const CocoonResponse<void>.error(
       'Unable to schedule against fake data. Try building the app to use prod data.',
+      statusCode: 501 /* Not implemented */,
     );
   }
 

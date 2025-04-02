@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
+import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -248,7 +249,12 @@ void main() {
     });
 
     test('should return true if request succeeds', () async {
-      expect(await service.vacuumGitHubCommits('fakeIdToken'), true);
+      await expectLater(
+        service.vacuumGitHubCommits('fakeIdToken'),
+        completion(
+          isA<CocoonResponse<bool>>().having((r) => r.data, 'data', isTrue),
+        ),
+      );
     });
 
     test('should return false if request failed', () async {
@@ -257,7 +263,12 @@ void main() {
           return Response('', 500);
         }),
       );
-      expect(await service.vacuumGitHubCommits('fakeIdToken'), false);
+      await expectLater(
+        service.vacuumGitHubCommits('fakeIdToken'),
+        completion(
+          isA<CocoonResponse<bool>>().having((r) => r.error, 'data', isNotNull),
+        ),
+      );
     });
   });
 

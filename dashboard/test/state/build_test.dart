@@ -261,7 +261,10 @@ void main() {
         ),
       ).thenAnswer(
         (_) => Future<CocoonResponse<List<CommitStatus>>>.value(
-          const CocoonResponse<List<CommitStatus>>.error('error'),
+          const CocoonResponse<List<CommitStatus>>.error(
+            'error',
+            statusCode: 500,
+          ),
         ),
       );
       await checkOutput(
@@ -336,7 +339,10 @@ void main() {
           ),
         ).thenAnswer(
           (_) => Future<CocoonResponse<BuildStatusResponse>>.value(
-            const CocoonResponse<BuildStatusResponse>.error('error'),
+            const CocoonResponse<BuildStatusResponse>.error(
+              'error',
+              statusCode: 500,
+            ),
           ),
         );
         await checkOutput(
@@ -540,24 +546,27 @@ void main() {
       verifyNever(cocoonService.vacuumGitHubCommits(any));
     });
 
-    testWidgets('clears user when vacuumGitHubCommits fails', (_) async {
-      const idToken = 'id_token';
-      when(authService.isAuthenticated).thenReturn(true);
-      when(authService.idToken).thenAnswer((_) async => idToken);
-      when(
-        cocoonService.vacuumGitHubCommits(idToken),
-      ).thenAnswer((_) async => false);
+    testWidgets(
+      'clears user when vacuumGitHubCommits fails due to authentication',
+      (_) async {
+        const idToken = 'id_token';
+        when(authService.isAuthenticated).thenReturn(true);
+        when(authService.idToken).thenAnswer((_) async => idToken);
+        when(cocoonService.vacuumGitHubCommits(idToken)).thenAnswer(
+          (_) async => const CocoonResponse.error('Bad user', statusCode: 401),
+        );
 
-      final buildState = BuildState(
-        authService: authService,
-        cocoonService: cocoonService,
-      );
+        final buildState = BuildState(
+          authService: authService,
+          cocoonService: cocoonService,
+        );
 
-      final result = await buildState.refreshGitHubCommits();
+        final result = await buildState.refreshGitHubCommits();
 
-      expect(result, isFalse);
-      verify(authService.clearUser()).called(1);
-    });
+        expect(result, isFalse);
+        verify(authService.clearUser()).called(1);
+      },
+    );
 
     testWidgets('returns true when vacuumGitHubCommits succeeds', (_) async {
       const idToken = 'id_token';
@@ -565,7 +574,7 @@ void main() {
       when(authService.idToken).thenAnswer((_) async => idToken);
       when(
         cocoonService.vacuumGitHubCommits(idToken),
-      ).thenAnswer((_) async => true);
+      ).thenAnswer((_) async => const CocoonResponse.data(true));
 
       final buildState = BuildState(
         authService: authService,
@@ -612,29 +621,64 @@ void main() {
       );
     });
 
-    testWidgets('clears user when rerunTask fails', (_) async {
+    group('when rerunTask fails', () {
       const idToken = 'id_token';
-      when(authService.isAuthenticated).thenReturn(true);
-      when(authService.idToken).thenAnswer((_) async => idToken);
-      when(
-        cocoonService.rerunTask(
-          idToken: argThat(equals(idToken), named: 'idToken'),
-          taskName: argThat(equals(task.builderName), named: 'taskName'),
-          commitSha: anyNamed('commitSha'),
-          repo: anyNamed('repo'),
-          branch: anyNamed('branch'),
-        ),
-      ).thenAnswer((_) async => const CocoonResponse<bool>.error('failed!'));
+      late BuildState buildState;
 
-      final buildState = BuildState(
-        authService: authService,
-        cocoonService: cocoonService,
-      );
+      setUp(() {
+        when(authService.isAuthenticated).thenReturn(true);
+        when(authService.idToken).thenAnswer((_) async => idToken);
+        buildState = BuildState(
+          authService: authService,
+          cocoonService: cocoonService,
+        );
+      });
 
-      final result = await buildState.rerunTask(task, commit);
+      test('not signed out on most error codes', () async {
+        when(
+          cocoonService.rerunTask(
+            idToken: argThat(equals(idToken), named: 'idToken'),
+            taskName: argThat(equals(task.builderName), named: 'taskName'),
+            commitSha: anyNamed('commitSha'),
+            repo: anyNamed('repo'),
+            branch: anyNamed('branch'),
+          ),
+        ).thenAnswer(
+          (_) async => const CocoonResponse<bool>.error(
+            'Internal server error',
+            statusCode: 500,
+          ),
+        );
 
-      expect(result, isFalse);
-      verify(authService.clearUser()).called(1);
+        await expectLater(
+          buildState.rerunTask(task, commit),
+          completion(isFalse),
+        );
+        verifyNever(authService.clearUser());
+      });
+
+      test('is signed out on 401 unauthorized', () async {
+        when(
+          cocoonService.rerunTask(
+            idToken: argThat(equals(idToken), named: 'idToken'),
+            taskName: argThat(equals(task.builderName), named: 'taskName'),
+            commitSha: anyNamed('commitSha'),
+            repo: anyNamed('repo'),
+            branch: anyNamed('branch'),
+          ),
+        ).thenAnswer(
+          (_) async => const CocoonResponse<bool>.error(
+            'Credentials not valid',
+            statusCode: 401,
+          ),
+        );
+
+        await expectLater(
+          buildState.rerunTask(task, commit),
+          completion(isFalse),
+        );
+        verify(authService.clearUser()).called(1);
+      });
     });
 
     testWidgets('returns true when rerunTask succeeds', (_) async {
