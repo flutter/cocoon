@@ -110,7 +110,7 @@ void main() {
       );
     });
 
-    test('ensure messages can be retried', () async {
+    test('ensure messages can be retried due to an uncaught error', () async {
       final cache = CacheService(inMemory: true);
       subscription = ErrorTest(cache);
       var response = await issueRequest(body: jsonEncode(testEnvelope));
@@ -121,6 +121,20 @@ void main() {
       response = await issueRequest(body: jsonEncode(testEnvelope));
       messageLock = await cache.getOrCreate('error', '123', createFn: null);
       expect(response.statusCode, HttpStatus.internalServerError);
+      expect(messageLock, isNull);
+    });
+
+    test('ensure messages can be retried due to setting a 5XX', () async {
+      final cache = CacheService(inMemory: true);
+      subscription = ErrorCodeTest(cache);
+      var response = await issueRequest(body: jsonEncode(testEnvelope));
+      var messageLock = await cache.getOrCreate('error', '123', createFn: null);
+      expect(response.statusCode, HttpStatus.serviceUnavailable);
+      expect(messageLock, isNull);
+
+      response = await issueRequest(body: jsonEncode(testEnvelope));
+      messageLock = await cache.getOrCreate('error', '123', createFn: null);
+      expect(response.statusCode, HttpStatus.serviceUnavailable);
       expect(messageLock, isNull);
     });
   });
@@ -166,6 +180,23 @@ class ErrorTest extends SubscriptionHandler {
 
   @override
   Future<Body> get() async => throw const InternalServerError('Test error!');
+}
+
+/// Test stub of [SubscriptionHandler] to validate push messages can be read.
+class ErrorCodeTest extends SubscriptionHandler {
+  ErrorCodeTest([CacheService? cache])
+    : super(
+        cache: cache ?? CacheService(inMemory: true),
+        config: FakeConfig(),
+        authProvider: FakeAuthenticationProvider(),
+        subscriptionName: 'error',
+      );
+
+  @override
+  Future<Body> get() async {
+    response!.statusCode = HttpStatus.serviceUnavailable;
+    return Body.empty;
+  }
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
