@@ -119,6 +119,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
     );
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
+      log.info('Ignoring $messageId, we already are/were writing a message');
       final response =
           request.response
             ..statusCode = HttpStatus.ok
@@ -139,6 +140,7 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
 
     log.info('Processing message $messageId');
     await runZoned<Future<void>>(
+      // Note: super.service(...) sets response.statusCode when an error occurs.
       () async => super.service(
         request,
         onError: (e) async {
@@ -146,8 +148,6 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
             'Failed to process $message. (${e.statusCode}) ${e.message}',
             e,
           );
-          await cache.purge(subscriptionName, messageId);
-          log.info('Purged write lock from cache');
         },
       ),
       zoneValues: <RequestKey<dynamic>, Object?>{
@@ -155,6 +155,16 @@ abstract class SubscriptionHandler extends RequestHandler<Body> {
         ApiKey.authContext: authContext,
       },
     );
+
+    // If an uncaught error was received, or if we marked the response as 5XX
+    // class error, which is considered retriable, then we need to clear the
+    // lock so that a subsequent request is actually retried.
+    //
+    // See https://github.com/flutter/flutter/issues/166475.
+    if (request.response.statusCode >= HttpStatus.internalServerError) {
+      await cache.purge(subscriptionName, messageId);
+      log.info('Purged write lock from cache');
+    }
   }
 }
 
