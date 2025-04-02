@@ -1615,7 +1615,7 @@ targets:
                 tasks: anyNamed('tasks'),
                 checkRunGuard: anyNamed('checkRunGuard'),
               ),
-            ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
+            ).thenAnswer((_) async => CiStaging());
 
             scheduler = Scheduler(
               cache: cache,
@@ -2182,7 +2182,7 @@ targets:
                   tasks: anyNamed('tasks'),
                   checkRunGuard: anyNamed('checkRunGuard'),
                 ),
-              ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
+              ).thenAnswer((_) async => CiStaging());
 
               scheduler = Scheduler(
                 cache: cache,
@@ -2894,7 +2894,7 @@ targets:
             tasks: anyNamed('tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
+        ).thenAnswer((_) async => CiStaging());
 
         scheduler = Scheduler(
           cache: cache,
@@ -3036,7 +3036,7 @@ targets:
             tasks: anyNamed('tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
+        ).thenAnswer((_) async => CiStaging());
 
         scheduler = Scheduler(
           cache: cache,
@@ -3187,7 +3187,7 @@ targets:
             tasks: anyNamed('tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
+        ).thenAnswer((_) async => CiStaging());
 
         scheduler = Scheduler(
           cache: cache,
@@ -3326,7 +3326,7 @@ targets:
             tasks: anyNamed('tasks'),
             checkRunGuard: anyNamed('checkRunGuard'),
           ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
+        ).thenAnswer((_) async => CiStaging());
 
         scheduler = Scheduler(
           cache: cache,

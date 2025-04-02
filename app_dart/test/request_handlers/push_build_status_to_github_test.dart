@@ -195,7 +195,7 @@ void main() {
         final batchWriteRequest = captured[0] as BatchWriteRequest;
         expect(batchWriteRequest.writes!.length, 1);
         final updatedDocument = GithubBuildStatus.fromDocument(
-          batchWriteRequest.writes![0].update!,
+          githubBuildStatus: batchWriteRequest.writes![0].update!,
         );
         expect(updatedDocument.updates, githubBuildStatus!.updates);
       },
@@ -236,7 +236,7 @@ void main() {
       final batchWriteRequest = captured[0] as BatchWriteRequest;
       expect(batchWriteRequest.writes!.length, 1);
       final updatedDocument = GithubBuildStatus.fromDocument(
-        batchWriteRequest.writes![0].update!,
+        githubBuildStatus: batchWriteRequest.writes![0].update!,
       );
       expect(updatedDocument.updates, githubBuildStatus!.updates);
       expect(updatedDocument.status, GithubBuildStatus.statusNeutral);

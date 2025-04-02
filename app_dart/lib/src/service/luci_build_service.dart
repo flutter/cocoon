@@ -28,6 +28,7 @@ import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/cipd_version.dart';
 import 'luci_build_service/engine_artifacts.dart';
+import 'luci_build_service/firestore_task_document_name.dart';
 import 'luci_build_service/pending_task.dart';
 import 'luci_build_service/user_data.dart';
 
@@ -904,7 +905,7 @@ class LuciBuildService {
       CurrentAttemptBuildTag(attemptNumber: 1),
     );
 
-    final firestoreTask = firestore.TaskId(
+    final firestoreTask = FirestoreTaskDocumentName(
       commitSha: commit.sha!,
       taskName: task.name!,
       currentAttempt: currentAttempt.attemptNumber,
@@ -1147,14 +1148,8 @@ class LuciBuildService {
     final newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
     taskDocument.resetAsRetry(attempt: newAttempt);
     taskDocument.setStatus(firestore.Task.statusInProgress);
-    await firestoreService.insert(
-      firestore.Task.documentIdFor(
-        commitSha: taskDocument.commitSha!,
-        taskName: taskDocument.taskName!,
-        currentAttempt: newAttempt,
-      ),
-      taskDocument,
-    );
+
+    await firestoreService.insert(taskDocument);
 
     return newAttempt;
   }

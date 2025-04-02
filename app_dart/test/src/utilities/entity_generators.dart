@@ -148,7 +148,7 @@ GithubGoldStatus generateFirestoreGithubGoldStatus(
   pr ??= i;
   head ??= 'sha$i';
   final githubGoldStatus =
-      GithubGoldStatus.fromDocument(Document())
+      GithubGoldStatus()
         ..name = '{$pr}_$head'
         ..fields = <String, Value>{
           kGithubGoldStatusHeadField: Value(stringValue: head),
@@ -175,7 +175,7 @@ GithubBuildStatus generateFirestoreGithubBuildStatus(
   pr ??= i;
   head ??= 'sha$i';
   final githubBuildStatus =
-      GithubBuildStatus.fromDocument(Document())
+      GithubBuildStatus()
         ..name = '{$pr}_$head'
         ..fields = <String, Value>{
           kGithubBuildStatusHeadField: Value(stringValue: head),

@@ -7,7 +7,6 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
-import 'base.dart';
 
 const String kGithubGoldStatusCollectionId = 'githubGoldStatuses';
 const String kGithubGoldStatusPrNumberField = 'prNumber';
@@ -24,28 +23,7 @@ const String kGithubGoldStatusRepositoryField = 'repository';
 ///  /projects/flutter-dashboard/databases/cocoon/commits/
 ///    document: <this.slug.owner>_<this.slug.name>_<this.prNumber>
 /// ```
-/*final - TODO(matanlurey): Can't add because of MockFirestoreService. */
-class GithubGoldStatus extends Document with AppDocument<GithubGoldStatus> {
-  static AppDocumentId<GithubGoldStatus> documentIdFor({
-    required String owner,
-    required String repo,
-    required int prNumber,
-  }) {
-    return AppDocumentId.fromDocumentId(
-      [owner, repo, prNumber].join('_'),
-      runtimeMetadata: metadata,
-    );
-  }
-
-  @override
-  AppDocumentMetadata<GithubGoldStatus> get runtimeMetadata => metadata;
-
-  /// Description of the document in Firestore.
-  static final metadata = AppDocumentMetadata<GithubGoldStatus>(
-    collectionId: kGithubGoldStatusCollectionId,
-    fromDocument: GithubGoldStatus.fromDocument,
-  );
-
+class GithubGoldStatus extends Document {
   /// Lookup [GithubGoldStatus] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -54,16 +32,14 @@ class GithubGoldStatus extends Document with AppDocument<GithubGoldStatus> {
     required String documentName,
   }) async {
     final document = await firestoreService.getDocument(documentName);
-    return GithubGoldStatus.fromDocument(document);
+    return GithubGoldStatus.fromDocument(githubGoldStatus: document);
   }
 
   /// Create [GithubGoldStatus] from a GithubGoldStatus Document.
-  GithubGoldStatus.fromDocument(Document other) {
-    this
-      ..name = other.name
-      ..fields = {...?other.fields}
-      ..createTime = other.createTime
-      ..updateTime = other.updateTime;
+  static GithubGoldStatus fromDocument({required Document githubGoldStatus}) {
+    return GithubGoldStatus()
+      ..fields = githubGoldStatus.fields!
+      ..name = githubGoldStatus.name!;
   }
 
   // The flutter-gold status cannot report a `failure` status
@@ -121,4 +97,19 @@ class GithubGoldStatus extends Document with AppDocument<GithubGoldStatus> {
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repository!);
+
+  @override
+  String toString() {
+    final buf =
+        StringBuffer()
+          ..write('$runtimeType(')
+          ..write(', $kGithubGoldStatusPrNumberField: $prNumber')
+          ..write(', $kGithubGoldStatusHeadField: $head')
+          ..write(', $kGithubGoldStatusStatusField: $status')
+          ..write(', $kGithubGoldStatusDescriptionField $description')
+          ..write(', $kGithubGoldStatusUpdatesField: $updates')
+          ..write(', $kGithubGoldStatusRepositoryField: $repository')
+          ..write(')');
+    return buf.toString();
+  }
 }

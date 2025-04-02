@@ -7,87 +7,16 @@ library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
+import '../../service/luci_build_service/firestore_task_document_name.dart';
 import '../appengine/task.dart' as datastore;
 import 'base.dart';
 
 const String kTaskCollectionId = 'tasks';
-
-/// Represents the [documentName] of a Firestore document.
-@immutable
-final class TaskId extends AppDocumentId<Task> {
-  TaskId({
-    required this.commitSha,
-    required this.taskName,
-    required this.currentAttempt,
-  }) {
-    if (currentAttempt < 1) {
-      throw RangeError.value(
-        currentAttempt,
-        'currentAttempt',
-        'Must be at least 1',
-      );
-    }
-  }
-
-  /// Parse the inverse of [TaskId.documentName].
-  factory TaskId.parse(String documentName) {
-    final result = tryParse(documentName);
-    if (result == null) {
-      throw FormatException(
-        'Unexpected firestore task document name',
-        documentName,
-      );
-    }
-    return result;
-  }
-
-  /// Tries to parse the inverse of [TaskId.documentName].
-  ///
-  /// If could not be parsed, returns `null`.
-  static TaskId? tryParse(String documentName) {
-    if (_parseDocumentName.matchAsPrefix(documentName) case final match?) {
-      final commitSha = match.group(1)!;
-      final taskName = match.group(2)!;
-      final currentAttempt = int.tryParse(match.group(3)!);
-      if (currentAttempt != null) {
-        return TaskId(
-          commitSha: commitSha,
-          taskName: taskName,
-          currentAttempt: currentAttempt,
-        );
-      }
-    }
-    return null;
-  }
-
-  /// Parses `{commitSha}_{taskName}_{currentAttempt}`.
-  ///
-  /// This is gross because the [taskName] could also include underscores.
-  static final _parseDocumentName = RegExp(r'([a-z0-9]+)_(.*)_([0-9]+)$');
-
-  /// The commit SHA of the code being built.
-  final String commitSha;
-
-  /// The task name (i.e. from `.ci.yaml`).
-  final String taskName;
-
-  /// Which run (or re-run) attempt, starting at 1, this is.
-  final int currentAttempt;
-
-  @override
-  String get documentId {
-    return [commitSha, taskName, currentAttempt].join('_');
-  }
-
-  @override
-  AppDocumentMetadata<Task> get runtimeMetadata => Task.metadata;
-}
 
 /// Representation of each task (column) per _row_ on https://flutter-dashboard.appspot.com/#/build.
 ///
@@ -105,7 +34,7 @@ final class TaskId extends AppDocumentId<Task> {
 /// cooresponding concrete field on the document itself. We should probably fix
 /// that (https://github.com/flutter/flutter/issues/166229).
 ///
-/// See also: [TaskId].
+/// See also: [FirestoreTaskDocumentName].
 final class Task extends Document with AppDocument<Task> {
   static const fieldBringup = 'bringup';
   static const fieldBuildNumber = 'buildNumber';
@@ -117,37 +46,20 @@ final class Task extends Document with AppDocument<Task> {
   static const fieldStatus = 'status';
   static const fieldTestFlaky = 'testFlaky';
 
-  /// Returns a document ID for a task from the given parameters.
-  static AppDocumentId<Task> documentIdFor({
-    required String commitSha,
-    required String taskName,
-    required int currentAttempt,
-  }) {
-    return TaskId(
-      commitSha: commitSha,
-      taskName: taskName,
-      currentAttempt: currentAttempt,
-    );
-  }
-
-  @override
-  AppDocumentMetadata<Task> get runtimeMetadata => metadata;
-
-  /// Description of the document in Firestore.
-  static final metadata = AppDocumentMetadata<Task>(
-    collectionId: kTaskCollectionId,
-    fromDocument: Task.fromDocument,
-  );
-
   /// Lookup [Task] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
   static Future<Task> fromFirestore(
     FirestoreService firestoreService,
-    AppDocumentId<Task> id,
+    FirestoreTaskDocumentName documentName,
   ) async {
     final document = await firestoreService.getDocument(
-      p.posix.join(kDatabase, 'documents', kTaskCollectionId, id.documentId),
+      p.posix.join(
+        kDatabase,
+        'documents',
+        kTaskCollectionId,
+        documentName.documentName,
+      ),
     );
     return Task.fromDocument(document);
   }
@@ -164,7 +76,7 @@ final class Task extends Document with AppDocument<Task> {
     required bool testFlaky,
     required int? buildNumber,
   }) {
-    final name = TaskId(
+    final name = FirestoreTaskDocumentName(
       taskName: builderName,
       currentAttempt: currentAttempt,
       commitSha: commitSha,
@@ -186,7 +98,7 @@ final class Task extends Document with AppDocument<Task> {
         kDatabase,
         'documents',
         kTaskCollectionId,
-        name.documentId,
+        name.documentName,
       ),
     );
   }
@@ -223,6 +135,20 @@ final class Task extends Document with AppDocument<Task> {
       ..fields = fields
       ..name = name;
   }
+
+  @override
+  late final metadata = AppDocumentMetadata<Task>(
+    collectionId: kTaskCollectionId,
+    documentName: (t) {
+      final id = FirestoreTaskDocumentName(
+        commitSha: commitSha!,
+        taskName: taskName!,
+        currentAttempt: attempts!,
+      );
+      return id.documentName;
+    },
+    fromDocument: Task.fromDocument,
+  );
 
   /// The task was cancelled.
   static const String statusCancelled = 'Cancelled';
