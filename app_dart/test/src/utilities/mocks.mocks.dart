@@ -1892,35 +1892,26 @@ class MockFirestoreService extends _i1.Mock implements _i13.FirestoreService {
           as List<_i17.Document>);
 
   @override
-  _i16.Future<T?> tryInsert<T extends _i41.AppDocument<T>>(
-    _i41.AppDocumentId<T>? id,
-    T? document,
-  ) =>
+  _i16.Future<T?> tryInsert<T extends _i41.AppDocument<T>>(T? document) =>
       (super.noSuchMethod(
-            Invocation.method(#tryInsert, [id, document]),
+            Invocation.method(#tryInsert, [document]),
             returnValue: _i16.Future<T?>.value(),
           )
           as _i16.Future<T?>);
 
   @override
-  _i16.Future<T> insert<T extends _i41.AppDocument<T>>(
-    _i41.AppDocumentId<T>? id,
-    T? document,
-  ) =>
+  _i16.Future<T> insert<T extends _i41.AppDocument<T>>(T? document) =>
       (super.noSuchMethod(
-            Invocation.method(#insert, [id, document]),
+            Invocation.method(#insert, [document]),
             returnValue:
                 _i28.ifNotNull(
                   _i28.dummyValueOrNull<T>(
                     this,
-                    Invocation.method(#insert, [id, document]),
+                    Invocation.method(#insert, [document]),
                   ),
                   (T v) => _i16.Future<T>.value(v),
                 ) ??
-                _FakeFuture_18<T>(
-                  this,
-                  Invocation.method(#insert, [id, document]),
-                ),
+                _FakeFuture_18<T>(this, Invocation.method(#insert, [document])),
           )
           as _i16.Future<T>);
 }

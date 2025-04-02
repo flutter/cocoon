@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/service/luci_build_service/firestore_task_document_name.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:test/test.dart';
 
@@ -102,7 +102,7 @@ void main() {
         checkRunId: 1234,
         taskKey: 'task-key',
         commitKey: 'commit-key',
-        firestoreTaskDocumentName: firestore.TaskId(
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
           commitSha: 'abc123',
           currentAttempt: 1,
           taskName: 'task-name',
@@ -128,7 +128,7 @@ void main() {
           checkRunId: 1234,
           taskKey: 'task-key',
           commitKey: 'commit-key',
-          firestoreTaskDocumentName: firestore.TaskId(
+          firestoreTaskDocumentName: FirestoreTaskDocumentName(
             commitSha: 'abc123',
             currentAttempt: 1,
             taskName: 'task-name',
@@ -149,7 +149,7 @@ void main() {
         checkRunId: 1234,
         taskKey: 'task-key',
         commitKey: 'commit-key',
-        firestoreTaskDocumentName: firestore.TaskId(
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
           commitSha: 'abc123',
           currentAttempt: 1,
           taskName: 'task-name',
@@ -163,7 +163,7 @@ void main() {
         checkRunId: 1234,
         taskKey: 'task-key',
         commitKey: 'commit-key',
-        firestoreTaskDocumentName: firestore.TaskId(
+        firestoreTaskDocumentName: FirestoreTaskDocumentName(
           commitSha: 'abc123',
           currentAttempt: 1,
           taskName: 'task-name',

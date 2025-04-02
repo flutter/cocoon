@@ -121,10 +121,7 @@ class CommitService {
           sha: commit.sha!,
         );
 
-        await firestoreService.insert(
-          firestore.Commit.documentIdFor(sha: commitDocument.sha),
-          commitDocument,
-        );
+        await firestoreService.insert(commitDocument);
       } catch (e) {
         log.warn('Failed to insert new branched commit in Firestore', e);
       }

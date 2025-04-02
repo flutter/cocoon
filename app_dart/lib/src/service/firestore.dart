@@ -9,7 +9,6 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 import '../../cocoon_service.dart';
 import '../model/firestore/base.dart';
@@ -49,13 +48,8 @@ mixin FirestoreServiceMixin {
   @protected
   Firestore get api;
 
-  // TODO(matanlurey): Add in future .tryGet calls.
-  // String _resolveDocumentPath<T extends AppDocument<T>>(AppDocumentId<T> id) {
-  //   return api.resolvePath(_resolveRelativePath(id));
-  // }
-
-  String _resolveRelativePath<T extends AppDocument<T>>(AppDocumentId<T> id) {
-    return p.posix.join(id.runtimeMetadata.collectionId, id.documentId);
+  String _resolvePath<T extends AppDocument<T>>(T document) {
+    return api.resolvePath(document.metadata.relativePath(document));
   }
 
   /// Inserts a [document].
@@ -66,21 +60,18 @@ mixin FirestoreServiceMixin {
   /// ## Example
   ///
   /// ```dart
-  /// await firestore.tryInsert(id, task);
+  /// await firestore.tryInsert(task);
   /// ```
   @useResult
-  Future<T?> tryInsert<T extends AppDocument<T>>(
-    AppDocumentId<T> id,
-    T document,
-  ) async {
+  Future<T?> tryInsert<T extends AppDocument<T>>(T document) async {
     final inserted = await api.tryInsertByPath(
-      _resolveRelativePath(id),
+      _resolvePath(document),
       document,
     );
     if (inserted == null) {
       return null;
     }
-    return document.runtimeMetadata.fromDocument(inserted);
+    return document.metadata.fromDocument(inserted);
   }
 
   /// Inserts a [document].
@@ -90,14 +81,11 @@ mixin FirestoreServiceMixin {
   /// ## Example
   ///
   /// ```dart
-  /// await firestore.insert(id, task);
+  /// await firestore.insert(task);
   /// ```
-  Future<T> insert<T extends AppDocument<T>>(
-    AppDocumentId<T> id,
-    T document,
-  ) async {
-    final inserted = await api.insertByPath(_resolveRelativePath(id), document);
-    return document.runtimeMetadata.fromDocument(inserted);
+  Future<T> insert<T extends AppDocument<T>>(T document) async {
+    final inserted = await api.insertByPath(_resolvePath(document), document);
+    return document.metadata.fromDocument(inserted);
   }
 }
 
@@ -237,10 +225,15 @@ class FirestoreService with FirestoreServiceMixin {
     };
     final documents = await query(kGithubGoldStatusCollectionId, filterMap);
     final githubGoldStatuses =
-        documents.map(GithubGoldStatus.fromDocument).toList();
+        documents
+            .map(
+              (g.Document document) =>
+                  GithubGoldStatus.fromDocument(githubGoldStatus: document),
+            )
+            .toList();
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
-        g.Document(
+        githubGoldStatus: g.Document(
           name:
               '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
           fields: <String, g.Value>{
@@ -283,10 +276,15 @@ class FirestoreService with FirestoreServiceMixin {
     };
     final documents = await query(kGithubBuildStatusCollectionId, filterMap);
     final githubBuildStatuses =
-        documents.map(GithubBuildStatus.fromDocument).toList();
+        documents
+            .map(
+              (g.Document document) =>
+                  GithubBuildStatus.fromDocument(githubBuildStatus: document),
+            )
+            .toList();
     if (githubBuildStatuses.isEmpty) {
       return GithubBuildStatus.fromDocument(
-        g.Document(
+        githubBuildStatus: g.Document(
           name:
               '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
           fields: <String, g.Value>{

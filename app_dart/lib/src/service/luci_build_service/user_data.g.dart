@@ -57,7 +57,7 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
           commitKey: $checkedConvert('commit_key', (v) => v as String),
           firestoreTaskDocumentName: $checkedConvert(
             'firestore_task_document_name',
-            (v) => TaskId.parse(v as String),
+            (v) => FirestoreTaskDocumentName.parse(v as String),
           ),
         );
         return val;

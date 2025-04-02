@@ -753,7 +753,7 @@ void main() {
           final batchWriteRequest = captured[0] as BatchWriteRequest;
           expect(batchWriteRequest.writes!.length, 1);
           final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
+            githubGoldStatus: batchWriteRequest.writes![0].update!,
           );
           expect(updatedDocument.updates, 1);
           // Should not apply labels or make comments
@@ -818,7 +818,7 @@ void main() {
           final batchWriteRequest = captured[0] as BatchWriteRequest;
           expect(batchWriteRequest.writes!.length, 1);
           final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
+            githubGoldStatus: batchWriteRequest.writes![0].update!,
           );
           expect(updatedDocument.updates, 1);
 
@@ -884,7 +884,7 @@ void main() {
           final batchWriteRequest = captured[0] as BatchWriteRequest;
           expect(batchWriteRequest.writes!.length, 1);
           final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
+            githubGoldStatus: batchWriteRequest.writes![0].update!,
           );
           expect(updatedDocument.updates, 1);
 
@@ -970,7 +970,7 @@ void main() {
           final batchWriteRequest = captured[0] as BatchWriteRequest;
           expect(batchWriteRequest.writes!.length, 1);
           final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
+            githubGoldStatus: batchWriteRequest.writes![0].update!,
           );
           expect(updatedDocument.updates, 1);
 
@@ -1047,7 +1047,7 @@ void main() {
             final batchWriteRequest = captured[0] as BatchWriteRequest;
             expect(batchWriteRequest.writes!.length, 1);
             final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
             );
             expect(updatedDocument.updates, 1);
 
@@ -1128,7 +1128,7 @@ void main() {
             final batchWriteRequest = captured[0] as BatchWriteRequest;
             expect(batchWriteRequest.writes!.length, 1);
             final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
             );
             expect(updatedDocument.updates, 1);
 
@@ -1212,7 +1212,7 @@ void main() {
             final batchWriteRequest = captured[0] as BatchWriteRequest;
             expect(batchWriteRequest.writes!.length, 1);
             final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
             );
             expect(updatedDocument.updates, 1);
 
@@ -1296,7 +1296,7 @@ void main() {
             final batchWriteRequest = captured[0] as BatchWriteRequest;
             expect(batchWriteRequest.writes!.length, 1);
             final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
             );
             expect(updatedDocument.updates, 1);
 
@@ -1393,7 +1393,7 @@ void main() {
             final batchWriteRequest = captured[0] as BatchWriteRequest;
             expect(batchWriteRequest.writes!.length, 1);
             final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
             );
             expect(updatedDocument.updates, 1);
 
@@ -1555,7 +1555,7 @@ void main() {
             final batchWriteRequest = captured[0] as BatchWriteRequest;
             expect(batchWriteRequest.writes!.length, 1);
             final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
+              githubGoldStatus: batchWriteRequest.writes![0].update!,
             );
             expect(updatedDocument.updates, 1);
 
@@ -1776,7 +1776,7 @@ void main() {
           final batchWriteRequest = captured[0] as BatchWriteRequest;
           expect(batchWriteRequest.writes!.length, 1);
           final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
+            githubGoldStatus: batchWriteRequest.writes![0].update!,
           );
           expect(updatedDocument.head, 'sha1');
         });

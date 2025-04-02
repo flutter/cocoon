@@ -36,20 +36,6 @@ final class Commit extends Document with AppDocument<Commit> {
   static const fieldRepositoryPath = 'repositoryPath';
   static const fieldSha = 'sha';
 
-  /// Returns a document ID for the given [sha].
-  static AppDocumentId<Commit> documentIdFor({required String sha}) {
-    return AppDocumentId<Commit>.fromDocumentId(sha, runtimeMetadata: metadata);
-  }
-
-  @override
-  AppDocumentMetadata<Commit> get runtimeMetadata => metadata;
-
-  /// Description of the document in Firestore.
-  static final metadata = AppDocumentMetadata<Commit>(
-    collectionId: collectionId,
-    fromDocument: Commit.fromDocument,
-  );
-
   /// Returns [Commit] from [firestore] by the given [sha].
   static Future<Commit> fromFirestoreBySha(
     FirestoreService firestore, {
@@ -110,6 +96,13 @@ final class Commit extends Document with AppDocument<Commit> {
       ..fields = fields
       ..name = name;
   }
+
+  @override
+  late final metadata = AppDocumentMetadata<Commit>(
+    collectionId: collectionId,
+    documentName: (c) => c.sha,
+    fromDocument: Commit.fromDocument,
+  );
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.

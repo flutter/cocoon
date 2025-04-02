@@ -21,6 +21,7 @@ import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
+import '../service/luci_build_service/firestore_task_document_name.dart';
 import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -197,7 +198,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     // Prepares Firestore task.
-    final firestoreTask = firestore.TaskId(
+    final firestoreTask = FirestoreTaskDocumentName(
       commitSha: commitSha,
       taskName: taskName,
       currentAttempt: task.attempts!,

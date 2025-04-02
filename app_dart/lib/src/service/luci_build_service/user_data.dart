@@ -10,7 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-import '../../model/firestore/task.dart';
+import 'firestore_task_document_name.dart';
 
 part 'user_data.g.dart';
 
@@ -169,12 +169,12 @@ final class PostsubmitUserData extends BuildBucketUserData {
   /// The firestore task document name storing results of this build.
   @JsonKey(
     name: 'firestore_task_document_name',
-    fromJson: TaskId.parse,
+    fromJson: FirestoreTaskDocumentName.parse,
     toJson: _documentToString,
   )
-  final TaskId firestoreTaskDocumentName;
-  static String _documentToString(TaskId firestoreTask) {
-    return firestoreTask.documentId;
+  final FirestoreTaskDocumentName firestoreTaskDocumentName;
+  static String _documentToString(FirestoreTaskDocumentName firestoreTask) {
+    return firestoreTask.documentName;
   }
 
   @override
