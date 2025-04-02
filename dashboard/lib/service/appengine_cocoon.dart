@@ -80,6 +80,7 @@ class AppEngineCocoonService implements CocoonService {
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<List<CommitStatus>>.error(
         '/api/public/get-status returned ${response.statusCode}',
+        statusCode: response.statusCode,
       );
     }
 
@@ -89,7 +90,10 @@ class AppEngineCocoonService implements CocoonService {
         _commitStatusesFromJson(jsonResponse['Commits'] as List<Object?>),
       );
     } catch (error) {
-      return CocoonResponse<List<CommitStatus>>.error(error.toString());
+      return CocoonResponse<List<CommitStatus>>.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
     }
   }
 
@@ -103,6 +107,7 @@ class AppEngineCocoonService implements CocoonService {
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<List<String>>.error(
         '$getReposUrl returned ${response.statusCode}',
+        statusCode: response.statusCode,
       );
     }
 
@@ -112,6 +117,7 @@ class AppEngineCocoonService implements CocoonService {
     } on FormatException {
       return CocoonResponse<List<String>>.error(
         '$getReposUrl had a malformed response',
+        statusCode: response.statusCode,
       );
     }
     return CocoonResponse<List<String>>.data(repos);
@@ -137,6 +143,7 @@ class AppEngineCocoonService implements CocoonService {
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse<BuildStatusResponse>.error(
         '/api/public/build-status returned ${response.statusCode}',
+        statusCode: response.statusCode,
       );
     }
 
@@ -146,8 +153,9 @@ class AppEngineCocoonService implements CocoonService {
         jsonDecode(response.body) as Map<String, Object?>,
       );
     } on FormatException {
-      return const CocoonResponse<BuildStatusResponse>.error(
+      return CocoonResponse<BuildStatusResponse>.error(
         '/api/public/build-status had a malformed response',
+        statusCode: response.statusCode,
       );
     }
     return CocoonResponse<BuildStatusResponse>.data(protoResponse);
@@ -163,6 +171,7 @@ class AppEngineCocoonService implements CocoonService {
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse.error(
         '/api/public/get-release-branches returned ${response.statusCode}',
+        statusCode: response.statusCode,
       );
     }
 
@@ -174,18 +183,27 @@ class AppEngineCocoonService implements CocoonService {
       }
       return CocoonResponse<List<Branch>>.data(branches);
     } catch (error) {
-      return CocoonResponse<List<Branch>>.error(error.toString());
+      return CocoonResponse<List<Branch>>.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
     }
   }
 
   @override
-  Future<bool> vacuumGitHubCommits(String idToken) async {
+  Future<CocoonResponse<bool>> vacuumGitHubCommits(String idToken) async {
     final refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
     final response = await _client.get(
       refreshGitHubCommitsUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},
     );
-    return response.statusCode == HttpStatus.ok;
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(true);
+    }
+    return CocoonResponse.error(
+      'Failed to vacuum github commits: ${response.reasonPhrase}',
+      statusCode: response.statusCode,
+    );
   }
 
   @override
@@ -198,7 +216,10 @@ class AppEngineCocoonService implements CocoonService {
     Iterable<String>? include,
   }) async {
     if (idToken == null || idToken.isEmpty) {
-      return const CocoonResponse<bool>.error('Sign in to trigger reruns');
+      return const CocoonResponse<bool>.error(
+        'Sign in to trigger reruns',
+        statusCode: 401 /* HTTP Unathorized */,
+      );
     }
 
     /// This endpoint only returns a status code.
@@ -221,6 +242,7 @@ class AppEngineCocoonService implements CocoonService {
 
     return CocoonResponse<bool>.error(
       'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
     );
   }
 
