@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/progress_button.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,13 +53,13 @@ void main() {
     await tester.pumpWidget(basicApp);
 
     expect(find.text(shortSha), findsNothing);
-    expect(find.text(expectedCommit.author), findsNothing);
+    expect(find.text(expectedCommit.author.login), findsNothing);
 
     await tester.tap(find.byType(CommitBox));
     await tester.pump();
 
     expect(find.text(shortSha), findsOneWidget);
-    expect(find.text(expectedCommit.author), findsOneWidget);
+    expect(find.text(expectedCommit.author.login), findsOneWidget);
 
     await expectGoldenMatches(find.byType(Overlay), 'commit_box_test.open.png');
   });
@@ -127,7 +126,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: Material(
           child: CommitBox(
-            commit: Commit(
+            commit: generateCommitForTest(
               author: 'foo@bar.com',
               message: 'commit message\n\nreview comments',
               sha: 'ShaShankRedemption',

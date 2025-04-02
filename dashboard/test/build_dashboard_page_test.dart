@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
@@ -25,6 +23,8 @@ import 'package:mockito/mockito.dart';
 import 'utils/fake_build.dart';
 import 'utils/fake_flutter_app_icons.dart';
 import 'utils/fake_google_account.dart';
+import 'utils/generate_commit_for_tests.dart';
+import 'utils/generate_task_for_tests.dart';
 import 'utils/golden.dart';
 import 'utils/mocks.dart';
 import 'utils/output.dart';
@@ -774,7 +774,10 @@ void main() {
   });
 
   group('schedulePostsubmitsForCommit', () {
-    final commit = Commit(author: 'foo@bar.com', sha: 'abcdefghijkl1234567890');
+    final commit = generateCommitForTest(
+      author: 'foo@bar.com',
+      sha: 'abcdefghijkl1234567890',
+    );
 
     late MockCocoonService cocoonService;
     late FakeBuildState buildState;
@@ -793,7 +796,12 @@ void main() {
         statuses: [
           CommitStatus(
             commit: commit,
-            tasks: [Task(builderName: 'Builder', status: TaskBox.statusNew)],
+            tasks: [
+              generateTaskForTest(
+                status: TaskBox.statusNew,
+                builderName: 'Builder',
+              ),
+            ],
           ),
         ],
       );

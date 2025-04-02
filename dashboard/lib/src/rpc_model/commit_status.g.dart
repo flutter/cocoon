@@ -10,19 +10,18 @@ CommitStatus _$CommitStatusFromJson(Map<String, dynamic> json) =>
     $checkedCreate('CommitStatus', json, ($checkedConvert) {
       final val = CommitStatus(
         commit: $checkedConvert(
-          'commit',
-          (v) => CommitStatus._commitFromJson(v as Map<String, Object?>),
+          'Commit',
+          (v) => Commit.fromJson(v as Map<String, dynamic>),
         ),
         tasks: $checkedConvert(
-          'tasks',
-          (v) => CommitStatus._tasksFromJson(v as List),
+          'Tasks',
+          (v) => (v as List<dynamic>).map(
+            (e) => Task.fromJson(e as Map<String, dynamic>),
+          ),
         ),
       );
       return val;
-    });
+    }, fieldKeyMap: const {'commit': 'Commit', 'tasks': 'Tasks'});
 
 Map<String, dynamic> _$CommitStatusToJson(CommitStatus instance) =>
-    <String, dynamic>{
-      'commit': CommitStatus._commitToJson(instance.commit),
-      'tasks': CommitStatus._tasksToJson(instance.tasks),
-    };
+    <String, dynamic>{'Commit': instance.commit, 'Tasks': instance.tasks};

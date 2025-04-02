@@ -13,8 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'dashboard_navigation_drawer.dart';
 import 'logic/task_grid_filter.dart';
-import 'model/commit.pb.dart';
 import 'service/cocoon.dart';
+import 'src/rpc_model.dart';
 import 'state/build.dart';
 import 'widgets/app_bar.dart';
 import 'widgets/error_brook_watcher.dart';

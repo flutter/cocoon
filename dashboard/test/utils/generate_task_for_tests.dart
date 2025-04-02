@@ -2,13 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:fixnum/fixnum.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
+import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 
 /// A default [DateTime] used for [generateTaskForTest].
 final utc$2020_9_1_12_30 = DateTime.utc(2020, 9, 1, 12, 30);
-Int64 _int64FromDateTime(DateTime time) => Int64(time.millisecondsSinceEpoch);
 
 /// Generates a [Task] for use in a test fixture with as few fields as possible.
 ///
@@ -96,10 +94,10 @@ Task generateTaskForTest({
     status: status,
     builderName: builderName,
     attempts: attempts,
-    buildNumberList: buildNumberList,
-    createTimestamp: _int64FromDateTime(createTime),
-    startTimestamp: startTime != null ? _int64FromDateTime(startTime) : null,
-    endTimestamp: finishTime != null ? _int64FromDateTime(finishTime) : null,
+    buildNumberList: buildNumberList ?? '',
+    createTimestamp: createTime.millisecondsSinceEpoch,
+    startTimestamp: startTime?.millisecondsSinceEpoch ?? 0,
+    endTimestamp: finishTime?.millisecondsSinceEpoch ?? 0,
     isFlaky: bringup,
   );
 }

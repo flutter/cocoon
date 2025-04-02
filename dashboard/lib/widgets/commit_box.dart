@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/link.dart';
 
-import '../model/commit.pb.dart';
+import '../src/rpc_model.dart';
 import 'commit_author_avatar.dart';
 import 'progress_button.dart';
 
@@ -177,7 +177,7 @@ class CommitOverlayContents extends StatelessWidget {
                               ),
                             ),
                           ),
-                          SelectableText(commit.author),
+                          SelectableText(commit.author.login),
                           Tooltip(
                             key: const ValueKey('schedulePostsubmit'),
                             message:

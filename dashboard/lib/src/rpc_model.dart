@@ -31,4 +31,6 @@ export 'rpc_model/build_status_response.dart'
     show
         BuildStatus, //
         BuildStatusResponse;
+export 'rpc_model/commit.dart' show Commit, CommitAuthor;
 export 'rpc_model/commit_status.dart' show CommitStatus;
+export 'rpc_model/task.dart' show Task;

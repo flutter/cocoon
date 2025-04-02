@@ -182,7 +182,7 @@ class TaskGridFilter extends FilterPropertySource {
   /// Check the values in the [CommitStatus] for compatibility with the properties of this
   /// filter and return [true] iff the commit row should be displayed.
   bool matchesCommit(CommitStatus commitStatus) {
-    if (!_authorProperty.matches(commitStatus.commit.author)) {
+    if (!_authorProperty.matches(commitStatus.commit.author.login)) {
       return false;
     }
     if (!_messageProperty.matches(commitStatus.commit.message)) {

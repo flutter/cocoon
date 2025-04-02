@@ -2,10 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_dashboard/model/commit.pb.dart';
-import 'package:flutter_dashboard/model/task.pb.dart';
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/src/rpc_model.dart';
@@ -15,6 +12,7 @@ import 'package:http/http.dart' show Request, Response;
 import 'package:http/testing.dart';
 
 import '../utils/appengine_cocoon_test_data.dart';
+import '../utils/generate_task_for_tests.dart';
 
 void main() {
   group('AppEngine CocoonService fetchCommitStatus', () {
@@ -33,18 +31,21 @@ void main() {
 
       final expectedStatus = CommitStatus(
         commit: Commit(
-          timestamp: Int64(123456789),
+          timestamp: 123456789,
           sha: 'ShaShankHash',
-          author: 'ShaSha',
-          authorAvatarUrl: 'https://flutter.dev',
+          author: CommitAuthor(
+            login: 'ShaSha',
+            avatarUrl: 'https://flutter.dev',
+          ),
           repository: 'flutter/cocoon',
           branch: 'master',
+          message: 'This is a commit message',
         ),
         tasks: [
           Task(
-            createTimestamp: Int64(1569353940885),
-            startTimestamp: Int64(1569354594672),
-            endTimestamp: Int64(1569354700642),
+            createTimestamp: 1569353940885,
+            startTimestamp: 1569354594672,
+            endTimestamp: 1569354700642,
             attempts: 1,
             isFlaky: false,
             status: TaskBox.statusSucceeded,
@@ -139,7 +140,7 @@ void main() {
           return Response('', 200);
         }),
       );
-      task = Task();
+      task = generateTaskForTest(status: TaskBox.statusFailed);
     });
 
     test('should return true if request succeeds', () async {

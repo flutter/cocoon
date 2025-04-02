@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../model/commit.pb.dart';
+import '../src/rpc_model.dart';
 import 'optional_image.dart';
 
 /// Shows the appropriate avatar for a [Commit]'s author.
@@ -19,8 +19,8 @@ class CommitAuthorAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    assert(commit!.author.isNotEmpty);
-    final authorName = commit!.author;
+    assert(commit!.author.login.isNotEmpty);
+    final authorName = commit!.author.login;
     final authorInitial = authorName.substring(0, 1).toUpperCase();
     final authorHash = authorName.hashCode;
     final theme = Theme.of(context);
@@ -49,7 +49,7 @@ class CommitAuthorAvatar extends StatelessWidget {
     );
 
     return OptionalImage(
-      imageUrl: commit!.authorAvatarUrl,
+      imageUrl: commit!.author.avatarUrl,
       placeholder: avatar,
     );
   }

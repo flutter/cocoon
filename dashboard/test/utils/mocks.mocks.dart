@@ -9,15 +9,13 @@ import 'dart:typed_data' as _i9;
 import 'dart:ui' as _i12;
 
 import 'package:flutter_dashboard/logic/brooks.dart' as _i5;
-import 'package:flutter_dashboard/model/commit.pb.dart' as _i14;
-import 'package:flutter_dashboard/model/task.pb.dart' as _i13;
 import 'package:flutter_dashboard/service/cocoon.dart' as _i3;
 import 'package:flutter_dashboard/service/google_authentication.dart' as _i4;
 import 'package:flutter_dashboard/src/rpc_model.dart' as _i10;
 import 'package:flutter_dashboard/state/build.dart' as _i11;
-import 'package:google_sign_in/google_sign_in.dart' as _i15;
+import 'package:google_sign_in/google_sign_in.dart' as _i13;
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart'
-    as _i16;
+    as _i14;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i8;
@@ -558,7 +556,7 @@ class MockBuildState extends _i1.Mock implements _i11.BuildState {
           as _i6.Future<bool>);
 
   @override
-  _i6.Future<bool> rerunTask(_i13.Task? task, _i14.Commit? commit) =>
+  _i6.Future<bool> rerunTask(_i10.Task? task, _i10.Commit? commit) =>
       (super.noSuchMethod(
             Invocation.method(#rerunTask, [task, commit]),
             returnValue: _i6.Future<bool>.value(false),
@@ -581,18 +579,18 @@ class MockBuildState extends _i1.Mock implements _i11.BuildState {
 /// A class which mocks [GoogleSignIn].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGoogleSignIn extends _i1.Mock implements _i15.GoogleSignIn {
+class MockGoogleSignIn extends _i1.Mock implements _i13.GoogleSignIn {
   MockGoogleSignIn() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i16.SignInOption get signInOption =>
+  _i14.SignInOption get signInOption =>
       (super.noSuchMethod(
             Invocation.getter(#signInOption),
-            returnValue: _i16.SignInOption.standard,
+            returnValue: _i14.SignInOption.standard,
           )
-          as _i16.SignInOption);
+          as _i14.SignInOption);
 
   @override
   List<String> get scopes =>
@@ -608,15 +606,15 @@ class MockGoogleSignIn extends _i1.Mock implements _i15.GoogleSignIn {
           as bool);
 
   @override
-  _i6.Stream<_i15.GoogleSignInAccount?> get onCurrentUserChanged =>
+  _i6.Stream<_i13.GoogleSignInAccount?> get onCurrentUserChanged =>
       (super.noSuchMethod(
             Invocation.getter(#onCurrentUserChanged),
-            returnValue: _i6.Stream<_i15.GoogleSignInAccount?>.empty(),
+            returnValue: _i6.Stream<_i13.GoogleSignInAccount?>.empty(),
           )
-          as _i6.Stream<_i15.GoogleSignInAccount?>);
+          as _i6.Stream<_i13.GoogleSignInAccount?>);
 
   @override
-  _i6.Future<_i15.GoogleSignInAccount?> signInSilently({
+  _i6.Future<_i13.GoogleSignInAccount?> signInSilently({
     bool? suppressErrors = true,
     bool? reAuthenticate = false,
   }) =>
@@ -625,9 +623,9 @@ class MockGoogleSignIn extends _i1.Mock implements _i15.GoogleSignIn {
               #suppressErrors: suppressErrors,
               #reAuthenticate: reAuthenticate,
             }),
-            returnValue: _i6.Future<_i15.GoogleSignInAccount?>.value(),
+            returnValue: _i6.Future<_i13.GoogleSignInAccount?>.value(),
           )
-          as _i6.Future<_i15.GoogleSignInAccount?>);
+          as _i6.Future<_i13.GoogleSignInAccount?>);
 
   @override
   _i6.Future<bool> isSignedIn() =>
@@ -638,28 +636,28 @@ class MockGoogleSignIn extends _i1.Mock implements _i15.GoogleSignIn {
           as _i6.Future<bool>);
 
   @override
-  _i6.Future<_i15.GoogleSignInAccount?> signIn() =>
+  _i6.Future<_i13.GoogleSignInAccount?> signIn() =>
       (super.noSuchMethod(
             Invocation.method(#signIn, []),
-            returnValue: _i6.Future<_i15.GoogleSignInAccount?>.value(),
+            returnValue: _i6.Future<_i13.GoogleSignInAccount?>.value(),
           )
-          as _i6.Future<_i15.GoogleSignInAccount?>);
+          as _i6.Future<_i13.GoogleSignInAccount?>);
 
   @override
-  _i6.Future<_i15.GoogleSignInAccount?> signOut() =>
+  _i6.Future<_i13.GoogleSignInAccount?> signOut() =>
       (super.noSuchMethod(
             Invocation.method(#signOut, []),
-            returnValue: _i6.Future<_i15.GoogleSignInAccount?>.value(),
+            returnValue: _i6.Future<_i13.GoogleSignInAccount?>.value(),
           )
-          as _i6.Future<_i15.GoogleSignInAccount?>);
+          as _i6.Future<_i13.GoogleSignInAccount?>);
 
   @override
-  _i6.Future<_i15.GoogleSignInAccount?> disconnect() =>
+  _i6.Future<_i13.GoogleSignInAccount?> disconnect() =>
       (super.noSuchMethod(
             Invocation.method(#disconnect, []),
-            returnValue: _i6.Future<_i15.GoogleSignInAccount?>.value(),
+            returnValue: _i6.Future<_i13.GoogleSignInAccount?>.value(),
           )
-          as _i6.Future<_i15.GoogleSignInAccount?>);
+          as _i6.Future<_i13.GoogleSignInAccount?>);
 
   @override
   _i6.Future<bool> requestScopes(List<String>? scopes) =>
@@ -695,7 +693,7 @@ class MockGoogleSignInService extends _i1.Mock
   }
 
   @override
-  set user(_i15.GoogleSignInAccount? _user) => super.noSuchMethod(
+  set user(_i13.GoogleSignInAccount? _user) => super.noSuchMethod(
     Invocation.setter(#user, _user),
     returnValueForMissingStub: null,
   );

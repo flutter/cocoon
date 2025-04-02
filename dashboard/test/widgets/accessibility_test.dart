@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/model/commit.pb.dart';
 import 'package:flutter_dashboard/widgets/commit_author_avatar.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../utils/generate_commit_for_tests.dart';
 
 void main() {
   group('Author avatars meet guidelines for theme brightness', () {
@@ -27,8 +28,9 @@ void main() {
       final List<Widget> avatars =
           names
               .map(
-                (String name) =>
-                    CommitAuthorAvatar(commit: Commit()..author = name),
+                (String name) => CommitAuthorAvatar(
+                  commit: generateCommitForTest(author: name),
+                ),
               )
               .toList();
 
