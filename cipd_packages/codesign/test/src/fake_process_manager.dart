@@ -311,9 +311,11 @@ abstract class FakeProcessManager implements ProcessManager {
     );
     if (process._completer != null) {
       _fakeRunningProcesses[process.pid] = process;
-      process.exitCode.whenComplete(() {
-        _fakeRunningProcesses.remove(process.pid);
-      });
+      unawaited(
+        process.exitCode.whenComplete(() {
+          _fakeRunningProcesses.remove(process.pid);
+        }),
+      );
     }
     return Future<io.Process>.value(process);
   }
