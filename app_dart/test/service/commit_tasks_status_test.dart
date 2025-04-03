@@ -23,7 +23,7 @@ void main() {
       expect(collate, [
         isA<FullTask>()
             .having((t) => t.task.taskName, 'task.taskName', 'task1')
-            .having((t) => t.task.attempts, 'task.attempts', 3)
+            .having((t) => t.task.currentAttempt, 'task.attempts', 3)
             .having((t) => t.buildList, 'buildList', [1001, 1002, 1003]),
       ]);
     });
@@ -39,7 +39,7 @@ void main() {
       expect(collate, [
         isA<FullTask>()
             .having((t) => t.task.taskName, 'task.taskName', 'task1')
-            .having((t) => t.task.attempts, 'task.attempts', 3)
+            .having((t) => t.task.currentAttempt, 'task.attempts', 3)
             .having((t) => t.buildList, 'buildList', [1001, 1002]),
       ]);
     });

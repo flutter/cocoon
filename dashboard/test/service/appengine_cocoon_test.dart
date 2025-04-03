@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
-import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Request, Response;

@@ -1144,7 +1144,7 @@ class LuciBuildService {
     await datastore.insert(<Task>[task]);
 
     // Updates task status in Firestore.
-    final newAttempt = int.parse(taskDocument.name!.split('_').last) + 1;
+    final newAttempt = taskDocument.currentAttempt + 1;
     taskDocument.resetAsRetry(attempt: newAttempt);
     taskDocument.setStatus(firestore.Task.statusInProgress);
     final writes = documentsToWrites([taskDocument], exists: false);
@@ -1166,7 +1166,7 @@ class LuciBuildService {
     if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
       return false;
     }
-    final retries = task.attempts ?? 1;
+    final retries = task.currentAttempt;
     if (retries > config.maxLuciTaskRetries) {
       log.info('Max retries reached for ${task.taskName}');
       return false;
@@ -1174,7 +1174,7 @@ class LuciBuildService {
 
     final currentCommit = await firestore_commit.Commit.fromFirestoreBySha(
       firestoreService,
-      sha: task.commitSha!,
+      sha: task.commitSha,
     );
     final commitList = await firestoreService.queryRecentCommits(
       limit: 1,

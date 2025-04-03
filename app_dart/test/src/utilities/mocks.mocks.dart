@@ -6096,7 +6096,7 @@ class MockCallbacks extends _i1.Mock implements _i48.Callbacks {
     required String? sha,
     required _i25.CiStage? stage,
     required String? checkRun,
-    required String? conclusion,
+    required _i25.TaskConclusion? conclusion,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#markCheckRunConclusion, [], {

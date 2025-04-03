@@ -1412,7 +1412,7 @@ void main() {
 
       final taskDocument = generateFirestoreTask(0);
       final task = generateTask(0);
-      expect(taskDocument.attempts, 1);
+      expect(taskDocument.currentAttempt, 1);
       expect(task.attempts, 1);
       await service.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
@@ -1423,7 +1423,7 @@ void main() {
         datastore: datastore,
         firestoreService: mockFirestoreService,
       );
-      expect(taskDocument.attempts, 2);
+      expect(taskDocument.currentAttempt, 2);
       expect(task.attempts, 2);
       expect(pubsub.messages.length, 1);
     });
@@ -2090,7 +2090,7 @@ void main() {
         buildNumber: 1,
       );
       final target = generateTarget(1);
-      expect(firestoreTask!.attempts, 1);
+      expect(firestoreTask!.currentAttempt, 1);
       final rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
         task: task,
@@ -2101,7 +2101,7 @@ void main() {
       );
       expect(rerunFlag, isTrue);
 
-      expect(firestoreTask!.attempts, 2);
+      expect(firestoreTask!.currentAttempt, 2);
       final captured =
           verify(
             mockFirestoreService.batchWriteDocuments(captureAny, captureAny),

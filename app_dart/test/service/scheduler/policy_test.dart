@@ -71,8 +71,8 @@ void main() {
       final task = generateFirestoreTask(4);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: allPending,
         ),
         isNull,
@@ -83,8 +83,8 @@ void main() {
       final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: latestAllPending,
         ),
         LuciBuildService.kDefaultPriority,
@@ -95,8 +95,8 @@ void main() {
       final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: latestFailed,
         ),
         LuciBuildService.kRerunPriority,
@@ -109,8 +109,8 @@ void main() {
         final task = generateFirestoreTask(7);
         expect(
           await policy.triggerPriority(
-            taskName: task.taskName!,
-            commitSha: task.commitSha!,
+            taskName: task.taskName,
+            commitSha: task.commitSha,
             recentTasks: failedWithRunning,
           ),
           isNull,
@@ -122,8 +122,8 @@ void main() {
       final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: latestFinishedButRestPending,
         ),
         isNull,
@@ -134,8 +134,8 @@ void main() {
       final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: latestPending,
         ),
         isNull,
@@ -162,8 +162,8 @@ void main() {
       final task = generateFirestoreTask(2);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: pending,
         ),
         LuciBuildService.kDefaultPriority,
@@ -174,8 +174,8 @@ void main() {
       final task = generateFirestoreTask(2);
       expect(
         await policy.triggerPriority(
-          taskName: task.taskName!,
-          commitSha: task.commitSha!,
+          taskName: task.taskName,
+          commitSha: task.commitSha,
           recentTasks: latestFailed,
         ),
         LuciBuildService.kRerunPriority,

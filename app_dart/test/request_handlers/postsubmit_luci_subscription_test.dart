@@ -215,7 +215,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
   });
@@ -343,7 +343,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusFailed);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
     final captured =
         verify(
@@ -355,7 +355,7 @@ void main() {
     final insertedTaskDocument = batchWriteRequest.writes![0].update!;
     final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
     expect(resultTask.status, firestore.Task.statusInProgress);
-    expect(resultTask.attempts, 2);
+    expect(resultTask.currentAttempt, 2);
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
@@ -399,7 +399,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInfraFailure);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
     final captured =
         verify(
@@ -411,7 +411,7 @@ void main() {
     final insertedTaskDocument = batchWriteRequest.writes![0].update!;
     final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
     expect(resultTask.status, firestore.Task.statusInProgress);
-    expect(resultTask.attempts, 2);
+    expect(resultTask.currentAttempt, 2);
   });
 
   test(
@@ -469,7 +469,7 @@ void main() {
       final insertedTaskDocument = batchWriteRequest.writes![0].update!;
       final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
       expect(resultTask.status, firestore.Task.statusInProgress);
-      expect(resultTask.attempts, 2);
+      expect(resultTask.currentAttempt, 2);
     },
   );
 

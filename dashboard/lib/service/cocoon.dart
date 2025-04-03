@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart';
 
-import '../src/rpc_model.dart';
 import 'appengine_cocoon.dart';
 import 'dev_cocoon.dart';
 

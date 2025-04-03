@@ -98,12 +98,7 @@ final class TaskId extends AppDocumentId<Task> {
 /// This documents layout is currently:
 /// ```
 ///  /projects/flutter-dashboard/databases/cocoon/commits/
-///    document: <this.commitSha>_<this.taskName>_<attempts>
-/// ```
-///
-/// Note that the [attempts] field is _synthetic_, that is, there is no
-/// cooresponding concrete field on the document itself. We should probably fix
-/// that (https://github.com/flutter/flutter/issues/166229).
+///    document: <this.commitSha>_<this.taskName>_<this.attempt>
 ///
 /// See also: [TaskId].
 final class Task extends Document with AppDocument<Task> {
@@ -116,6 +111,7 @@ final class Task extends Document with AppDocument<Task> {
   static const fieldStartTimestamp = 'startTimestamp';
   static const fieldStatus = 'status';
   static const fieldTestFlaky = 'testFlaky';
+  static const fieldAttempt = 'attempt';
 
   /// Returns a document ID for a task from the given parameters.
   static AppDocumentId<Task> documentIdFor({
@@ -181,6 +177,7 @@ final class Task extends Document with AppDocument<Task> {
         fieldEndTimestamp: Value(integerValue: '$endTimestamp'),
         fieldStatus: Value(stringValue: status),
         fieldTestFlaky: Value(booleanValue: testFlaky),
+        fieldAttempt: Value(integerValue: '$currentAttempt'),
       },
       name: p.posix.join(
         kDatabase,
@@ -277,7 +274,7 @@ final class Task extends Document with AppDocument<Task> {
   ///
   /// This is _not_ when the task first started running, as tasks start out in
   /// the 'New' state until they've been picked up by an [Agent].
-  int? get createTimestamp =>
+  int get createTimestamp =>
       int.parse(fields![fieldCreateTimestamp]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
@@ -285,27 +282,35 @@ final class Task extends Document with AppDocument<Task> {
   ///
   /// Tasks may be run more than once. If this task has been run more than
   /// once, this timestamp represents when the task was most recently started.
-  int? get startTimestamp =>
+  int get startTimestamp =>
       int.parse(fields![fieldStartTimestamp]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
-  int? get endTimestamp => int.parse(fields![fieldEndTimestamp]!.integerValue!);
+  int get endTimestamp => int.parse(fields![fieldEndTimestamp]!.integerValue!);
 
   /// The name of the task.
   ///
   /// This is a human-readable name, typically a test name (e.g.
   /// "hello_world__memory").
-  String? get taskName => fields![fieldName]!.stringValue!;
+  String get taskName => fields![fieldName]!.stringValue!;
 
   /// The sha of the task commit.
-  String? get commitSha => fields![fieldCommitSha]!.stringValue!;
+  String get commitSha => fields![fieldCommitSha]!.stringValue!;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
   /// New tasks that have not yet been picked up by an [Agent] will have zero
   /// attempts.
-  int? get attempts => int.parse(name!.split('_').last);
+  int get currentAttempt {
+    // TODO(matanlurey): Simplify this when existing documents are backfilled.
+    if (fields!.containsKey(fieldAttempt)) {
+      return int.parse(fields![fieldAttempt]!.integerValue!);
+    }
+
+    // Read the attempts from the document name.
+    return TaskId.parse(name!).currentAttempt;
+  }
 
   /// Whether this task has been marked flaky by .ci.yaml.
   ///
@@ -314,7 +319,7 @@ final class Task extends Document with AppDocument<Task> {
   ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
   ///
   /// A flaky (`bringup: true`) task will not block the tree.
-  bool? get bringup => fields![fieldBringup]!.booleanValue!;
+  bool get bringup => fields![fieldBringup]!.booleanValue!;
 
   /// Whether the test execution of this task shows flake.
   ///
@@ -322,7 +327,7 @@ final class Task extends Document with AppDocument<Task> {
   ///
   /// See also:
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
-  bool? get testFlaky => fields![fieldTestFlaky]!.booleanValue!;
+  bool get testFlaky => fields![fieldTestFlaky]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
   int? get buildNumber =>
@@ -390,6 +395,7 @@ final class Task extends Document with AppDocument<Task> {
       fieldStatus: Value(stringValue: Task.statusNew),
       fieldTestFlaky: Value(booleanValue: false),
       fieldCommitSha: Value(stringValue: commitSha),
+      fieldAttempt: Value(integerValue: '$attempt'),
     };
   }
 
