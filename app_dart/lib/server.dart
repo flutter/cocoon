@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'cocoon_service.dart';
+import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/service/build_status_provider.dart';
 import 'src/service/commit_service.dart';
@@ -190,6 +191,12 @@ Server createServer({
         buildStatusService: buildStatusService,
       ),
       ttl: const Duration(seconds: 15),
+    ),
+    '/api/public/engine-arifacts-ready': CacheRequestHandler<Body>(
+      cache: cache,
+      config: config,
+      delegate: GetEngineArtifactsReady(config: config),
+      ttl: const Duration(minutes: 5),
     ),
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
       cache: cache,
