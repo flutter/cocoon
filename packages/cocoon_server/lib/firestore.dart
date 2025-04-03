@@ -13,6 +13,9 @@ import 'package:path/path.dart' as p;
 
 import 'access_client_provider.dart';
 import 'google_auth_provider.dart';
+import 'src/firestore_batch.dart';
+
+export 'src/firestore_batch.dart' show BatchWriteOperation;
 
 /// A lightweight typed wrapper on top of [g.FirestoreApi].
 base class Firestore {
@@ -51,15 +54,22 @@ base class Firestore {
   final g.FirestoreApi _api;
   final String _databasePath;
 
-  /// Returns the full database path to the provided relative [path].
+  /// Returns the full database path to the `documents/` Firestore path.
+  ///
+  /// If [path] is provided, it is appended at the end.
   ///
   /// ## Example
   ///
   /// ```dart
-  /// print(firestore.resolvePath('task/task-name'));
+  /// print(firestore.resolveDocumentsPath());
+  /// // Outputs: projects/project-id/databases/database-id/documents
+  ///
+  /// print(firestore.resolveDocumentsPath('task/task-name'));
   /// // Outputs: projects/project-id/databases/database-id/documents/task/task-name
   /// ```
-  String resolvePath(String path) => p.posix.join(_databasePath, path);
+  String resolveDocumentsPath([String? path]) {
+    return p.posix.join(_databasePath, 'documents', path);
+  }
 
   /// Direct access to [g.FirestoreApi].
   ///
@@ -67,6 +77,69 @@ base class Firestore {
   /// implementations of [Firestore] within `app_dart` do not have to
   /// immediately start using `this`.
   g.FirestoreApi get apiDuringMigration => _api;
+
+  /// Updates the [Document] at the _relative_ [path] to [document].
+  ///
+  /// If the document was found, it is updated, otherwise `null` is returned.
+  ///
+  /// If it is invalid within your app to update a document that does not exist,
+  /// i.e. you would ignore the result, use [updateByPath].
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.tryUpdateByPath('tasks/task-that-might-exist', document);
+  /// ```
+  @useResult
+  Future<g.Document?> tryUpdateByPath(String path, g.Document document) async {
+    try {
+      return await _api.projects.databases.documents.patch(
+        document,
+        resolveDocumentsPath(path),
+        currentDocument_exists: true,
+      );
+    } on g.DetailedApiRequestError catch (e) {
+      if (e.status == HttpStatus.notFound) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// Updates the [Document] at the _relative_ [path] to [document].
+  ///
+  /// If the document was found, it is updated, otherwise `null` is returned.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.updateByPath('tasks/task-that-might-exist', document);
+  /// ```
+  @nonVirtual
+  Future<g.Document> updateByPath(String path, g.Document document) async {
+    final inserted = await tryUpdateByPath(path, document);
+    if (inserted == null) {
+      throw StateError('No document found at "$path"');
+    }
+    return inserted;
+  }
+
+  /// Upserts the [Document] at the _relative_ [path] to [document].
+  ///
+  /// If the document already exists, it is updated, otherwise it is inserted.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await firestore.upsertByPath('tasks/task-that-might-exist', document);
+  /// ```
+  @useResult
+  Future<g.Document> upsertByPath(String path, g.Document document) async {
+    return await _api.projects.databases.documents.patch(
+      document,
+      resolveDocumentsPath(path),
+    );
+  }
 
   /// Returns the [Document] at the _relative_ [path] within Firestore.
   ///
@@ -82,9 +155,10 @@ base class Firestore {
   /// ```
   @useResult
   Future<g.Document?> tryGetByPath(String path) async {
-    final fullPath = resolvePath(path);
     try {
-      return await _api.projects.databases.documents.get(fullPath);
+      return await _api.projects.databases.documents.get(
+        resolveDocumentsPath(path),
+      );
     } on g.DetailedApiRequestError catch (e) {
       if (e.status == HttpStatus.notFound) {
         return null;
@@ -140,7 +214,7 @@ base class Firestore {
       assert(clone.name == null, 'Name must be null for new documents');
       return await _api.projects.databases.documents.createDocument(
         clone,
-        resolvePath('documents'),
+        resolveDocumentsPath(),
         p.dirname(path),
         documentId: p.basename(path),
       );
@@ -177,38 +251,35 @@ base class Firestore {
   /// See <https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto>.
   static const _gRPC$Status$OK = 0;
 
-  /// Inserts _all_ [documents] into the database.
+  /// Batch writes (inserts or updates) _all_ [documents] into the database.
   ///
   /// Each key of [documents] is interpreted as the _path_ (similar to an
   /// operation like [insertByPath]), and each value is interpeted as the
   /// cooresponding document.
   ///
-  /// If the document already exists no changes are made.
-  ///
   /// Returns a list of boolean values indicating whether each individual
-  /// document was successfully inserted, with a value of `true` indicating
+  /// document was successfully written, with a value of `true` indicating
   /// _yes_ and a value of `false` indicating _no_.
   ///
   /// ## Example
   ///
   /// ```dart
-  /// await firestore.tryInsertAll({
-  ///   'tasks/new-task-1': taskDocument1,
-  ///   'tasks/new-task-2': taskDocument2,
+  /// await firestore.tryBatchWrite({
+  ///   'tasks/new-task-1': BatchWriteOperation.insert(taskDocument1),
+  ///   'tasks/existing-task-2': BatchWriteOperation.update(taskDocument2),
+  ///   'tasks/maybe-existing-task-3': BatchWriteOperation.upsert(taskDocument3),
   /// });
   /// ```
-  Future<List<bool>> tryInsertAll(Map<String, g.Document> documents) async {
-    final flatDocs = [
-      for (final MapEntry(key: path, value: doc) in documents.entries)
-        g.Document(name: resolvePath(path), fields: {...?doc.fields}),
-    ];
+  Future<List<bool>> tryBatchWrite(
+    Map<String, BatchWriteOperation> writes,
+  ) async {
     final response = await _api.projects.databases.documents.batchWrite(
       g.BatchWriteRequest(
         writes: [
-          for (final document in flatDocs)
-            g.Write(
-              update: document,
-              currentDocument: g.Precondition(exists: false),
+          for (final MapEntry(key: path, value: write) in writes.entries)
+            internalToFirestoreWrite(
+              write,
+              documentPath: resolveDocumentsPath(path),
             ),
         ],
       ),

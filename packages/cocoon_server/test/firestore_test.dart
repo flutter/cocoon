@@ -49,7 +49,7 @@ void main() {
     final expected = g.Document();
     when(
       mockDocumentsResource.get(
-        'projects/project-id/databases/database-id/tasks/task-name',
+        'projects/project-id/databases/database-id/documents/tasks/task-name',
       ),
     ).thenAnswer((_) async => expected);
 
@@ -66,7 +66,7 @@ void main() {
   test('should fail to get a document by path, returning null', () async {
     when(
       mockDocumentsResource.get(
-        'projects/project-id/databases/database-id/tasks/task-name',
+        'projects/project-id/databases/database-id/documents/tasks/task-name',
       ),
     ).thenAnswer(
       (_) async => throw g.DetailedApiRequestError(HttpStatus.notFound, ''),
@@ -81,7 +81,7 @@ void main() {
   test('should fail to get a document by path, throwing an error', () async {
     when(
       mockDocumentsResource.get(
-        'projects/project-id/databases/database-id/tasks/task-name',
+        'projects/project-id/databases/database-id/documents/tasks/task-name',
       ),
     ).thenAnswer((_) async => throw notFound);
 
@@ -167,6 +167,112 @@ void main() {
     );
   });
 
+  test('should upsert a document by path', () async {
+    final expected = g.Document();
+    final created = g.Document();
+    when(mockDocumentsResource.patch(any, any)).thenAnswer((i) async {
+      expect(i.positionalArguments, [
+        expected,
+        'projects/project-id/databases/database-id/documents/tasks/new-or-existing-task',
+      ]);
+      return created;
+    });
+
+    await expectLater(
+      firestore.upsertByPath('tasks/new-or-existing-task', expected),
+      completion(same(created)),
+    );
+  });
+
+  test('should fail to upsert a document by path, throwing an error', () async {
+    final expected = Error();
+
+    when(mockDocumentsResource.patch(any, any)).thenAnswer((i) async {
+      // Any error will do (it will be rethrown).
+      throw expected;
+    });
+    await expectLater(
+      firestore.upsertByPath('tasks/new-or-existing-task', g.Document()),
+      throwsA(same(expected)),
+    );
+  });
+
+  test('should update a document by path', () async {
+    final expected = g.Document();
+    final created = g.Document();
+    when(
+      mockDocumentsResource.patch(
+        any,
+        any,
+        currentDocument_exists: anyNamed('currentDocument_exists'),
+      ),
+    ).thenAnswer((i) async {
+      expect(i.positionalArguments, [
+        same(created),
+        'projects/project-id/databases/database-id/documents/tasks/existing-task',
+      ]);
+      expect(i.namedArguments, {
+        #currentDocument_exists: true,
+        #currentDocument_updateTime: null,
+        #mask_fieldPaths: null,
+        #updateMask_fieldPaths: null,
+        #$fields: null,
+      });
+      return expected;
+    });
+
+    await expectLater(
+      firestore.updateByPath('tasks/existing-task', created),
+      completes,
+    );
+    await expectLater(
+      firestore.tryUpdateByPath('tasks/existing-task', created),
+      completes,
+    );
+  });
+
+  test('should fail to update a document by path, returning null', () async {
+    final created = g.Document();
+    when(
+      mockDocumentsResource.patch(
+        any,
+        any,
+        currentDocument_exists: anyNamed('currentDocument_exists'),
+      ),
+    ).thenAnswer((i) async {
+      throw notFound;
+    });
+
+    await expectLater(
+      firestore.tryUpdateByPath('tasks/existing-task', created),
+      completion(isNull),
+    );
+  });
+
+  test('should fail to update a document by path, throwing an error', () async {
+    final created = g.Document();
+    when(
+      mockDocumentsResource.patch(
+        any,
+        any,
+        currentDocument_exists: anyNamed('currentDocument_exists'),
+      ),
+    ).thenAnswer((i) async {
+      throw notFound;
+    });
+
+    await expectLater(
+      firestore.updateByPath('tasks/existing-task', created),
+      throwsA(
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          contains('No document found at "tasks/existing-task"'),
+        ),
+      ),
+    );
+  });
+
   const gRPC$OK = 0;
   const gRPC$AlreadyExists = 1;
 
@@ -177,17 +283,17 @@ void main() {
           isA<g.Write>().having(
             (w) => w.update!.name,
             'update.name',
-            'projects/project-id/databases/database-id/tasks/new-task-1',
+            'projects/project-id/databases/database-id/documents/tasks/new-task-1',
           ),
           isA<g.Write>().having(
             (w) => w.update!.name,
             'update.name',
-            'projects/project-id/databases/database-id/tasks/new-task-2',
+            'projects/project-id/databases/database-id/documents/tasks/new-task-2',
           ),
           isA<g.Write>().having(
             (w) => w.update!.name,
             'update.name',
-            'projects/project-id/databases/database-id/tasks/existing-task',
+            'projects/project-id/databases/database-id/documents/tasks/existing-task',
           ),
         ]),
         'projects/project-id/databases/database-id',
@@ -202,10 +308,10 @@ void main() {
     });
 
     await expectLater(
-      firestore.tryInsertAll({
-        'tasks/new-task-1': g.Document(),
-        'tasks/new-task-2': g.Document(),
-        'tasks/existing-task': g.Document(),
+      firestore.tryBatchWrite({
+        'tasks/new-task-1': BatchWriteOperation.insert(g.Document()),
+        'tasks/new-task-2': BatchWriteOperation.insert(g.Document()),
+        'tasks/existing-task': BatchWriteOperation.insert(g.Document()),
       }),
       completion([
         true, //
