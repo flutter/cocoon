@@ -4,15 +4,13 @@
 
 import 'dart:async';
 
-import 'package:cocoon_server/firestore.dart';
+import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart' as g;
-import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
+import 'package:googleapis/firestore/v1.dart';
+import 'package:http/http.dart' as http;
 
 import '../../cocoon_service.dart';
-import '../model/firestore/base.dart';
 import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
@@ -44,92 +42,29 @@ final kFieldMapRegExp = RegExp(
   '(${kRelationMapping.keys.join("|")})',
 );
 
-@visibleForTesting
-mixin FirestoreServiceMixin {
-  @protected
-  Firestore get api;
-
-  // TODO(matanlurey): Add in future .tryGet calls.
-  // String _resolveDocumentPath<T extends AppDocument<T>>(AppDocumentId<T> id) {
-  //   return api.resolvePath(_resolveRelativePath(id));
-  // }
-
-  String _resolveRelativePath<T extends AppDocument<T>>(AppDocumentId<T> id) {
-    return p.posix.join(id.runtimeMetadata.collectionId, id.documentId);
-  }
-
-  /// Inserts a [document].
-  ///
-  /// If the document already exists, returns `null`, otherwise returns the
-  /// updated document.
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// await firestore.tryInsert(id, task);
-  /// ```
-  @useResult
-  Future<T?> tryInsert<T extends AppDocument<T>>(
-    AppDocumentId<T> id,
-    T document,
-  ) async {
-    final inserted = await api.tryInsertByPath(
-      _resolveRelativePath(id),
-      document,
-    );
-    if (inserted == null) {
-      return null;
-    }
-    return document.runtimeMetadata.fromDocument(inserted);
-  }
-
-  /// Inserts a [document].
-  ///
-  /// The document must not already exist.
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// await firestore.insert(id, task);
-  /// ```
-  Future<T> insert<T extends AppDocument<T>>(
-    AppDocumentId<T> id,
-    T document,
-  ) async {
-    final inserted = await api.insertByPath(_resolveRelativePath(id), document);
-    return document.runtimeMetadata.fromDocument(inserted);
-  }
-}
-
-/// An application-specific storage API around Google Firestore.
-///
-/// This API is in a state of flux, where the non-app specific APIs are being
-/// migrated to a common API (https://github.com/flutter/flutter/issues/165931).
-class FirestoreService with FirestoreServiceMixin {
+class FirestoreService {
   /// Creates a [BigqueryService] using Google API authentication.
   static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
-    return FirestoreService._(
-      await Firestore.from(
-        authProvider,
+    final client = await authProvider.createClient(
+      scopes: const [FirestoreApi.datastoreScope],
+      baseClient: FirestoreBaseClient(
         projectId: Config.flutterGcpProjectId,
         databaseId: Config.flutterGcpFirestoreDatabase,
       ),
     );
+    return FirestoreService._(client);
   }
 
-  const FirestoreService._(this.api);
-
-  @override
-  @protected
-  final Firestore api;
+  const FirestoreService._(this._client);
+  final http.Client _client;
 
   /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
-  Future<g.ProjectsDatabasesDocumentsResource> documentResource() async {
-    return api.apiDuringMigration.projects.databases.documents;
+  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
+    return FirestoreApi(_client).projects.databases.documents;
   }
 
   /// Gets a document based on name.
-  Future<g.Document> getDocument(String name) async {
+  Future<Document> getDocument(String name) async {
     final databasesDocumentsResource = await documentResource();
     return databasesDocumentsResource.get(name);
   }
@@ -140,8 +75,8 @@ class FirestoreService with FirestoreServiceMixin {
   /// Each write succeeds or fails independently.
   ///
   /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
-  Future<g.BatchWriteResponse> batchWriteDocuments(
-    g.BatchWriteRequest request,
+  Future<BatchWriteResponse> batchWriteDocuments(
+    BatchWriteRequest request,
     String database,
   ) async {
     final databasesDocumentsResource = await documentResource();
@@ -151,14 +86,14 @@ class FirestoreService with FirestoreServiceMixin {
   /// Writes [writes] to Firestore within a transaction.
   ///
   /// This is an atomic operation: either all writes succeed or all writes fail.
-  Future<g.CommitResponse> writeViaTransaction(List<g.Write> writes) async {
+  Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
     final databasesDocumentsResource = await documentResource();
-    final beginTransactionRequest = g.BeginTransactionRequest(
-      options: g.TransactionOptions(readWrite: g.ReadWrite()),
+    final beginTransactionRequest = BeginTransactionRequest(
+      options: TransactionOptions(readWrite: ReadWrite()),
     );
     final beginTransactionResponse = await databasesDocumentsResource
         .beginTransaction(beginTransactionRequest, kDatabase);
-    final commitRequest = g.CommitRequest(
+    final commitRequest = CommitRequest(
       transaction: beginTransactionResponse.transaction,
       writes: writes,
     );
@@ -236,24 +171,23 @@ class FirestoreService with FirestoreServiceMixin {
       '$kGithubGoldStatusRepositoryField =': slug.fullName,
     };
     final documents = await query(kGithubGoldStatusCollectionId, filterMap);
-    final githubGoldStatuses =
-        documents.map(GithubGoldStatus.fromDocument).toList();
+    final githubGoldStatuses = [
+      ...documents.map(GithubGoldStatus.fromDocument),
+    ];
     if (githubGoldStatuses.isEmpty) {
       return GithubGoldStatus.fromDocument(
-        g.Document(
+        Document(
           name:
               '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
-          fields: <String, g.Value>{
-            kGithubGoldStatusPrNumberField: g.Value(
+          fields: <String, Value>{
+            kGithubGoldStatusPrNumberField: Value(
               integerValue: prNumber.toString(),
             ),
-            kGithubGoldStatusHeadField: g.Value(stringValue: ''),
-            kGithubGoldStatusStatusField: g.Value(stringValue: ''),
-            kGithubGoldStatusUpdatesField: g.Value(integerValue: '0'),
-            kGithubGoldStatusDescriptionField: g.Value(stringValue: ''),
-            kGithubGoldStatusRepositoryField: g.Value(
-              stringValue: slug.fullName,
-            ),
+            kGithubGoldStatusHeadField: Value(stringValue: ''),
+            kGithubGoldStatusStatusField: Value(stringValue: ''),
+            kGithubGoldStatusUpdatesField: Value(integerValue: '0'),
+            kGithubGoldStatusDescriptionField: Value(stringValue: ''),
+            kGithubGoldStatusRepositoryField: Value(stringValue: slug.fullName),
           },
         ),
       );
@@ -282,24 +216,25 @@ class FirestoreService with FirestoreServiceMixin {
       '$kGithubBuildStatusHeadField =': head,
     };
     final documents = await query(kGithubBuildStatusCollectionId, filterMap);
-    final githubBuildStatuses =
-        documents.map(GithubBuildStatus.fromDocument).toList();
+    final githubBuildStatuses = [
+      ...documents.map(GithubBuildStatus.fromDocument),
+    ];
     if (githubBuildStatuses.isEmpty) {
       return GithubBuildStatus.fromDocument(
-        g.Document(
+        Document(
           name:
               '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
-          fields: <String, g.Value>{
-            kGithubBuildStatusPrNumberField: g.Value(
+          fields: <String, Value>{
+            kGithubBuildStatusPrNumberField: Value(
               integerValue: prNumber.toString(),
             ),
-            kGithubBuildStatusHeadField: g.Value(stringValue: head),
-            kGithubBuildStatusStatusField: g.Value(stringValue: ''),
-            kGithubBuildStatusUpdatesField: g.Value(integerValue: '0'),
-            kGithubBuildStatusUpdateTimeMillisField: g.Value(
+            kGithubBuildStatusHeadField: Value(stringValue: head),
+            kGithubBuildStatusStatusField: Value(stringValue: ''),
+            kGithubBuildStatusUpdatesField: Value(integerValue: '0'),
+            kGithubBuildStatusUpdateTimeMillisField: Value(
               integerValue: DateTime.now().millisecondsSinceEpoch.toString(),
             ),
-            kGithubBuildStatusRepositoryField: g.Value(
+            kGithubBuildStatusRepositoryField: Value(
               stringValue: slug.fullName,
             ),
           },
@@ -317,21 +252,21 @@ class FirestoreService with FirestoreServiceMixin {
   }
 
   /// Returns Firestore [Value] based on corresponding object type.
-  g.Value getValueFromFilter(Object comparisonOject) {
+  Value getValueFromFilter(Object comparisonOject) {
     if (comparisonOject is int) {
-      return g.Value(integerValue: comparisonOject.toString());
+      return Value(integerValue: comparisonOject.toString());
     } else if (comparisonOject is bool) {
-      return g.Value(booleanValue: comparisonOject);
+      return Value(booleanValue: comparisonOject);
     }
-    return g.Value(stringValue: comparisonOject as String);
+    return Value(stringValue: comparisonOject as String);
   }
 
   /// Generates Firestore query filter based on "human" read conditions.
-  g.Filter generateFilter(
+  Filter generateFilter(
     Map<String, Object> filterMap,
     String compositeFilterOp,
   ) {
-    final filters = <g.Filter>[];
+    final filters = <Filter>[];
     filterMap.forEach((filterString, comparisonOject) {
       final match = kFieldMapRegExp.firstMatch(filterString);
       if (match == null) {
@@ -344,34 +279,28 @@ class FirestoreService with FirestoreServiceMixin {
 
       final value = getValueFromFilter(comparisonOject);
       filters.add(
-        g.Filter(
-          fieldFilter: g.FieldFilter(
-            field: g.FieldReference(fieldPath: '`${name.trim()}`'),
+        Filter(
+          fieldFilter: FieldFilter(
+            field: FieldReference(fieldPath: '`${name.trim()}`'),
             op: kRelationMapping[comparison],
             value: value,
           ),
         ),
       );
     });
-    return g.Filter(
-      compositeFilter: g.CompositeFilter(
-        filters: filters,
-        op: compositeFilterOp,
-      ),
+    return Filter(
+      compositeFilter: CompositeFilter(filters: filters, op: compositeFilterOp),
     );
   }
 
-  List<g.Order>? generateOrders(Map<String, String>? orderMap) {
+  List<Order>? generateOrders(Map<String, String>? orderMap) {
     if (orderMap == null || orderMap.isEmpty) {
       return null;
     }
-    final orders = <g.Order>[];
+    final orders = <Order>[];
     orderMap.forEach((field, direction) {
       orders.add(
-        g.Order(
-          field: g.FieldReference(fieldPath: field),
-          direction: direction,
-        ),
+        Order(field: FieldReference(fieldPath: field), direction: direction),
       );
     });
     return orders;
@@ -388,7 +317,7 @@ class FirestoreService with FirestoreServiceMixin {
   /// Note
   ///   1. the space in the key, which will be used to retrieve the field name and operator.
   ///   2. the value could be any type, like int, string, bool, etc.
-  Future<List<g.Document>> query(
+  Future<List<Document>> query(
     String collectionId,
     Map<String, Object> filterMap, {
     int? limit,
@@ -396,13 +325,13 @@ class FirestoreService with FirestoreServiceMixin {
     String compositeFilterOp = kCompositeFilterOpAnd,
   }) async {
     final databasesDocumentsResource = await documentResource();
-    final from = <g.CollectionSelector>[
-      g.CollectionSelector(collectionId: collectionId),
+    final from = <CollectionSelector>[
+      CollectionSelector(collectionId: collectionId),
     ];
     final filter = generateFilter(filterMap, compositeFilterOp);
     final orders = generateOrders(orderMap);
-    final runQueryRequest = g.RunQueryRequest(
-      structuredQuery: g.StructuredQuery(
+    final runQueryRequest = RunQueryRequest(
+      structuredQuery: StructuredQuery(
         from: from,
         where: filter,
         orderBy: orders,
@@ -417,10 +346,10 @@ class FirestoreService with FirestoreServiceMixin {
   }
 
   /// Retrieve documents based on query response.
-  List<g.Document> documentsFromQueryResponse(
-    List<g.RunQueryResponseElement> runQueryResponseElements,
+  List<Document> documentsFromQueryResponse(
+    List<RunQueryResponseElement> runQueryResponseElements,
   ) {
-    final documents = <g.Document>[];
+    final documents = <Document>[];
     for (var runQueryResponseElement in runQueryResponseElements) {
       if (runQueryResponseElement.document != null) {
         documents.add(runQueryResponseElement.document!);
@@ -435,12 +364,12 @@ class FirestoreService with FirestoreServiceMixin {
 /// Null `exists` means either update when a document exists or insert when a document doesn't.
 /// `exists = false` means inserting a new document, assuming a document doesn't exist.
 /// `exists = true` means updating an existing document, assuming it exisits.
-List<g.Write> documentsToWrites(List<g.Document> documents, {bool? exists}) {
+List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
   return documents
       .map(
-        (g.Document document) => g.Write(
+        (Document document) => Write(
           update: document,
-          currentDocument: g.Precondition(exists: exists),
+          currentDocument: Precondition(exists: exists),
         ),
       )
       .toList();
