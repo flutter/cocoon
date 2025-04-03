@@ -40,6 +40,8 @@ import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
     as _i31;
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
     as _i44;
+import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart'
+    as _i49;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
     as _i48;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
@@ -57,11 +59,11 @@ import 'package:http/http.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i28;
 import 'package:neat_cache/neat_cache.dart' as _i26;
-import 'package:process/process.dart' as _i49;
+import 'package:process/process.dart' as _i50;
 import 'package:retry/retry.dart' as _i32;
 
 import '../../service/cache_service_test.dart' as _i36;
-import 'mocks.dart' as _i50;
+import 'mocks.dart' as _i51;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -5022,7 +5024,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i16.Future<_i11.CheckRun> createPostsubmitCheckRun(
-    _i33.Commit? commit,
+    _i49.OpaqueCommit? commit,
     _i43.Target? target,
   ) =>
       (super.noSuchMethod(
@@ -5038,7 +5040,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i16.Future<bool> checkRerunBuilder({
-    required _i33.Commit? commit,
+    required _i49.OpaqueCommit? commit,
     required _i43.Target? target,
     required _i35.Task? task,
     required _i7.DatastoreService? datastore,
@@ -5066,7 +5068,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i50.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -6130,7 +6132,7 @@ class MockBeginTransactionResponse extends _i1.Mock
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i51.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }

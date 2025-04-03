@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import '../../ci_yaml.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
+import '../model/firestore/commit.dart' as firestore;
 import '../model/firestore/task.dart' as firestore;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
@@ -21,6 +22,7 @@ import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
+import '../service/luci_build_service/opaque_commit.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
@@ -32,23 +34,28 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 ///
 /// This endpoint is responsible for updating Datastore with the result of builds from LUCI.
 @immutable
-class PostsubmitLuciSubscription extends SubscriptionHandler {
+final class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PostsubmitLuciSubscription({
     required super.cache,
     required super.config,
     super.authProvider,
     @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-    required this.scheduler,
-    required this.githubChecksService,
-    required this.ciYamlFetcher,
-  }) : super(subscriptionName: 'build-bucket-postsubmit-sub');
+    DatastoreService Function(DatastoreDB) datastoreProvider =
+        DatastoreService.defaultProvider,
+    required Scheduler scheduler,
+    required GithubChecksService githubChecksService,
+    required CiYamlFetcher ciYamlFetcher,
+  }) : _ciYamlFetcher = ciYamlFetcher,
+       _githubChecksService = githubChecksService,
+       _scheduler = scheduler,
+       _datastoreProvider = datastoreProvider,
+       super(subscriptionName: 'build-bucket-postsubmit-sub');
 
-  final DatastoreServiceProvider datastoreProvider;
-  final Scheduler scheduler;
-  final GithubChecksService githubChecksService;
-  final CiYamlFetcher ciYamlFetcher;
+  final DatastoreServiceProvider _datastoreProvider;
+  final Scheduler _scheduler;
+  final GithubChecksService _githubChecksService;
+  final CiYamlFetcher _ciYamlFetcher;
 
   @override
   Future<Body> post() async {
@@ -57,7 +64,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final datastore = datastoreProvider(config.db);
+    final datastore = _datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
 
     final pubSubCallBack = bbv2.PubSubCallBack();
@@ -95,12 +102,10 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       Commit,
       userData.commitKey,
     );
-    Task? task;
-    firestore.Task? firestoreTask;
     log.info('Looking up task document: ${userData.firestoreTaskDocumentName}');
     final taskKey = Key<int>(commitKey, Task, int.parse(userData.taskKey));
-    task = await datastore.lookupByValue<Task>(taskKey);
-    firestoreTask = await firestore.Task.fromFirestore(
+    final task = await datastore.lookupByValue<Task>(taskKey);
+    final firestoreTask = await firestore.Task.fromFirestore(
       firestoreService,
       userData.firestoreTaskDocumentName,
     );
@@ -129,9 +134,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       );
     }
 
-    final commit = await datastore.lookupByValue<Commit>(commitKey);
-
-    final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
+    final fsCommit = await firestore.Commit.fromFirestoreBySha(
+      firestoreService,
+      sha: firestoreTask.commitSha!,
+    );
+    final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(fsCommit);
     final postsubmitTargets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)
@@ -140,7 +147,7 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     // Do not block on the target not found.
     if (!postsubmitTargets.any(
-      (element) => element.value.name == firestoreTask!.taskName,
+      (element) => element.value.name == firestoreTask.taskName,
     )) {
       log.warn(
         'Target ${firestoreTask.taskName} has been deleted from TOT. Skip '
@@ -149,14 +156,14 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
     final target = postsubmitTargets.singleWhere(
-      (Target target) => target.value.name == firestoreTask!.taskName,
+      (Target target) => target.value.name == firestoreTask.taskName,
     );
     if (firestoreTask.status == firestore.Task.statusFailed ||
         firestoreTask.status == firestore.Task.statusInfraFailure ||
         firestoreTask.status == firestore.Task.statusCancelled) {
       log.debug('Trying to auto-retry...');
-      final retried = await scheduler.luciBuildService.checkRerunBuilder(
-        commit: commit,
+      final retried = await _scheduler.luciBuildService.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
         target: target,
         task: task,
         datastore: datastore,
@@ -170,11 +177,11 @@ class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (target.value.bringup == false &&
         config.postsubmitSupportedRepos.contains(target.slug)) {
       log.info('Updating check status for ${target.getTestName}');
-      await githubChecksService.updateCheckStatus(
+      await _githubChecksService.updateCheckStatus(
         build: build,
         checkRunId: userData.checkRunId!,
-        luciBuildService: scheduler.luciBuildService,
-        slug: commit.slug,
+        luciBuildService: _scheduler.luciBuildService,
+        slug: fsCommit.slug,
       );
     }
 
