@@ -74,12 +74,15 @@ final class DartInternalSubscription extends SubscriptionHandler {
       }
       if (data.build.builder.bucket != bucket) {
         log.debug('[dart_internal_166535] mismatch: bucket=$bucket');
+        mismatch = true;
       }
       if (data.build.builder.builder != builder) {
         log.debug('[dart_internal_166535] mismatch: builder=$builder');
+        mismatch = true;
       }
       if (data.build.id != buildId) {
         log.debug('[dart_internal_166535] mismatch: buildId=$buildId');
+        mismatch = true;
       }
       if (mismatch) {
         log.warn(
