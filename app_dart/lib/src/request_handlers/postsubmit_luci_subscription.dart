@@ -136,7 +136,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     final fsCommit = await firestore.Commit.fromFirestoreBySha(
       firestoreService,
-      sha: firestoreTask.commitSha!,
+      sha: firestoreTask.commitSha,
     );
     final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(fsCommit);
     final postsubmitTargets = [
