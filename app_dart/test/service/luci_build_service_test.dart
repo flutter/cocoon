@@ -2074,7 +2074,7 @@ void main() {
       );
       final target = generateTarget(1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: OpaqueCommit.fromDatastore(totCommit),
+        commit: OpaqueCommit.fromDatastore(commit),
         task: task,
         target: target,
         datastore: datastore,
