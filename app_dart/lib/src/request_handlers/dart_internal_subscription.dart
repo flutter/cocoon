@@ -8,6 +8,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
@@ -17,33 +18,31 @@ import '../model/firestore/task.dart' as firestore;
 import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 
-/// TODO(drewroengoogle): Make this subscription generic so we can accept more
-/// than just dart-internal builds.
+/// Listens for and saves build updates for `dart-internal` builds.
 ///
-/// An endpoint for listening to build updates for dart-internal builds and
-/// saving the results to the datastore.
-///
-/// The PubSub subscription is set up here:
-/// https://console.cloud.google.com/cloudpubsub/subscription/detail/dart-internal-build-results-sub?project=flutter-dashboard
+/// See [`dart-internal-build-results`](https://console.cloud.google.com/cloudpubsub/topic/detail/dart-internal-build-results?e=-13802955&invt=Abtx1A&mods=logs_tg_prod&project=flutter-dashboard).
 @immutable
-class DartInternalSubscription extends SubscriptionHandler {
+final class DartInternalSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening for dart-internal build results.
   /// The message should contain a single buildbucket id
   const DartInternalSubscription({
     required super.cache,
     required super.config,
     super.authProvider,
-    required this.buildBucketClient,
+    required BuildBucketClient buildBucketClient,
     @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : super(subscriptionName: 'dart-internal-build-results-sub');
+    DatastoreService Function(DatastoreDB) datastoreProvider =
+        DatastoreService.defaultProvider,
+  }) : _datastoreProvider = datastoreProvider,
+       _buildBucketClient = buildBucketClient,
+       super(subscriptionName: 'dart-internal-build-results-sub');
 
-  final BuildBucketClient buildBucketClient;
-  final DatastoreServiceProvider datastoreProvider;
+  final BuildBucketClient _buildBucketClient;
+  final DatastoreServiceProvider _datastoreProvider;
 
   @override
   Future<Body> post() async {
-    final datastore = datastoreProvider(config.db);
+    final datastore = _datastoreProvider(config.db);
 
     if (message.data == null) {
       log.info('no data in message');
@@ -64,6 +63,33 @@ class DartInternalSubscription extends SubscriptionHandler {
     final builder = jsonBuildMap['build']['builder']['builder'] as String;
     final buildId = Int64.parseInt(jsonBuildMap['build']['id'] as String);
 
+    // TODO(matanlurey): Replace json[][][] if this ends up being workable.
+    // See https://github.com/flutter/flutter/issues/166535.
+    try {
+      final data = bbv2.BuildsV2PubSub.fromJson(message.data!);
+      var mismatch = false;
+      if (data.build.builder.project != project) {
+        log.debug('[dart_internal_166535] mismatch: project=$project');
+        mismatch = true;
+      }
+      if (data.build.builder.bucket != bucket) {
+        log.debug('[dart_internal_166535] mismatch: bucket=$bucket');
+      }
+      if (data.build.builder.builder != builder) {
+        log.debug('[dart_internal_166535] mismatch: builder=$builder');
+      }
+      if (data.build.id != buildId) {
+        log.debug('[dart_internal_166535] mismatch: buildId=$buildId');
+      }
+      if (mismatch) {
+        log.warn(
+          '[dart_internal_166535] bbv2.BuildV2PubSub mismatch: ${data.toDebugString()}',
+        );
+      }
+    } catch (e) {
+      log.warn('[dart_internal_166535] bbv2.BuildV2PubSub not compatible', e);
+    }
+
     // This should already be covered by the pubsub filter, but adding an additional check
     // to ensure we don't process builds that aren't from dart-internal/flutter.
     if (project != 'dart-internal' || bucket != 'flutter') {
@@ -82,7 +108,7 @@ class DartInternalSubscription extends SubscriptionHandler {
 
     log.info('Calling buildbucket api to get build data for build $buildId');
 
-    final existingBuild = await buildBucketClient.getBuild(getBuildRequest);
+    final existingBuild = await _buildBucketClient.getBuild(getBuildRequest);
 
     log.info(
       'Got back existing builder with name: ${existingBuild.builder.builder}',
