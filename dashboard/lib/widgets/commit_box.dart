@@ -4,11 +4,11 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/link.dart';
 
-import '../src/rpc_model.dart';
 import 'commit_author_avatar.dart';
 import 'progress_button.dart';
 

@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/qualified_task.dart';
 import '../logic/task_grid_filter.dart';
-import '../src/rpc_model.dart';
 import '../state/build.dart';
 import 'commit_box.dart';
 import 'lattice.dart';

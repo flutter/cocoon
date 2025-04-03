@@ -5,7 +5,7 @@
 /// Storage agnostic data models that originate from the Cocoon backend.
 ///
 /// This library contains models that are are deserialized from calls to
-/// [CocoonService]. While they _may_ be created ephemerally within the app
+/// `CocoonService`. While they _may_ be created ephemerally within the app
 /// itself, models that are UI-specific should live elsewhere (closer to the
 /// widgets they define).
 ///
@@ -23,14 +23,13 @@
 ///
 /// @docImport 'package:json_annotation/json_annotation.dart';
 /// @docImport 'package:meta/meta.dart';
-/// @docImport '../service/cocoon.dart';
 library;
 
-export 'rpc_model/branch.dart' show Branch;
-export 'rpc_model/build_status_response.dart'
+export 'src/rpc_model/branch.dart' show Branch;
+export 'src/rpc_model/build_status_response.dart'
     show
         BuildStatus, //
         BuildStatusResponse;
-export 'rpc_model/commit.dart' show Commit, CommitAuthor;
-export 'rpc_model/commit_status.dart' show CommitStatus;
-export 'rpc_model/task.dart' show Task;
+export 'src/rpc_model/commit.dart' show Commit, CommitAuthor;
+export 'src/rpc_model/commit_status.dart' show CommitStatus;
+export 'src/rpc_model/task.dart' show Task;

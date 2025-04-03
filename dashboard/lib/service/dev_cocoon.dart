@@ -5,7 +5,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import '../src/rpc_model.dart';
+import 'package:cocoon_common/rpc_model.dart';
+
 import '../widgets/task_box.dart';
 import 'cocoon.dart';
 
