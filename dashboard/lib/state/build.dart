@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
@@ -11,7 +12,6 @@ import 'package:flutter_app_icons/flutter_app_icons.dart';
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
 import '../service/google_authentication.dart';
-import '../src/rpc_model.dart';
 
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {

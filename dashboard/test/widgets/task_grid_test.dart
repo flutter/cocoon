@@ -4,13 +4,13 @@
 
 import 'dart:typed_data';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
-import 'package:flutter_dashboard/src/rpc_model/commit_status.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/lattice.dart';

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter_dashboard/src/rpc_model.dart';
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 
 /// A default [DateTime] used for [generateTaskForTest].

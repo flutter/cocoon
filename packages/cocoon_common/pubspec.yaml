@@ -8,10 +8,13 @@ environment:
 resolution: workspace
 
 dependencies:
+  collection: ^1.19.1
+  json_annotation: ^4.9.0
   meta: ^1.16.0
 
 dev_dependencies:
   cocoon_common_test:
     path: ../cocoon_common_test
   dart_flutter_team_lints:
+  json_serializable: ^6.9.4
   test: ^1.25.15
