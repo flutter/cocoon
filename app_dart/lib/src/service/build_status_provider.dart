@@ -77,17 +77,17 @@ interface class BuildStatusService {
         final taskInProgress = tasksInProgress[task.taskName] ?? true;
 
         if (isRelevantToLatestStatus && taskInProgress) {
-          if (task.bringup! || _isSuccessful(task)) {
+          if (task.bringup || _isSuccessful(task)) {
             /// This task no longer needs to be checked to see if it causing
             /// the build status to fail.
-            tasksInProgress[task.taskName!] = false;
+            tasksInProgress[task.taskName] = false;
           } else if (_isFailed(task) || _isRerunning(task)) {
-            failedTasks.add(task.taskName!);
+            failedTasks.add(task.taskName);
 
             /// This task no longer needs to be checked to see if its causing
             /// the build status to fail since its been
             /// added to the failedTasks list.
-            tasksInProgress[task.taskName!] = false;
+            tasksInProgress[task.taskName] = false;
           }
         }
       }
@@ -106,7 +106,7 @@ interface class BuildStatusService {
     final tasks = <String, bool>{};
 
     for (var task in statuses.first.tasks) {
-      tasks[task.taskName!] = true;
+      tasks[task.taskName] = true;
     }
     return tasks;
   }
@@ -145,7 +145,7 @@ interface class BuildStatusService {
   }
 
   bool _isRerunning(Task task) {
-    return task.attempts! > 1 &&
+    return task.currentAttempt > 1 &&
         (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }

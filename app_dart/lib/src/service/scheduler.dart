@@ -74,7 +74,7 @@ class Scheduler {
 
   Future<StagingConclusion> Function({
     required String checkRun,
-    required String conclusion,
+    required TaskConclusion conclusion,
     required FirestoreService firestoreService,
     required String sha,
     required RepositorySlug slug,
@@ -1017,12 +1017,12 @@ $s
     final name = checkRun.name;
     final sha = checkRun.headSha;
     final slug = checkRunEvent.repository?.slug();
-    final conclusion = checkRun.conclusion;
+    final conclusion = TaskConclusion.fromName(checkRun.conclusion);
 
     if (name == null ||
         sha == null ||
         slug == null ||
-        conclusion == null ||
+        conclusion == TaskConclusion.unknown ||
         kCheckRunsToIgnore.contains(name)) {
       return true;
     }
@@ -1396,7 +1396,7 @@ $stacktrace
     required String sha,
     required CiStage stage,
     required String name,
-    required String conclusion,
+    required TaskConclusion conclusion,
   }) async {
     final logCrumb = 'checkCompleted($name, $slug, $sha, $conclusion)';
     final documentName = CiStaging.documentNameFor(

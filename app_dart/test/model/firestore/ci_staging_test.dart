@@ -52,7 +52,7 @@ void main() {
         ),
       );
 
-      final future = CiStaging.fromFirestore(
+      final ciStaging = await CiStaging.fromFirestore(
         firestoreService: firestoreService,
         documentName: CiStaging.documentNameFor(
           slug: RepositorySlug('flutter', 'flutter'),
@@ -60,10 +60,16 @@ void main() {
           stage: CiStage.fusionEngineBuild,
         ),
       );
-      expect(future, completes);
-      final doc = await future;
-      expect(doc.remaining, 1);
-      expect(doc.total, 3);
+
+      // Read the fields from the document name instead of the object.
+      // TODO(matanlurey): Move these to fields when we backfill the database.
+      // See https://github.com/flutter/flutter/issues/166229.
+      expect(ciStaging.slug.fullName, 'flutter/flutter');
+      expect(ciStaging.sha, '12345');
+      expect(ciStaging.stage, CiStage.fusionEngineBuild);
+
+      expect(ciStaging.remaining, 1);
+      expect(ciStaging.total, 3);
       verify(
         firestoreService.getDocument(
           CiStaging.documentNameFor(
@@ -110,7 +116,7 @@ void main() {
             sha: '1234',
             stage: CiStage.fusionEngineBuild,
             checkRun: 'test',
-            conclusion: 'mulligan',
+            conclusion: TaskConclusion.unknown,
           ),
           throwsA(isA<String>()),
         );
@@ -142,7 +148,7 @@ void main() {
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'test',
-          conclusion: 'mulligan',
+          conclusion: TaskConclusion.unknown,
         );
 
         await expectLater(future, throwsA(isA<String>()));
@@ -199,9 +205,15 @@ void main() {
               CiStaging.kTotalField: Value(integerValue: '3'),
               CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
-              'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
-              'Failed build_test': Value(stringValue: CiStaging.kFailureValue),
+              'Linux build_test': Value(
+                stringValue: TaskConclusion.scheduled.name,
+              ),
+              'MacOS build_test': Value(
+                stringValue: TaskConclusion.success.name,
+              ),
+              'Failed build_test': Value(
+                stringValue: TaskConclusion.failure.name,
+              ),
             },
           ),
         );
@@ -212,7 +224,7 @@ void main() {
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'test',
-          conclusion: 'mulligan',
+          conclusion: TaskConclusion.unknown,
         );
 
         final result = await future;
@@ -263,7 +275,9 @@ void main() {
               CiStaging.kRemainingField: Value(integerValue: '1'),
               CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
+              'Linux build_test': Value(
+                stringValue: TaskConclusion.scheduled.name,
+              ),
             },
           ),
         );
@@ -278,7 +292,7 @@ void main() {
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'Linux build_test',
-          conclusion: 'mulligan',
+          conclusion: TaskConclusion.unknown,
         );
 
         await expectLater(future, throwsA(isA<String>()));
@@ -295,7 +309,7 @@ void main() {
                             .update!
                             .fields!['Linux build_test']!
                             .stringValue ==
-                        'mulligan' &&
+                        'unknown' &&
                     t
                             .writes!
                             .first
@@ -337,7 +351,9 @@ void main() {
               CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'Linux build_test': Value(stringValue: CiStaging.kScheduledValue),
+              'Linux build_test': Value(
+                stringValue: TaskConclusion.scheduled.name,
+              ),
             },
           ),
         );
@@ -352,7 +368,7 @@ void main() {
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'Linux build_test',
-          conclusion: 'mulligan',
+          conclusion: TaskConclusion.unknown,
         );
 
         final result = await future;
@@ -385,7 +401,7 @@ For CI stage engine:
                             .update!
                             .fields!['Linux build_test']!
                             .stringValue ==
-                        'mulligan' &&
+                        'unknown' &&
                     t
                             .writes!
                             .first
@@ -427,7 +443,9 @@ For CI stage engine:
               CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
+              'MacOS build_test': Value(
+                stringValue: TaskConclusion.success.name,
+              ),
             },
           ),
         );
@@ -442,7 +460,7 @@ For CI stage engine:
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
-          conclusion: 'mulligan',
+          conclusion: TaskConclusion.unknown,
         );
 
         final result = await future;
@@ -455,7 +473,7 @@ For CI stage engine:
             checkRunGuard: '{}',
             summary: 'Not a valid state transition for MacOS build_test',
             details:
-                'Attempted to transition the state of check run MacOS build_test from "success" to "mulligan".',
+                'Attempted to transition the state of check run MacOS build_test from "success" to "unknown".',
           ),
         );
         verify(
@@ -471,7 +489,7 @@ For CI stage engine:
                             .update!
                             .fields!['MacOS build_test']!
                             .stringValue ==
-                        'mulligan' &&
+                        'unknown' &&
                     t
                             .writes!
                             .first
@@ -513,7 +531,9 @@ For CI stage engine:
               CiStaging.kFailedField: Value(integerValue: '1'),
               CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'MacOS build_test': Value(stringValue: CiStaging.kFailureValue),
+              'MacOS build_test': Value(
+                stringValue: TaskConclusion.failure.name,
+              ),
             },
           ),
         );
@@ -528,7 +548,7 @@ For CI stage engine:
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
-          conclusion: CiStaging.kSuccessValue,
+          conclusion: TaskConclusion.success,
         );
 
         final result = await future;
@@ -562,7 +582,7 @@ For CI stage engine:
                             .update!
                             .fields!['MacOS build_test']!
                             .stringValue ==
-                        CiStaging.kSuccessValue &&
+                        TaskConclusion.success.name &&
                     t
                             .writes!
                             .first
@@ -611,7 +631,9 @@ For CI stage engine:
               CiStaging.kFailedField: Value(integerValue: '1'),
               CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'MacOS build_test': Value(stringValue: CiStaging.kFailureValue),
+              'MacOS build_test': Value(
+                stringValue: TaskConclusion.failure.name,
+              ),
             },
           ),
         );
@@ -626,7 +648,7 @@ For CI stage engine:
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
-          conclusion: CiStaging.kFailureValue,
+          conclusion: TaskConclusion.failure,
         );
 
         final result = await future;
@@ -655,7 +677,7 @@ For CI stage engine:
                             .update!
                             .fields!['MacOS build_test']!
                             .stringValue ==
-                        CiStaging.kFailureValue &&
+                        TaskConclusion.failure.name &&
                     t
                             .writes!
                             .first
@@ -704,7 +726,9 @@ For CI stage engine:
               CiStaging.kFailedField: Value(integerValue: '0'),
               CiStaging.kTotalField: Value(integerValue: '1'),
               CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-              'MacOS build_test': Value(stringValue: CiStaging.kSuccessValue),
+              'MacOS build_test': Value(
+                stringValue: TaskConclusion.success.name,
+              ),
             },
           ),
         );
@@ -719,7 +743,7 @@ For CI stage engine:
           sha: '1234',
           stage: CiStage.fusionEngineBuild,
           checkRun: 'MacOS build_test',
-          conclusion: CiStaging.kFailureValue,
+          conclusion: TaskConclusion.failure,
         );
 
         final result = await future;
@@ -752,7 +776,7 @@ For CI stage engine:
                             .update!
                             .fields!['MacOS build_test']!
                             .stringValue ==
-                        CiStaging.kFailureValue &&
+                        TaskConclusion.failure.name &&
                     t
                             .writes!
                             .first
@@ -822,11 +846,20 @@ For CI stage engine:
             document.fields![CiStaging.kCheckRunGuardField]!.stringValue,
             checkRunGuard,
           );
+          expect(
+            document.fields![CiStaging.fieldRepoFullPath]!.stringValue,
+            '${slug.owner}/${slug.name}',
+          );
+          expect(document.fields![CiStaging.fieldCommitSha]!.stringValue, sha);
+          expect(
+            document.fields![CiStaging.fieldStage]!.stringValue,
+            stage.name,
+          );
 
           for (final task in tasks) {
             expect(
               document.fields![task]!.stringValue,
-              CiStaging.kScheduledValue,
+              TaskConclusion.scheduled.name,
             );
           }
 

@@ -35,9 +35,9 @@ class CommitTasksStatus {
     for (final task in tasks) {
       final FullTask taskToAddBuildNumber;
       // If task.taskName already exists
-      if (fullTasksMap[task.taskName!] case final fullTask?) {
+      if (fullTasksMap[task.taskName] case final fullTask?) {
         // If this task is newer than the existing task, use the new task
-        if (task.attempts! > fullTask.task.attempts!) {
+        if (task.currentAttempt > fullTask.task.currentAttempt) {
           taskToAddBuildNumber = FullTask(task, fullTask.buildList);
         } else {
           // Otherwise, just reference the existing (newer) task
@@ -54,7 +54,7 @@ class CommitTasksStatus {
       }
 
       // And store it for the next loop
-      fullTasksMap[task.taskName!] = taskToAddBuildNumber;
+      fullTasksMap[task.taskName] = taskToAddBuildNumber;
     }
 
     // Sort build numbers, and return.

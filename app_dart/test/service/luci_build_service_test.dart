@@ -1412,7 +1412,7 @@ void main() {
 
       final taskDocument = generateFirestoreTask(0);
       final task = generateTask(0);
-      expect(taskDocument.attempts, 1);
+      expect(taskDocument.currentAttempt, 1);
       expect(task.attempts, 1);
       await service.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
@@ -1423,7 +1423,7 @@ void main() {
         datastore: datastore,
         firestoreService: firestoreService,
       );
-      expect(taskDocument.attempts, 2);
+      expect(taskDocument.currentAttempt, 2);
       expect(task.attempts, 2);
       expect(pubsub.messages.length, 1);
     });
@@ -1979,9 +1979,9 @@ void main() {
           final oldTask = generateFirestoreTask(1, attempts: 2);
           await firestoreService.insert(
             firestore.Task.documentIdFor(
-              commitSha: oldTask.commitSha!,
-              taskName: oldTask.taskName!,
-              currentAttempt: oldTask.attempts!,
+              commitSha: oldTask.commitSha,
+              taskName: oldTask.taskName,
+              currentAttempt: oldTask.currentAttempt,
             ),
             oldTask,
           );
@@ -2100,7 +2100,7 @@ void main() {
         buildNumber: 1,
       );
       final target = generateTarget(1);
-      expect(firestoreTask!.attempts, 1);
+      expect(firestoreTask!.currentAttempt, 1);
       final rerunFlag = await service.checkRerunBuilder(
         commit: totCommit,
         task: task,
@@ -2110,7 +2110,7 @@ void main() {
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
-      expect(firestoreTask!.attempts, 2);
+      expect(firestoreTask!.currentAttempt, 2);
 
       final savedTask = firestore.Task.fromDocument(
         await firestoreService.api.getByPath(
@@ -2118,7 +2118,7 @@ void main() {
         ),
       );
       expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
+      expect(savedTask.currentAttempt, 2);
     });
   });
 

@@ -216,7 +216,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
   });
@@ -344,7 +344,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusFailed);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
 
     final savedTask = firestore.Task.fromDocument(
@@ -353,7 +353,7 @@ void main() {
       ),
     );
     expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
+    expect(savedTask.currentAttempt, 2);
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
@@ -397,7 +397,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInfraFailure);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
 
     final savedTask = firestore.Task.fromDocument(
@@ -406,7 +406,7 @@ void main() {
       ),
     );
     expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
+    expect(savedTask.currentAttempt, 2);
   });
 
   test(
@@ -461,7 +461,7 @@ void main() {
         ),
       );
       expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
+      expect(savedTask.currentAttempt, 2);
     },
   );
 
