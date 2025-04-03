@@ -21,7 +21,6 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
-import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -34,7 +33,7 @@ void main() {
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late FakeFirestoreService firestoreService;
+  late MockFirestoreService mockFirestoreService;
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
@@ -47,10 +46,10 @@ void main() {
   setUp(() async {
     firestoreTask = null;
     mockGithubChecksUtil = MockGithubChecksUtil();
-    firestoreService = FakeFirestoreService();
+    mockFirestoreService = MockFirestoreService();
     config = FakeConfig(
       maxLuciTaskRetriesValue: 3,
-      firestoreService: firestoreService,
+      firestoreService: mockFirestoreService,
     );
     mockGithubChecksService = MockGithubChecksService();
     when(
@@ -73,7 +72,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(firestoreService.mock.getDocument(captureAny)).thenAnswer((
+    when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
       Invocation invocation,
     ) async {
       final name = invocation.positionalArguments.first as String;
@@ -85,7 +84,7 @@ void main() {
       };
     });
     when(
-      firestoreService.mock.queryRecentCommits(
+      mockFirestoreService.queryRecentCommits(
         limit: captureAnyNamed('limit'),
         slug: captureAnyNamed('slug'),
         branch: captureAnyNamed('branch'),
@@ -94,7 +93,7 @@ void main() {
       return Future<List<fs.Commit>>.value(<fs.Commit>[firestoreCommit!]);
     });
     when(
-      firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
+      mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
     ).thenAnswer((Invocation invocation) {
       return Future<BatchWriteResponse>.value(BatchWriteResponse());
     });
@@ -162,7 +161,7 @@ void main() {
     // Firestore checks after API call.
     final captured =
         verify(
-          firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
+          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
         ).captured;
     expect(captured.length, 2);
     final batchWriteRequest = captured[0] as BatchWriteRequest;
@@ -207,7 +206,7 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
     expect(firestoreTask!.status, firestore.Task.statusInProgress);
   });
@@ -325,16 +324,19 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusFailed);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
-
-    final savedTask = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-      ),
-    );
-    expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
+    final captured =
+        verify(
+          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+        ).captured;
+    expect(captured.length, 2);
+    final batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final insertedTaskDocument = batchWriteRequest.writes![0].update!;
+    final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
+    expect(resultTask.status, firestore.Task.statusInProgress);
+    expect(resultTask.currentAttempt, 2);
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
@@ -372,16 +374,19 @@ void main() {
     );
 
     expect(firestoreTask!.status, firestore.Task.statusInfraFailure);
-    expect(firestoreTask!.attempts, 1);
+    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
-
-    final savedTask = firestore.Task.fromDocument(
-      await firestoreService.api.getByPath(
-        'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-      ),
-    );
-    expect(savedTask.status, firestore.Task.statusInProgress);
-    expect(savedTask.attempts, 2);
+    final captured =
+        verify(
+          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+        ).captured;
+    expect(captured.length, 2);
+    final batchWriteRequest = captured[0] as BatchWriteRequest;
+    expect(batchWriteRequest.writes!.length, 1);
+    final insertedTaskDocument = batchWriteRequest.writes![0].update!;
+    final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
+    expect(resultTask.status, firestore.Task.statusInProgress);
+    expect(resultTask.currentAttempt, 2);
   });
 
   test(
@@ -423,14 +428,17 @@ void main() {
       expect(task.status, Task.statusInfraFailure);
       expect(task.attempts, 1);
       expect(await tester.post(handler), Body.empty);
-
-      final savedTask = firestore.Task.fromDocument(
-        await firestoreService.api.getByPath(
-          'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-        ),
-      );
-      expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
+      final captured =
+          verify(
+            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          ).captured;
+      expect(captured.length, 2);
+      final batchWriteRequest = captured[0] as BatchWriteRequest;
+      expect(batchWriteRequest.writes!.length, 1);
+      final insertedTaskDocument = batchWriteRequest.writes![0].update!;
+      final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
+      expect(resultTask.status, firestore.Task.statusInProgress);
+      expect(resultTask.currentAttempt, 2);
     },
   );
 

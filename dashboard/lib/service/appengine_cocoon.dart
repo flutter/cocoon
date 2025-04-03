@@ -5,10 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
-import '../src/rpc_model.dart';
 import 'cocoon.dart';
 
 /// CocoonService for interacting with flutter/flutter production build data.

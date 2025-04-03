@@ -3,9 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/is_dart_internal.dart';
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart';
-
-import '../src/rpc_model.dart';
 
 /// Base URLs for various endpoints that can relate to a [Task].
 final _luciUrl = Uri.parse('https://ci.chromium.org/p/flutter');

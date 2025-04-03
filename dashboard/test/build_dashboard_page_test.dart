@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/service/google_authentication.dart';
-import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';

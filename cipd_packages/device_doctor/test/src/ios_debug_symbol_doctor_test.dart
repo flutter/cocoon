@@ -154,9 +154,11 @@ Future<void> main() async {
           );
           runner.addCommand(command);
           bool? result;
-          runner
-              .run(<String>['recover', '--cocoon-root=$cocoonPath'])
-              .then((bool? value) => result = value);
+          unawaited(
+            runner
+                .run(<String>['recover', '--cocoon-root=$cocoonPath'])
+                .then((bool? value) => result = value),
+          );
           time.elapse(const Duration(microseconds: 1));
           expect(result, isNotNull);
         });
@@ -205,9 +207,11 @@ Future<void> main() async {
           );
           runner.addCommand(command);
           bool? result;
-          runner
-              .run(<String>['recover', '--cocoon-root=$cocoonPath'])
-              .then((bool? value) => result = value);
+          unawaited(
+            runner
+                .run(<String>['recover', '--cocoon-root=$cocoonPath'])
+                .then((bool? value) => result = value),
+          );
           time.elapse(const Duration(seconds: 299));
           // We have not yet reached the timeout, so Xcode should still be open
           expect(result, isNull);
@@ -273,9 +277,11 @@ Future<void> main() async {
           );
           runner.addCommand(command);
           bool? result;
-          runner
-              .run(<String>['recover', '--cocoon-root=$cocoonPath'])
-              .then((bool? value) => result = value);
+          unawaited(
+            runner
+                .run(<String>['recover', '--cocoon-root=$cocoonPath'])
+                .then((bool? value) => result = value),
+          );
           time.elapse(const Duration(seconds: 299));
           // We have not yet reached the timeout, so Xcode should still be open
           expect(result, isNull);

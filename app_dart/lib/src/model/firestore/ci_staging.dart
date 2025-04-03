@@ -2,9 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'task.dart';
+library;
+
 import 'package:cocoon_server/logging.dart';
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import '../../service/firestore.dart';
 import 'base.dart';
@@ -45,26 +51,28 @@ final class CiStagingId extends AppDocumentId<CiStaging> {
 /// This document layout is currently:
 /// ```
 ///  /projects/flutter-dashboard/databases/cocoon/ciStaging/
-///     document: <owner>_<repo>_<sha>_<stage>
+///     document: <this.slug.owner>_<this.slug.repo>_<this.sha>_<this.stage>
 ///       total: int >= 0
 ///       remaining: int >= 0
 ///       [*fields]: string {scheduled, success, failure, skipped}
 /// ```
-///
-/// Note that the document ID fields are _synthetic_, that is, there is no
-/// cooresponding concrete field on the document itself. We should probably fix
-/// that (https://github.com/flutter/flutter/issues/166229).
 final class CiStaging extends Document with AppDocument<CiStaging> {
   /// Firestore collection for the staging documents.
-  static const kCollectionId = 'ciStaging';
+  static const _collectionId = 'ciStaging';
+
   static const kRemainingField = 'remaining';
   static const kTotalField = 'total';
   static const kFailedField = 'failed_count';
   static const kCheckRunGuardField = 'check_run_guard';
 
-  static const kScheduledValue = 'scheduled';
-  static final kSuccessValue = CheckRunConclusion.success.value!;
-  static final kFailureValue = CheckRunConclusion.failure.value!;
+  @visibleForTesting
+  static const fieldRepoFullPath = 'repository';
+
+  @visibleForTesting
+  static const fieldCommitSha = 'commit_sha';
+
+  @visibleForTesting
+  static const fieldStage = 'stage';
 
   static AppDocumentId<CiStaging> documentIdFor({
     required RepositorySlug slug,
@@ -77,7 +85,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
 
   /// Description of the document in Firestore.
   static final metadata = AppDocumentMetadata<CiStaging>(
-    collectionId: kCollectionId,
+    collectionId: _collectionId,
     fromDocument: CiStaging.fromDocument,
   );
 
@@ -89,7 +97,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
   }) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(slug: slug, sha: sha, stage: stage);
-    return '$kDocumentParent/$kCollectionId/${docId.documentId}';
+    return '$kDocumentParent/$_collectionId/${docId.documentId}';
   }
 
   /// Lookup [Commit] from Firestore.
@@ -110,6 +118,42 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
       ..fields = {...?other.fields}
       ..createTime = other.createTime
       ..updateTime = other.updateTime;
+  }
+
+  /// The repository that this stage is recorded for.
+  RepositorySlug get slug {
+    // TODO(matanlurey): Simplify this when existing documents are backfilled.
+    if (fields![fieldRepoFullPath]?.stringValue case final repoFullPath?) {
+      return RepositorySlug.full(repoFullPath);
+    }
+
+    // Read it from the document name.
+    final [owner, repo, _, _] = p.posix.basename(name!).split('_');
+    return RepositorySlug(owner, repo);
+  }
+
+  /// Which commit this stage is recorded for.
+  String get sha {
+    // TODO(matanlurey): Simplify this when existing documents are backfilled.
+    if (fields![fieldCommitSha]?.stringValue case final sha?) {
+      return sha;
+    }
+
+    // Read it from the document name.
+    final [_, _, sha, _] = p.posix.basename(name!).split('_');
+    return sha;
+  }
+
+  /// The stage of the CI process.
+  CiStage? get stage {
+    // TODO(matanlurey): Simplify this when existing documents are backfilled.
+    if (fields![fieldStage]?.stringValue case final stageName?) {
+      return CiStage.values.firstWhereOrNull((e) => e.name == stageName);
+    }
+
+    // Read it from the document name.
+    final [_, _, _, stageName] = p.posix.basename(name!).split('_');
+    return CiStage.values.firstWhereOrNull((e) => e.name == stageName);
   }
 
   /// The remaining number of checks in this staging.
@@ -136,7 +180,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
     required String sha,
     required CiStage stage,
     required String checkRun,
-    required String conclusion,
+    required TaskConclusion conclusion,
   }) async {
     final changeCrumb = '${slug.owner}_${slug.name}_$sha';
     final logCrumb =
@@ -163,7 +207,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
     var total = -1;
     var valid = false;
     String? checkRunGuard;
-    String? recordedConclusion;
+    TaskConclusion? recordedConclusion;
 
     late final Document doc;
 
@@ -203,7 +247,9 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
 
       // We will have check_runs scheduled after the engine was built successfully, so missing the checkRun field
       // is an OK response to have. All fields should have been written at creation time.
-      recordedConclusion = fields[checkRun]?.stringValue;
+      if (fields[checkRun]?.stringValue case final name?) {
+        recordedConclusion = TaskConclusion.fromName(name);
+      }
       if (recordedConclusion == null) {
         log.info(
           '$logCrumb: $checkRun not present in doc for $transaction / $doc',
@@ -233,8 +279,8 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
       //   recordedConclusion == failure && conclusion == success: down (-1)
       //   recordedConclusion != failure && conclusion == failure: up (+1)
       // So if the test existed and either remaining or failed_count is changed; the response is valid.
-      if (recordedConclusion == kScheduledValue &&
-          conclusion != kScheduledValue) {
+      if (recordedConclusion == TaskConclusion.scheduled &&
+          conclusion != TaskConclusion.scheduled) {
         // Guard against going negative and log enough info so we can debug.
         if (remaining == 0) {
           throw '$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}';
@@ -245,7 +291,8 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
 
       // Only rollback the "failed" counter if this is a successful test run,
       // i.e. the test failed, the user requested a rerun, and now it passes.
-      if (recordedConclusion == kFailureValue && conclusion == kSuccessValue) {
+      if (recordedConclusion == TaskConclusion.failure &&
+          conclusion == TaskConclusion.success) {
         log.info(
           '$logCrumb: conclusion flipped to positive - assuming test was re-run',
         );
@@ -257,9 +304,9 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
       }
 
       // Only increment the "failed" counter if the new conclusion flips from positive or neutral to failure.
-      if ((recordedConclusion == kScheduledValue ||
-              recordedConclusion == kSuccessValue) &&
-          conclusion == kFailureValue) {
+      if ((recordedConclusion == TaskConclusion.scheduled ||
+              recordedConclusion == TaskConclusion.success) &&
+          conclusion == TaskConclusion.failure) {
         log.info('$logCrumb: test failed');
         valid = true;
         failed = failed + 1;
@@ -272,7 +319,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
       log.info(
         '$logCrumb: setting remaining to $remaining, failed to $failed, and changing $recordedConclusion',
       );
-      fields[checkRun] = Value(stringValue: conclusion);
+      fields[checkRun] = Value(stringValue: conclusion.name);
       fields[kRemainingField] = Value(integerValue: '$remaining');
       fields[kFailedField] = Value(integerValue: '$failed');
     } on DetailedApiRequestError catch (e, stack) {
@@ -345,7 +392,9 @@ For CI stage $stage:
   Pending: $remaining
   Failed: $failed
 '''
-              : 'Attempted to transition the state of check run $checkRun from "$recordedConclusion" to "$conclusion".',
+              : ''
+                  'Attempted to transition the state of check run $checkRun '
+                  'from "${recordedConclusion.name}" to "${conclusion.name}".',
     );
   }
 
@@ -372,7 +421,11 @@ For CI stage $stage:
       kRemainingField: Value(integerValue: '${tasks.length}'),
       kFailedField: Value(integerValue: '0'),
       kCheckRunGuardField: Value(stringValue: checkRunGuard),
-      for (final task in tasks) task: Value(stringValue: kScheduledValue),
+      fieldRepoFullPath: Value(stringValue: slug.fullName),
+      fieldCommitSha: Value(stringValue: sha),
+      fieldStage: Value(stringValue: stage.name),
+      for (final task in tasks)
+        task: Value(stringValue: TaskConclusion.scheduled.name),
     };
 
     final document = Document(fields: fields);
@@ -386,7 +439,7 @@ For CI stage $stage:
       final newDoc = await databasesDocumentsResource.createDocument(
         document,
         kDocumentParent,
-        kCollectionId,
+        _collectionId,
         documentId:
             documentIdFor(
               slug: slug,
@@ -401,6 +454,37 @@ For CI stage $stage:
       rethrow;
     }
   }
+}
+
+/// Represents the conclusion of a [Task] within a [CiStaging] document.
+enum TaskConclusion {
+  /// An unknown task conclusion.
+  unknown,
+
+  /// A task is scheduled to run.
+  scheduled,
+
+  /// A task was completed as a success.
+  success,
+
+  /// A task was completed as a failure.
+  failure;
+
+  /// Returns a [TaskConclusion] from a [name].
+  factory TaskConclusion.fromName(String? name) {
+    for (final value in TaskConclusion.values) {
+      if (value.name == name) {
+        return value;
+      }
+    }
+    return TaskConclusion.unknown;
+  }
+
+  /// Whether the task is completed or not.
+  bool get isComplete => this != scheduled;
+
+  /// Whether the task is a success or not.
+  bool get isSuccess => this == success;
 }
 
 /// Well-defined stages in the build infrastructure.

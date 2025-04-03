@@ -24,6 +24,7 @@ import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:gcloud/datastore.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
@@ -31,7 +32,6 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
-import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -325,12 +325,12 @@ void main() {
   });
 
   group('scheduleTryBuilds', () {
-    late FakeFirestoreService firestoreService;
+    late MockFirestoreService firestoreService;
     late MockCallbacks callbacks;
     late FakeGerritService gerritService;
 
     setUp(() {
-      firestoreService = FakeFirestoreService();
+      firestoreService = MockFirestoreService();
       callbacks = MockCallbacks();
       cache = CacheService(inMemory: true);
       final githubService = FakeGithubService();
@@ -1037,12 +1037,12 @@ void main() {
 
   group('schedulePostsubmitBuilds', () {
     late DatastoreService datastore;
-    late FakeFirestoreService firestoreService;
+    late MockFirestoreService mockFirestoreService;
 
     setUp(() {
       config = FakeConfig();
       datastore = DatastoreService(config.db, 5);
-      firestoreService = FakeFirestoreService();
+      mockFirestoreService = MockFirestoreService();
       cache = CacheService(inMemory: true);
       mockBuildBucketClient = MockBuildBucketClient();
       pubsub = FakePubSub();
@@ -1364,7 +1364,7 @@ void main() {
           target: generateTarget(0),
           taskDocument: generateFirestoreTask(0),
           datastore: datastore,
-          firestoreService: firestoreService,
+          firestoreService: mockFirestoreService,
         ),
         throwsA(const TypeMatcher<NoBuildFoundException>()),
       );
@@ -1372,7 +1372,7 @@ void main() {
 
     test('reschedule using checkrun event successfully', () async {
       when(
-        firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
@@ -1413,7 +1413,7 @@ void main() {
 
       final taskDocument = generateFirestoreTask(0);
       final task = generateTask(0);
-      expect(taskDocument.attempts, 1);
+      expect(taskDocument.currentAttempt, 1);
       expect(task.attempts, 1);
       await service.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
@@ -1422,9 +1422,9 @@ void main() {
         target: generateTarget(0),
         taskDocument: taskDocument,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
       );
-      expect(taskDocument.attempts, 2);
+      expect(taskDocument.currentAttempt, 2);
       expect(task.attempts, 2);
       expect(pubsub.messages.length, 1);
     });
@@ -1803,8 +1803,7 @@ void main() {
     late Commit commit;
     late Commit totCommit;
     late DatastoreService datastore;
-    late FakeFirestoreService firestoreService;
-
+    late MockFirestoreService mockFirestoreService;
     firestore.Task? firestoreTask;
     firestore_commit.Commit? firestoreCommit;
     setUp(() {
@@ -1812,7 +1811,7 @@ void main() {
       config = FakeConfig();
       firestoreTask = null;
       firestoreCommit = null;
-      firestoreService = FakeFirestoreService();
+      mockFirestoreService = MockFirestoreService();
       mockBuildBucketClient = MockBuildBucketClient();
       when(
         // ignore: discarded_futures
@@ -1826,19 +1825,19 @@ void main() {
       ).thenAnswer((realInvocation) async => generateCheckRun(1));
       when(
         // ignore: discarded_futures
-        firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
       // ignore: discarded_futures
-      when(firestoreService.mock.getDocument(captureAny)).thenAnswer((
+      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
         Invocation invocation,
       ) {
         return Future<firestore_commit.Commit>.value(firestoreCommit);
       });
       when(
         // ignore: discarded_futures
-        firestoreService.mock.queryRecentCommits(
+        mockFirestoreService.queryRecentCommits(
           limit: captureAnyNamed('limit'),
           slug: captureAnyNamed('slug'),
           branch: captureAnyNamed('branch'),
@@ -1883,7 +1882,7 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(pubsub.messages.length, 1);
@@ -1932,7 +1931,7 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
@@ -1960,7 +1959,7 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
@@ -1974,20 +1973,11 @@ void main() {
           attempts: 1,
           status: firestore.Task.statusInfraFailure,
         );
-
-        // Insert the task attempt+1 ahead of time so that the insert fails.
-        {
-          final oldTask = generateFirestoreTask(1, attempts: 2);
-          await firestoreService.insert(
-            firestore.Task.documentIdFor(
-              commitSha: oldTask.commitSha!,
-              taskName: oldTask.taskName!,
-              currentAttempt: oldTask.attempts!,
-            ),
-            oldTask,
-          );
-        }
-
+        when(
+          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+        ).thenAnswer((Invocation invocation) {
+          throw InternalError();
+        });
         firestoreCommit = generateFirestoreCommit(1);
         totCommit = generateCommit(1);
         config.db.values[totCommit.key] = totCommit;
@@ -2004,7 +1994,7 @@ void main() {
           task: task,
           target: target,
           datastore: datastore,
-          firestoreService: firestoreService,
+          firestoreService: mockFirestoreService,
           taskDocument: firestoreTask!,
         );
         expect(rerunFlag, isFalse);
@@ -2029,7 +2019,7 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isFalse);
@@ -2053,7 +2043,7 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isFalse);
@@ -2078,7 +2068,7 @@ void main() {
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isFalse);
@@ -2101,30 +2091,33 @@ void main() {
         buildNumber: 1,
       );
       final target = generateTarget(1);
-      expect(firestoreTask!.attempts, 1);
+      expect(firestoreTask!.currentAttempt, 1);
       final rerunFlag = await service.checkRerunBuilder(
         commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
-        firestoreService: firestoreService,
+        firestoreService: mockFirestoreService,
         taskDocument: firestoreTask!,
       );
       expect(rerunFlag, isTrue);
-      expect(firestoreTask!.attempts, 2);
 
-      final savedTask = firestore.Task.fromDocument(
-        await firestoreService.api.getByPath(
-          'tasks/${firestoreTask!.commitSha}_${firestoreTask!.taskName}_2',
-        ),
-      );
-      expect(savedTask.status, firestore.Task.statusInProgress);
-      expect(savedTask.attempts, 2);
+      expect(firestoreTask!.currentAttempt, 2);
+      final captured =
+          verify(
+            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          ).captured;
+      expect(captured.length, 2);
+      final batchWriteRequest = captured[0] as BatchWriteRequest;
+      expect(batchWriteRequest.writes!.length, 1);
+      final insertedTaskDocument = batchWriteRequest.writes![0].update!;
+      expect(insertedTaskDocument, firestoreTask);
+      expect(firestoreTask!.status, firestore.Task.statusInProgress);
     });
   });
 
   group('scheduleMergeGroupBuilds', () {
-    late FakeFirestoreService firestoreService;
+    late MockFirestoreService mockFirestoreService;
     firestore_commit.Commit? firestoreCommit;
     setUp(() {
       cache = CacheService(inMemory: true);
@@ -2164,22 +2157,22 @@ void main() {
         ),
       ).thenAnswer((realInvocation) async => generateCheckRun(1));
 
-      firestoreService = FakeFirestoreService();
+      mockFirestoreService = MockFirestoreService();
       when(
         // ignore: discarded_futures
-        firestoreService.mock.batchWriteDocuments(captureAny, captureAny),
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
       ).thenAnswer((Invocation invocation) {
         return Future<BatchWriteResponse>.value(BatchWriteResponse());
       });
       // ignore: discarded_futures
-      when(firestoreService.mock.getDocument(captureAny)).thenAnswer((
+      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
         Invocation invocation,
       ) {
         return Future<firestore_commit.Commit>.value(firestoreCommit);
       });
       when(
         // ignore: discarded_futures
-        firestoreService.mock.queryRecentCommits(
+        mockFirestoreService.queryRecentCommits(
           limit: captureAnyNamed('limit'),
           slug: captureAnyNamed('slug'),
           branch: captureAnyNamed('branch'),

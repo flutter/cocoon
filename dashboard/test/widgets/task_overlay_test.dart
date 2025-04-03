@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
-import 'package:flutter_dashboard/src/rpc_model.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
