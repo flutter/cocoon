@@ -28,6 +28,7 @@ import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/cipd_version.dart';
 import 'luci_build_service/engine_artifacts.dart';
+import 'luci_build_service/opaque_commit.dart';
 import 'luci_build_service/pending_task.dart';
 import 'luci_build_service/user_data.dart';
 
@@ -584,7 +585,7 @@ class LuciBuildService {
       requests: <bbv2.BatchRequest_Request>[
         bbv2.BatchRequest_Request(
           scheduleBuild: await _createPostsubmitScheduleBuild(
-            commit: commit,
+            commit: OpaqueCommit.fromDatastore(commit),
             target: target,
             task: task,
             properties: properties,
@@ -698,7 +699,7 @@ class LuciBuildService {
         'create postsubmit schedule request for target: ${pending.target.value} in commit ${commit.sha}',
       );
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
-        commit: commit,
+        commit: OpaqueCommit.fromDatastore(commit),
         target: pending.target,
         task: pending.task,
         priority: pending.priority,
@@ -863,7 +864,7 @@ class LuciBuildService {
   ///
   /// By default, build [priority] is increased for release branches.
   Future<bbv2.ScheduleBuildRequest> _createPostsubmitScheduleBuild({
-    required Commit commit,
+    required OpaqueCommit commit,
     required Target target,
     required Task task,
     Map<String, Object?>? properties,
@@ -874,9 +875,9 @@ class LuciBuildService {
       'Creating postsubmit schedule builder for ${target.value.name} on commit ${commit.sha}',
     );
     tags ??= BuildTags([
-      ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha!),
+      ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
       ByCommitMirroredBuildSetBuildTag(
-        commitSha: commit.sha!,
+        commitSha: commit.sha,
         slugName: commit.slug.name,
       ),
     ]);
@@ -905,7 +906,7 @@ class LuciBuildService {
     );
 
     final firestoreTask = firestore.TaskId(
-      commitSha: commit.sha!,
+      commitSha: commit.sha,
       taskName: task.name!,
       currentAttempt: currentAttempt.attemptNumber,
     );
@@ -918,7 +919,7 @@ class LuciBuildService {
 
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties.addAll(properties ?? <String, Object?>{});
-    processedProperties['git_branch'] = commit.branch!;
+    processedProperties['git_branch'] = commit.branch;
     processedProperties['git_repo'] = commit.slug.name;
 
     final cipdExe = 'refs/heads/${commit.branch}';
@@ -978,7 +979,10 @@ class LuciBuildService {
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
 
-    final checkRun = await createPostsubmitCheckRun(commit, target);
+    final checkRun = await createPostsubmitCheckRun(
+      OpaqueCommit.fromDatastore(commit),
+      target,
+    );
     final preUserData = PresubmitUserData(
       checkRunId: checkRun.id!,
       repoOwner: target.slug.owner,
@@ -1047,7 +1051,7 @@ class LuciBuildService {
   /// Creates postsubmit check runs for prod targets in supported repositories.
   @useResult
   Future<CheckRun> createPostsubmitCheckRun(
-    Commit commit,
+    OpaqueCommit commit,
     Target target,
   ) async {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
@@ -1056,7 +1060,7 @@ class LuciBuildService {
     return githubChecksUtil.createCheckRun(
       config,
       target.slug,
-      commit.sha!,
+      commit.sha,
       target.value.name,
     );
   }
@@ -1069,7 +1073,7 @@ class LuciBuildService {
   ///   3. The last known status is not green
   ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
   Future<bool> checkRerunBuilder({
-    required Commit commit,
+    required OpaqueCommit commit,
     required Target target,
     required Task task,
     required DatastoreService datastore,

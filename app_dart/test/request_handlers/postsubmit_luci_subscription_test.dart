@@ -6,14 +6,14 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/commit.dart'
-    as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -41,12 +41,10 @@ void main() {
   late FakeCiYamlFetcher ciYamlFetcher;
 
   firestore.Task? firestoreTask;
-  firestore_commit.Commit? firestoreCommit;
-  late int attempt;
+  fs.Commit? firestoreCommit;
 
   setUp(() async {
     firestoreTask = null;
-    attempt = 0;
     mockGithubChecksUtil = MockGithubChecksUtil();
     mockFirestoreService = MockFirestoreService();
     config = FakeConfig(
@@ -76,13 +74,14 @@ void main() {
     ).thenAnswer((_) async => true);
     when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
       Invocation invocation,
-    ) {
-      attempt++;
-      if (attempt == 1) {
-        return Future<Document>.value(firestoreTask);
-      } else {
-        return Future<Document>.value(firestoreCommit);
-      }
+    ) async {
+      final name = invocation.positionalArguments.first as String;
+      final collection = p.posix.basename(p.posix.dirname(name));
+      return switch (collection) {
+        'tasks' => firestoreTask!,
+        'commits' => firestoreCommit!,
+        _ => throw UnsupportedError('Not supported: $collection'),
+      };
     });
     when(
       mockFirestoreService.queryRecentCommits(
@@ -91,9 +90,7 @@ void main() {
         branch: captureAnyNamed('branch'),
       ),
     ).thenAnswer((Invocation invocation) {
-      return Future<List<firestore_commit.Commit>>.value(
-        <firestore_commit.Commit>[firestoreCommit!],
-      );
+      return Future<List<fs.Commit>>.value(<fs.Commit>[firestoreCommit!]);
     });
     when(
       mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
@@ -124,15 +121,12 @@ void main() {
 
   test('updates task based on message', () async {
     firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux A');
-    final commit = generateCommit(
+    firestoreCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      parent: commit,
-    );
+
+    final task = generateTask(4507531199512576, name: 'Linux A');
 
     tester.message = createPushMessage(
       Int64(1),
@@ -142,7 +136,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -150,7 +144,6 @@ void main() {
       number: 63405,
     );
 
-    config.db.values[commit.key] = commit;
     config.db.values[task.key] = task;
 
     expect(task.status, Task.statusNew);
@@ -185,18 +178,16 @@ void main() {
       name: 'Linux A',
       status: firestore.Task.statusInProgress,
     );
-    final commit = generateCommit(
+    firestoreCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
-      parent: commit,
       status: Task.statusInProgress,
     );
     config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
 
     tester.message = createPushMessage(
       Int64(1),
@@ -207,7 +198,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -226,18 +217,16 @@ void main() {
       name: 'Linux A',
       status: firestore.Task.statusSucceeded,
     );
-    final commit = generateCommit(
+    firestoreCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
-      parent: commit,
       status: Task.statusSucceeded,
     );
     config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
 
     tester.message = createPushMessage(
       Int64(1),
@@ -248,7 +237,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -267,25 +256,23 @@ void main() {
       name: 'Linux B',
       status: firestore.Task.statusSucceeded,
     );
-    final commit = generateCommit(
+    firestoreCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
     final task = generateTask(
       4507531199512576,
       name: 'Linux B',
-      parent: commit,
       status: Task.statusSucceeded,
     );
     config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
 
     final userData = PostsubmitUserData(
       checkRunId: null,
       taskKey: '${task.key.id}',
       commitKey: '${task.key.parent?.id}',
       firestoreTaskDocumentName: firestore.TaskId(
-        commitSha: commit.sha!,
+        commitSha: firestoreCommit!.sha,
         taskName: task.name!,
         currentAttempt: task.attempts!,
       ),
@@ -313,18 +300,12 @@ void main() {
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
-      parent: commit,
       status: Task.statusFailed,
     );
     config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
 
     tester.message = createPushMessage(
       Int64(1),
@@ -335,7 +316,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -369,18 +350,12 @@ void main() {
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
-      parent: commit,
       status: Task.statusInfraFailure,
     );
     config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
 
     tester.message = createPushMessage(
       Int64(1),
@@ -391,7 +366,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -427,18 +402,12 @@ void main() {
         1,
         sha: '87f88734747805589f2131753620d61b22922822',
       );
-      final commit = generateCommit(
-        1,
-        sha: '87f88734747805589f2131753620d61b22922822',
-      );
       final task = generateTask(
         4507531199512576,
         name: 'Linux A',
-        parent: commit,
         status: Task.statusInfraFailure,
       );
       config.db.values[task.key] = task;
-      config.db.values[commit.key] = commit;
 
       tester.message = createPushMessage(
         Int64(1),
@@ -449,7 +418,7 @@ void main() {
           taskKey: '${task.key.id}',
           commitKey: '${task.key.parent?.id}',
           firestoreTaskDocumentName: firestore.TaskId(
-            commitSha: commit.sha!,
+            commitSha: firestoreCommit!.sha,
             taskName: task.name!,
             currentAttempt: task.attempts!,
           ),
@@ -475,6 +444,13 @@ void main() {
 
   test('non-bringup target updates check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
+    firestoreCommit = generateFirestoreCommit(
+      1,
+      sha: '87f88734747805589f2131753620d61b22922822',
+      repo: 'packages',
+      branch: Config.defaultBranch(Config.packagesSlug),
+    );
+
     ciYamlFetcher.ciYaml = nonBringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
@@ -484,18 +460,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-      repo: 'packages',
-      branch: Config.defaultBranch(Config.packagesSlug),
-    );
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux nonbringup',
-      parent: commit,
-    );
-    config.db.values[commit.key] = commit;
+    final task = generateTask(4507531199512576, name: 'Linux nonbringup');
     config.db.values[task.key] = task;
 
     tester.message = createPushMessage(
@@ -507,7 +472,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -527,6 +492,10 @@ void main() {
 
   test('bringup target does not update check run', () async {
     firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
+    firestoreCommit = generateFirestoreCommit(
+      1,
+      sha: '87f88734747805589f2131753620d61b22922822',
+    );
     ciYamlFetcher.ciYaml = bringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
@@ -536,16 +505,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux bringup',
-      parent: commit,
-    );
-    config.db.values[commit.key] = commit;
+    final task = generateTask(4507531199512576, name: 'Linux bringup');
     config.db.values[task.key] = task;
 
     tester.message = createPushMessage(
@@ -557,7 +517,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -591,16 +551,11 @@ void main() {
       name: 'Linux flutter',
     );
 
-    final commit = generateCommit(
+    firestoreCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux flutter',
-      parent: commit,
-    );
-    config.db.values[commit.key] = commit;
+    final task = generateTask(4507531199512576, name: 'Linux flutter');
     config.db.values[task.key] = task;
 
     tester.message = createPushMessage(
@@ -612,7 +567,7 @@ void main() {
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
         firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: commit.sha!,
+          commitSha: firestoreCommit!.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),

@@ -20,6 +20,7 @@ import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
+import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -1877,7 +1878,7 @@ void main() {
       expect(task.attempts, 1);
       expect(task.status, Task.statusFailed);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: totCommit,
+        commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
@@ -1926,7 +1927,7 @@ void main() {
       );
       final target = generateTarget(1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: totCommit,
+        commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
@@ -1954,7 +1955,7 @@ void main() {
       );
       final target = generateTarget(1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: totCommit,
+        commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
@@ -1989,7 +1990,7 @@ void main() {
         );
         final target = generateTarget(1);
         final rerunFlag = await service.checkRerunBuilder(
-          commit: totCommit,
+          commit: OpaqueCommit.fromDatastore(totCommit),
           task: task,
           target: target,
           datastore: datastore,
@@ -2014,7 +2015,7 @@ void main() {
       );
       final target = generateTarget(1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: totCommit,
+        commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
@@ -2038,7 +2039,7 @@ void main() {
       );
       final target = generateTarget(1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: totCommit,
+        commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
@@ -2063,7 +2064,7 @@ void main() {
       );
       final target = generateTarget(1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: commit,
+        commit: OpaqueCommit.fromDatastore(commit),
         task: task,
         target: target,
         datastore: datastore,
@@ -2092,7 +2093,7 @@ void main() {
       final target = generateTarget(1);
       expect(firestoreTask!.currentAttempt, 1);
       final rerunFlag = await service.checkRerunBuilder(
-        commit: totCommit,
+        commit: OpaqueCommit.fromDatastore(totCommit),
         task: task,
         target: target,
         datastore: datastore,
