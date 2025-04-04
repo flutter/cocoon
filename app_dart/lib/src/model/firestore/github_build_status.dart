@@ -67,27 +67,27 @@ class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
 
   static const String statusNeutral = 'neutral';
 
-  int? get prNumber =>
+  int get prNumber =>
       int.parse(fields[kGithubBuildStatusPrNumberField]!.integerValue!);
 
   /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
-  String? get repository =>
+  String get repository =>
       fields[kGithubBuildStatusRepositoryField]!.stringValue!;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug.full(repository!);
+  RepositorySlug get slug => RepositorySlug.full(repository);
 
-  String? get head => fields[kGithubBuildStatusHeadField]!.stringValue!;
+  String get head => fields[kGithubBuildStatusHeadField]!.stringValue!;
 
-  String? get status => fields[kGithubBuildStatusStatusField]!.stringValue!;
+  String get status => fields[kGithubBuildStatusStatusField]!.stringValue!;
 
   /// The last time when the status is updated for the PR.
-  int? get updateTimeMillis =>
+  int get updateTimeMillis =>
       int.parse(fields[kGithubBuildStatusUpdateTimeMillisField]!.integerValue!);
 
-  int? get updates =>
+  int get updates =>
       int.parse(fields[kGithubBuildStatusUpdatesField]!.integerValue!);
 
   String setStatus(String status) {

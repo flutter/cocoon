@@ -76,17 +76,17 @@ class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
 
   static const String statusRunning = 'pending';
 
-  int? get prNumber =>
+  int get prNumber =>
       int.parse(fields[kGithubGoldStatusPrNumberField]!.integerValue!);
 
-  String? get head => fields[kGithubGoldStatusHeadField]!.stringValue!;
+  String get head => fields[kGithubGoldStatusHeadField]!.stringValue!;
 
-  String? get status => fields[kGithubGoldStatusStatusField]!.stringValue!;
+  String get status => fields[kGithubGoldStatusStatusField]!.stringValue!;
 
-  String? get description =>
+  String get description =>
       fields[kGithubGoldStatusDescriptionField]!.stringValue!;
 
-  int? get updates =>
+  int get updates =>
       int.parse(fields[kGithubGoldStatusUpdatesField]!.integerValue!);
 
   String setStatus(String status) {
@@ -114,9 +114,9 @@ class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
   /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
-  String? get repository =>
+  String get repository =>
       fields[kGithubGoldStatusRepositoryField]!.stringValue!;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug.full(repository!);
+  RepositorySlug get slug => RepositorySlug.full(repository);
 }
