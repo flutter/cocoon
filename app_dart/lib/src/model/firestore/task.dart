@@ -101,7 +101,7 @@ final class TaskId extends AppDocumentId<Task> {
 ///    document: <this.commitSha>_<this.taskName>_<this.attempt>
 ///
 /// See also: [TaskId].
-final class Task extends Document with AppDocument<Task> {
+final class Task extends AppDocument<Task> {
   static const fieldBringup = 'bringup';
   static const fieldBuildNumber = 'buildNumber';
   static const fieldCommitSha = 'commitSha';
@@ -275,7 +275,7 @@ final class Task extends Document with AppDocument<Task> {
   /// This is _not_ when the task first started running, as tasks start out in
   /// the 'New' state until they've been picked up by an [Agent].
   int get createTimestamp =>
-      int.parse(fields![fieldCreateTimestamp]!.integerValue!);
+      int.parse(fields[fieldCreateTimestamp]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task started
   /// running.
@@ -283,20 +283,20 @@ final class Task extends Document with AppDocument<Task> {
   /// Tasks may be run more than once. If this task has been run more than
   /// once, this timestamp represents when the task was most recently started.
   int get startTimestamp =>
-      int.parse(fields![fieldStartTimestamp]!.integerValue!);
+      int.parse(fields[fieldStartTimestamp]!.integerValue!);
 
   /// The timestamp (in milliseconds since the Epoch) that this task last
   /// finished running.
-  int get endTimestamp => int.parse(fields![fieldEndTimestamp]!.integerValue!);
+  int get endTimestamp => int.parse(fields[fieldEndTimestamp]!.integerValue!);
 
   /// The name of the task.
   ///
   /// This is a human-readable name, typically a test name (e.g.
   /// "hello_world__memory").
-  String get taskName => fields![fieldName]!.stringValue!;
+  String get taskName => fields[fieldName]!.stringValue!;
 
   /// The sha of the task commit.
-  String get commitSha => fields![fieldCommitSha]!.stringValue!;
+  String get commitSha => fields[fieldCommitSha]!.stringValue!;
 
   /// The number of attempts that have been made to run this task successfully.
   ///
@@ -304,8 +304,8 @@ final class Task extends Document with AppDocument<Task> {
   /// attempts.
   int get currentAttempt {
     // TODO(matanlurey): Simplify this when existing documents are backfilled.
-    if (fields!.containsKey(fieldAttempt)) {
-      return int.parse(fields![fieldAttempt]!.integerValue!);
+    if (fields.containsKey(fieldAttempt)) {
+      return int.parse(fields[fieldAttempt]!.integerValue!);
     }
 
     // Read the attempts from the document name.
@@ -326,7 +326,7 @@ final class Task extends Document with AppDocument<Task> {
   ///  * <https://github.com/flutter/flutter/blob/master/.ci.yaml>
   ///
   /// A flaky (`bringup: true`) task will not block the tree.
-  bool get bringup => fields![fieldBringup]!.booleanValue!;
+  bool get bringup => fields[fieldBringup]!.booleanValue!;
 
   /// Whether the test execution of this task shows flake.
   ///
@@ -334,19 +334,19 @@ final class Task extends Document with AppDocument<Task> {
   ///
   /// See also:
   ///  * <https://github.com/flutter/flutter/blob/master/dev/devicelab/lib/framework/runner.dart>
-  bool get testFlaky => fields![fieldTestFlaky]!.booleanValue!;
+  bool get testFlaky => fields[fieldTestFlaky]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
   int? get buildNumber =>
-      fields!.containsKey(fieldBuildNumber)
-          ? int.parse(fields![fieldBuildNumber]!.integerValue!)
+      fields.containsKey(fieldBuildNumber)
+          ? int.parse(fields[fieldBuildNumber]!.integerValue!)
           : null;
 
   /// The status of the task.
   ///
   /// Legal values and their meanings are defined in [legalStatusValues].
   String get status {
-    final taskStatus = fields![fieldStatus]!.stringValue!;
+    final taskStatus = fields[fieldStatus]!.stringValue!;
     if (!legalStatusValues.contains(taskStatus)) {
       throw ArgumentError('Invalid state: "$taskStatus"');
     }
@@ -357,30 +357,30 @@ final class Task extends Document with AppDocument<Task> {
     if (!legalStatusValues.contains(value)) {
       throw ArgumentError('Invalid state: "$value"');
     }
-    fields![fieldStatus] = Value(stringValue: value);
+    fields[fieldStatus] = Value(stringValue: value);
     return value;
   }
 
   void setEndTimestamp(int endTimestamp) {
-    fields![fieldEndTimestamp] = Value(integerValue: endTimestamp.toString());
+    fields[fieldEndTimestamp] = Value(integerValue: endTimestamp.toString());
   }
 
   void setTestFlaky(bool testFlaky) {
-    fields![fieldTestFlaky] = Value(booleanValue: testFlaky);
+    fields[fieldTestFlaky] = Value(booleanValue: testFlaky);
   }
 
   void updateFromBuild(bbv2.Build build) {
-    fields![fieldBuildNumber] = Value(integerValue: build.number.toString());
+    fields[fieldBuildNumber] = Value(integerValue: build.number.toString());
 
-    fields![fieldCreateTimestamp] = Value(
+    fields[fieldCreateTimestamp] = Value(
       integerValue:
           build.createTime.toDateTime().millisecondsSinceEpoch.toString(),
     );
-    fields![fieldStartTimestamp] = Value(
+    fields[fieldStartTimestamp] = Value(
       integerValue:
           build.startTime.toDateTime().millisecondsSinceEpoch.toString(),
     );
-    fields![fieldEndTimestamp] = Value(
+    fields[fieldEndTimestamp] = Value(
       integerValue:
           build.endTime.toDateTime().millisecondsSinceEpoch.toString(),
     );
