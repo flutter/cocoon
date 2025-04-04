@@ -30,14 +30,14 @@ abstract base class _FakeInMemoryFirestoreService
   void _assertExpectedDatabase(String database) {
     final parts = p.posix.split(database);
     if (parts.length != 4) {
-      fail('Unexpected database: "$database"');
+      throw StateError('Unexpected database: "$database"');
     }
     final [pLiteral, pName, dLiteral, dName] = parts;
     if (pLiteral != 'projects' || dLiteral != 'databases') {
-      fail('Unexpected database: "$database"');
+      throw StateError('Unexpected database: "$database"');
     }
     if (pName != expectedProjectId || dName != expectedDatabaseId) {
-      fail('Unexpected database: "$database"');
+      throw StateError('Unexpected database: "$database"');
     }
   }
 
@@ -74,31 +74,52 @@ abstract base class _FakeInMemoryFirestoreService
     );
   }
 
-  /// Returns the document specified by [documentName].
-  ///
-  /// If the document does not exist, returns `null`.
-  Document? tryPeekDocument(String documentName) {
-    final document = _documents[documentName];
-    return document == null ? null : _clone(document);
-  }
-
-  /// Returns the document that ends with [relativePath].
-  ///
-  /// The document must exist.
-  Document peekDocumentByPath(String relativePath) {
-    final documentName = p.posix.join(
+  /// Resolves a full path a [Document.name] by a collection and document ID.
+  String resolveDocumentName(String collectionId, String documentId) {
+    return p.posix.join(
       'projects',
       expectedProjectId,
       'databases',
       expectedDatabaseId,
       'documents',
-      relativePath,
+      collectionId,
+      documentId,
     );
-    final existingDocument = tryPeekDocument(documentName);
-    if (existingDocument == null) {
-      fail('No document "$documentName" found');
+  }
+
+  /// Returns the document specified by [documentName].
+  ///
+  /// If the document does not exist, returns `null`.
+  Document? tryPeekDocumentByName(String documentName) {
+    final document = _documents[documentName];
+    return document == null ? null : _clone(document);
+  }
+
+  /// Returns the document specified by [collectionId]/[documentId].
+  ///
+  /// If the document does not exist, returns `null`.
+  Document? tryPeekDocumentByPath(String collectionId, String documentId) {
+    final documentName = resolveDocumentName(collectionId, documentId);
+    return tryPeekDocumentByName(documentName);
+  }
+
+  /// Returns the document specified by [documentName].
+  ///
+  /// The document must exist.
+  Document peekDocumentByName(String documentName) {
+    final document = _documents[documentName];
+    if (document == null) {
+      throw StateError('No document "$documentName" found');
     }
-    return existingDocument;
+    return _clone(document);
+  }
+
+  /// Returns the document that ends with [relativePath].
+  ///
+  /// The document must exist.
+  Document peekDocumentByPath(String collectionId, String documentId) {
+    final documentName = resolveDocumentName(collectionId, documentId);
+    return peekDocumentByName(documentName);
   }
 
   /// Stores a [document].
@@ -107,7 +128,7 @@ abstract base class _FakeInMemoryFirestoreService
   /// intended to represent changes to the database that happen _before_ a test
   /// runs, or as a side-effect not covered in a test.
   ///
-  /// Either [Document.name] or [name] must be set, or this method fails.
+  /// [Document.name] must be set, or this method fails.
   ///
   /// If [created] is set, it is used, otherwise [DateTime.now] is used for
   /// a new document, and the _prevous_ [Document.createTime] is used for a
@@ -115,37 +136,30 @@ abstract base class _FakeInMemoryFirestoreService
   ///
   /// If [updated] is set, it is used, otherwise [DateTime.now] is used.
   ///
-  /// Returns `true` if a new document was inserted, and `false` if updated.
-  bool putDocument(
+  /// Returns a clone of the newly inserted document.
+  Document putDocument(
     Document document, {
-    String? name,
     DateTime? created,
     DateTime? updated,
   }) {
-    name ??= document.name;
+    final name = document.name;
     if (name == null) {
       throw ArgumentError.value(document, 'document', 'name must be set');
     }
     if (_failOnWrite[name] case final exception?) {
       throw exception;
     }
-    final existing = tryPeekDocument(name);
-    if (existing == null) {
-      _documents[name] = Document(
-        name: name,
-        fields: {...?document.fields},
-        createTime: (created ?? _now()).toUtc().toIso8601String(),
-        updateTime: (updated ?? _now()).toUtc().toIso8601String(),
-      );
-      return true;
-    }
+    final existing = tryPeekDocumentByName(name);
     _documents[name] = Document(
       name: name,
       fields: {...?document.fields},
-      createTime: created?.toUtc().toIso8601String() ?? existing.createTime,
+      createTime:
+          created?.toUtc().toIso8601String() ??
+          existing?.createTime ??
+          _now().toUtc().toIso8601String(),
       updateTime: (updated ?? _now()).toUtc().toIso8601String(),
     );
-    return false;
+    return _clone(_documents[name]!);
   }
 
   final _failOnWrite = <String, Exception>{};
@@ -180,15 +194,17 @@ abstract base class _FakeInMemoryFirestoreService
         response.add(Status(code: 3, message: 'Missing "update" field'));
         continue;
       }
+
+      final name = document.name;
+      if (name == null) {
+        response.add(Status(code: 3, message: 'Missing "name" field'));
+        continue;
+      }
+
       switch (write.currentDocument) {
         // Must find an existing document to update.
         case final p? when p.exists == true:
-          final name = document.name;
-          if (name == null) {
-            response.add(Status(code: 3, message: 'Missing "name" field'));
-            continue;
-          }
-          final existing = tryPeekDocument(name);
+          final existing = tryPeekDocumentByName(name);
           if (existing == null) {
             response.add(Status(code: 9, message: '"$name" does not exist'));
             continue;
@@ -198,16 +214,15 @@ abstract base class _FakeInMemoryFirestoreService
         // Must not find an existing document and insert.
         case final p? when p.exists == false:
           final name = document.name ?? _generateUniqueId();
-          if (tryPeekDocument(name) != null) {
+          if (tryPeekDocumentByName(name) != null) {
             response.add(Status(code: 9, message: '"$name" already exists'));
             continue;
           }
-          putDocument(document, name: name);
+          putDocument(document);
 
         // Upsert: update if existing and insert if missing.
         default:
-          final name = document.name ?? _generateUniqueId();
-          putDocument(document, name: name);
+          putDocument(document);
       }
       response.add(Status(code: 0));
     }
@@ -216,7 +231,7 @@ abstract base class _FakeInMemoryFirestoreService
 
   @override
   Future<Document> getDocument(String name) async {
-    final result = tryPeekDocument(name);
+    final result = tryPeekDocumentByName(name);
     if (result == null) {
       throw DetailedApiRequestError(
         HttpStatus.notFound,
@@ -289,18 +304,19 @@ abstract base class _FakeInMemoryFirestoreService
         throw UnimplementedError('orderMap: ${[...orderMap.values]}');
       }
 
+      // Hard-coded to assume all sorts are DESCENDING.
       sorted.sort((a, b) {
         for (final fieldName in orderMap.keys) {
           final aField = a.fields?[fieldName];
           final bField = b.fields?[fieldName];
           if (aField == null) {
-            return -1;
-          }
-          if (bField == null) {
             return 1;
           }
+          if (bField == null) {
+            return -1;
+          }
 
-          final result = _compareValues(aField, bField);
+          final result = _compareValues(bField, aField);
           if (result != 0) {
             return result;
           }
@@ -325,16 +341,24 @@ abstract base class _FakeInMemoryFirestoreService
       final [...fieldParts, operator] = fieldAndOp.split(' ');
       final fieldName = fieldParts.join(' ');
       final fieldValue = fields[fieldName];
+
+      // bool can be == or !=, but not compared.
+      switch (operator) {
+        case '=':
+          return _equals(fieldValue, value);
+        case '!=':
+          return !_equals(fieldValue, value);
+      }
+
       if (fieldValue == null) {
         return false;
       }
+
       final result = _compare(fieldValue, value);
       if (result == null) {
         return false;
       }
       final matched = switch (operator) {
-        '=' => result == 0,
-        '!=' => result != 0,
         '<' => result < 0,
         '<=' => result <= 0,
         '>' => result > 0,
@@ -348,6 +372,15 @@ abstract base class _FakeInMemoryFirestoreService
     }
 
     return true;
+  }
+
+  static bool _equals(Value? fieldValue, Object rawValue) {
+    return switch (rawValue) {
+      final String v => v == fieldValue?.stringValue,
+      final int v => v == int.tryParse(fieldValue?.integerValue ?? ''),
+      final bool v => v == fieldValue?.booleanValue,
+      _ => false,
+    };
   }
 
   static int? _compare(Value fieldValue, Object rawValue) {
