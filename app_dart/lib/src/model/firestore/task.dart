@@ -6,7 +6,6 @@
 library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
