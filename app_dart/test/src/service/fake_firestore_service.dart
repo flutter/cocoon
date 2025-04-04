@@ -41,21 +41,15 @@ abstract base class _FakeInMemoryFirestoreService
     }
   }
 
-  final _random = Random();
+  final alphabet = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+              'abcdefghijklmnopqrstuvwxyz'
+              '0123456789' *
+          32)
+      .split('');
+
   String _generateUniqueId() {
-    const length = 20;
-    const chars =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        'abcdefghijklmnopqrstuvwxyz'
-        '0123456789';
-    final buffer = StringBuffer();
+    final result = (alphabet..shuffle()).take(20).join('');
 
-    for (var i = 0; i < length; i++) {
-      final randomIndex = _random.nextInt(chars.length);
-      buffer.write(chars[randomIndex]);
-    }
-
-    final result = buffer.toString();
     if (_documents.containsKey(result)) {
       return _generateUniqueId();
     }
