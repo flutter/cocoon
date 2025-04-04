@@ -66,7 +66,9 @@ final class DartInternalSubscription extends SubscriptionHandler {
     // TODO(matanlurey): Replace json[][][] if this ends up being workable.
     // See https://github.com/flutter/flutter/issues/166535.
     try {
-      final data = bbv2.BuildsV2PubSub.fromJson(message.data!);
+      final data =
+          bbv2.BuildsV2PubSub()
+            ..mergeFromProto3Json(json.decode(message.data!));
       var mismatch = false;
       if (data.build.builder.project != project) {
         log.debug('[dart_internal_166535] mismatch: project=$project');
