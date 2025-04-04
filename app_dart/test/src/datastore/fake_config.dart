@@ -22,7 +22,6 @@ import 'fake_datastore.dart';
 class FakeConfig implements Config {
   FakeConfig({
     this.githubClient,
-    this.deviceLabServiceAccountValue,
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
     this.maxFilesChangedForSkippingEnginePhaseValue,
@@ -73,7 +72,6 @@ class FakeConfig implements Config {
   FirestoreService? firestoreService;
   GithubService? githubService;
   FakeDatastoreDB dbValue;
-  ServiceAccountInfo? deviceLabServiceAccountValue;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;

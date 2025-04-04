@@ -4,5 +4,4 @@
 
 export 'internal/build_status_response.pb.dart';
 export 'internal/github_webhook.pb.dart';
-export 'internal/key.pb.dart';
 export 'internal/scheduler.pb.dart';

@@ -19,7 +19,6 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/cocoon_config.dart';
 import '../model/appengine/key_helper.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
