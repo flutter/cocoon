@@ -95,9 +95,48 @@ final class AppDocumentMetadata<T extends AppDocument<T>> {
 
 /// Provides methods across [g.Document] sub-types in `model/firestore/*.dart`.
 @internal
-mixin AppDocument<T extends AppDocument<T>> on g.Document {
+abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
+  AppDocument([g.Document? from])
+    : _fields = from?.fields ?? {},
+      name = from?.name,
+      createTime = from?.createTime,
+      updateTime = from?.updateTime;
+
+  @override
+  Map<String, g.Value> get fields => _fields;
+
+  @override
+  set fields(Map<String, g.Value>? fields) {
+    _fields.clear();
+    if (fields != null) {
+      _fields.addAll(fields);
+    }
+  }
+
+  final Map<String, g.Value> _fields;
+
+  @override
+  String? name;
+
+  @override
+  String? updateTime;
+
+  @override
+  String? createTime;
+
+  @override
+  Map<String, dynamic> toJson() {
+    // Copied from [g.Document.toJson].
+    return {
+      'fields': fields,
+      if (createTime != null) 'createTime': createTime!,
+      if (name != null) 'name': name!,
+      if (updateTime != null) 'updateTime': updateTime!,
+    };
+  }
+
   Map<String, Object?> _fieldsToJson() {
-    return fields!.map((k, v) => MapEntry(k, _valueToJson(v)));
+    return _fields.map((k, v) => MapEntry(k, _valueToJson(v)));
   }
 
   /// Metadata that informs other parts of the app about how to use this entity.
