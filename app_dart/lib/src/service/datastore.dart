@@ -14,7 +14,6 @@ import 'package:grpc/grpc.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
-import '../model/appengine/branch.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/exceptions.dart';
@@ -104,11 +103,6 @@ class DatastoreService {
           ..filter('branch =', branch)
           ..order('-timestamp')
           ..filter('timestamp <', timestamp);
-    return query.run();
-  }
-
-  Stream<Branch> queryBranches() {
-    final query = db.query<Branch>();
     return query.run();
   }
 

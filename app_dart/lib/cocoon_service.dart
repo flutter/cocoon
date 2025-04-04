@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 export 'src/foundation/utils.dart';
-export 'src/model/appengine/service_account_info.dart';
 export 'src/request_handlers/check_flaky_builders.dart';
 export 'src/request_handlers/create_branch.dart';
 export 'src/request_handlers/dart_internal_subscription.dart';
