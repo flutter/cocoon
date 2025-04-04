@@ -6,6 +6,7 @@
 library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -40,8 +41,7 @@ final class TaskId extends AppDocumentId<Task> {
     final result = tryParse(documentName);
     if (result == null) {
       throw FormatException(
-        'Unexpected firestore task document name',
-        documentName,
+        'Unexpected firestore task document name: "$documentName"',
       );
     }
     return result;
@@ -309,10 +309,17 @@ final class Task extends Document with AppDocument<Task> {
     }
 
     // Read the attempts from the document name.
-    return TaskId.parse(name!).currentAttempt;
+    final taskId = TaskId.tryParse(name!);
+    if (taskId != null) {
+      return taskId.currentAttempt;
+    }
+
+    // TODO(matanlurey): Figure out what documentIds do not parse.
+    // Fallback to the code that existed before using TaskId.parse.
+    log.warn('Failed to TaskId.parse($name)');
+    return int.parse(name!.split('_').last);
   }
 
-  /// Whether this task has been marked flaky by .ci.yaml.
   ///
   /// See also:
   ///
