@@ -97,7 +97,6 @@ void main() {
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
-      buildBucketClient: buildBucketClient,
       datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
     );
     request = FakeHttpRequest();
