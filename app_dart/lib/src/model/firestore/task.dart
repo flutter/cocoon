@@ -6,7 +6,6 @@
 library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -309,15 +308,8 @@ final class Task extends Document with AppDocument<Task> {
     }
 
     // Read the attempts from the document name.
-    final taskId = TaskId.tryParse(name!);
-    if (taskId != null) {
-      return taskId.currentAttempt;
-    }
-
-    // TODO(matanlurey): Figure out what documentIds do not parse.
-    // Fallback to the code that existed before using TaskId.parse.
-    log.warn('Failed to TaskId.parse($name)');
-    return int.parse(name!.split('_').last);
+    final documentId = p.basename(name!);
+    return TaskId.parse(documentId).currentAttempt;
   }
 
   ///
