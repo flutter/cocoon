@@ -90,7 +90,10 @@ final class DartInternalSubscription extends SubscriptionHandler {
         );
       }
     } catch (e) {
-      log.warn('[dart_internal_166535] bbv2.BuildV2PubSub not compatible', e);
+      log.warn(
+        '[dart_internal_166535] bbv2.BuildV2PubSub not compatible\n${message.data}',
+        e,
+      );
     }
 
     // This should already be covered by the pubsub filter, but adding an additional check
