@@ -126,6 +126,40 @@ void main() {
       expect(task.testFlaky, false);
     });
   });
+
+  group('TaskId', () {
+    test('can parse a documentId', () {
+      final documentId =
+          'f2e0a2afb35cefe48600c81f39e163db00cff89f_'
+          'Linux android_java17_dependency_smoke_tests_'
+          '1';
+
+      expect(
+        TaskId.tryParse(documentId),
+        TaskId(
+          commitSha: 'f2e0a2afb35cefe48600c81f39e163db00cff89f',
+          taskName: 'Linux android_java17_dependency_smoke_tests',
+          currentAttempt: 1,
+        ),
+      );
+    });
+
+    test('can parse a documentId with multiple _s', () {
+      final documentId =
+          'e971379436d426324f4a02fe2b1bfdb24a261764_'
+          'Mac_x64_ios hot_mode_dev_cycle_ios__benchmark_'
+          '1';
+
+      expect(
+        TaskId.tryParse(documentId),
+        TaskId(
+          commitSha: 'e971379436d426324f4a02fe2b1bfdb24a261764',
+          taskName: 'Mac_x64_ios hot_mode_dev_cycle_ios__benchmark',
+          currentAttempt: 1,
+        ),
+      );
+    });
+  });
 }
 
 String buildBucketMessage = '''
