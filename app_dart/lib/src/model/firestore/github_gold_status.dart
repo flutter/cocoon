@@ -25,7 +25,7 @@ const String kGithubGoldStatusRepositoryField = 'repository';
 ///    document: <this.slug.owner>_<this.slug.name>_<this.prNumber>
 /// ```
 /*final - TODO(matanlurey): Can't add because of MockFirestoreService. */
-class GithubGoldStatus extends Document with AppDocument<GithubGoldStatus> {
+class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
   static AppDocumentId<GithubGoldStatus> documentIdFor({
     required String owner,
     required String repo,
@@ -76,49 +76,47 @@ class GithubGoldStatus extends Document with AppDocument<GithubGoldStatus> {
 
   static const String statusRunning = 'pending';
 
-  int? get prNumber =>
-      int.parse(fields![kGithubGoldStatusPrNumberField]!.integerValue!);
+  int get prNumber =>
+      int.parse(fields[kGithubGoldStatusPrNumberField]!.integerValue!);
 
-  String? get head => fields![kGithubGoldStatusHeadField]!.stringValue!;
+  String get head => fields[kGithubGoldStatusHeadField]!.stringValue!;
 
-  String? get status => fields![kGithubGoldStatusStatusField]!.stringValue!;
+  String get status => fields[kGithubGoldStatusStatusField]!.stringValue!;
 
-  String? get description =>
-      fields![kGithubGoldStatusDescriptionField]!.stringValue!;
+  String get description =>
+      fields[kGithubGoldStatusDescriptionField]!.stringValue!;
 
-  int? get updates =>
-      int.parse(fields![kGithubGoldStatusUpdatesField]!.integerValue!);
+  int get updates =>
+      int.parse(fields[kGithubGoldStatusUpdatesField]!.integerValue!);
 
   String setStatus(String status) {
-    fields![kGithubGoldStatusStatusField] = Value(stringValue: status);
+    fields[kGithubGoldStatusStatusField] = Value(stringValue: status);
     return status;
   }
 
   String setHead(String head) {
-    fields![kGithubGoldStatusHeadField] = Value(stringValue: head);
+    fields[kGithubGoldStatusHeadField] = Value(stringValue: head);
     return head;
   }
 
   int setUpdates(int updates) {
-    fields![kGithubGoldStatusUpdatesField] = Value(
+    fields[kGithubGoldStatusUpdatesField] = Value(
       integerValue: updates.toString(),
     );
     return updates;
   }
 
   String setDescription(String description) {
-    fields![kGithubGoldStatusDescriptionField] = Value(
-      stringValue: description,
-    );
+    fields[kGithubGoldStatusDescriptionField] = Value(stringValue: description);
     return description;
   }
 
   /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
-  String? get repository =>
-      fields![kGithubGoldStatusRepositoryField]!.stringValue!;
+  String get repository =>
+      fields[kGithubGoldStatusRepositoryField]!.stringValue!;
 
   /// [RepositorySlug] of where this commit exists.
-  RepositorySlug get slug => RepositorySlug.full(repository!);
+  RepositorySlug get slug => RepositorySlug.full(repository);
 }

@@ -26,7 +26,7 @@ import 'base.dart';
 ///  /projects/flutter-dashboard/databases/cocoon/commits/
 ///    document: <this.sha>
 /// ```
-final class Commit extends Document with AppDocument<Commit> {
+final class Commit extends AppDocument<Commit> {
   static const collectionId = 'commits';
   static const fieldAvatar = 'avatar';
   static const fieldBranch = 'branch';
@@ -114,32 +114,32 @@ final class Commit extends Document with AppDocument<Commit> {
   /// The timestamp (in milliseconds since the Epoch) of when the commit
   /// landed.
   int get createTimestamp =>
-      int.parse(fields![fieldCreateTimestamp]!.integerValue!);
+      int.parse(fields[fieldCreateTimestamp]!.integerValue!);
 
   /// The SHA1 hash of the commit.
-  String get sha => fields![fieldSha]!.stringValue!;
+  String get sha => fields[fieldSha]!.stringValue!;
 
   /// The GitHub username of the commit author.
-  String get author => fields![fieldAuthor]!.stringValue!;
+  String get author => fields[fieldAuthor]!.stringValue!;
 
   /// URL of the [author]'s profile image / avatar.
   ///
   /// The bytes loaded from the URL are expected to be encoded image bytes.
-  String get avatar => fields![fieldAvatar]!.stringValue!;
+  String get avatar => fields[fieldAvatar]!.stringValue!;
 
   /// The commit message.
   ///
   /// This may be null, since we didn't always load/store this property in
   /// the datastore, so historical entries won't have this information.
-  String get message => fields![fieldMessage]!.stringValue!;
+  String get message => fields[fieldMessage]!.stringValue!;
 
   /// A serializable form of [slug].
   ///
   /// This will be of the form `<org>/<repo>`. e.g. `flutter/flutter`.
-  String get repositoryPath => fields![fieldRepositoryPath]!.stringValue!;
+  String get repositoryPath => fields[fieldRepositoryPath]!.stringValue!;
 
   /// The branch of the commit.
-  String get branch => fields![fieldBranch]!.stringValue!;
+  String get branch => fields[fieldBranch]!.stringValue!;
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repositoryPath);

@@ -34,7 +34,7 @@ import 'base.dart';
 ///       sha: string
 ///       [*fields]: "test_name": "check_run id"
 /// ```
-final class PrCheckRuns extends Document with AppDocument<PrCheckRuns> {
+final class PrCheckRuns extends AppDocument<PrCheckRuns> {
   static const kCollectionId = 'prCheckRuns';
   static const kPullRequestField = 'pull_request';
   static const kSlugField = 'slug';
@@ -59,7 +59,7 @@ final class PrCheckRuns extends Document with AppDocument<PrCheckRuns> {
   /// The json string of the pullrequest belonging to this document.
   PullRequest get pullRequest {
     final jsonData =
-        jsonDecode(fields![kPullRequestField]!.stringValue!)
+        jsonDecode(fields[kPullRequestField]!.stringValue!)
             as Map<String, Object?>;
     final result = PullRequest.fromJson(jsonData);
 
@@ -73,10 +73,10 @@ final class PrCheckRuns extends Document with AppDocument<PrCheckRuns> {
   }
 
   /// The head sha at the time this document was created for testing.
-  String get sha => fields![kShaField]!.stringValue!;
+  String get sha => fields[kShaField]!.stringValue!;
 
   RepositorySlug get slug => RepositorySlug.fromJson(
-    json.decode(fields![kSlugField]!.stringValue!) as Map<String, Object?>,
+    json.decode(fields[kSlugField]!.stringValue!) as Map<String, Object?>,
   );
 
   /// Initializes a new document for the list of check_runs in Firestore so we can find it later.

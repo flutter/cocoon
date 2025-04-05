@@ -106,7 +106,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
               DateTime.now().millisecondsSinceEpoch;
 
           githubBuildStatus.setStatus(status);
-          githubBuildStatus.setUpdates((githubBuildStatus.updates ?? 0) + 1);
+          githubBuildStatus.setUpdates(githubBuildStatus.updates + 1);
           githubBuildStatus.setUpdateTimeMillis(
             currentTimeMillisecondsSinceEpoch,
           );

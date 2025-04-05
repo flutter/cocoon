@@ -43,63 +43,26 @@ final kFieldMapRegExp = RegExp(
   '(${kRelationMapping.keys.join("|")})',
 );
 
-class FirestoreService {
-  /// Creates a [BigqueryService] using Google API authentication.
-  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
-    final client = await authProvider.createClient(
-      scopes: const [FirestoreApi.datastoreScope],
-      baseClient: FirestoreBaseClient(
-        projectId: Config.flutterGcpProjectId,
-        databaseId: Config.flutterGcpFirestoreDatabase,
-      ),
-    );
-    return FirestoreService._(client);
-  }
-
-  const FirestoreService._(this._client);
-  final http.Client _client;
-
-  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
-  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
-    return FirestoreApi(_client).projects.databases.documents;
-  }
-
-  /// Gets a document based on name.
-  Future<Document> getDocument(String name) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.get(name);
-  }
-
-  /// Batch writes documents to Firestore.
+@visibleForTesting
+mixin FirestoreQueries {
+  /// Wrapper to simplify Firestore query.
   ///
-  /// It does not apply the write operations atomically and can apply them out of order.
-  /// Each write succeeds or fails independently.
-  ///
-  /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
-  Future<BatchWriteResponse> batchWriteDocuments(
-    BatchWriteRequest request,
-    String database,
-  ) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.batchWrite(request, database);
-  }
-
-  /// Writes [writes] to Firestore within a transaction.
-  ///
-  /// This is an atomic operation: either all writes succeed or all writes fail.
-  Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
-    final databasesDocumentsResource = await documentResource();
-    final beginTransactionRequest = BeginTransactionRequest(
-      options: TransactionOptions(readWrite: ReadWrite()),
-    );
-    final beginTransactionResponse = await databasesDocumentsResource
-        .beginTransaction(beginTransactionRequest, kDatabase);
-    final commitRequest = CommitRequest(
-      transaction: beginTransactionResponse.transaction,
-      writes: writes,
-    );
-    return databasesDocumentsResource.commit(commitRequest, kDatabase);
-  }
+  /// The [filterMap] follows format:
+  ///   {
+  ///     'fieldInt =': 1,
+  ///     'fieldString =': 'string',
+  ///     'fieldBool =': true,
+  ///   }
+  /// Note
+  ///   1. the space in the key, which will be used to retrieve the field name and operator.
+  ///   2. the value could be any type, like int, string, bool, etc.
+  Future<List<Document>> query(
+    String collectionId,
+    Map<String, Object> filterMap, {
+    int? limit,
+    Map<String, String>? orderMap,
+    String compositeFilterOp = kCompositeFilterOpAnd,
+  });
 
   /// Queries for recent commits.
   ///
@@ -277,9 +240,68 @@ class FirestoreService {
       return githubBuildStatuses.single;
     }
   }
+}
+
+class FirestoreService with FirestoreQueries {
+  /// Creates a [FirestoreService] using Google API authentication.
+  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
+    final client = await authProvider.createClient(
+      scopes: const [FirestoreApi.datastoreScope],
+      baseClient: FirestoreBaseClient(
+        projectId: Config.flutterGcpProjectId,
+        databaseId: Config.flutterGcpFirestoreDatabase,
+      ),
+    );
+    return FirestoreService._(client);
+  }
+
+  const FirestoreService._(this._client);
+  final http.Client _client;
+
+  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
+  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
+    return FirestoreApi(_client).projects.databases.documents;
+  }
+
+  /// Gets a document based on name.
+  Future<Document> getDocument(String name) async {
+    final databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.get(name);
+  }
+
+  /// Batch writes documents to Firestore.
+  ///
+  /// It does not apply the write operations atomically and can apply them out of order.
+  /// Each write succeeds or fails independently.
+  ///
+  /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
+  Future<BatchWriteResponse> batchWriteDocuments(
+    BatchWriteRequest request,
+    String database,
+  ) async {
+    final databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.batchWrite(request, database);
+  }
+
+  /// Writes [writes] to Firestore within a transaction.
+  ///
+  /// This is an atomic operation: either all writes succeed or all writes fail.
+  Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
+    final databasesDocumentsResource = await documentResource();
+    final beginTransactionRequest = BeginTransactionRequest(
+      options: TransactionOptions(readWrite: ReadWrite()),
+    );
+    final beginTransactionResponse = await databasesDocumentsResource
+        .beginTransaction(beginTransactionRequest, kDatabase);
+    final commitRequest = CommitRequest(
+      transaction: beginTransactionResponse.transaction,
+      writes: writes,
+    );
+    return databasesDocumentsResource.commit(commitRequest, kDatabase);
+  }
 
   /// Returns Firestore [Value] based on corresponding object type.
-  Value getValueFromFilter(Object comparisonOject) {
+  Value _getValueFromFilter(Object comparisonOject) {
     if (comparisonOject is int) {
       return Value(integerValue: comparisonOject.toString());
     } else if (comparisonOject is bool) {
@@ -289,7 +311,7 @@ class FirestoreService {
   }
 
   /// Generates Firestore query filter based on "human" read conditions.
-  Filter generateFilter(
+  Filter _generateFilter(
     Map<String, Object> filterMap,
     String compositeFilterOp,
   ) {
@@ -304,7 +326,7 @@ class FirestoreService {
         throw ArgumentError("Invalid filter comparison in '$filterString'.");
       }
 
-      final value = getValueFromFilter(comparisonOject);
+      final value = _getValueFromFilter(comparisonOject);
       filters.add(
         Filter(
           fieldFilter: FieldFilter(
@@ -320,7 +342,7 @@ class FirestoreService {
     );
   }
 
-  List<Order>? generateOrders(Map<String, String>? orderMap) {
+  List<Order>? _generateOrders(Map<String, String>? orderMap) {
     if (orderMap == null || orderMap.isEmpty) {
       return null;
     }
@@ -333,17 +355,7 @@ class FirestoreService {
     return orders;
   }
 
-  /// Wrapper to simplify Firestore query.
-  ///
-  /// The [filterMap] follows format:
-  ///   {
-  ///     'fieldInt =': 1,
-  ///     'fieldString =': 'string',
-  ///     'fieldBool =': true,
-  ///   }
-  /// Note
-  ///   1. the space in the key, which will be used to retrieve the field name and operator.
-  ///   2. the value could be any type, like int, string, bool, etc.
+  @override
   Future<List<Document>> query(
     String collectionId,
     Map<String, Object> filterMap, {
@@ -355,8 +367,8 @@ class FirestoreService {
     final from = <CollectionSelector>[
       CollectionSelector(collectionId: collectionId),
     ];
-    final filter = generateFilter(filterMap, compositeFilterOp);
-    final orders = generateOrders(orderMap);
+    final filter = _generateFilter(filterMap, compositeFilterOp);
+    final orders = _generateOrders(orderMap);
     final runQueryRequest = RunQueryRequest(
       structuredQuery: StructuredQuery(
         from: from,
@@ -369,11 +381,11 @@ class FirestoreService {
       runQueryRequest,
       kDocumentParent,
     );
-    return documentsFromQueryResponse(runQueryResponseElements);
+    return _documentsFromQueryResponse(runQueryResponseElements);
   }
 
   /// Retrieve documents based on query response.
-  List<Document> documentsFromQueryResponse(
+  List<Document> _documentsFromQueryResponse(
     List<RunQueryResponseElement> runQueryResponseElements,
   ) {
     final documents = <Document>[];

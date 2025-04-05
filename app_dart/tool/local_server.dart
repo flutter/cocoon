@@ -8,30 +8,14 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
-import 'package:cocoon_service/src/model/appengine/cocoon_config.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:gcloud/db.dart';
 
-import '../test/src/datastore/fake_datastore.dart';
-
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
-  final DatastoreDB dbService = FakeDatastoreDB();
-  final datastoreService = DatastoreService(dbService, defaultMaxEntityGroups);
-  await datastoreService.insert(<CocoonConfig>[
-    CocoonConfig.fake(
-      dbService.emptyKey.append(CocoonConfig, id: 'WebhookKey'),
-      'fake-secret',
-    ),
-    CocoonConfig.fake(
-      dbService.emptyKey.append(CocoonConfig, id: 'FrobWebhookKey'),
-      'fake-secret',
-    ),
-  ]);
   final config = Config(dbService, cache, FakeSecretManager());
   final authProvider = AuthenticationProvider(config: config);
   final AuthenticationProvider swarmingAuthProvider =
