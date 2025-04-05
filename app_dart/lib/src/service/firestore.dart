@@ -9,6 +9,7 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
@@ -42,63 +43,26 @@ final kFieldMapRegExp = RegExp(
   '(${kRelationMapping.keys.join("|")})',
 );
 
-class FirestoreService {
-  /// Creates a [BigqueryService] using Google API authentication.
-  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
-    final client = await authProvider.createClient(
-      scopes: const [FirestoreApi.datastoreScope],
-      baseClient: FirestoreBaseClient(
-        projectId: Config.flutterGcpProjectId,
-        databaseId: Config.flutterGcpFirestoreDatabase,
-      ),
-    );
-    return FirestoreService._(client);
-  }
-
-  const FirestoreService._(this._client);
-  final http.Client _client;
-
-  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
-  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
-    return FirestoreApi(_client).projects.databases.documents;
-  }
-
-  /// Gets a document based on name.
-  Future<Document> getDocument(String name) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.get(name);
-  }
-
-  /// Batch writes documents to Firestore.
+@visibleForTesting
+mixin FirestoreQueries {
+  /// Wrapper to simplify Firestore query.
   ///
-  /// It does not apply the write operations atomically and can apply them out of order.
-  /// Each write succeeds or fails independently.
-  ///
-  /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
-  Future<BatchWriteResponse> batchWriteDocuments(
-    BatchWriteRequest request,
-    String database,
-  ) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.batchWrite(request, database);
-  }
-
-  /// Writes [writes] to Firestore within a transaction.
-  ///
-  /// This is an atomic operation: either all writes succeed or all writes fail.
-  Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
-    final databasesDocumentsResource = await documentResource();
-    final beginTransactionRequest = BeginTransactionRequest(
-      options: TransactionOptions(readWrite: ReadWrite()),
-    );
-    final beginTransactionResponse = await databasesDocumentsResource
-        .beginTransaction(beginTransactionRequest, kDatabase);
-    final commitRequest = CommitRequest(
-      transaction: beginTransactionResponse.transaction,
-      writes: writes,
-    );
-    return databasesDocumentsResource.commit(commitRequest, kDatabase);
-  }
+  /// The [filterMap] follows format:
+  ///   {
+  ///     'fieldInt =': 1,
+  ///     'fieldString =': 'string',
+  ///     'fieldBool =': true,
+  ///   }
+  /// Note
+  ///   1. the space in the key, which will be used to retrieve the field name and operator.
+  ///   2. the value could be any type, like int, string, bool, etc.
+  Future<List<Document>> query(
+    String collectionId,
+    Map<String, Object> filterMap, {
+    int? limit,
+    Map<String, String>? orderMap,
+    String compositeFilterOp = kCompositeFilterOpAnd,
+  });
 
   /// Queries for recent commits.
   ///
@@ -146,8 +110,14 @@ class FirestoreService {
   }
 
   /// Returns all tasks running against the speificed [commitSha].
-  Future<List<Task>> queryCommitTasks(String commitSha) async {
-    final filterMap = <String, Object>{'${Task.fieldCommitSha} =': commitSha};
+  Future<List<Task>> queryCommitTasks(
+    String commitSha, {
+    String? status,
+  }) async {
+    final filterMap = <String, Object>{
+      '${Task.fieldCommitSha} =': commitSha,
+      if (status != null) '${Task.fieldStatus} =': status,
+    };
     final orderMap = <String, String>{
       Task.fieldCreateTimestamp: kQueryOrderDescending,
     };
@@ -157,6 +127,26 @@ class FirestoreService {
       orderMap: orderMap,
     );
     return [...documents.map(Task.fromDocument)];
+  }
+
+  /// Queries the last [commitLimit] commits, and returns the commit and tasks.
+  ///
+  /// For tasks with multiple attempts, only the most recent task is returned.
+  ///
+  /// If [status] is provided, only tasks matching the status are returned.
+  Future<List<CommitAndTasks>> queryRecentCommitsAndTasks(
+    RepositorySlug slug, {
+    required int commitLimit,
+    String? status,
+  }) async {
+    final commits = await queryRecentCommits(slug: slug, limit: commitLimit);
+    return [
+      for (final commit in commits)
+        CommitAndTasks(
+          commit,
+          await queryCommitTasks(commit.sha, status: status),
+        )._withMostRecentTaskOnly(),
+    ];
   }
 
   /// Queries the last updated Gold status for the [slug] and [prNumber].
@@ -270,9 +260,68 @@ class FirestoreService {
       return githubBuildStatuses.single;
     }
   }
+}
+
+class FirestoreService with FirestoreQueries {
+  /// Creates a [FirestoreService] using Google API authentication.
+  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
+    final client = await authProvider.createClient(
+      scopes: const [FirestoreApi.datastoreScope],
+      baseClient: FirestoreBaseClient(
+        projectId: Config.flutterGcpProjectId,
+        databaseId: Config.flutterGcpFirestoreDatabase,
+      ),
+    );
+    return FirestoreService._(client);
+  }
+
+  const FirestoreService._(this._client);
+  final http.Client _client;
+
+  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
+  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
+    return FirestoreApi(_client).projects.databases.documents;
+  }
+
+  /// Gets a document based on name.
+  Future<Document> getDocument(String name) async {
+    final databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.get(name);
+  }
+
+  /// Batch writes documents to Firestore.
+  ///
+  /// It does not apply the write operations atomically and can apply them out of order.
+  /// Each write succeeds or fails independently.
+  ///
+  /// https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents/batchWrite
+  Future<BatchWriteResponse> batchWriteDocuments(
+    BatchWriteRequest request,
+    String database,
+  ) async {
+    final databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.batchWrite(request, database);
+  }
+
+  /// Writes [writes] to Firestore within a transaction.
+  ///
+  /// This is an atomic operation: either all writes succeed or all writes fail.
+  Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
+    final databasesDocumentsResource = await documentResource();
+    final beginTransactionRequest = BeginTransactionRequest(
+      options: TransactionOptions(readWrite: ReadWrite()),
+    );
+    final beginTransactionResponse = await databasesDocumentsResource
+        .beginTransaction(beginTransactionRequest, kDatabase);
+    final commitRequest = CommitRequest(
+      transaction: beginTransactionResponse.transaction,
+      writes: writes,
+    );
+    return databasesDocumentsResource.commit(commitRequest, kDatabase);
+  }
 
   /// Returns Firestore [Value] based on corresponding object type.
-  Value getValueFromFilter(Object comparisonOject) {
+  Value _getValueFromFilter(Object comparisonOject) {
     if (comparisonOject is int) {
       return Value(integerValue: comparisonOject.toString());
     } else if (comparisonOject is bool) {
@@ -282,7 +331,7 @@ class FirestoreService {
   }
 
   /// Generates Firestore query filter based on "human" read conditions.
-  Filter generateFilter(
+  Filter _generateFilter(
     Map<String, Object> filterMap,
     String compositeFilterOp,
   ) {
@@ -297,7 +346,7 @@ class FirestoreService {
         throw ArgumentError("Invalid filter comparison in '$filterString'.");
       }
 
-      final value = getValueFromFilter(comparisonOject);
+      final value = _getValueFromFilter(comparisonOject);
       filters.add(
         Filter(
           fieldFilter: FieldFilter(
@@ -313,7 +362,7 @@ class FirestoreService {
     );
   }
 
-  List<Order>? generateOrders(Map<String, String>? orderMap) {
+  List<Order>? _generateOrders(Map<String, String>? orderMap) {
     if (orderMap == null || orderMap.isEmpty) {
       return null;
     }
@@ -326,17 +375,7 @@ class FirestoreService {
     return orders;
   }
 
-  /// Wrapper to simplify Firestore query.
-  ///
-  /// The [filterMap] follows format:
-  ///   {
-  ///     'fieldInt =': 1,
-  ///     'fieldString =': 'string',
-  ///     'fieldBool =': true,
-  ///   }
-  /// Note
-  ///   1. the space in the key, which will be used to retrieve the field name and operator.
-  ///   2. the value could be any type, like int, string, bool, etc.
+  @override
   Future<List<Document>> query(
     String collectionId,
     Map<String, Object> filterMap, {
@@ -348,8 +387,8 @@ class FirestoreService {
     final from = <CollectionSelector>[
       CollectionSelector(collectionId: collectionId),
     ];
-    final filter = generateFilter(filterMap, compositeFilterOp);
-    final orders = generateOrders(orderMap);
+    final filter = _generateFilter(filterMap, compositeFilterOp);
+    final orders = _generateOrders(orderMap);
     final runQueryRequest = RunQueryRequest(
       structuredQuery: StructuredQuery(
         from: from,
@@ -362,11 +401,11 @@ class FirestoreService {
       runQueryRequest,
       kDocumentParent,
     );
-    return documentsFromQueryResponse(runQueryResponseElements);
+    return _documentsFromQueryResponse(runQueryResponseElements);
   }
 
   /// Retrieve documents based on query response.
-  List<Document> documentsFromQueryResponse(
+  List<Document> _documentsFromQueryResponse(
     List<RunQueryResponseElement> runQueryResponseElements,
   ) {
     final documents = <Document>[];
@@ -393,4 +432,36 @@ List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
         ),
       )
       .toList();
+}
+
+/// A pairing of a [Commit] and [Task]s associated with that commit.
+@immutable
+final class CommitAndTasks {
+  /// Creates a [CommitAndTasks] with the provided commit and tasks.
+  CommitAndTasks(this.commit, Iterable<Task> tasks)
+    : tasks = List.unmodifiable(tasks);
+
+  /// Commit from Firestore.
+  final Commit commit;
+
+  /// Tasks where [Task.commitSha] is the same as [Commit.sha].
+  ///
+  /// This list is unmodifiable.`
+  final List<Task> tasks;
+
+  /// Returns a copy of `this` with only the most recent task per builder.
+  ///
+  /// For example, if a task `Linux foo` was run 3 times, only the most recent
+  /// task (`Linux foo`, `attempt = 3`) is retained in the accompanying [tasks]
+  /// list, and the rest of the tasks are removed.
+  @useResult
+  CommitAndTasks _withMostRecentTaskOnly() {
+    final mostRecent = <String, Task>{};
+    for (final task in tasks) {
+      mostRecent.update(task.taskName, (current) {
+        return current.currentAttempt > task.createTimestamp ? current : task;
+      }, ifAbsent: () => task);
+    }
+    return CommitAndTasks(commit, mostRecent.values);
+  }
 }

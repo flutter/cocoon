@@ -250,7 +250,7 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
 
             githubGoldStatus.setStatus(statusRequest.state!);
             githubGoldStatus.setHead(pr.head!.sha!);
-            githubGoldStatus.setUpdates((githubGoldStatus.updates ?? 0) + 1);
+            githubGoldStatus.setUpdates(githubGoldStatus.updates + 1);
             githubGoldStatus.setDescription(statusRequest.description!);
             githubGoldStatuses.add(githubGoldStatus);
           } catch (e) {

@@ -56,7 +56,7 @@ final class CiStagingId extends AppDocumentId<CiStaging> {
 ///       remaining: int >= 0
 ///       [*fields]: string {scheduled, success, failure, skipped}
 /// ```
-final class CiStaging extends Document with AppDocument<CiStaging> {
+final class CiStaging extends AppDocument<CiStaging> {
   /// Firestore collection for the staging documents.
   static const _collectionId = 'ciStaging';
 
@@ -123,7 +123,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
   /// The repository that this stage is recorded for.
   RepositorySlug get slug {
     // TODO(matanlurey): Simplify this when existing documents are backfilled.
-    if (fields![fieldRepoFullPath]?.stringValue case final repoFullPath?) {
+    if (fields[fieldRepoFullPath]?.stringValue case final repoFullPath?) {
       return RepositorySlug.full(repoFullPath);
     }
 
@@ -135,7 +135,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
   /// Which commit this stage is recorded for.
   String get sha {
     // TODO(matanlurey): Simplify this when existing documents are backfilled.
-    if (fields![fieldCommitSha]?.stringValue case final sha?) {
+    if (fields[fieldCommitSha]?.stringValue case final sha?) {
       return sha;
     }
 
@@ -147,7 +147,7 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
   /// The stage of the CI process.
   CiStage? get stage {
     // TODO(matanlurey): Simplify this when existing documents are backfilled.
-    if (fields![fieldStage]?.stringValue case final stageName?) {
+    if (fields[fieldStage]?.stringValue case final stageName?) {
       return CiStage.values.firstWhereOrNull((e) => e.name == stageName);
     }
 
@@ -157,16 +157,16 @@ final class CiStaging extends Document with AppDocument<CiStaging> {
   }
 
   /// The remaining number of checks in this staging.
-  int get remaining => int.parse(fields![kRemainingField]!.integerValue!);
+  int get remaining => int.parse(fields[kRemainingField]!.integerValue!);
 
   /// The total number of checks in this staging.
-  int get total => int.parse(fields![kTotalField]!.integerValue!);
+  int get total => int.parse(fields[kTotalField]!.integerValue!);
 
   /// The total number of failing checks.
-  int get failed => int.parse(fields![kFailedField]!.integerValue!);
+  int get failed => int.parse(fields[kFailedField]!.integerValue!);
 
   /// The check_run to complete when this stage is closed.
-  String get checkRunGuard => fields![kCheckRunGuardField]!.stringValue!;
+  String get checkRunGuard => fields[kCheckRunGuardField]!.stringValue!;
 
   /// Mark a [checkRun] for a given [stage] with [conclusion].
   ///
