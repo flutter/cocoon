@@ -217,7 +217,7 @@ mixin FirestoreQueries {
 }
 
 class FirestoreService with FirestoreQueries {
-  /// Creates a [BigqueryService] using Google API authentication.
+  /// Creates a [FirestoreService] using Google API authentication.
   static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
     final client = await authProvider.createClient(
       scopes: const [FirestoreApi.datastoreScope],
