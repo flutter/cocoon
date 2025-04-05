@@ -6,16 +6,16 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/request_handler_tester.dart';
+import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.dart';
 
@@ -26,16 +26,22 @@ void main() {
     late FakeConfig config;
     late RequestHandlerTester tester;
     late VacuumStaleTasks handler;
-    late MockFirestoreService mockFirestoreService;
+    late FakeFirestoreService firestoreService;
     late MockLuciBuildService luciBuildService;
 
-    final commit = generateCommit(1);
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
 
     setUp(() {
       luciBuildService = MockLuciBuildService();
-      mockFirestoreService = MockFirestoreService();
-      config = FakeConfig(firestoreService: mockFirestoreService);
-      config.db.values[commit.key] = commit;
+      firestoreService = FakeFirestoreService();
+      config = FakeConfig(firestoreService: firestoreService);
+
+      // Insert into Datastore:
+      config.db.values[dsCommit.key] = dsCommit;
+
+      // Insert into Firestore:
+      firestoreService.putDocument(fsCommit);
 
       tester = RequestHandlerTester();
       handler = VacuumStaleTasks(
@@ -46,50 +52,68 @@ void main() {
     });
 
     test('queries LUCI when tasks have a build number', () async {
-      final task = generateTask(
+      // Insert Task into Firestore:
+      final fsTask = generateFirestoreTask(
         1,
         status: Task.statusInProgress,
-        builderName: 'Linux gosh_darnit',
-        parent: commit,
+        name: 'Linux gosh_darnit',
+        buildNumber: 123,
+        commitSha: fsCommit.sha,
+      );
+      firestoreService.putDocument(fsTask);
+
+      // Insert Task into Datastore:
+      final dsTask = generateTask(
+        1,
+        status: Task.statusInProgress,
+        builderName: fsTask.taskName,
+        parent: dsCommit,
         buildNumber: 123,
       );
+      config.db.values[dsTask.key] = dsTask;
 
       when(
         luciBuildService.getProdBuilds(
-          builderName: argThat(equals(task.builderName), named: 'builderName'),
-          sha: argThat(equals(commit.sha), named: 'sha'),
+          builderName: argThat(equals(fsTask.taskName), named: 'builderName'),
+          sha: argThat(equals(dsCommit.sha), named: 'sha'),
         ),
       ).thenAnswer((_) async {
         return [
           generateBbv2Build(
             Int64(123456789),
             buildNumber: 123,
-            name: task.builderName!,
+            name: fsTask.taskName,
             status: bbv2.Status.SUCCESS,
           ),
         ];
       });
-      await config.db.commit(inserts: [task]);
 
       await tester.get(handler);
 
-      final tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0].status, Task.statusSucceeded);
+      // Verify Firestore Update:
+      expect(
+        firestoreService,
+        existsInStorage(fs.Task.metadata, [
+          isTask.hasStatus(fs.Task.statusSucceeded).hasBuildNumber(123),
+        ]),
+      );
+
+      // Verify Datastore Update:
+      expect(config.db.values.values.whereType<Task>(), [
+        isA<Task>()
+            .having((t) => t.status, 'status', Task.statusSucceeded)
+            .having((t) => t.buildNumber, 'buildNumber', 123),
+      ]);
     });
 
     test(
       'skips when tasks are not yet old enough to be considered stale',
       () async {
-        when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
-          Invocation invocation,
-        ) {
-          return Future<CommitResponse>.value(CommitResponse());
-        });
         final originalTasks = <Task>[
           generateTask(
             1,
             status: Task.statusInProgress,
-            parent: commit,
+            parent: dsCommit,
             created: DateTime.now().subtract(const Duration(minutes: 5)),
           ),
         ];
@@ -103,44 +127,62 @@ void main() {
     );
 
     test('resets stale task', () async {
-      when(mockFirestoreService.writeViaTransaction(captureAny)).thenAnswer((
-        Invocation invocation,
-      ) {
-        return Future<CommitResponse>.value(CommitResponse());
-      });
-      final originalTasks = <Task>[
-        generateTask(1, status: Task.statusInProgress, parent: commit),
-        generateTask(2, status: Task.statusSucceeded, parent: commit),
+      // Insert Task into Firestore:
+      firestoreService.putDocument(
+        generateFirestoreTask(
+          1,
+          status: Task.statusInProgress,
+          commitSha: fsCommit.sha,
+        ),
+      );
+      firestoreService.putDocument(
+        generateFirestoreTask(
+          2,
+          status: Task.statusSucceeded,
+          commitSha: fsCommit.sha,
+        ),
+      );
+      firestoreService.putDocument(
+        generateFirestoreTask(
+          3,
+          status: Task.statusInProgress,
+          created: DateTime.now().subtract(const Duration(hours: 4)),
+          commitSha: fsCommit.sha,
+        ),
+      );
+
+      // Insert Tasks into Datastore:
+      final datastore = DatastoreService(config.db, 5);
+      await datastore.insert([
+        generateTask(1, status: Task.statusInProgress, parent: dsCommit),
+        generateTask(2, status: Task.statusSucceeded, parent: dsCommit),
         // Task 3 should be vacuumed
         generateTask(
           3,
           status: Task.statusInProgress,
-          parent: commit,
+          parent: dsCommit,
           created: DateTime.now().subtract(const Duration(hours: 4)),
         ),
-      ];
-      final datastore = DatastoreService(config.db, 5);
-      await datastore.insert(originalTasks);
+      ]);
 
       await tester.get(handler);
 
-      final tasks = config.db.values.values.whereType<Task>().toList();
-      expect(tasks[0].status, Task.statusNew);
-      expect(tasks[2].status, Task.statusNew);
+      // Check Datastore:
+      expect(config.db.values.values.whereType<Task>(), [
+        isA<Task>().having((t) => t.status, 'status', Task.statusNew),
+        isA<Task>().having((t) => t.status, 'status', Task.statusSucceeded),
+        isA<Task>().having((t) => t.status, 'status', Task.statusNew),
+      ]);
 
-      final captured =
-          verify(mockFirestoreService.writeViaTransaction(captureAny)).captured;
-      expect(captured.length, 1);
-      final commitResponse = captured[0] as List<Write>;
-      expect(commitResponse.length, 2);
-      final taskDocuemnt1 = firestore.Task.fromDocument(
-        commitResponse[0].update!,
+      // Check Firestore:
+      expect(
+        firestoreService,
+        existsInStorage(fs.Task.metadata, [
+          isTask.hasStatus(fs.Task.statusNew),
+          isTask.hasStatus(fs.Task.statusSucceeded),
+          isTask.hasStatus(fs.Task.statusNew),
+        ]),
       );
-      final taskDocuemnt2 = firestore.Task.fromDocument(
-        commitResponse[0].update!,
-      );
-      expect(taskDocuemnt1.status, firestore.Task.statusNew);
-      expect(taskDocuemnt2.status, firestore.Task.statusNew);
     });
   });
 }

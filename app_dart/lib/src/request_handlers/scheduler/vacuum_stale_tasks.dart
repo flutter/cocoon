@@ -118,6 +118,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
         case _UpdateTaskFromLuciBuild():
           task.updateFromBuild(intent.build);
       }
+      tasks.add(task);
     }
     await firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites(tasks)),
@@ -141,6 +142,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
         case _UpdateTaskFromLuciBuild():
           task.updateFromBuildbucketBuild(intent.build);
       }
+      tasks.add(task);
     }
     await datastore.insert(tasks);
   }

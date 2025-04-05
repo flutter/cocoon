@@ -132,7 +132,7 @@ firestore_commit.Commit generateFirestoreCommit(
     author: author,
     avatar: avatar,
     sha: sha,
-  )..name = sha;
+  );
 }
 
 GithubGoldStatus generateFirestoreGithubGoldStatus(

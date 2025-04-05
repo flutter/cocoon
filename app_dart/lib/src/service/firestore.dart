@@ -116,7 +116,7 @@ mixin FirestoreQueries {
   }) async {
     final filterMap = <String, Object>{
       '${Task.fieldCommitSha} =': commitSha,
-      if (status != null) '${Task.fieldStatus} = ': status,
+      if (status != null) '${Task.fieldStatus} =': status,
     };
     final orderMap = <String, String>{
       Task.fieldCreateTimestamp: kQueryOrderDescending,
