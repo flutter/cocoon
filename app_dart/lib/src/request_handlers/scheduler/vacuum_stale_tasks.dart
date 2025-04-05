@@ -68,6 +68,16 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       }
     }
 
+    if (toUpdate.isEmpty) {
+      log.info('No tasks to update for $slug.');
+      return;
+    }
+
+    log.info(
+      'Updating ${toUpdate.length} tasks for $slug:\n'
+      '${toUpdate.map((e) => '(${e.commit.sha}) $e').join('\n')}',
+    );
+
     await Future.wait([
       _updateFirestore(toUpdate, firestore),
       _legacyUpdateDatastore(toUpdate),
@@ -159,13 +169,27 @@ sealed class _UpdateTaskIntent {
   _UpdateTaskIntent(this.commit, this.task);
   final fs.Commit commit;
   final fs.Task task;
+
+  @mustBeOverridden
+  @override
+  String toString();
 }
 
 final class _ResetTaskStatusToNew extends _UpdateTaskIntent {
   _ResetTaskStatusToNew(super.commit, super.task);
+
+  @override
+  String toString() {
+    return 'Resetting task ${task.taskName} to new.';
+  }
 }
 
 final class _UpdateTaskFromLuciBuild extends _UpdateTaskIntent {
   _UpdateTaskFromLuciBuild(super.commit, super.task, this.build);
   final bbv2.Build build;
+
+  @override
+  String toString() {
+    return 'Updating task ${task.taskName} from build ${build.id} (${build.status.name}).';
+  }
 }
