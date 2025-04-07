@@ -13,7 +13,7 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
-import '../model/appengine/allowed_account.dart';
+import '../model/firestore/account.dart';
 import '../model/google/token_info.dart';
 import 'exceptions.dart';
 
@@ -161,12 +161,12 @@ class AuthenticationProvider {
   }
 
   Future<bool> _isAllowed(String? email) async {
-    final query =
-        config.db.query<AllowedAccount>()
-          ..filter('email =', email)
-          ..limit(20);
-
-    return !(await query.run().isEmpty);
+    if (email == null) {
+      return false;
+    }
+    final firestore = await config.createFirestoreService();
+    final account = await Account.getByEmail(firestore, email: email);
+    return account != null;
   }
 }
 
