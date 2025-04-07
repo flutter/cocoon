@@ -43,7 +43,7 @@ final class Account extends AppDocument<Account> {
   }
 
   /// Creates a new account with the given [email].
-  factory Account({required String email, required Permission permission}) {
+  factory Account({required String email}) {
     return Account.fromDocument(
       g.Document(
         name: p.posix.join(
@@ -52,7 +52,6 @@ final class Account extends AppDocument<Account> {
           metadata.collectionId,
           email,
         ),
-        fields: {_fieldPermission: g.Value(stringValue: permission.name)},
       ),
     );
   }
@@ -61,35 +60,4 @@ final class Account extends AppDocument<Account> {
 
   /// Email address of the account.
   String get email => p.posix.basename(name!);
-
-  /// The permission level of the account.
-  Permission get permission {
-    return Permission.values.byName(fields[_fieldPermission]!.stringValue!);
-  }
-
-  /// The permission level of the account.
-  static final _fieldPermission = 'permission';
-}
-
-/// The permission level of the account.
-enum Permission implements Comparable<Permission> {
-  /// Default permission level, only public APIs are available.
-  none,
-
-  /// Elevated permission level, all non-admin APIs are available.
-  elevated,
-
-  /// Admin permission level, all APIs are available.
-  admin;
-
-  @override
-  int compareTo(Permission other) {
-    return index.compareTo(other.index);
-  }
-
-  /// Whether the permission level is elevated or higher.
-  bool get isElevated => index >= Permission.elevated.index;
-
-  /// Whether the permission level is admin or higher.
-  bool get isAdmin => index >= Permission.admin.index;
 }

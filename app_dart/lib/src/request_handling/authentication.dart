@@ -166,10 +166,7 @@ class AuthenticationProvider {
     }
     final firestore = await config.createFirestoreService();
     final account = await Account.getByEmail(firestore, email: email);
-    if (account == null) {
-      return false;
-    }
-    return account.permission.isElevated;
+    return account != null;
   }
 }
 

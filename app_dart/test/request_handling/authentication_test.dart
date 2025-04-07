@@ -163,9 +163,7 @@ void main() {
       });
 
       test('succeeds for allowed non-Google auth users', () async {
-        firestoreService.putDocument(
-          Account(email: 'test@gmail.com', permission: Permission.elevated),
-        );
+        firestoreService.putDocument(Account(email: 'test@gmail.com'));
         final token = TokenInfo(
           audience: 'client-id',
           email: 'test@gmail.com',
