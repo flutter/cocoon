@@ -56,13 +56,13 @@ final class GetGreenCommits extends RequestHandler<Body> {
         Config.defaultBranch(slug);
     final commitNumber = config.commitNumber;
 
+    final allCommits = await _buildStatusService.retrieveCommitStatusFirestore(
+      limit: commitNumber,
+      branch: branch,
+      slug: slug,
+    );
     final greenCommits =
-        await _buildStatusService
-            .retrieveCommitStatusFirestore(
-              limit: commitNumber,
-              branch: branch,
-              slug: slug,
-            )
+        allCommits
             .where(everyNonFlakyTaskSucceed)
             .map((status) => status.commit.sha)
             .toList();

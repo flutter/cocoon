@@ -61,7 +61,7 @@ void main() {
     ).thenAnswer((_) async => [task]);
 
     final response = await decodeHandlerBody<Map<String, Object?>>();
-    expect(response, {'buildStatus': 'success'});
+    expect(response, {'buildStatus': 'success', 'failingTasks': isEmpty});
   });
 
   test('failing status', () async {

@@ -4,15 +4,15 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../../protos.dart' show BuildStatusResponse, EnumBuildStatus;
 import '../service/build_status_provider.dart';
 
 @immutable
-class GetBuildStatus extends RequestHandler<Body> {
+base class GetBuildStatus extends RequestHandler<Body> {
   const GetBuildStatus({
     required super.config,
     required BuildStatusService buildStatusService,
@@ -24,16 +24,20 @@ class GetBuildStatus extends RequestHandler<Body> {
   @override
   Future<Body> get() async {
     final response = await createResponse();
-    return Body.forJson(response.toProto3Json());
+    return Body.forJson(response);
   }
 
-  Future<BuildStatusResponse> createResponse() async {
+  @protected
+  Future<rpc_model.BuildStatusResponse> createResponse() async {
     final repoName = request!.uri.queryParameters[_kRepoParam] ?? 'flutter';
     final slug = RepositorySlug('flutter', repoName);
     final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
-    return BuildStatusResponse()
-      ..buildStatus =
-          status.succeeded ? EnumBuildStatus.success : EnumBuildStatus.failure
-      ..failingTasks.addAll(status.failedTasks);
+    return rpc_model.BuildStatusResponse(
+      buildStatus:
+          status.succeeded
+              ? rpc_model.BuildStatus.success
+              : rpc_model.BuildStatus.failure,
+      failingTasks: status.failedTasks,
+    );
   }
 }
