@@ -110,8 +110,14 @@ mixin FirestoreQueries {
   }
 
   /// Returns all tasks running against the speificed [commitSha].
-  Future<List<Task>> queryCommitTasks(String commitSha) async {
-    final filterMap = <String, Object>{'${Task.fieldCommitSha} =': commitSha};
+  Future<List<Task>> queryCommitTasks(
+    String commitSha, {
+    String? status,
+  }) async {
+    final filterMap = <String, Object>{
+      '${Task.fieldCommitSha} =': commitSha,
+      if (status != null) '${Task.fieldStatus} =': status,
+    };
     final orderMap = <String, String>{
       Task.fieldCreateTimestamp: kQueryOrderDescending,
     };
@@ -121,6 +127,26 @@ mixin FirestoreQueries {
       orderMap: orderMap,
     );
     return [...documents.map(Task.fromDocument)];
+  }
+
+  /// Queries the last [commitLimit] commits, and returns the commit and tasks.
+  ///
+  /// For tasks with multiple attempts, only the most recent task is returned.
+  ///
+  /// If [status] is provided, only tasks matching the status are returned.
+  Future<List<CommitAndTasks>> queryRecentCommitsAndTasks(
+    RepositorySlug slug, {
+    required int commitLimit,
+    String? status,
+  }) async {
+    final commits = await queryRecentCommits(slug: slug, limit: commitLimit);
+    return [
+      for (final commit in commits)
+        CommitAndTasks(
+          commit,
+          await queryCommitTasks(commit.sha, status: status),
+        )._withMostRecentTaskOnly(),
+    ];
   }
 
   /// Queries the last updated Gold status for the [slug] and [prNumber].
@@ -386,4 +412,36 @@ List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
         ),
       )
       .toList();
+}
+
+/// A pairing of a [Commit] and [Task]s associated with that commit.
+@immutable
+final class CommitAndTasks {
+  /// Creates a [CommitAndTasks] with the provided commit and tasks.
+  CommitAndTasks(this.commit, Iterable<Task> tasks)
+    : tasks = List.unmodifiable(tasks);
+
+  /// Commit from Firestore.
+  final Commit commit;
+
+  /// Tasks where [Task.commitSha] is the same as [Commit.sha].
+  ///
+  /// This list is unmodifiable.`
+  final List<Task> tasks;
+
+  /// Returns a copy of `this` with only the most recent task per builder.
+  ///
+  /// For example, if a task `Linux foo` was run 3 times, only the most recent
+  /// task (`Linux foo`, `attempt = 3`) is retained in the accompanying [tasks]
+  /// list, and the rest of the tasks are removed.
+  @useResult
+  CommitAndTasks _withMostRecentTaskOnly() {
+    final mostRecent = <String, Task>{};
+    for (final task in tasks) {
+      mostRecent.update(task.taskName, (current) {
+        return current.currentAttempt > task.createTimestamp ? current : task;
+      }, ifAbsent: () => task);
+    }
+    return CommitAndTasks(commit, mostRecent.values);
+  }
 }

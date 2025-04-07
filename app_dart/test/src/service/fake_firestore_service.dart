@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -11,7 +12,10 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import '../model/firestore_matcher.dart';
 import '../utilities/mocks.dart';
+
+export '../model/firestore_matcher.dart';
 
 abstract base class _FakeInMemoryFirestoreService
     with FirestoreQueries
@@ -282,10 +286,6 @@ abstract base class _FakeInMemoryFirestoreService
       return _matchesFilter(document.fields!, filterMap);
     });
 
-    if (limit != null) {
-      results = results.take(limit);
-    }
-
     if (compositeFilterOp != kCompositeFilterOpAnd) {
       throw UnimplementedError('compositeFilterOp: $compositeFilterOp');
     }
@@ -331,16 +331,21 @@ abstract base class _FakeInMemoryFirestoreService
     Map<String, Object> filters,
   ) {
     for (final MapEntry(key: fieldAndOp, value: value) in filters.entries) {
-      final [...fieldParts, operator] = fieldAndOp.split(' ');
-      final fieldName = fieldParts.join(' ');
+      final [fieldName, operator] = fieldAndOp.trim().split(' ');
       final fieldValue = fields[fieldName];
 
       // bool can be == or !=, but not compared.
       switch (operator) {
         case '=':
-          return _equals(fieldValue, value);
+          if (!_equals(fieldValue, value)) {
+            return false;
+          }
+          continue;
         case '!=':
-          return !_equals(fieldValue, value);
+          if (_equals(fieldValue, value)) {
+            return false;
+          }
+          continue;
       }
 
       if (fieldValue == null) {
@@ -413,5 +418,45 @@ final class FakeFirestoreService extends _FakeInMemoryFirestoreService {
   @override
   Future<ProjectsDatabasesDocumentsResource> documentResource() {
     return mock.documentResource();
+  }
+}
+
+/// Checks that the models described by [metadata] match storage of [matcher].
+///
+/// ## Example
+///
+/// ```dart
+/// expect(
+///   fakeFirestoreService,
+///   inStorage(Task.metadata, hasLength(1)),
+/// );
+/// ```
+Matcher existsInStorage<T extends AppDocument<T>>(
+  AppDocumentMetadata<T> metadata,
+  Object? matcherOrCollection,
+) {
+  return _InStorage(metadata, wrapMatcher(matcherOrCollection));
+}
+
+final class _InStorage<T extends AppDocument<T>> extends Matcher {
+  const _InStorage(this.metadata, this.matcher);
+  final AppDocumentMetadata<T> metadata;
+  final Matcher matcher;
+
+  @override
+  Description describe(Description description) {
+    description = description.add('is storing $T instances where ');
+    return matcher.describe(description);
+  }
+
+  @override
+  bool matches(Object? item, _) {
+    if (item is! FakeFirestoreService) {
+      return false;
+    }
+    return matcher.matches(
+      item.documents.where((d) => isDocumentA(d, metadata)),
+      {},
+    );
   }
 }
