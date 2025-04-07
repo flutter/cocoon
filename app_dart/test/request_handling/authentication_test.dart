@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/appengine/allowed_account.dart';
+import 'package:cocoon_service/src/model/firestore/account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -18,19 +18,22 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
 
   group('AuthenticationProvider', () {
     late FakeConfig config;
+    late FakeFirestoreService firestoreService;
     late FakeClientContext clientContext;
     late FakeHttpRequest request;
     late AuthenticationProvider auth;
     late TokenInfo token;
 
     setUp(() {
-      config = FakeConfig();
+      firestoreService = FakeFirestoreService();
+      config = FakeConfig(firestoreService: firestoreService);
       token = TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now());
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
@@ -160,10 +163,9 @@ void main() {
       });
 
       test('succeeds for allowed non-Google auth users', () async {
-        final account = AllowedAccount(
-          key: config.db.emptyKey.append<int>(AllowedAccount, id: 123),
-        )..email = 'test@gmail.com';
-        config.db.values[account.key] = account;
+        firestoreService.putDocument(
+          Account(email: 'test@gmail.com', permission: Permission.elevated),
+        );
         final token = TokenInfo(
           audience: 'client-id',
           email: 'test@gmail.com',
