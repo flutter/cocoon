@@ -1091,7 +1091,7 @@ void main() {
         priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
-        commit: commit,
+        commit: OpaqueCommit.fromDatastore(commit),
         toBeScheduled: <PendingTask>[toBeScheduled],
       );
       // Only one batch request should be published
@@ -1186,7 +1186,7 @@ void main() {
           priority: LuciBuildService.kDefaultPriority,
         );
         await service.schedulePostsubmitBuilds(
-          commit: commit,
+          commit: OpaqueCommit.fromDatastore(commit),
           toBeScheduled: <PendingTask>[toBeScheduled],
         );
         // Only one batch request should be published
@@ -1275,7 +1275,7 @@ void main() {
           priority: LuciBuildService.kDefaultPriority,
         );
         await service.schedulePostsubmitBuilds(
-          commit: commit,
+          commit: OpaqueCommit.fromDatastore(commit),
           toBeScheduled: <PendingTask>[toBeScheduled],
         );
         // Only one batch request should be published
@@ -1325,7 +1325,7 @@ void main() {
           priority: LuciBuildService.kDefaultPriority,
         );
         final results = await service.schedulePostsubmitBuilds(
-          commit: commit,
+          commit: OpaqueCommit.fromDatastore(commit),
           toBeScheduled: <PendingTask>[toBeScheduled],
         );
         expect(results, <PendingTask>[toBeScheduled]);
@@ -1359,7 +1359,7 @@ void main() {
       expect(
         () async => service.reschedulePostsubmitBuildUsingCheckRunEvent(
           checkRunEvent,
-          commit: generateCommit(0),
+          commit: OpaqueCommit.fromDatastore(generateCommit(0)),
           task: generateTask(0),
           target: generateTarget(0),
           taskDocument: generateFirestoreTask(0),
@@ -1417,7 +1417,7 @@ void main() {
       expect(task.attempts, 1);
       await service.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
-        commit: generateCommit(0),
+        commit: OpaqueCommit.fromDatastore(generateCommit(0)),
         task: task,
         target: generateTarget(0),
         taskDocument: taskDocument,
@@ -1460,7 +1460,7 @@ void main() {
           priority: LuciBuildService.kDefaultPriority,
         );
         await service.schedulePostsubmitBuilds(
-          commit: commit,
+          commit: OpaqueCommit.fromDatastore(commit),
           toBeScheduled: <PendingTask>[toBeScheduled],
         );
         // Only one batch request should be published
@@ -1530,7 +1530,7 @@ void main() {
         priority: LuciBuildService.kDefaultPriority,
       );
       await service.schedulePostsubmitBuilds(
-        commit: commit,
+        commit: OpaqueCommit.fromDatastore(commit),
         toBeScheduled: <PendingTask>[toBeScheduled1, toBeScheduled2],
       );
       expect(pubsub.messages.length, 1);

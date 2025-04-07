@@ -38,12 +38,12 @@ import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
     as _i41;
 import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart'
-    as _i46;
+    as _i44;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
-    as _i45;
+    as _i46;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
     as _i42;
-import 'package:fixnum/fixnum.dart' as _i44;
+import 'package:fixnum/fixnum.dart' as _i45;
 import 'package:gcloud/db.dart' as _i9;
 import 'package:github/github.dart' as _i11;
 import 'package:github/hooks.dart' as _i30;
@@ -4856,7 +4856,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
   @override
   _i16.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     _i43.CheckRunEvent? checkRunEvent, {
-    required _i33.Commit? commit,
+    required _i44.OpaqueCommit? commit,
     required _i34.Task? task,
     required _i40.Target? target,
     required _i38.Task? taskDocument,
@@ -4883,7 +4883,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i16.Future<_i6.Build> getBuildById(
-    _i44.Int64? id, {
+    _i45.Int64? id, {
     _i6.BuildMask? buildMask,
   }) =>
       (super.noSuchMethod(
@@ -4912,20 +4912,20 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
           as _i16.Future<Set<String>>);
 
   @override
-  _i16.Future<List<_i45.PendingTask>> schedulePostsubmitBuilds({
-    required _i33.Commit? commit,
-    required List<_i45.PendingTask>? toBeScheduled,
+  _i16.Future<List<_i46.PendingTask>> schedulePostsubmitBuilds({
+    required _i44.OpaqueCommit? commit,
+    required List<_i46.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#schedulePostsubmitBuilds, [], {
               #commit: commit,
               #toBeScheduled: toBeScheduled,
             }),
-            returnValue: _i16.Future<List<_i45.PendingTask>>.value(
-              <_i45.PendingTask>[],
+            returnValue: _i16.Future<List<_i46.PendingTask>>.value(
+              <_i46.PendingTask>[],
             ),
           )
-          as _i16.Future<List<_i45.PendingTask>>);
+          as _i16.Future<List<_i46.PendingTask>>);
 
   @override
   _i16.Future<void> scheduleMergeGroupBuilds({
@@ -4944,7 +4944,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i16.Future<_i11.CheckRun> createPostsubmitCheckRun(
-    _i46.OpaqueCommit? commit,
+    _i44.OpaqueCommit? commit,
     _i40.Target? target,
   ) =>
       (super.noSuchMethod(
@@ -4960,7 +4960,7 @@ class MockLuciBuildService extends _i1.Mock implements _i13.LuciBuildService {
 
   @override
   _i16.Future<bool> checkRerunBuilder({
-    required _i46.OpaqueCommit? commit,
+    required _i44.OpaqueCommit? commit,
     required _i40.Target? target,
     required _i34.Task? task,
     required _i7.DatastoreService? datastore,
