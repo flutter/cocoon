@@ -14,7 +14,7 @@ import 'base.dart';
 final class Account extends AppDocument<Account> {
   /// Description of the document in Firestore.
   static final metadata = AppDocumentMetadata(
-    collectionId: 'elevated_accounts',
+    collectionId: 'accounts',
     fromDocument: Account.fromDocument,
   );
 
