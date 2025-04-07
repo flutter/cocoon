@@ -230,6 +230,10 @@ class Config {
   Future<String> get githubOAuthToken =>
       _getSingleValue('APP_DART_GITHUB_PR_TOKEN');
 
+  // Discord Webhook Token for posting messages about the tree status.
+  Future<String> get discordTreeStatusWebhookUrl =>
+      _getSingleValue('TREE_STATUS_DISCORD_WEBHOOK_URL');
+
   String get wrongBaseBranchPullRequestMessage =>
       'This pull request was opened against a branch other than '
       '_{{default_branch}}_. Since Flutter pull requests should not '
