@@ -129,6 +129,11 @@ void main() {
         repo: repository,
         timestamp: 0,
       );
+      when(
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       final datastoreCommit = <Commit>[existingCommit];
       await config.db.commit(inserts: datastoreCommit);
       expect(db.values.values.whereType<Commit>().length, 1);
@@ -174,6 +179,11 @@ void main() {
 
   group('handlePushGithubRequest', () {
     test('adds commit to db if it does not exist in the datastore', () async {
+      when(
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       expect(db.values.values.whereType<Commit>().length, 0);
 
       final pushEvent = generatePushEvent(
@@ -199,6 +209,11 @@ void main() {
     });
 
     test('does not add commit to db if it exists in the datastore', () async {
+      when(
+        mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+      ).thenAnswer((Invocation invocation) {
+        return Future<BatchWriteResponse>.value(BatchWriteResponse());
+      });
       final existingCommit = generateCommit(
         1,
         sha: sha,
