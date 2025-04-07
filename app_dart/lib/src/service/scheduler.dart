@@ -132,10 +132,9 @@ class Scheduler {
 
   /// Ensure [commits] exist in Cocoon.
   ///
-  /// If [Commit] does not exist in Datastore:
-  ///   * Write it to datastore
-  ///   * Schedule tasks listed in its scheduler config
-  /// Otherwise, ignore it.
+  /// If the commit already exists, it is ignored.
+  ///
+  /// Otherwise it is stored in Firestore, and scheduled, if appropriate.
   Future<void> addCommits(List<ds.Commit> commits) async {
     final newCommits = await _getMissingCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
