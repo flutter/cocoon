@@ -249,21 +249,6 @@ class Target {
     return value.name.split(' ').first.toLowerCase();
   }
 
-  /// Indicates whether this target should be scheduled via batches.
-  ///
-  /// DeviceLab targets are special as they run on a host + physical device, and there is limited
-  /// capacity in the labs to run them. Their platforms contain one of `android`, `ios`, and `samsung`.
-  ///
-  /// Mac host only targets are scheduled via patches due to high queue time. This can be relieved
-  /// when we have capacity support in Q4/2022.
-  bool get shouldBatchSchedule {
-    final platform = getPlatform();
-    return platform.contains('android') ||
-        platform.contains('ios') ||
-        platform.contains('samsung') ||
-        platform == 'mac';
-  }
-
   /// Get the associated LUCI bucket to run this [Target] in.
   String getBucket() {
     return value.bringup ? 'staging' : 'prod';

@@ -75,9 +75,19 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
   /// The head sha at the time this document was created for testing.
   String get sha => fields[kShaField]!.stringValue!;
 
+  /// The repository slug associated with the pull request.
   RepositorySlug get slug => RepositorySlug.fromJson(
     json.decode(fields[kSlugField]!.stringValue!) as Map<String, Object?>,
   );
+
+  /// The recorded check-runs, a map of "test_name": "check_run id".
+  Map<String, String> get checkRuns {
+    final fields = this.fields.map((k, v) => MapEntry(k, v.stringValue!));
+    fields.remove(kPullRequestField);
+    fields.remove(kSlugField);
+    fields.remove(kShaField);
+    return fields;
+  }
 
   /// Initializes a new document for the list of check_runs in Firestore so we can find it later.
   ///
@@ -109,12 +119,9 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
       // Calling createDocument multiple times for the same documentId will return a 409 - ALREADY_EXISTS error;
       // this is good because it means we don't have to do any transactions.
       // curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" "https://firestore.googleapis.com/v1beta1/projects/flutter-dashboard/databases/cocoon/documents/prCheckRuns" -d '{"fields": {"test": {"stringValue": "baz"}}}'
-      final databasesDocumentsResource =
-          await firestoreService.documentResource();
-      final newDoc = await databasesDocumentsResource.createDocument(
+      final newDoc = await firestoreService.createDocument(
         document,
-        kDocumentParent,
-        kCollectionId,
+        collectionId: kCollectionId,
       );
       log.info('$logCrumb: document created');
       return newDoc;

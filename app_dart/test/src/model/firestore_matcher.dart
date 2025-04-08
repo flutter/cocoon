@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
@@ -15,6 +16,7 @@ import 'package:test/test.dart';
 part '_commit.dart';
 part '_github_build_status.dart';
 part '_github_gold_status.dart';
+part '_pr_check_run.dart';
 part '_task.dart';
 
 /// Matches a Firestore model, or raw document, of type [Commit].
@@ -28,6 +30,9 @@ const isGithubBuildStatus = GithubBuildStatusMatcher._(TypeMatcher());
 
 /// Matches a Firestore model, or raw document, of type [GithubGoldStatus].
 const isGithubGoldStatus = GithubGoldStatusMatcher._(TypeMatcher());
+
+/// Matches a Firestore model, or raw document, of type [PrCheckRun].
+const isPrCheckRun = PrCheckRunsMatcher._(TypeMatcher());
 
 /// Returns whether the document is a path to the collection [metadata].
 bool isDocumentA(g.Document document, AppDocumentMetadata<void> metadata) {
@@ -49,7 +54,8 @@ abstract final class ModelMatcher<T extends AppDocument<T>> extends Matcher {
   @override
   @nonVirtual
   Description describe(Description description) {
-    return description.add('a $T document');
+    description = description.add('a $T document where ');
+    return _delegate.describe(description);
   }
 
   static bool _isPathTo(

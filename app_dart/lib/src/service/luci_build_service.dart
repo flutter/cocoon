@@ -122,7 +122,7 @@ class LuciBuildService {
     required String sha,
     String? builderName,
   }) async {
-    return getBuilds(
+    return _getBuilds(
       builderName: builderName,
       bucket: 'try',
       tags: BuildTags([
@@ -139,7 +139,7 @@ class LuciBuildService {
     required github.PullRequest pullRequest,
   }) async {
     final slug = pullRequest.base!.repo!.slug();
-    return getBuilds(
+    return _getBuilds(
       builderName: null,
       bucket: 'try',
       tags: BuildTags([
@@ -161,7 +161,7 @@ class LuciBuildService {
     String? builderName,
     String? sha,
   }) async {
-    return getBuilds(
+    return _getBuilds(
       builderName: builderName,
       bucket: 'prod',
       tags: BuildTags([
@@ -179,7 +179,7 @@ class LuciBuildService {
   ///
   /// Returns an iterable of try BuildBucket [Build]s for a given
   /// [builderName], [bucket], and [tags].
-  Future<Iterable<bbv2.Build>> getBuilds({
+  Future<Iterable<bbv2.Build>> _getBuilds({
     required String? builderName,
     required String bucket,
     required BuildTags tags,
@@ -614,7 +614,7 @@ class LuciBuildService {
   }) async {
     final cacheValue = await cache.getOrCreate(
       subCacheName,
-      'builderlist',
+      'builderlist/$project/$bucket',
       createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
       // New commit triggering tasks should be finished within 5 mins.
       // The batch backfiller's execution frequency is also 5 mins.

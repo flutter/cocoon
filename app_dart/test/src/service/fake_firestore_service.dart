@@ -239,6 +239,24 @@ abstract base class _FakeInMemoryFirestoreService
   }
 
   @override
+  Future<Document> createDocument(
+    Document document, {
+    required String collectionId,
+  }) async {
+    if (document.name case final name?
+        when tryPeekDocumentByName(name) != null) {
+      throw DetailedApiRequestError(
+        HttpStatus.notFound,
+        'Document "$name" already exists',
+      );
+    }
+    return putDocument(
+      _clone(document)
+        ..name = resolveDocumentName(collectionId, _generateUniqueId()),
+    );
+  }
+
+  @override
   Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
     // Poor man's write-only transaction:
     //
