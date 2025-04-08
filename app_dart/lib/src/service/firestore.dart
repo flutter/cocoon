@@ -192,6 +192,26 @@ mixin FirestoreQueries {
     }
   }
 
+  /// Returns the latest [Task] for [commitSha] and [builderName].
+  ///
+  /// If no task exists, `null` is returned.
+  Future<Task?> queryLatestTask({
+    required String commitSha,
+    required String builderName,
+  }) async {
+    final tasks = await query(
+      kTaskCollectionId,
+      {
+        '${Task.fieldCommitSha} =': commitSha,
+        '${Task.fieldName} =': builderName,
+      },
+      // Assumes the invariant where the newest task has the highest attempt #.
+      orderMap: {Task.fieldCreateTimestamp: kQueryOrderDescending},
+      limit: 1,
+    );
+    return tasks.isEmpty ? null : Task.fromDocument(tasks.first);
+  }
+
   /// Queries the last updated build status for the [slug], [prNumber], and [head].
   ///
   /// If not existing, returns a fresh new Build status.
