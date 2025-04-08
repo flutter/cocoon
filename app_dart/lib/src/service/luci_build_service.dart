@@ -19,9 +19,9 @@ import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/firestore/commit.dart' as firestore_commit;
+import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';
-import '../model/firestore/task.dart' as firestore;
+import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../service/datastore.dart';
 import 'exceptions.dart';
@@ -540,7 +540,7 @@ class LuciBuildService {
     required OpaqueCommit commit,
     required Task task,
     required Target target,
-    required firestore.Task taskDocument,
+    required fs.Task taskDocument,
     required DatastoreService datastore,
     required FirestoreService firestoreService,
   }) async {
@@ -565,10 +565,10 @@ class LuciBuildService {
 
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
-        task = task,
-        taskDocument = taskDocument,
-        firestoreService = firestoreService,
+        taskDocument,
+        firestoreService,
         datastore = datastore,
+        commit: commit,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
@@ -905,7 +905,7 @@ class LuciBuildService {
       CurrentAttemptBuildTag(attemptNumber: 1),
     );
 
-    final firestoreTask = firestore.TaskId(
+    final firestoreTask = fs.TaskId(
       commitSha: commit.sha,
       taskName: task.name!,
       currentAttempt: currentAttempt.attemptNumber,
@@ -1074,7 +1074,7 @@ class LuciBuildService {
     required Target target,
     required Task task,
     required DatastoreService datastore,
-    required firestore.Task taskDocument,
+    required fs.Task taskDocument,
     required FirestoreService firestoreService,
     Iterable<BuildTag> tags = const [],
     bool ignoreChecks = false,
@@ -1092,10 +1092,10 @@ class LuciBuildService {
 
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
-        task = task,
-        taskDocument = taskDocument,
-        firestoreService = firestoreService,
-        datastore = datastore,
+        taskDocument,
+        firestoreService,
+        datastore,
+        commit: commit,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
@@ -1132,27 +1132,38 @@ class LuciBuildService {
 
   /// Updates the status of [task] in the database to reflect that it is being
   /// re-run, and returns the new attempt number.
+  @useResult
   Future<int> _updateTaskStatusInDatabaseForRetry(
-    Task task,
-    firestore.Task taskDocument,
+    fs.Task task,
     FirestoreService firestoreService,
-    DatastoreService datastore,
-  ) async {
-    // Updates task status in Datastore.
-    task.attempts = (task.attempts ?? 0) + 1;
-    // Mark task as in progress to ensure it isn't scheduled over.
-    task.status = Task.statusInProgress;
-    await datastore.insert(<Task>[task]);
-
-    // Updates task status in Firestore.
-    final newAttempt = taskDocument.currentAttempt + 1;
-    taskDocument.resetAsRetry(attempt: newAttempt);
-    taskDocument.setStatus(firestore.Task.statusInProgress);
-    final writes = documentsToWrites([taskDocument], exists: false);
+    DatastoreService datastore, {
+    required OpaqueCommit commit,
+  }) async {
+    // Update task status in Firestore.
+    final newAttempt = task.currentAttempt + 1;
+    task.resetAsRetry(attempt: newAttempt);
+    task.setStatus(fs.Task.statusInProgress);
     await firestoreService.batchWriteDocuments(
-      BatchWriteRequest(writes: writes),
+      BatchWriteRequest(writes: documentsToWrites([task], exists: false)),
       kDatabase,
     );
+
+    // Legacy: Write task status to Datastore.
+    final commitKey = Commit.createKey(
+      db: datastore.db,
+      slug: commit.slug,
+      gitBranch: commit.branch,
+      sha: commit.sha,
+    );
+    final dsExistingTask = await Task.fromDatastore(
+      datastore: datastore,
+      commitKey: commitKey,
+      name: task.name,
+    );
+    dsExistingTask
+      ..attempts = newAttempt
+      ..status = Task.statusInProgress;
+    await datastore.insert([dsExistingTask]);
 
     return newAttempt;
   }
@@ -1161,10 +1172,10 @@ class LuciBuildService {
   ///
   /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
   Future<bool> _shouldRerunBuilderFirestore(
-    firestore.Task task,
+    fs.Task task,
     FirestoreService firestoreService,
   ) async {
-    if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
+    if (!fs.Task.taskFailStatusSet.contains(task.status)) {
       return false;
     }
     final retries = task.currentAttempt;
@@ -1173,7 +1184,7 @@ class LuciBuildService {
       return false;
     }
 
-    final currentCommit = await firestore_commit.Commit.fromFirestoreBySha(
+    final currentCommit = await fs.Commit.fromFirestoreBySha(
       firestoreService,
       sha: task.commitSha,
     );
