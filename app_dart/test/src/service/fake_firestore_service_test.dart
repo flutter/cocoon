@@ -697,6 +697,19 @@ void main() {
         }, limit: 2);
         expect(query.map((q) => q.name), [endsWith('1'), endsWith('2')]);
       });
+
+      // Regression test: If a filter is applied, and the limit is 1, the query
+      // should return the first item that matches the filter, not the first
+      // item in the collection and then apply the filter.
+      test('should apply last', () async {
+        final query = await firestore.query(
+          'items',
+          {'number >=': 1},
+          limit: 1,
+          orderMap: {'number': kQueryOrderDescending},
+        );
+        expect(query.map((q) => q.name), [endsWith('4')]);
+      });
     });
 
     group('order', () {

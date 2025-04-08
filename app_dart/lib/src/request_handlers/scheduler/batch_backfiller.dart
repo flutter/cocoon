@@ -74,8 +74,10 @@ class BatchBackfiller extends RequestHandler {
     for (var taskColumn in taskMap.values) {
       final task = taskColumn.first;
 
-      final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
-        task.commit,
+      final ciYaml = await ciYamlFetcher.getCiYaml(
+        commitBranch: task.commit.branch,
+        commitSha: task.commit.sha,
+        slug: task.commit.slug,
       );
       final ciYamlTargets = [
         ...ciYaml.backfillTargets(),

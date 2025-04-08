@@ -11,12 +11,11 @@ import 'package:fixnum/fixnum.dart';
 import 'package:gcloud/db.dart';
 import 'package:meta/meta.dart';
 
-import 'allowed_account.dart';
 import 'commit.dart';
 import 'key_helper.pb.dart';
 import 'task.dart';
 
-const Set<Type> _defaultTypes = <Type>{Commit, Task, AllowedAccount};
+const Set<Type> _defaultTypes = <Type>{Commit, Task};
 
 /// Class used to encode and decode [Key] objects.
 ///

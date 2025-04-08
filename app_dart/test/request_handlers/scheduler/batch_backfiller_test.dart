@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -330,17 +331,26 @@ void main() {
         final backfill = <Tuple<Target, FullTask, int>>[
           Tuple(
             generateTarget(1),
-            FullTask(generateTask(1), generateCommit(1)),
+            FullTask(
+              generateTask(1),
+              OpaqueCommit.fromDatastore(generateCommit(1)),
+            ),
             LuciBuildService.kRerunPriority,
           ),
           Tuple(
             generateTarget(2),
-            FullTask(generateTask(2), generateCommit(2)),
+            FullTask(
+              generateTask(2),
+              OpaqueCommit.fromDatastore(generateCommit(2)),
+            ),
             LuciBuildService.kBackfillPriority,
           ),
           Tuple(
             generateTarget(3),
-            FullTask(generateTask(3), generateCommit(3)),
+            FullTask(
+              generateTask(3),
+              OpaqueCommit.fromDatastore(generateCommit(3)),
+            ),
             LuciBuildService.kRerunPriority,
           ),
         ];
