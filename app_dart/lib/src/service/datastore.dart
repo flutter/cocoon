@@ -18,6 +18,7 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/exceptions.dart';
 import 'config.dart';
+import 'luci_build_service/opaque_commit.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
 /// be touched in any given transaction, or the backing datastore will throw
@@ -149,7 +150,9 @@ class DatastoreService {
       if (taskName != null) {
         query.filter('name =', taskName);
       }
-      yield* query.run().map<FullTask>((Task task) => FullTask(task, commit));
+      yield* query.run().map<FullTask>(
+        (Task task) => FullTask(task, OpaqueCommit.fromDatastore(commit)),
+      );
     }
   }
 

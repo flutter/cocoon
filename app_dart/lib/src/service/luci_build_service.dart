@@ -537,7 +537,7 @@ class LuciBuildService {
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
-    required Commit commit,
+    required OpaqueCommit commit,
     required Task task,
     required Target target,
     required firestore.Task taskDocument,
@@ -585,7 +585,7 @@ class LuciBuildService {
       requests: <bbv2.BatchRequest_Request>[
         bbv2.BatchRequest_Request(
           scheduleBuild: await _createPostsubmitScheduleBuild(
-            commit: OpaqueCommit.fromDatastore(commit),
+            commit: commit,
             target: target,
             task: task,
             properties: properties,
@@ -663,7 +663,7 @@ class LuciBuildService {
   /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
   /// returns the original list.
   Future<List<PendingTask>> schedulePostsubmitBuilds({
-    required Commit commit,
+    required OpaqueCommit commit,
     required List<PendingTask> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
@@ -699,7 +699,7 @@ class LuciBuildService {
         'create postsubmit schedule request for target: ${pending.target.value} in commit ${commit.sha}',
       );
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: commit,
         target: pending.target,
         task: pending.task,
         priority: pending.priority,
@@ -762,7 +762,7 @@ class LuciBuildService {
       );
 
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
-        commit: commit,
+        commit: OpaqueCommit.fromDatastore(commit),
         target: target,
       );
       buildRequests.add(
@@ -968,7 +968,7 @@ class LuciBuildService {
   /// Creates a build request for a commit in a merge queue which will notify
   /// presubmit channels.
   Future<bbv2.ScheduleBuildRequest> _createMergeGroupScheduleBuild({
-    required Commit commit,
+    required OpaqueCommit commit,
     required Target target,
     int priority = kDefaultPriority,
   }) async {
@@ -979,21 +979,18 @@ class LuciBuildService {
       'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
     );
 
-    final checkRun = await createPostsubmitCheckRun(
-      OpaqueCommit.fromDatastore(commit),
-      target,
-    );
+    final checkRun = await createPostsubmitCheckRun(commit, target);
     final preUserData = PresubmitUserData(
       checkRunId: checkRun.id!,
       repoOwner: target.slug.owner,
       repoName: target.slug.name,
-      commitBranch: commit.branch!,
-      commitSha: commit.sha!,
+      commitBranch: commit.branch,
+      commitSha: commit.sha,
     );
     final processedProperties = target.getProperties().cast<String, Object?>();
-    processedProperties['git_branch'] = commit.branch!;
+    processedProperties['git_branch'] = commit.branch;
 
-    final mqBranch = tryParseGitHubMergeQueueBranch(commit.branch!);
+    final mqBranch = tryParseGitHubMergeQueueBranch(commit.branch);
     log.info('parsed mqBranch: $mqBranch');
 
     final cipdExe = 'refs/heads/${mqBranch.branch}';
@@ -1033,9 +1030,9 @@ class LuciBuildService {
       ),
       tags:
           BuildTags([
-            ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha!),
+            ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
             ByCommitMirroredBuildSetBuildTag(
-              commitSha: commit.sha!,
+              commitSha: commit.sha,
               slugName: commit.slug.name,
             ),
             UserAgentBuildTag.flutterCocoon,

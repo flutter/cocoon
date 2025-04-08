@@ -10,6 +10,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
+import '../../service/luci_build_service/opaque_commit.dart';
 import '../ci_yaml/target.dart';
 import 'commit.dart';
 import 'key_converter.dart';
@@ -476,5 +477,5 @@ class FullTask {
   final Task task;
 
   ///  The [Commit] object references by this [task]'s [Task.commitKey].
-  final Commit commit;
+  final OpaqueCommit commit;
 }

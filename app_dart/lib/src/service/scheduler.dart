@@ -17,14 +17,14 @@ import 'package:retry/retry.dart';
 import 'package:truncate/truncate.dart';
 
 import '../foundation/utils.dart';
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
+import '../model/appengine/commit.dart' as ds;
+import '../model/appengine/task.dart' as ds;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/firestore/ci_staging.dart';
-import '../model/firestore/commit.dart' as firestore_commmit;
+import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';
-import '../model/firestore/task.dart' as firestore;
+import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import 'cache_service.dart';
@@ -36,6 +36,7 @@ import 'get_files_changed.dart';
 import 'github_checks_service.dart';
 import 'luci_build_service.dart';
 import 'luci_build_service/engine_artifacts.dart';
+import 'luci_build_service/opaque_commit.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
 import 'scheduler/policy.dart';
@@ -131,11 +132,10 @@ class Scheduler {
 
   /// Ensure [commits] exist in Cocoon.
   ///
-  /// If [Commit] does not exist in Datastore:
-  ///   * Write it to datastore
-  ///   * Schedule tasks listed in its scheduler config
-  /// Otherwise, ignore it.
-  Future<void> addCommits(List<Commit> commits) async {
+  /// If the commit already exists, it is ignored.
+  ///
+  /// Otherwise it is stored in Firestore, and scheduled, if appropriate.
+  Future<void> addCommits(List<ds.Commit> commits) async {
     final newCommits = await _getMissingCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
     for (var commit in newCommits) {
@@ -172,8 +172,8 @@ class Scheduler {
     }
 
     final id = '$fullRepo/$branch/$sha';
-    final key = datastore.db.emptyKey.append<String>(Commit, id: id);
-    final mergedCommit = Commit(
+    final key = datastore.db.emptyKey.append<String>(ds.Commit, id: id);
+    final mergedCommit = ds.Commit(
       author: pr.user!.login!,
       authorAvatarUrl: pr.user!.avatarUrl!,
       branch: branch,
@@ -195,7 +195,7 @@ class Scheduler {
   }
 
   /// Processes postsubmit tasks.
-  Future<void> _addCommit(Commit commit, {bool skipAllTasks = false}) async {
+  Future<void> _addCommit(ds.Commit commit, {bool skipAllTasks = false}) async {
     if (!config.supportedRepos.contains(commit.slug)) {
       log.debug('Skipping ${commit.id} as repo is not supported');
       return;
@@ -216,12 +216,12 @@ class Scheduler {
       // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 
-    final tasks = <Task>[...targetsToTasks(commit, targets)];
+    final tasks = [...ds.targetsToTasks(commit, targets)];
     final firestoreService = await config.createFirestoreService();
     final toBeScheduled = <PendingTask>[];
     for (var target in targets) {
       final task = tasks.singleWhere(
-        (Task task) => task.name == target.value.name,
+        (ds.Task task) => task.name == target.value.name,
       );
       var policy = target.schedulerPolicy;
 
@@ -231,7 +231,7 @@ class Scheduler {
       //
       // See https://github.com/flutter/flutter/issues/163896.
       if (skipAllTasks) {
-        task.status = Task.statusSkipped;
+        task.status = ds.Task.statusSkipped;
         continue;
       }
 
@@ -248,7 +248,7 @@ class Scheduler {
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
-        task.status = Task.statusInProgress;
+        task.status = ds.Task.statusInProgress;
         toBeScheduled.add(
           PendingTask(target: target, task: task, priority: priority),
         );
@@ -262,7 +262,7 @@ class Scheduler {
       );
       final datastore = datastoreProvider(config.db);
       await datastore.withTransaction<void>((Transaction transaction) async {
-        transaction.queueMutations(inserts: <Commit>[commit]);
+        transaction.queueMutations(inserts: <ds.Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();
         log.debug(
@@ -276,7 +276,7 @@ class Scheduler {
     log.info(
       'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.value.name}"').join(', ')}',
     );
-    final commitDocument = firestore_commmit.Commit(
+    final commitDocument = fs.Commit(
       author: commit.author!,
       avatar: commit.authorAvatarUrl!,
       branch: commit.branch!,
@@ -286,7 +286,7 @@ class Scheduler {
       sha: commit.sha!,
     );
     final writes = documentsToWrites([
-      ...[...tasks.map(firestore.Task.fromDatastore)],
+      ...[...tasks.map(fs.Task.fromDatastore)],
       commitDocument,
     ], exists: false);
     // TODO(keyonghan): remove try catch logic after validated to work.
@@ -299,7 +299,10 @@ class Scheduler {
     log.info(
       'Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.task.name}"').join(', ')}',
     );
-    await _batchScheduleBuilds(commit, toBeScheduled);
+    await _batchScheduleBuilds(
+      OpaqueCommit.fromDatastore(commit),
+      toBeScheduled,
+    );
     await _uploadToBigQuery(commit);
   }
 
@@ -307,7 +310,7 @@ class Scheduler {
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
   Future<void> _batchScheduleBuilds(
-    Commit commit,
+    OpaqueCommit commit,
     List<PendingTask> toBeScheduled,
   ) async {
     final batchLog = StringBuffer(
@@ -334,10 +337,10 @@ class Scheduler {
   }
 
   /// Return subset of [commits] not stored in Datastore.
-  Future<List<Commit>> _getMissingCommits(List<Commit> commits) async {
-    final newCommits = <Commit>[];
+  Future<List<ds.Commit>> _getMissingCommits(List<ds.Commit> commits) async {
+    final newCommits = <ds.Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
-    commits.sort((Commit a, Commit b) => b.timestamp!.compareTo(a.timestamp!));
+    commits.sort((a, b) => b.timestamp!.compareTo(a.timestamp!));
     for (var commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
       if (!await _commitExistsInFirestore(sha: commit.sha!)) {
@@ -355,7 +358,7 @@ class Scheduler {
   /// scheduled. Since webhooks or cron jobs can schedule commits, we must
   /// verify a commit has not already been scheduled.
   Future<bool> _commitExistsInFirestore({required String sha}) async {
-    final commit = await firestore_commmit.Commit.tryFromFirestoreBySha(
+    final commit = await fs.Commit.tryFromFirestoreBySha(
       await config.createFirestoreService(),
       sha: sha,
     );
@@ -716,7 +719,7 @@ class Scheduler {
 
       // Create the minimal Commit needed to pass the next stage.
       // Note: headRef encodes refs/heads/... and what we want is the branch
-      final commit = Commit(
+      final commit = ds.Commit(
         branch: mergeGroup.headRef.substring('refs/heads/'.length),
         repository: slug.fullName,
         sha: headSha,
@@ -1485,15 +1488,15 @@ $stacktrace
 
             // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
             final datastore = datastoreProvider(config.db);
-            final commitKey = Commit.createKey(
+            final commitKey = ds.Commit.createKey(
               db: datastore.db,
               slug: slug,
               gitBranch: gitBranch,
               sha: sha,
             );
-            Commit? commit;
+            ds.Commit? commit;
             try {
-              commit = await Commit.fromDatastore(
+              commit = await ds.Commit.fromDatastore(
                 datastore: datastore,
                 key: commitKey,
               );
@@ -1568,7 +1571,7 @@ $stacktrace
             } else {
               log.debug('Rescheduling postsubmit build.');
               final checkName = checkRunEvent.checkRun!.name!;
-              final task = await Task.fromDatastore(
+              final task = await ds.Task.fromDatastore(
                 datastore: datastore,
                 commitKey: commitKey,
                 name: checkName,
@@ -1595,7 +1598,7 @@ $stacktrace
               await luciBuildService
                   .reschedulePostsubmitBuildUsingCheckRunEvent(
                     checkRunEvent,
-                    commit: commit,
+                    commit: OpaqueCommit.fromDatastore(commit),
                     task: task,
                     target: target,
                     taskDocument: taskDocument,
@@ -1628,7 +1631,7 @@ $stacktrace
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
-  Future<void> _uploadToBigQuery(Commit commit) async {
+  Future<void> _uploadToBigQuery(ds.Commit commit) async {
     const projectId = 'flutter-dashboard';
     const dataset = 'cocoon';
     const table = 'Checklist';
