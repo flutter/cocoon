@@ -5,130 +5,189 @@
 import 'dart:async';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
-import 'package:github/github.dart';
-import 'package:github/hooks.dart';
-import 'package:googleapis/firestore/v1.dart';
+import 'package:gcloud/db.dart' as ds;
+import 'package:github/github.dart' as gh;
+import 'package:github/hooks.dart' as gh;
+import 'package:googleapis/firestore/v1.dart' as fs;
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
-import '../../cocoon_service.dart';
-import '../model/appengine/commit.dart';
-import '../model/firestore/commit.dart' as firestore;
+import '../model/appengine/commit.dart' as ds;
+import '../model/firestore/commit.dart' as fs;
+import 'config.dart';
 import 'datastore.dart';
+import 'firestore.dart';
 
-/// A class for doing various actions related to Github commits.
-class CommitService {
+/// Converts and stores GitHub-originated commits into Datastore and Firestore.
+interface class CommitService {
   CommitService({
-    required this.config,
+    required Config config,
+    @visibleForTesting DateTime Function() now = DateTime.now,
     @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-  });
+    DatastoreService Function(ds.DatastoreDB) datastoreProvider =
+        DatastoreService.defaultProvider,
+  }) : _datastoreProvider = datastoreProvider,
+       _config = config,
+       _now = now;
 
-  final Config config;
-  final DatastoreServiceProvider datastoreProvider;
+  final Config _config;
+  final DatastoreServiceProvider _datastoreProvider;
+  final DateTime Function() _now;
 
   /// Add a commit based on a [CreateEvent] to the Datastore.
-  Future<void> handleCreateGithubRequest(CreateEvent createEvent) async {
-    final datastore = datastoreProvider(config.db);
-    final slug = RepositorySlug.full(createEvent.repository!.fullName);
+  Future<void> handleCreateGithubRequest(gh.CreateEvent createEvent) async {
+    // Extract some information from the event.
+    final slug = gh.RepositorySlug.full(createEvent.repository!.fullName);
     final branch = createEvent.ref!;
-    log.info(
-      'Creating commit object for branch $branch in repository ${slug.fullName}',
+
+    // Fetch the ToT commit SHA for the branch.
+    final githubService = await _config.createDefaultGitHubService();
+    final gitRef = await githubService.getReference(slug, 'heads/$branch');
+    final sha = gitRef.object!.sha!;
+    final ghCommit = await githubService.github.repositories.getCommit(
+      slug,
+      sha,
     );
-    final commit = await _createCommitFromBranchEvent(datastore, slug, branch);
-    await _insertCommitIntoDatastore(datastore, commit);
+
+    // Convert into the format the rest of the service uses.
+    await _insertCommit(
+      _Commit.fromBranchEvent(
+        repository: slug,
+        branch: branch,
+        commit: ghCommit,
+        now: _now(),
+      ),
+    );
   }
 
   /// Add a commit based on a Push event to the Datastore.
   /// https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
-  Future<void> handlePushGithubRequest(Map<String, dynamic> pushEvent) async {
-    final datastore = datastoreProvider(config.db);
-    final slug = RepositorySlug.full(
-      pushEvent['repository']['full_name'] as String,
-    );
-    final sha = pushEvent['head_commit']['id'] as String;
-    final branch = pushEvent['ref'].split('/')[2] as String;
-    final id = '${slug.fullName}/$branch/$sha';
-    final key = datastore.db.emptyKey.append<String>(Commit, id: id);
-    final commit = Commit(
-      key: key,
-      timestamp:
-          DateTime.parse(
-            pushEvent['head_commit']['timestamp'] as String,
-          ).millisecondsSinceEpoch,
-      repository: slug.fullName,
-      sha: sha,
-      author: pushEvent['sender']['login'] as String?,
-      authorAvatarUrl: pushEvent['sender']['avatar_url'] as String?,
-      // The field has a size of 1500 we need to ensure the commit message
-      // is at most 1500 chars long.
-      message: truncate(
-        pushEvent['head_commit']['message'] as String,
-        1490,
-        omission: '...',
-      ),
-      branch: branch,
-    );
-    await _insertCommitIntoDatastore(datastore, commit);
+  Future<void> handlePushGithubRequest(Map<String, Object?> pushEvent) async {
+    await _insertCommit(_Commit.fromPushEventJson(pushEvent));
   }
 
-  Future<Commit> _createCommitFromBranchEvent(
-    DatastoreService datastore,
-    RepositorySlug slug,
-    String branch,
-  ) async {
-    final githubService = await config.createDefaultGitHubService();
-    final gitRef = await githubService.getReference(slug, 'heads/$branch');
-    final sha = gitRef.object!.sha!;
-    final commit = await githubService.github.repositories.getCommit(slug, sha);
+  Future<void> _insertCommit(_Commit commit) async {
+    await Future.wait([_insertDatastore(commit), _insertFirestore(commit)]);
+  }
 
-    final id = '${slug.fullName}/$branch/$sha';
-    final key = datastore.db.emptyKey.append<String>(Commit, id: id);
-    return Commit(
-      key: key,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      repository: slug.fullName,
+  Future<void> _insertDatastore(_Commit commit) async {
+    final datastore = _datastoreProvider(_config.db);
+    final commitKey = datastore.db.emptyKey.append<String>(
+      ds.Commit,
+      id: '${commit.repository.fullName}/${commit.branch}/${commit.sha}',
+    );
+    final dsCommit = ds.Commit(
+      key: commitKey,
+      timestamp: commit.createdOn.millisecondsSinceEpoch,
+      repository: commit.repository.fullName,
       sha: commit.sha,
-      author: commit.author?.login,
-      authorAvatarUrl: commit.author?.avatarUrl,
-      // The field has a size of 1500 we need to ensure the commit message
-      // is at most 1500 chars long.
-      message: truncate(commit.commit!.message!, 1490, omission: '...'),
-      branch: branch,
+      author: commit.author,
+      authorAvatarUrl: commit.avatar,
+      message: commit.message,
+      branch: commit.branch,
     );
-  }
-
-  Future<void> _insertCommitIntoDatastore(
-    DatastoreService datastore,
-    Commit commit,
-  ) async {
-    final firestoreService = await config.createFirestoreService();
-    final datastore = datastoreProvider(config.db);
+    // Only insert if the commit does not exist.
     try {
       log.info('Checking for existing commit in the datastore');
-      await datastore.lookupByValue<Commit>(commit.key);
-    } on KeyNotFoundException {
+      await datastore.lookupByValue<ds.Commit>(commitKey);
+    } on ds.KeyNotFoundException {
       log.info('Commit does not exist in datastore, inserting into datastore');
-      await datastore.insert(<Commit>[commit]);
-      try {
-        final commitDocument = firestore.Commit(
-          author: commit.author!,
-          avatar: commit.authorAvatarUrl!,
-          branch: commit.branch!,
-          createTimestamp: commit.timestamp!,
-          message: commit.message!,
-          repositoryPath: commit.repository!,
-          sha: commit.sha!,
-        );
-        final writes = documentsToWrites([commitDocument], exists: false);
-        await firestoreService.batchWriteDocuments(
-          BatchWriteRequest(writes: writes),
-          kDatabase,
-        );
-      } catch (e) {
-        log.warn('Failed to insert new branched commit in Firestore', e);
-      }
+      await datastore.insert([dsCommit]);
     }
   }
+
+  Future<void> _insertFirestore(_Commit commit) async {
+    final firestore = await _config.createFirestoreService();
+    final fsCommit = fs.Commit(
+      createTimestamp: commit.createdOn.millisecondsSinceEpoch,
+      repositoryPath: commit.repository.fullName,
+      sha: commit.sha,
+      author: commit.author,
+      avatar: commit.avatar,
+      message: commit.message,
+      branch: commit.branch,
+    );
+    await firestore.batchWriteDocuments(
+      fs.BatchWriteRequest(writes: documentsToWrites([fsCommit])),
+      kDatabase,
+    );
+  }
+}
+
+/// A commit that is database and origin agnostic.
+final class _Commit {
+  _Commit._({
+    required this.repository,
+    required this.author,
+    required this.avatar,
+    required this.branch,
+    required this.sha,
+    required this.createdOn,
+    required this.message,
+  });
+
+  factory _Commit.fromBranchEvent({
+    required gh.RepositorySlug repository,
+    required String branch,
+    required gh.RepositoryCommit commit,
+    required DateTime now,
+  }) {
+    return _Commit._(
+      repository: repository,
+      author: commit.author!.login!,
+      avatar: commit.author!.avatarUrl!,
+      branch: branch,
+      sha: commit.sha!,
+      createdOn: now,
+      message: truncate(commit.commit!.message!, 1490, omission: '...'),
+    );
+  }
+
+  factory _Commit.fromPushEventJson(Map<String, Object?> json) {
+    if (json case {
+      'repository': {'full_name': final String fullName},
+      'head_commit': {
+        'id': final String sha,
+        'message': final String message,
+        'timestamp': final String timestamp,
+      },
+      'ref': final String ref,
+      'sender': {
+        'login': final String author,
+        'avatar_url': final String avatar,
+      },
+    }) {
+      return _Commit._(
+        repository: gh.RepositorySlug.full(fullName),
+        author: author,
+        avatar: avatar,
+        branch: ref.split('/')[2],
+        sha: sha,
+        createdOn: DateTime.parse(timestamp),
+        message: truncate(message, 1490, omission: '...'),
+      );
+    }
+    throw FormatException('Invalid JSON for commit: $json');
+  }
+
+  /// Which repository this commit belongs to.
+  final gh.RepositorySlug repository;
+
+  /// The author of the commit.
+  final String author;
+
+  /// The avatar of the author.
+  final String avatar;
+
+  /// The branch this commit belongs to.
+  final String branch;
+
+  /// The SHA of the commit.
+  final String sha;
+
+  /// The date this commit was created.
+  final DateTime createdOn;
+
+  /// The commit message, possibly truncated.
+  final String message;
 }
