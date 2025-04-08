@@ -157,6 +157,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
             .where((dynamic target) => target[kCiYamlTargetIsFlakyKey] == true)
             .map<YamlMap?>((dynamic target) => target as YamlMap?)
             .toList();
+    log.debug(
+      'Possibly eligible flaky builders:\n'
+      '${flakyTargets.map((t) => t![kCiYamlTargetNameKey]).join('\n')}',
+    );
     final result = <_BuilderInfo>[];
     final lines = content.split('\n');
     final nameToExistingPRs = await getExistingPRs(gitHub, slug);
@@ -164,14 +168,17 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       final builder = flakyTarget![kCiYamlTargetNameKey] as String?;
       // If target specified ignore_flakiness, then skip.
       if (getIgnoreFlakiness(builder, ciYaml)) {
+        log.debug('Skipping $builder, ignore_flakiness specified');
         continue;
       }
       if (ignoredBuilders.contains(builder)) {
+        log.debug('Skipping $builder, explicitly deny-listed in Cocoon');
         continue;
       }
       // Skip the flaky target if the issue or pr for the flaky target is still
       // open.
-      if (nameToExistingPRs.containsKey(builder)) {
+      if (nameToExistingPRs[builder] case final pr?) {
+        log.debug('Skipping $builder, an existing PR is open: ${pr.htmlUrl}');
         continue;
       }
 
@@ -179,12 +186,13 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       var builderLineNumber =
           lines.indexWhere((String line) => line.contains('name: $builder')) +
           1;
+      _BuilderInfo? toBeAdded;
       while (builderLineNumber < lines.length &&
           !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
           final match = _issueLinkRegex.firstMatch(lines[builderLineNumber]);
           if (match == null) {
-            result.add(_BuilderInfo(name: builder));
+            toBeAdded = _BuilderInfo(name: builder);
             break;
           }
           final issue =
@@ -193,11 +201,16 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
                 issueNumber: int.parse(match.namedGroup('id')!),
               )!;
           if (issue.isClosed) {
-            result.add(_BuilderInfo(name: builder, existingIssue: issue));
+            toBeAdded = _BuilderInfo(name: builder, existingIssue: issue);
           }
           break;
         }
         builderLineNumber += 1;
+      }
+      if (toBeAdded != null) {
+        result.add(toBeAdded);
+      } else {
+        log.debug('Skipping $builder, could not find matching builder line');
       }
     }
     return result;
