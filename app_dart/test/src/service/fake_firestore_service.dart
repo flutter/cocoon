@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -475,6 +476,30 @@ final class _InStorage<T extends AppDocument<T>> extends Matcher {
     return matcher.matches(
       item.documents.where((d) => isDocumentA(d, metadata)),
       {},
+    );
+  }
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    _,
+    _,
+  ) {
+    if (item is! FakeFirestoreService) {
+      return mismatchDescription
+          .add('Expected a FakeFirestoreService, but got a')
+          .addDescriptionOf(item);
+    }
+    final documentsOfType = [
+      ...item.documents
+          .where((d) => isDocumentA(d, metadata))
+          .map(metadata.fromDocument)
+          .map((d) => d.toJsonRaw()),
+    ];
+    return mismatchDescription.add(
+      'Has ${documentsOfType.length} $T: '
+      '${const JsonEncoder.withIndent('  ').convert(documentsOfType)}',
     );
   }
 }

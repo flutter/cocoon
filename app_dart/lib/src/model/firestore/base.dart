@@ -125,7 +125,7 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
   String? createTime;
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<String, Object?> toJson() {
     // Copied from [g.Document.toJson].
     return {
       'fields': fields,
@@ -135,7 +135,12 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
     };
   }
 
-  Map<String, Object?> _fieldsToJson() {
+  /// Returns the raw JSON representation without following [g.Document.toJson].
+  ///
+  /// Should be used for testing only.
+  @nonVirtual
+  @visibleForTesting
+  Map<String, Object?> toJsonRaw() {
     return _fields.map((k, v) => MapEntry(k, _valueToJson(v)));
   }
 
@@ -159,6 +164,6 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
   @override
   @nonVirtual
   String toString() {
-    return '$runtimeType ${const JsonEncoder.withIndent('  ').convert(_fieldsToJson())}';
+    return '$runtimeType ${const JsonEncoder.withIndent('  ').convert(toJsonRaw())}';
   }
 }
