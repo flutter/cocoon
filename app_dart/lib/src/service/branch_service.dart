@@ -3,19 +3,15 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
-import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../request_handling/exceptions.dart';
 import 'config.dart';
 import 'gerrit_service.dart';
-
-part 'branch_service.g.dart';
 
 /// Manages, synchronizes, and associates GitHub branches with branch candidate versions.
 interface class BranchService {
@@ -94,12 +90,15 @@ interface class BranchService {
   ///
   /// Latest beta and stable branches are retrieved based on 'beta' and 'stable' tags. Dev branch is retrived
   /// as the latest flutter candidate branch.
-  Future<List<ReleaseBranch>> getReleaseBranches({
+  Future<List<rpc_model.Branch>> getReleaseBranches({
     required gh.RepositorySlug slug,
   }) async {
     final results = [
       // Always include master -> HEAD.
-      ReleaseBranch(channel: Config.defaultBranch(slug), reference: 'master'),
+      rpc_model.Branch(
+        channel: Config.defaultBranch(slug),
+        reference: 'master',
+      ),
     ];
 
     // And then for each of these channels, lookup
@@ -112,7 +111,7 @@ interface class BranchService {
         log.warn('Could not resolve release branch for "$channel"');
         continue;
       }
-      results.add(ReleaseBranch(channel: channel, reference: reference));
+      results.add(rpc_model.Branch(channel: channel, reference: reference));
     }
 
     return results;
@@ -139,48 +138,4 @@ interface class BranchService {
       return null;
     }
   }
-}
-
-/// Represents a branch that is synced for flutter/flutter.
-@JsonSerializable(checked: true)
-@immutable
-final class ReleaseBranch {
-  /// Creates a release branch association between [channel] and [reference].
-  const ReleaseBranch({required this.channel, required this.reference});
-
-  /// Creates a release branch from the inverse of the [toJson] method.
-  factory ReleaseBranch.fromJson(Map<String, Object?> json) {
-    try {
-      return _$ReleaseBranchFromJson(json);
-    } on CheckedFromJsonException catch (e) {
-      throw FormatException('$e', json);
-    }
-  }
-
-  /// Name of the release channel, such as `master`, `stable`, `beta`, or `staging`.
-  ///
-  /// Note that `staging` is intended as a non user-visible channel for team development.
-  @JsonKey(name: 'channel')
-  final String channel;
-
-  /// The git reference, on `flutter/flutter`, that [channel] ias assocaited with.
-  @JsonKey(name: 'reference')
-  final String reference;
-
-  @override
-  bool operator ==(Object other) {
-    return other is ReleaseBranch &&
-        channel == other.channel &&
-        reference == other.reference;
-  }
-
-  @override
-  int get hashCode => Object.hash(channel, reference);
-
-  /// Returns a JSON object representation of `this`.
-  Map<String, Object?> toJson() => _$ReleaseBranchToJson(this);
-
-  @override
-  String toString() =>
-      'ReleaseBranch ${const JsonEncoder.withIndent('  ').convert(toJson())}';
 }

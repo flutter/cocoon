@@ -137,7 +137,6 @@ void main() {
               'Branch': 'master',
             },
             'Tasks': <void>[],
-            'Status': 'In Progress',
           },
         ]),
       );
@@ -187,7 +186,6 @@ void main() {
                 'BuilderName': 'task1',
               },
             ],
-            'Status': 'In Progress',
           },
           {
             'Commit': {
@@ -210,7 +208,6 @@ void main() {
                 'BuilderName': 'task1',
               },
             ],
-            'Status': 'In Progress',
           },
         ]),
       );

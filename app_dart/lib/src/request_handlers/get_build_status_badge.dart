@@ -5,9 +5,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:meta/meta.dart';
 
-import '../../protos.dart';
 import '../request_handling/body.dart';
 import 'get_build_status.dart';
 
@@ -16,7 +16,7 @@ import 'get_build_status.dart';
 /// It reuses [GetBuildStatus] and translates it to the SVG. The primary caller for this is the
 /// README's from the larger Flutter repositories.
 @immutable
-class GetBuildStatusBadge extends GetBuildStatus {
+final class GetBuildStatusBadge extends GetBuildStatus {
   const GetBuildStatusBadge({
     required super.config,
     required super.buildStatusService,
@@ -53,7 +53,8 @@ class GetBuildStatusBadge extends GetBuildStatus {
     return Body.forString(generateSVG(buildStatusResponse));
   }
 
-  String generateSVG(BuildStatusResponse response) {
+  @visibleForTesting
+  String generateSVG(rpc_model.BuildStatusResponse response) {
     final passing = response.failingTasks.isEmpty;
     return template
         .replaceAll(

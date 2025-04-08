@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
@@ -94,7 +95,7 @@ void main() {
         //
         // See https://github.com/flutter/flutter/issues/164726.
         expect(releaseBranches, [
-          const ReleaseBranch(channel: 'master', reference: 'master'),
+          rpc_model.Branch(channel: 'master', reference: 'master'),
         ]);
       },
     );
@@ -114,12 +115,12 @@ void main() {
         expect(
           releaseBranches,
           unorderedEquals([
-            const ReleaseBranch(channel: 'master', reference: 'master'),
-            const ReleaseBranch(
+            rpc_model.Branch(channel: 'master', reference: 'master'),
+            rpc_model.Branch(
               channel: 'stable',
               reference: 'flutter-3.29-candidate.0',
             ),
-            const ReleaseBranch(
+            rpc_model.Branch(
               channel: 'beta',
               reference: 'flutter-3.30-candidate.0',
             ),
@@ -142,8 +143,8 @@ void main() {
         expect(
           releaseBranches,
           unorderedEquals([
-            const ReleaseBranch(channel: 'master', reference: 'master'),
-            const ReleaseBranch(
+            rpc_model.Branch(channel: 'master', reference: 'master'),
+            rpc_model.Branch(
               channel: 'stable',
               reference: 'flutter-3.29-candidate.0',
             ),

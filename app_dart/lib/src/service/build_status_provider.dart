@@ -49,11 +49,10 @@ interface class BuildStatusService {
   ///
   /// Tree status is only for [defaultBranches].
   Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
-    final statuses =
-        await retrieveCommitStatusFirestore(
-          limit: numberOfCommitsToReferenceForTreeStatus,
-          slug: slug,
-        ).toList();
+    final statuses = await retrieveCommitStatusFirestore(
+      limit: numberOfCommitsToReferenceForTreeStatus,
+      slug: slug,
+    );
     if (statuses.isEmpty) {
       return BuildStatus.failure();
     }
@@ -115,12 +114,12 @@ interface class BuildStatusService {
   ///
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
-  Stream<CommitTasksStatus> retrieveCommitStatusFirestore({
+  Future<List<CommitTasksStatus>> retrieveCommitStatusFirestore({
     required int limit,
     int? timestamp,
     String? branch,
     required RepositorySlug slug,
-  }) async* {
+  }) async {
     final firestore = await _config.createFirestoreService();
     final commits = await firestore.queryRecentCommits(
       limit: limit,
@@ -128,10 +127,10 @@ interface class BuildStatusService {
       branch: branch,
       slug: slug,
     );
-    for (var commit in commits) {
-      final tasks = await firestore.queryCommitTasks(commit.sha);
-      yield CommitTasksStatus(commit, tasks);
-    }
+    return [
+      for (final commit in commits)
+        CommitTasksStatus(commit, await firestore.queryCommitTasks(commit.sha)),
+    ];
   }
 
   bool _isFailed(Task task) {

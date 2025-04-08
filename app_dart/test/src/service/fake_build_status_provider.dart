@@ -22,21 +22,21 @@ class FakeBuildStatusService implements BuildStatusService {
   }
 
   @override
-  Stream<CommitTasksStatus> retrieveCommitStatusFirestore({
+  Future<List<CommitTasksStatus>> retrieveCommitStatusFirestore({
     int limit = 100,
     int? timestamp,
     String? branch,
     required RepositorySlug slug,
-  }) {
+  }) async {
     commitTasksStatuses!.sortBy((c) => c.commit.createTimestamp);
-    return Stream<CommitTasksStatus>.fromIterable(
-      commitTasksStatuses!.where(
-        (CommitTasksStatus commitTasksStatus) =>
-            ((timestamp == null)
-                ? true
-                : commitTasksStatus.commit.createTimestamp < timestamp) &&
-            commitTasksStatus.commit.branch == branch,
-      ),
-    );
+    return commitTasksStatuses!
+        .where(
+          (status) =>
+              ((timestamp == null)
+                  ? true
+                  : status.commit.createTimestamp < timestamp) &&
+              status.commit.branch == branch,
+        )
+        .toList();
   }
 }
