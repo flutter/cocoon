@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -22,20 +21,7 @@ sealed class BuildBucketUserData {
   const BuildBucketUserData();
 
   static Map<String, Object?> _fromJsonBytes(List<int> bytes) {
-    Map<String, Object?> jsonObject;
-    try {
-      jsonObject = json.decode(utf8.decode(bytes)) as Map<String, dynamic>;
-    } on FormatException {
-      // TODO(matanlurey): Remove legacy cases. https://github.com/flutter/flutter/issues/164568.
-      log.warn(
-        'Expected JSON encoding. See https://github.com/flutter/flutter/issues/164568.',
-      );
-      final encodedBytes = String.fromCharCodes(bytes);
-      final base64Decoded = base64.decode(encodedBytes);
-      final decodedJson = json.decode(String.fromCharCodes(base64Decoded));
-      jsonObject = decodedJson as Map<String, Object?>;
-    }
-    return jsonObject;
+    return json.decode(utf8.decode(bytes)) as Map<String, Object?>;
   }
 
   static const _deepEq = DeepCollectionEquality();
