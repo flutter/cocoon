@@ -11,7 +11,6 @@ import 'package:cocoon_service/src/model/github/checks.dart';
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
@@ -430,12 +429,6 @@ void main() {
   });
 
   group('reschedulePostsubmitBuildUsingCheckRunEvent', () {
-    late DatastoreService datastoreService;
-
-    setUp(() {
-      datastoreService = DatastoreService(datastoreDB, 5);
-    });
-
     test('reschedules', () async {
       when(
         mockGithubChecksUtil.createCheckRun(any, any, any, any),
@@ -485,8 +478,6 @@ void main() {
         task: generateTask(0, parent: dsCommit),
         target: generateTarget(0),
         taskDocument: fsTask,
-        datastore: datastoreService,
-        firestoreService: firestoreService,
       );
 
       expect(
@@ -524,8 +515,6 @@ void main() {
           task: generateTask(0),
           target: generateTarget(0),
           taskDocument: generateFirestoreTask(0),
-          datastore: datastoreService,
-          firestoreService: firestoreService,
         ),
         throwsA(isA<NoBuildFoundException>()),
       );

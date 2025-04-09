@@ -7,7 +7,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart' as ds;
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
 import 'package:test/test.dart';
 
@@ -33,7 +32,6 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeFirestoreService firestoreService;
   late FakeDatastoreDB datastoreDB;
-  late DatastoreService datastoreService;
   late FakePubSub pubSub;
 
   setUp(() {
@@ -41,7 +39,6 @@ void main() {
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestoreService = FakeFirestoreService();
     datastoreDB = FakeDatastoreDB();
-    datastoreService = DatastoreService(datastoreDB, 5);
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
@@ -83,8 +80,6 @@ void main() {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         task: dsTask,
         taskDocument: fsTask,
-        firestoreService: firestoreService,
-        datastore: datastoreService,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -152,8 +147,6 @@ void main() {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         task: dsTask,
         taskDocument: fsTask,
-        firestoreService: firestoreService,
-        datastore: datastoreService,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -223,8 +216,6 @@ void main() {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         task: dsTask,
         taskDocument: fsTask,
-        firestoreService: firestoreService,
-        datastore: datastoreService,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -260,8 +251,6 @@ void main() {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         task: dsTask,
         taskDocument: fsTask,
-        firestoreService: firestoreService,
-        datastore: datastoreService,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -299,8 +288,6 @@ void main() {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         task: dsTask,
         taskDocument: fsTask,
-        firestoreService: firestoreService,
-        datastore: datastoreService,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -339,8 +326,6 @@ void main() {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         task: dsTask,
         taskDocument: fsTask,
-        firestoreService: firestoreService,
-        datastore: datastoreService,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),

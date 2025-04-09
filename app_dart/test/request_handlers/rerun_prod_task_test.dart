@@ -90,12 +90,10 @@ void main() {
       // ignore: discarded_futures
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         ignoreChecks: anyNamed('ignoreChecks'),
-        firestoreService: mockFirestoreService,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).thenAnswer((_) async => true);
@@ -122,12 +120,10 @@ void main() {
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         ignoreChecks: true,
-        firestoreService: mockFirestoreService,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).called(1);
@@ -168,12 +164,10 @@ void main() {
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         ignoreChecks: true,
-        firestoreService: mockFirestoreService,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).called(2);
@@ -193,11 +187,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        firestoreService: anyNamed('firestoreService'),
         taskDocument: anyNamed('taskDocument'),
         ignoreChecks: false,
       ),
@@ -218,11 +210,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        firestoreService: anyNamed('firestoreService'),
         taskDocument: anyNamed('taskDocument'),
         ignoreChecks: false,
       ),
@@ -247,12 +237,10 @@ void main() {
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         ignoreChecks: true,
-        firestoreService: mockFirestoreService,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).called(1);
@@ -291,11 +279,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        firestoreService: anyNamed('firestoreService'),
         taskDocument: anyNamed('taskDocument'),
         ignoreChecks: false,
       ),
@@ -341,11 +327,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        firestoreService: anyNamed('firestoreService'),
         taskDocument: anyNamed('taskDocument'),
         ignoreChecks: false,
       ),
@@ -370,12 +354,10 @@ void main() {
     when(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        datastore: anyNamed('datastore'),
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         ignoreChecks: true,
-        firestoreService: mockFirestoreService,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).thenAnswer((_) async => false);

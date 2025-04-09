@@ -1602,8 +1602,6 @@ $stacktrace
                     task: task,
                     target: target,
                     taskDocument: taskDocument,
-                    datastore: datastore,
-                    firestoreService: firestoreService,
                   );
             }
 
