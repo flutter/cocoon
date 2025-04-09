@@ -21,7 +21,6 @@ import '../../src/model/ci_yaml_matcher.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
-import '../../src/utilities/build_bucket_messages.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
