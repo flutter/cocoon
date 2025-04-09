@@ -14,6 +14,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
+import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -43,6 +44,7 @@ void main() {
       config: FakeConfig(),
       cache: cacheService,
       buildBucketClient: mockBuildBucketClient,
+      pubsub: FakePubSub(),
     );
   });
 

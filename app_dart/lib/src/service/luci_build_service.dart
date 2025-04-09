@@ -42,7 +42,7 @@ class LuciBuildService {
     required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
-    this.pubsub = const PubSub(),
+    required this.pubsub,
     @visibleForTesting
     this.initializePrCheckRuns = PrCheckRuns.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
