@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -20,6 +21,7 @@ import '../../src/model/ci_yaml_matcher.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
+import '../../src/utilities/build_bucket_messages.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -27,6 +29,7 @@ import '../../src/utilities/mocks.mocks.dart';
 ///
 /// Specifically:
 /// - [LuciBuildService.scheduleTryBuilds]
+/// - [LuciBuildService.reschedulePresubmitBuild]
 void main() {
   useTestLoggerPerTest();
 
@@ -462,6 +465,104 @@ void main() {
             'refs/heads/3.7.0-19.0.pre',
           ),
         ),
+      );
+    });
+  });
+
+  group('reschedulePresubmitBuild', () {
+    test('reschedule an existing build', () async {
+      late final bbv2.ScheduleBuildRequest scheduleBuildRequest;
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((i) async {
+        [scheduleBuildRequest] = i.positionalArguments;
+        return generateBbv2Build(Int64(1));
+      });
+
+      await expectLater(
+        luci.reschedulePresubmitBuild(
+          builderName: 'mybuild',
+          build: generateBbv2Build(
+            Int64(1),
+            status: bbv2.Status.FAILURE,
+            name: 'Linux Host Engine',
+          ),
+          nextAttempt: 2,
+          userData: PresubmitUserData(
+            repoOwner: 'flutter',
+            repoName: 'flutter',
+            commitBranch: 'master',
+            commitSha: 'abc123',
+            checkRunId: 1234,
+          ),
+        ),
+        completion(
+          isA<bbv2.Build>()
+              .having((b) => b.id, 'id', Int64(1))
+              .having((b) => b.status, 'status', bbv2.Status.SUCCESS),
+        ),
+      );
+
+      expect(scheduleBuildRequest.hasGitilesCommit(), isFalse);
+      expect(
+        scheduleBuildRequest.tags,
+        contains(bbv2.StringPair(key: 'current_attempt', value: '2')),
+      );
+    });
+
+    test('reschedule a a merge queue with gitiles', () async {
+      late final bbv2.ScheduleBuildRequest scheduleBuildRequest;
+      when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((i) async {
+        [scheduleBuildRequest] = i.positionalArguments;
+        return generateBbv2Build(Int64(1));
+      });
+
+      await expectLater(
+        luci.reschedulePresubmitBuild(
+          builderName: 'mybuild',
+          nextAttempt: 2,
+          userData: PresubmitUserData(
+            repoOwner: 'flutter',
+            repoName: 'flutter',
+            commitBranch: 'master',
+            commitSha: 'abc123',
+            checkRunId: 1234,
+          ),
+          build: generateBbv2Build(
+            Int64(1),
+            status: bbv2.Status.FAILURE,
+            name: 'Linux Host Engine',
+            input: bbv2.Build_Input(
+              gitilesCommit: bbv2.GitilesCommit(
+                project: 'mirrors/flutter',
+                host: 'flutter.googlesource.com',
+                ref:
+                    'refs/heads/gh-readonly-queue/master/'
+                    'pr-160690-021b2b36275342ad94a1ef44f9748b1e6153b0a3',
+                id: '3dc695d1ad9a76a56420efc09fd66abd501fc691',
+              ),
+            ),
+          ),
+        ),
+        completion(
+          isA<bbv2.Build>()
+              .having((b) => b.id, 'id', Int64(1))
+              .having((b) => b.status, 'status', bbv2.Status.SUCCESS),
+        ),
+      );
+
+      expect(
+        scheduleBuildRequest.gitilesCommit,
+        bbv2.GitilesCommit(
+          project: 'mirrors/flutter',
+          host: 'flutter.googlesource.com',
+          ref:
+              'refs/heads/gh-readonly-queue/master/'
+              'pr-160690-021b2b36275342ad94a1ef44f9748b1e6153b0a3',
+          id: '3dc695d1ad9a76a56420efc09fd66abd501fc691',
+        ),
+      );
+      expect(
+        scheduleBuildRequest.tags,
+        contains(bbv2.StringPair(key: 'current_attempt', value: '2')),
       );
     });
   });

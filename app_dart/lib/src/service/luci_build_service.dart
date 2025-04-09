@@ -468,26 +468,6 @@ class LuciBuildService {
     }
   }
 
-  /// Filters [builders] to only those that failed on [pullRequest].
-  Future<List<bbv2.Build?>> failedBuilds({
-    required github.PullRequest pullRequest,
-    required List<Target> targets,
-  }) async {
-    final builds = await getTryBuilds(
-      sha: pullRequest.head!.sha!,
-      builderName: null,
-    );
-    final builderNames = targets.map((Target target) => target.value.name);
-    // Return only builds that exist in the configuration file.
-    final Iterable<bbv2.Build?> failedBuilds = builds.where(
-      (bbv2.Build? build) => failStatusSet.contains(build!.status),
-    );
-    final expectedFailedBuilds = failedBuilds.where(
-      (bbv2.Build? build) => builderNames.contains(build!.builder.builder),
-    );
-    return expectedFailedBuilds.toList();
-  }
-
   /// Sends [ScheduleBuildRequest] using information from a given build's
   /// [BuildPushMessage].
   ///
@@ -662,6 +642,7 @@ class LuciBuildService {
   ///
   /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
   /// returns the original list.
+  @useResult
   Future<List<PendingTask>> schedulePostsubmitBuilds({
     required OpaqueCommit commit,
     required List<PendingTask> toBeScheduled,
@@ -1069,6 +1050,7 @@ class LuciBuildService {
   ///   2. It is for the tip of tree
   ///   3. The last known status is not green
   ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
+  @useResult
   Future<bool> checkRerunBuilder({
     required OpaqueCommit commit,
     required Target target,
