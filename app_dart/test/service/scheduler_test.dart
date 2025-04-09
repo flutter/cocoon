@@ -14,6 +14,8 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
@@ -527,13 +529,15 @@ void main() {
         expect(commit.authorAvatarUrl, 'dashatar');
         expect(commit.message, 'example message');
 
-        // FIXME: Replace with existsInStorage(...).
-        //
-        // final List<Object?> captured =
-        //     verify(firestoreService.writeViaTransaction(captureAny)).captured;
-        // expect(captured.length, 1);
-        // final commitResponse = captured[0] as List<Write>;
-        // expect(commitResponse.length, 4);
+        expect(
+          firestoreService,
+          existsInStorage(fs.Commit.metadata, hasLength(1)),
+        );
+
+        expect(
+          firestoreService,
+          existsInStorage(fs.Task.metadata, hasLength(3)),
+        );
       });
 
       test('run all tasks if regular release candidate branch', () async {
@@ -606,24 +610,22 @@ void main() {
           reason: 'removes release_build targets (Linux engine_build)',
         );
 
-        // FIXME: Convert to existsInStorage.
-        // final captured =
-        //     verify(
-        //       firestoreService.writeViaTransaction(captureAny),
-        //     ).captured.cast<List<Write>>();
-        // expect(
-        //   captured.first.map((write) => write.update?.name),
-        //   [
-        //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux A_1',
-        //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf_1',
-        //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Google Internal Roll_1',
-        //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux Z_1',
-        //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux engine_presubmit_1',
-        //     'projects/flutter-dashboard/databases/cocoon/documents/tasks/abc_Linux runIf engine_1',
-        //     'projects/flutter-dashboard/databases/cocoon/documents/commits/abc',
-        //   ],
-        //   reason: 'postsubmit release_build targets removed',
-        // );
+        expect(
+          firestoreService,
+          existsInStorage(fs.Commit.metadata, hasLength(1)),
+        );
+
+        expect(
+          firestoreService,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasTaskName('Linux A'),
+            isTask.hasTaskName('Linux runIf'),
+            isTask.hasTaskName('Google Internal Roll'),
+            isTask.hasTaskName('Linux Z'),
+            isTask.hasTaskName('Linux engine_presubmit'),
+            isTask.hasTaskName('Linux runIf engine'),
+          ]),
+        );
       });
 
       test(
