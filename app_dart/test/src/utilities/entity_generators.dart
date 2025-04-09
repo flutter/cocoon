@@ -202,6 +202,7 @@ Target generateTarget(
   github.RepositorySlug? slug,
   pb.SchedulerSystem? schedulerSystem,
   String recipe = 'devicelab/devicelab',
+  String? name,
 }) {
   final config = schedulerConfig ?? exampleConfig.configFor(CiType.any);
   if (platformProperties != null && platformDimensions != null) {
@@ -221,7 +222,7 @@ Target generateTarget(
     schedulerConfig: config,
     slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
     value: pb.Target(
-      name: '$platform $i',
+      name: name ?? '$platform $i',
       properties: properties,
       dimensions: dimensions,
       runIf: runIf ?? <String>[],

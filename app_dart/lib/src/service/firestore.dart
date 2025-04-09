@@ -289,6 +289,23 @@ class FirestoreService with FirestoreQueries {
     return databasesDocumentsResource.get(name);
   }
 
+  /// Creates a document.
+  ///
+  /// A document name is automatically generated.
+  ///
+  /// If the document already exists, a 409 [DetailedApiRequestError] is thrown.
+  Future<Document> createDocument(
+    Document document, {
+    required String collectionId,
+  }) async {
+    final databasesDocumentsResource = await documentResource();
+    return databasesDocumentsResource.createDocument(
+      document,
+      '$kDatabase/documents',
+      collectionId,
+    );
+  }
+
   /// Batch writes documents to Firestore.
   ///
   /// It does not apply the write operations atomically and can apply them out of order.

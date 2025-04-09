@@ -87,10 +87,11 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
           );
         }
       }, retryIf: (Exception e) => e is InternalServerError);
-    } catch (e) {
+    } catch (e, s) {
       log.warn(
         'Failed to schedule builds on exception: $unscheduledWarning.',
         e,
+        s,
       );
 
       await _failUnscheduledCheckRuns(batchRequest, errors);

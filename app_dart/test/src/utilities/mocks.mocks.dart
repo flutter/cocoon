@@ -16,7 +16,7 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i19;
 import 'package:cocoon_service/src/model/appengine/commit.dart' as _i35;
 import 'package:cocoon_service/src/model/appengine/key_helper.dart' as _i9;
 import 'package:cocoon_service/src/model/appengine/task.dart' as _i36;
-import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i42;
+import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i41;
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart' as _i25;
 import 'package:cocoon_service/src/model/firestore/commit.dart' as _i39;
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart'
@@ -24,7 +24,7 @@ import 'package:cocoon_service/src/model/firestore/github_build_status.dart'
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
     as _i17;
 import 'package:cocoon_service/src/model/firestore/task.dart' as _i40;
-import 'package:cocoon_service/src/model/github/checks.dart' as _i45;
+import 'package:cocoon_service/src/model/github/checks.dart' as _i44;
 import 'package:cocoon_service/src/service/access_token_provider.dart' as _i27;
 import 'package:cocoon_service/src/service/bigquery.dart' as _i13;
 import 'package:cocoon_service/src/service/commit_service.dart' as _i30;
@@ -34,18 +34,18 @@ import 'package:cocoon_service/src/service/firestore.dart' as _i12;
 import 'package:cocoon_service/src/service/gerrit_service.dart' as _i23;
 import 'package:cocoon_service/src/service/github_service.dart' as _i14;
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart'
-    as _i41;
+    as _i48;
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
     as _i32;
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
-    as _i43;
+    as _i42;
 import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart'
-    as _i46;
+    as _i45;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
-    as _i48;
+    as _i47;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
-    as _i44;
-import 'package:fixnum/fixnum.dart' as _i47;
+    as _i43;
+import 'package:fixnum/fixnum.dart' as _i46;
 import 'package:gcloud/db.dart' as _i8;
 import 'package:github/github.dart' as _i10;
 import 'package:github/hooks.dart' as _i31;
@@ -1659,6 +1659,30 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
             Invocation.method(#getDocument, [name]),
             returnValue: _i15.Future<_i16.Document>.value(
               _FakeDocument_19(this, Invocation.method(#getDocument, [name])),
+            ),
+          )
+          as _i15.Future<_i16.Document>);
+
+  @override
+  _i15.Future<_i16.Document> createDocument(
+    _i16.Document? document, {
+    required String? collectionId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #createDocument,
+              [document],
+              {#collectionId: collectionId},
+            ),
+            returnValue: _i15.Future<_i16.Document>.value(
+              _FakeDocument_19(
+                this,
+                Invocation.method(
+                  #createDocument,
+                  [document],
+                  {#collectionId: collectionId},
+                ),
+              ),
             ),
           )
           as _i15.Future<_i16.Document>);
@@ -4725,26 +4749,10 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<Iterable<_i6.Build>>);
 
   @override
-  _i15.Future<Iterable<_i6.Build>> getBuilds({
-    required String? builderName,
-    required String? bucket,
-    required _i41.BuildTags? tags,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBuilds, [], {
-              #builderName: builderName,
-              #bucket: bucket,
-              #tags: tags,
-            }),
-            returnValue: _i15.Future<Iterable<_i6.Build>>.value(<_i6.Build>[]),
-          )
-          as _i15.Future<Iterable<_i6.Build>>);
-
-  @override
-  _i15.Future<List<_i42.Target>> scheduleTryBuilds({
-    required List<_i42.Target>? targets,
+  _i15.Future<List<_i41.Target>> scheduleTryBuilds({
+    required List<_i41.Target>? targets,
     required _i10.PullRequest? pullRequest,
-    required _i43.EngineArtifacts? engineArtifacts,
+    required _i42.EngineArtifacts? engineArtifacts,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleTryBuilds, [], {
@@ -4752,9 +4760,9 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
             }),
-            returnValue: _i15.Future<List<_i42.Target>>.value(<_i42.Target>[]),
+            returnValue: _i15.Future<List<_i41.Target>>.value(<_i41.Target>[]),
           )
-          as _i15.Future<List<_i42.Target>>);
+          as _i15.Future<List<_i41.Target>>);
 
   @override
   _i15.Future<void> cancelBuilds({
@@ -4787,25 +4795,11 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<void>);
 
   @override
-  _i15.Future<List<_i6.Build?>> failedBuilds({
-    required _i10.PullRequest? pullRequest,
-    required List<_i42.Target>? targets,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#failedBuilds, [], {
-              #pullRequest: pullRequest,
-              #targets: targets,
-            }),
-            returnValue: _i15.Future<List<_i6.Build?>>.value(<_i6.Build?>[]),
-          )
-          as _i15.Future<List<_i6.Build?>>);
-
-  @override
   _i15.Future<_i6.Build> reschedulePresubmitBuild({
     required String? builderName,
     required _i6.Build? build,
     required int? nextAttempt,
-    required _i44.PresubmitUserData? userData,
+    required _i43.PresubmitUserData? userData,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#reschedulePresubmitBuild, [], {
@@ -4843,10 +4837,10 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
-    _i45.CheckRunEvent? checkRunEvent, {
-    required _i46.OpaqueCommit? commit,
+    _i44.CheckRunEvent? checkRunEvent, {
+    required _i45.OpaqueCommit? commit,
     required _i36.Task? task,
-    required _i42.Target? target,
+    required _i41.Target? target,
     required _i40.Task? taskDocument,
     required _i33.DatastoreService? datastore,
     required _i12.FirestoreService? firestoreService,
@@ -4871,7 +4865,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<_i6.Build> getBuildById(
-    _i47.Int64? id, {
+    _i46.Int64? id, {
     _i6.BuildMask? buildMask,
   }) =>
       (super.noSuchMethod(
@@ -4900,25 +4894,25 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<Set<String>>);
 
   @override
-  _i15.Future<List<_i48.PendingTask>> schedulePostsubmitBuilds({
-    required _i46.OpaqueCommit? commit,
-    required List<_i48.PendingTask>? toBeScheduled,
+  _i15.Future<List<_i47.PendingTask>> schedulePostsubmitBuilds({
+    required _i45.OpaqueCommit? commit,
+    required List<_i47.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#schedulePostsubmitBuilds, [], {
               #commit: commit,
               #toBeScheduled: toBeScheduled,
             }),
-            returnValue: _i15.Future<List<_i48.PendingTask>>.value(
-              <_i48.PendingTask>[],
+            returnValue: _i15.Future<List<_i47.PendingTask>>.value(
+              <_i47.PendingTask>[],
             ),
           )
-          as _i15.Future<List<_i48.PendingTask>>);
+          as _i15.Future<List<_i47.PendingTask>>);
 
   @override
   _i15.Future<void> scheduleMergeGroupBuilds({
     required _i35.Commit? commit,
-    required List<_i42.Target>? targets,
+    required List<_i41.Target>? targets,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleMergeGroupBuilds, [], {
@@ -4932,8 +4926,8 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<_i10.CheckRun> createPostsubmitCheckRun(
-    _i46.OpaqueCommit? commit,
-    _i42.Target? target,
+    _i45.OpaqueCommit? commit,
+    _i41.Target? target,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#createPostsubmitCheckRun, [commit, target]),
@@ -4948,13 +4942,13 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<bool> checkRerunBuilder({
-    required _i46.OpaqueCommit? commit,
-    required _i42.Target? target,
+    required _i45.OpaqueCommit? commit,
+    required _i41.Target? target,
     required _i36.Task? task,
     required _i33.DatastoreService? datastore,
     required _i40.Task? taskDocument,
     required _i12.FirestoreService? firestoreService,
-    Iterable<_i41.BuildTag>? tags = const [],
+    Iterable<_i48.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
       (super.noSuchMethod(

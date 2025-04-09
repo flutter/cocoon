@@ -36,24 +36,11 @@ void main() {
         headSha: '1234abc',
       );
 
-      late MockProjectsDatabasesDocumentsResource docRes;
-
-      setUp(() {
-        docRes = MockProjectsDatabasesDocumentsResource();
-        when(
-          // ignore: discarded_futures
-          firestoreService.documentResource(),
-        ).thenAnswer((_) async => docRes);
-      });
-
       test('creates a document with the correct fields', () async {
         when(
-          docRes.createDocument(
+          firestoreService.createDocument(
             any,
-            any,
-            any,
-            documentId: anyNamed('documentId'),
-            $fields: anyNamed(r'$fields'),
+            collectionId: anyNamed('collectionId'),
           ),
         ).thenAnswer((Invocation inv) async {
           return Document(
@@ -67,19 +54,13 @@ void main() {
           checks: runs,
         );
         final result = verify(
-          docRes.createDocument(
+          firestoreService.createDocument(
             captureAny,
-            captureAny,
-            captureAny,
-            documentId: anyNamed('documentId'),
+            collectionId: captureAnyNamed('collectionId'),
           ),
         );
         expect(result.callCount, 1);
-        final captured = result.captured;
-        final document = captured[0] as Document;
-        final parent = captured[1] as String;
-        final collectionId = captured[2] as String;
-        expect(parent, kDocumentParent);
+        final [Document document, String collectionId] = result.captured;
         expect(collectionId, PrCheckRuns.kCollectionId);
         expect(
           document.fields![PrCheckRuns.kPullRequestField]!.stringValue,

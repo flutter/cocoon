@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -143,7 +144,12 @@ abstract base class _FakeInMemoryFirestoreService
     if (name == null) {
       throw ArgumentError.value(document, 'document', 'name must be set');
     }
-    if (_failOnWrite[name] case final exception?) {
+    if (_failOnWriteDocument[name] case final exception?) {
+      throw exception;
+    }
+
+    final collection = p.basename(p.dirname(name));
+    if (_failOnWriteCollection[collection] case final exception?) {
       throw exception;
     }
     final existing = tryPeekDocumentByName(name);
@@ -159,16 +165,34 @@ abstract base class _FakeInMemoryFirestoreService
     return _clone(_documents[name]!);
   }
 
-  final _failOnWrite = <String, Exception>{};
+  final _failOnWriteDocument = <String, Exception>{};
 
   /// Instructs the fake to throw an exception if [document] is written.
-  void failOnWrite(Document document, [DetailedApiRequestError? exception]) {
+  void failOnWriteDocument(
+    Document document, [
+    DetailedApiRequestError? exception,
+  ]) {
     if (document.name == null) {
       fail('Missing "name" field');
     }
-    _failOnWrite[document.name!] =
+    _failOnWriteDocument[document.name!] =
         exception ??
-        DetailedApiRequestError(500, 'Used failOnWrite(${document.name})');
+        DetailedApiRequestError(
+          500,
+          'Used failOnWriteDocument(${document.name})',
+        );
+  }
+
+  final _failOnWriteCollection = <String, Exception>{};
+
+  /// Instructs the fake to throw an exception if [collection] is written.
+  void failOnWriteCollection(
+    String collection, [
+    DetailedApiRequestError? exception,
+  ]) {
+    _failOnWriteCollection[collection] =
+        exception ??
+        DetailedApiRequestError(500, 'Used failOnWriteCollection($collection)');
   }
 
   @override
@@ -236,6 +260,24 @@ abstract base class _FakeInMemoryFirestoreService
       );
     }
     return result;
+  }
+
+  @override
+  Future<Document> createDocument(
+    Document document, {
+    required String collectionId,
+  }) async {
+    if (document.name case final name?
+        when tryPeekDocumentByName(name) != null) {
+      throw DetailedApiRequestError(
+        HttpStatus.notFound,
+        'Document "$name" already exists',
+      );
+    }
+    return putDocument(
+      _clone(document)
+        ..name = resolveDocumentName(collectionId, _generateUniqueId()),
+    );
   }
 
   @override
@@ -457,6 +499,30 @@ final class _InStorage<T extends AppDocument<T>> extends Matcher {
     return matcher.matches(
       item.documents.where((d) => isDocumentA(d, metadata)),
       {},
+    );
+  }
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    _,
+    _,
+  ) {
+    if (item is! FakeFirestoreService) {
+      return mismatchDescription
+          .add('Expected a FakeFirestoreService, but got a')
+          .addDescriptionOf(item);
+    }
+    final documentsOfType = [
+      ...item.documents
+          .where((d) => isDocumentA(d, metadata))
+          .map(metadata.fromDocument)
+          .map((d) => d.toJsonRaw()),
+    ];
+    return mismatchDescription.add(
+      'Has ${documentsOfType.length} $T: '
+      '${const JsonEncoder.withIndent('  ').convert(documentsOfType)}',
     );
   }
 }

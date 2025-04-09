@@ -42,7 +42,7 @@ class LuciBuildService {
     required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
-    this.pubsub = const PubSub(),
+    required this.pubsub,
     @visibleForTesting
     this.initializePrCheckRuns = PrCheckRuns.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
@@ -122,7 +122,7 @@ class LuciBuildService {
     required String sha,
     String? builderName,
   }) async {
-    return getBuilds(
+    return _getBuilds(
       builderName: builderName,
       bucket: 'try',
       tags: BuildTags([
@@ -139,7 +139,7 @@ class LuciBuildService {
     required github.PullRequest pullRequest,
   }) async {
     final slug = pullRequest.base!.repo!.slug();
-    return getBuilds(
+    return _getBuilds(
       builderName: null,
       bucket: 'try',
       tags: BuildTags([
@@ -161,7 +161,7 @@ class LuciBuildService {
     String? builderName,
     String? sha,
   }) async {
-    return getBuilds(
+    return _getBuilds(
       builderName: builderName,
       bucket: 'prod',
       tags: BuildTags([
@@ -179,7 +179,7 @@ class LuciBuildService {
   ///
   /// Returns an iterable of try BuildBucket [Build]s for a given
   /// [builderName], [bucket], and [tags].
-  Future<Iterable<bbv2.Build>> getBuilds({
+  Future<Iterable<bbv2.Build>> _getBuilds({
     required String? builderName,
     required String bucket,
     required BuildTags tags,
@@ -468,26 +468,6 @@ class LuciBuildService {
     }
   }
 
-  /// Filters [builders] to only those that failed on [pullRequest].
-  Future<List<bbv2.Build?>> failedBuilds({
-    required github.PullRequest pullRequest,
-    required List<Target> targets,
-  }) async {
-    final builds = await getTryBuilds(
-      sha: pullRequest.head!.sha!,
-      builderName: null,
-    );
-    final builderNames = targets.map((Target target) => target.value.name);
-    // Return only builds that exist in the configuration file.
-    final Iterable<bbv2.Build?> failedBuilds = builds.where(
-      (bbv2.Build? build) => failStatusSet.contains(build!.status),
-    );
-    final expectedFailedBuilds = failedBuilds.where(
-      (bbv2.Build? build) => builderNames.contains(build!.builder.builder),
-    );
-    return expectedFailedBuilds.toList();
-  }
-
   /// Sends [ScheduleBuildRequest] using information from a given build's
   /// [BuildPushMessage].
   ///
@@ -614,7 +594,7 @@ class LuciBuildService {
   }) async {
     final cacheValue = await cache.getOrCreate(
       subCacheName,
-      'builderlist',
+      'builderlist/$project/$bucket',
       createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
       // New commit triggering tasks should be finished within 5 mins.
       // The batch backfiller's execution frequency is also 5 mins.
@@ -662,6 +642,7 @@ class LuciBuildService {
   ///
   /// Returns empty list if all targets are successfully published to pub/sub. Otherwise,
   /// returns the original list.
+  @useResult
   Future<List<PendingTask>> schedulePostsubmitBuilds({
     required OpaqueCommit commit,
     required List<PendingTask> toBeScheduled,
@@ -1069,6 +1050,7 @@ class LuciBuildService {
   ///   2. It is for the tip of tree
   ///   3. The last known status is not green
   ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
+  @useResult
   Future<bool> checkRerunBuilder({
     required OpaqueCommit commit,
     required Target target,
@@ -1165,6 +1147,10 @@ class LuciBuildService {
     FirestoreService firestoreService,
   ) async {
     if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
+      log.info(
+        'A re-run was requested for ${task.taskName} which is not failing '
+        '(${task.status})',
+      );
       return false;
     }
     final retries = task.currentAttempt;
@@ -1183,6 +1169,11 @@ class LuciBuildService {
       branch: currentCommit.branch,
     );
     final latestCommit = commitList.single;
-    return latestCommit.sha == currentCommit.sha;
+
+    if (latestCommit.sha != currentCommit.sha) {
+      log.info('Not tip of tree: ${currentCommit.sha}');
+      return false;
+    }
+    return true;
   }
 }
