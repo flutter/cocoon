@@ -43,8 +43,6 @@ class LuciBuildService {
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     required this.pubsub,
-    @visibleForTesting
-    this.initializePrCheckRuns = PrCheckRuns.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
        gerritService = gerritService ?? GerritService(config: config);
@@ -56,13 +54,6 @@ class LuciBuildService {
   GerritService gerritService;
 
   final PubSub pubsub;
-
-  final Future<Document> Function({
-    required FirestoreService firestoreService,
-    required PullRequest pullRequest,
-    required List<CheckRun> checks,
-  })
-  initializePrCheckRuns;
 
   final Future<PullRequest> Function(
     FirestoreService firestoreService,
@@ -359,7 +350,7 @@ class LuciBuildService {
     // figure out which PR started what check run later (e.g. check_run completed).
     try {
       final firestore = await config.createFirestoreService();
-      final doc = await initializePrCheckRuns(
+      final doc = await PrCheckRuns.initializeDocument(
         firestoreService: firestore,
         pullRequest: pullRequest,
         checks: checkRuns,
