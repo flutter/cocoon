@@ -166,9 +166,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
         commit: OpaqueCommit.fromFirestore(fsCommit),
         target: target,
         task: task,
-        datastore: datastore,
         taskDocument: firestoreTask,
-        firestoreService: firestoreService,
       );
       log.info('Retried: $retried');
     }

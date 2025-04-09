@@ -4642,33 +4642,6 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i22.PubSub);
 
   @override
-  _i15.Future<_i16.Document> Function({
-    required List<_i10.CheckRun> checks,
-    required _i12.FirestoreService firestoreService,
-    required _i10.PullRequest pullRequest,
-  })
-  get initializePrCheckRuns =>
-      (super.noSuchMethod(
-            Invocation.getter(#initializePrCheckRuns),
-            returnValue:
-                ({
-                  required List<_i10.CheckRun> checks,
-                  required _i12.FirestoreService firestoreService,
-                  required _i10.PullRequest pullRequest,
-                }) => _i15.Future<_i16.Document>.value(
-                  _FakeDocument_19(
-                    this,
-                    Invocation.getter(#initializePrCheckRuns),
-                  ),
-                ),
-          )
-          as _i15.Future<_i16.Document> Function({
-            required List<_i10.CheckRun> checks,
-            required _i12.FirestoreService firestoreService,
-            required _i10.PullRequest pullRequest,
-          }));
-
-  @override
   _i15.Future<_i10.PullRequest> Function(_i12.FirestoreService, int, String)
   get findPullRequestFor =>
       (super.noSuchMethod(
@@ -4842,8 +4815,6 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
     required _i36.Task? task,
     required _i41.Target? target,
     required _i40.Task? taskDocument,
-    required _i33.DatastoreService? datastore,
-    required _i12.FirestoreService? firestoreService,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -4854,8 +4825,6 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
                 #task: task,
                 #target: target,
                 #taskDocument: taskDocument,
-                #datastore: datastore,
-                #firestoreService: firestoreService,
               },
             ),
             returnValue: _i15.Future<void>.value(),
@@ -4945,9 +4914,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
     required _i45.OpaqueCommit? commit,
     required _i41.Target? target,
     required _i36.Task? task,
-    required _i33.DatastoreService? datastore,
     required _i40.Task? taskDocument,
-    required _i12.FirestoreService? firestoreService,
     Iterable<_i48.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
@@ -4956,9 +4923,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
               #commit: commit,
               #target: target,
               #task: task,
-              #datastore: datastore,
               #taskDocument: taskDocument,
-              #firestoreService: firestoreService,
               #tags: tags,
               #ignoreChecks: ignoreChecks,
             }),

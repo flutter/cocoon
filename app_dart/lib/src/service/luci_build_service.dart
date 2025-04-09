@@ -43,8 +43,6 @@ class LuciBuildService {
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
     required this.pubsub,
-    @visibleForTesting
-    this.initializePrCheckRuns = PrCheckRuns.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
        gerritService = gerritService ?? GerritService(config: config);
@@ -56,13 +54,6 @@ class LuciBuildService {
   GerritService gerritService;
 
   final PubSub pubsub;
-
-  final Future<Document> Function({
-    required FirestoreService firestoreService,
-    required PullRequest pullRequest,
-    required List<CheckRun> checks,
-  })
-  initializePrCheckRuns;
 
   final Future<PullRequest> Function(
     FirestoreService firestoreService,
@@ -359,7 +350,7 @@ class LuciBuildService {
     // figure out which PR started what check run later (e.g. check_run completed).
     try {
       final firestore = await config.createFirestoreService();
-      final doc = await initializePrCheckRuns(
+      final doc = await PrCheckRuns.initializeDocument(
         firestoreService: firestore,
         pullRequest: pullRequest,
         checks: checkRuns,
@@ -521,8 +512,6 @@ class LuciBuildService {
     required Task task,
     required Target target,
     required firestore.Task taskDocument,
-    required DatastoreService datastore,
-    required FirestoreService firestoreService,
   }) async {
     final checkName = checkRunEvent.checkRun!.name!;
 
@@ -547,8 +536,6 @@ class LuciBuildService {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
         task = task,
         taskDocument = taskDocument,
-        firestoreService = firestoreService,
-        datastore = datastore,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
@@ -1055,15 +1042,12 @@ class LuciBuildService {
     required OpaqueCommit commit,
     required Target target,
     required Task task,
-    required DatastoreService datastore,
     required firestore.Task taskDocument,
-    required FirestoreService firestoreService,
     Iterable<BuildTag> tags = const [],
     bool ignoreChecks = false,
   }) async {
     if (ignoreChecks == false &&
-        await _shouldRerunBuilderFirestore(taskDocument, firestoreService) ==
-            false) {
+        await _shouldRerunBuilderFirestore(taskDocument) == false) {
       return false;
     }
 
@@ -1076,8 +1060,6 @@ class LuciBuildService {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
         task = task,
         taskDocument = taskDocument,
-        firestoreService = firestoreService,
-        datastore = datastore,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
@@ -1117,13 +1099,13 @@ class LuciBuildService {
   Future<int> _updateTaskStatusInDatabaseForRetry(
     Task task,
     firestore.Task taskDocument,
-    FirestoreService firestoreService,
-    DatastoreService datastore,
   ) async {
     // Updates task status in Datastore.
     task.attempts = (task.attempts ?? 0) + 1;
     // Mark task as in progress to ensure it isn't scheduled over.
     task.status = Task.statusInProgress;
+
+    final datastore = DatastoreService.defaultProvider(config.db);
     await datastore.insert(<Task>[task]);
 
     // Updates task status in Firestore.
@@ -1131,6 +1113,8 @@ class LuciBuildService {
     taskDocument.resetAsRetry(attempt: newAttempt);
     taskDocument.setStatus(firestore.Task.statusInProgress);
     final writes = documentsToWrites([taskDocument], exists: false);
+
+    final firestoreService = await config.createFirestoreService();
     await firestoreService.batchWriteDocuments(
       BatchWriteRequest(writes: writes),
       kDatabase,
@@ -1142,10 +1126,7 @@ class LuciBuildService {
   /// Check if a builder should be rerun.
   ///
   /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
-  Future<bool> _shouldRerunBuilderFirestore(
-    firestore.Task task,
-    FirestoreService firestoreService,
-  ) async {
+  Future<bool> _shouldRerunBuilderFirestore(firestore.Task task) async {
     if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
       log.info(
         'A re-run was requested for ${task.taskName} which is not failing '
@@ -1159,6 +1140,7 @@ class LuciBuildService {
       return false;
     }
 
+    final firestoreService = await config.createFirestoreService();
     final currentCommit = await firestore_commit.Commit.fromFirestoreBySha(
       firestoreService,
       sha: task.commitSha,

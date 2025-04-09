@@ -212,10 +212,8 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       commit: OpaqueCommit.fromDatastore(commit),
       task: task,
       target: target,
-      datastore: datastore,
       tags: [TriggerdByBuildTag(email: email)],
       ignoreChecks: ignoreChecks,
-      firestoreService: firestoreService,
       taskDocument: taskDocument,
     );
 
