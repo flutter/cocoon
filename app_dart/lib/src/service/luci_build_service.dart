@@ -1147,6 +1147,10 @@ class LuciBuildService {
     FirestoreService firestoreService,
   ) async {
     if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
+      log.info(
+        'A re-run was requested for ${task.taskName} which is not failing '
+        '(${task.status})',
+      );
       return false;
     }
     final retries = task.currentAttempt;
@@ -1165,6 +1169,11 @@ class LuciBuildService {
       branch: currentCommit.branch,
     );
     final latestCommit = commitList.single;
-    return latestCommit.sha == currentCommit.sha;
+
+    if (latestCommit.sha != currentCommit.sha) {
+      log.info('Not tip of tree: ${currentCommit.sha}');
+      return false;
+    }
+    return true;
   }
 }

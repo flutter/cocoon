@@ -46,14 +46,12 @@ void main() {
   late FakeFirestoreService firestoreService;
   late FakePubSub pubSub;
   late FakeDatastoreDB datastoreDB;
-  late DatastoreService datastoreService;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestoreService = FakeFirestoreService();
     datastoreDB = FakeDatastoreDB();
-    datastoreService = DatastoreService(datastoreDB, 5);
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
@@ -432,11 +430,9 @@ void main() {
   });
 
   group('reschedulePostsubmitBuildUsingCheckRunEvent', () {
-    late FakeDatastoreDB datastoreDB;
     late DatastoreService datastoreService;
 
     setUp(() {
-      datastoreDB = FakeDatastoreDB();
       datastoreService = DatastoreService(datastoreDB, 5);
     });
 

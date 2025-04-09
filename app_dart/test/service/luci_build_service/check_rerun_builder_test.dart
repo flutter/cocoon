@@ -3,23 +3,19 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
-import 'package:cocoon_service/src/service/cache_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
-import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
-import 'package:github/github.dart';
-import 'package:mockito/mockito.dart';
+import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart' as ds;
+import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
+import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
-import '../../src/model/ci_yaml_matcher.dart';
+import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
-import '../../src/service/fake_gerrit_service.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -37,36 +33,321 @@ void main() {
   late MockBuildBucketClient mockBuildBucketClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeFirestoreService firestoreService;
+  late FakeDatastoreDB datastoreDB;
+  late DatastoreService datastoreService;
   late FakePubSub pubSub;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestoreService = FakeFirestoreService();
+    datastoreDB = FakeDatastoreDB();
+    datastoreService = DatastoreService(datastoreDB, 5);
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
-      config: FakeConfig(firestoreService: firestoreService),
+      config: FakeConfig(
+        firestoreService: firestoreService,
+        dbValue: datastoreDB,
+        maxLuciTaskRetriesValue: 2,
+      ),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
     );
   });
 
-  test('runs successfully', () async {
-    // await expectLater(luci.checkRerunBuilder(), completion(isTrue));
+  test('can rerun a test failed builder', () async {
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
+
+    final dsTask = generateTask(
+      1,
+      name: 'Linux foo',
+      parent: dsCommit,
+      status: ds.Task.statusFailed,
+    );
+    await datastoreDB.commit(inserts: [dsCommit, dsTask]);
+
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux foo',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusFailed,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
+    await expectLater(
+      luci.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
+        task: dsTask,
+        taskDocument: fsTask,
+        firestoreService: firestoreService,
+        datastore: datastoreService,
+        target: generateTarget(1, name: 'Linux foo'),
+        tags: [],
+      ),
+      completion(isTrue),
+    );
+
+    expect(pubSub.messages, hasLength(1));
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(scheduleBuild.priority, LuciBuildService.kRerunPriority);
+    expect(
+      scheduleBuild.properties.fields.keys,
+      containsAll(Config.defaultProperties.keys),
+    );
+    expect(scheduleBuild.gitilesCommit.project, 'mirrors/flutter');
+
+    expect(
+      scheduleBuild.tags,
+      allOf(
+        contains(bbv2.StringPair(key: 'current_attempt', value: '2')),
+        contains(bbv2.StringPair(key: 'trigger_type', value: 'auto_retry')),
+      ),
+    );
+
+    expect(
+      firestoreService,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasCurrentAttempt(1).hasStatus(fs.Task.statusFailed),
+        isTask.hasCurrentAttempt(2).hasStatus(fs.Task.statusInProgress),
+      ]),
+    );
   });
 
-  test('can rerun a test failed builder', () async {});
+  test('can rerun an infra failed builder', () async {
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
 
-  test('can rerun an infra failed builder', () async {});
+    final dsTask = generateTask(
+      1,
+      name: 'Linux foo',
+      parent: dsCommit,
+      status: ds.Task.statusInfraFailure,
+    );
+    await datastoreDB.commit(inserts: [dsCommit, dsTask]);
 
-  test('skips rerunning when an exception occurs', () async {});
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux foo',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusInfraFailure,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
 
-  test('skips rerunning a successful builder', () async {});
+    await expectLater(
+      luci.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
+        task: dsTask,
+        taskDocument: fsTask,
+        firestoreService: firestoreService,
+        datastore: datastoreService,
+        target: generateTarget(1, name: 'Linux foo'),
+        tags: [],
+      ),
+      completion(isTrue),
+    );
 
-  test('skips rerunning if past retry limit', () async {});
+    expect(pubSub.messages, hasLength(1));
 
-  test('skips rerunning when builder is not in tip-of-tree', () async {});
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(scheduleBuild.priority, LuciBuildService.kRerunPriority);
+    expect(
+      scheduleBuild.properties.fields.keys,
+      containsAll(Config.defaultProperties.keys),
+    );
+    expect(scheduleBuild.gitilesCommit.project, 'mirrors/flutter');
+
+    expect(
+      scheduleBuild.tags,
+      allOf(
+        contains(bbv2.StringPair(key: 'current_attempt', value: '2')),
+        contains(bbv2.StringPair(key: 'trigger_type', value: 'auto_retry')),
+      ),
+    );
+
+    expect(
+      firestoreService,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasCurrentAttempt(1).hasStatus(fs.Task.statusInfraFailure),
+        isTask.hasCurrentAttempt(2).hasStatus(fs.Task.statusInProgress),
+      ]),
+    );
+  });
+
+  test('skips rerunning when an exception occurs', () async {
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
+
+    final dsTask = generateTask(
+      1,
+      name: 'Linux foo',
+      parent: dsCommit,
+      status: ds.Task.statusFailed,
+    );
+    await datastoreDB.commit(inserts: [dsCommit, dsTask]);
+
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux foo',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusFailed,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
+    firestoreService.failOnWriteCollection(fs.Task.metadata.collectionId);
+
+    await expectLater(
+      luci.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
+        task: dsTask,
+        taskDocument: fsTask,
+        firestoreService: firestoreService,
+        datastore: datastoreService,
+        target: generateTarget(1, name: 'Linux foo'),
+        tags: [],
+      ),
+      completion(isFalse),
+    );
+
+    expect(pubSub.messages, isEmpty);
+  });
+
+  test('skips rerunning a successful builder', () async {
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
+
+    final dsTask = generateTask(
+      1,
+      name: 'Linux foo',
+      parent: dsCommit,
+      status: ds.Task.statusSucceeded,
+    );
+    await datastoreDB.commit(inserts: [dsCommit, dsTask]);
+
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux foo',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusSucceeded,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
+    await expectLater(
+      luci.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
+        task: dsTask,
+        taskDocument: fsTask,
+        firestoreService: firestoreService,
+        datastore: datastoreService,
+        target: generateTarget(1, name: 'Linux foo'),
+        tags: [],
+      ),
+      completion(isFalse),
+    );
+
+    expect(pubSub.messages, isEmpty);
+  });
+
+  test('skips rerunning if past retry limit', () async {
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
+
+    final dsTask = generateTask(
+      1,
+      name: 'Linux foo',
+      parent: dsCommit,
+      status: ds.Task.statusFailed,
+      attempts: 3,
+    );
+    await datastoreDB.commit(inserts: [dsCommit, dsTask]);
+
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux foo',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusFailed,
+      attempts: 3,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
+    await expectLater(
+      luci.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
+        task: dsTask,
+        taskDocument: fsTask,
+        firestoreService: firestoreService,
+        datastore: datastoreService,
+        target: generateTarget(1, name: 'Linux foo'),
+        tags: [],
+      ),
+      completion(isFalse),
+    );
+
+    expect(pubSub.messages, isEmpty);
+  });
+
+  test('skips rerunning when builder is not in tip-of-tree', () async {
+    final dsCommit = generateCommit(1);
+    final fsCommit = generateFirestoreCommit(1);
+
+    final dsTask = generateTask(
+      1,
+      name: 'Linux foo',
+      parent: dsCommit,
+      status: ds.Task.statusFailed,
+    );
+    await datastoreDB.commit(inserts: [dsCommit, dsTask]);
+
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux foo',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusFailed,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
+    // Add another commit to ToT.
+    firestoreService.putDocument(generateFirestoreCommit(2));
+
+    await expectLater(
+      luci.checkRerunBuilder(
+        commit: OpaqueCommit.fromFirestore(fsCommit),
+        task: dsTask,
+        taskDocument: fsTask,
+        firestoreService: firestoreService,
+        datastore: datastoreService,
+        target: generateTarget(1, name: 'Linux foo'),
+        tags: [],
+      ),
+      completion(isFalse),
+    );
+
+    expect(pubSub.messages, isEmpty);
+  });
 }

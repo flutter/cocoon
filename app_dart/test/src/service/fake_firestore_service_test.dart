@@ -63,7 +63,7 @@ void main() {
       name: firestore.resolveDocumentName('messages', 'greeting'),
     );
 
-    firestore.failOnWrite(blockDoc);
+    firestore.failOnWriteDocument(blockDoc);
 
     expect(
       () => firestore.putDocument(blockDoc),
