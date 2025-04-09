@@ -19,9 +19,9 @@ import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/firestore/commit.dart' as firestore_commit;
-import '../model/firestore/pr_check_runs.dart';
-import '../model/firestore/task.dart' as firestore;
+import '../model/firestore/commit.dart' as fs;
+import '../model/firestore/pr_check_runs.dart' as fs;
+import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../service/datastore.dart';
 import 'exceptions.dart';
@@ -33,40 +33,29 @@ import 'luci_build_service/pending_task.dart';
 import 'luci_build_service/user_data.dart';
 
 /// Class to interact with LUCI buildbucket to get, trigger
-/// and cancel builds for github repos. It uses [config.luciTryBuilders] to
+/// and cancel builds for github repos. It uses [_config.luciTryBuilders] to
 /// get the list of available builders.
 class LuciBuildService {
   LuciBuildService({
-    required this.config,
-    required this.cache,
-    required this.buildBucketClient,
+    required Config config,
+    required CacheService cache,
+    required BuildBucketClient buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,
-    required this.pubsub,
-    @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
-  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-       gerritService = gerritService ?? GerritService(config: config);
+    required PubSub pubsub,
+  }) : _pubsub = pubsub,
+       _config = config,
+       _cache = cache,
+       _buildBucketClient = buildBucketClient,
+       _githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
+       _gerritService = gerritService ?? GerritService(config: config);
 
-  BuildBucketClient buildBucketClient;
-  final CacheService cache;
-  Config config;
-  GithubChecksUtil githubChecksUtil;
-  GerritService gerritService;
-
-  final PubSub pubsub;
-
-  final Future<PullRequest> Function(
-    FirestoreService firestoreService,
-    int checkRunId,
-    String checkRunName,
-  )
-  findPullRequestFor;
-
-  static const Set<bbv2.Status> failStatusSet = <bbv2.Status>{
-    bbv2.Status.CANCELED,
-    bbv2.Status.FAILURE,
-    bbv2.Status.INFRA_FAILURE,
-  };
+  final BuildBucketClient _buildBucketClient;
+  final CacheService _cache;
+  final Config _config;
+  final GithubChecksUtil _githubChecksUtil;
+  final GerritService _gerritService;
+  final PubSub _pubsub;
 
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
@@ -91,7 +80,7 @@ class LuciBuildService {
 
   // the Request objects here are the BatchRequest object in bbv2.
   /// Shards [rows] into several sublists of size [maxEntityGroups].
-  Future<List<List<bbv2.BatchRequest_Request>>> shard({
+  Future<List<List<bbv2.BatchRequest_Request>>> _shard({
     required List<bbv2.BatchRequest_Request> requests,
     required int maxShardSize,
   }) async {
@@ -200,7 +189,7 @@ class LuciBuildService {
       searchBuilds: searchBuildsRequest,
     );
 
-    final batchResponse = await buildBucketClient.batch(
+    final batchResponse = await _buildBucketClient.batch(
       bbv2.BatchRequest(requests: {batchRequestRequest}),
     );
 
@@ -245,7 +234,7 @@ class LuciBuildService {
         cipdVersion = CipdVersion.defaultRecipe;
       } else {
         final proposedVersion = CipdVersion(branch: pullRequest.base!.ref!);
-        final branches = await gerritService.branches(
+        final branches = await _gerritService.branches(
           'flutter-review.googlesource.com',
           'recipes',
           filterRegex: 'flutter-.*|fuchsia.*',
@@ -257,15 +246,15 @@ class LuciBuildService {
             'Falling back to default recipe, could not find '
             '"${proposedVersion.version}" in $branches.',
           );
-          cipdVersion = config.defaultRecipeBundleRef;
+          cipdVersion = _config.defaultRecipeBundleRef;
         }
       }
     }
 
     final checkRuns = <github.CheckRun>[];
     for (var target in targets) {
-      final checkRun = await githubChecksUtil.createCheckRun(
-        config,
+      final checkRun = await _githubChecksUtil.createCheckRun(
+        _config,
         target.slug,
         commitSha,
         target.value.name,
@@ -290,7 +279,7 @@ class LuciBuildService {
       final struct = bbv2.Struct.create();
       struct.mergeFromProto3Json(properties);
 
-      final labels = extractPrefixedLabels(
+      final labels = _extractPrefixedLabels(
         issueLabels: pullRequest.labels,
         prefix: githubBuildLabelPrefix,
       );
@@ -349,8 +338,8 @@ class LuciBuildService {
     // All check runs created, now record them in firestore so we can
     // figure out which PR started what check run later (e.g. check_run completed).
     try {
-      final firestore = await config.createFirestoreService();
-      final doc = await PrCheckRuns.initializeDocument(
+      final firestore = await _config.createFirestoreService();
+      final doc = await fs.PrCheckRuns.initializeDocument(
         firestoreService: firestore,
         pullRequest: pullRequest,
         checks: checkRuns,
@@ -363,13 +352,13 @@ class LuciBuildService {
     }
 
     final Iterable<List<bbv2.BatchRequest_Request>> requestPartitions =
-        await shard(
+        await _shard(
           requests: batchRequestList,
-          maxShardSize: config.schedulingShardSize,
+          maxShardSize: _config.schedulingShardSize,
         );
     for (var requestPartition in requestPartitions) {
       final batchRequest = bbv2.BatchRequest(requests: requestPartition);
-      await pubsub.publish(
+      await _pubsub.publish(
         'cocoon-scheduler-requests',
         batchRequest.toProto3Json(),
       );
@@ -415,7 +404,7 @@ class LuciBuildService {
     }
 
     if (requests.isNotEmpty) {
-      await buildBucketClient.batch(bbv2.BatchRequest(requests: requests));
+      await _buildBucketClient.batch(bbv2.BatchRequest(requests: requests));
     }
   }
 
@@ -455,7 +444,7 @@ class LuciBuildService {
     }
 
     if (requests.isNotEmpty) {
-      await buildBucketClient.batch(bbv2.BatchRequest(requests: requests));
+      await _buildBucketClient.batch(bbv2.BatchRequest(requests: requests));
     }
   }
 
@@ -489,13 +478,13 @@ class LuciBuildService {
       request.gitilesCommit = build.input.gitilesCommit;
     }
 
-    return buildBucketClient.scheduleBuild(request);
+    return _buildBucketClient.scheduleBuild(request);
   }
 
   /// Collect any label whose name is prefixed by the prefix [String].
   ///
   /// Returns a [List] of prefixed label names as [String]s.
-  List<String>? extractPrefixedLabels({
+  static List<String>? _extractPrefixedLabels({
     List<github.IssueLabel>? issueLabels,
     required String prefix,
   }) {
@@ -511,7 +500,7 @@ class LuciBuildService {
     required OpaqueCommit commit,
     required Task task,
     required Target target,
-    required firestore.Task taskDocument,
+    required fs.Task taskDocument,
   }) async {
     final checkName = checkRunEvent.checkRun!.name!;
 
@@ -534,8 +523,8 @@ class LuciBuildService {
 
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
-        task = task,
-        taskDocument = taskDocument,
+        commit,
+        taskDocument,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
@@ -562,14 +551,14 @@ class LuciBuildService {
         ),
       ],
     );
-    await pubsub.publish('cocoon-scheduler-requests', request.toProto3Json());
+    await _pubsub.publish('cocoon-scheduler-requests', request.toProto3Json());
   }
 
   /// Gets [bbv2.Build] using its [id] and passing the additional
   /// fields to be populated in the response.
   Future<bbv2.Build> getBuildById(Int64 id, {bbv2.BuildMask? buildMask}) async {
     final request = bbv2.GetBuildRequest(id: id, mask: buildMask);
-    return buildBucketClient.getBuild(request);
+    return _buildBucketClient.getBuild(request);
   }
 
   /// Gets builder list whose config is pre-defined in LUCI.
@@ -579,7 +568,7 @@ class LuciBuildService {
     String project = 'flutter',
     String bucket = 'prod',
   }) async {
-    final cacheValue = await cache.getOrCreate(
+    final cacheValue = await _cache.getOrCreate(
       subCacheName,
       'builderlist/$project/$bucket',
       createFn: () => _getAvailableBuilderSet(project: project, bucket: bucket),
@@ -605,7 +594,7 @@ class LuciBuildService {
     var hasToken = true;
     String? token;
     do {
-      final listBuildersResponse = await buildBucketClient.listBuilders(
+      final listBuildersResponse = await _buildBucketClient.listBuilders(
         bbv2.ListBuildersRequest(
           project: project,
           bucket: bucket,
@@ -685,7 +674,7 @@ class LuciBuildService {
     List<String> messageIds;
 
     try {
-      messageIds = await pubsub.publish(
+      messageIds = await _pubsub.publish(
         'cocoon-scheduler-requests',
         batchRequest.toProto3Json(),
       );
@@ -746,7 +735,7 @@ class LuciBuildService {
     final List<String> messageIds;
 
     try {
-      messageIds = await pubsub.publish(
+      messageIds = await _pubsub.publish(
         'cocoon-scheduler-requests',
         batchRequest.toProto3Json(),
       );
@@ -861,7 +850,7 @@ class LuciBuildService {
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
     final CheckRun? checkRun;
     if (!target.value.bringup &&
-        config.postsubmitSupportedRepos.contains(target.slug)) {
+        _config.postsubmitSupportedRepos.contains(target.slug)) {
       checkRun = await createPostsubmitCheckRun(commit, target);
     } else {
       checkRun = null;
@@ -873,7 +862,7 @@ class LuciBuildService {
       CurrentAttemptBuildTag(attemptNumber: 1),
     );
 
-    final firestoreTask = firestore.TaskId(
+    final firestoreTask = fs.TaskId(
       commitSha: commit.sha,
       taskName: task.name!,
       currentAttempt: currentAttempt.attemptNumber,
@@ -1022,8 +1011,8 @@ class LuciBuildService {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
     // there is no PR to look up later. The check run is important because it
     // informs the staging document setup for Merge Groups in triggerMergeGroupTargets.
-    return githubChecksUtil.createCheckRun(
-      config,
+    return _githubChecksUtil.createCheckRun(
+      _config,
       target.slug,
       commit.sha,
       target.value.name,
@@ -1042,7 +1031,7 @@ class LuciBuildService {
     required OpaqueCommit commit,
     required Target target,
     required Task task,
-    required firestore.Task taskDocument,
+    required fs.Task taskDocument,
     Iterable<BuildTag> tags = const [],
     bool ignoreChecks = false,
   }) async {
@@ -1058,8 +1047,8 @@ class LuciBuildService {
 
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
-        task = task,
-        taskDocument = taskDocument,
+        commit,
+        taskDocument,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
@@ -1089,36 +1078,46 @@ class LuciBuildService {
       ],
     );
 
-    await pubsub.publish('cocoon-scheduler-requests', request.toProto3Json());
+    await _pubsub.publish('cocoon-scheduler-requests', request.toProto3Json());
 
     return true;
   }
 
   /// Updates the status of [task] in the database to reflect that it is being
   /// re-run, and returns the new attempt number.
+  @useResult
   Future<int> _updateTaskStatusInDatabaseForRetry(
-    Task task,
-    firestore.Task taskDocument,
+    OpaqueCommit commit,
+    fs.Task task,
   ) async {
-    // Updates task status in Datastore.
-    task.attempts = (task.attempts ?? 0) + 1;
-    // Mark task as in progress to ensure it isn't scheduled over.
-    task.status = Task.statusInProgress;
+    // Update task status in Firestore.
+    final newAttempt = task.currentAttempt + 1;
+    task.resetAsRetry(attempt: newAttempt);
+    task.setStatus(fs.Task.statusInProgress);
 
-    final datastore = DatastoreService.defaultProvider(config.db);
-    await datastore.insert(<Task>[task]);
-
-    // Updates task status in Firestore.
-    final newAttempt = taskDocument.currentAttempt + 1;
-    taskDocument.resetAsRetry(attempt: newAttempt);
-    taskDocument.setStatus(firestore.Task.statusInProgress);
-    final writes = documentsToWrites([taskDocument], exists: false);
-
-    final firestoreService = await config.createFirestoreService();
-    await firestoreService.batchWriteDocuments(
-      BatchWriteRequest(writes: writes),
+    final firestore = await _config.createFirestoreService();
+    await firestore.batchWriteDocuments(
+      BatchWriteRequest(writes: documentsToWrites([task], exists: false)),
       kDatabase,
     );
+
+    // Legacy: Write task status to Datastore.
+    final datastore = DatastoreService.defaultProvider(_config.db);
+    final commitKey = Commit.createKey(
+      db: datastore.db,
+      slug: commit.slug,
+      gitBranch: commit.branch,
+      sha: commit.sha,
+    );
+    final dsExistingTask = await Task.fromDatastore(
+      datastore: datastore,
+      commitKey: commitKey,
+      name: task.name,
+    );
+    dsExistingTask
+      ..attempts = newAttempt
+      ..status = Task.statusInProgress;
+    await datastore.insert([dsExistingTask]);
 
     return newAttempt;
   }
@@ -1126,8 +1125,8 @@ class LuciBuildService {
   /// Check if a builder should be rerun.
   ///
   /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
-  Future<bool> _shouldRerunBuilderFirestore(firestore.Task task) async {
-    if (!firestore.Task.taskFailStatusSet.contains(task.status)) {
+  Future<bool> _shouldRerunBuilderFirestore(fs.Task task) async {
+    if (!fs.Task.taskFailStatusSet.contains(task.status)) {
       log.info(
         'A re-run was requested for ${task.taskName} which is not failing '
         '(${task.status})',
@@ -1135,13 +1134,13 @@ class LuciBuildService {
       return false;
     }
     final retries = task.currentAttempt;
-    if (retries > config.maxLuciTaskRetries) {
+    if (retries > _config.maxLuciTaskRetries) {
       log.info('Max retries reached for ${task.taskName}');
       return false;
     }
 
-    final firestoreService = await config.createFirestoreService();
-    final currentCommit = await firestore_commit.Commit.fromFirestoreBySha(
+    final firestoreService = await _config.createFirestoreService();
+    final currentCommit = await fs.Commit.fromFirestoreBySha(
       firestoreService,
       sha: task.commitSha,
     );

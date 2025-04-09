@@ -6,63 +6,62 @@
 import 'dart:async' as _i15;
 import 'dart:convert' as _i21;
 import 'dart:io' as _i20;
-import 'dart:typed_data' as _i38;
+import 'dart:typed_data' as _i37;
 
 import 'package:appengine/appengine.dart' as _i7;
 import 'package:buildbucket/buildbucket_pb.dart' as _i6;
-import 'package:cocoon_common/rpc_model.dart' as _i28;
-import 'package:cocoon_service/cocoon_service.dart' as _i22;
+import 'package:cocoon_common/rpc_model.dart' as _i27;
+import 'package:cocoon_service/cocoon_service.dart' as _i26;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i19;
-import 'package:cocoon_service/src/model/appengine/commit.dart' as _i35;
+import 'package:cocoon_service/src/model/appengine/commit.dart' as _i34;
 import 'package:cocoon_service/src/model/appengine/key_helper.dart' as _i9;
-import 'package:cocoon_service/src/model/appengine/task.dart' as _i36;
-import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i41;
-import 'package:cocoon_service/src/model/firestore/ci_staging.dart' as _i25;
-import 'package:cocoon_service/src/model/firestore/commit.dart' as _i39;
+import 'package:cocoon_service/src/model/appengine/task.dart' as _i35;
+import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i40;
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart' as _i23;
+import 'package:cocoon_service/src/model/firestore/commit.dart' as _i38;
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart'
     as _i18;
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
     as _i17;
-import 'package:cocoon_service/src/model/firestore/task.dart' as _i40;
-import 'package:cocoon_service/src/model/github/checks.dart' as _i44;
-import 'package:cocoon_service/src/service/access_token_provider.dart' as _i27;
+import 'package:cocoon_service/src/model/firestore/task.dart' as _i39;
+import 'package:cocoon_service/src/model/github/checks.dart' as _i43;
+import 'package:cocoon_service/src/service/access_token_provider.dart' as _i25;
 import 'package:cocoon_service/src/service/bigquery.dart' as _i13;
-import 'package:cocoon_service/src/service/commit_service.dart' as _i30;
+import 'package:cocoon_service/src/service/commit_service.dart' as _i29;
 import 'package:cocoon_service/src/service/config.dart' as _i2;
-import 'package:cocoon_service/src/service/datastore.dart' as _i33;
+import 'package:cocoon_service/src/service/datastore.dart' as _i32;
 import 'package:cocoon_service/src/service/firestore.dart' as _i12;
-import 'package:cocoon_service/src/service/gerrit_service.dart' as _i23;
 import 'package:cocoon_service/src/service/github_service.dart' as _i14;
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart'
-    as _i48;
-import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
-    as _i32;
-import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
-    as _i42;
-import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart'
-    as _i45;
-import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
     as _i47;
+import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
+    as _i31;
+import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
+    as _i41;
+import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart'
+    as _i44;
+import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
+    as _i46;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
-    as _i43;
-import 'package:fixnum/fixnum.dart' as _i46;
+    as _i42;
+import 'package:fixnum/fixnum.dart' as _i45;
 import 'package:gcloud/db.dart' as _i8;
 import 'package:github/github.dart' as _i10;
-import 'package:github/hooks.dart' as _i31;
+import 'package:github/hooks.dart' as _i30;
 import 'package:googleapis/bigquery/v2.dart' as _i4;
 import 'package:googleapis/firestore/v1.dart' as _i16;
-import 'package:googleapis/shared.dart' as _i24;
+import 'package:googleapis/shared.dart' as _i22;
 import 'package:googleapis_auth/auth_io.dart' as _i3;
 import 'package:graphql/client.dart' as _i11;
 import 'package:http/http.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i29;
-import 'package:neat_cache/neat_cache.dart' as _i26;
-import 'package:process/process.dart' as _i49;
-import 'package:retry/retry.dart' as _i34;
+import 'package:mockito/src/dummies.dart' as _i28;
+import 'package:neat_cache/neat_cache.dart' as _i24;
+import 'package:process/process.dart' as _i48;
+import 'package:retry/retry.dart' as _i33;
 
-import '../../service/cache_service_test.dart' as _i37;
-import 'mocks.dart' as _i50;
+import '../../service/cache_service_test.dart' as _i36;
+import 'mocks.dart' as _i49;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -366,113 +365,91 @@ class _FakeStreamSubscription_52<T> extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeBuildBucketClient_53 extends _i1.SmartFake
-    implements _i22.BuildBucketClient {
-  _FakeBuildBucketClient_53(Object parent, Invocation parentInvocation)
+class _FakeProcess_53 extends _i1.SmartFake implements _i20.Process {
+  _FakeProcess_53(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeCacheService_54 extends _i1.SmartFake implements _i22.CacheService {
-  _FakeCacheService_54(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeGerritService_55 extends _i1.SmartFake
-    implements _i23.GerritService {
-  _FakeGerritService_55(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakePubSub_56 extends _i1.SmartFake implements _i22.PubSub {
-  _FakePubSub_56(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeProcess_57 extends _i1.SmartFake implements _i20.Process {
-  _FakeProcess_57(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeTableDataInsertAllResponse_58 extends _i1.SmartFake
+class _FakeTableDataInsertAllResponse_54 extends _i1.SmartFake
     implements _i4.TableDataInsertAllResponse {
-  _FakeTableDataInsertAllResponse_58(Object parent, Invocation parentInvocation)
+  _FakeTableDataInsertAllResponse_54(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeTableDataList_59 extends _i1.SmartFake implements _i4.TableDataList {
-  _FakeTableDataList_59(Object parent, Invocation parentInvocation)
+class _FakeTableDataList_55 extends _i1.SmartFake implements _i4.TableDataList {
+  _FakeTableDataList_55(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeUser_60 extends _i1.SmartFake implements _i10.User {
-  _FakeUser_60(Object parent, Invocation parentInvocation)
+class _FakeUser_56 extends _i1.SmartFake implements _i10.User {
+  _FakeUser_56(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeCurrentUser_61 extends _i1.SmartFake implements _i10.CurrentUser {
-  _FakeCurrentUser_61(Object parent, Invocation parentInvocation)
+class _FakeCurrentUser_57 extends _i1.SmartFake implements _i10.CurrentUser {
+  _FakeCurrentUser_57(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakePublicKey_62 extends _i1.SmartFake implements _i10.PublicKey {
-  _FakePublicKey_62(Object parent, Invocation parentInvocation)
+class _FakePublicKey_58 extends _i1.SmartFake implements _i10.PublicKey {
+  _FakePublicKey_58(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeBeginTransactionResponse_63 extends _i1.SmartFake
+class _FakeBeginTransactionResponse_59 extends _i1.SmartFake
     implements _i16.BeginTransactionResponse {
-  _FakeBeginTransactionResponse_63(Object parent, Invocation parentInvocation)
+  _FakeBeginTransactionResponse_59(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _Fake$Empty_64 extends _i1.SmartFake implements _i24.$Empty {
-  _Fake$Empty_64(Object parent, Invocation parentInvocation)
+class _Fake$Empty_60 extends _i1.SmartFake implements _i22.$Empty {
+  _Fake$Empty_60(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeListDocumentsResponse_65 extends _i1.SmartFake
+class _FakeListDocumentsResponse_61 extends _i1.SmartFake
     implements _i16.ListDocumentsResponse {
-  _FakeListDocumentsResponse_65(Object parent, Invocation parentInvocation)
+  _FakeListDocumentsResponse_61(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeListCollectionIdsResponse_66 extends _i1.SmartFake
+class _FakeListCollectionIdsResponse_62 extends _i1.SmartFake
     implements _i16.ListCollectionIdsResponse {
-  _FakeListCollectionIdsResponse_66(Object parent, Invocation parentInvocation)
+  _FakeListCollectionIdsResponse_62(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakePartitionQueryResponse_67 extends _i1.SmartFake
+class _FakePartitionQueryResponse_63 extends _i1.SmartFake
     implements _i16.PartitionQueryResponse {
-  _FakePartitionQueryResponse_67(Object parent, Invocation parentInvocation)
+  _FakePartitionQueryResponse_63(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeWriteResponse_68 extends _i1.SmartFake
+class _FakeWriteResponse_64 extends _i1.SmartFake
     implements _i16.WriteResponse {
-  _FakeWriteResponse_68(Object parent, Invocation parentInvocation)
+  _FakeWriteResponse_64(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeStagingConclusion_69 extends _i1.SmartFake
-    implements _i25.StagingConclusion {
-  _FakeStagingConclusion_69(Object parent, Invocation parentInvocation)
+class _FakeStagingConclusion_65 extends _i1.SmartFake
+    implements _i23.StagingConclusion {
+  _FakeStagingConclusion_65(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeRepositorySlug_70 extends _i1.SmartFake
+class _FakeRepositorySlug_66 extends _i1.SmartFake
     implements _i10.RepositorySlug {
-  _FakeRepositorySlug_70(Object parent, Invocation parentInvocation)
+  _FakeRepositorySlug_66(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeEntry_71<T> extends _i1.SmartFake implements _i26.Entry<T> {
-  _FakeEntry_71(Object parent, Invocation parentInvocation)
+class _FakeEntry_67<T> extends _i1.SmartFake implements _i24.Entry<T> {
+  _FakeEntry_67(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeCache_72<T> extends _i1.SmartFake implements _i26.Cache<T> {
-  _FakeCache_72(Object parent, Invocation parentInvocation)
+class _FakeCache_68<T> extends _i1.SmartFake implements _i24.Cache<T> {
+  _FakeCache_68(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -480,7 +457,7 @@ class _FakeCache_72<T> extends _i1.SmartFake implements _i26.Cache<T> {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAccessTokenService extends _i1.Mock
-    implements _i27.AccessTokenService {
+    implements _i25.AccessTokenService {
   MockAccessTokenService() {
     _i1.throwOnMissingStub(this);
   }
@@ -566,7 +543,7 @@ class MockBigqueryService extends _i1.Mock implements _i13.BigqueryService {
 /// A class which mocks [BranchService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBranchService extends _i1.Mock implements _i22.BranchService {
+class MockBranchService extends _i1.Mock implements _i26.BranchService {
   MockBranchService() {
     _i1.throwOnMissingStub(this);
   }
@@ -581,21 +558,21 @@ class MockBranchService extends _i1.Mock implements _i22.BranchService {
           as _i15.Future<void>);
 
   @override
-  _i15.Future<List<_i28.Branch>> getReleaseBranches({
+  _i15.Future<List<_i27.Branch>> getReleaseBranches({
     required _i10.RepositorySlug? slug,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getReleaseBranches, [], {#slug: slug}),
-            returnValue: _i15.Future<List<_i28.Branch>>.value(<_i28.Branch>[]),
+            returnValue: _i15.Future<List<_i27.Branch>>.value(<_i27.Branch>[]),
           )
-          as _i15.Future<List<_i28.Branch>>);
+          as _i15.Future<List<_i27.Branch>>);
 }
 
 /// A class which mocks [BuildBucketClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
-class MockBuildBucketClient extends _i1.Mock implements _i22.BuildBucketClient {
+class MockBuildBucketClient extends _i1.Mock implements _i26.BuildBucketClient {
   MockBuildBucketClient() {
     _i1.throwOnMissingStub(this);
   }
@@ -604,7 +581,7 @@ class MockBuildBucketClient extends _i1.Mock implements _i22.BuildBucketClient {
   String get buildBucketBuildUri =>
       (super.noSuchMethod(
             Invocation.getter(#buildBucketBuildUri),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#buildBucketBuildUri),
             ),
@@ -615,7 +592,7 @@ class MockBuildBucketClient extends _i1.Mock implements _i22.BuildBucketClient {
   String get buildBucketBuilderUri =>
       (super.noSuchMethod(
             Invocation.getter(#buildBucketBuilderUri),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#buildBucketBuilderUri),
             ),
@@ -790,13 +767,13 @@ class MockBuildBucketClient extends _i1.Mock implements _i22.BuildBucketClient {
 /// A class which mocks [CommitService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCommitService extends _i1.Mock implements _i30.CommitService {
+class MockCommitService extends _i1.Mock implements _i29.CommitService {
   MockCommitService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i15.Future<void> handleCreateGithubRequest(_i31.CreateEvent? createEvent) =>
+  _i15.Future<void> handleCreateGithubRequest(_i30.CreateEvent? createEvent) =>
       (super.noSuchMethod(
             Invocation.method(#handleCreateGithubRequest, [createEvent]),
             returnValue: _i15.Future<void>.value(),
@@ -842,7 +819,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get autosubmitBot =>
       (super.noSuchMethod(
             Invocation.getter(#autosubmitBot),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#autosubmitBot),
             ),
@@ -865,7 +842,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#githubPrivateKey),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.getter(#githubPrivateKey),
               ),
@@ -878,7 +855,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#githubPublicKey),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.getter(#githubPublicKey),
               ),
@@ -891,7 +868,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#githubAppId),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(this, Invocation.getter(#githubAppId)),
+              _i28.dummyValue<String>(this, Invocation.getter(#githubAppId)),
             ),
           )
           as _i15.Future<String>);
@@ -907,15 +884,15 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as _i15.Future<Map<String, dynamic>>);
 
   @override
-  _i32.CipdVersion get defaultRecipeBundleRef =>
+  _i31.CipdVersion get defaultRecipeBundleRef =>
       (super.noSuchMethod(
             Invocation.getter(#defaultRecipeBundleRef),
-            returnValue: _i29.dummyValue<_i32.CipdVersion>(
+            returnValue: _i28.dummyValue<_i31.CipdVersion>(
               this,
               Invocation.getter(#defaultRecipeBundleRef),
             ),
           )
-          as _i32.CipdVersion);
+          as _i31.CipdVersion);
 
   @override
   List<String> get releaseBranches =>
@@ -929,7 +906,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get releaseCandidateBranchPath =>
       (super.noSuchMethod(
             Invocation.getter(#releaseCandidateBranchPath),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#releaseCandidateBranchPath),
             ),
@@ -991,7 +968,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#oauthClientId),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(this, Invocation.getter(#oauthClientId)),
+              _i28.dummyValue<String>(this, Invocation.getter(#oauthClientId)),
             ),
           )
           as _i15.Future<String>);
@@ -1001,7 +978,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#frobWebhookKey),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(this, Invocation.getter(#frobWebhookKey)),
+              _i28.dummyValue<String>(this, Invocation.getter(#frobWebhookKey)),
             ),
           )
           as _i15.Future<String>);
@@ -1011,7 +988,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#githubOAuthToken),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.getter(#githubOAuthToken),
               ),
@@ -1023,7 +1000,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get wrongBaseBranchPullRequestMessage =>
       (super.noSuchMethod(
             Invocation.getter(#wrongBaseBranchPullRequestMessage),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#wrongBaseBranchPullRequestMessage),
             ),
@@ -1034,7 +1011,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get releaseBranchPullRequestMessage =>
       (super.noSuchMethod(
             Invocation.getter(#releaseBranchPullRequestMessage),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#releaseBranchPullRequestMessage),
             ),
@@ -1046,7 +1023,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.getter(#webhookKey),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(this, Invocation.getter(#webhookKey)),
+              _i28.dummyValue<String>(this, Invocation.getter(#webhookKey)),
             ),
           )
           as _i15.Future<String>);
@@ -1055,7 +1032,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get mergeConflictPullRequestMessage =>
       (super.noSuchMethod(
             Invocation.getter(#mergeConflictPullRequestMessage),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#mergeConflictPullRequestMessage),
             ),
@@ -1066,7 +1043,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get missingTestsPullRequestMessage =>
       (super.noSuchMethod(
             Invocation.getter(#missingTestsPullRequestMessage),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#missingTestsPullRequestMessage),
             ),
@@ -1077,7 +1054,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterGoldPending =>
       (super.noSuchMethod(
             Invocation.getter(#flutterGoldPending),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterGoldPending),
             ),
@@ -1088,7 +1065,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterGoldSuccess =>
       (super.noSuchMethod(
             Invocation.getter(#flutterGoldSuccess),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterGoldSuccess),
             ),
@@ -1099,7 +1076,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterGoldChanges =>
       (super.noSuchMethod(
             Invocation.getter(#flutterGoldChanges),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterGoldChanges),
             ),
@@ -1110,7 +1087,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterGoldStalePR =>
       (super.noSuchMethod(
             Invocation.getter(#flutterGoldStalePR),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterGoldStalePR),
             ),
@@ -1121,7 +1098,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterGoldDraftChange =>
       (super.noSuchMethod(
             Invocation.getter(#flutterGoldDraftChange),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterGoldDraftChange),
             ),
@@ -1177,7 +1154,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterBuild =>
       (super.noSuchMethod(
             Invocation.getter(#flutterBuild),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterBuild),
             ),
@@ -1188,7 +1165,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterTreeStatusRed =>
       (super.noSuchMethod(
             Invocation.getter(#flutterTreeStatusRed),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterTreeStatusRed),
             ),
@@ -1199,7 +1176,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get flutterTreeStatusEmergency =>
       (super.noSuchMethod(
             Invocation.getter(#flutterTreeStatusEmergency),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#flutterTreeStatusEmergency),
             ),
@@ -1210,7 +1187,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String get waitingForTreeToGoGreenLabelName =>
       (super.noSuchMethod(
             Invocation.getter(#waitingForTreeToGoGreenLabelName),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#waitingForTreeToGoGreenLabelName),
             ),
@@ -1229,7 +1206,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String wrongHeadBranchPullRequestMessage(String? branch) =>
       (super.noSuchMethod(
             Invocation.method(#wrongHeadBranchPullRequestMessage, [branch]),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.method(#wrongHeadBranchPullRequestMessage, [branch]),
             ),
@@ -1240,7 +1217,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String flutterGoldInitialAlert(String? url) =>
       (super.noSuchMethod(
             Invocation.method(#flutterGoldInitialAlert, [url]),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.method(#flutterGoldInitialAlert, [url]),
             ),
@@ -1251,7 +1228,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String flutterGoldFollowUpAlert(String? url) =>
       (super.noSuchMethod(
             Invocation.method(#flutterGoldFollowUpAlert, [url]),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.method(#flutterGoldFollowUpAlert, [url]),
             ),
@@ -1262,7 +1239,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String flutterGoldAlertConstant(_i10.RepositorySlug? slug) =>
       (super.noSuchMethod(
             Invocation.method(#flutterGoldAlertConstant, [slug]),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.method(#flutterGoldAlertConstant, [slug]),
             ),
@@ -1273,7 +1250,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   String flutterGoldCommentID(_i10.PullRequest? pr) =>
       (super.noSuchMethod(
             Invocation.method(#flutterGoldCommentID, [pr]),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.method(#flutterGoldCommentID, [pr]),
             ),
@@ -1285,7 +1262,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.method(#generateJsonWebToken, []),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.method(#generateJsonWebToken, []),
               ),
@@ -1298,7 +1275,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
       (super.noSuchMethod(
             Invocation.method(#generateGithubToken, [slug]),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.method(#generateGithubToken, [slug]),
               ),
@@ -1422,7 +1399,7 @@ class MockConfig extends _i1.Mock implements _i2.Config {
 ///
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
-class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
+class MockDatastoreService extends _i1.Mock implements _i32.DatastoreService {
   MockDatastoreService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1441,18 +1418,18 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
           as _i8.DatastoreDB);
 
   @override
-  _i34.RetryOptions get retryOptions =>
+  _i33.RetryOptions get retryOptions =>
       (super.noSuchMethod(
             Invocation.getter(#retryOptions),
-            returnValue: _i29.dummyValue<_i34.RetryOptions>(
+            returnValue: _i28.dummyValue<_i33.RetryOptions>(
               this,
               Invocation.getter(#retryOptions),
             ),
           )
-          as _i34.RetryOptions);
+          as _i33.RetryOptions);
 
   @override
-  _i15.Stream<_i35.Commit> queryRecentCommits({
+  _i15.Stream<_i34.Commit> queryRecentCommits({
     int? limit = 100,
     int? timestamp,
     String? branch,
@@ -1465,12 +1442,12 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
               #branch: branch,
               #slug: slug,
             }),
-            returnValue: _i15.Stream<_i35.Commit>.empty(),
+            returnValue: _i15.Stream<_i34.Commit>.empty(),
           )
-          as _i15.Stream<_i35.Commit>);
+          as _i15.Stream<_i34.Commit>);
 
   @override
-  _i15.Stream<_i36.Task> queryRecentTasksByName({
+  _i15.Stream<_i35.Task> queryRecentTasksByName({
     int? limit = 100,
     required String? name,
   }) =>
@@ -1479,12 +1456,12 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
               #limit: limit,
               #name: name,
             }),
-            returnValue: _i15.Stream<_i36.Task>.empty(),
+            returnValue: _i15.Stream<_i35.Task>.empty(),
           )
-          as _i15.Stream<_i36.Task>);
+          as _i15.Stream<_i35.Task>);
 
   @override
-  _i15.Stream<_i36.FullTask> queryRecentTasks({
+  _i15.Stream<_i35.FullTask> queryRecentTasks({
     String? taskName,
     int? commitLimit = 20,
     String? branch,
@@ -1497,9 +1474,9 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
               #branch: branch,
               #slug: slug,
             }),
-            returnValue: _i15.Stream<_i36.FullTask>.empty(),
+            returnValue: _i15.Stream<_i35.FullTask>.empty(),
           )
-          as _i15.Stream<_i36.FullTask>);
+          as _i15.Stream<_i35.FullTask>);
 
   @override
   _i15.Future<List<List<_i8.Model<dynamic>>>> shard(
@@ -1540,8 +1517,8 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
       (super.noSuchMethod(
             Invocation.method(#lookupByValue, [key], {#orElse: orElse}),
             returnValue:
-                _i29.ifNotNull(
-                  _i29.dummyValueOrNull<T>(
+                _i28.ifNotNull(
+                  _i28.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#lookupByValue, [key], {#orElse: orElse}),
                   ),
@@ -1565,7 +1542,7 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
           as _i15.Future<T?>);
 
   @override
-  _i15.Future<_i36.Task?> getTaskFromBuildbucketBuild(
+  _i15.Future<_i35.Task?> getTaskFromBuildbucketBuild(
     _i6.Build? build, {
     String? customName,
   }) =>
@@ -1575,43 +1552,43 @@ class MockDatastoreService extends _i1.Mock implements _i33.DatastoreService {
               [build],
               {#customName: customName},
             ),
-            returnValue: _i15.Future<_i36.Task?>.value(),
+            returnValue: _i15.Future<_i35.Task?>.value(),
           )
-          as _i15.Future<_i36.Task?>);
+          as _i15.Future<_i35.Task?>);
 }
 
 /// A class which mocks [FakeEntry].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFakeEntry extends _i1.Mock implements _i37.FakeEntry {
+class MockFakeEntry extends _i1.Mock implements _i36.FakeEntry {
   MockFakeEntry() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i38.Uint8List get value =>
+  _i37.Uint8List get value =>
       (super.noSuchMethod(
             Invocation.getter(#value),
-            returnValue: _i38.Uint8List(0),
+            returnValue: _i37.Uint8List(0),
           )
-          as _i38.Uint8List);
+          as _i37.Uint8List);
 
   @override
-  set value(_i38.Uint8List? _value) => super.noSuchMethod(
+  set value(_i37.Uint8List? _value) => super.noSuchMethod(
     Invocation.setter(#value, _value),
     returnValueForMissingStub: null,
   );
 
   @override
-  _i15.Future<_i38.Uint8List> get([
-    _i15.Future<_i38.Uint8List?> Function()? create,
+  _i15.Future<_i37.Uint8List> get([
+    _i15.Future<_i37.Uint8List?> Function()? create,
     Duration? ttl,
   ]) =>
       (super.noSuchMethod(
             Invocation.method(#get, [create, ttl]),
-            returnValue: _i15.Future<_i38.Uint8List>.value(_i38.Uint8List(0)),
+            returnValue: _i15.Future<_i37.Uint8List>.value(_i37.Uint8List(0)),
           )
-          as _i15.Future<_i38.Uint8List>);
+          as _i15.Future<_i37.Uint8List>);
 
   @override
   _i15.Future<void> purge({int? retries = 0}) =>
@@ -1623,12 +1600,12 @@ class MockFakeEntry extends _i1.Mock implements _i37.FakeEntry {
           as _i15.Future<void>);
 
   @override
-  _i15.Future<_i38.Uint8List?> set(_i38.Uint8List? value, [Duration? ttl]) =>
+  _i15.Future<_i37.Uint8List?> set(_i37.Uint8List? value, [Duration? ttl]) =>
       (super.noSuchMethod(
             Invocation.method(#set, [value, ttl]),
-            returnValue: _i15.Future<_i38.Uint8List?>.value(),
+            returnValue: _i15.Future<_i37.Uint8List?>.value(),
           )
-          as _i15.Future<_i38.Uint8List?>);
+          as _i15.Future<_i37.Uint8List?>);
 }
 
 /// A class which mocks [FirestoreService].
@@ -1743,7 +1720,7 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
           as _i15.Future<List<_i16.Document>>);
 
   @override
-  _i15.Future<List<_i39.Commit>> queryRecentCommits({
+  _i15.Future<List<_i38.Commit>> queryRecentCommits({
     int? limit = 100,
     int? timestamp,
     String? branch,
@@ -1756,12 +1733,12 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
               #branch: branch,
               #slug: slug,
             }),
-            returnValue: _i15.Future<List<_i39.Commit>>.value(<_i39.Commit>[]),
+            returnValue: _i15.Future<List<_i38.Commit>>.value(<_i38.Commit>[]),
           )
-          as _i15.Future<List<_i39.Commit>>);
+          as _i15.Future<List<_i38.Commit>>);
 
   @override
-  _i15.Future<List<_i40.Task>> queryRecentTasksByName({
+  _i15.Future<List<_i39.Task>> queryRecentTasksByName({
     int? limit = 100,
     required String? name,
   }) =>
@@ -1770,12 +1747,12 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
               #limit: limit,
               #name: name,
             }),
-            returnValue: _i15.Future<List<_i40.Task>>.value(<_i40.Task>[]),
+            returnValue: _i15.Future<List<_i39.Task>>.value(<_i39.Task>[]),
           )
-          as _i15.Future<List<_i40.Task>>);
+          as _i15.Future<List<_i39.Task>>);
 
   @override
-  _i15.Future<List<_i40.Task>> queryCommitTasks(
+  _i15.Future<List<_i39.Task>> queryCommitTasks(
     String? commitSha, {
     String? status,
   }) =>
@@ -1785,9 +1762,9 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
               [commitSha],
               {#status: status},
             ),
-            returnValue: _i15.Future<List<_i40.Task>>.value(<_i40.Task>[]),
+            returnValue: _i15.Future<List<_i39.Task>>.value(<_i39.Task>[]),
           )
-          as _i15.Future<List<_i40.Task>>);
+          as _i15.Future<List<_i39.Task>>);
 
   @override
   _i15.Future<List<_i12.CommitAndTasks>> queryRecentCommitsAndTasks(
@@ -1824,7 +1801,7 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
           as _i15.Future<_i17.GithubGoldStatus>);
 
   @override
-  _i15.Future<_i40.Task?> queryLatestTask({
+  _i15.Future<_i39.Task?> queryLatestTask({
     required String? commitSha,
     required String? builderName,
   }) =>
@@ -1833,9 +1810,9 @@ class MockFirestoreService extends _i1.Mock implements _i12.FirestoreService {
               #commitSha: commitSha,
               #builderName: builderName,
             }),
-            returnValue: _i15.Future<_i40.Task?>.value(),
+            returnValue: _i15.Future<_i39.Task?>.value(),
           )
-          as _i15.Future<_i40.Task?>);
+          as _i15.Future<_i39.Task?>);
 
   @override
   _i15.Future<_i18.GithubBuildStatus> queryLastBuildStatus(
@@ -2370,7 +2347,7 @@ class MockIssuesService extends _i1.Mock implements _i10.IssuesService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGithubChecksService extends _i1.Mock
-    implements _i22.GithubChecksService {
+    implements _i26.GithubChecksService {
   MockGithubChecksService() {
     _i1.throwOnMissingStub(this);
   }
@@ -2410,7 +2387,7 @@ class MockGithubChecksService extends _i1.Mock
   @override
   _i15.Future<bool> updateCheckStatus({
     required _i6.Build? build,
-    required _i22.LuciBuildService? luciBuildService,
+    required _i26.LuciBuildService? luciBuildService,
     required _i10.RepositorySlug? slug,
     required int? checkRunId,
     bool? rescheduled = false,
@@ -2439,7 +2416,7 @@ class MockGithubChecksService extends _i1.Mock
   String getGithubSummary(String? summary) =>
       (super.noSuchMethod(
             Invocation.method(#getGithubSummary, [summary]),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.method(#getGithubSummary, [summary]),
             ),
@@ -2496,7 +2473,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i19.GithubChecksUtil {
   @override
   _i15.Future<Map<String, _i10.CheckRun>> allCheckRuns(
     _i10.GitHub? gitHubClient,
-    _i31.CheckSuiteEvent? checkSuiteEvent,
+    _i30.CheckSuiteEvent? checkSuiteEvent,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#allCheckRuns, [gitHubClient, checkSuiteEvent]),
@@ -2995,7 +2972,7 @@ class MockGithubService extends _i1.Mock implements _i14.GithubService {
       (super.noSuchMethod(
             Invocation.method(#getFileContent, [slug, path], {#ref: ref}),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.method(#getFileContent, [slug, path], {#ref: ref}),
               ),
@@ -3950,7 +3927,7 @@ class MockHttpClientRequest extends _i1.Mock implements _i20.HttpClientRequest {
   String get method =>
       (super.noSuchMethod(
             Invocation.getter(#method),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#method),
             ),
@@ -4093,7 +4070,7 @@ class MockHttpClientResponse extends _i1.Mock
   String get reasonPhrase =>
       (super.noSuchMethod(
             Invocation.getter(#reasonPhrase),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#reasonPhrase),
             ),
@@ -4352,8 +4329,8 @@ class MockHttpClientResponse extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#fold, [initialValue, combine]),
             returnValue:
-                _i29.ifNotNull(
-                  _i29.dummyValueOrNull<S>(
+                _i28.ifNotNull(
+                  _i28.dummyValueOrNull<S>(
                     this,
                     Invocation.method(#fold, [initialValue, combine]),
                   ),
@@ -4371,7 +4348,7 @@ class MockHttpClientResponse extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#join, [separator]),
             returnValue: _i15.Future<String>.value(
-              _i29.dummyValue<String>(
+              _i28.dummyValue<String>(
                 this,
                 Invocation.method(#join, [separator]),
               ),
@@ -4441,8 +4418,8 @@ class MockHttpClientResponse extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#drain, [futureValue]),
             returnValue:
-                _i29.ifNotNull(
-                  _i29.dummyValueOrNull<E>(
+                _i28.ifNotNull(
+                  _i28.dummyValueOrNull<E>(
                     this,
                     Invocation.method(#drain, [futureValue]),
                   ),
@@ -4553,133 +4530,10 @@ class MockHttpClientResponse extends _i1.Mock
 /// A class which mocks [LuciBuildService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
+class MockLuciBuildService extends _i1.Mock implements _i26.LuciBuildService {
   MockLuciBuildService() {
     _i1.throwOnMissingStub(this);
   }
-
-  @override
-  _i22.BuildBucketClient get buildBucketClient =>
-      (super.noSuchMethod(
-            Invocation.getter(#buildBucketClient),
-            returnValue: _FakeBuildBucketClient_53(
-              this,
-              Invocation.getter(#buildBucketClient),
-            ),
-          )
-          as _i22.BuildBucketClient);
-
-  @override
-  set buildBucketClient(_i22.BuildBucketClient? _buildBucketClient) =>
-      super.noSuchMethod(
-        Invocation.setter(#buildBucketClient, _buildBucketClient),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  _i22.CacheService get cache =>
-      (super.noSuchMethod(
-            Invocation.getter(#cache),
-            returnValue: _FakeCacheService_54(this, Invocation.getter(#cache)),
-          )
-          as _i22.CacheService);
-
-  @override
-  _i2.Config get config =>
-      (super.noSuchMethod(
-            Invocation.getter(#config),
-            returnValue: _FakeConfig_0(this, Invocation.getter(#config)),
-          )
-          as _i2.Config);
-
-  @override
-  set config(_i2.Config? _config) => super.noSuchMethod(
-    Invocation.setter(#config, _config),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  _i19.GithubChecksUtil get githubChecksUtil =>
-      (super.noSuchMethod(
-            Invocation.getter(#githubChecksUtil),
-            returnValue: _FakeGithubChecksUtil_28(
-              this,
-              Invocation.getter(#githubChecksUtil),
-            ),
-          )
-          as _i19.GithubChecksUtil);
-
-  @override
-  set githubChecksUtil(_i19.GithubChecksUtil? _githubChecksUtil) =>
-      super.noSuchMethod(
-        Invocation.setter(#githubChecksUtil, _githubChecksUtil),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  _i23.GerritService get gerritService =>
-      (super.noSuchMethod(
-            Invocation.getter(#gerritService),
-            returnValue: _FakeGerritService_55(
-              this,
-              Invocation.getter(#gerritService),
-            ),
-          )
-          as _i23.GerritService);
-
-  @override
-  set gerritService(_i23.GerritService? _gerritService) => super.noSuchMethod(
-    Invocation.setter(#gerritService, _gerritService),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  _i22.PubSub get pubsub =>
-      (super.noSuchMethod(
-            Invocation.getter(#pubsub),
-            returnValue: _FakePubSub_56(this, Invocation.getter(#pubsub)),
-          )
-          as _i22.PubSub);
-
-  @override
-  _i15.Future<_i10.PullRequest> Function(_i12.FirestoreService, int, String)
-  get findPullRequestFor =>
-      (super.noSuchMethod(
-            Invocation.getter(#findPullRequestFor),
-            returnValue:
-                (
-                  _i12.FirestoreService firestoreService,
-                  int checkRunId,
-                  String checkRunName,
-                ) => _i15.Future<_i10.PullRequest>.value(
-                  _FakePullRequest_33(
-                    this,
-                    Invocation.getter(#findPullRequestFor),
-                  ),
-                ),
-          )
-          as _i15.Future<_i10.PullRequest> Function(
-            _i12.FirestoreService,
-            int,
-            String,
-          ));
-
-  @override
-  _i15.Future<List<List<_i6.BatchRequest_Request>>> shard({
-    required List<_i6.BatchRequest_Request>? requests,
-    required int? maxShardSize,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#shard, [], {
-              #requests: requests,
-              #maxShardSize: maxShardSize,
-            }),
-            returnValue:
-                _i15.Future<List<List<_i6.BatchRequest_Request>>>.value(
-                  <List<_i6.BatchRequest_Request>>[],
-                ),
-          )
-          as _i15.Future<List<List<_i6.BatchRequest_Request>>>);
 
   @override
   _i15.Future<Iterable<_i6.Build>> getTryBuilds({
@@ -4722,10 +4576,10 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<Iterable<_i6.Build>>);
 
   @override
-  _i15.Future<List<_i41.Target>> scheduleTryBuilds({
-    required List<_i41.Target>? targets,
+  _i15.Future<List<_i40.Target>> scheduleTryBuilds({
+    required List<_i40.Target>? targets,
     required _i10.PullRequest? pullRequest,
-    required _i42.EngineArtifacts? engineArtifacts,
+    required _i41.EngineArtifacts? engineArtifacts,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleTryBuilds, [], {
@@ -4733,9 +4587,9 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
             }),
-            returnValue: _i15.Future<List<_i41.Target>>.value(<_i41.Target>[]),
+            returnValue: _i15.Future<List<_i40.Target>>.value(<_i40.Target>[]),
           )
-          as _i15.Future<List<_i41.Target>>);
+          as _i15.Future<List<_i40.Target>>);
 
   @override
   _i15.Future<void> cancelBuilds({
@@ -4772,7 +4626,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
     required String? builderName,
     required _i6.Build? build,
     required int? nextAttempt,
-    required _i43.PresubmitUserData? userData,
+    required _i42.PresubmitUserData? userData,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#reschedulePresubmitBuild, [], {
@@ -4796,25 +4650,12 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<_i6.Build>);
 
   @override
-  List<String>? extractPrefixedLabels({
-    List<_i10.IssueLabel>? issueLabels,
-    required String? prefix,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#extractPrefixedLabels, [], {
-              #issueLabels: issueLabels,
-              #prefix: prefix,
-            }),
-          )
-          as List<String>?);
-
-  @override
   _i15.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
-    _i44.CheckRunEvent? checkRunEvent, {
-    required _i45.OpaqueCommit? commit,
-    required _i36.Task? task,
-    required _i41.Target? target,
-    required _i40.Task? taskDocument,
+    _i43.CheckRunEvent? checkRunEvent, {
+    required _i44.OpaqueCommit? commit,
+    required _i35.Task? task,
+    required _i40.Target? target,
+    required _i39.Task? taskDocument,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -4834,7 +4675,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<_i6.Build> getBuildById(
-    _i46.Int64? id, {
+    _i45.Int64? id, {
     _i6.BuildMask? buildMask,
   }) =>
       (super.noSuchMethod(
@@ -4863,25 +4704,25 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<Set<String>>);
 
   @override
-  _i15.Future<List<_i47.PendingTask>> schedulePostsubmitBuilds({
-    required _i45.OpaqueCommit? commit,
-    required List<_i47.PendingTask>? toBeScheduled,
+  _i15.Future<List<_i46.PendingTask>> schedulePostsubmitBuilds({
+    required _i44.OpaqueCommit? commit,
+    required List<_i46.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#schedulePostsubmitBuilds, [], {
               #commit: commit,
               #toBeScheduled: toBeScheduled,
             }),
-            returnValue: _i15.Future<List<_i47.PendingTask>>.value(
-              <_i47.PendingTask>[],
+            returnValue: _i15.Future<List<_i46.PendingTask>>.value(
+              <_i46.PendingTask>[],
             ),
           )
-          as _i15.Future<List<_i47.PendingTask>>);
+          as _i15.Future<List<_i46.PendingTask>>);
 
   @override
   _i15.Future<void> scheduleMergeGroupBuilds({
-    required _i35.Commit? commit,
-    required List<_i41.Target>? targets,
+    required _i34.Commit? commit,
+    required List<_i40.Target>? targets,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleMergeGroupBuilds, [], {
@@ -4895,8 +4736,8 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<_i10.CheckRun> createPostsubmitCheckRun(
-    _i45.OpaqueCommit? commit,
-    _i41.Target? target,
+    _i44.OpaqueCommit? commit,
+    _i40.Target? target,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#createPostsubmitCheckRun, [commit, target]),
@@ -4911,11 +4752,11 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i15.Future<bool> checkRerunBuilder({
-    required _i45.OpaqueCommit? commit,
-    required _i41.Target? target,
-    required _i36.Task? task,
-    required _i40.Task? taskDocument,
-    Iterable<_i48.BuildTag>? tags = const [],
+    required _i44.OpaqueCommit? commit,
+    required _i40.Target? target,
+    required _i35.Task? task,
+    required _i39.Task? taskDocument,
+    Iterable<_i47.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
       (super.noSuchMethod(
@@ -4935,7 +4776,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 /// A class which mocks [ProcessManager].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
+class MockProcessManager extends _i1.Mock implements _i48.ProcessManager {
   MockProcessManager() {
     _i1.throwOnMissingStub(this);
   }
@@ -4962,7 +4803,7 @@ class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
               },
             ),
             returnValue: _i15.Future<_i20.Process>.value(
-              _FakeProcess_57(
+              _FakeProcess_53(
                 this,
                 Invocation.method(
                   #start,
@@ -5004,7 +4845,7 @@ class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
               },
             ),
             returnValue: _i15.Future<_i20.ProcessResult>.value(
-              _i29.dummyValue<_i20.ProcessResult>(
+              _i28.dummyValue<_i20.ProcessResult>(
                 this,
                 Invocation.method(
                   #run,
@@ -5046,7 +4887,7 @@ class MockProcessManager extends _i1.Mock implements _i49.ProcessManager {
                 #stderrEncoding: stderrEncoding,
               },
             ),
-            returnValue: _i29.dummyValue<_i20.ProcessResult>(
+            returnValue: _i28.dummyValue<_i20.ProcessResult>(
               this,
               Invocation.method(
                 #runSync,
@@ -5214,7 +5055,7 @@ class MockTabledataResource extends _i1.Mock implements _i4.TabledataResource {
               {#$fields: $fields},
             ),
             returnValue: _i15.Future<_i4.TableDataInsertAllResponse>.value(
-              _FakeTableDataInsertAllResponse_58(
+              _FakeTableDataInsertAllResponse_54(
                 this,
                 Invocation.method(
                   #insertAll,
@@ -5253,7 +5094,7 @@ class MockTabledataResource extends _i1.Mock implements _i4.TabledataResource {
               },
             ),
             returnValue: _i15.Future<_i4.TableDataList>.value(
-              _FakeTableDataList_59(
+              _FakeTableDataList_55(
                 this,
                 Invocation.method(
                   #list,
@@ -5295,7 +5136,7 @@ class MockUsersService extends _i1.Mock implements _i10.UsersService {
       (super.noSuchMethod(
             Invocation.method(#getUser, [name]),
             returnValue: _i15.Future<_i10.User>.value(
-              _FakeUser_60(this, Invocation.method(#getUser, [name])),
+              _FakeUser_56(this, Invocation.method(#getUser, [name])),
             ),
           )
           as _i15.Future<_i10.User>);
@@ -5321,7 +5162,7 @@ class MockUsersService extends _i1.Mock implements _i10.UsersService {
               #bio: bio,
             }),
             returnValue: _i15.Future<_i10.CurrentUser>.value(
-              _FakeCurrentUser_61(
+              _FakeCurrentUser_57(
                 this,
                 Invocation.method(#editCurrentUser, [], {
                   #name: name,
@@ -5350,7 +5191,7 @@ class MockUsersService extends _i1.Mock implements _i10.UsersService {
       (super.noSuchMethod(
             Invocation.method(#getCurrentUser, []),
             returnValue: _i15.Future<_i10.CurrentUser>.value(
-              _FakeCurrentUser_61(this, Invocation.method(#getCurrentUser, [])),
+              _FakeCurrentUser_57(this, Invocation.method(#getCurrentUser, [])),
             ),
           )
           as _i15.Future<_i10.CurrentUser>);
@@ -5464,7 +5305,7 @@ class MockUsersService extends _i1.Mock implements _i10.UsersService {
       (super.noSuchMethod(
             Invocation.method(#createPublicKey, [key]),
             returnValue: _i15.Future<_i10.PublicKey>.value(
-              _FakePublicKey_62(
+              _FakePublicKey_58(
                 this,
                 Invocation.method(#createPublicKey, [key]),
               ),
@@ -5539,7 +5380,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               {#$fields: $fields},
             ),
             returnValue: _i15.Future<_i16.BeginTransactionResponse>.value(
-              _FakeBeginTransactionResponse_63(
+              _FakeBeginTransactionResponse_59(
                 this,
                 Invocation.method(
                   #beginTransaction,
@@ -5613,7 +5454,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
           as _i15.Future<_i16.Document>);
 
   @override
-  _i15.Future<_i24.$Empty> delete(
+  _i15.Future<_i22.$Empty> delete(
     String? name, {
     bool? currentDocument_exists,
     String? currentDocument_updateTime,
@@ -5629,8 +5470,8 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
                 #$fields: $fields,
               },
             ),
-            returnValue: _i15.Future<_i24.$Empty>.value(
-              _Fake$Empty_64(
+            returnValue: _i15.Future<_i22.$Empty>.value(
+              _Fake$Empty_60(
                 this,
                 Invocation.method(
                   #delete,
@@ -5644,7 +5485,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               ),
             ),
           )
-          as _i15.Future<_i24.$Empty>);
+          as _i15.Future<_i22.$Empty>);
 
   @override
   _i15.Future<_i16.Document> get(
@@ -5712,7 +5553,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               },
             ),
             returnValue: _i15.Future<_i16.ListDocumentsResponse>.value(
-              _FakeListDocumentsResponse_65(
+              _FakeListDocumentsResponse_61(
                 this,
                 Invocation.method(
                   #list,
@@ -5746,7 +5587,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               {#$fields: $fields},
             ),
             returnValue: _i15.Future<_i16.ListCollectionIdsResponse>.value(
-              _FakeListCollectionIdsResponse_66(
+              _FakeListCollectionIdsResponse_62(
                 this,
                 Invocation.method(
                   #listCollectionIds,
@@ -5787,7 +5628,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               },
             ),
             returnValue: _i15.Future<_i16.ListDocumentsResponse>.value(
-              _FakeListDocumentsResponse_65(
+              _FakeListDocumentsResponse_61(
                 this,
                 Invocation.method(
                   #listDocuments,
@@ -5821,7 +5662,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               {#$fields: $fields},
             ),
             returnValue: _i15.Future<_i16.PartitionQueryResponse>.value(
-              _FakePartitionQueryResponse_67(
+              _FakePartitionQueryResponse_63(
                 this,
                 Invocation.method(
                   #partitionQuery,
@@ -5875,7 +5716,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
           as _i15.Future<_i16.Document>);
 
   @override
-  _i15.Future<_i24.$Empty> rollback(
+  _i15.Future<_i22.$Empty> rollback(
     _i16.RollbackRequest? request,
     String? database, {
     String? $fields,
@@ -5886,8 +5727,8 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               [request, database],
               {#$fields: $fields},
             ),
-            returnValue: _i15.Future<_i24.$Empty>.value(
-              _Fake$Empty_64(
+            returnValue: _i15.Future<_i22.$Empty>.value(
+              _Fake$Empty_60(
                 this,
                 Invocation.method(
                   #rollback,
@@ -5897,7 +5738,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               ),
             ),
           )
-          as _i15.Future<_i24.$Empty>);
+          as _i15.Future<_i22.$Empty>);
 
   @override
   _i15.Future<List<_i16.RunAggregationQueryResponseElement>>
@@ -5945,7 +5786,7 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#write, [request, database], {#$fields: $fields}),
             returnValue: _i15.Future<_i16.WriteResponse>.value(
-              _FakeWriteResponse_68(
+              _FakeWriteResponse_64(
                 this,
                 Invocation.method(
                   #write,
@@ -5999,19 +5840,19 @@ class MockBeginTransactionResponse extends _i1.Mock
 /// A class which mocks [Callbacks].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
+class MockCallbacks extends _i1.Mock implements _i49.Callbacks {
   MockCallbacks() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i15.Future<_i25.StagingConclusion> markCheckRunConclusion({
+  _i15.Future<_i23.StagingConclusion> markCheckRunConclusion({
     required _i12.FirestoreService? firestoreService,
     required _i10.RepositorySlug? slug,
     required String? sha,
-    required _i25.CiStage? stage,
+    required _i23.CiStage? stage,
     required String? checkRun,
-    required _i25.TaskConclusion? conclusion,
+    required _i23.TaskConclusion? conclusion,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#markCheckRunConclusion, [], {
@@ -6022,8 +5863,8 @@ class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
               #checkRun: checkRun,
               #conclusion: conclusion,
             }),
-            returnValue: _i15.Future<_i25.StagingConclusion>.value(
-              _FakeStagingConclusion_69(
+            returnValue: _i15.Future<_i23.StagingConclusion>.value(
+              _FakeStagingConclusion_65(
                 this,
                 Invocation.method(#markCheckRunConclusion, [], {
                   #firestoreService: firestoreService,
@@ -6036,14 +5877,14 @@ class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
               ),
             ),
           )
-          as _i15.Future<_i25.StagingConclusion>);
+          as _i15.Future<_i23.StagingConclusion>);
 
   @override
   _i15.Future<_i16.Document> initializeDocument({
     required _i12.FirestoreService? firestoreService,
     required _i10.RepositorySlug? slug,
     required String? sha,
-    required _i25.CiStage? stage,
+    required _i23.CiStage? stage,
     required List<String>? tasks,
     required String? checkRunGuard,
   }) =>
@@ -6138,7 +5979,7 @@ class MockCallbacks extends _i1.Mock implements _i50.Callbacks {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPullRequestLabelProcessor extends _i1.Mock
-    implements _i22.PullRequestLabelProcessor {
+    implements _i26.PullRequestLabelProcessor {
   MockPullRequestLabelProcessor() {
     _i1.throwOnMissingStub(this);
   }
@@ -6177,7 +6018,7 @@ class MockPullRequestLabelProcessor extends _i1.Mock
   _i10.RepositorySlug get slug =>
       (super.noSuchMethod(
             Invocation.getter(#slug),
-            returnValue: _FakeRepositorySlug_70(this, Invocation.getter(#slug)),
+            returnValue: _FakeRepositorySlug_66(this, Invocation.getter(#slug)),
           )
           as _i10.RepositorySlug);
 
@@ -6189,7 +6030,7 @@ class MockPullRequestLabelProcessor extends _i1.Mock
   String get logCrumb =>
       (super.noSuchMethod(
             Invocation.getter(#logCrumb),
-            returnValue: _i29.dummyValue<String>(
+            returnValue: _i28.dummyValue<String>(
               this,
               Invocation.getter(#logCrumb),
             ),
@@ -6226,52 +6067,52 @@ class MockPullRequestLabelProcessor extends _i1.Mock
 /// A class which mocks [Cache].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCache extends _i1.Mock implements _i26.Cache<_i38.Uint8List> {
+class MockCache extends _i1.Mock implements _i24.Cache<_i37.Uint8List> {
   MockCache() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i26.Entry<_i38.Uint8List> operator [](String? key) =>
+  _i24.Entry<_i37.Uint8List> operator [](String? key) =>
       (super.noSuchMethod(
             Invocation.method(#[], [key]),
-            returnValue: _FakeEntry_71<_i38.Uint8List>(
+            returnValue: _FakeEntry_67<_i37.Uint8List>(
               this,
               Invocation.method(#[], [key]),
             ),
           )
-          as _i26.Entry<_i38.Uint8List>);
+          as _i24.Entry<_i37.Uint8List>);
 
   @override
-  _i26.Cache<_i38.Uint8List> withPrefix(String? prefix) =>
+  _i24.Cache<_i37.Uint8List> withPrefix(String? prefix) =>
       (super.noSuchMethod(
             Invocation.method(#withPrefix, [prefix]),
-            returnValue: _FakeCache_72<_i38.Uint8List>(
+            returnValue: _FakeCache_68<_i37.Uint8List>(
               this,
               Invocation.method(#withPrefix, [prefix]),
             ),
           )
-          as _i26.Cache<_i38.Uint8List>);
+          as _i24.Cache<_i37.Uint8List>);
 
   @override
-  _i26.Cache<S> withCodec<S>(_i21.Codec<S, _i38.Uint8List>? codec) =>
+  _i24.Cache<S> withCodec<S>(_i21.Codec<S, _i37.Uint8List>? codec) =>
       (super.noSuchMethod(
             Invocation.method(#withCodec, [codec]),
-            returnValue: _FakeCache_72<S>(
+            returnValue: _FakeCache_68<S>(
               this,
               Invocation.method(#withCodec, [codec]),
             ),
           )
-          as _i26.Cache<S>);
+          as _i24.Cache<S>);
 
   @override
-  _i26.Cache<_i38.Uint8List> withTTL(Duration? ttl) =>
+  _i24.Cache<_i37.Uint8List> withTTL(Duration? ttl) =>
       (super.noSuchMethod(
             Invocation.method(#withTTL, [ttl]),
-            returnValue: _FakeCache_72<_i38.Uint8List>(
+            returnValue: _FakeCache_68<_i37.Uint8List>(
               this,
               Invocation.method(#withTTL, [ttl]),
             ),
           )
-          as _i26.Cache<_i38.Uint8List>);
+          as _i24.Cache<_i37.Uint8List>);
 }
