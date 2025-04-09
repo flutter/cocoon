@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'log_sink.dart';
 import 'severity.dart';
@@ -134,7 +135,8 @@ sealed class LogRecord {
       'severity': severity.name,
       'recordedAt': recordedAt.toIso8601String(),
       if (error case final error?) 'error': '$error',
-      if (trace case final trace?) 'trace': '$trace',
+      if (trace case final trace?)
+        'trace': [...Trace.from(trace).frames.map((f) => '$f')],
     };
   }
 }

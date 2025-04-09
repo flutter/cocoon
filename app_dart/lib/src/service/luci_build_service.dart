@@ -1112,7 +1112,7 @@ class LuciBuildService {
     final dsExistingTask = await Task.fromDatastore(
       datastore: datastore,
       commitKey: commitKey,
-      name: task.name,
+      name: task.taskName,
     );
     dsExistingTask
       ..attempts = newAttempt
