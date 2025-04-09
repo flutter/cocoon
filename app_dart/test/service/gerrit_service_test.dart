@@ -32,18 +32,15 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         httpClient: mockHttpClient,
+        retryDelay: const Duration(milliseconds: 1),
       );
-      try {
-        await gerritService.branches(
-          'myhost',
-          'a/b/c',
-          filterRegex: 'flutter-*',
-        );
-      } catch (e) {
-        // FIXME: Write/restore test.
-        // expect(e, isA<RetryException>());
-      }
+
+      await expectLater(
+        gerritService.branches('myhost', 'a/b/c', filterRegex: 'flutter-*'),
+        throwsA(isA<InternalServerError>()),
+      );
     });
+
     test('Returns a list of branches', () async {
       Request? requestAux;
       const body =

@@ -31,6 +31,7 @@ class GerritService {
   final Config config;
   final http.Client httpClient;
 
+  /// GoB replicas may not have all the Flutter state, and can require several retries
   final Duration? retryDelay;
 
   /// Provider for generating a [http.Client] that is authenticated to make calls to GCP services.
@@ -157,15 +158,24 @@ class GerritService {
   }
 
   Future<dynamic> _getJson(Uri url) async {
-    final client = RetryClient(httpClient);
-    final response = await client.get(url);
+    final response = await _get(url);
     final jsonBody = _stripXssToken(response.body);
     return jsonDecode(jsonBody) as dynamic;
   }
 
   Future<http.Response> _get(Uri url) async {
-    final client = RetryClient(httpClient);
-    return client.get(url);
+    final client = RetryClient(
+      httpClient,
+      when: (response) => !_responseIsAcceptable(response),
+      delay: (attempt) => retryDelay ?? const Duration(seconds: 1) * attempt,
+    );
+    final response = await client.get(url);
+    if (!_responseIsAcceptable(response)) {
+      throw InternalServerError(
+        'Gerrit returned ${response.statusCode} which is not 200 or 202',
+      );
+    }
+    return response;
   }
 
   Future<dynamic> _put(Uri url, {Object? body}) async {
@@ -173,17 +183,13 @@ class GerritService {
       baseClient: httpClient,
       scopes: <String>[],
     );
-    // GoB replicas may not have all the Flutter state, and can require several retries
-    final http.Client client = RetryClient(
+    final client = RetryClient(
       authClient,
-      when:
-          (http.BaseResponse response) =>
-              _responseIsAcceptable(response) == false,
-      delay:
-          (int attempt) => retryDelay ?? const Duration(seconds: 1) * attempt,
+      when: (response) => !_responseIsAcceptable(response),
+      delay: (attempt) => retryDelay ?? const Duration(seconds: 1) * attempt,
     );
     final response = await client.put(url, body: body);
-    if (_responseIsAcceptable(response) == false) {
+    if (!_responseIsAcceptable(response)) {
       throw InternalServerError(
         'Gerrit returned ${response.statusCode} which is not 200 or 202',
       );
