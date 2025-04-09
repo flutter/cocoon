@@ -4795,20 +4795,6 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
           as _i15.Future<void>);
 
   @override
-  _i15.Future<List<_i6.Build?>> failedBuilds({
-    required _i10.PullRequest? pullRequest,
-    required List<_i41.Target>? targets,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#failedBuilds, [], {
-              #pullRequest: pullRequest,
-              #targets: targets,
-            }),
-            returnValue: _i15.Future<List<_i6.Build?>>.value(<_i6.Build?>[]),
-          )
-          as _i15.Future<List<_i6.Build?>>);
-
-  @override
   _i15.Future<_i6.Build> reschedulePresubmitBuild({
     required String? builderName,
     required _i6.Build? build,
