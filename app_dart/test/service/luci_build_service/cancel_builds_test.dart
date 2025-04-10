@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
+import '../../src/service/fake_gerrit_service.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -42,6 +43,7 @@ void main() {
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
       config: FakeConfig(firestoreService: firestoreService),
+      gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,

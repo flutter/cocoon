@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:meta/meta.dart';
@@ -19,27 +18,22 @@ import 'config.dart';
 
 /// Communicates with gerrit APIs https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html
 /// to get information about projects hosted in Git on Borg.
-class GerritService {
+interface class GerritService {
   GerritService({
-    required this.config,
-    http.Client? httpClient,
-    @visibleForTesting
-    this.authClientProvider = clientViaApplicationDefaultCredentials,
-    @visibleForTesting this.retryDelay,
-  }) : httpClient = httpClient ?? http.Client();
+    required Config config,
+    required http.Client authClient,
+    @visibleForTesting Duration? retryDelay,
+  }) : _authClient = authClient,
+       _retryDelay = retryDelay,
+       _config = config;
 
-  final Config config;
-  final http.Client httpClient;
+  final Config _config;
 
   /// GoB replicas may not have all the Flutter state, and can require several retries
-  final Duration? retryDelay;
+  final Duration? _retryDelay;
 
   /// Provider for generating a [http.Client] that is authenticated to make calls to GCP services.
-  final Future<AutoRefreshingAuthClient> Function({
-    http.Client? baseClient,
-    required List<String> scopes,
-  })
-  authClientProvider;
+  final http.Client _authClient;
 
   /// Gets the branches from a remote git repository using the gerrit APIs.
   ///
@@ -94,7 +88,7 @@ class GerritService {
     RepositorySlug slug,
     String sha,
   ) async {
-    if (!config.supportedRepos.contains(slug)) return null;
+    if (!_config.supportedRepos.contains(slug)) return null;
     final gobMirrorName = 'mirrors/${slug.name}';
     return getCommit(RepositorySlug(slug.owner, gobMirrorName), sha);
   }
@@ -157,17 +151,17 @@ class GerritService {
     log.info('Created branch $branchName');
   }
 
-  Future<dynamic> _getJson(Uri url) async {
+  Future<Object?> _getJson(Uri url) async {
     final response = await _get(url);
     final jsonBody = _stripXssToken(response.body);
-    return jsonDecode(jsonBody) as dynamic;
+    return jsonDecode(jsonBody) as Object?;
   }
 
   Future<http.Response> _get(Uri url) async {
     final client = RetryClient(
-      httpClient,
+      _authClient,
       when: (response) => !_responseIsAcceptable(response),
-      delay: (attempt) => retryDelay ?? const Duration(seconds: 1) * attempt,
+      delay: (attempt) => _retryDelay ?? const Duration(seconds: 1) * attempt,
     );
     final response = await client.get(url);
     if (!_responseIsAcceptable(response)) {
@@ -179,14 +173,10 @@ class GerritService {
   }
 
   Future<dynamic> _put(Uri url, {Object? body}) async {
-    final http.Client authClient = await authClientProvider(
-      baseClient: httpClient,
-      scopes: <String>[],
-    );
     final client = RetryClient(
-      authClient,
+      _authClient,
       when: (response) => !_responseIsAcceptable(response),
-      delay: (attempt) => retryDelay ?? const Duration(seconds: 1) * attempt,
+      delay: (attempt) => _retryDelay ?? const Duration(seconds: 1) * attempt,
     );
     final response = await client.put(url, body: body);
     if (!_responseIsAcceptable(response)) {

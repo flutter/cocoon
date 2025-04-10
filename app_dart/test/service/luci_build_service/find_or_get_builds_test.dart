@@ -15,6 +15,7 @@ import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
+import '../../src/service/fake_gerrit_service.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -43,6 +44,7 @@ void main() {
     luci = LuciBuildService(
       config: FakeConfig(),
       cache: cacheService,
+      gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,
       pubsub: FakePubSub(),
     );
