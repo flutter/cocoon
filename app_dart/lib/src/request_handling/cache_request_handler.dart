@@ -76,9 +76,6 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     return Body.forStream(Stream<Uint8List?>.value(cachedResponse.body)) as T;
   }
 
-  /// Get a Uint8List that contains the bytes of the response from [delegate]
-  /// so it can be stored in [_cache].
-
   /// Invokes [delegate.get], and returns the result as a [_CachedHttpResponse].
   Future<_CachedHttpResponse> _createCachedResponse(
     RequestHandler<T> delegate,
@@ -112,7 +109,7 @@ final class _CachedHttpResponse {
     required String debugName,
   }) {
     if (bytes.length < _magic4Uint8List.length ||
-        bytes.buffer.asByteData().getUint32(0) != _magic4Bytes) {
+        bytes.buffer.asByteData().getUint32(0, Endian.big) != _magic4Bytes) {
       log.warn(
         '[CachedHttpResponse] Legacy cache for $debugName, falling back to '
         'status=200 reason=""',
@@ -123,7 +120,9 @@ final class _CachedHttpResponse {
     // The default implementation of .decodeMessage rejects trailing padding
     // bytes, which are returned by the Redis cache implementation. If we ever
     // fix the Redis implementation, we can change what happens here.
-    final buffer = utf8.decode(Uint8List.sublistView(bytes, 4));
+    final buffer = utf8.decode(
+      Uint8List.sublistView(bytes, _magic4Uint8List.length),
+    );
     final decoded = json.decode(buffer) as Map<String, Object?>;
     return _CachedHttpResponse._(
       decoded['statusCode'] as int,
