@@ -18,6 +18,8 @@ import '../utilities/mocks.dart';
 
 export '../model/firestore_matcher.dart';
 
+final queryKeyValidator = RegExp(r'(^[a-zA-Z_][a-zA-Z_0-9]*)$');
+
 abstract base class _FakeInMemoryFirestoreService
     with FirestoreQueries
     implements FirestoreService {
@@ -337,6 +339,14 @@ abstract base class _FakeInMemoryFirestoreService
     if (orderMap != null) {
       if (orderMap.values.any((v) => v != kQueryOrderDescending)) {
         throw UnimplementedError('orderMap: ${[...orderMap.values]}');
+      }
+
+      for (var key in orderMap.keys) {
+        if (!queryKeyValidator.hasMatch(key)) {
+          throw ArgumentError.value(
+            'order map key($key) does not match firestore regex',
+          );
+        }
       }
 
       // Hard-coded to assume all sorts are DESCENDING.

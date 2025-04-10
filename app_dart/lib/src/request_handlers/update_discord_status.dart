@@ -54,7 +54,7 @@ final class UpdateDiscordStatus extends GetBuildStatus {
       'last_build_status',
       <String, Object>{},
       limit: 1,
-      orderMap: {'createTimestamp	': kQueryOrderDescending},
+      orderMap: {'createTimestamp': kQueryOrderDescending},
     );
 
     if (lastDocs.isEmpty ||
