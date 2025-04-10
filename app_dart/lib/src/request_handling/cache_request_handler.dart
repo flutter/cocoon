@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../request_handling/request_handler.dart';
@@ -20,19 +22,17 @@ import 'body.dart';
 class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [CacheRequestHandler].
   const CacheRequestHandler({
-    required this.delegate,
+    required RequestHandler<T> delegate,
     required super.config,
-    required this.cache,
-    this.ttl = const Duration(minutes: 1),
-  });
+    required CacheService cache,
+    Duration ttl = const Duration(minutes: 1),
+  }) : _ttl = ttl,
+       _cache = cache,
+       _delegate = delegate;
 
-  /// [RequestHandler] to fallback on for cache misses.
-  final RequestHandler<T> delegate;
-
-  final CacheService cache;
-
-  /// The time to live for the response stored in the cache.
-  final Duration ttl;
+  final RequestHandler<T> _delegate;
+  final CacheService _cache;
+  final Duration _ttl;
 
   @visibleForTesting
   static const String responseSubcacheName = 'response';
@@ -50,33 +50,106 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     final responseKey = '${request!.uri.path}:${request!.uri.query}';
 
     if (request!.uri.queryParameters[flushCacheQueryParam] == 'true') {
-      await cache.purge(responseSubcacheName, responseKey);
+      await _cache.purge(responseSubcacheName, responseKey);
     }
 
-    final cachedResponse = await cache.getOrCreateWithLocking(
+    final cachedBytes = await _cache.getOrCreateWithLocking(
       responseSubcacheName,
       responseKey,
-      createFn: () => getBodyBytesFromDelegate(delegate),
-      ttl: ttl,
+      createFn: () async {
+        // TODO(matanlurey): Evaluate if 5XX errors should not be cached.
+        final response = await _createCachedResponse(_delegate);
+        return response.toBytes();
+      },
+      ttl: _ttl,
     );
 
-    return Body.forStream(Stream<Uint8List?>.value(cachedResponse)) as T;
+    final cachedResponse = _CachedHttpResponse.fromBytes(
+      cachedBytes!,
+      debugName: responseKey,
+    );
+
+    response!
+      ..statusCode = cachedResponse.statusCode
+      ..reasonPhrase = cachedResponse.reason;
+
+    return Body.forStream(Stream<Uint8List?>.value(cachedResponse.body)) as T;
   }
 
-  /// Get a Uint8List that contains the bytes of the response from [delegate]
-  /// so it can be stored in [cache].
-  Future<Uint8List> getBodyBytesFromDelegate(RequestHandler<T> delegate) async {
-    final Body body = await delegate.get();
+  /// Invokes [delegate.get], and returns the result as a [_CachedHttpResponse].
+  Future<_CachedHttpResponse> _createCachedResponse(
+    RequestHandler<T> delegate,
+  ) async {
+    final body = await delegate.get();
+    final response = this.response!;
+    final builder = BytesBuilder();
+    await body.serialize().forEach((d) {
+      if (d != null) builder.add(d);
+    });
+    return _CachedHttpResponse._(
+      response.statusCode,
+      response.reasonPhrase,
+      builder.toBytes(),
+    );
+  }
+}
 
-    // Body only offers getting a Stream<Uint8List> since it just sends
-    // the data out usually to a client. In this case, we want to store
-    // the bytes in the cache which requires several conversions to get a
-    // Uint8List that contains the bytes of the response.
-    final rawBytes =
-        await body
-            .serialize()
-            .expand<int>((Uint8List? chunk) => chunk!)
-            .toList();
-    return Uint8List.fromList(rawBytes);
+@immutable
+final class _CachedHttpResponse {
+  static const _magic4Bytes = 0xFA_CE_FE_ED;
+  static final _magic4Uint8List =
+      Uint8List(4)
+        ..[0] = 0xFA
+        ..[1] = 0xCE
+        ..[2] = 0xFE
+        ..[3] = 0xED;
+
+  factory _CachedHttpResponse.fromBytes(
+    Uint8List bytes, {
+    required String debugName,
+  }) {
+    if (bytes.length < _magic4Uint8List.length ||
+        bytes.buffer.asByteData().getUint32(0, Endian.big) != _magic4Bytes) {
+      log.warn(
+        '[CachedHttpResponse] Legacy cache for $debugName, falling back to '
+        'status=200 reason=""',
+      );
+      return _CachedHttpResponse._(200, '', bytes.buffer.asUint8List());
+    }
+
+    // The default implementation of .decodeMessage rejects trailing padding
+    // bytes, which are returned by the Redis cache implementation. If we ever
+    // fix the Redis implementation, we can change what happens here.
+    final buffer = utf8.decode(
+      Uint8List.sublistView(bytes, _magic4Uint8List.length),
+    );
+    final decoded = json.decode(buffer) as Map<String, Object?>;
+    return _CachedHttpResponse._(
+      decoded['statusCode'] as int,
+      decoded['reason'] as String,
+      base64.decode(decoded['body'] as String),
+    );
+  }
+
+  _CachedHttpResponse._(this.statusCode, this.reason, this.body);
+
+  final int statusCode;
+  final String reason;
+  final Uint8List body;
+
+  /// Returns a binary encoding of the HTTP response.
+  Uint8List toBytes() {
+    final encoded = utf8.encode(
+      json.encode({
+        'statusCode': statusCode,
+        'reason': reason,
+        'body': base64.encode(body),
+      }),
+    );
+
+    final output = BytesBuilder(copy: true);
+    output.add(_magic4Uint8List);
+    output.add(encoded.buffer.asUint8List());
+    return output.takeBytes();
   }
 }
