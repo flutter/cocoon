@@ -19,7 +19,6 @@ base class GetBuildStatus extends RequestHandler<Body> {
   }) : _buildStatusService = buildStatusService;
 
   final BuildStatusService _buildStatusService;
-
   static const _kRepoParam = 'repo';
 
   @override
@@ -33,7 +32,6 @@ base class GetBuildStatus extends RequestHandler<Body> {
     final repoName = request!.uri.queryParameters[_kRepoParam] ?? 'flutter';
     final slug = RepositorySlug('flutter', repoName);
     final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
-
     return rpc_model.BuildStatusResponse(
       buildStatus:
           status.succeeded
