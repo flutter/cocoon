@@ -41,11 +41,10 @@ class LuciBuildService {
     required this.cache,
     required this.buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
-    GerritService? gerritService,
+    required this.gerritService,
     required this.pubsub,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
-  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-       gerritService = gerritService ?? GerritService(config: config);
+  }) : githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil();
 
   BuildBucketClient buildBucketClient;
   final CacheService cache;
