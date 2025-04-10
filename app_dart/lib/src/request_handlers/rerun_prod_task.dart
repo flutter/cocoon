@@ -2,27 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/firestore/task.dart' as firestore;
+import '../model/firestore/commit.dart' as fs;
+import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/opaque_commit.dart';
-import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
@@ -49,8 +43,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> post() async {
-    final firestoreService = await config.createFirestoreService();
-
     checkRequiredParameters([
       _paramBranch,
       _paramRepo,
@@ -65,175 +57,175 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       _paramTaskName: String taskName,
     } = requestData!;
 
-    final include = requestData![_paramInclude] as String?;
     final token = await tokenInfo(request!);
     final slug = RepositorySlug('flutter', repo);
 
+    // Ensure the commit exists in Firestore.
+    final firestore = await config.createFirestoreService();
+    final commit = await fs.Commit.tryFromFirestoreBySha(
+      firestore,
+      sha: commitSha,
+    );
+    if (commit == null) {
+      throw NotFoundException('No commit "$commitSha" found');
+    }
+
     if (taskName == 'all') {
-      log.info(
-        'Attempting to reset all failed prod tasks for $commitSha in $repo...',
-      );
-      final commitKey = Commit.createKey(
-        db: datastore.db,
-        slug: slug,
-        gitBranch: branch,
-        sha: commitSha,
-      );
-      final tasks = datastore.db.query<Task>(ancestorKey: commitKey).run();
-      final futures = <Future<void>>[];
       final statusesToRerun = {
-        ...Task.taskFailStatusSet,
-        if (include != null) ...include.split(','),
+        ...fs.Task.taskFailStatusSet,
+        ...?(requestData![_paramInclude] as String?)?.split(','),
       };
-      if (statusesToRerun.difference(Task.legalStatusValues) case final invalid
-          when invalid.isNotEmpty) {
+      if (statusesToRerun.difference(fs.Task.legalStatusValues)
+          case final invalid when invalid.isNotEmpty) {
         throw BadRequestException(
           'Invalid "include" statuses: ${invalid.join(',')}.',
         );
       }
-      await for (final task in tasks) {
-        if (!statusesToRerun.contains(task.status)) {
-          continue;
-        }
-        log.info('Resetting failed task ${task.name}');
-        futures.add(
-          _rerun(
-            branch: branch,
-            commitSha: commitSha,
-            taskName: task.name!,
-            slug: slug,
-            email: token.email!,
-            ignoreChecks: true,
-          ),
-        );
-      }
-      await Future.wait(futures);
-    } else {
-      // Prevents providing ?include=... that is ultimately ignored.
-      if (include != null) {
-        throw const BadRequestException(
-          'Cannot provide "include" when a task name is specified.',
-        );
-      }
-      log.info(
-        'Attempting to reset prod task "$taskName" for $commitSha in $repo...',
-      );
-      await _rerun(
-        branch: branch,
-        commitSha: commitSha,
-        taskName: taskName,
+      final ranTasks = await _rerunAllTasks(
+        commit: commit,
         slug: slug,
+        branch: branch,
         email: token.email!,
-        ignoreChecks: true,
+        statusesToRerun: statusesToRerun,
+      );
+      return Body.forJson(ranTasks);
+    }
+
+    if (requestData!.containsKey(_paramInclude)) {
+      throw const BadRequestException(
+        'Cannot provide "$_paramInclude" when a task name is specified.',
       );
     }
 
-    log.info('$taskName reset initiated successfully.');
+    // Ensure the task exists in Firestore.
+    final task = await firestore.queryLatestTask(
+      commitSha: commitSha,
+      builderName: taskName,
+    );
+    if (task == null) {
+      throw NotFoundException(
+        'No task "$taskName" found for commit "$commitSha"',
+      );
+    }
+
+    final didRerun = await _rerunSpecificTask(
+      commit: commit,
+      task: task,
+      slug: slug,
+      branch: branch,
+      email: token.email!,
+    );
+    if (!didRerun) {
+      throw InternalServerError('Failed to rerun task "$taskName"');
+    }
 
     return Body.empty;
   }
 
-  Future<void> _rerun({
-    required String branch,
-    required String commitSha,
-    required String taskName,
-    required RepositorySlug slug,
-    required String email,
-    bool ignoreChecks = false,
-  }) async {
-    // Prepares Datastore task.
-    final task = await _getTaskFromNamedParams(
-      datastore: datastore,
-      branch: branch,
-      name: taskName,
-      sha: commitSha,
-      slug: slug,
-    );
-    final commit = await _getCommitFromTask(datastore, task);
-    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
+  @useResult
+  Future<Map<String, Target>> _getPostsubmitTargets(fs.Commit commit) async {
+    final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(commit);
     final targets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)
         ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
     ];
+    return {for (final t in targets) t.value.name: t};
+  }
 
-    // Fail "nicely" on missing a cooresponding target.
-    final Target target;
-    {
-      final matched = targets.where((target) => target.value.name == task.name);
-
+  @useResult
+  Target? _findMatchingTarget(
+    fs.Task task, {
+    required Map<String, Target> postsubmitTargets,
+  }) {
+    final matched = postsubmitTargets[task.taskName];
+    if (matched == null) {
       // Could happen (https://github.com/flutter/flutter/issues/165522).
-      if (matched.isEmpty) {
-        log.warn(
-          'No matching target ("${task.name}") found in ${targets.map((t) => t.value.name).toList()}.',
-        );
-        return;
-      }
-
-      // Can't happen, as it would be an invalid .ci.yaml.
-      if (matched.length > 1) {
-        throw StateError(
-          'More than one target ("${task.name}") matched in ${targets.map((t) => t.value.name).toList()}.',
-        );
-      }
-
-      target = matched.first;
+      log.warn(
+        'No matching target ("${task.taskName}") found in '
+        '${[...postsubmitTargets.keys]}.',
+      );
+      return null;
     }
-
-    // Prepares Firestore task.
-    final firestoreTask = firestore.TaskId(
-      commitSha: commitSha,
-      taskName: taskName,
-      currentAttempt: task.attempts!,
-    );
-    final taskDocument = await firestore.Task.fromFirestore(
-      firestoreService,
-      firestoreTask,
-    );
-
-    final isRerunning = await _luciBuildService.checkRerunBuilder(
-      commit: OpaqueCommit.fromDatastore(commit),
-      task: task,
-      target: target,
-      tags: [TriggerdByBuildTag(email: email)],
-      ignoreChecks: ignoreChecks,
-      taskDocument: taskDocument,
-    );
-
-    // For human retries from the dashboard, notify if a task failed to rerun.
-    if (ignoreChecks && isRerunning == false) {
-      throw InternalServerError('Failed to rerun $taskName');
-    }
+    return matched;
   }
 
-  /// Retrieve [Task] from [DatastoreService] from a commit + task name info.
-  static Future<Task> _getTaskFromNamedParams({
-    required DatastoreService datastore,
-    required String branch,
-    required String name,
-    required String sha,
+  @useResult
+  Future<List<String>> _rerunAllTasks({
+    required fs.Commit commit,
     required RepositorySlug slug,
+    required String branch,
+    required String email,
+    required Set<String> statusesToRerun,
   }) async {
-    final commitKey = Commit.createKey(
-      db: datastore.db,
-      slug: slug,
-      gitBranch: branch,
-      sha: sha,
-    );
-    return Task.fromDatastore(
-      datastore: datastore,
-      commitKey: commitKey,
-      name: name,
-    );
+    // Find all possible post-submit targets for the commit.
+    final allTargets = await _getPostsubmitTargets(commit);
+
+    // Find the latest task for each task for this commit.
+    final firestore = await config.createFirestoreService();
+    final latestTasks =
+        CommitAndTasks(
+          commit,
+          await firestore.queryCommitTasks(commit.sha),
+        ).withMostRecentTaskOnly().tasks;
+
+    // For each task that would be rerun, rerun it.
+    final futures = <Future<void>>[];
+    final didRerun = <String>[];
+    for (final task in latestTasks) {
+      if (!statusesToRerun.contains(task.status)) {
+        log.debug('Skipping task ${task.taskName}, status: ${task.status}');
+        continue;
+      }
+
+      final taskTarget = _findMatchingTarget(
+        task,
+        postsubmitTargets: allTargets,
+      );
+      if (taskTarget == null) {
+        log.debug('Skipping task ${task.taskName}, no matching target');
+        continue;
+      }
+
+      log.info('Resetting failed task ${task.taskName}');
+      didRerun.add(task.taskName);
+      futures.add(
+        _luciBuildService.checkRerunBuilder(
+          commit: OpaqueCommit.fromFirestore(commit),
+          target: taskTarget,
+          tags: [TriggerdByBuildTag(email: email)],
+          ignoreChecks: _manualRerunsIgnoreChecks,
+          taskDocument: task,
+        ),
+      );
+    }
+
+    await Future.wait(futures);
+    return didRerun;
   }
 
-  /// Returns the [Commit] associated with [Task].
-  static Future<Commit> _getCommitFromTask(
-    DatastoreService datastore,
-    Task task,
-  ) async {
-    return (await datastore.lookupByKey<Commit>(<Key<dynamic>>[
-      task.parentKey!,
-    ])).single!;
+  // TODO(matanlurey): https://github.com/flutter/flutter/issues/166858.
+  static const _manualRerunsIgnoreChecks = true;
+
+  Future<bool> _rerunSpecificTask({
+    required fs.Commit commit,
+    required fs.Task task,
+    required RepositorySlug slug,
+    required String branch,
+    required String email,
+  }) async {
+    final allTargets = await _getPostsubmitTargets(commit);
+    final taskTarget = _findMatchingTarget(task, postsubmitTargets: allTargets);
+    if (taskTarget == null) {
+      return false;
+    }
+
+    return await _luciBuildService.checkRerunBuilder(
+      commit: OpaqueCommit.fromFirestore(commit),
+      target: taskTarget,
+      tags: [TriggerdByBuildTag(email: email)],
+      ignoreChecks: _manualRerunsIgnoreChecks,
+      taskDocument: task,
+    );
   }
 }

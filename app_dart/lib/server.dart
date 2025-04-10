@@ -104,7 +104,6 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/reset-try-task': ResetTryTask(

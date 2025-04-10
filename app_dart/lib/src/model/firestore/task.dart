@@ -5,8 +5,6 @@
 /// @docImport 'commit.dart';
 library;
 
-import 'dart:io';
-
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
