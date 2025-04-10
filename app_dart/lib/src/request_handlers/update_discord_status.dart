@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
+import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart' show Document, Value;
 import 'package:meta/meta.dart';
 
@@ -59,11 +60,14 @@ final class UpdateDiscordStatus extends GetBuildStatus {
 
     if (lastDocs.isEmpty ||
         lastDocs.first.fields?['status']?.stringValue != statusString) {
+      log.debug('[update_discord_status] status changed');
       await firestore.createDocument(
         Document(
           fields: <String, Value>{
             'status': Value(stringValue: statusString),
-            'createTimestamp': Value(timestampValue: _now().toIso8601String()),
+            'createTimestamp': Value(
+              timestampValue: _now().toUtc().toIso8601String(),
+            ),
           },
         ),
         collectionId: 'last_build_status',
@@ -74,6 +78,7 @@ final class UpdateDiscordStatus extends GetBuildStatus {
               ? statusString
               : '${statusString.substring(0, 1000)}... things appear to be very broken right now. :cry:';
 
+      log.info('[update_discord_status] posting to discord: $discordMessage');
       await _discord.postTreeStatusMessage(discordMessage);
     }
   }

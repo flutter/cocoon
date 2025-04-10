@@ -31,15 +31,21 @@ interface class DiscordService {
 
     final discordResponse = await _client.post(
       Uri.parse(await config.discordTreeStatusWebhookUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: json.encode({'content': discordMessage}),
     );
     if (discordResponse.statusCode != 200) {
       log.warn(
-        'failed to post tree-status to discord: ${discordResponse.statusCode} / ${discordResponse.body}. Status: $discordMessage',
+        '[discord_service] failed to post tree-status to discord: ${discordResponse.statusCode} / ${discordResponse.body}. Status: $discordMessage',
       );
       return DiscordStatus.failed;
     }
+    log.debug(
+      '[discord_service] posted message to discord: ${discordResponse.statusCode} / ${discordResponse.body}. Status: $discordMessage',
+    );
     return DiscordStatus.ok;
   }
 }

@@ -83,7 +83,7 @@ void main() {
     );
     expect(
       doc.fields!['createTimestamp']!.timestampValue,
-      alwaysTime.toIso8601String(),
+      alwaysTime.toUtc().toIso8601String(),
     );
 
     // Verify we actually posted it
@@ -107,6 +107,7 @@ void main() {
             timestampValue:
                 alwaysTime
                     .subtract(const Duration(seconds: 1))
+                    .toUtc()
                     .toIso8601String(),
           ),
         },
@@ -144,6 +145,7 @@ void main() {
             timestampValue:
                 alwaysTime
                     .subtract(const Duration(seconds: 1))
+                    .toUtc()
                     .toIso8601String(),
           ),
         },
@@ -197,6 +199,7 @@ void main() {
             timestampValue:
                 alwaysTime
                     .subtract(const Duration(seconds: 1))
+                    .toUtc()
                     .toIso8601String(),
           ),
         },
