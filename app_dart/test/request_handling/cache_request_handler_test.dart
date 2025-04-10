@@ -61,6 +61,58 @@ void main() {
     expect(strResponse, expectedResponse);
   });
 
+  test('for legacy cache items, assumes a 200/empty reason phrase', () async {
+    const responseKey = '$testHttpPath:';
+    const expectedResponse = 'Hello, World!';
+    final expectedBody = Body.forString(expectedResponse);
+    final serializedBody = await expectedBody.serialize().first;
+
+    await cache.set(
+      CacheRequestHandler.responseSubcacheName,
+      responseKey,
+      serializedBody,
+    );
+
+    final fallbackHandler = FakeRequestHandler(
+      body: expectedBody,
+      config: FakeConfig(),
+      statusCode: 404,
+      reasonPhrase: 'Will never be used due to cache',
+    );
+
+    final cacheRequestHandler = CacheRequestHandler<Body>(
+      delegate: fallbackHandler,
+      cache: cache,
+      config: config,
+    );
+
+    final body = await tester.get(cacheRequestHandler);
+    final response = (await body.serialize().first)!;
+    final strResponse = utf8.decode(response);
+    expect(strResponse, expectedResponse);
+    expect(tester.response.statusCode, 200);
+    expect(tester.response.reasonPhrase, isEmpty);
+  });
+
+  test('stores HTTP status and reason in cache', () async {
+    final fallbackHandler = FakeRequestHandler(
+      body: Body.forString('hello!'),
+      config: FakeConfig(),
+      statusCode: 400,
+      reasonPhrase: 'For some reason',
+    );
+
+    final cacheRequestHandler = CacheRequestHandler<Body>(
+      delegate: fallbackHandler,
+      cache: cache,
+      config: config,
+    );
+
+    await tester.get(cacheRequestHandler);
+    expect(tester.response.statusCode, 400);
+    expect(tester.response.reasonPhrase, 'For some reason');
+  });
+
   test('fallback handler called when cache is empty', () async {
     final fallbackHandler = FakeRequestHandler(
       body: Body.forString('hello!'),

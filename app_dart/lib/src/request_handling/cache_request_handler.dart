@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:standard_message_codec/standard_message_codec.dart';
 
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
@@ -88,7 +88,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
       response.statusCode,
       response.reasonPhrase,
       (await body.serialize().fold(
-        BytesBuilder(copy: false),
+        BytesBuilder(copy: true),
         (prev, element) => prev..add(element!),
       )).takeBytes(),
     );
@@ -118,15 +118,15 @@ final class _CachedHttpResponse {
       return _CachedHttpResponse._(200, '', bytes.buffer.asUint8List());
     }
 
-    print(Uint8List.fromList(bytes.skip(4).toList()));
-    final decoded = const StandardMessageCodec().decodeMessage(
-      Uint8List.fromList(bytes.skip(4).toList()).buffer.asByteData(),
-    );
-    print(decoded);
+    // The default implementation of .decodeMessage rejects trailing padding
+    // bytes, which are returned by the Redis cache implementation. If we ever
+    // fix the Redis implementation, we can change what happens here.
+    final buffer = utf8.decode(Uint8List.sublistView(bytes, 4));
+    final decoded = json.decode(buffer) as Map<String, Object?>;
     return _CachedHttpResponse._(
-      decoded['status'] as int,
+      decoded['statusCode'] as int,
       decoded['reason'] as String,
-      decoded['body'] as Uint8List,
+      base64.decode(decoded['body'] as String),
     );
   }
 
@@ -138,15 +138,17 @@ final class _CachedHttpResponse {
 
   /// Returns a binary encoding of the HTTP response.
   Uint8List toBytes() {
-    final encoded = const StandardMessageCodec().encodeMessage({
-      'statusCode': statusCode,
-      'reason': reason,
-      'body': body,
-    });
+    final encoded = utf8.encode(
+      json.encode({
+        'statusCode': statusCode,
+        'reason': reason,
+        'body': base64.encode(body),
+      }),
+    );
 
     final output = BytesBuilder(copy: true);
     output.add(_magic4Uint8List);
-    output.add(encoded!.buffer.asUint8List());
+    output.add(encoded.buffer.asUint8List());
     return output.takeBytes();
   }
 }
