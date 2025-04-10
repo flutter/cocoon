@@ -31,19 +31,16 @@ void main() {
       );
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
+        retryDelay: const Duration(milliseconds: 1),
       );
-      try {
-        await gerritService.branches(
-          'myhost',
-          'a/b/c',
-          filterRegex: 'flutter-*',
-        );
-      } catch (e) {
-        // FIXME: Write/restore test.
-        // expect(e, isA<RetryException>());
-      }
+
+      await expectLater(
+        gerritService.branches('myhost', 'a/b/c', filterRegex: 'flutter-*'),
+        throwsA(isA<InternalServerError>()),
+      );
     });
+
     test('Returns a list of branches', () async {
       Request? requestAux;
       const body =
@@ -54,7 +51,7 @@ void main() {
       });
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
       );
       final branches = await gerritService.branches(
         'myhost',
@@ -74,7 +71,7 @@ void main() {
       );
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
       );
       final branches = await gerritService.branches(
         'myhost',
@@ -92,7 +89,7 @@ void main() {
       );
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
       );
       final commits = await gerritService.commits(Config.recipesSlug, 'main');
       expect(commits.length, 1);
@@ -119,7 +116,7 @@ void main() {
       );
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
       );
       final commit = await gerritService.getCommit(
         RepositorySlug('flutter', 'flutter'),
@@ -141,7 +138,7 @@ void main() {
       });
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
       );
       final commit = await gerritService.getCommit(
         RepositorySlug('flutter', 'mirrors/flutter'),
@@ -159,7 +156,7 @@ void main() {
       });
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
+        authClient: mockHttpClient,
       );
       final commit = await gerritService.findMirroredCommit(
         RepositorySlug('flutter', 'packages'),
@@ -176,10 +173,7 @@ void main() {
       );
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
-        authClientProvider:
-            ({Client? baseClient, required List<String> scopes}) async =>
-                FakeAuthClient(baseClient!),
+        authClient: FakeAuthClient(mockHttpClient),
         retryDelay: Duration.zero,
       );
 
@@ -196,10 +190,7 @@ void main() {
       );
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
-        authClientProvider:
-            ({Client? baseClient, required List<String> scopes}) async =>
-                FakeAuthClient(baseClient!),
+        authClient: FakeAuthClient(mockHttpClient),
         retryDelay: Duration.zero,
       );
       expect(
@@ -224,10 +215,7 @@ void main() {
       });
       gerritService = GerritService(
         config: FakeConfig(),
-        httpClient: mockHttpClient,
-        authClientProvider:
-            ({Client? baseClient, required List<String> scopes}) async =>
-                FakeAuthClient(baseClient!),
+        authClient: FakeAuthClient(mockHttpClient),
         retryDelay: Duration.zero,
       );
       await gerritService.createBranch(

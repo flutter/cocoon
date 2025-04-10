@@ -40,15 +40,15 @@ class LuciBuildService {
     required Config config,
     required CacheService cache,
     required BuildBucketClient buildBucketClient,
-    GithubChecksUtil? githubChecksUtil,
-    GerritService? gerritService,
+    required GerritService gerritService,
     required PubSub pubsub,
+    GithubChecksUtil? githubChecksUtil,
   }) : _pubsub = pubsub,
        _config = config,
        _cache = cache,
        _buildBucketClient = buildBucketClient,
        _githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-       _gerritService = gerritService ?? GerritService(config: config);
+       _gerritService = gerritService;
 
   final BuildBucketClient _buildBucketClient;
   final CacheService _cache;
