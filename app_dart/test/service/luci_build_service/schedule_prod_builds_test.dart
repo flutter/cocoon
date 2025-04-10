@@ -471,6 +471,10 @@ void main() {
       }
 
       final dsCommit = generateCommit(0);
+      datastoreDB.values[dsCommit.key] = dsCommit;
+      final dsTask = generateTask(0, parent: dsCommit);
+      datastoreDB.values[dsTask.key] = dsTask;
+
       final fsTask = generateFirestoreTask(0, commitSha: dsCommit.sha);
       firestoreService.putDocument(fsTask);
 
