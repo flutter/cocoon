@@ -33,17 +33,13 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   const RerunProdTask({
     required super.config,
     required super.authenticationProvider,
-    required this.luciBuildService,
-    required this.scheduler,
-    required this.ciYamlFetcher,
-    @visibleForTesting DatastoreServiceProvider? datastoreProvider,
-  }) : datastoreProvider =
-           datastoreProvider ?? DatastoreService.defaultProvider;
+    required LuciBuildService luciBuildService,
+    required CiYamlFetcher ciYamlFetcher,
+  }) : _ciYamlFetcher = ciYamlFetcher,
+       _luciBuildService = luciBuildService;
 
-  final DatastoreServiceProvider datastoreProvider;
-  final LuciBuildService luciBuildService;
-  final Scheduler scheduler;
-  final CiYamlFetcher ciYamlFetcher;
+  final LuciBuildService _luciBuildService;
+  final CiYamlFetcher _ciYamlFetcher;
 
   static const _paramBranch = 'branch';
   static const _paramRepo = 'repo';
@@ -51,15 +47,8 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   static const _paramTaskName = 'task';
   static const _paramInclude = 'include';
 
-  /// Name of the task to be retried.
-  ///
-  /// If "all" is given, all failed tasks will be retried. This enables
-  /// oncalls to quickly recover a commit without the tedium of the UI.
-  static const String taskParam = 'Task';
-
   @override
   Future<Body> post() async {
-    final datastore = datastoreProvider(config.db);
     final firestoreService = await config.createFirestoreService();
 
     checkRequiredParameters([
@@ -109,8 +98,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
         log.info('Resetting failed task ${task.name}');
         futures.add(
           _rerun(
-            datastore: datastore,
-            firestoreService: firestoreService,
             branch: branch,
             commitSha: commitSha,
             taskName: task.name!,
@@ -132,8 +119,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
         'Attempting to reset prod task "$taskName" for $commitSha in $repo...',
       );
       await _rerun(
-        datastore: datastore,
-        firestoreService: firestoreService,
         branch: branch,
         commitSha: commitSha,
         taskName: taskName,
@@ -149,8 +134,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   }
 
   Future<void> _rerun({
-    required DatastoreService datastore,
-    required FirestoreService firestoreService,
     required String branch,
     required String commitSha,
     required String taskName,
@@ -167,7 +150,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       slug: slug,
     );
     final commit = await _getCommitFromTask(datastore, task);
-    final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
     final targets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)
@@ -208,7 +191,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       firestoreTask,
     );
 
-    final isRerunning = await luciBuildService.checkRerunBuilder(
+    final isRerunning = await _luciBuildService.checkRerunBuilder(
       commit: OpaqueCommit.fromDatastore(commit),
       task: task,
       target: target,

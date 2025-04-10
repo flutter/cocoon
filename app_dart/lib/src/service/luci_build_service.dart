@@ -1040,8 +1040,8 @@ class LuciBuildService {
   Future<bool> checkRerunBuilder({
     required OpaqueCommit commit,
     required Target target,
-    required Task task,
     required firestore.Task taskDocument,
+    Task? task,
     Iterable<BuildTag> tags = const [],
     bool ignoreChecks = false,
   }) async {
