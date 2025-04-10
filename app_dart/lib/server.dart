@@ -203,7 +203,7 @@ Server createServer({
       ),
       ttl: const Duration(seconds: 15),
     ),
-    '/api/public/engine-arifacts-ready': CacheRequestHandler<Body>(
+    '/api/public/engine-artifacts-ready': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
       delegate: GetEngineArtifactsReady(config: config),
