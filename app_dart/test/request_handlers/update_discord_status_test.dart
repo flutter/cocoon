@@ -15,6 +15,7 @@ import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_firestore_service.dart' show FakeFirestoreService;
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.mocks.dart';
 
@@ -23,7 +24,7 @@ void main() {
 
   late RequestHandlerTester tester;
   late UpdateDiscordStatus handler;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestore;
   late MockDiscordService discord;
 
   Future<T> decodeHandlerBody<T>() async {
@@ -36,44 +37,18 @@ void main() {
         as T;
   }
 
-  final createdDocuments = <Document>[];
-  final queryDocuments = <List<Document>>[];
   final alwaysTime = DateTime(2025, 4, 9, 12, 00);
 
   setUp(() {
-    createdDocuments.clear();
-    queryDocuments.clear();
-
     discord = MockDiscordService();
     when(
       discord.postTreeStatusMessage(any),
     ).thenAnswer((_) async => DiscordStatus.ok);
 
-    mockFirestoreService = MockFirestoreService();
-    when(
-      mockFirestoreService.query(
-        any,
-        any,
-        limit: anyNamed('limit'),
-        orderMap: anyNamed('orderMap'),
-        compositeFilterOp: anyNamed('compositeFilterOp'),
-      ),
-    ).thenAnswer(
-      (_) async =>
-          queryDocuments.isEmpty ? <Document>[] : queryDocuments.removeAt(0),
-    );
-    when(
-      mockFirestoreService.createDocument(
-        any,
-        collectionId: 'last_build_status',
-      ),
-    ).thenAnswer((invocation) async {
-      createdDocuments.add(invocation.positionalArguments.first as Document);
-      return createdDocuments.last;
-    });
+    firestore = FakeFirestoreService();
 
     final config = FakeConfig();
-    config.firestoreService = mockFirestoreService;
+    config.firestoreService = firestore;
 
     tester = RequestHandlerTester();
     handler = UpdateDiscordStatus(
@@ -85,33 +60,23 @@ void main() {
   });
 
   test('posts when status is missing in firestore', () async {
-    final commit = generateFirestoreCommit(1);
-    when(
-      mockFirestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        branch: anyNamed('branch'),
-        limit: anyNamed('limit'),
-        timestamp: anyNamed('timestamp'),
-      ),
-    ).thenAnswer((_) async => [commit]);
-
-    final task = generateFirestoreTask(1, status: Task.statusSucceeded);
-    when(
-      mockFirestoreService.queryCommitTasks(commit.sha),
-    ).thenAnswer((_) async => [task]);
+    firestore.putDocument(generateFirestoreCommit(1));
+    firestore.putDocument(
+      generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
+    );
 
     await decodeHandlerBody<Map<String, Object?>>();
 
     // Verify we wrote the status
-    expect(createdDocuments, hasLength(1));
-    print(createdDocuments.first.toJson());
-    verify(
-      mockFirestoreService.createDocument(
-        any,
-        collectionId: 'last_build_status',
-      ),
-    ).called(1);
-    final doc = createdDocuments.first;
+    final lastBuildStatuses = [
+      for (var doc in firestore.documents)
+        if (doc.name!.startsWith(
+          'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
+        ))
+          doc,
+    ];
+    expect(lastBuildStatuses, hasLength(1));
+    final doc = lastBuildStatuses.first;
     expect(
       doc.fields!['status']!.stringValue,
       'flutter/flutter is :green_circle:!',
@@ -128,68 +93,80 @@ void main() {
   });
 
   test('does not post on unchanged value', () async {
-    queryDocuments.add([
+    firestore.putDocument(generateFirestoreCommit(1));
+    firestore.putDocument(
+      generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
+    );
+    firestore.putDocument(
       Document(
+        name:
+            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/fu',
         fields: {
           'status': Value(stringValue: 'flutter/flutter is :green_circle:!'),
           'createTimestamp': Value(
-            timestampValue: alwaysTime.toIso8601String(),
+            timestampValue:
+                alwaysTime
+                    .subtract(const Duration(seconds: 1))
+                    .toIso8601String(),
           ),
         },
       ),
-    ]);
-    final commit = generateFirestoreCommit(1);
-    when(
-      mockFirestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        branch: anyNamed('branch'),
-        limit: anyNamed('limit'),
-        timestamp: anyNamed('timestamp'),
-      ),
-    ).thenAnswer((_) async => [commit]);
-
-    final task = generateFirestoreTask(1, status: Task.statusSucceeded);
-    when(
-      mockFirestoreService.queryCommitTasks(commit.sha),
-    ).thenAnswer((_) async => [task]);
+    );
 
     await decodeHandlerBody<Map<String, Object?>>();
+
+    // Verify we never wrote another
+    final lastBuildStatuses = [
+      for (var doc in firestore.documents)
+        if (doc.name!.startsWith(
+          'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
+        ))
+          doc,
+    ];
+    expect(lastBuildStatuses, hasLength(1));
 
     // Verify we never posted it
     verifyNever(discord.postTreeStatusMessage(any));
   });
 
   test('posts on changed value', () async {
-    queryDocuments.add([
+    firestore.putDocument(generateFirestoreCommit(1));
+    firestore.putDocument(
+      generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
+    );
+    firestore.putDocument(
       Document(
+        name:
+            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/fu',
         fields: {
           'status': Value(stringValue: 'flutter/flutter is :red_circle:!'),
           'createTimestamp': Value(
-            timestampValue: alwaysTime.toIso8601String(),
+            timestampValue:
+                alwaysTime
+                    .subtract(const Duration(seconds: 1))
+                    .toIso8601String(),
           ),
         },
       ),
-    ]);
-    final commit = generateFirestoreCommit(1);
-    when(
-      mockFirestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        branch: anyNamed('branch'),
-        limit: anyNamed('limit'),
-        timestamp: anyNamed('timestamp'),
-      ),
-    ).thenAnswer((_) async => [commit]);
-
-    final task = generateFirestoreTask(1, status: Task.statusSucceeded);
-    when(
-      mockFirestoreService.queryCommitTasks(commit.sha),
-    ).thenAnswer((_) async => [task]);
+    );
 
     await decodeHandlerBody<Map<String, Object?>>();
 
-    expect(createdDocuments, hasLength(1));
+    // Verify we wrote the status
+    final lastBuildStatuses = [
+      for (var doc in firestore.documents)
+        if (doc.name!.startsWith(
+          'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
+        ))
+          doc,
+    ];
+    expect(lastBuildStatuses, hasLength(2));
+
+    final doc = lastBuildStatuses.firstWhere(
+      (doc) => !doc.name!.endsWith('/fu'),
+    );
     expect(
-      createdDocuments.first.fields!['status']!.stringValue,
+      doc.fields!['status']!.stringValue,
       'flutter/flutter is :green_circle:!',
     );
 
@@ -200,40 +177,44 @@ void main() {
   });
 
   test('limits size of the message sent to discord', () async {
-    queryDocuments.add([
+    firestore.putDocument(generateFirestoreCommit(1));
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        name: 'a' * 2000,
+        status: Task.statusFailed,
+        commitSha: '1',
+      ),
+    );
+
+    firestore.putDocument(
       Document(
+        name:
+            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/fu',
         fields: {
           'status': Value(stringValue: 'flutter/flutter is :red_circle:!'),
           'createTimestamp': Value(
-            timestampValue: alwaysTime.toIso8601String(),
+            timestampValue:
+                alwaysTime
+                    .subtract(const Duration(seconds: 1))
+                    .toIso8601String(),
           ),
         },
       ),
-    ]);
-    final commit = generateFirestoreCommit(1);
-    when(
-      mockFirestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        branch: anyNamed('branch'),
-        limit: anyNamed('limit'),
-        timestamp: anyNamed('timestamp'),
-      ),
-    ).thenAnswer((_) async => [commit]);
-
-    final task = generateFirestoreTask(
-      1,
-      name: 'a' * 2000,
-      status: Task.statusFailed,
     );
-    when(
-      mockFirestoreService.queryCommitTasks(commit.sha),
-    ).thenAnswer((_) async => [task]);
 
     await decodeHandlerBody<Map<String, Object?>>();
 
-    expect(createdDocuments, hasLength(1));
+    final lastStatus = firestore.documents.firstWhere(
+      (doc) =>
+          doc.name!.startsWith(
+            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
+          ) &&
+          !doc.name!.endsWith('/fu'),
+    );
+
     expect(
-      createdDocuments.first.fields!['status']!.stringValue,
+      lastStatus.fields!['status']!.stringValue,
       'flutter/flutter is :red_circle:! Failing tasks: ${'a' * 2000}',
     );
 

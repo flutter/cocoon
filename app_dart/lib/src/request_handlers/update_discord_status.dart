@@ -12,7 +12,7 @@ import '../../cocoon_service.dart';
 import '../service/discord_service.dart' show DiscordService;
 
 @immutable
-base class UpdateDiscordStatus extends GetBuildStatus {
+final class UpdateDiscordStatus extends GetBuildStatus {
   const UpdateDiscordStatus({
     required super.config,
     required super.buildStatusService,
