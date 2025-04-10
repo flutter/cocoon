@@ -8,8 +8,10 @@ import 'dart:math';
 import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/trigger_workflow.dart';
+import 'src/request_handlers/update_discord_status.dart';
 import 'src/service/build_status_provider.dart';
 import 'src/service/commit_service.dart';
+import 'src/service/discord_service.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
 
 typedef Server = Future<void> Function(HttpRequest);
@@ -187,6 +189,16 @@ Server createServer({
       config: config,
       delegate: GetBuildStatusBadge(
         config: config,
+        buildStatusService: buildStatusService,
+      ),
+      ttl: const Duration(seconds: 15),
+    ),
+    '/api/public/update-discord-status': CacheRequestHandler<Body>(
+      cache: cache,
+      config: config,
+      delegate: UpdateDiscordStatus(
+        config: config,
+        discord: DiscordService(config: config),
         buildStatusService: buildStatusService,
       ),
       ttl: const Duration(seconds: 15),
