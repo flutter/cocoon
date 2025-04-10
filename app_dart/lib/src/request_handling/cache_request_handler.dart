@@ -86,7 +86,9 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
     final body = await delegate.get();
     final response = this.response!;
     final builder = BytesBuilder();
-    await body.serialize().forEach(builder.add);
+    await body.serialize().forEach((d) {
+      if (d != null) builder.add(d);
+    });
     return _CachedHttpResponse._(
       response.statusCode,
       response.reasonPhrase,
