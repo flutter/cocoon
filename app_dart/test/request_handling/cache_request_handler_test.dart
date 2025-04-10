@@ -18,111 +18,107 @@ import '../src/request_handling/request_handler_tester.dart';
 void main() {
   useTestLoggerPerTest();
 
-  group('CacheRequestHandler', () {
-    late FakeConfig config;
-    late RequestHandlerTester tester;
+  late FakeConfig config;
+  late RequestHandlerTester tester;
 
-    late CacheService cache;
+  late CacheService cache;
 
-    const testHttpPath = '/cache_request_handler_test';
+  const testHttpPath = '/cache_request_handler_test';
 
-    setUp(() async {
-      config = FakeConfig();
-      tester = RequestHandlerTester(
-        request: FakeHttpRequest(path: testHttpPath),
-      );
+  setUp(() async {
+    config = FakeConfig();
+    tester = RequestHandlerTester(request: FakeHttpRequest(path: testHttpPath));
 
-      cache = CacheService(inMemory: true);
-    });
+    cache = CacheService(inMemory: true);
+  });
 
-    test('returns response from cache', () async {
-      const responseKey = '$testHttpPath:';
-      const expectedResponse = 'Hello, World!';
-      final expectedBody = Body.forString(expectedResponse);
-      final fallbackHandler = FakeRequestHandler(
-        body: expectedBody,
-        config: FakeConfig(),
-      );
+  test('returns response from cache', () async {
+    const responseKey = '$testHttpPath:';
+    const expectedResponse = 'Hello, World!';
+    final expectedBody = Body.forString(expectedResponse);
+    final fallbackHandler = FakeRequestHandler(
+      body: expectedBody,
+      config: FakeConfig(),
+    );
 
-      final serializedBody = await expectedBody.serialize().first;
+    final serializedBody = await expectedBody.serialize().first;
 
-      await cache.set(
-        CacheRequestHandler.responseSubcacheName,
-        responseKey,
-        serializedBody,
-      );
+    await cache.set(
+      CacheRequestHandler.responseSubcacheName,
+      responseKey,
+      serializedBody,
+    );
 
-      final cacheRequestHandler = CacheRequestHandler<Body>(
-        delegate: fallbackHandler,
-        cache: cache,
-        config: config,
-      );
+    final cacheRequestHandler = CacheRequestHandler<Body>(
+      delegate: fallbackHandler,
+      cache: cache,
+      config: config,
+    );
 
-      final body = await tester.get(cacheRequestHandler);
-      final response = (await body.serialize().first)!;
-      final strResponse = utf8.decode(response);
-      expect(strResponse, expectedResponse);
-    });
+    final body = await tester.get(cacheRequestHandler);
+    final response = (await body.serialize().first)!;
+    final strResponse = utf8.decode(response);
+    expect(strResponse, expectedResponse);
+  });
 
-    test('fallback handler called when cache is empty', () async {
-      final fallbackHandler = FakeRequestHandler(
-        body: Body.forString('hello!'),
-        config: FakeConfig(),
-      );
+  test('fallback handler called when cache is empty', () async {
+    final fallbackHandler = FakeRequestHandler(
+      body: Body.forString('hello!'),
+      config: FakeConfig(),
+    );
 
-      final cacheRequestHandler = CacheRequestHandler<Body>(
-        delegate: fallbackHandler,
-        cache: cache,
-        config: config,
-      );
+    final cacheRequestHandler = CacheRequestHandler<Body>(
+      delegate: fallbackHandler,
+      cache: cache,
+      config: config,
+    );
 
-      expect(fallbackHandler.callCount, 0);
-      await tester.get(cacheRequestHandler);
-      expect(fallbackHandler.callCount, 1);
-    });
+    expect(fallbackHandler.callCount, 0);
+    await tester.get(cacheRequestHandler);
+    expect(fallbackHandler.callCount, 1);
+  });
 
-    test('flush cache param calls purge', () async {
-      tester = RequestHandlerTester(
-        request: FakeHttpRequest(
-          path: testHttpPath,
-          queryParametersValue: <String, String>{
-            CacheRequestHandler.flushCacheQueryParam: 'true',
-          },
-        ),
-      );
-      final fallbackHandler = FakeRequestHandler(
-        body: Body.empty,
-        config: FakeConfig(),
-      );
+  test('flush cache param calls purge', () async {
+    tester = RequestHandlerTester(
+      request: FakeHttpRequest(
+        path: testHttpPath,
+        queryParametersValue: <String, String>{
+          CacheRequestHandler.flushCacheQueryParam: 'true',
+        },
+      ),
+    );
+    final fallbackHandler = FakeRequestHandler(
+      body: Body.empty,
+      config: FakeConfig(),
+    );
 
-      const responseKey = '$testHttpPath:';
-      const expectedResponse = 'Hello, World!';
-      final expectedBody = Body.forString(expectedResponse);
+    const responseKey = '$testHttpPath:';
+    const expectedResponse = 'Hello, World!';
+    final expectedBody = Body.forString(expectedResponse);
 
-      final serializedBody = await expectedBody.serialize().first;
+    final serializedBody = await expectedBody.serialize().first;
 
-      // set an existing response for the request
-      await cache.set(
-        CacheRequestHandler.responseSubcacheName,
-        responseKey,
-        serializedBody,
-      );
+    // set an existing response for the request
+    await cache.set(
+      CacheRequestHandler.responseSubcacheName,
+      responseKey,
+      serializedBody,
+    );
 
-      final cacheRequestHandler = CacheRequestHandler<Body>(
-        delegate: fallbackHandler,
-        cache: cache,
-        config: config,
-      );
+    final cacheRequestHandler = CacheRequestHandler<Body>(
+      delegate: fallbackHandler,
+      cache: cache,
+      config: config,
+    );
 
-      expect(fallbackHandler.callCount, 0);
+    expect(fallbackHandler.callCount, 0);
 
-      final body = await tester.get(cacheRequestHandler);
-      final response = (await body.serialize().first)!;
-      final strResponse = utf8.decode(response);
+    final body = await tester.get(cacheRequestHandler);
+    final response = (await body.serialize().first)!;
+    final strResponse = utf8.decode(response);
 
-      // the mock should update the cache to have null -> empty string
-      expect(strResponse, '');
-      expect(fallbackHandler.callCount, 1);
-    });
+    // the mock should update the cache to have null -> empty string
+    expect(strResponse, '');
+    expect(fallbackHandler.callCount, 1);
   });
 }
