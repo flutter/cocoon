@@ -37,7 +37,7 @@ interface class DiscordService {
       },
       body: json.encode({'content': discordMessage}),
     );
-    if (discordResponse.statusCode != 200) {
+    if (discordResponse.statusCode >= 400) {
       log.warn(
         '[discord_service] failed to post tree-status to discord: ${discordResponse.statusCode} / ${discordResponse.body}. Status: $discordMessage',
       );
