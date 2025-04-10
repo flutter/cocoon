@@ -57,6 +57,7 @@ class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
       responseSubcacheName,
       responseKey,
       createFn: () async {
+        // TODO(matanlurey): Evaluate if 5XX errors should not be cached.
         final response = await _createCachedResponse(_delegate);
         return response.toBytes();
       },
