@@ -144,20 +144,12 @@ class MyApp extends StatelessWidget {
     }
 
     final [_, ...v2PathSegments] = route.pathSegments;
-    if (v2PathSegments.isEmpty) {
+    if (v2PathSegments case [final repoOwner, final repoName, ...]) {
+      return (_) => V2LandingPage(repoOwner, repoName);
+    } else if (v2PathSegments case [final repoOwner, ...]) {
+      return (_) => V2LandingPage(repoOwner);
+    } else {
       return (_) => const V2LandingPage();
     }
-
-    final [repoOwner, ...] = v2PathSegments;
-    if (v2PathSegments.length == 1) {
-      return (_) => V2LandingPage(repoOwner);
-    }
-
-    final [_, repoName, ...] = v2PathSegments;
-    if (v2PathSegments.length == 2) {
-      return (_) => V2LandingPage(repoOwner, repoName);
-    }
-
-    return null;
   }
 }
