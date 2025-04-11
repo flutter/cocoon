@@ -14,7 +14,7 @@ import 'build_dashboard_page.dart';
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
 import 'service/google_authentication.dart';
-import 'src/pages/v2_landing_page.dart';
+import 'src/v2/router.dart';
 import 'state/build.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
@@ -125,7 +125,10 @@ class MyApp extends StatelessWidget {
                 },
               );
             case 'v2':
-              if (_findV2Route(uriData) case final builder?) {
+              if (_findV2Route(context, uriData, settings) case (
+                final WidgetBuilder builder,
+                final RouteSettings settings,
+              )) {
                 return MaterialPageRoute<void>(
                   builder: builder,
                   settings: settings,
@@ -138,18 +141,15 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  WidgetBuilder? _findV2Route(Uri route) {
+  (WidgetBuilder, RouteSettings)? _findV2Route(
+    BuildContext context,
+    Uri route,
+    RouteSettings settings,
+  ) {
     if (route.pathSegments.isEmpty || route.pathSegments.first != 'v2') {
       throw ArgumentError.value(route, 'route', 'not a v2 route');
     }
 
-    final [_, ...v2PathSegments] = route.pathSegments;
-    if (v2PathSegments case [final repoOwner, final repoName, ...]) {
-      return (_) => V2LandingPage(repoOwner, repoName);
-    } else if (v2PathSegments case [final repoOwner, ...]) {
-      return (_) => V2LandingPage(repoOwner);
-    } else {
-      return (_) => const V2LandingPage();
-    }
+    return v2PreviewRoute(context, route, settings);
   }
 }
