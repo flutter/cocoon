@@ -146,6 +146,21 @@ void main() {
       );
       expect(commit, isNotNull);
     });
+
+    test('does not throw if there is an error', () async {
+      mockHttpClient = MockClient((_) async {
+        return http.Response('Not found', 404);
+      });
+      gerritService = GerritService(
+        config: FakeConfig(),
+        authClient: mockHttpClient,
+      );
+      final commit = await gerritService.getCommit(
+        RepositorySlug('flutter', 'mirrors/flutter'),
+        '7a702db7c1c8dc057d95e0d23849c885b3463ff3',
+      );
+      expect(commit, isNull);
+    });
   });
 
   group('findMirroredCommit', () {
