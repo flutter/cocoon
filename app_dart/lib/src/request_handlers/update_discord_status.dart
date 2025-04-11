@@ -104,6 +104,13 @@ final class UpdateDiscordStatus extends GetBuildStatus {
       details.writeln('```');
     }
 
+    if (diff.stillFailing.isNotEmpty) {
+      details.writeln('Still failing:');
+      details.writeln('```');
+      details.writeln(diff.stillFailing.join(', '));
+      details.writeln('```');
+    }
+
     if (diff.nowPassing.isNotEmpty) {
       details.writeln('Now passing:');
       details.writeln('```');
