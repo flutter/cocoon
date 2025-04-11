@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io' as io;
 
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -15,6 +16,7 @@ import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -907,6 +909,73 @@ void main() {
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 
       expect(result['Status'], 'success');
+    });
+
+    // TODO(matanlurey): Further narrow down.
+    // This test exists to help debug https://github.com/flutter/flutter/issues/166758.
+    test('regression test for a large .ci.yaml file', () async {
+      final ciYaml = io.File(
+        p.join(
+          'test',
+          'request_handlers',
+          'check_flaky_builders_large_data.yaml',
+        ),
+      );
+
+      // Use the specific target above.
+      when(
+        mockRepositoriesService.getContents(captureAny, kCiYamlPath),
+      ).thenAnswer((_) async {
+        return RepositoryContents(
+          file: GitHubFile(content: gitHubEncode(ciYaml.readAsStringSync())),
+        );
+      });
+
+      // Report not flaky.
+      when(
+        mockBigqueryService.listRecentBuildRecordsForBuilder(
+          kBigQueryProjectId,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).thenAnswer((Invocation invocation) {
+        return Future<List<BuilderRecord>>.value([
+          for (var i = 0; i < 10; i++)
+            ...semanticsIntegrationTestRecordsAllPassed,
+        ]);
+      });
+
+      // Report the issue as closed.
+      when(mockIssuesService.get(captureAny, captureAny)).thenAnswer((_) {
+        return Future<Issue>.value(
+          Issue(state: 'CLOSED', htmlUrl: existingIssueURL),
+        );
+      });
+
+      when(mockGitService.createTree(any, any)).thenAnswer((_) async {
+        return GitTree(
+          expectedSemanticsIntegrationTestTreeSha,
+          '',
+          false,
+          <GitTreeEntry>[],
+        );
+      });
+
+      when(mockGitService.createCommit(any, any)).thenAnswer((i) async {
+        final [_, CreateGitCommit c] = i.positionalArguments;
+        print(c.message);
+        return GitCommit(sha: expectedSemanticsIntegrationTestTreeSha);
+      });
+
+      when(mockGitService.createReference(any, any, any)).thenAnswer((i) async {
+        return GitReference(ref: i.positionalArguments[1] as String?);
+      });
+
+      when(mockPullRequestsService.create(any, any)).thenAnswer((_) async {
+        return PullRequest();
+      });
+
+      await tester.get(handler);
     });
 
     test('getIgnoreFlakiness handles non-existing builderame', () async {

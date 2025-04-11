@@ -186,7 +186,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       var builderLineNumber =
           lines.indexWhere((String line) => line.contains('name: $builder')) +
           1;
+
       _BuilderInfo? toBeAdded;
+      var skippedDueToNonClosed = false;
+      var startingLineNumber = builderLineNumber;
       while (builderLineNumber < lines.length &&
           !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
@@ -202,6 +205,12 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
               )!;
           if (issue.isClosed) {
             toBeAdded = _BuilderInfo(name: builder, existingIssue: issue);
+          } else {
+            log.debug(
+              'Skipping $builder, issue #${issue.id} ($slug) is reporting as '
+              'non-closed state: ${issue.state}',
+            );
+            skippedDueToNonClosed = true;
           }
           break;
         }
@@ -209,8 +218,11 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
       }
       if (toBeAdded != null) {
         result.add(toBeAdded);
-      } else {
-        log.debug('Skipping $builder, could not find matching builder line');
+      } else if (skippedDueToNonClosed) {
+        log.debug(
+          'Skipping $builder, could not find matching builder line '
+          'starting at line $startingLineNumber of ${lines.length} lines',
+        );
       }
     }
     return result;
