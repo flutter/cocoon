@@ -85,9 +85,8 @@ final class GithubRepository {
   /// - Cannot start with a hyphen
   /// - Cannot be exactly `.` or `..`
   final String name;
-  static const _maxNameChars = 100;
   static final _validName = RegExp(
-    r'^(?!^\.\.?$)[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$',
+    r'^(?!^\.\.?$)[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,99}$',
   );
 
   @override
