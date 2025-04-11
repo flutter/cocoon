@@ -112,7 +112,7 @@ interface class GerritService {
     );
     log.info('Gerrit get-commit url: $url');
 
-    final response = await _get(url);
+    final response = await _get(url, throwOnError: false);
     log.info('Gob commit response for commit $commitId: ${response.body}');
     if (!_responseIsAcceptable(response)) return null;
 
@@ -151,20 +151,20 @@ interface class GerritService {
     log.info('Created branch $branchName');
   }
 
-  Future<Object?> _getJson(Uri url) async {
-    final response = await _get(url);
+  Future<Object?> _getJson(Uri url, {bool throwOnError = true}) async {
+    final response = await _get(url, throwOnError: throwOnError);
     final jsonBody = _stripXssToken(response.body);
     return jsonDecode(jsonBody) as Object?;
   }
 
-  Future<http.Response> _get(Uri url) async {
+  Future<http.Response> _get(Uri url, {bool throwOnError = true}) async {
     final client = RetryClient(
       _authClient,
       when: (response) => !_responseIsAcceptable(response),
       delay: (attempt) => _retryDelay ?? const Duration(seconds: 1) * attempt,
     );
     final response = await client.get(url);
-    if (!_responseIsAcceptable(response)) {
+    if (throwOnError && !_responseIsAcceptable(response)) {
       throw InternalServerError(
         'Gerrit returned ${response.statusCode} which is not 200 or 202',
       );
