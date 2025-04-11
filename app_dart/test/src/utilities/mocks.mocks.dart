@@ -4795,8 +4795,8 @@ class MockLuciBuildService extends _i1.Mock implements _i26.LuciBuildService {
   _i15.Future<bool> checkRerunBuilder({
     required _i45.OpaqueCommit? commit,
     required _i41.Target? target,
-    required _i35.Task? task,
     required _i40.Task? taskDocument,
+    _i35.Task? task,
     Iterable<_i48.BuildTag>? tags = const [],
     bool? ignoreChecks = false,
   }) =>
@@ -4804,8 +4804,8 @@ class MockLuciBuildService extends _i1.Mock implements _i26.LuciBuildService {
             Invocation.method(#checkRerunBuilder, [], {
               #commit: commit,
               #target: target,
-              #task: task,
               #taskDocument: taskDocument,
+              #task: task,
               #tags: tags,
               #ignoreChecks: ignoreChecks,
             }),

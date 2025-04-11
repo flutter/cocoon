@@ -250,7 +250,7 @@ final class Task extends AppDocument<Task> {
   };
 
   /// The list of legal values for the [status] property.
-  static const List<String> legalStatusValues = <String>[
+  static const legalStatusValues = {
     statusCancelled,
     statusFailed,
     statusInfraFailure,
@@ -258,15 +258,15 @@ final class Task extends AppDocument<Task> {
     statusNew,
     statusSkipped,
     statusSucceeded,
-  ];
+  };
 
-  static const List<String> finishedStatusValues = <String>[
+  static const finishedStatusValues = {
     statusCancelled,
     statusFailed,
     statusInfraFailure,
     statusSkipped,
     statusSucceeded,
-  ];
+  };
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
