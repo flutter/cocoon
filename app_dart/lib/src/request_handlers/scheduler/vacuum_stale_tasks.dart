@@ -30,15 +30,10 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     required LuciBuildService luciBuildService,
     Duration timeoutLimit = const Duration(hours: 3),
     @visibleForTesting DateTime Function() now = DateTime.now,
-    @visibleForTesting
-    DatastoreService Function(DatastoreDB) datastoreProvider =
-        DatastoreService.defaultProvider,
-  }) : _datastoreProvider = datastoreProvider,
-       _luciBuildService = luciBuildService,
+  }) : _luciBuildService = luciBuildService,
        _timeoutLimit = timeoutLimit,
        _now = now;
 
-  final DatastoreServiceProvider _datastoreProvider;
   final DateTime Function() _now;
   final Duration _timeoutLimit;
   final LuciBuildService _luciBuildService;
@@ -137,7 +132,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
   }
 
   Future<void> _legacyUpdateDatastore(List<_UpdateTaskIntent> toUpdate) async {
-    final datastore = _datastoreProvider(config.db);
+    final datastore = DatastoreService.defaultProvider(config.db);
     final tasks = <ds.Task>[];
     for (final intent in toUpdate) {
       final commitKey = _toCommitKey(datastore.db, intent.commit);

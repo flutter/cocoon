@@ -9,7 +9,6 @@ import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:gcloud/db.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -46,7 +45,6 @@ void main() {
       tester = RequestHandlerTester();
       handler = VacuumStaleTasks(
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
         luciBuildService: luciBuildService,
       );
     });
