@@ -67,23 +67,14 @@ final class UpdateDiscordStatus extends GetBuildStatus {
     );
 
     // Check against the previous, if any.
-    final BuildStatusSnapshot previous;
-    final bool isSyntheticPrevious;
-    {
-      final inStorage = await BuildStatusSnapshot.getLatest(firestore);
-      if (inStorage == null) {
-        previous = _getDefaultAssumedPassing();
-        isSyntheticPrevious = true;
-      } else {
-        previous = inStorage;
-        isSyntheticPrevious = false;
-      }
-    }
+    final previous =
+        await BuildStatusSnapshot.getLatest(firestore) ??
+        _getDefaultAssumedPassing();
 
     final diff = latest.diffContents(previous);
 
-    // Record the new status, even if this is the initial message.
-    if (isSyntheticPrevious || diff.isDifferent) {
+    // Record the new status.
+    if (diff.isDifferent) {
       log.debug('[update_discord_status] status changed: $latest');
       await firestore.createDocument(
         latest,

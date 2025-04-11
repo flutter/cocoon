@@ -62,10 +62,10 @@ void main() {
     );
   });
 
-  test('creates an initial doc when status is missing in firestore', () async {
+  test('creates an initial doc when the first status is a failure', () async {
     firestore.putDocument(generateFirestoreCommit(1));
     firestore.putDocument(
-      generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
+      generateFirestoreTask(1, status: Task.statusFailed, commitSha: '1'),
     );
 
     await decodeHandlerBody<Map<String, Object?>>();
@@ -73,14 +73,14 @@ void main() {
     expect(
       firestore,
       existsInStorage(BuildStatusSnapshot.metadata, [
-        isBuildStatusSnapshot.hasStatus(BuildStatus.success),
+        isBuildStatusSnapshot.hasStatus(BuildStatus.failure),
       ]),
     );
 
     // Verify we actually posted it
     final [message] =
         verify(discord.postTreeStatusMessage(captureAny)).captured;
-    expect(message, contains('flutter/flutter is now :green_circle:!'));
+    expect(message, contains('flutter/flutter is now :red_circle:!'));
   });
 
   test('does not post on unchanged value', () async {
