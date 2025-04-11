@@ -5,17 +5,20 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/firestore/build_status_snapshot.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/request_handlers/update_discord_status.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/build_status_provider.dart'
+    hide BuildStatus;
 import 'package:cocoon_service/src/service/discord_service.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
+import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/service/fake_firestore_service.dart' show FakeFirestoreService;
+import '../src/service/fake_firestore_service.dart'
+    show FakeFirestoreService, existsInStorage;
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.mocks.dart';
 
@@ -59,37 +62,25 @@ void main() {
     );
   });
 
-  test('posts when status is missing in firestore', () async {
+  test('creates an initial doc when the first status is a failure', () async {
     firestore.putDocument(generateFirestoreCommit(1));
     firestore.putDocument(
-      generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
+      generateFirestoreTask(1, status: Task.statusFailed, commitSha: '1'),
     );
 
     await decodeHandlerBody<Map<String, Object?>>();
 
-    // Verify we wrote the status
-    final lastBuildStatuses = [
-      for (var doc in firestore.documents)
-        if (doc.name!.startsWith(
-          'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
-        ))
-          doc,
-    ];
-    expect(lastBuildStatuses, hasLength(1));
-    final doc = lastBuildStatuses.first;
     expect(
-      doc.fields!['status']!.stringValue,
-      'flutter/flutter is :green_circle:!',
-    );
-    expect(
-      doc.fields!['createTimestamp']!.timestampValue,
-      alwaysTime.toUtc().toIso8601String(),
+      firestore,
+      existsInStorage(BuildStatusSnapshot.metadata, [
+        isBuildStatusSnapshot.hasStatus(BuildStatus.failure),
+      ]),
     );
 
     // Verify we actually posted it
-    verify(
-      discord.postTreeStatusMessage('flutter/flutter is :green_circle:!'),
-    ).called(1);
+    final [message] =
+        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    expect(message, contains('flutter/flutter is now :red_circle:!'));
   });
 
   test('does not post on unchanged value', () async {
@@ -97,85 +88,174 @@ void main() {
     firestore.putDocument(
       generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
     );
-    firestore.putDocument(
-      Document(
-        name:
-            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/fu',
-        fields: {
-          'status': Value(stringValue: 'flutter/flutter is :green_circle:!'),
-          'createTimestamp': Value(
-            timestampValue:
-                alwaysTime
-                    .subtract(const Duration(seconds: 1))
-                    .toUtc()
-                    .toIso8601String(),
-          ),
-        },
+
+    await firestore.createDocument(
+      BuildStatusSnapshot(
+        createdOn: alwaysTime.toUtc(),
+        status: BuildStatus.success,
+        failingTasks: [],
       ),
+      collectionId: BuildStatusSnapshot.metadata.collectionId,
     );
 
     await decodeHandlerBody<Map<String, Object?>>();
 
-    // Verify we never wrote another
-    final lastBuildStatuses = [
-      for (var doc in firestore.documents)
-        if (doc.name!.startsWith(
-          'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
-        ))
-          doc,
-    ];
-    expect(lastBuildStatuses, hasLength(1));
+    // Verify we never wrote a document
+    expect(
+      firestore,
+      existsInStorage(BuildStatusSnapshot.metadata, hasLength(1)),
+    );
 
     // Verify we never posted it
     verifyNever(discord.postTreeStatusMessage(any));
   });
 
-  test('posts on changed value', () async {
+  test('posts on success -> failed', () async {
     firestore.putDocument(generateFirestoreCommit(1));
     firestore.putDocument(
-      generateFirestoreTask(1, status: Task.statusSucceeded, commitSha: '1'),
-    );
-    firestore.putDocument(
-      Document(
-        name:
-            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/fu',
-        fields: {
-          'status': Value(stringValue: 'flutter/flutter is :red_circle:!'),
-          'createTimestamp': Value(
-            timestampValue:
-                alwaysTime
-                    .subtract(const Duration(seconds: 1))
-                    .toUtc()
-                    .toIso8601String(),
-          ),
-        },
+      generateFirestoreTask(
+        1,
+        status: Task.statusFailed,
+        commitSha: '1',
+        name: 'Linux foo',
       ),
+    );
+    await firestore.createDocument(
+      BuildStatusSnapshot(
+        createdOn: alwaysTime.toUtc(),
+        status: BuildStatus.success,
+        failingTasks: [],
+      ),
+      collectionId: BuildStatusSnapshot.metadata.collectionId,
     );
 
     await decodeHandlerBody<Map<String, Object?>>();
 
     // Verify we wrote the status
-    final lastBuildStatuses = [
-      for (var doc in firestore.documents)
-        if (doc.name!.startsWith(
-          'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
-        ))
-          doc,
-    ];
-    expect(lastBuildStatuses, hasLength(2));
-
-    final doc = lastBuildStatuses.firstWhere(
-      (doc) => !doc.name!.endsWith('/fu'),
-    );
     expect(
-      doc.fields!['status']!.stringValue,
-      'flutter/flutter is :green_circle:!',
+      firestore,
+      existsInStorage(BuildStatusSnapshot.metadata, [
+        isBuildStatusSnapshot.hasStatus(BuildStatus.success),
+        isBuildStatusSnapshot.hasStatus(BuildStatus.failure),
+      ]),
     );
 
     // Verify we actually posted it
-    verify(
-      discord.postTreeStatusMessage('flutter/flutter is :green_circle:!'),
-    ).called(1);
+    final [String message] =
+        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    expect(
+      message,
+      stringContainsInOrder([
+        'flutter/flutter is now :red_circle:',
+        'Now failing',
+        'Linux foo',
+      ]),
+    );
+  });
+
+  test('posts on failed -> success', () async {
+    firestore.putDocument(generateFirestoreCommit(1));
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        status: Task.statusSucceeded,
+        commitSha: '1',
+        name: 'Linux foo',
+      ),
+    );
+    await firestore.createDocument(
+      BuildStatusSnapshot(
+        createdOn: alwaysTime.toUtc(),
+        status: BuildStatus.failure,
+        failingTasks: ['Linux foo'],
+      ),
+      collectionId: BuildStatusSnapshot.metadata.collectionId,
+    );
+
+    await decodeHandlerBody<Map<String, Object?>>();
+
+    // Verify we wrote the status
+    expect(
+      firestore,
+      existsInStorage(BuildStatusSnapshot.metadata, [
+        isBuildStatusSnapshot.hasStatus(BuildStatus.failure),
+        isBuildStatusSnapshot.hasStatus(BuildStatus.success),
+      ]),
+    );
+
+    // Verify we actually posted it
+    final [String message] =
+        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    expect(
+      message,
+      stringContainsInOrder([
+        'flutter/flutter is now :green_circle:',
+        'Now passing',
+        'Linux foo',
+      ]),
+    );
+  });
+
+  test('posts on failed -> failed (tasks changed)', () async {
+    firestore.putDocument(generateFirestoreCommit(1));
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        status: Task.statusFailed,
+        commitSha: '1',
+        name: 'Linux foo',
+      ),
+    );
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        status: Task.statusFailed,
+        commitSha: '1',
+        name: 'Mac bar',
+      ),
+    );
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        status: Task.statusSucceeded,
+        commitSha: '1',
+        name: 'Windows baz',
+      ),
+    );
+
+    await firestore.createDocument(
+      BuildStatusSnapshot(
+        createdOn: alwaysTime.toUtc(),
+        status: BuildStatus.failure,
+        failingTasks: ['Linux foo', 'Windows baz'],
+      ),
+      collectionId: BuildStatusSnapshot.metadata.collectionId,
+    );
+
+    await decodeHandlerBody<Map<String, Object?>>();
+
+    // Verify we wrote the status
+    expect(
+      firestore,
+      existsInStorage(BuildStatusSnapshot.metadata, [
+        isBuildStatusSnapshot.hasStatus(BuildStatus.failure),
+        isBuildStatusSnapshot.hasStatus(BuildStatus.failure),
+      ]),
+    );
+
+    // Verify we actually posted it
+    final [String message] =
+        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    expect(
+      message,
+      stringContainsInOrder([
+        'flutter/flutter is still :red_circle:',
+        'Now failing',
+        'Mac bar',
+        'Now passing',
+        'Windows baz',
+      ]),
+    );
   });
 
   test('limits size of the message sent to discord', () async {
@@ -189,48 +269,18 @@ void main() {
       ),
     );
 
-    firestore.putDocument(
-      Document(
-        name:
-            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/fu',
-        fields: {
-          'status': Value(stringValue: 'flutter/flutter is :red_circle:!'),
-          'createTimestamp': Value(
-            timestampValue:
-                alwaysTime
-                    .subtract(const Duration(seconds: 1))
-                    .toUtc()
-                    .toIso8601String(),
-          ),
-        },
-      ),
-    );
-
     await decodeHandlerBody<Map<String, Object?>>();
 
-    final lastStatus = firestore.documents.firstWhere(
-      (doc) =>
-          doc.name!.startsWith(
-            'projects/flutter-dashboard/databases/cocoon/documents/last_build_status/',
-          ) &&
-          !doc.name!.endsWith('/fu'),
-    );
-
-    expect(
-      lastStatus.fields!['status']!.stringValue,
-      'flutter/flutter is :red_circle:! Failing tasks: ${'a' * 2000}',
-    );
-
     // Verify we actually posted it
-    final captured = verify(discord.postTreeStatusMessage(captureAny)).captured;
-    expect(captured, hasLength(1));
+    final [String message] =
+        verify(discord.postTreeStatusMessage(captureAny)).captured;
+
     expect(
-      captured.first,
-      startsWith('flutter/flutter is :red_circle:! Failing tasks: aaaaaaaaa'),
-    );
-    expect(
-      captured.first,
-      endsWith('aaaaa... things appear to be very broken right now. :cry:'),
+      message,
+      stringContainsInOrder([
+        'flutter/flutter is now :red_circle:!',
+        ':cry: 1 tasks are failing',
+      ]),
     );
   });
 }

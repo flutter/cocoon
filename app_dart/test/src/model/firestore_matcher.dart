@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/model/firestore/base.dart';
+import 'package:cocoon_service/src/model/firestore/build_status_snapshot.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
@@ -13,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+part '_build_status_snapshot.dart';
 part '_commit.dart';
 part '_github_build_status.dart';
 part '_github_gold_status.dart';
@@ -31,8 +33,11 @@ const isGithubBuildStatus = GithubBuildStatusMatcher._(TypeMatcher());
 /// Matches a Firestore model, or raw document, of type [GithubGoldStatus].
 const isGithubGoldStatus = GithubGoldStatusMatcher._(TypeMatcher());
 
-/// Matches a Firestore model, or raw document, of type [PrCheckRun].
+/// Matches a Firestore model, or raw document, of type [PrCheckRuns].
 const isPrCheckRun = PrCheckRunsMatcher._(TypeMatcher());
+
+/// Matches a Firestore model, or raw document, of type [BuildStatusSnapshot].
+const isBuildStatusSnapshot = BuildStatusSnapshotMatcher._(TypeMatcher());
 
 /// Returns whether the document is a path to the collection [metadata].
 bool isDocumentA(g.Document document, AppDocumentMetadata<void> metadata) {
