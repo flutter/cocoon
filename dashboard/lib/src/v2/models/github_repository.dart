@@ -26,7 +26,6 @@ final class GithubRepository {
   ///
   /// Throws [FormatException] if either segment is invalid.
   factory GithubRepository.from(String owner, String name) {
-
     if (!_validOwner.hasMatch(owner)) {
       throw FormatException('Invalid owner', owner);
     }
