@@ -11,6 +11,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:gcloud/db.dart';
@@ -75,6 +76,7 @@ Future<void> main() async {
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
+      contentAwareHash: ContentAwareHashService(config: config),
     );
 
     final branchService = BranchService(

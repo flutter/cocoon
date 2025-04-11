@@ -26,9 +26,11 @@ import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
+import '../model/github/checks.dart' show MergeGroup;
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import 'cache_service.dart';
 import 'config.dart';
+import 'content_aware_hash_service.dart';
 import 'datastore.dart';
 import 'exceptions.dart';
 import 'firestore.dart';
@@ -63,7 +65,9 @@ class Scheduler {
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
     @visibleForTesting
     this.findPullRequestForSha = PrCheckRuns.findPullRequestForSha,
-  }) : _ciYamlFetcher = ciYamlFetcher;
+    required ContentAwareHashService contentAwareHash,
+  }) : _ciYamlFetcher = ciYamlFetcher,
+       _contentAwareHash = contentAwareHash;
 
   final GetFilesChanged getFilesChanged;
   final CacheService cache;
@@ -71,6 +75,8 @@ class Scheduler {
   final DatastoreServiceProvider datastoreProvider;
   final GithubChecksService githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
+  final ContentAwareHashService _contentAwareHash;
+
   LuciBuildService luciBuildService;
 
   Future<StagingConclusion> Function({
@@ -660,14 +666,21 @@ class Scheduler {
     //   - We want check_runs as well
     //   - We want updates on check_runs to the presubmit pubsub.
     // We do not want "Task" objects because these are for flutter-dashboard tracking (post submit)
-    final mergeGroup = mergeGroupEvent.mergeGroup;
-    final headSha = mergeGroup.headSha;
+    // final mergeGroup = mergeGroupEvent.mergeGroup;
+    final MergeGroup(:headSha, :headRef, :baseRef) = mergeGroupEvent.mergeGroup;
     final slug = mergeGroupEvent.repository!.slug();
     final isFusion = slug == Config.flutterSlug;
 
     final logCrumb =
         'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
 
+    // Temporarily trigger content-aware-hash for merge groups.
+    // We will not actually wait for the results yet.
+    try {
+      await _contentAwareHash.triggerWorkflow(headRef);
+    } catch (e, s) {
+      log.warn('contentAwareHash unexpectedly threw', e, s);
+    }
     log.info('$logCrumb: scheduling merge group checks');
 
     final lock = await lockMergeGroupChecks(slug, headSha);
@@ -681,7 +694,7 @@ class Scheduler {
 
     final mergeGroupTargets = {
       ...await getMergeGroupTargetsForStage(
-        mergeGroup.baseRef,
+        baseRef,
         slug,
         headSha,
         CiStage.fusionEngineBuild,
@@ -720,7 +733,7 @@ class Scheduler {
       // Create the minimal Commit needed to pass the next stage.
       // Note: headRef encodes refs/heads/... and what we want is the branch
       final commit = ds.Commit(
-        branch: mergeGroup.headRef.substring('refs/heads/'.length),
+        branch: headRef.substring('refs/heads/'.length),
         repository: slug.fullName,
         sha: headSha,
       );
