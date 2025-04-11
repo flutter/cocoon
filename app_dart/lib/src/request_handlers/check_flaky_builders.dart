@@ -188,8 +188,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
           1;
 
       _BuilderInfo? toBeAdded;
+      final startingLineNumber = builderLineNumber;
       var skippedDueToNonClosed = false;
-      var startingLineNumber = builderLineNumber;
       while (builderLineNumber < lines.length &&
           !lines[builderLineNumber].contains('name:')) {
         if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
