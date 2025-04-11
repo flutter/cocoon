@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
@@ -28,13 +27,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     super.authProvider,
-    @visibleForTesting
-    DatastoreService Function(DatastoreDB) datastoreProvider =
-        DatastoreService.defaultProvider,
-  }) : _datastoreProvider = datastoreProvider,
-       super(subscriptionName: 'dart-internal-build-results-sub');
-
-  final DatastoreServiceProvider _datastoreProvider;
+  }) : super(subscriptionName: 'dart-internal-build-results-sub');
 
   @override
   Future<Body> post() async {
@@ -92,7 +85,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
 
   Future<void> _legacyUpdateDatastoretask(bbv2.Build build) async {
     log.info('Checking for existing task in Datastore');
-    final datastore = _datastoreProvider(config.db);
+    final datastore = DatastoreService.defaultProvider(config.db);
     final existingTask = await datastore.getTaskFromBuildbucketBuild(build);
 
     final ds.Task taskToInsert;

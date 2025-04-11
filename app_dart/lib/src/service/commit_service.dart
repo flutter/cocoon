@@ -23,15 +23,10 @@ interface class CommitService {
   CommitService({
     required Config config,
     @visibleForTesting DateTime Function() now = DateTime.now,
-    @visibleForTesting
-    DatastoreService Function(ds.DatastoreDB) datastoreProvider =
-        DatastoreService.defaultProvider,
-  }) : _datastoreProvider = datastoreProvider,
-       _config = config,
+  }) : _config = config,
        _now = now;
 
   final Config _config;
-  final DatastoreServiceProvider _datastoreProvider;
   final DateTime Function() _now;
 
   /// Add a commit based on a [CreateEvent] to the Datastore.
@@ -71,7 +66,7 @@ interface class CommitService {
   }
 
   Future<void> _insertDatastore(_Commit commit) async {
-    final datastore = _datastoreProvider(_config.db);
+    final datastore = DatastoreService.defaultProvider(_config.db);
     final commitKey = datastore.db.emptyKey.append<String>(
       ds.Commit,
       id: '${commit.repository.fullName}/${commit.branch}/${commit.sha}',

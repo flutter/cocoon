@@ -40,19 +40,14 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     super.authProvider,
-    @visibleForTesting
-    DatastoreService Function(DatastoreDB) datastoreProvider =
-        DatastoreService.defaultProvider,
     required Scheduler scheduler,
     required GithubChecksService githubChecksService,
     required CiYamlFetcher ciYamlFetcher,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _githubChecksService = githubChecksService,
        _scheduler = scheduler,
-       _datastoreProvider = datastoreProvider,
        super(subscriptionName: 'build-bucket-postsubmit-sub');
 
-  final DatastoreServiceProvider _datastoreProvider;
   final Scheduler _scheduler;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
@@ -64,7 +59,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
 
-    final datastore = _datastoreProvider(config.db);
+    final datastore = DatastoreService.defaultProvider(config.db);
     final firestoreService = await config.createFirestoreService();
 
     final pubSubCallBack = bbv2.PubSubCallBack();

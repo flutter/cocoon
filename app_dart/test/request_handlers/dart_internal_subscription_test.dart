@@ -10,8 +10,6 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart' as ds;
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
-import 'package:gcloud/db.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -85,7 +83,6 @@ void main() {
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
-      datastoreProvider: (DatastoreDB db) => DatastoreService(config.db, 5),
     );
 
     request = FakeHttpRequest();
