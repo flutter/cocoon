@@ -1580,14 +1580,6 @@ class MockDiscordService extends _i1.Mock implements _i36.DiscordService {
   }
 
   @override
-  _i2.Config get config =>
-      (super.noSuchMethod(
-            Invocation.getter(#config),
-            returnValue: _FakeConfig_0(this, Invocation.getter(#config)),
-          )
-          as _i2.Config);
-
-  @override
   _i15.Future<_i36.DiscordStatus> postTreeStatusMessage(String? message) =>
       (super.noSuchMethod(
             Invocation.method(#postTreeStatusMessage, [message]),
