@@ -145,7 +145,7 @@ mixin FirestoreQueries {
         CommitAndTasks(
           commit,
           await queryCommitTasks(commit.sha, status: status),
-        )._withMostRecentTaskOnly(),
+        ).withMostRecentTaskOnly(),
     ];
   }
 
@@ -472,7 +472,7 @@ final class CommitAndTasks {
   /// task (`Linux foo`, `attempt = 3`) is retained in the accompanying [tasks]
   /// list, and the rest of the tasks are removed.
   @useResult
-  CommitAndTasks _withMostRecentTaskOnly() {
+  CommitAndTasks withMostRecentTaskOnly() {
     final mostRecent = <String, Task>{};
     for (final task in tasks) {
       mostRecent.update(task.taskName, (current) {

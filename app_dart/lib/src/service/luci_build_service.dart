@@ -1024,14 +1024,14 @@ class LuciBuildService {
   /// A builder will be retried if:
   ///   1. It has been tried below the max retry limit
   ///   2. It is for the tip of tree
-  ///   3. The last known status is not green
+  ///   3. The last known status is not green
   ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
   @useResult
   Future<bool> checkRerunBuilder({
     required OpaqueCommit commit,
     required Target target,
-    required Task task,
     required fs.Task taskDocument,
+    Task? task,
     Iterable<BuildTag> tags = const [],
     bool ignoreChecks = false,
   }) async {
@@ -1062,6 +1062,23 @@ class LuciBuildService {
     }
 
     log.info('Tags from rerun after update: $tags');
+
+    // TODO(matanlurey): Some APIs still provide task.
+    // If they do not, look it up as needed, otherwise party on.
+    if (task == null) {
+      final commitKey = Commit.createKey(
+        db: _config.db,
+        slug: commit.slug,
+        gitBranch: commit.branch,
+        sha: commit.sha,
+      );
+      final dsExistingTask = await Task.fromDatastore(
+        datastore: DatastoreService.defaultProvider(_config.db),
+        commitKey: commitKey,
+        name: taskDocument.taskName,
+      );
+      task = dsExistingTask;
+    }
 
     final request = bbv2.BatchRequest(
       requests: <bbv2.BatchRequest_Request>[

@@ -66,6 +66,11 @@ class _StringBody extends Body {
         .bind(Stream<String>.fromIterable(<String>[content]))
         .cast<Uint8List>();
   }
+
+  @override
+  String toString() {
+    return 'Body.forString($content)';
+  }
 }
 
 class _StreamBody extends Body {

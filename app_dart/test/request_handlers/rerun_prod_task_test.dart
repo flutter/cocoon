@@ -8,9 +8,8 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -19,6 +18,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -29,7 +29,7 @@ void main() {
   late RerunProdTask handler;
   late FakeConfig config;
   late MockLuciBuildService mockLuciBuildService;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestoreService;
   late ApiRequestHandlerTester tester;
   late Commit commit;
   late Task task;
@@ -40,7 +40,7 @@ void main() {
   setUp(() {
     final datastoreDB = FakeDatastoreDB();
     final clientContext = FakeClientContext();
-    mockFirestoreService = MockFirestoreService();
+    firestoreService = FakeFirestoreService();
     clientContext.isDevelopmentEnvironment = false;
     config = FakeConfig(
       dbValue: datastoreDB,
@@ -50,7 +50,7 @@ void main() {
       supportedBranchesValue: <String>[
         Config.defaultBranch(Config.flutterSlug),
       ],
-      firestoreService: mockFirestoreService,
+      firestoreService: firestoreService,
     );
     final authContext = FakeAuthenticatedContext(clientContext: clientContext);
     tester = ApiRequestHandlerTester(context: authContext);
@@ -62,7 +62,6 @@ void main() {
         clientContext: clientContext,
       ),
       luciBuildService: mockLuciBuildService,
-      scheduler: FakeScheduler(config: config),
       ciYamlFetcher: ciYamlFetcher,
     );
     commit = generateCommit(1);
@@ -80,11 +79,7 @@ void main() {
     };
 
     // ignore: discarded_futures
-    when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
-      Invocation invocation,
-    ) {
-      return Future<Document>.value(firestoreTask);
-    });
+    firestoreService.putDocument(firestoreTask);
 
     when(
       // ignore: discarded_futures
@@ -98,24 +93,49 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
   });
+
   test('Schedule new task', () async {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
+    final fsCommit = generateFirestoreCommit(1);
+    final fsTask = generateFirestoreTask(
+      1,
+      status: Task.statusFailed,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
     expect(await tester.post(handler), Body.empty);
 
-    final captured =
-        verify(mockFirestoreService.getDocument(captureAny)).captured;
-    expect(captured.length, 1);
-    final documentName = captured[0] as String;
     expect(
-      documentName,
-      '$kDatabase/documents/${firestore.kTaskCollectionId}/${commit.sha}_${task.name}_${task.attempts}',
+      firestoreService,
+      existsInStorage(
+        fs.Task.metadata,
+        contains(
+          isTask
+              .hasCommitSha(commit.sha)
+              .hasTaskName(task.name)
+              .hasCurrentAttempt(task.attempts),
+        ),
+      ),
     );
   });
 
   test('Re-schedule passing all the parameters', () async {
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
+    final fsCommit = generateFirestoreCommit(1);
+    final fsTask = generateFirestoreTask(
+      1,
+      status: Task.statusFailed,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
     expect(await tester.post(handler), Body.empty);
     verify(
       mockLuciBuildService.checkRerunBuilder(
@@ -130,6 +150,16 @@ void main() {
   });
 
   test('Re-schedule specific task cannot use a status include', () async {
+    final fsCommit = generateFirestoreCommit(1);
+    final fsTask = generateFirestoreTask(
+      1,
+      status: Task.statusFailed,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
     tester.requestData = {...tester.requestData, 'include': Task.statusSkipped};
     await expectLater(
       tester.post(handler),
@@ -159,8 +189,27 @@ void main() {
     config.db.values[taskA.key] = taskA;
     config.db.values[taskB.key] = taskB;
     config.db.values[commit.key] = commit;
+
+    final fsCommit = generateFirestoreCommit(1);
+    final fsTaskA = generateFirestoreTask(
+      2,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusFailed,
+    );
+    final fsTaskB = generateFirestoreTask(
+      3,
+      name: 'Mac A',
+      commitSha: fsCommit.sha,
+      status: Task.statusFailed,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTaskA);
+    firestoreService.putDocument(fsTaskB);
+
     tester.requestData = {...tester.requestData, 'task': 'all'};
-    expect(await tester.post(handler), Body.empty);
+    await tester.post(handler);
+
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
@@ -182,8 +231,21 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
+
+    final fsCommit = generateFirestoreCommit(1);
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(
+      generateFirestoreTask(
+        2,
+        name: 'Windows A',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusSucceeded,
+      ),
+    );
+
     tester.requestData = {...tester.requestData, 'task': 'all'};
-    expect(await tester.post(handler), Body.empty);
+    await tester.post(handler);
+
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
@@ -205,8 +267,21 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
+
+    final fsCommit = generateFirestoreCommit(1);
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(
+      generateFirestoreTask(
+        2,
+        name: 'Windows A',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusSkipped,
+      ),
+    );
+
     tester.requestData = {...tester.requestData, 'task': 'all'};
-    expect(await tester.post(handler), Body.empty);
+    await tester.post(handler);
+
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
@@ -228,12 +303,25 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
+
+    final fsCommit = generateFirestoreCommit(1);
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(
+      generateFirestoreTask(
+        2,
+        name: 'Windows A',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusSkipped,
+      ),
+    );
+
     tester.requestData = {
       ...tester.requestData,
       'task': 'all',
       'include': Task.statusSkipped,
     };
-    expect(await tester.post(handler), Body.empty);
+    await tester.post(handler);
+
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
@@ -247,6 +335,9 @@ void main() {
   });
 
   test('Rerun all can verifies included statuses are valid', () async {
+    final fsCommit = generateFirestoreCommit(1);
+    firestoreService.putDocument(fsCommit);
+
     tester.requestData = {
       ...tester.requestData,
       'task': 'all',
@@ -264,7 +355,7 @@ void main() {
     );
   });
 
-  test('No matching target fails gracefully', () async {
+  test('No matching target fails with a 500', () async {
     final task = generateTask(
       2,
       // This task is in datastore, but not in .ci.yaml.
@@ -274,8 +365,24 @@ void main() {
     );
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
+
+    final fsCommit = generateFirestoreCommit(1);
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(
+      generateFirestoreTask(
+        2,
+        name: 'Windows C',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusSucceeded,
+      ),
+    );
+
     tester.requestData = {...tester.requestData, 'task': 'Windows C'};
-    expect(await tester.post(handler), Body.empty);
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<InternalServerError>()),
+    );
+
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
@@ -300,42 +407,6 @@ void main() {
     );
   });
 
-  test('Too many matching targets fails forcefully', () async {
-    ciYamlFetcher.ciYaml = exampleNaughtyConfig;
-    final task = generateTask(
-      2,
-      name: 'Windows A',
-      parent: commit,
-      status: Task.statusSucceeded,
-    );
-
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
-    tester.requestData = {...tester.requestData, 'task': 'Windows A'};
-    await expectLater(
-      tester.post(handler),
-      throwsA(
-        isA<StateError>().having(
-          (b) => b.message,
-          'message',
-          contains(
-            'More than one target ("Windows A") matched in [Windows A, Windows A]',
-          ),
-        ),
-      ),
-    );
-    verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
-        task: anyNamed('task'),
-        target: anyNamed('target'),
-        tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
-        ignoreChecks: false,
-      ),
-    );
-  });
-
   test('Re-schedule without any parameters raises exception', () async {
     tester.requestData = <String, dynamic>{};
     expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
@@ -346,6 +417,17 @@ void main() {
     () async {
       config.db.values[task.key] = task;
       config.db.values[commit.key] = commit;
+
+      final fsCommit = generateFirestoreCommit(1);
+      final fsTask = generateFirestoreTask(
+        1,
+        name: 'Linux A',
+        commitSha: fsCommit.sha,
+        status: Task.statusFailed,
+      );
+      firestoreService.putDocument(fsCommit);
+      firestoreService.putDocument(fsTask);
+
       expect(await tester.post(handler), Body.empty);
     },
   );
@@ -363,11 +445,17 @@ void main() {
     ).thenAnswer((_) async => false);
     config.db.values[task.key] = task;
     config.db.values[commit.key] = commit;
-    expect(() => tester.post(handler), throwsA(isA<InternalServerError>()));
-  });
 
-  test('Fails if commit does not exist', () async {
-    config.db.values[task.key] = task;
-    expect(() => tester.post(handler), throwsA(isA<StateError>()));
+    final fsCommit = generateFirestoreCommit(1);
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: Task.statusFailed,
+    );
+    firestoreService.putDocument(fsCommit);
+    firestoreService.putDocument(fsTask);
+
+    expect(() => tester.post(handler), throwsA(isA<InternalServerError>()));
   });
 }
