@@ -29,7 +29,8 @@ import 'widgets/task_grid.dart';
 class BuildDashboardPage extends StatefulWidget {
   const BuildDashboardPage({super.key, this.queryParameters});
 
-  static const String routeName = '/build';
+  static const String routeSegment = 'build';
+  static const String routeName = '/$routeSegment';
 
   final Map<String, String>? queryParameters;
 

@@ -115,7 +115,7 @@ class MyApp extends StatelessWidget {
           }
 
           switch (uriData.pathSegments.first) {
-            case BuildDashboardPage.routeName:
+            case BuildDashboardPage.routeSegment:
               return MaterialPageRoute<void>(
                 settings: settings,
                 builder: (BuildContext context) {
