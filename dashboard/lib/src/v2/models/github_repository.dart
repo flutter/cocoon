@@ -85,9 +85,8 @@ final class GithubRepository {
   /// - Cannot begin or end with a hyphen
   /// - Cannot have consecutive hyphens
   final String owner;
-  static const _maxOwnerChars = 39;
   static final _validOwner = RegExp(
-    r'^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9]))*$',
+    r'^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0-38}$',
   );
 
   /// Name of the repository, such as `flutter` or `cocoon`.
