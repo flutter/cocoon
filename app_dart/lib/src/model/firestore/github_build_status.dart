@@ -4,6 +4,7 @@
 
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
@@ -50,6 +51,36 @@ class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
   }) async {
     final document = await firestoreService.getDocument(documentName);
     return GithubBuildStatus.fromDocument(document);
+  }
+
+  factory GithubBuildStatus({
+    required String status,
+    required String head,
+    required String repository,
+    required int prNumber,
+    required int updateTimeMillis,
+    required int updates,
+  }) {
+    return GithubBuildStatus.fromDocument(
+      Document(
+        fields: {
+          kGithubBuildStatusStatusField: Value(stringValue: status),
+          kGithubBuildStatusHeadField: Value(stringValue: head),
+          kGithubBuildStatusRepositoryField: Value(stringValue: repository),
+          kGithubBuildStatusPrNumberField: Value(integerValue: '$prNumber'),
+          kGithubBuildStatusUpdateTimeMillisField: Value(
+            integerValue: '$updateTimeMillis',
+          ),
+          kGithubBuildStatusUpdatesField: Value(integerValue: '$updates'),
+        },
+        name: p.posix.join(
+          kDatabase,
+          'documents',
+          metadata.collectionId,
+          GithubBuildStatus.documentIdFor(headSha: head).documentId,
+        ),
+      ),
+    );
   }
 
   /// Create [GithubBuildStatus] from a GithubBuildStatus Document.

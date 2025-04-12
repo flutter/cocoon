@@ -174,19 +174,14 @@ GithubBuildStatus generateFirestoreGithubBuildStatus(
 }) {
   pr ??= i;
   head ??= 'sha$i';
-  final githubBuildStatus =
-      GithubBuildStatus.fromDocument(Document())
-        ..name = '{$pr}_$head'
-        ..fields = <String, Value>{
-          kGithubBuildStatusHeadField: Value(stringValue: head),
-          kGithubBuildStatusPrNumberField: Value(integerValue: pr.toString()),
-          kGithubBuildStatusRepositoryField: Value(stringValue: '$owner/$repo'),
-          kGithubBuildStatusUpdatesField: Value(
-            integerValue: updates.toString(),
-          ),
-          kGithubBuildStatusStatusField: Value(stringValue: status),
-        };
-  return githubBuildStatus;
+  return GithubBuildStatus(
+    status: status,
+    prNumber: pr,
+    head: head,
+    repository: '$owner/$repo',
+    updates: updates,
+    updateTimeMillis: DateTime.now().millisecondsSinceEpoch,
+  );
 }
 
 Target generateTarget(
