@@ -383,8 +383,8 @@ abstract base class _FakeInMemoryFirestoreService
     Map<String, Object> filters,
   ) {
     for (final MapEntry(key: fieldAndOp, value: value) in filters.entries) {
-      final [fieldName, operator] = fieldAndOp.trim().split(' ');
-      final fieldValue = fields[fieldName];
+      final [...fieldNameParts, operator] = fieldAndOp.trim().split(' ');
+      final fieldValue = fields[fieldNameParts.join(' ')];
 
       // bool can be == or !=, but not compared.
       switch (operator) {
