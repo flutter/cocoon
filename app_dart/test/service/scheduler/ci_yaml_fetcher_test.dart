@@ -12,14 +12,13 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
+import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -35,7 +34,7 @@ void main() {
   late CacheService cache;
   late FakeConfig config;
   late MockClient httpClient;
-  late MockFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
 
   late CiYamlFetcher ciYamlFetcher;
 
@@ -46,8 +45,8 @@ void main() {
       return http.Response('Missing file: ${request.url}', HttpStatus.notFound);
     });
 
-    firestoreService = MockFirestoreService();
-    config.firestoreService = firestoreService;
+    firestore = FakeFirestoreService();
+    config.firestoreService = firestore;
 
     ciYamlFetcher = CiYamlFetcher(
       cache: cache,
@@ -61,24 +60,24 @@ void main() {
     required RepositorySlug slug,
     required String branch,
   }) {
-    when(
-      // ignore: discarded_futures
-      firestoreService.queryRecentCommits(
-        slug: argThat(equals(slug), named: 'slug'),
-        limit: argThat(equals(1), named: 'limit'),
-        timestamp: argThat(isNull, named: 'timestamp'),
-        branch: argThat(equals(branch), named: 'branch'),
+    firestore.putDocument(
+      generateFirestoreCommit(
+        1,
+        sha: currentSha,
+        owner: slug.owner,
+        repo: slug.name,
+        branch: branch,
       ),
-    ).thenAnswer((_) async {
-      return [
-        generateFirestoreCommit(
-          1,
-          sha: 'bf58e0e6dffbfd759a3b2b5c56a2b5b115506c91',
-          owner: slug.owner,
-          repo: slug.name,
-        ),
-      ];
-    });
+    );
+    firestore.putDocument(
+      generateFirestoreCommit(
+        2,
+        sha: totSha,
+        owner: slug.owner,
+        repo: slug.name,
+        branch: branch,
+      ),
+    );
   }
 
   test('fetches the root .ci.yaml for a repository (GitHub)', () async {
