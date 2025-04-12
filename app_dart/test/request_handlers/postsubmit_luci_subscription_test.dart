@@ -6,13 +6,10 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
-import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:mockito/mockito.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
@@ -20,6 +17,7 @@ import '../src/request_handling/fake_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -32,23 +30,19 @@ void main() {
   late PostsubmitLuciSubscription handler;
   late FakeConfig config;
   late FakeHttpRequest request;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestore;
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeScheduler scheduler;
   late FakeCiYamlFetcher ciYamlFetcher;
 
-  firestore.Task? firestoreTask;
-  fs.Commit? firestoreCommit;
-
   setUp(() async {
-    firestoreTask = null;
     mockGithubChecksUtil = MockGithubChecksUtil();
-    mockFirestoreService = MockFirestoreService();
+    firestore = FakeFirestoreService();
     config = FakeConfig(
       maxLuciTaskRetriesValue: 3,
-      firestoreService: mockFirestoreService,
+      firestoreService: firestore,
     );
     mockGithubChecksService = MockGithubChecksService();
     when(
@@ -71,31 +65,6 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
-      Invocation invocation,
-    ) async {
-      final name = invocation.positionalArguments.first as String;
-      final collection = p.posix.basename(p.posix.dirname(name));
-      return switch (collection) {
-        'tasks' => firestoreTask!,
-        'commits' => firestoreCommit!,
-        _ => throw UnsupportedError('Not supported: $collection'),
-      };
-    });
-    when(
-      mockFirestoreService.queryRecentCommits(
-        limit: captureAnyNamed('limit'),
-        slug: captureAnyNamed('slug'),
-        branch: captureAnyNamed('branch'),
-      ),
-    ).thenAnswer((Invocation invocation) {
-      return Future<List<fs.Commit>>.value(<fs.Commit>[firestoreCommit!]);
-    });
-    when(
-      mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-    ).thenAnswer((Invocation invocation) {
-      return Future<BatchWriteResponse>.value(BatchWriteResponse());
-    });
     final luciBuildService = FakeLuciBuildService(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
@@ -118,11 +87,17 @@ void main() {
   });
 
   test('updates task based on message', () async {
-    firestoreTask = generateFirestoreTask(1, attempts: 2, name: 'Linux A');
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     final task = generateTask(4507531199512576, name: 'Linux A');
 
@@ -133,8 +108,8 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -148,40 +123,39 @@ void main() {
     expect(task.endTimestamp, 0);
 
     // Firestore checks before API call.
-    expect(firestoreTask!.status, Task.statusNew);
-    expect(firestoreTask!.buildNumber, null);
+    expect(fsTask.status, Task.statusNew);
+    expect(fsTask.buildNumber, null);
 
     await tester.post(handler);
 
     expect(task.status, Task.statusSucceeded);
     expect(task.endTimestamp, 1717430718072);
 
-    // Firestore checks after API call.
-    final captured =
-        verify(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final updatedDocument = batchWriteRequest.writes![0].update!;
-
-    final updatedTask = firestore.Task.fromDocument(updatedDocument);
-    expect(updatedDocument.name, firestoreTask!.name);
-    expect(updatedTask.status, Task.statusSucceeded);
-    expect(updatedTask.buildNumber, 63405);
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux A')
+            .hasStatus(fs.Task.statusSucceeded)
+            .hasBuildNumber(63405),
+      ]),
+    );
   });
 
   test('skips task processing when build is with scheduled status', () async {
-    firestoreTask = generateFirestoreTask(
-      1,
-      name: 'Linux A',
-      status: firestore.Task.statusInProgress,
-    );
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusInProgress,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
@@ -197,30 +171,41 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
       ),
     );
 
-    expect(firestoreTask!.status, firestore.Task.statusInProgress);
-    expect(firestoreTask!.currentAttempt, 1);
     expect(await tester.post(handler), Body.empty);
-    expect(firestoreTask!.status, firestore.Task.statusInProgress);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux A')
+            .hasStatus(fs.Task.statusInProgress)
+            .hasCurrentAttempt(1),
+      ]),
+    );
   });
 
   test('skips task processing when task has already finished', () async {
-    firestoreTask = generateFirestoreTask(
-      1,
-      name: 'Linux A',
-      status: firestore.Task.statusSucceeded,
-    );
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusSucceeded,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
@@ -236,8 +221,8 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -247,19 +232,32 @@ void main() {
     expect(task.status, Task.statusSucceeded);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
-    expect(task.status, Task.statusSucceeded);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux A')
+            .hasStatus(fs.Task.statusSucceeded)
+            .hasCurrentAttempt(1),
+      ]),
+    );
   });
 
   test('skips task processing when target has been deleted', () async {
-    firestoreTask = generateFirestoreTask(
-      1,
-      name: 'Linux B',
-      status: firestore.Task.statusSucceeded,
-    );
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux B',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusSucceeded,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     final task = generateTask(
       4507531199512576,
       name: 'Linux B',
@@ -271,8 +269,8 @@ void main() {
       checkRunId: null,
       taskKey: '${task.key.id}',
       commitKey: '${task.key.parent?.id}',
-      firestoreTaskDocumentName: firestore.TaskId(
-        commitSha: firestoreCommit!.sha,
+      firestoreTaskDocumentName: fs.TaskId(
+        commitSha: fsCommit.sha,
         taskName: task.name!,
         currentAttempt: task.attempts!,
       ),
@@ -287,19 +285,32 @@ void main() {
     expect(task.status, Task.statusSucceeded);
     expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux B')
+            .hasStatus(fs.Task.statusSucceeded)
+            .hasCurrentAttempt(1),
+      ]),
+    );
   });
 
   test('on failed builds auto-rerun the build', () async {
-    firestoreTask = generateFirestoreTask(
-      1,
-      name: 'Linux A',
-      status: firestore.Task.statusFailed,
-      commitSha: '87f88734747805589f2131753620d61b22922822',
-    );
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusFailed,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
@@ -315,41 +326,44 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
       ),
     );
 
-    expect(firestoreTask!.status, firestore.Task.statusFailed);
-    expect(firestoreTask!.currentAttempt, 1);
-    expect(await tester.post(handler), Body.empty);
-    final captured =
-        verify(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final insertedTaskDocument = batchWriteRequest.writes![0].update!;
-    final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
-    expect(resultTask.status, firestore.Task.statusInProgress);
-    expect(resultTask.currentAttempt, 2);
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(
+        fs.Task.metadata,
+        contains(
+          isTask
+              .hasTaskName('Linux A')
+              .hasStatus(fs.Task.statusInProgress)
+              .hasCurrentAttempt(2),
+        ),
+      ),
+    );
   });
 
   test('on canceled builds auto-rerun the build if they timed out', () async {
-    firestoreTask = generateFirestoreTask(
-      1,
-      name: 'Linux A',
-      status: firestore.Task.statusInfraFailure,
-      commitSha: '87f88734747805589f2131753620d61b22922822',
-    );
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusInfraFailure,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     final task = generateTask(
       4507531199512576,
       name: 'Linux A',
@@ -365,43 +379,46 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
       ),
     );
 
-    expect(firestoreTask!.status, firestore.Task.statusInfraFailure);
-    expect(firestoreTask!.currentAttempt, 1);
-    expect(await tester.post(handler), Body.empty);
-    final captured =
-        verify(
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).captured;
-    expect(captured.length, 2);
-    final batchWriteRequest = captured[0] as BatchWriteRequest;
-    expect(batchWriteRequest.writes!.length, 1);
-    final insertedTaskDocument = batchWriteRequest.writes![0].update!;
-    final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
-    expect(resultTask.status, firestore.Task.statusInProgress);
-    expect(resultTask.currentAttempt, 2);
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(
+        fs.Task.metadata,
+        contains(
+          isTask
+              .hasTaskName('Linux A')
+              .hasStatus(fs.Task.statusInProgress)
+              .hasCurrentAttempt(2),
+        ),
+      ),
+    );
   });
 
   test(
     'on builds resulting in an infra failure auto-rerun the build if they timed out',
     () async {
-      firestoreTask = generateFirestoreTask(
-        1,
-        name: 'Linux A',
-        status: firestore.Task.statusInfraFailure,
-        commitSha: '87f88734747805589f2131753620d61b22922822',
-      );
-      firestoreCommit = generateFirestoreCommit(
+      final fsCommit = generateFirestoreCommit(
         1,
         sha: '87f88734747805589f2131753620d61b22922822',
       );
+      final fsTask = generateFirestoreTask(
+        1,
+        name: 'Linux A',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusInfraFailure,
+      );
+      firestore.putDocument(fsCommit);
+      firestore.putDocument(fsTask);
+
       final task = generateTask(
         4507531199512576,
         name: 'Linux A',
@@ -417,39 +434,45 @@ void main() {
           checkRunId: null,
           taskKey: '${task.key.id}',
           commitKey: '${task.key.parent?.id}',
-          firestoreTaskDocumentName: firestore.TaskId(
-            commitSha: firestoreCommit!.sha,
+          firestoreTaskDocumentName: fs.TaskId(
+            commitSha: fsCommit.sha,
             taskName: task.name!,
             currentAttempt: task.attempts!,
           ),
         ),
       );
 
-      expect(task.status, Task.statusInfraFailure);
-      expect(task.attempts, 1);
-      expect(await tester.post(handler), Body.empty);
-      final captured =
-          verify(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          ).captured;
-      expect(captured.length, 2);
-      final batchWriteRequest = captured[0] as BatchWriteRequest;
-      expect(batchWriteRequest.writes!.length, 1);
-      final insertedTaskDocument = batchWriteRequest.writes![0].update!;
-      final resultTask = firestore.Task.fromDocument(insertedTaskDocument);
-      expect(resultTask.status, firestore.Task.statusInProgress);
-      expect(resultTask.currentAttempt, 2);
+      await tester.post(handler);
+
+      expect(
+        firestore,
+        existsInStorage(
+          fs.Task.metadata,
+          contains(
+            isTask
+                .hasTaskName('Linux A')
+                .hasStatus(fs.Task.statusInProgress)
+                .hasCurrentAttempt(2),
+          ),
+        ),
+      );
     },
   );
 
   test('non-bringup target updates check run', () async {
-    firestoreTask = generateFirestoreTask(1, name: 'Linux nonbringup');
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
       repo: 'packages',
       branch: Config.defaultBranch(Config.packagesSlug),
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux nonbringup',
+      commitSha: fsCommit.sha,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     ciYamlFetcher.ciYaml = nonBringupPackagesConfig;
     when(
@@ -471,8 +494,8 @@ void main() {
         checkRunId: 1,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -488,14 +511,30 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).called(1);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux nonbringup')
+            .hasStatus(fs.Task.statusSucceeded),
+      ]),
+    );
   });
 
   test('bringup target does not update check run', () async {
-    firestoreTask = generateFirestoreTask(1, name: 'Linux bringup');
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux bringup',
+      commitSha: fsCommit.sha,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     ciYamlFetcher.ciYaml = bringupPackagesConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
@@ -516,8 +555,8 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -545,16 +584,19 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    firestoreTask = generateFirestoreTask(
-      1,
-      attempts: 2,
-      name: 'Linux flutter',
-    );
 
-    firestoreCommit = generateFirestoreCommit(
+    final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
     );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux flutter',
+      commitSha: fsCommit.sha,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
     final task = generateTask(4507531199512576, name: 'Linux flutter');
     config.db.values[task.key] = task;
 
@@ -566,8 +608,8 @@ void main() {
         checkRunId: null,
         taskKey: '${task.key.id}',
         commitKey: '${task.key.parent?.id}',
-        firestoreTaskDocumentName: firestore.TaskId(
-          commitSha: firestoreCommit!.sha,
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
           taskName: task.name!,
           currentAttempt: task.attempts!,
         ),
@@ -582,6 +624,13 @@ void main() {
         luciBuildService: anyNamed('luciBuildService'),
         slug: anyNamed('slug'),
       ),
+    );
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasTaskName('Linux flutter').hasStatus(fs.Task.statusSucceeded),
+      ]),
     );
   });
 }
