@@ -8,20 +8,19 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
-import '../src/utilities/mocks.mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
 
   late RequestHandlerTester tester;
   late GetBuildStatus handler;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestore;
 
   Future<T> decodeHandlerBody<T>() async {
     final body = await tester.get(handler);
@@ -33,9 +32,9 @@ void main() {
   }
 
   setUp(() {
-    mockFirestoreService = MockFirestoreService();
+    firestore = FakeFirestoreService();
     final config = FakeConfig();
-    config.firestoreService = mockFirestoreService;
+    config.firestoreService = firestore;
 
     tester = RequestHandlerTester();
     handler = GetBuildStatus(
@@ -46,19 +45,13 @@ void main() {
 
   test('passing status', () async {
     final commit = generateFirestoreCommit(1);
-    when(
-      mockFirestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        branch: anyNamed('branch'),
-        limit: anyNamed('limit'),
-        timestamp: anyNamed('timestamp'),
-      ),
-    ).thenAnswer((_) async => [commit]);
-
-    final task = generateFirestoreTask(1, status: Task.statusSucceeded);
-    when(
-      mockFirestoreService.queryCommitTasks(commit.sha),
-    ).thenAnswer((_) async => [task]);
+    final task = generateFirestoreTask(
+      1,
+      status: Task.statusSucceeded,
+      commitSha: commit.sha,
+    );
+    firestore.putDocument(commit);
+    firestore.putDocument(task);
 
     final response = await decodeHandlerBody<Map<String, Object?>>();
     expect(response, {'buildStatus': 'success', 'failingTasks': isEmpty});
@@ -66,20 +59,19 @@ void main() {
 
   test('failing status', () async {
     final commit = generateFirestoreCommit(1);
-    when(
-      mockFirestoreService.queryRecentCommits(
-        slug: anyNamed('slug'),
-        branch: anyNamed('branch'),
-        limit: anyNamed('limit'),
-        timestamp: anyNamed('timestamp'),
-      ),
-    ).thenAnswer((_) async => [commit]);
-
-    final taskPass = generateFirestoreTask(1, status: Task.statusSucceeded);
-    final taskFail = generateFirestoreTask(2, status: Task.statusFailed);
-    when(
-      mockFirestoreService.queryCommitTasks(commit.sha),
-    ).thenAnswer((_) async => [taskPass, taskFail]);
+    final taskPass = generateFirestoreTask(
+      1,
+      status: Task.statusSucceeded,
+      commitSha: commit.sha,
+    );
+    final taskFail = generateFirestoreTask(
+      2,
+      status: Task.statusFailed,
+      commitSha: commit.sha,
+    );
+    firestore.putDocument(commit);
+    firestore.putDocument(taskPass);
+    firestore.putDocument(taskFail);
 
     final response = await decodeHandlerBody<Map<String, Object?>>();
     expect(response, {
