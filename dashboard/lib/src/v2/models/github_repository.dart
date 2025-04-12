@@ -73,7 +73,7 @@ final class GithubRepository {
   /// - Cannot have consecutive hyphens
   final String owner;
   static final _validOwner = RegExp(
-    r'^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0-38}$',
+    r'^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$',
   );
 
   /// Name of the repository, such as `flutter` or `cocoon`.
