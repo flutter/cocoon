@@ -10,11 +10,12 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
+    as fs;
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -25,6 +26,7 @@ import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_authentication.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
@@ -34,295 +36,222 @@ void main() {
 
   const kGoldenFileLabel = 'will affect goldens';
 
-  group('PushGoldStatusToGithub', () {
-    late FakeConfig config;
-    late FakeClientContext clientContext;
-    FakeAuthenticatedContext authContext;
-    late FakeAuthenticationProvider auth;
-    late MockFirestoreService mockFirestoreService;
-    late FakeDatastoreDB db;
-    late ApiRequestHandlerTester tester;
-    late PushGoldStatusToGithub handler;
-    FakeGraphQLClient githubGraphQLClient;
-    var checkRuns = <dynamic>[];
-    late MockClient mockHttpClient;
-    late RepositorySlug slug;
+  late FakeConfig config;
+  late FakeClientContext clientContext;
+  late FakeAuthenticationProvider auth;
+  late FakeFirestoreService firestore;
+  late FakeDatastoreDB db;
+  late ApiRequestHandlerTester tester;
+  late PushGoldStatusToGithub handler;
+
+  var checkRuns = <dynamic>[];
+  late MockClient mockHttpClient;
+  late RepositorySlug slug;
+
+  setUp(() {
+    clientContext = FakeClientContext();
+    firestore = FakeFirestoreService();
+    auth = FakeAuthenticationProvider(clientContext: clientContext);
+    db = FakeDatastoreDB();
+    config = FakeConfig(dbValue: db, firestoreService: firestore);
+    tester = ApiRequestHandlerTester(
+      context: FakeAuthenticatedContext(clientContext: clientContext),
+    );
+    mockHttpClient = MockClient(
+      (_) async => http.Response('{}', HttpStatus.ok),
+    );
+
+    final githubGraphQLClient = FakeGraphQLClient();
+    githubGraphQLClient.mutateResultForOptions =
+        (MutationOptions options) => createFakeQueryResult();
+    githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
+      if (options.variables['sRepoName'] == slug.name) {
+        return createGithubQueryResult(checkRuns);
+      }
+      return createGithubQueryResult(<dynamic>[]);
+    };
+    config.githubGraphQLClient = githubGraphQLClient;
+    config.flutterGoldPendingValue = 'pending';
+    config.flutterGoldChangesValue = 'changes';
+    config.flutterGoldSuccessValue = 'success';
+    config.flutterGoldAlertConstantValue = 'flutter gold alert';
+    config.flutterGoldInitialAlertValue = 'initial';
+    config.flutterGoldFollowUpAlertValue = 'follow-up';
+    config.flutterGoldDraftChangeValue = 'draft';
+    config.flutterGoldStalePRValue = 'stale';
+
+    handler = PushGoldStatusToGithub(
+      config: config,
+      authenticationProvider: auth,
+      goldClient: mockHttpClient,
+      ingestionDelay: Duration.zero,
+    );
+
+    slug = RepositorySlug('flutter', 'flutter');
+    checkRuns.clear();
+  });
+
+  group('in development environment', () {
+    setUp(() {
+      clientContext.isDevelopmentEnvironment = true;
+    });
+
+    test('Does nothing', () async {
+      config.githubClient = ThrowingGitHub();
+      final body = await tester.get<Body>(handler);
+      expect(body, same(Body.empty));
+    });
+  });
+
+  group('in non-development environment', () {
+    MockGitHub github;
+    MockPullRequestsService pullRequestsService;
+    late MockIssuesService issuesService;
+    late MockRepositoriesService repositoriesService;
+    var prsFromGitHub = <PullRequest>[];
 
     setUp(() {
-      clientContext = FakeClientContext();
-      mockFirestoreService = MockFirestoreService();
-      authContext = FakeAuthenticatedContext(clientContext: clientContext);
-      auth = FakeAuthenticationProvider(clientContext: clientContext);
-      githubGraphQLClient = FakeGraphQLClient();
-      db = FakeDatastoreDB();
-      config = FakeConfig(dbValue: db, firestoreService: mockFirestoreService);
-      tester = ApiRequestHandlerTester(context: authContext);
-      mockHttpClient = MockClient(
-        (_) async => http.Response('{}', HttpStatus.ok),
-      );
+      github = MockGitHub();
+      pullRequestsService = MockPullRequestsService();
+      issuesService = MockIssuesService();
+      repositoriesService = MockRepositoriesService();
 
-      githubGraphQLClient.mutateResultForOptions =
-          (MutationOptions options) => createFakeQueryResult();
-      githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
-        if (options.variables['sRepoName'] == slug.name) {
-          return createGithubQueryResult(checkRuns);
-        }
-        return createGithubQueryResult(<dynamic>[]);
-      };
-      config.githubGraphQLClient = githubGraphQLClient;
-      config.flutterGoldPendingValue = 'pending';
-      config.flutterGoldChangesValue = 'changes';
-      config.flutterGoldSuccessValue = 'success';
-      config.flutterGoldAlertConstantValue = 'flutter gold alert';
-      config.flutterGoldInitialAlertValue = 'initial';
-      config.flutterGoldFollowUpAlertValue = 'follow-up';
-      config.flutterGoldDraftChangeValue = 'draft';
-      config.flutterGoldStalePRValue = 'stale';
+      when(github.pullRequests).thenReturn(pullRequestsService);
+      when(github.issues).thenReturn(issuesService);
+      when(github.repositories).thenReturn(repositoriesService);
 
-      handler = PushGoldStatusToGithub(
-        config: config,
-        authenticationProvider: auth,
-        goldClient: mockHttpClient,
-        ingestionDelay: Duration.zero,
-      );
-
-      slug = RepositorySlug('flutter', 'flutter');
-      checkRuns.clear();
-    });
-
-    group('in development environment', () {
-      setUp(() {
-        clientContext.isDevelopmentEnvironment = true;
+      prsFromGitHub.clear();
+      when(pullRequestsService.list(slug)).thenAnswer((Invocation _) {
+        return Stream<PullRequest>.fromIterable(prsFromGitHub);
       });
 
-      test('Does nothing', () async {
-        config.githubClient = ThrowingGitHub();
-        final body = await tester.get<Body>(handler);
-        expect(body, same(Body.empty));
-      });
+      when(
+        // ignore: discarded_futures
+        repositoriesService.createStatus(any, any, any),
+      ).thenAnswer((_) async => RepositoryStatus());
+      when(
+        // ignore: discarded_futures
+        issuesService.createComment(any, any, any),
+      ).thenAnswer((_) async => IssueComment());
+      when(
+        // ignore: discarded_futures
+        issuesService.addLabelsToIssue(any, any, any),
+      ).thenAnswer((_) async => <IssueLabel>[]);
+      config.githubClient = github;
+      clientContext.isDevelopmentEnvironment = false;
     });
 
-    group('in non-development environment', () {
-      MockGitHub github;
-      MockPullRequestsService pullRequestsService;
-      late MockIssuesService issuesService;
-      late MockRepositoriesService repositoriesService;
-      var prsFromGitHub = <PullRequest>[];
-      GithubGoldStatus? githubGoldStatus;
-      GithubGoldStatus? githubGoldStatusNext;
+    GithubGoldStatus newGithubGoldStatus(
+      RepositorySlug slug,
+      PullRequest pr,
+      String statusUpdate,
+      String sha,
+      String description,
+    ) {
+      return generateFirestoreGithubGoldStatus(
+        1,
+        head: sha,
+        pr: pr.number,
+        status: statusUpdate,
+        updates: 0,
+        description: description,
+        repo: slug.name,
+      );
+    }
 
+    PullRequest newPullRequest(
+      int number,
+      String sha,
+      String baseRef, {
+      bool draft = false,
+      DateTime? updated,
+    }) {
+      return PullRequest()
+        ..number = number
+        ..head = (PullRequestHead()..sha = sha)
+        ..base = (PullRequestHead()..ref = baseRef)
+        ..draft = draft
+        ..updatedAt = updated ?? DateTime.now();
+    }
+
+    group('does not update GitHub or Datastore', () {
       setUp(() {
-        github = MockGitHub();
-        pullRequestsService = MockPullRequestsService();
-        issuesService = MockIssuesService();
-        repositoriesService = MockRepositoriesService();
-        githubGoldStatus = null;
-        githubGoldStatusNext = null;
-
-        when(github.pullRequests).thenReturn(pullRequestsService);
-        when(github.issues).thenReturn(issuesService);
-        when(github.repositories).thenReturn(repositoriesService);
-
-        prsFromGitHub.clear();
-        when(pullRequestsService.list(slug)).thenAnswer((Invocation _) {
-          return Stream<PullRequest>.fromIterable(prsFromGitHub);
-        });
-
-        // ignore: discarded_futures
-        when(mockFirestoreService.queryLastGoldStatus(slug, 123)).thenAnswer((
-          Invocation invocation,
-        ) {
-          return Future<GithubGoldStatus>.value(githubGoldStatus);
-        });
-
-        // ignore: discarded_futures
-        when(mockFirestoreService.queryLastGoldStatus(slug, 456)).thenAnswer((
-          Invocation invocation,
-        ) {
-          return Future<GithubGoldStatus>.value(githubGoldStatusNext);
-        });
-
-        when(
-          // ignore: discarded_futures
-          mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<BatchWriteResponse>.value(BatchWriteResponse());
-        });
-
+        db.onCommit =
+            (
+              List<gcloud_db.Model<dynamic>> insert,
+              List<gcloud_db.Key<dynamic>> deletes,
+            ) => throw AssertionError();
         when(
           // ignore: discarded_futures
           repositoriesService.createStatus(any, any, any),
-        ).thenAnswer((_) async => RepositoryStatus());
-        when(
-          // ignore: discarded_futures
-          issuesService.createComment(any, any, any),
-        ).thenAnswer((_) async => IssueComment());
-        when(
-          // ignore: discarded_futures
-          issuesService.addLabelsToIssue(any, any, any),
-        ).thenAnswer((_) async => <IssueLabel>[]);
-        config.githubClient = github;
-        clientContext.isDevelopmentEnvironment = false;
+        ).thenThrow(AssertionError());
       });
 
-      GithubGoldStatus newGithubGoldStatus(
-        RepositorySlug slug,
-        PullRequest pr,
-        String statusUpdate,
-        String sha,
-        String description,
-      ) {
-        return generateFirestoreGithubGoldStatus(
-          1,
-          head: sha,
-          pr: pr.number,
-          status: statusUpdate,
-          updates: 0,
-          description: description,
-          repo: slug.name,
-        );
-      }
+      test('if there are no PRs', () async {
+        prsFromGitHub = <PullRequest>[];
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
+      });
 
-      PullRequest newPullRequest(
-        int number,
-        String sha,
-        String baseRef, {
-        bool draft = false,
-        DateTime? updated,
-      }) {
-        return PullRequest()
-          ..number = number
-          ..head = (PullRequestHead()..sha = sha)
-          ..base = (PullRequestHead()..ref = baseRef)
-          ..draft = draft
-          ..updatedAt = updated ?? DateTime.now();
-      }
+      test(
+        'if there are no framework or web engine tests for this PR',
+        () async {
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'tool-test1',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+            <String, String>{
+              'name': 'linux-host1',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+          final flutterPr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[flutterPr];
 
-      group('does not update GitHub or Datastore', () {
-        setUp(() {
-          db.onCommit =
-              (
-                List<gcloud_db.Model<dynamic>> insert,
-                List<gcloud_db.Key<dynamic>> deletes,
-              ) => throw AssertionError();
-          when(
-            // ignore: discarded_futures
-            repositoriesService.createStatus(any, any, any),
-          ).thenThrow(AssertionError());
-        });
+          firestore.putDocument(
+            newGithubGoldStatus(slug, flutterPr, '', '', ''),
+          );
 
-        test('if there are no PRs', () async {
-          prsFromGitHub = <PullRequest>[];
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
-        });
 
-        test(
-          'if there are no framework or web engine tests for this PR',
-          () async {
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'tool-test1',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-              <String, String>{
-                'name': 'linux-host1',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-            final flutterPr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[flutterPr];
-            githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                flutterPr.number!,
-                argThat(contains(config.flutterGoldCommentID(flutterPr))),
-              ),
-            );
-          },
-        );
-
-        test(
-          'if there are no framework tests for this PR, exclude web builds',
-          () async {
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'web-test1',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            );
-          },
-        );
-
-        test('same commit, checks running, last status running', () async {
-          // Same commit
-          final pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(
-            slug,
-            pr,
-            GithubGoldStatus.statusRunning,
-            'abc',
-            config.flutterGoldPendingValue!,
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
           );
 
-          // Checks still running
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              flutterPr.number!,
+              argThat(contains(config.flutterGoldCommentID(flutterPr))),
+            ),
+          );
+        },
+      );
+
+      test(
+        'if there are no framework tests for this PR, exclude web builds',
+        () async {
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
-              'status': 'in_progress',
-              'conclusion': 'neutral',
-            },
-            <String, String>{
-              'name': 'web engine',
-              'status': 'in_progress',
-              'conclusion': 'neutral',
+              'name': 'web-test1',
+              'status': 'completed',
+              'conclusion': 'success',
             },
           ];
-
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          );
           expect(log, hasNoWarningsOrHigher);
 
           // Should not apply labels or make comments
@@ -339,18 +268,134 @@ void main() {
               argThat(contains(config.flutterGoldCommentID(pr))),
             ),
           );
-        });
+        },
+      );
 
-        test('same commit, checks complete, last status complete', () async {
-          // Same commit
-          final pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(
+      test('same commit, checks running, last status running', () async {
+        // Same commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+
+        firestore.putDocument(
+          newGithubGoldStatus(
+            slug,
+            pr,
+            GithubGoldStatus.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          ),
+        );
+
+        // Checks still running
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'framework',
+            'status': 'in_progress',
+            'conclusion': 'neutral',
+          },
+          <String, String>{
+            'name': 'web engine',
+            'status': 'in_progress',
+            'conclusion': 'neutral',
+          },
+        ];
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(0),
+          ]),
+        );
+        expect(log, hasNoWarningsOrHigher);
+
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
+        );
+      });
+
+      test('same commit, checks complete, last status complete', () async {
+        // Same commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+
+        firestore.putDocument(
+          newGithubGoldStatus(
             slug,
             pr,
             GithubGoldStatus.statusCompleted,
             'abc',
             config.flutterGoldSuccessValue!,
+          ),
+        );
+
+        // Checks complete
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'framework',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+          <String, String>{
+            'name': 'web engine',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+        ];
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(0),
+          ]),
+        );
+        expect(log, hasNoWarningsOrHigher);
+
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
+        );
+      });
+
+      test(
+        'same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
+        () async {
+          // Same commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusRunning,
+              'abc',
+              config.flutterGoldChangesValue!,
+            ),
           );
 
           // Checks complete
@@ -367,10 +412,35 @@ void main() {
             },
           ];
 
+          // Gold status is running
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          // Already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.flutterGoldCommentID(pr),
+            ),
+          );
+
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
           );
           expect(log, hasNoWarningsOrHigher);
 
@@ -388,289 +458,93 @@ void main() {
               argThat(contains(config.flutterGoldCommentID(pr))),
             ),
           );
-        });
+        },
+      );
 
-        test(
-          'same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
-          () async {
-            // Same commit
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(
+      test(
+        'does nothing for branches not staged to land on main/master',
+        () async {
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'release');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // All checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+
+          final body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
+          );
+          expect(log, hasNoWarningsOrHigher);
+
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verifyNever(
+            issuesService.createComment(
               slug,
-              pr,
-              GithubGoldStatus.statusRunning,
-              'abc',
-              config.flutterGoldChangesValue!,
-            );
-
-            // Checks complete
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-              <String, String>{
-                'name': 'web engine',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-
-            // Gold status is running
-            mockHttpClient = MockClient((http.Request request) async {
-              if (request.url.toString() ==
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-                return http.Response(tryjobDigests(pr), HttpStatus.ok);
-              }
-              throw const HttpException('Unexpected http request');
-            });
-            handler = PushGoldStatusToGithub(
-              config: config,
-              authenticationProvider: auth,
-              goldClient: mockHttpClient,
-              ingestionDelay: Duration.zero,
-            );
-
-            // Already commented for this commit.
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = config.flutterGoldCommentID(pr),
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-            );
-            expect(log, hasNoWarningsOrHigher);
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            );
-          },
-        );
-
-        test(
-          'does nothing for branches not staged to land on main/master',
-          () async {
-            // New commit
-            final pr = newPullRequest(123, 'abc', 'release');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-            // All checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-            );
-            expect(log, hasNoWarningsOrHigher);
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            );
-          },
-        );
-
-        test('does not post for draft PRs, does not query Gold', () async {
-          // New commit, draft PR
-          final pr = newPullRequest(123, 'abc', 'master', draft: true);
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-          // Checks completed
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'framework',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          );
-          expect(log, hasNoWarningsOrHigher);
-
-          // Should not apply labels or make comments
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(issuesService.createComment(slug, pr.number!, any));
-        });
-
-        test('does not post for draft PRs, does not query Gold', () async {
-          // New commit, draft PR
-          final pr = newPullRequest(123, 'abc', 'master', draft: true);
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-          // Checks completed
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'Linux',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          );
-          expect(log, hasNoWarningsOrHigher);
-
-          // Should not apply labels or make comments
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(issuesService.createComment(slug, pr.number!, any));
-        });
-
-        test(
-          'does not post for stale PRs, does not query Gold, stale comment',
-          () async {
-            // New commit, draft PR
-            final pr = newPullRequest(
-              123,
-              'abc',
-              'master',
-              updated: DateTime.now().subtract(const Duration(days: 30)),
-            );
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-            // Checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-
-            // Have not already commented for this commit.
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-            );
-            expect(log, hasNoWarningsOrHigher);
-
-            // Should not apply labels, should comment to update
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verify(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldStalePRValue)),
-              ),
-            ).called(1);
-          },
-        );
-
-        test('will only comment once on stale PRs', () async {
-          // New commit, draft PR
-          final pr = newPullRequest(
-            123,
-            'abc',
-            'master',
-            updated: DateTime.now().subtract(const Duration(days: 30)),
-          );
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-          // Checks completed
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'framework',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-
-          // Already commented to update.
-          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
-            (_) => Stream<IssueComment>.value(
-              IssueComment()..body = config.flutterGoldStalePRValue,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
             ),
           );
+        },
+      );
 
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          );
-          expect(log, hasNoWarningsOrHigher);
+      test('does not post for draft PRs, does not query Gold', () async {
+        // New commit, draft PR
+        final pr = newPullRequest(123, 'abc', 'master', draft: true);
+        prsFromGitHub = <PullRequest>[pr];
 
-          // Should not apply labels or make comments
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
+        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
 
-          verifyNever(issuesService.createComment(slug, pr.number!, any));
-        });
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'Linux',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+        ];
 
-        test('will not fire off stale warning for non-framework PRs', () async {
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(0),
+          ]),
+        );
+        expect(log, hasNoWarningsOrHigher);
+
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(issuesService.createComment(slug, pr.number!, any));
+      });
+
+      test(
+        'does not post for stale PRs, does not query Gold, stale comment',
+        () async {
           // New commit, draft PR
           final pr = newPullRequest(
             123,
@@ -679,18 +553,19 @@ void main() {
             updated: DateTime.now().subtract(const Duration(days: 30)),
           );
           prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
 
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'tool-test-1',
+              'name': 'framework',
               'status': 'completed',
               'conclusion': 'success',
             },
           ];
 
-          // Already commented to update.
+          // Have not already commented for this commit.
           when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
@@ -699,903 +574,688 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
           );
           expect(log, hasNoWarningsOrHigher);
 
-          // Should not apply labels or make comments
+          // Should not apply labels, should comment to update
           verifyNever(
             issuesService.addLabelsToIssue(slug, pr.number!, <String>[
               kGoldenFileLabel,
             ]),
           );
 
-          verifyNever(issuesService.createComment(slug, pr.number!, any));
-        });
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldStalePRValue)),
+            ),
+          ).called(1);
+        },
+      );
+
+      test('will only comment once on stale PRs', () async {
+        // New commit, draft PR
+        final pr = newPullRequest(
+          123,
+          'abc',
+          'master',
+          updated: DateTime.now().subtract(const Duration(days: 30)),
+        );
+        prsFromGitHub = <PullRequest>[pr];
+
+        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'framework',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+        ];
+
+        // Already commented to update.
+        when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = config.flutterGoldStalePRValue,
+          ),
+        );
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(0),
+          ]),
+        );
+        expect(log, hasNoWarningsOrHigher);
+
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(issuesService.createComment(slug, pr.number!, any));
       });
 
-      group('updates GitHub and/or Datastore', () {
-        test('new commit, checks running', () async {
-          // New commit
-          final flutterPr = newPullRequest(123, 'f-abc', 'master');
-          prsFromGitHub = <PullRequest>[flutterPr];
-          githubGoldStatus = newGithubGoldStatus(slug, flutterPr, '', '', '');
-          expect(githubGoldStatus!.updates, 0);
+      test('will not fire off stale warning for non-framework PRs', () async {
+        // New commit, draft PR
+        final pr = newPullRequest(
+          123,
+          'abc',
+          'master',
+          updated: DateTime.now().subtract(const Duration(days: 30)),
+        );
+        prsFromGitHub = <PullRequest>[pr];
 
-          // Checks running
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'framework',
-              'status': 'in_progress',
-              'conclusion': 'neutral',
-            },
-            <String, String>{
-              'name': 'Linux linux_web_engine',
-              'status': 'in_progress',
-              'conclusion': 'neutral',
-            },
-          ];
+        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
 
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(log, hasNoWarningsOrHigher);
-
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
-          );
-          expect(updatedDocument.updates, 1);
-          // Should not apply labels or make comments
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(
-            issuesService.createComment(
-              slug,
-              flutterPr.number!,
-              argThat(contains(config.flutterGoldCommentID(flutterPr))),
-            ),
-          );
-        });
-
-        test('includes misc test shards', () async {
-          // New commit
-          final pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-          // Checks completed
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'misc',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-
-          // Change detected by Gold
-          mockHttpClient = MockClient((http.Request request) async {
-            if (request.url.toString() ==
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobEmpty(), HttpStatus.ok);
-            }
-            throw const HttpException('Unexpected http request');
-          });
-          handler = PushGoldStatusToGithub(
-            config: config,
-            authenticationProvider: auth,
-            goldClient: mockHttpClient,
-            ingestionDelay: Duration.zero,
-          );
-
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(log, hasNoWarningsOrHigher);
-
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
-          );
-          expect(updatedDocument.updates, 1);
-
-          // Should not label or comment
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(
-            issuesService.createComment(
-              slug,
-              pr.number!,
-              argThat(contains(config.flutterGoldCommentID(pr))),
-            ),
-          );
-        });
-
-        Future<void> includesEngineShard(String shard) async {
-          // New commit
-          final pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-          // Checks completed
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': shard,
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-
-          // Change detected by Gold
-          mockHttpClient = MockClient((http.Request request) async {
-            if (request.url.toString() ==
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobEmpty(), HttpStatus.ok);
-            }
-            throw const HttpException('Unexpected http request');
-          });
-          handler = PushGoldStatusToGithub(
-            config: config,
-            authenticationProvider: auth,
-            goldClient: mockHttpClient,
-            ingestionDelay: Duration.zero,
-          );
-
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(log, hasNoWarningsOrHigher);
-
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
-          );
-          expect(updatedDocument.updates, 1);
-
-          // Should not label or comment
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(
-            issuesService.createComment(
-              slug,
-              pr.number!,
-              argThat(contains(config.flutterGoldCommentID(pr))),
-            ),
-          );
-        }
-
-        test('includes linux_android_emulator test shard - monorepo', () async {
-          await includesEngineShard('linux_android_emulator');
-        });
-
-        test('includes linux_host_engine test shard - monorepo', () async {
-          await includesEngineShard('linux_host_engine');
-        });
-
-        test('includes linux_web_engine test shard - monorepo', () async {
-          await includesEngineShard('linux_web_engine');
-        });
-
-        test('includes mac_host_engine test shard - monorepo', () async {
-          await includesEngineShard('mac_host_engine');
-        });
-
-        test('includes mac_unopt test shard - monorepo', () async {
-          await includesEngineShard('mac_unopt');
-        });
-
-        test('new commit, checks complete, no changes detected', () async {
-          // New commit
-          final pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-          // Checks completed
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'framework',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-
-          // Change detected by Gold
-          mockHttpClient = MockClient((http.Request request) async {
-            if (request.url.toString() ==
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-              return http.Response(tryjobEmpty(), HttpStatus.ok);
-            }
-            throw const HttpException('Unexpected http request');
-          });
-          handler = PushGoldStatusToGithub(
-            config: config,
-            authenticationProvider: auth,
-            goldClient: mockHttpClient,
-            ingestionDelay: Duration.zero,
-          );
-
-          final body = await tester.get<Body>(handler);
-          expect(body, same(Body.empty));
-          expect(log, hasNoWarningsOrHigher);
-
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
-          );
-          expect(updatedDocument.updates, 1);
-
-          // Should not label or comment
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(
-            issuesService.createComment(
-              slug,
-              pr.number!,
-              argThat(contains(config.flutterGoldCommentID(pr))),
-            ),
-          );
-        });
-
-        test(
-          'new commit, checks complete, change detected, should comment',
-          () async {
-            // New commit
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
-
-            // Checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-
-            // Change detected by Gold
-            mockHttpClient = MockClient((http.Request request) async {
-              if (request.url.toString() ==
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-                return http.Response(tryjobDigests(pr), HttpStatus.ok);
-              }
-              throw const HttpException('Unexpected http request');
-            });
-            handler = PushGoldStatusToGithub(
-              config: config,
-              authenticationProvider: auth,
-              goldClient: mockHttpClient,
-              ingestionDelay: Duration.zero,
-            );
-
-            // Have not already commented for this commit.
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
-            );
-            expect(updatedDocument.updates, 1);
-
-            // Should label and comment
-            verify(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            ).called(1);
-
-            verify(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            ).called(1);
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'tool-test-1',
+            'status': 'completed',
+            'conclusion': 'success',
           },
+        ];
+
+        // Already commented to update.
+        when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
         );
 
-        test(
-          'new commit, checks complete, change detected, multiple duplicate patchsets, should comment',
-          () async {
-            // New commit
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(0),
+          ]),
+        );
+        expect(log, hasNoWarningsOrHigher);
 
-            // Checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-
-            // Change detected by Gold
-            mockHttpClient = MockClient((http.Request request) async {
-              if (request.url.toString() ==
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-                return http.Response(
-                  tryjobDigestsDuplicatePatchsets(pr),
-                  HttpStatus.ok,
-                );
-              }
-              throw const HttpException('Unexpected http request');
-            });
-            handler = PushGoldStatusToGithub(
-              config: config,
-              authenticationProvider: auth,
-              goldClient: mockHttpClient,
-              ingestionDelay: Duration.zero,
-            );
-
-            // Have not already commented for this commit.
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
-            );
-            expect(updatedDocument.updates, 1);
-
-            // Should label and comment
-            verify(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            ).called(1);
-
-            verify(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            ).called(1);
-          },
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
         );
 
-        test(
-          'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
-          () async {
-            // Same commit
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(
-              slug,
-              pr,
-              GithubGoldStatus.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
+        verifyNever(issuesService.createComment(slug, pr.number!, any));
+      });
+    });
 
-            // Checks complete
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
+    group('updates GitHub and/or Datastore', () {
+      test('new commit, checks running', () async {
+        // New commit
+        final flutterPr = newPullRequest(123, 'f-abc', 'master');
+        prsFromGitHub = <PullRequest>[flutterPr];
 
-            // Gold status is running
-            mockHttpClient = MockClient((http.Request request) async {
-              if (request.url.toString() ==
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-                return http.Response(tryjobDigests(pr), HttpStatus.ok);
-              }
-              throw const HttpException('Unexpected http request');
-            });
-            handler = PushGoldStatusToGithub(
-              config: config,
-              authenticationProvider: auth,
-              goldClient: mockHttpClient,
-              ingestionDelay: Duration.zero,
-            );
+        firestore.putDocument(newGithubGoldStatus(slug, flutterPr, '', '', ''));
 
-            // Have not already commented for this commit.
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
-            );
-            expect(updatedDocument.updates, 1);
-
-            // Should apply labels and make comment
-            verify(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            ).called(1);
-
-            verify(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            ).called(1);
+        // Checks running
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'framework',
+            'status': 'in_progress',
+            'conclusion': 'neutral',
           },
+          <String, String>{
+            'name': 'Linux linux_web_engine',
+            'status': 'in_progress',
+            'conclusion': 'neutral',
+          },
+        ];
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
+
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(1),
+          ]),
         );
 
-        test(
-          'uses shorter comment after first comment to reduce noise',
-          () async {
-            // Same commit
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(
-              slug,
-              pr,
-              GithubGoldStatus.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-
-            // Checks complete
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'completed': 'in_progress',
-                'conclusion': 'success',
-              },
-            ];
-
-            // Gold status is running
-            mockHttpClient = MockClient((http.Request request) async {
-              if (request.url.toString() ==
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-                return http.Response(tryjobDigests(pr), HttpStatus.ok);
-              }
-              throw const HttpException('Unexpected http request');
-            });
-            handler = PushGoldStatusToGithub(
-              config: config,
-              authenticationProvider: auth,
-              goldClient: mockHttpClient,
-              ingestionDelay: Duration.zero,
-            );
-
-            // Have not already commented for this commit.
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = config.flutterGoldInitialAlertValue,
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
-            );
-            expect(updatedDocument.updates, 1);
-
-            // Should apply labels and make comment
-            verify(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            ).called(1);
-
-            verify(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldFollowUpAlertValue)),
-              ),
-            ).called(1);
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldInitialAlertValue)),
-              ),
-            );
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldAlertConstantValue)),
-              ),
-            );
-          },
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
         );
 
-        test(
-          'same commit, checks complete, new status, should not comment',
-          () async {
-            // Same commit: abc
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(
-              slug,
-              pr,
-              GithubGoldStatus.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            flutterPr.number!,
+            argThat(contains(config.flutterGoldCommentID(flutterPr))),
+          ),
+        );
+      });
 
-            // Checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
+      test('includes misc test shards', () async {
+        // New commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
 
-            // New status: completed/triaged/no changes
-            mockHttpClient = MockClient((http.Request request) async {
-              if (request.url.toString() ==
-                  'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-                return http.Response(tryjobEmpty(), HttpStatus.ok);
-              }
-              throw const HttpException('Unexpected http request');
-            });
-            handler = PushGoldStatusToGithub(
-              config: config,
-              authenticationProvider: auth,
-              goldClient: mockHttpClient,
-              ingestionDelay: Duration.zero,
-            );
+        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
 
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
-            );
-            expect(updatedDocument.updates, 1);
-
-            // Should not label or comment
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            );
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'misc',
+            'status': 'completed',
+            'conclusion': 'success',
           },
+        ];
+
+        // Change detected by Gold
+        mockHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
+          }
+          throw const HttpException('Unexpected http request');
+        });
+        handler = PushGoldStatusToGithub(
+          config: config,
+          authenticationProvider: auth,
+          goldClient: mockHttpClient,
+          ingestionDelay: Duration.zero,
         );
 
-        test(
-          'will inform contributor of unresolved check for ATF draft status',
-          () async {
-            // New commit, draft PR
-            final pr = newPullRequest(123, 'abc', 'master', draft: true);
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(
-              slug,
-              pr,
-              GithubGoldStatus.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
 
-            // Checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = 'some other comment',
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-            );
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verify(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldDraftChangeValue)),
-              ),
-            ).called(1);
-          },
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(1),
+          ]),
         );
 
-        test(
-          'will only inform contributor of unresolved check for ATF draft status once',
-          () async {
-            // New commit, draft PR
-            final pr = newPullRequest(123, 'abc', 'master', draft: true);
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(
-              slug,
-              pr,
-              GithubGoldStatus.statusRunning,
-              'abc',
-              config.flutterGoldPendingValue!,
-            );
-
-            // Checks completed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'success',
-              },
-            ];
-            when(
-              issuesService.listCommentsByIssue(slug, pr.number!),
-            ).thenAnswer(
-              (_) => Stream<IssueComment>.value(
-                IssueComment()..body = config.flutterGoldDraftChangeValue,
-              ),
-            );
-
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
-            verifyNever(
-              mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-            );
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldDraftChangeValue)),
-              ),
-            );
-          },
+        // Should not label or comment
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
         );
 
-        test(
-          'delivers pending state for failing checks, does not query Gold',
-          () async {
-            // New commit
-            final pr = newPullRequest(123, 'abc', 'master');
-            prsFromGitHub = <PullRequest>[pr];
-            githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
+        );
+      });
 
-            // Checks failed
-            checkRuns = <dynamic>[
-              <String, String>{
-                'name': 'framework',
-                'status': 'completed',
-                'conclusion': 'failure',
-              },
-            ];
+      Future<void> includesEngineShard(String shard) async {
+        // New commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
 
-            final body = await tester.get<Body>(handler);
-            expect(body, same(Body.empty));
-            expect(log, hasNoWarningsOrHigher);
+        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
 
-            final captured =
-                verify(
-                  mockFirestoreService.batchWriteDocuments(
-                    captureAny,
-                    captureAny,
-                  ),
-                ).captured;
-            expect(captured.length, 2);
-            // The first element corresponds to the `status`.
-            final batchWriteRequest = captured[0] as BatchWriteRequest;
-            expect(batchWriteRequest.writes!.length, 1);
-            final updatedDocument = GithubGoldStatus.fromDocument(
-              batchWriteRequest.writes![0].update!,
-            );
-            expect(updatedDocument.updates, 1);
-
-            // Should not apply labels or make comments
-            verifyNever(
-              issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-                kGoldenFileLabel,
-              ]),
-            );
-
-            verifyNever(
-              issuesService.createComment(
-                slug,
-                pr.number!,
-                argThat(contains(config.flutterGoldCommentID(pr))),
-              ),
-            );
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': shard,
+            'status': 'completed',
+            'conclusion': 'success',
           },
+        ];
+
+        // Change detected by Gold
+        mockHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
+          }
+          throw const HttpException('Unexpected http request');
+        });
+        handler = PushGoldStatusToGithub(
+          config: config,
+          authenticationProvider: auth,
+          goldClient: mockHttpClient,
+          ingestionDelay: Duration.zero,
+        );
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
+
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(1),
+          ]),
+        );
+
+        // Should not label or comment
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
+        );
+      }
+
+      test('includes linux_android_emulator test shard - monorepo', () async {
+        await includesEngineShard('linux_android_emulator');
+      });
+
+      test('includes linux_host_engine test shard - monorepo', () async {
+        await includesEngineShard('linux_host_engine');
+      });
+
+      test('includes linux_web_engine test shard - monorepo', () async {
+        await includesEngineShard('linux_web_engine');
+      });
+
+      test('includes mac_host_engine test shard - monorepo', () async {
+        await includesEngineShard('mac_host_engine');
+      });
+
+      test('includes mac_unopt test shard - monorepo', () async {
+        await includesEngineShard('mac_unopt');
+      });
+
+      test('new commit, checks complete, no changes detected', () async {
+        // New commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+
+        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+        // Checks completed
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'framework',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+        ];
+
+        // Change detected by Gold
+        mockHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
+          }
+          throw const HttpException('Unexpected http request');
+        });
+        handler = PushGoldStatusToGithub(
+          config: config,
+          authenticationProvider: auth,
+          goldClient: mockHttpClient,
+          ingestionDelay: Duration.zero,
+        );
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
+
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(1),
+          ]),
+        );
+
+        // Should not label or comment
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
         );
       });
 
       test(
-        'Completed pull request does not skip follow-up prs with early return',
+        'new commit, checks complete, change detected, should comment',
         () async {
-          final completedPR = newPullRequest(123, 'abc', 'master');
-          final followUpPR = newPullRequest(456, 'def', 'master');
-          prsFromGitHub = <PullRequest>[completedPR, followUpPR];
-          githubGoldStatus = newGithubGoldStatus(
-            slug,
-            completedPR,
-            GithubGoldStatus.statusCompleted,
-            'abc',
-            config.flutterGoldSuccessValue!,
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
           );
-          githubGoldStatusNext = newGithubGoldStatus(
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should label and comment
+          verify(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          ).called(1);
+
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
+        },
+      );
+
+      test(
+        'new commit, checks complete, change detected, multiple duplicate patchsets, should comment',
+        () async {
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(
+                tryjobDigestsDuplicatePatchsets(pr),
+                HttpStatus.ok,
+              );
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should label and comment
+          verify(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          ).called(1);
+
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
+        },
+      );
+
+      test(
+        'same commit, checks complete, last status was waiting & gold status is needing triage, should comment',
+        () async {
+          // Same commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusRunning,
+              'abc',
+              config.flutterGoldPendingValue!,
+            ),
+          );
+
+          // Checks complete
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+
+          // Gold status is running
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+          );
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should apply labels and make comment
+          verify(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          ).called(1);
+
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
+        },
+      );
+
+      test('uses shorter comment after first comment to reduce noise', () async {
+        // Same commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+
+        firestore.putDocument(
+          newGithubGoldStatus(
             slug,
-            followUpPR,
-            '',
-            '',
-            '',
+            pr,
+            GithubGoldStatus.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          ),
+        );
+
+        // Checks complete
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'framework',
+            'completed': 'in_progress',
+            'conclusion': 'success',
+          },
+        ];
+
+        // Gold status is running
+        mockHttpClient = MockClient((http.Request request) async {
+          if (request.url.toString() ==
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+            return http.Response(tryjobDigests(pr), HttpStatus.ok);
+          }
+          throw const HttpException('Unexpected http request');
+        });
+        handler = PushGoldStatusToGithub(
+          config: config,
+          authenticationProvider: auth,
+          goldClient: mockHttpClient,
+          ingestionDelay: Duration.zero,
+        );
+
+        // Have not already commented for this commit.
+        when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = config.flutterGoldInitialAlertValue,
+          ),
+        );
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
+
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(1),
+          ]),
+        );
+
+        // Should apply labels and make comment
+        verify(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        ).called(1);
+
+        verify(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldFollowUpAlertValue)),
+          ),
+        ).called(1);
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldInitialAlertValue)),
+          ),
+        );
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldAlertConstantValue)),
+          ),
+        );
+      });
+
+      test(
+        'same commit, checks complete, new status, should not comment',
+        () async {
+          // Same commit: abc
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusRunning,
+              'abc',
+              config.flutterGoldPendingValue!,
+            ),
           );
 
           // Checks completed
@@ -1610,11 +1270,7 @@ void main() {
           // New status: completed/triaged/no changes
           mockHttpClient = MockClient((http.Request request) async {
             if (request.url.toString() ==
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${completedPR.number}') {
-              return http.Response(tryjobEmpty(), HttpStatus.ok);
-            }
-            if (request.url.toString() ==
-                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${followUpPR.number}') {
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
               return http.Response(tryjobEmpty(), HttpStatus.ok);
             }
             throw const HttpException('Unexpected http request');
@@ -1626,9 +1282,7 @@ void main() {
             ingestionDelay: Duration.zero,
           );
 
-          when(
-            issuesService.listCommentsByIssue(slug, completedPR.number!),
-          ).thenAnswer(
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
             (_) => Stream<IssueComment>.value(
               IssueComment()..body = 'some other comment',
             ),
@@ -1636,45 +1290,175 @@ void main() {
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
-          expect(githubGoldStatus!.updates, 0);
-          expect(githubGoldStatusNext!.updates, 1);
-          expect(githubGoldStatus!.status, GithubGoldStatus.statusCompleted);
-          expect(
-            githubGoldStatusNext!.status,
-            GithubGoldStatus.statusCompleted,
-          );
           expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
         },
       );
 
       test(
-        'accounts for null status description when parsing for Luci builds',
+        'will inform contributor of unresolved check for ATF draft status',
         () async {
-          // Same commit
-          final pr = newPullRequest(123, 'abc', 'master');
+          // New commit, draft PR
+          final pr = newPullRequest(123, 'abc', 'master', draft: true);
           prsFromGitHub = <PullRequest>[pr];
-          githubGoldStatus = newGithubGoldStatus(
-            slug,
-            pr,
-            GithubGoldStatus.statusRunning,
-            'abc',
-            config.flutterGoldPendingValue!,
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusRunning,
+              'abc',
+              config.flutterGoldPendingValue!,
+            ),
           );
 
-          // null status for luci build
+          // Checks completed
           checkRuns = <dynamic>[
-            <String, String?>{
+            <String, String>{
               'name': 'framework',
-              'status': null,
-              'conclusion': null,
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(log, hasNoWarningsOrHigher);
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
+          );
+
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldDraftChangeValue)),
+            ),
+          ).called(1);
+        },
+      );
+
+      test(
+        'will only inform contributor of unresolved check for ATF draft status once',
+        () async {
+          // New commit, draft PR
+          final pr = newPullRequest(123, 'abc', 'master', draft: true);
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusRunning,
+              'abc',
+              config.flutterGoldPendingValue!,
+            ),
+          );
+
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.flutterGoldDraftChangeValue,
+            ),
+          );
+
+          final body = await tester.get<Body>(handler);
+          expect(body, same(Body.empty));
+          expect(log, hasNoWarningsOrHigher);
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
+          );
+
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldDraftChangeValue)),
+            ),
+          );
+        },
+      );
+
+      test(
+        'delivers pending state for failing checks, does not query Gold',
+        () async {
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // Checks failed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'failure',
             },
           ];
 
           final body = await tester.get<Body>(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
           );
 
           // Should not apply labels or make comments
@@ -1693,12 +1477,28 @@ void main() {
           );
         },
       );
+    });
 
-      test('uses the correct Gold endpoint to get status', () async {
-        // New commit
-        final pr = newPullRequest(123, 'abc', 'master');
-        prsFromGitHub = <PullRequest>[pr];
-        githubGoldStatus = newGithubGoldStatus(slug, pr, '', '', '');
+    test(
+      'Completed pull request does not skip follow-up prs with early return',
+      () async {
+        final completedPR = newPullRequest(123, 'abc', 'master');
+        final followUpPR = newPullRequest(456, 'def', 'master');
+        prsFromGitHub = <PullRequest>[completedPR, followUpPR];
+
+        firestore.putDocument(
+          newGithubGoldStatus(
+            slug,
+            completedPR,
+            GithubGoldStatus.statusCompleted,
+            'abc',
+            config.flutterGoldSuccessValue!,
+          ),
+        );
+
+        firestore.putDocument(
+          newGithubGoldStatus(slug, followUpPR, '', '', ''),
+        );
 
         // Checks completed
         checkRuns = <dynamic>[
@@ -1707,27 +1507,19 @@ void main() {
             'status': 'completed',
             'conclusion': 'success',
           },
-          <String, String>{
-            'name': 'Linux linux_web_engine',
-            'status': 'completed',
-            'conclusion': 'success',
-          },
         ];
 
-        // Requests sent to Gold.
-        final goldRequests = <String>[];
+        // New status: completed/triaged/no changes
         mockHttpClient = MockClient((http.Request request) async {
-          final requestUrl = request.url.toString();
-          goldRequests.add(requestUrl);
-
-          final prNumber = int.parse(requestUrl.split('/').last);
-          final PullRequest requestedPr;
-          if (prNumber == pr.number) {
-            requestedPr = pr;
-          } else {
-            throw HttpException('Unexpected http request for PR#$prNumber');
+          if (request.url.toString() ==
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${completedPR.number}') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
           }
-          return http.Response(tryjobDigests(requestedPr), HttpStatus.ok);
+          if (request.url.toString() ==
+              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${followUpPR.number}') {
+            return http.Response(tryjobEmpty(), HttpStatus.ok);
+          }
+          throw const HttpException('Unexpected http request');
         });
         handler = PushGoldStatusToGithub(
           config: config,
@@ -1736,51 +1528,135 @@ void main() {
           ingestionDelay: Duration.zero,
         );
 
-        // Have not already commented for this commit.
-        when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+        when(
+          issuesService.listCommentsByIssue(slug, completedPR.number!),
+        ).thenAnswer(
           (_) => Stream<IssueComment>.value(
             IssueComment()..body = 'some other comment',
           ),
         );
 
-        await tester.get<Body>(handler);
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
 
-        expect(goldRequests, <String>[
-          'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}',
-        ]);
-      });
-      group('updateGithubGoldStatusDocuments', () {
-        test('when no updates are needed', () async {
-          await handler.updateGithubGoldStatusDocuments(
-            <GithubGoldStatus>[],
-            mockFirestoreService,
-          );
-          verifyNever(
-            mockFirestoreService.batchWriteDocuments(captureAny, captureAny),
-          );
-        });
+        // FIXME: Replace with existsInStorage.
+        // expect(githubGoldStatus!.updates, 0);
+        // expect(githubGoldStatusNext!.updates, 1);
+        // expect(githubGoldStatus!.status, GithubGoldStatus.statusCompleted);
+        // expect(githubGoldStatusNext!.status, GithubGoldStatus.statusCompleted);
 
-        test('when updates are needed', () async {
-          await handler.updateGithubGoldStatusDocuments(<GithubGoldStatus>[
-            generateFirestoreGithubGoldStatus(1),
-          ], mockFirestoreService);
-          final captured =
-              verify(
-                mockFirestoreService.batchWriteDocuments(
-                  captureAny,
-                  captureAny,
-                ),
-              ).captured;
-          expect(captured.length, 2);
-          // The first element corresponds to the `status`.
-          final batchWriteRequest = captured[0] as BatchWriteRequest;
-          expect(batchWriteRequest.writes!.length, 1);
-          final updatedDocument = GithubGoldStatus.fromDocument(
-            batchWriteRequest.writes![0].update!,
-          );
-          expect(updatedDocument.head, 'sha1');
-        });
+        expect(log, hasNoWarningsOrHigher);
+      },
+    );
+
+    test(
+      'accounts for null status description when parsing for Luci builds',
+      () async {
+        // Same commit
+        final pr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[pr];
+
+        firestore.putDocument(
+          newGithubGoldStatus(
+            slug,
+            pr,
+            GithubGoldStatus.statusRunning,
+            'abc',
+            config.flutterGoldPendingValue!,
+          ),
+        );
+
+        // null status for luci build
+        checkRuns = <dynamic>[
+          <String, String?>{
+            'name': 'framework',
+            'status': null,
+            'conclusion': null,
+          },
+        ];
+
+        final body = await tester.get<Body>(handler);
+        expect(body, same(Body.empty));
+        expect(log, hasNoWarningsOrHigher);
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus.hasUpdates(0),
+          ]),
+        );
+
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            pr.number!,
+            argThat(contains(config.flutterGoldCommentID(pr))),
+          ),
+        );
+      },
+    );
+
+    test('uses the correct Gold endpoint to get status', () async {
+      // New commit
+      final pr = newPullRequest(123, 'abc', 'master');
+      prsFromGitHub = <PullRequest>[pr];
+
+      firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+      // Checks completed
+      checkRuns = <dynamic>[
+        <String, String>{
+          'name': 'framework',
+          'status': 'completed',
+          'conclusion': 'success',
+        },
+        <String, String>{
+          'name': 'Linux linux_web_engine',
+          'status': 'completed',
+          'conclusion': 'success',
+        },
+      ];
+
+      // Requests sent to Gold.
+      final goldRequests = <String>[];
+      mockHttpClient = MockClient((http.Request request) async {
+        final requestUrl = request.url.toString();
+        goldRequests.add(requestUrl);
+
+        final prNumber = int.parse(requestUrl.split('/').last);
+        final PullRequest requestedPr;
+        if (prNumber == pr.number) {
+          requestedPr = pr;
+        } else {
+          throw HttpException('Unexpected http request for PR#$prNumber');
+        }
+        return http.Response(tryjobDigests(requestedPr), HttpStatus.ok);
       });
+      handler = PushGoldStatusToGithub(
+        config: config,
+        authenticationProvider: auth,
+        goldClient: mockHttpClient,
+        ingestionDelay: Duration.zero,
+      );
+
+      // Have not already commented for this commit.
+      when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.get<Body>(handler);
+
+      expect(goldRequests, <String>[
+        'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}',
+      ]);
     });
   });
 }

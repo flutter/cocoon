@@ -264,11 +264,14 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         log.debug('This PR does not execute golden file tests.');
       }
     }
-    await updateGithubGoldStatusDocuments(githubGoldStatuses, firestoreService);
+    await _updateGithubGoldStatusDocuments(
+      githubGoldStatuses,
+      firestoreService,
+    );
     log.debug('Saved all updates to firestore for $slug');
   }
 
-  Future<void> updateGithubGoldStatusDocuments(
+  Future<void> _updateGithubGoldStatusDocuments(
     List<GithubGoldStatus> githubGoldStatuses,
     FirestoreService firestoreService,
   ) async {
@@ -352,7 +355,8 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
         'response: $response\n'
         'error: $e',
       );
-    } catch (e) {
+    } catch (e, s) {
+      log.error('Failed to get tryjob status', e, s);
       throw BadRequestException(
         'Error detected requesting tryjob status for pr '
         '#${pr.number} from Flutter Gold.\n'

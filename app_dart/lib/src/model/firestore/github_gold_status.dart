@@ -4,6 +4,7 @@
 
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
@@ -57,14 +58,41 @@ class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
     return GithubGoldStatus.fromDocument(document);
   }
 
-  /// Create [GithubGoldStatus] from a GithubGoldStatus Document.
-  GithubGoldStatus.fromDocument(Document other) {
-    this
-      ..name = other.name
-      ..fields = {...?other.fields}
-      ..createTime = other.createTime
-      ..updateTime = other.updateTime;
+  factory GithubGoldStatus({
+    required int prNumber,
+    required String head,
+    required String status,
+    required String description,
+    required int updates,
+    required String repository,
+  }) {
+    final slug = RepositorySlug.full(repository);
+    return GithubGoldStatus.fromDocument(
+      Document(
+        fields: {
+          kGithubGoldStatusPrNumberField: Value(integerValue: '$prNumber'),
+          kGithubGoldStatusHeadField: Value(stringValue: head),
+          kGithubGoldStatusStatusField: Value(stringValue: status),
+          kGithubGoldStatusDescriptionField: Value(stringValue: description),
+          kGithubGoldStatusUpdatesField: Value(integerValue: '$updates'),
+          kGithubGoldStatusRepositoryField: Value(stringValue: repository),
+        },
+        name: p.posix.join(
+          kDatabase,
+          'documents',
+          metadata.collectionId,
+          documentIdFor(
+            owner: slug.owner,
+            repo: slug.name,
+            prNumber: prNumber,
+          ).documentId,
+        ),
+      ),
+    );
   }
+
+  /// Create [GithubGoldStatus] from a GithubGoldStatus Document.
+  GithubGoldStatus.fromDocument(super.other);
 
   // The flutter-gold status cannot report a `failure` status
   // due to auto-rollers. This is why we hold a `pending` status
