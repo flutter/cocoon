@@ -93,6 +93,7 @@ final class BuildStatusSnapshot extends AppDocument<BuildStatusSnapshot> {
     return SnapshotDiff._(
       newStatus: newStatus,
       nowPassing: nowPassing,
+      stillFailing: failingTasks.intersection(other.failingTasks),
       nowFailing: nowFailing,
     );
   }
@@ -103,12 +104,14 @@ final class SnapshotDiff {
   const SnapshotDiff._({
     required this.newStatus,
     required this.nowPassing,
+    required this.stillFailing,
     required this.nowFailing,
   });
 
   /// If non-null,
   final BuildStatus? newStatus;
   final Set<String> nowPassing;
+  final Set<String> stillFailing;
   final Set<String> nowFailing;
 
   /// Whether a meaningful difference was recorded.

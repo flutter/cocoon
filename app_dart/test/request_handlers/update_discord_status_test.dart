@@ -252,6 +252,8 @@ void main() {
         'flutter/flutter is still :red_circle:',
         'Now failing',
         'Mac bar',
+        'Still failing',
+        'Linux foo',
         'Now passing',
         'Windows baz',
       ]),
