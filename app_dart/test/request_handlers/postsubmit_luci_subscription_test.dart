@@ -34,7 +34,6 @@ void main() {
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeScheduler scheduler;
   late FakeCiYamlFetcher ciYamlFetcher;
 
   setUp(() async {
@@ -69,18 +68,14 @@ void main() {
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    scheduler = FakeScheduler(
-      config: config,
-      luciBuildService: luciBuildService,
-    );
     ciYamlFetcher = FakeCiYamlFetcher();
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
       githubChecksService: mockGithubChecksService,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     );
     request = FakeHttpRequest();
     tester = SubscriptionTester(request: request);

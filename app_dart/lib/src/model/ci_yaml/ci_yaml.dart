@@ -40,7 +40,6 @@ class CiYamlSet {
     required Map<CiType, pb.SchedulerConfig> yamls,
     CiYamlSet? totConfig,
     bool validate = false,
-    this.isFusion = false,
   }) {
     for (final MapEntry(key: type, value: config) in yamls.entries) {
       configs[type] = CiYaml(
@@ -55,7 +54,10 @@ class CiYamlSet {
     }
   }
 
-  final bool isFusion;
+  /// Whether [slug] is [Config.flutterSlug], the fusion `flutter/flutter` repo.
+  ///
+  /// If `true`, multiple `.ci.yaml` files are available. See [CiType].
+  bool get isFusion => slug == Config.flutterSlug;
 
   final configs = <CiType, CiYaml>{};
 

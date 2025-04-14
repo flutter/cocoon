@@ -164,7 +164,6 @@ final class _CiYamlFetcher extends CiYamlFetcher {
       branch: commitBranch,
       totConfig: totCiYaml,
       validate: validate,
-      isFusion: isFusionCommit,
     );
   }
 
