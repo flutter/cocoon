@@ -884,6 +884,16 @@ class LuciBuildService {
 
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
+      processedProperties.addAll({
+        'is_fusion': 'true',
+
+        // Always provide an engine version, just like we do in presubmit.
+        // See https://github.com/flutter/flutter/issues/167010.
+        'flutter_prebuilt_engine_version': commit.sha,
+
+        // Prod build bucket, built during the merge queue.
+        'flutter_realm': '',
+      });
       processedProperties['is_fusion'] = 'true';
     }
     final propertiesStruct = bbv2.Struct.create();
