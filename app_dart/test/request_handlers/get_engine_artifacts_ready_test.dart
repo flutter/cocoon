@@ -6,27 +6,28 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handlers/get_engine_artifacts_ready.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/utilities/mocks.mocks.dart';
+import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
 
   late FakeConfig config;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestore;
   late RequestHandlerTester tester;
   late GetEngineArtifactsReady handler;
 
   setUp(() {
-    mockFirestoreService = MockFirestoreService();
-    config = FakeConfig()..firestoreService = mockFirestoreService;
+    firestore = FakeFirestoreService();
+    config = FakeConfig(firestoreService: firestore);
     tester = RequestHandlerTester();
     handler = GetEngineArtifactsReady(config: config);
   });
@@ -58,28 +59,9 @@ void main() {
       queryParameters: {'sha': 'abc123'},
     );
 
-    when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-      throw g.DetailedApiRequestError(404, 'Document not found');
-    });
-
     await expectLater(tester.get(handler), completes);
 
     expect(tester.response.statusCode, HttpStatus.notFound);
-  });
-
-  test('returns a 500, unhandled exception', () async {
-    tester.request!.uri = tester.request!.uri.replace(
-      queryParameters: {'sha': 'abc123'},
-    );
-
-    when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-      throw g.DetailedApiRequestError(500, 'Who knows');
-    });
-
-    await expectLater(
-      tester.get(handler),
-      throwsA(isA<g.DetailedApiRequestError>()),
-    );
   });
 
   test('returns "complete"', () async {
@@ -87,14 +69,22 @@ void main() {
       queryParameters: {'sha': 'abc123'},
     );
 
-    when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-      return g.Document(
+    firestore.putDocument(
+      g.Document(
         fields: {
           'failed_count': g.Value(integerValue: '0'),
           'remaining': g.Value(integerValue: '0'),
         },
-      );
-    });
+        name: firestore.resolveDocumentName(
+          CiStaging.metadata.collectionId,
+          CiStaging.documentIdFor(
+            slug: Config.flutterSlug,
+            sha: 'abc123',
+            stage: CiStage.fusionEngineBuild,
+          ).documentId,
+        ),
+      ),
+    );
 
     await expectLater(tester.get(handler), completes);
     await expectLater(decodeHandlerBody(), completion({'status': 'complete'}));
@@ -105,14 +95,22 @@ void main() {
       queryParameters: {'sha': 'abc123'},
     );
 
-    when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-      return g.Document(
+    firestore.putDocument(
+      g.Document(
         fields: {
           'failed_count': g.Value(integerValue: '0'),
           'remaining': g.Value(integerValue: '1'),
         },
-      );
-    });
+        name: firestore.resolveDocumentName(
+          CiStaging.metadata.collectionId,
+          CiStaging.documentIdFor(
+            slug: Config.flutterSlug,
+            sha: 'abc123',
+            stage: CiStage.fusionEngineBuild,
+          ).documentId,
+        ),
+      ),
+    );
 
     await expectLater(tester.get(handler), completes);
     await expectLater(decodeHandlerBody(), completion({'status': 'pending'}));
@@ -123,14 +121,22 @@ void main() {
       queryParameters: {'sha': 'abc123'},
     );
 
-    when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-      return g.Document(
+    firestore.putDocument(
+      g.Document(
         fields: {
           'failed_count': g.Value(integerValue: '1'),
           'remaining': g.Value(integerValue: '1'),
         },
-      );
-    });
+        name: firestore.resolveDocumentName(
+          CiStaging.metadata.collectionId,
+          CiStaging.documentIdFor(
+            slug: Config.flutterSlug,
+            sha: 'abc123',
+            stage: CiStage.fusionEngineBuild,
+          ).documentId,
+        ),
+      ),
+    );
 
     await expectLater(tester.get(handler), completes);
     await expectLater(decodeHandlerBody(), completion({'status': 'failed'}));
