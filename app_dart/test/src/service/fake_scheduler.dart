@@ -8,6 +8,7 @@ import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -16,6 +17,7 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 
 import 'fake_ci_yaml_fetcher.dart';
+import 'fake_content_aware_hash_service.dart';
 import 'fake_get_files_changed.dart';
 import 'fake_luci_build_service.dart';
 
@@ -28,6 +30,7 @@ class FakeScheduler extends Scheduler {
     required super.config,
     GithubChecksUtil? githubChecksUtil,
     CiYamlFetcher? ciYamlFetcher,
+    ContentAwareHashService? contentAwareHash,
   }) : super(
          cache: CacheService(inMemory: true),
          githubChecksService: GithubChecksService(
@@ -43,6 +46,8 @@ class FakeScheduler extends Scheduler {
                githubChecksUtil: githubChecksUtil,
              ),
          ciYamlFetcher: ciYamlFetcher ?? FakeCiYamlFetcher(),
+         contentAwareHash:
+             contentAwareHash ?? FakeContentAwareHashService(config: config),
        );
 
   int cancelPreSubmitTargetsCallCnt = 0;

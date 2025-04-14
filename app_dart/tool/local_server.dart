@@ -14,6 +14,8 @@ import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:gcloud/db.dart';
 
+import '../test/src/service/fake_content_aware_hash_service.dart';
+
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
   final config = Config(dbService, cache, FakeSecretManager());
@@ -53,6 +55,7 @@ Future<void> main() async {
     getFilesChanged: GithubApiGetFilesChanged(config),
     luciBuildService: luciBuildService,
     ciYamlFetcher: ciYamlFetcher,
+    contentAwareHash: FakeContentAwareHashService(config: config),
   );
 
   final branchService = BranchService(

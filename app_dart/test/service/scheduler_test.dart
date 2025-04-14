@@ -38,6 +38,7 @@ import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
+import '../src/service/fake_content_aware_hash_service.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_gerrit_service.dart';
 import '../src/service/fake_get_files_changed.dart';
@@ -137,6 +138,7 @@ void main() {
   late FakeFirestoreService firestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
+  late FakeContentAwareHashService fakeContentAwareHash;
   late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
 
@@ -191,6 +193,8 @@ void main() {
         },
       );
 
+      fakeContentAwareHash = FakeContentAwareHashService(config: config);
+
       mockGithubChecksUtil = MockGithubChecksUtil();
       // Generate check runs based on the name hash code
       when(
@@ -229,6 +233,7 @@ void main() {
           ),
         ),
         markCheckRunConclusion: callbacks.markCheckRunConclusion,
+        contentAwareHash: fakeContentAwareHash,
       );
 
       // ignore: discarded_futures
@@ -421,6 +426,7 @@ void main() {
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
+          contentAwareHash: fakeContentAwareHash,
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -504,6 +510,7 @@ void main() {
             getFilesChanged: getFilesChanged,
             ciYamlFetcher: ciYamlFetcher,
             luciBuildService: luciBuildService,
+            contentAwareHash: fakeContentAwareHash,
           );
 
           await scheduler.addCommits(
@@ -678,6 +685,7 @@ void main() {
                 branchesValue: <String>['master', 'main'],
               ),
             ),
+            contentAwareHash: fakeContentAwareHash,
           );
 
           final mergedPr = generatePullRequest(
@@ -776,6 +784,7 @@ void main() {
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
+          contentAwareHash: fakeContentAwareHash,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -875,6 +884,7 @@ void main() {
             findPullRequestForSha: (_, sha) async {
               return pullRequest;
             },
+            contentAwareHash: fakeContentAwareHash,
           );
           when(mockGithubService.github).thenReturn(mockGithubClient);
           when(
@@ -960,6 +970,7 @@ void main() {
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
           ),
+          contentAwareHash: fakeContentAwareHash,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -1059,6 +1070,7 @@ void main() {
           luciBuildService: luci,
           findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
+          contentAwareHash: fakeContentAwareHash,
         );
 
         final checkrun = jsonDecode(checkRunString()) as Map<String, dynamic>;
@@ -1188,6 +1200,7 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
+          contentAwareHash: fakeContentAwareHash,
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString()) as Map<String, dynamic>,
@@ -1230,6 +1243,7 @@ targets:
           luciBuildService: FakeLuciBuildService(config: config),
           findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
+          contentAwareHash: fakeContentAwareHash,
         );
         expect(
           await scheduler.processCheckRun(checkRunEvent),
@@ -1567,6 +1581,7 @@ targets:
               luciBuildService: luci,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
               initializeCiStagingDocument: callbacks.initializeDocument,
+              contentAwareHash: fakeContentAwareHash,
             );
 
             when(
@@ -1672,6 +1687,7 @@ targets:
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
+              contentAwareHash: fakeContentAwareHash,
             );
 
             when(
@@ -1790,6 +1806,7 @@ targets:
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
+                contentAwareHash: fakeContentAwareHash,
               );
 
               when(
@@ -1860,6 +1877,7 @@ targets:
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
+              contentAwareHash: fakeContentAwareHash,
             );
 
             when(
@@ -1972,6 +1990,7 @@ targets:
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
+                contentAwareHash: fakeContentAwareHash,
               );
 
               when(
@@ -2150,6 +2169,7 @@ targets:
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 findPullRequestFor: callbacks.findPullRequestFor,
                 initializeCiStagingDocument: callbacks.initializeDocument,
+                contentAwareHash: fakeContentAwareHash,
               );
 
               when(
@@ -2554,6 +2574,7 @@ targets:
                 branchesValue: <String>['master', 'main'],
               ),
             ),
+            contentAwareHash: fakeContentAwareHash,
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2595,6 +2616,7 @@ targets:
                 branchesValue: <String>['master'],
               ),
             ),
+            contentAwareHash: fakeContentAwareHash,
           );
           await scheduler.triggerPresubmitTargets(
             pullRequest: generatePullRequest(branch: 'main', repo: 'packages'),
@@ -2873,6 +2895,7 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          contentAwareHash: fakeContentAwareHash,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         final results =
@@ -3014,6 +3037,7 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          contentAwareHash: fakeContentAwareHash,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3030,6 +3054,11 @@ targets:
         await scheduler.triggerMergeGroupTargets(
           mergeGroupEvent: mergeGroupEvent,
         );
+
+        expect(fakeContentAwareHash.triggered, [
+          'refs/heads/gh-readonly-queue/main/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ]);
+
         verify(
           callbacks.initializeDocument(
             firestoreService: anyNamed('firestoreService'),
@@ -3165,6 +3194,7 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          contentAwareHash: fakeContentAwareHash,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3304,6 +3334,7 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
           initializeCiStagingDocument: callbacks.initializeDocument,
+          contentAwareHash: fakeContentAwareHash,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3434,6 +3465,7 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: fakeLuciBuildService,
+          contentAwareHash: fakeContentAwareHash,
         );
       });
 
