@@ -21,7 +21,7 @@ final class UseTestLogging extends Check {
   static final _voidMain = r'void main() {';
 
   @override
-  Glob get shouldCheck => Glob('test/**/*_test.dart');
+  Iterable<Glob> get include => [Glob('**/test/**/*_test.dart')];
 
   @override
   Future<CheckResult> check(LogSink logger, File file) async {

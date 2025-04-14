@@ -6,6 +6,7 @@ import 'dart:io' as io;
 
 import 'package:args/args.dart';
 import 'package:cocoon_code_health/src/checks.dart';
+import 'package:cocoon_code_health/src/checks/do_not_submit_fixme.dart';
 import 'package:cocoon_code_health/src/checks/use_test_logging.dart';
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:file/file.dart';
@@ -35,16 +36,25 @@ void main(List<String> args) async {
 
   for (final server in const ['app_dart', 'auto_submit']) {
     final package = p.join(cocoon, server);
-    for (final check in const [UseTestLogging()]) {
+    for (final check in const [UseTestLogging(), DoNotSubmitFixme()]) {
       io.stderr.writeln('Running ${check.runtimeType} on $package...');
-      final matching =
-          check.shouldCheck
-              .listFileSystem(fs, root: package)
-              .where((f) => f is File)
-              .cast<File>();
-      await for (final file in matching) {
+
+      // Look at tracked files using git ls-files.
+      final gitLsFiles = io.Process.runSync('git', ['-C', package, 'ls-files']);
+      if (gitLsFiles.exitCode != 0) {
+        io.stderr.writeln(gitLsFiles.stderr);
+        io.exitCode = 1;
+        return;
+      }
+      final trackedFiles = (gitLsFiles.stdout as String)
+          .split('\n')
+          .map((p) => fs.file(fs.path.join(package, p)));
+      for (final file in trackedFiles) {
+        if (!check.include.any((g) => g.matches(file.path))) {
+          continue;
+        }
         final relative = p.relative(file.path, from: cocoon);
-        if (check.allowListed.any((g) => g.matches(relative))) {
+        if (check.exclude.any((g) => g.matches(relative))) {
           if (verbose) {
             io.stderr.writeln('${check.runtimeType} $relative: Skip');
           }

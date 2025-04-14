@@ -13,7 +13,13 @@ final class DoNotSubmitFixme extends Check {
   const DoNotSubmitFixme();
 
   @override
-  Glob get shouldCheck => Glob('**/*');
+  Iterable<Glob> get include => [
+    Glob('**/*Dockerfile*'),
+    Glob('**/*.dart'),
+    Glob('**/*.md'),
+    Glob('**/*.sh'),
+    Glob('**/*.yaml'),
+  ];
 
   @override
   Future<CheckResult> check(LogSink logger, File file) async {
