@@ -1551,12 +1551,6 @@ void main() {
           ]),
         );
 
-        // FIXME: Replace with existsInStorage.
-        // expect(githubGoldStatus!.updates, 0);
-        // expect(githubGoldStatusNext!.updates, 1);
-        // expect(githubGoldStatus!.status, GithubGoldStatus.statusCompleted);
-        // expect(githubGoldStatusNext!.status, GithubGoldStatus.statusCompleted);
-
         expect(log, hasNoWarningsOrHigher);
       },
     );
