@@ -962,7 +962,6 @@ void main() {
       });
 
       when(mockGitService.createCommit(any, any)).thenAnswer((i) async {
-        final [_, CreateGitCommit c] = i.positionalArguments;
         return GitCommit(sha: expectedSemanticsIntegrationTestTreeSha);
       });
 
