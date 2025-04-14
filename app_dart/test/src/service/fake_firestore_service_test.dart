@@ -29,7 +29,7 @@ void main() {
     test('returns a clone of a matching document', () {
       final newDoc = firestore.putDocument(
         g.Document(
-          fields: {'Hello': g.Value(stringValue: 'World')},
+          fields: {'Hello': 'World'.toValue()},
           name: firestore.resolveDocumentName('messages', 'greeting'),
         ),
       );
@@ -43,7 +43,7 @@ void main() {
         ),
       );
 
-      newDoc.fields!['Hello'] = g.Value(stringValue: 'Changed');
+      newDoc.fields!['Hello'] = 'Changed'.toValue();
 
       expect(
         firestore.tryPeekDocumentByName(newDoc.name!),
@@ -59,7 +59,7 @@ void main() {
 
   test('failOnWrite forces a 500 error', () {
     final blockDoc = g.Document(
-      fields: {'Hello': g.Value(stringValue: 'World')},
+      fields: {'Hello': 'World'.toValue()},
       name: firestore.resolveDocumentName('messages', 'greeting'),
     );
 
@@ -145,7 +145,7 @@ void main() {
               currentDocument: g.Precondition(exists: true),
               update: g.Document(
                 name: existingDoc.name,
-                fields: {'Hello': g.Value(stringValue: 'World')},
+                fields: {'Hello': 'World'.toValue()},
               ),
             ),
           ],
@@ -179,7 +179,7 @@ void main() {
                   'collection-id',
                   'document-id',
                 ),
-                fields: {'Hello': g.Value(stringValue: 'World')},
+                fields: {'Hello': 'World'.toValue()},
               ),
             ),
           ],
@@ -211,7 +211,7 @@ void main() {
                   'collection-id',
                   'document-id',
                 ),
-                fields: {'Hello': g.Value(stringValue: 'World')},
+                fields: {'Hello': 'World'.toValue()},
               ),
             ),
           ],
@@ -252,7 +252,7 @@ void main() {
                   'collection-id',
                   'document-id',
                 ),
-                fields: {'Hello': g.Value(stringValue: 'World')},
+                fields: {'Hello': 'World'.toValue()},
               ),
             ),
           ],
@@ -292,13 +292,13 @@ void main() {
                   'collection-id',
                   'existing-id',
                 ),
-                fields: {'Hello': g.Value(stringValue: 'World')},
+                fields: {'Hello': 'World'.toValue()},
               ),
             ),
             g.Write(
               update: g.Document(
                 name: firestore.resolveDocumentName('collection-id', 'new-id'),
-                fields: {'Hello': g.Value(stringValue: 'World')},
+                fields: {'Hello': 'World'.toValue()},
               ),
             ),
           ],
@@ -346,13 +346,13 @@ void main() {
         g.Write(
           update: g.Document(
             name: firestore.resolveDocumentName('collection-id', 'existing-id'),
-            fields: {'Hello': g.Value(stringValue: 'World')},
+            fields: {'Hello': 'World'.toValue()},
           ),
         ),
         g.Write(
           update: g.Document(
             name: firestore.resolveDocumentName('collection-id', 'new-id'),
-            fields: {'Hello': g.Value(stringValue: 'World')},
+            fields: {'Hello': 'World'.toValue()},
           ),
         ),
       ]);
@@ -396,13 +396,13 @@ void main() {
                 'collection-id',
                 'existing-id',
               ),
-              fields: {'Hello': g.Value(stringValue: 'World')},
+              fields: {'Hello': 'World'.toValue()},
             ),
           ),
           g.Write(
             update: g.Document(
               name: firestore.resolveDocumentName('collection-id', 'new-id'),
-              fields: {'Hello': g.Value(stringValue: 'World')},
+              fields: {'Hello': 'World'.toValue()},
             ),
           ),
         ]),
@@ -442,14 +442,14 @@ void main() {
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '1'),
-              fields: {'is_flaky': g.Value(booleanValue: true)},
+              fields: {'is_flaky': true.toValue()},
             ),
           );
 
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '2'),
-              fields: {'is_flaky': g.Value(booleanValue: false)},
+              fields: {'is_flaky': false.toValue()},
             ),
           );
 
@@ -502,14 +502,14 @@ void main() {
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '1'),
-              fields: {'task': g.Value(stringValue: 'Eat')},
+              fields: {'task': 'Eat'.toValue()},
             ),
           );
 
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '2'),
-              fields: {'task': g.Value(stringValue: 'Sleep')},
+              fields: {'task': 'Sleep'.toValue()},
             ),
           );
 
@@ -558,14 +558,14 @@ void main() {
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '1'),
-              fields: {'calories': g.Value(integerValue: '200')},
+              fields: {'calories': 200.toValue()},
             ),
           );
 
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '2'),
-              fields: {'calories': g.Value(integerValue: '500')},
+              fields: {'calories': 500.toValue()},
             ),
           );
 
@@ -613,20 +613,14 @@ void main() {
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '1'),
-            fields: {
-              'is_spicy': g.Value(booleanValue: true),
-              'calories': g.Value(integerValue: '200'),
-            },
+            fields: {'is_spicy': true.toValue(), 'calories': 200.toValue()},
           ),
         );
 
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '2'),
-            fields: {
-              'is_spicy': g.Value(booleanValue: false),
-              'calories': g.Value(integerValue: '500'),
-            },
+            fields: {'is_spicy': false.toValue(), 'calories': 500.toValue()},
           ),
         );
 
@@ -643,28 +637,28 @@ void main() {
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '1'),
-            fields: {'number': g.Value(integerValue: '1')},
+            fields: {'number': 1.toValue()},
           ),
         );
 
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '2'),
-            fields: {'number': g.Value(integerValue: '2')},
+            fields: {'number': 2.toValue()},
           ),
         );
 
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '3'),
-            fields: {'number': g.Value(integerValue: '3')},
+            fields: {'number': 3.toValue()},
           ),
         );
 
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '4'),
-            fields: {'number': g.Value(integerValue: '4')},
+            fields: {'number': 4.toValue()},
           ),
         );
       });
@@ -718,7 +712,7 @@ void main() {
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '$i'),
-              fields: {'alpha': g.Value(integerValue: '$i')},
+              fields: {'alpha': i.toValue()},
             ),
           );
         }
@@ -738,7 +732,7 @@ void main() {
           firestore.putDocument(
             g.Document(
               name: firestore.resolveDocumentName('items', '$i'),
-              fields: {'alpha': g.Value(integerValue: '$i')},
+              fields: {'alpha': i.toValue()},
             ),
           );
         }
@@ -761,30 +755,21 @@ void main() {
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '1'),
-            fields: {
-              'alpha': g.Value(integerValue: '1'),
-              'beta': g.Value(integerValue: '1'),
-            },
+            fields: {'alpha': 1.toValue(), 'beta': 1.toValue()},
           ),
         );
 
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '2'),
-            fields: {
-              'alpha': g.Value(integerValue: '1'),
-              'beta': g.Value(integerValue: '2'),
-            },
+            fields: {'alpha': 1.toValue(), 'beta': 2.toValue()},
           ),
         );
 
         firestore.putDocument(
           g.Document(
             name: firestore.resolveDocumentName('items', '3'),
-            fields: {
-              'alpha': g.Value(integerValue: '2'),
-              'beta': g.Value(integerValue: '3'),
-            },
+            fields: {'alpha': 2.toValue(), 'beta': 3.toValue()},
           ),
         );
 

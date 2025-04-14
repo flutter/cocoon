@@ -16,7 +16,8 @@ import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
-import 'config.dart';
+
+export '../model/common/firestore_extensions.dart';
 
 const String kDatabase =
     'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}';
@@ -227,18 +228,13 @@ mixin FirestoreQueries {
           name:
               '$kDatabase/documents/$kGithubBuildStatusCollectionId/${head}_$prNumber',
           fields: <String, Value>{
-            kGithubBuildStatusPrNumberField: Value(
-              integerValue: prNumber.toString(),
-            ),
-            kGithubBuildStatusHeadField: Value(stringValue: head),
-            kGithubBuildStatusStatusField: Value(stringValue: ''),
-            kGithubBuildStatusUpdatesField: Value(integerValue: '0'),
-            kGithubBuildStatusUpdateTimeMillisField: Value(
-              integerValue: DateTime.now().millisecondsSinceEpoch.toString(),
-            ),
-            kGithubBuildStatusRepositoryField: Value(
-              stringValue: slug.fullName,
-            ),
+            kGithubBuildStatusPrNumberField: prNumber.toValue(),
+            kGithubBuildStatusHeadField: head.toValue(),
+            kGithubBuildStatusStatusField: ''.toValue(),
+            kGithubBuildStatusUpdatesField: 0.toValue(),
+            kGithubBuildStatusUpdateTimeMillisField:
+                DateTime.now().millisecondsSinceEpoch.toValue(),
+            kGithubBuildStatusRepositoryField: slug.fullName.toValue(),
           },
         ),
       );
@@ -332,11 +328,11 @@ class FirestoreService with FirestoreQueries {
   /// Returns Firestore [Value] based on corresponding object type.
   Value _getValueFromFilter(Object comparisonOject) {
     if (comparisonOject is int) {
-      return Value(integerValue: comparisonOject.toString());
+      return comparisonOject.toValue();
     } else if (comparisonOject is bool) {
-      return Value(booleanValue: comparisonOject);
+      return comparisonOject.toValue();
     }
-    return Value(stringValue: comparisonOject as String);
+    return (comparisonOject as String).toValue();
   }
 
   /// Generates Firestore query filter based on "human" read conditions.

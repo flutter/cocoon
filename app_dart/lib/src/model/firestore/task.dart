@@ -166,17 +166,16 @@ final class Task extends AppDocument<Task> {
     );
     return Task._(
       {
-        fieldName: Value(stringValue: builderName),
-        fieldCommitSha: Value(stringValue: commitSha),
-        fieldBringup: Value(booleanValue: bringup),
-        if (buildNumber != null)
-          fieldBuildNumber: Value(integerValue: '$buildNumber'),
-        fieldCreateTimestamp: Value(integerValue: '$createTimestamp'),
-        fieldStartTimestamp: Value(integerValue: '$startTimestamp'),
-        fieldEndTimestamp: Value(integerValue: '$endTimestamp'),
-        fieldStatus: Value(stringValue: status),
-        fieldTestFlaky: Value(booleanValue: testFlaky),
-        fieldAttempt: Value(integerValue: '$currentAttempt'),
+        fieldName: builderName.toValue(),
+        fieldCommitSha: commitSha.toValue(),
+        fieldBringup: bringup.toValue(),
+        if (buildNumber != null) fieldBuildNumber: buildNumber.toValue(),
+        fieldCreateTimestamp: createTimestamp.toValue(),
+        fieldStartTimestamp: startTimestamp.toValue(),
+        fieldEndTimestamp: endTimestamp.toValue(),
+        fieldStatus: status.toValue(),
+        fieldTestFlaky: testFlaky.toValue(),
+        fieldAttempt: currentAttempt.toValue(),
       },
       name: p.posix.join(
         kDatabase,
@@ -349,33 +348,27 @@ final class Task extends AppDocument<Task> {
     if (!legalStatusValues.contains(value)) {
       throw ArgumentError('Invalid state: "$value"');
     }
-    fields[fieldStatus] = Value(stringValue: value);
+    fields[fieldStatus] = value.toValue();
     return value;
   }
 
   void setEndTimestamp(int endTimestamp) {
-    fields[fieldEndTimestamp] = Value(integerValue: endTimestamp.toString());
+    fields[fieldEndTimestamp] = endTimestamp.toValue();
   }
 
   void setTestFlaky(bool testFlaky) {
-    fields[fieldTestFlaky] = Value(booleanValue: testFlaky);
+    fields[fieldTestFlaky] = testFlaky.toValue();
   }
 
   void updateFromBuild(bbv2.Build build) {
-    fields[fieldBuildNumber] = Value(integerValue: build.number.toString());
+    fields[fieldBuildNumber] = build.number.toValue();
 
-    fields[fieldCreateTimestamp] = Value(
-      integerValue:
-          build.createTime.toDateTime().millisecondsSinceEpoch.toString(),
-    );
-    fields[fieldStartTimestamp] = Value(
-      integerValue:
-          build.startTime.toDateTime().millisecondsSinceEpoch.toString(),
-    );
-    fields[fieldEndTimestamp] = Value(
-      integerValue:
-          build.endTime.toDateTime().millisecondsSinceEpoch.toString(),
-    );
+    fields[fieldCreateTimestamp] =
+        build.createTime.toDateTime().millisecondsSinceEpoch.toValue();
+    fields[fieldStartTimestamp] =
+        build.startTime.toDateTime().millisecondsSinceEpoch.toValue();
+    fields[fieldEndTimestamp] =
+        build.endTime.toDateTime().millisecondsSinceEpoch.toValue();
 
     _setStatusFromLuciStatus(build);
   }
@@ -384,17 +377,15 @@ final class Task extends AppDocument<Task> {
     name =
         '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
     fields = <String, Value>{
-      fieldCreateTimestamp: Value(
-        integerValue: DateTime.now().millisecondsSinceEpoch.toString(),
-      ),
-      fieldEndTimestamp: Value(integerValue: '0'),
-      fieldBringup: Value(booleanValue: bringup),
-      fieldName: Value(stringValue: taskName),
-      fieldStartTimestamp: Value(integerValue: '0'),
-      fieldStatus: Value(stringValue: Task.statusNew),
-      fieldTestFlaky: Value(booleanValue: false),
-      fieldCommitSha: Value(stringValue: commitSha),
-      fieldAttempt: Value(integerValue: '$attempt'),
+      fieldCreateTimestamp: DateTime.now().millisecondsSinceEpoch.toValue(),
+      fieldEndTimestamp: 0.toValue(),
+      fieldBringup: bringup.toValue(),
+      fieldName: taskName.toValue(),
+      fieldStartTimestamp: 0.toValue(),
+      fieldStatus: Task.statusNew.toValue(),
+      fieldTestFlaky: false.toValue(),
+      fieldCommitSha: commitSha.toValue(),
+      fieldAttempt: attempt.toValue(),
     };
   }
 

@@ -12,14 +12,8 @@ void main() {
 
   test('creates writes correctly from documents', () async {
     final documents = <Document>[
-      Document(
-        name: 'd1',
-        fields: <String, Value>{'key1': Value(stringValue: 'value1')},
-      ),
-      Document(
-        name: 'd2',
-        fields: <String, Value>{'key1': Value(stringValue: 'value2')},
-      ),
+      Document(name: 'd1', fields: <String, Value>{'key1': 'value1'.toValue()}),
+      Document(name: 'd2', fields: <String, Value>{'key1': 'value2'.toValue()}),
     ];
     final writes = documentsToWrites(documents, exists: false);
     expect(writes.length, documents.length);
