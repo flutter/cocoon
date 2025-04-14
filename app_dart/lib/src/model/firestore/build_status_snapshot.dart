@@ -70,9 +70,10 @@ final class BuildStatusSnapshot extends AppDocument<BuildStatusSnapshot> {
 
   Set<String> get failingTasks {
     return {
-      ...fields[_fieldFailingTasks]!.arrayValue!.values!.map(
-        (t) => t.stringValue!,
-      ),
+      ...fields[_fieldFailingTasks]?.arrayValue?.values?.map(
+            (t) => t.stringValue!,
+          ) ??
+          [],
     };
   }
 
