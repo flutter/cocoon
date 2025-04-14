@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -49,44 +50,47 @@ interface class BuildStatusService {
   ///
   /// Tree status is only for [defaultBranches].
   Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
-    final statuses = await retrieveCommitStatusFirestore(
+    final commits = await retrieveCommitStatusFirestore(
       limit: numberOfCommitsToReferenceForTreeStatus,
       slug: slug,
     );
-    if (statuses.isEmpty) {
+    if (commits.isEmpty) {
+      log.info('Tree status of failure for $slug: no commits found');
       return BuildStatus.failure();
     }
 
-    final tasksInProgress = _findTasksRelevantToLatestStatus(statuses);
-    if (tasksInProgress.isEmpty) {
+    final mostRecentTasks = _findTasksRelevantToLatestStatus(commits);
+    if (mostRecentTasks.isEmpty) {
+      log.info('Tree status of failure for $slug: no recent tasks found');
       return BuildStatus.failure();
     }
 
     final failedTasks = <String>[];
-    for (var status in statuses) {
+    for (var status in commits) {
       for (var task in status.tasks) {
         /// If a task [isRelevantToLatestStatus] but has not run yet, we look
         /// for a previous run of the task from the previous commit.
-        final isRelevantToLatestStatus = tasksInProgress.containsKey(
+        final isRelevantToLatestStatus = mostRecentTasks.containsKey(
           task.taskName,
         );
 
         /// Tasks that are not relevant to the latest status will have a
         /// null value in the map.
-        final taskInProgress = tasksInProgress[task.taskName] ?? true;
+        final taskInProgress = mostRecentTasks[task.taskName] ?? true;
 
         if (isRelevantToLatestStatus && taskInProgress) {
           if (task.bringup || _isSuccessful(task)) {
             /// This task no longer needs to be checked to see if it causing
             /// the build status to fail.
-            tasksInProgress[task.taskName] = false;
+            mostRecentTasks[task.taskName] = false;
           } else if (_isFailed(task) || _isRerunning(task)) {
+            log.debug('${task.taskName} (${task.commitSha}) is failing');
             failedTasks.add(task.taskName);
 
             /// This task no longer needs to be checked to see if its causing
             /// the build status to fail since its been
             /// added to the failedTasks list.
-            tasksInProgress[task.taskName] = false;
+            mostRecentTasks[task.taskName] = false;
           }
         }
       }
@@ -129,6 +133,7 @@ interface class BuildStatusService {
     );
     return [
       for (final commit in commits)
+        // It's not obvious, but this is ordered by task creation time, descending.
         CommitTasksStatus(commit, await firestore.queryCommitTasks(commit.sha)),
     ];
   }

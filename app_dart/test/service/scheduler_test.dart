@@ -1912,22 +1912,22 @@ targets:
               return checkRuns.last;
             });
 
-            when(firestoreService.documentResource()).thenAnswer((_) async {
-              final resource = MockProjectsDatabasesDocumentsResource();
-              when(
-                resource.createDocument(
-                  any,
-                  any,
-                  any,
-                  documentId: argThat(anything, named: 'documentId'),
-                  mask_fieldPaths: argThat(anything, named: 'mask_fieldPaths'),
-                  $fields: argThat(anything, named: r'$fields'),
-                ),
-              ).thenAnswer((_) async {
-                return Document();
-              });
-              return resource;
-            });
+            // when(firestoreService.documentResource()).thenAnswer((_) async {
+            //   final resource = MockProjectsDatabasesDocumentsResource();
+            //   when(
+            //     resource.createDocument(
+            //       any,
+            //       any,
+            //       any,
+            //       documentId: argThat(anything, named: 'documentId'),
+            //       mask_fieldPaths: argThat(anything, named: 'mask_fieldPaths'),
+            //       $fields: argThat(anything, named: r'$fields'),
+            //     ),
+            //   ).thenAnswer((_) async {
+            //     return Document();
+            //   });
+            //   return resource;
+            // });
 
             EngineArtifacts? engineArtifacts;
             when(
@@ -3429,24 +3429,6 @@ targets:
         mockGithubService = MockGithubService();
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-
-        // ignore: discarded_futures
-        when(firestoreService.documentResource()).thenAnswer((_) async {
-          final resource = MockProjectsDatabasesDocumentsResource();
-          when(
-            resource.createDocument(
-              any,
-              any,
-              any,
-              documentId: argThat(anything, named: 'documentId'),
-              mask_fieldPaths: argThat(anything, named: 'mask_fieldPaths'),
-              $fields: argThat(anything, named: r'$fields'),
-            ),
-          ).thenAnswer((_) async {
-            return Document();
-          });
-          return resource;
-        });
 
         scheduler = Scheduler(
           cache: cache,

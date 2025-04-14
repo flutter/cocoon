@@ -25,8 +25,7 @@ const String kGithubBuildStatusUpdatesField = 'updates';
 ///  /projects/flutter-dashboard/databases/cocoon/commits/
 ///    document: <this.head>
 /// ```
-/*final - TODO(matanlurey): Can't add because of MockFirestoreService. */
-class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
+final class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
   static AppDocumentId<GithubBuildStatus> documentIdFor({
     required String headSha,
   }) {
