@@ -30,6 +30,7 @@ import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_build_bucket_client.dart';
+import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/service/fake_github_service.dart';
 import '../../src/service/fake_scheduler.dart';
@@ -50,7 +51,7 @@ void main() {
   late FakeGerritService gerritService;
   late MockCommitService commitService;
   late MockGitHub gitHubClient;
-  late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestore;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late MockIssuesService issuesService;
   late MockPullRequestsService pullRequestsService;
@@ -68,14 +69,7 @@ void main() {
   setUp(() {
     request = FakeHttpRequest();
     db = FakeDatastoreDB();
-    mockFirestoreService = MockFirestoreService();
-    when(
-      // ignore: discarded_futures
-      mockFirestoreService.queryRecentTasksByName(
-        name: anyNamed('name'),
-        limit: anyNamed('limit'),
-      ),
-    ).thenAnswer((_) async => []);
+    firestore = FakeFirestoreService();
 
     gitHubClient = MockGitHub();
     githubService = FakeGithubService();
@@ -89,7 +83,7 @@ void main() {
       dbValue: db,
       githubClient: gitHubClient,
       githubService: githubService,
-      firestoreService: mockFirestoreService,
+      firestoreService: firestore,
       githubOAuthTokenValue: 'githubOAuthKey',
       missingTestsPullRequestMessageValue: 'missingTestPullRequestMessage',
       releaseBranchPullRequestMessageValue: 'releaseBranchPullRequestMessage',
@@ -333,15 +327,7 @@ void main() {
       () async {
         const issueNumber = 123;
 
-        // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
-        //
-        // This retains the behavior that was setup across the Scheduler before
-        // where no "initial commits" were stored in Datastore.
-        //
-        // ignore: discarded_futures
-        when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-          return generateFirestoreCommit(1);
-        });
+        firestore.putDocument(generateFirestoreCommit(1));
 
         tester.message = generateGithubWebhookMessage(
           action: 'closed',
@@ -369,12 +355,7 @@ void main() {
     test('Removes temporary revert branches upon merging the PR', () async {
       const issueNumber = 123;
 
-      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
-      //
-      // ignore: discarded_futures
-      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-        return generateFirestoreCommit(1);
-      });
+      firestore.putDocument(generateFirestoreCommit(1));
 
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
@@ -2445,13 +2426,6 @@ void foo() {
 
     test('Schedule tasks when pull request is closed and merged', () async {
       const issueNumber = 123;
-
-      // TODO(matanlurey): Refactor into FirestoreService.tryGetCommit.
-      //
-      // ignore: discarded_futures
-      when(mockFirestoreService.getDocument(any)).thenAnswer((_) async {
-        throw DetailedApiRequestError(HttpStatus.notFound, 'Not Found');
-      });
 
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
