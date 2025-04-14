@@ -4,35 +4,29 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  group('GithubBuildStatus.fromFirestore', () {
-    late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestoreService;
 
-    setUp(() {
-      mockFirestoreService = MockFirestoreService();
-    });
+  setUp(() {
+    firestoreService = FakeFirestoreService();
+  });
 
-    test('generates githubBuildStatus correctly', () async {
-      final githubBuildStatus = generateFirestoreGithubBuildStatus(1);
-      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
-        Invocation invocation,
-      ) {
-        return Future<GithubBuildStatus>.value(githubBuildStatus);
-      });
-      final resultedGithubBuildStatus = await GithubBuildStatus.fromFirestore(
-        firestoreService: mockFirestoreService,
-        documentName: 'test',
-      );
-      expect(resultedGithubBuildStatus.name, githubBuildStatus.name);
-      expect(resultedGithubBuildStatus.fields, githubBuildStatus.fields);
-    });
+  test('generates githubBuildStatus correctly', () async {
+    final githubBuildStatus = generateFirestoreGithubBuildStatus(1);
+    firestoreService.putDocument(githubBuildStatus);
+
+    final resultedGithubBuildStatus = await GithubBuildStatus.fromFirestore(
+      firestoreService: firestoreService,
+      documentName: githubBuildStatus.name!,
+    );
+    expect(resultedGithubBuildStatus.name, githubBuildStatus.name);
+    expect(resultedGithubBuildStatus.fields, githubBuildStatus.fields);
   });
 }

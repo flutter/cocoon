@@ -4,35 +4,29 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  group('Commit.fromFirestore', () {
-    late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestoreService;
 
-    setUp(() {
-      mockFirestoreService = MockFirestoreService();
-    });
+  setUp(() {
+    firestoreService = FakeFirestoreService();
+  });
 
-    test('generates commit correctly', () async {
-      final commit = generateFirestoreCommit(1);
-      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
-        Invocation invocation,
-      ) {
-        return Future<Commit>.value(commit);
-      });
-      final resultedCommit = await Commit.fromFirestoreBySha(
-        mockFirestoreService,
-        sha: commit.sha,
-      );
-      expect(resultedCommit.name, commit.name);
-      expect(resultedCommit.fields, commit.fields);
-    });
+  test('generates commit correctly', () async {
+    final storedCommit = generateFirestoreCommit(1);
+    firestoreService.putDocument(storedCommit);
+
+    final resultedCommit = await Commit.fromFirestoreBySha(
+      firestoreService,
+      sha: storedCommit.sha,
+    );
+    expect(resultedCommit.name, storedCommit.name);
+    expect(resultedCommit.fields, storedCommit.fields);
   });
 }

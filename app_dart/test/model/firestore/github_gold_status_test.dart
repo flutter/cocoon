@@ -4,35 +4,29 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  group('GithubGoldStatus.fromFirestore', () {
-    late MockFirestoreService mockFirestoreService;
+  late FakeFirestoreService firestoreService;
 
-    setUp(() {
-      mockFirestoreService = MockFirestoreService();
-    });
+  setUp(() {
+    firestoreService = FakeFirestoreService();
+  });
 
-    test('generates githubGoldStatus correctly', () async {
-      final githubGoldStatus = generateFirestoreGithubGoldStatus(1);
-      when(mockFirestoreService.getDocument(captureAny)).thenAnswer((
-        Invocation invocation,
-      ) {
-        return Future<GithubGoldStatus>.value(githubGoldStatus);
-      });
-      final resultedGithubGoldStatus = await GithubGoldStatus.fromFirestore(
-        firestoreService: mockFirestoreService,
-        documentName: 'test',
-      );
-      expect(resultedGithubGoldStatus.name, githubGoldStatus.name);
-      expect(resultedGithubGoldStatus.fields, githubGoldStatus.fields);
-    });
+  test('generates githubGoldStatus correctly', () async {
+    final githubGoldStatus = generateFirestoreGithubGoldStatus(1);
+    firestoreService.putDocument(githubGoldStatus);
+
+    final resultedGithubGoldStatus = await GithubGoldStatus.fromFirestore(
+      firestoreService: firestoreService,
+      documentName: githubGoldStatus.name!,
+    );
+    expect(resultedGithubGoldStatus.name, githubGoldStatus.name);
+    expect(resultedGithubGoldStatus.fields, githubGoldStatus.fields);
   });
 }
