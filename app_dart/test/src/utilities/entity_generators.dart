@@ -147,20 +147,14 @@ GithubGoldStatus generateFirestoreGithubGoldStatus(
 }) {
   pr ??= i;
   head ??= 'sha$i';
-  final githubGoldStatus =
-      GithubGoldStatus.fromDocument(Document())
-        ..name = '{$pr}_$head'
-        ..fields = <String, Value>{
-          kGithubGoldStatusHeadField: Value(stringValue: head),
-          kGithubGoldStatusPrNumberField: Value(integerValue: pr.toString()),
-          kGithubGoldStatusRepositoryField: Value(stringValue: '$owner/$repo'),
-          kGithubGoldStatusUpdatesField: Value(
-            integerValue: updates.toString(),
-          ),
-          kGithubGoldStatusDescriptionField: Value(stringValue: description),
-          kGithubGoldStatusStatusField: Value(stringValue: status),
-        };
-  return githubGoldStatus;
+  return GithubGoldStatus(
+    prNumber: pr,
+    head: head,
+    status: status ?? GithubGoldStatus.statusRunning,
+    description: description ?? '',
+    updates: updates ?? 0,
+    repository: '$owner/$repo',
+  );
 }
 
 GithubBuildStatus generateFirestoreGithubBuildStatus(

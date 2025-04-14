@@ -165,21 +165,13 @@ mixin FirestoreQueries {
       ...documents.map(GithubGoldStatus.fromDocument),
     ];
     if (githubGoldStatuses.isEmpty) {
-      return GithubGoldStatus.fromDocument(
-        Document(
-          name:
-              '$kDatabase/documents/$kGithubGoldStatusCollectionId/${slug.owner}_${slug.name}_$prNumber',
-          fields: <String, Value>{
-            kGithubGoldStatusPrNumberField: Value(
-              integerValue: prNumber.toString(),
-            ),
-            kGithubGoldStatusHeadField: Value(stringValue: ''),
-            kGithubGoldStatusStatusField: Value(stringValue: ''),
-            kGithubGoldStatusUpdatesField: Value(integerValue: '0'),
-            kGithubGoldStatusDescriptionField: Value(stringValue: ''),
-            kGithubGoldStatusRepositoryField: Value(stringValue: slug.fullName),
-          },
-        ),
+      return GithubGoldStatus(
+        prNumber: prNumber,
+        head: '',
+        status: '',
+        description: '',
+        updates: 0,
+        repository: slug.fullName,
       );
     } else {
       if (githubGoldStatuses.length > 1) {
