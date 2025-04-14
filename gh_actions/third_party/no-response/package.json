@@ -28,7 +28,7 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.28.0",
-    "eslint-plugin-prettier": "^5.2.4",
+    "eslint-plugin-prettier": "^5.2.6",
     "scramjet": "^4.37.0"
   },
   "devDependencies": {
