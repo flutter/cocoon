@@ -48,7 +48,6 @@ class CiYamlSet {
         config: config,
         type: type,
         validate: validate,
-        isFusion: isFusion,
         totConfig: totConfig?.configs[type],
       );
     }
@@ -144,7 +143,6 @@ class CiYaml {
     required this.type,
     CiYaml? totConfig,
     bool validate = false,
-    this.isFusion = false,
   }) {
     if (validate) {
       _validate(config, branch, totSchedulerConfig: totConfig?.config);
@@ -164,7 +162,10 @@ class CiYaml {
 
   final CiType type;
 
-  final bool isFusion;
+  /// Whether [slug] is [Config.flutterSlug], the fusion `flutter/flutter` repo.
+  ///
+  /// If `true`, multiple `.ci.yaml` files are available. See [CiType].
+  bool get isFusion => slug == Config.flutterSlug;
 
   /// List of target names used to filter target from release candidate branches
   /// that were already removed from main.
