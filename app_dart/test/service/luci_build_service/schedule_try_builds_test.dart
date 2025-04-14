@@ -278,8 +278,8 @@ void main() {
     await luci.scheduleTryBuilds(
       pullRequest: pullRequest,
       targets: [buildTarget],
-      engineArtifacts: EngineArtifacts.usingExistingEngine(
-        commitSha: pullRequest.base!.sha!,
+      engineArtifacts: const EngineArtifacts.noFrameworkTests(
+        reason: 'Not a flutter/flutter PR',
       ),
     );
 

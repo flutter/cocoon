@@ -306,10 +306,8 @@ class LuciBuildService {
         }
       } else if (engineArtifacts is! UnnecessaryEngineArtifacts) {
         // This is an error case, as we're setting artifacts for a PR that will never use them.
-        log.warn(
+        throw StateError(
           'Unexpected engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha})',
-          null,
-          StackTrace.current,
         );
       }
 
