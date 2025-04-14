@@ -105,12 +105,12 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
         'initializeDocument(${pullRequest.head!.repo!.slug().fullName}/${pullRequest.number}, ${checks.length} check runs)';
 
     final fields = <String, Value>{
-      kPullRequestField: Value(stringValue: json.encode(pullRequest.toJson())),
+      kPullRequestField: json.encode(pullRequest.toJson()).toValue(),
       kSlugField: Value(
         stringValue: json.encode(pullRequest.head!.repo!.slug().toJson()),
       ),
-      kShaField: Value(stringValue: pullRequest.head!.sha!),
-      for (final run in checks) run.name!: Value(stringValue: '${run.id}'),
+      kShaField: pullRequest.head!.sha!.toValue(),
+      for (final run in checks) run.name!: '${run.id}'.toValue(),
     };
 
     final document = Document(fields: fields);

@@ -319,9 +319,9 @@ final class CiStaging extends AppDocument<CiStaging> {
       log.info(
         '$logCrumb: setting remaining to $remaining, failed to $failed, and changing $recordedConclusion',
       );
-      fields[checkRun] = Value(stringValue: conclusion.name);
-      fields[kRemainingField] = Value(integerValue: '$remaining');
-      fields[kFailedField] = Value(integerValue: '$failed');
+      fields[checkRun] = conclusion.name.toValue();
+      fields[kRemainingField] = remaining.toValue();
+      fields[kFailedField] = failed.toValue();
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
@@ -417,15 +417,14 @@ For CI stage $stage:
         'initializeDocument(${slug.owner}_${slug.name}_${sha}_$stage, ${tasks.length} tasks)';
 
     final fields = <String, Value>{
-      kTotalField: Value(integerValue: '${tasks.length}'),
-      kRemainingField: Value(integerValue: '${tasks.length}'),
-      kFailedField: Value(integerValue: '0'),
-      kCheckRunGuardField: Value(stringValue: checkRunGuard),
-      fieldRepoFullPath: Value(stringValue: slug.fullName),
-      fieldCommitSha: Value(stringValue: sha),
-      fieldStage: Value(stringValue: stage.name),
-      for (final task in tasks)
-        task: Value(stringValue: TaskConclusion.scheduled.name),
+      kTotalField: tasks.length.toValue(),
+      kRemainingField: tasks.length.toValue(),
+      kFailedField: 0.toValue(),
+      kCheckRunGuardField: checkRunGuard.toValue(),
+      fieldRepoFullPath: slug.fullName.toValue(),
+      fieldCommitSha: sha.toValue(),
+      fieldStage: stage.name.toValue(),
+      for (final task in tasks) task: TaskConclusion.scheduled.name.toValue(),
     };
 
     final document = Document(fields: fields);

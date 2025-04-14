@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/common/firestore_extensions.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -66,7 +67,7 @@ void main() {
           PrCheckRuns.kPullRequestField: Value(
             stringValue: json.encode(generatePullRequest(id: 1234).toJson()),
           ),
-          'testing tesing': Value(stringValue: '1'),
+          'testing tesing': '1'.toValue(),
         },
         name: firestoreService.resolveDocumentName(
           PrCheckRuns.kCollectionId,
@@ -98,7 +99,7 @@ void main() {
           PrCheckRuns.kPullRequestField: Value(
             stringValue: json.encode(fullPullRequest),
           ),
-          'check-run': Value(stringValue: '1234'),
+          'check-run': '1234'.toValue(),
         },
         name: firestoreService.resolveDocumentName(
           PrCheckRuns.kCollectionId,

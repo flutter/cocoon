@@ -41,13 +41,11 @@ final class BuildStatusSnapshot extends AppDocument<BuildStatusSnapshot> {
     return BuildStatusSnapshot.fromDocument(
       g.Document(
         fields: {
-          _fieldCreateTimestamp: g.Value(
-            timestampValue: createdOn.toUtc().toIso8601String(),
-          ),
-          _fieldStatus: g.Value(stringValue: status.name),
+          _fieldCreateTimestamp: createdOn.toValue(),
+          _fieldStatus: status.name.toValue(),
           _fieldFailingTasks: g.Value(
             arrayValue: g.ArrayValue(
-              values: [...sortedTasks.map((t) => g.Value(stringValue: t))],
+              values: [...sortedTasks.map((t) => t.toValue())],
             ),
           ),
         },

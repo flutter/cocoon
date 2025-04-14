@@ -91,13 +91,13 @@ final class Commit extends AppDocument<Commit> {
     required String message,
   }) {
     return Commit._({
-      fieldAvatar: Value(stringValue: avatar),
-      fieldBranch: Value(stringValue: branch),
-      fieldCreateTimestamp: Value(integerValue: createTimestamp.toString()),
-      fieldAuthor: Value(stringValue: author),
-      fieldMessage: Value(stringValue: message),
-      fieldRepositoryPath: Value(stringValue: repositoryPath),
-      fieldSha: Value(stringValue: sha),
+      fieldAvatar: avatar.toValue(),
+      fieldBranch: branch.toValue(),
+      fieldCreateTimestamp: createTimestamp.toValue(),
+      fieldAuthor: author.toValue(),
+      fieldMessage: message.toValue(),
+      fieldRepositoryPath: repositoryPath.toValue(),
+      fieldSha: sha.toValue(),
     }, name: p.posix.join(kDatabase, 'documents', collectionId, sha));
   }
 

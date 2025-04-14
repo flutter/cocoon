@@ -43,11 +43,11 @@ void main() {
           stage: CiStage.fusionEngineBuild,
         ),
         fields: {
-          CiStaging.kRemainingField: Value(integerValue: '1'),
-          CiStaging.kTotalField: Value(integerValue: '3'),
-          'Linux build_test': Value(stringValue: 'scheduled'),
-          'MacOS build_test': Value(stringValue: 'success'),
-          'Failed build_test': Value(stringValue: 'failure'),
+          CiStaging.kRemainingField: 1.toValue(),
+          CiStaging.kTotalField: 3.toValue(),
+          'Linux build_test': 'scheduled'.toValue(),
+          'MacOS build_test': 'success'.toValue(),
+          'Failed build_test': 'failure'.toValue(),
         },
       ),
     );
@@ -192,14 +192,14 @@ void main() {
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kTotalField: Value(integerValue: '3'),
-            CiStaging.kFailedField: Value(integerValue: '0'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kTotalField: 3.toValue(),
+            CiStaging.kFailedField: 0.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
             'Linux build_test': Value(
               stringValue: TaskConclusion.scheduled.name,
             ),
-            'MacOS build_test': Value(stringValue: TaskConclusion.success.name),
+            'MacOS build_test': TaskConclusion.success.name.toValue(),
             'Failed build_test': Value(
               stringValue: TaskConclusion.failure.name,
             ),
@@ -260,10 +260,10 @@ void main() {
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kTotalField: Value(integerValue: '1'),
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kFailedField: Value(integerValue: '0'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 0.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
             'Linux build_test': Value(
               stringValue: TaskConclusion.scheduled.name,
             ),
@@ -336,10 +336,10 @@ void main() {
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kFailedField: Value(integerValue: '0'),
-            CiStaging.kTotalField: Value(integerValue: '1'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 0.toValue(),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
             'Linux build_test': Value(
               stringValue: TaskConclusion.scheduled.name,
             ),
@@ -428,11 +428,11 @@ For CI stage engine:
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kFailedField: Value(integerValue: '0'),
-            CiStaging.kTotalField: Value(integerValue: '1'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-            'MacOS build_test': Value(stringValue: TaskConclusion.success.name),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 0.toValue(),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
+            'MacOS build_test': TaskConclusion.success.name.toValue(),
           },
         ),
       );
@@ -514,11 +514,11 @@ For CI stage engine:
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kFailedField: Value(integerValue: '1'),
-            CiStaging.kTotalField: Value(integerValue: '1'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-            'MacOS build_test': Value(stringValue: TaskConclusion.failure.name),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 1.toValue(),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
+            'MacOS build_test': TaskConclusion.failure.name.toValue(),
           },
         ),
       );
@@ -612,11 +612,11 @@ For CI stage engine:
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kFailedField: Value(integerValue: '1'),
-            CiStaging.kTotalField: Value(integerValue: '1'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-            'MacOS build_test': Value(stringValue: TaskConclusion.failure.name),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 1.toValue(),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
+            'MacOS build_test': TaskConclusion.failure.name.toValue(),
           },
         ),
       );
@@ -705,11 +705,11 @@ For CI stage engine:
         (_) async => Document(
           name: expectedName,
           fields: {
-            CiStaging.kRemainingField: Value(integerValue: '1'),
-            CiStaging.kFailedField: Value(integerValue: '0'),
-            CiStaging.kTotalField: Value(integerValue: '1'),
-            CiStaging.kCheckRunGuardField: Value(stringValue: '{}'),
-            'MacOS build_test': Value(stringValue: TaskConclusion.success.name),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 0.toValue(),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
+            'MacOS build_test': TaskConclusion.success.name.toValue(),
           },
         ),
       );

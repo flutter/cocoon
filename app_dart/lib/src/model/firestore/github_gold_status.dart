@@ -70,12 +70,12 @@ class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
     return GithubGoldStatus.fromDocument(
       Document(
         fields: {
-          kGithubGoldStatusPrNumberField: Value(integerValue: '$prNumber'),
-          kGithubGoldStatusHeadField: Value(stringValue: head),
-          kGithubGoldStatusStatusField: Value(stringValue: status),
-          kGithubGoldStatusDescriptionField: Value(stringValue: description),
-          kGithubGoldStatusUpdatesField: Value(integerValue: '$updates'),
-          kGithubGoldStatusRepositoryField: Value(stringValue: repository),
+          kGithubGoldStatusPrNumberField: prNumber.toValue(),
+          kGithubGoldStatusHeadField: head.toValue(),
+          kGithubGoldStatusStatusField: status.toValue(),
+          kGithubGoldStatusDescriptionField: description.toValue(),
+          kGithubGoldStatusUpdatesField: updates.toValue(),
+          kGithubGoldStatusRepositoryField: repository.toValue(),
         },
         name: p.posix.join(
           kDatabase,
@@ -118,24 +118,22 @@ class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
       int.parse(fields[kGithubGoldStatusUpdatesField]!.integerValue!);
 
   String setStatus(String status) {
-    fields[kGithubGoldStatusStatusField] = Value(stringValue: status);
+    fields[kGithubGoldStatusStatusField] = status.toValue();
     return status;
   }
 
   String setHead(String head) {
-    fields[kGithubGoldStatusHeadField] = Value(stringValue: head);
+    fields[kGithubGoldStatusHeadField] = head.toValue();
     return head;
   }
 
   int setUpdates(int updates) {
-    fields[kGithubGoldStatusUpdatesField] = Value(
-      integerValue: updates.toString(),
-    );
+    fields[kGithubGoldStatusUpdatesField] = updates.toValue();
     return updates;
   }
 
   String setDescription(String description) {
-    fields[kGithubGoldStatusDescriptionField] = Value(stringValue: description);
+    fields[kGithubGoldStatusDescriptionField] = description.toValue();
     return description;
   }
 

@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/common/firestore_extensions.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handlers/get_engine_artifacts_ready.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -71,10 +72,7 @@ void main() {
 
     firestore.putDocument(
       g.Document(
-        fields: {
-          'failed_count': g.Value(integerValue: '0'),
-          'remaining': g.Value(integerValue: '0'),
-        },
+        fields: {'failed_count': 0.toValue(), 'remaining': 0.toValue()},
         name: firestore.resolveDocumentName(
           CiStaging.metadata.collectionId,
           CiStaging.documentIdFor(
@@ -97,10 +95,7 @@ void main() {
 
     firestore.putDocument(
       g.Document(
-        fields: {
-          'failed_count': g.Value(integerValue: '0'),
-          'remaining': g.Value(integerValue: '1'),
-        },
+        fields: {'failed_count': 0.toValue(), 'remaining': 1.toValue()},
         name: firestore.resolveDocumentName(
           CiStaging.metadata.collectionId,
           CiStaging.documentIdFor(
@@ -123,10 +118,7 @@ void main() {
 
     firestore.putDocument(
       g.Document(
-        fields: {
-          'failed_count': g.Value(integerValue: '1'),
-          'remaining': g.Value(integerValue: '1'),
-        },
+        fields: {'failed_count': 1.toValue(), 'remaining': 1.toValue()},
         name: firestore.resolveDocumentName(
           CiStaging.metadata.collectionId,
           CiStaging.documentIdFor(

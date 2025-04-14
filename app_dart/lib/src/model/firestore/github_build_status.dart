@@ -64,14 +64,14 @@ class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
     return GithubBuildStatus.fromDocument(
       Document(
         fields: {
-          kGithubBuildStatusStatusField: Value(stringValue: status),
-          kGithubBuildStatusHeadField: Value(stringValue: head),
-          kGithubBuildStatusRepositoryField: Value(stringValue: repository),
-          kGithubBuildStatusPrNumberField: Value(integerValue: '$prNumber'),
+          kGithubBuildStatusStatusField: status.toValue(),
+          kGithubBuildStatusHeadField: head.toValue(),
+          kGithubBuildStatusRepositoryField: repository.toValue(),
+          kGithubBuildStatusPrNumberField: prNumber.toValue(),
           kGithubBuildStatusUpdateTimeMillisField: Value(
             integerValue: '$updateTimeMillis',
           ),
-          kGithubBuildStatusUpdatesField: Value(integerValue: '$updates'),
+          kGithubBuildStatusUpdatesField: updates.toValue(),
         },
         name: p.posix.join(
           kDatabase,
@@ -122,21 +122,18 @@ class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
       int.parse(fields[kGithubBuildStatusUpdatesField]!.integerValue!);
 
   String setStatus(String status) {
-    fields[kGithubBuildStatusStatusField] = Value(stringValue: status);
+    fields[kGithubBuildStatusStatusField] = status.toValue();
     return status;
   }
 
   int setUpdates(int updates) {
-    fields[kGithubBuildStatusUpdatesField] = Value(
-      integerValue: updates.toString(),
-    );
+    fields[kGithubBuildStatusUpdatesField] = updates.toValue();
     return updates;
   }
 
   int setUpdateTimeMillis(int updateTimeMillis) {
-    fields[kGithubBuildStatusUpdateTimeMillisField] = Value(
-      integerValue: updateTimeMillis.toString(),
-    );
+    fields[kGithubBuildStatusUpdateTimeMillisField] =
+        updateTimeMillis.toValue();
     return updateTimeMillis;
   }
 }
