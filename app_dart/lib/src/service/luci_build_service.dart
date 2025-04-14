@@ -19,7 +19,6 @@ import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
@@ -1033,13 +1032,7 @@ class LuciBuildService {
     required fs.Task taskDocument,
     Task? task,
     Iterable<BuildTag> tags = const [],
-    bool ignoreChecks = false,
   }) async {
-    if (ignoreChecks == false &&
-        await _shouldRerunBuilderFirestore(taskDocument) == false) {
-      return false;
-    }
-
     log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
 
     final buildTags = BuildTags(tags);
@@ -1137,41 +1130,5 @@ class LuciBuildService {
     await datastore.insert([dsExistingTask]);
 
     return newAttempt;
-  }
-
-  /// Check if a builder should be rerun.
-  ///
-  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
-  Future<bool> _shouldRerunBuilderFirestore(fs.Task task) async {
-    if (!fs.Task.taskFailStatusSet.contains(task.status)) {
-      log.info(
-        'A re-run was requested for ${task.taskName} which is not failing '
-        '(${task.status})',
-      );
-      return false;
-    }
-    final retries = task.currentAttempt;
-    if (retries > _config.maxLuciTaskRetries) {
-      log.info('Max retries reached for ${task.taskName}');
-      return false;
-    }
-
-    final firestoreService = await _config.createFirestoreService();
-    final currentCommit = await fs.Commit.fromFirestoreBySha(
-      firestoreService,
-      sha: task.commitSha,
-    );
-    final commitList = await firestoreService.queryRecentCommits(
-      limit: 1,
-      slug: currentCommit.slug,
-      branch: currentCommit.branch,
-    );
-    final latestCommit = commitList.single;
-
-    if (latestCommit.sha != currentCommit.sha) {
-      log.info('Not tip of tree: ${currentCommit.sha}');
-      return false;
-    }
-    return true;
   }
 }

@@ -633,4 +633,161 @@ void main() {
       ]),
     );
   });
+
+  test('skips rerunning a successful builder', () async {
+    final fsCommit = generateFirestoreCommit(
+      1,
+      sha: '87f88734747805589f2131753620d61b22922822',
+    );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusInProgress,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
+    final task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      status: Task.statusFailed,
+    );
+    config.db.values[task.key] = task;
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux A',
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
+    );
+
+    final luciBuildService = MockLuciBuildService();
+    scheduler.luciBuildService = luciBuildService;
+
+    await tester.post(handler);
+
+    verifyNever(
+      luciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        target: anyNamed('target'),
+        taskDocument: anyNamed('taskDocument'),
+      ),
+    );
+  });
+
+  test('skips rerunning if past retry limit', () async {
+    final fsCommit = generateFirestoreCommit(
+      1,
+      sha: '87f88734747805589f2131753620d61b22922822',
+    );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusInProgress,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
+    final task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      status: Task.statusFailed,
+    );
+    config.db.values[task.key] = task;
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
+    );
+
+    final luciBuildService = MockLuciBuildService();
+    scheduler.luciBuildService = luciBuildService;
+    config.maxLuciTaskRetriesValue = 0;
+
+    await tester.post(handler);
+
+    verifyNever(
+      luciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        target: anyNamed('target'),
+        taskDocument: anyNamed('taskDocument'),
+      ),
+    );
+  });
+
+  test('skips rerunning when builder is not in tip-of-tree', () async {
+    final fsCommit = generateFirestoreCommit(
+      1,
+      sha: '87f88734747805589f2131753620d61b22922822',
+    );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: fs.Task.statusInProgress,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
+    // Add another commit to ToT.
+    firestore.putDocument(generateFirestoreCommit(2));
+
+    final task = generateTask(
+      4507531199512576,
+      name: 'Linux A',
+      status: Task.statusFailed,
+    );
+    config.db.values[task.key] = task;
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskKey: '${task.key.id}',
+        commitKey: '${task.key.parent?.id}',
+        firestoreTaskDocumentName: fs.TaskId(
+          commitSha: fsCommit.sha,
+          taskName: task.name!,
+          currentAttempt: task.attempts!,
+        ),
+      ),
+    );
+
+    final luciBuildService = MockLuciBuildService();
+    scheduler.luciBuildService = luciBuildService;
+
+    await tester.post(handler);
+
+    verifyNever(
+      luciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        target: anyNamed('target'),
+        taskDocument: anyNamed('taskDocument'),
+      ),
+    );
+  });
 }

@@ -194,7 +194,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
           commit: OpaqueCommit.fromFirestore(commit),
           target: taskTarget,
           tags: [TriggerdByBuildTag(email: email)],
-          ignoreChecks: _manualRerunsIgnoreChecks,
           taskDocument: task,
         ),
       );
@@ -203,9 +202,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     await Future.wait(futures);
     return didRerun;
   }
-
-  // TODO(matanlurey): https://github.com/flutter/flutter/issues/166858.
-  static const _manualRerunsIgnoreChecks = true;
 
   Future<bool> _rerunSpecificTask({
     required fs.Commit commit,
@@ -224,7 +220,6 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       commit: OpaqueCommit.fromFirestore(commit),
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
-      ignoreChecks: _manualRerunsIgnoreChecks,
       taskDocument: task,
     );
   }
