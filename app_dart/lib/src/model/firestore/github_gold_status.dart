@@ -70,12 +70,12 @@ class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
     return GithubGoldStatus.fromDocument(
       Document(
         fields: {
-          kGithubGoldStatusPrNumberField: Value(integerValue: '$prNumber'),
-          kGithubGoldStatusHeadField: Value(stringValue: head),
-          kGithubGoldStatusStatusField: Value(stringValue: status),
-          kGithubGoldStatusDescriptionField: Value(stringValue: description),
-          kGithubGoldStatusUpdatesField: Value(integerValue: '$updates'),
-          kGithubGoldStatusRepositoryField: Value(stringValue: repository),
+          kGithubGoldStatusPrNumberField: prNumber.toValue(),
+          kGithubGoldStatusHeadField: head.toValue(),
+          kGithubGoldStatusStatusField: status.toValue(),
+          kGithubGoldStatusDescriptionField: description.toValue(),
+          kGithubGoldStatusUpdatesField: updates.toValue(),
+          kGithubGoldStatusRepositoryField: repository.toValue(),
         },
         name: p.posix.join(
           kDatabase,
