@@ -12,15 +12,15 @@ abstract base class Check {
 
   /// What files should be checked by this check.
   ///
-  /// Assume the context is relative to a package root.
-  Glob get shouldCheck;
+  /// Assume the context is relative to the Cocoon repository root.
+  Iterable<Glob> get include;
 
   /// Whether to exclude certian files from this check.
   ///
   /// If omitted, does nothing.
   ///
   /// Assume the context is relative to the Cocoon repository root.
-  Iterable<Glob> get allowListed => const [];
+  Iterable<Glob> get exclude => const [];
 
   /// Checks [file] for violations of `this`.
   ///
