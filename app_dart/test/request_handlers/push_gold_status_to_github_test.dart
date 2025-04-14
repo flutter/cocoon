@@ -1539,6 +1539,18 @@ void main() {
         final body = await tester.get<Body>(handler);
         expect(body, same(Body.empty));
 
+        expect(
+          firestore,
+          existsInStorage(fs.GithubGoldStatus.metadata, [
+            isGithubGoldStatus
+                .hasUpdates(0)
+                .hasStatus(GithubGoldStatus.statusCompleted),
+            isGithubGoldStatus
+                .hasUpdates(1)
+                .hasStatus(GithubGoldStatus.statusCompleted),
+          ]),
+        );
+
         // FIXME: Replace with existsInStorage.
         // expect(githubGoldStatus!.updates, 0);
         // expect(githubGoldStatusNext!.updates, 1);
