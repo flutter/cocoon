@@ -17,6 +17,8 @@ dependencies:
   firebase_auth: ^5.5.2
   firebase_core: 3.13.0 # Rolled by dependabot
   firebase_crashlytics: 4.3.5 # Rolled by dependabot
+  firebase_ui_auth: ^1.16.1
+  firebase_ui_oauth_google: ^1.4.1
   flutter:
     sdk: flutter
   flutter_app_icons: 0.1.1 # Rolled by dependabot
