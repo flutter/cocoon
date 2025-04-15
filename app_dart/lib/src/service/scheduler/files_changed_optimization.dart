@@ -75,7 +75,7 @@ final class FilesChangedOptimizer {
         return FilesChangedOptimization.none;
       case SuccessfulFilesChanged(:final filesChanged):
         if (filesChanged.length == 1 && filesChanged.contains('CHANGELOG.md')) {
-          return FilesChangedOptimization.skipPresubmitAll;
+          return FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze;
         }
         for (final file in filesChanged) {
           if (file == 'DEPS' || file.startsWith('engine/')) {
@@ -98,8 +98,8 @@ enum FilesChangedOptimization {
   /// Engine builds (and tests) can be skipped for this presubmit run.
   skipPresubmitEngine,
 
-  /// All builds (and tests) can be skipped for this presubmit run.
-  skipPresubmitAll;
+  /// Almost all builds (and tests) can be skipped for this presubmit run.
+  skipPresubmitAllExceptFlutterAnalyze;
 
   /// Whether the engine should be prebuilt.
   bool get shouldUsePrebuiltEngine => !shouldBuildEngineFromSource;
