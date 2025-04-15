@@ -20,8 +20,6 @@ import '../service/luci_build_service/opaque_commit.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
-///
-/// Expects either [taskKeyParam] or a set of params that give enough detail to lookup a task in datastore.
 @immutable
 final class RerunProdTask extends ApiRequestHandler<Body> {
   const RerunProdTask({
