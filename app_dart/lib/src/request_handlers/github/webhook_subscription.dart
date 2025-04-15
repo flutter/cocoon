@@ -149,6 +149,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             json.decode(webhook.payload) as Map<String, dynamic>,
           );
           log.debug('workflow_job: $job');
+          await scheduler.processWorkflowJob(job);
         } catch (e, s) {
           log.warn(
             'Failed to parse workflow_job event: ${webhook.payload}',
