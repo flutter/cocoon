@@ -17,6 +17,7 @@ import '../../model/appengine/task.dart' as ds;
 import '../../model/firestore/commit.dart' as fs;
 import '../../model/firestore/task.dart' as fs;
 import '../../service/datastore.dart';
+import '../../service/firestore/commit_and_tasks.dart';
 
 /// Vacuum stale tasks.
 ///

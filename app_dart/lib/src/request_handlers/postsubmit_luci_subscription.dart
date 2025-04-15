@@ -22,9 +22,9 @@ import '../request_handling/subscription_handler.dart';
 import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
+import '../service/luci_build_service.dart';
 import '../service/luci_build_service/opaque_commit.dart';
 import '../service/luci_build_service/user_data.dart';
-import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to build updates for postsubmit builds.
@@ -40,15 +40,15 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     required super.cache,
     required super.config,
     super.authProvider,
-    required Scheduler scheduler,
+    required LuciBuildService luciBuildService,
     required GithubChecksService githubChecksService,
     required CiYamlFetcher ciYamlFetcher,
   }) : _ciYamlFetcher = ciYamlFetcher,
+       _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
-       _scheduler = scheduler,
        super(subscriptionName: 'build-bucket-postsubmit-sub');
 
-  final Scheduler _scheduler;
+  final LuciBuildService _luciBuildService;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
 
@@ -155,7 +155,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     );
     if (await _shouldAutomaticallyRerun(firestoreTask)) {
       log.debug('Trying to auto-retry...');
-      final retried = await _scheduler.luciBuildService.checkRerunBuilder(
+      final retried = await _luciBuildService.checkRerunBuilder(
         commit: OpaqueCommit.fromFirestore(fsCommit),
         target: target,
         task: task,
@@ -171,7 +171,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       await _githubChecksService.updateCheckStatus(
         build: build,
         checkRunId: userData.checkRunId!,
-        luciBuildService: _scheduler.luciBuildService,
+        luciBuildService: _luciBuildService,
         slug: fsCommit.slug,
       );
     }

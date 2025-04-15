@@ -192,7 +192,8 @@ Target generateTarget(
   String recipe = 'devicelab/devicelab',
   String? name,
 }) {
-  final config = schedulerConfig ?? exampleConfig.configFor(CiType.any);
+  final config =
+      schedulerConfig ?? multiTargetFusionConfig.configFor(CiType.any);
   if (platformProperties != null && platformDimensions != null) {
     config.platformProperties[platform
         .toLowerCase()] = pb.SchedulerConfig_PlatformProperties(

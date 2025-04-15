@@ -9,7 +9,6 @@ import 'package:cocoon_code_health/src/checks.dart';
 import 'package:cocoon_code_health/src/checks/do_not_submit_fixme.dart';
 import 'package:cocoon_code_health/src/checks/use_test_logging.dart';
 import 'package:cocoon_common/cocoon_common.dart';
-import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 

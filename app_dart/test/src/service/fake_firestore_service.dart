@@ -14,7 +14,6 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../model/firestore_matcher.dart';
-import '../utilities/mocks.dart';
 
 export '../model/firestore_matcher.dart';
 
@@ -47,17 +46,17 @@ abstract base class _FakeInMemoryFirestoreService
     }
   }
 
-  final alphabet = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  static final _alphabet = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
               'abcdefghijklmnopqrstuvwxyz'
               '0123456789' *
           32)
       .split('');
 
-  String _generateUniqueId() {
-    final result = (alphabet..shuffle()).take(20).join('');
+  String _generateDocumentId() {
+    final result = (_alphabet..shuffle()).take(20).join('');
 
     if (_documents.containsKey(result)) {
-      return _generateUniqueId();
+      return _generateDocumentId();
     }
 
     return result;
@@ -167,6 +166,32 @@ abstract base class _FakeInMemoryFirestoreService
     return _clone(_documents[name]!);
   }
 
+  /// Stores multiple [documents].
+  ///
+  /// Note that this method bypasses normal database conventions, and is
+  /// intended to represent changes to the database that happen _before_ a test
+  /// runs, or as a side-effect not covered in a test.
+  ///
+  /// [Document.name] must be set, or this method fails.
+  ///
+  /// If [created] is set, it is used, otherwise [DateTime.now] is used for
+  /// a new document, and the _prevous_ [Document.createTime] is used for a
+  /// pre-existing document.
+  ///
+  /// If [updated] is set, it is used, otherwise [DateTime.now] is used.
+  ///
+  /// Returns a clone of the newly inserted documents.
+  List<Document> putDocuments(
+    Iterable<Document> documents, {
+    DateTime? created,
+    DateTime? updated,
+  }) {
+    return [
+      for (final d in documents)
+        putDocument(d, created: created, updated: updated),
+    ];
+  }
+
   final _failOnWriteDocument = <String, Exception>{};
 
   /// Instructs the fake to throw an exception if [document] is written.
@@ -236,7 +261,7 @@ abstract base class _FakeInMemoryFirestoreService
 
         // Must not find an existing document and insert.
         case final p? when p.exists == false:
-          final name = document.name ?? _generateUniqueId();
+          final name = document.name ?? _generateDocumentId();
           if (tryPeekDocumentByName(name) != null) {
             response.add(Status(code: 9, message: '"$name" already exists'));
             continue;
@@ -253,7 +278,7 @@ abstract base class _FakeInMemoryFirestoreService
   }
 
   @override
-  Future<Document> getDocument(String name) async {
+  Future<Document> getDocument(String name, {Transaction? transaction}) async {
     final result = tryPeekDocumentByName(name);
     if (result == null) {
       throw DetailedApiRequestError(
@@ -268,6 +293,7 @@ abstract base class _FakeInMemoryFirestoreService
   Future<Document> createDocument(
     Document document, {
     required String collectionId,
+    String? documentId,
   }) async {
     if (document.name case final name?
         when tryPeekDocumentByName(name) != null) {
@@ -278,7 +304,10 @@ abstract base class _FakeInMemoryFirestoreService
     }
     return putDocument(
       _clone(document)
-        ..name = resolveDocumentName(collectionId, _generateUniqueId()),
+        ..name = resolveDocumentName(
+          collectionId,
+          documentId ?? _generateDocumentId(),
+        ),
     );
   }
 
@@ -296,7 +325,7 @@ abstract base class _FakeInMemoryFirestoreService
     // to the same document.
     final beforeTransaction = _documents.map((k, v) => MapEntry(k, _clone(v)));
     final result = _batchWriteSync(writes);
-    if (result.any((r) => r.code != 0)) {
+    if (_failOnTransactionCommit || result.any((r) => r.code != 0)) {
       _documents
         ..clear()
         ..addAll(beforeTransaction);
@@ -311,6 +340,47 @@ abstract base class _FakeInMemoryFirestoreService
         (_) => WriteResult(updateTime: updated),
       ),
     );
+  }
+
+  // A transaction is a temporary copy of the database.
+  final _transactions = <String, Map<String, Document>>{};
+
+  String _generateTransactionId() {
+    final result = (_alphabet..shuffle()).take(20).join('');
+
+    if (_transactions.containsKey(result)) {
+      return _generateTransactionId();
+    }
+
+    return result;
+  }
+
+  var _failOnTransactionCommit = false;
+
+  void failOnTransactionCommit() {
+    _failOnTransactionCommit = true;
+  }
+
+  @override
+  Future<Transaction> beginTransaction() async {
+    final id = _generateTransactionId();
+    _transactions[id] = {..._documents};
+    return Transaction.fromIdentifier(id);
+  }
+
+  @override
+  Future<CommitResponse> commit(
+    Transaction transaction,
+    List<Write> writes,
+  ) async {
+    final response = await writeViaTransaction(writes);
+    _transactions.remove(transaction.identifier);
+    return response;
+  }
+
+  @override
+  Future<void> rollback(Transaction transaction) async {
+    _transactions.remove(transaction.identifier);
   }
 
   @override
@@ -452,26 +522,8 @@ abstract base class _FakeInMemoryFirestoreService
   }
 }
 
-/// A partial fake implementation of [FirestoreService].
-///
-/// For methods that are implemented by [_FakeInMemoryFirestoreService],
-/// operates as an in-memory fake, with writes/reads flowing through the API,
-/// which is an in-memory database simulation.
-///
-/// For other methods, they delegate to [mock], which can be manipulated at
-/// test runtime similar to any other mock (i.e. `when(firestore.mock)`).
-///
-/// The awkwardness will be removed after
-/// https://github.com/flutter/flutter/issues/165931.
-final class FakeFirestoreService extends _FakeInMemoryFirestoreService {
-  /// A mock [FirestoreService] for legacy methods that don't faked-out APIs.
-  final mock = MockFirestoreService();
-
-  @override
-  Future<ProjectsDatabasesDocumentsResource> documentResource() {
-    return mock.documentResource();
-  }
-}
+/// A fake implementation of [FirestoreService].
+final class FakeFirestoreService extends _FakeInMemoryFirestoreService {}
 
 /// Checks that the models described by [metadata] match storage of [matcher].
 ///

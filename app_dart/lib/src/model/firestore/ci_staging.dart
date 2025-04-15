@@ -168,6 +168,25 @@ final class CiStaging extends AppDocument<CiStaging> {
   /// The check_run to complete when this stage is closed.
   String get checkRunGuard => fields[kCheckRunGuardField]!.stringValue!;
 
+  static const keysOfImport = [
+    kRemainingField,
+    kTotalField,
+    kFailedField,
+    kCheckRunGuardField,
+    fieldRepoFullPath,
+    fieldCommitSha,
+    fieldStage,
+  ];
+
+  /// The recorded check-runs, a map of "test_name": "check_run id".
+  Map<String, TaskConclusion> get checkRuns {
+    return {
+      for (final MapEntry(:key, :value) in fields.entries)
+        if (!keysOfImport.contains(key))
+          key: TaskConclusion.fromName(value.stringValue),
+    };
+  }
+
   /// Mark a [checkRun] for a given [stage] with [conclusion].
   ///
   /// Returns a [StagingConclusion] record or throws. If the check_run was
@@ -190,17 +209,7 @@ final class CiStaging extends AppDocument<CiStaging> {
     // updated correctly. For that to happen correctly; we need to perform a
     // read of the document in the transaction as well. So start the transaction
     // first thing.
-    final docRes = await firestoreService.documentResource();
-    final transactionResponse = await docRes.beginTransaction(
-      BeginTransactionRequest(
-        options: TransactionOptions(readWrite: ReadWrite()),
-      ),
-      kDatabase,
-    );
-    final transaction = transactionResponse.transaction;
-    if (transaction == null) {
-      throw '$logCrumb: transaction was null when updating $conclusion';
-    }
+    final transaction = await firestoreService.beginTransaction();
 
     var remaining = -1;
     var failed = -1;
@@ -215,7 +224,10 @@ final class CiStaging extends AppDocument<CiStaging> {
     try {
       // First: read the fields we want to change.
       final documentName = documentNameFor(slug: slug, stage: stage, sha: sha);
-      doc = await docRes.get(documentName, transaction: transaction);
+      doc = await firestoreService.getDocument(
+        documentName,
+        transaction: transaction,
+      );
 
       final fields = doc.fields;
       if (fields == null) {
@@ -254,10 +266,7 @@ final class CiStaging extends AppDocument<CiStaging> {
         log.info(
           '$logCrumb: $checkRun not present in doc for $transaction / $doc',
         );
-        await docRes.rollback(
-          RollbackRequest(transaction: transaction),
-          kDatabase,
-        );
+        await firestoreService.rollback(transaction);
         return StagingConclusion(
           result: StagingConclusionResult.missing,
           remaining: remaining,
@@ -326,10 +335,7 @@ final class CiStaging extends AppDocument<CiStaging> {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
         log.info('$logCrumb: staging document not found for $transaction');
-        await docRes.rollback(
-          RollbackRequest(transaction: transaction),
-          kDatabase,
-        );
+        await firestoreService.rollback(transaction);
         return StagingConclusion(
           result: StagingConclusionResult.internalError,
           remaining: -1,
@@ -347,28 +353,21 @@ $stack
         );
       }
       // All other errors should bubble up and be retried.
-      await docRes.rollback(
-        RollbackRequest(transaction: transaction),
-        kDatabase,
-      );
+      await firestoreService.rollback(transaction);
       rethrow;
     } catch (e) {
       // All other errors should bubble up and be retried.
-      await docRes.rollback(
-        RollbackRequest(transaction: transaction),
-        kDatabase,
-      );
+      await firestoreService.rollback(transaction);
       rethrow;
     }
 
     // Commit this write firebase and if no one else was writing at the same time, return success.
     // If this commit fails, that means someone else modified firestore and the caller should try again.
     // We do not need to rollback the transaction; firebase documentation says a failed commit takes care of that.
-    final commitRequest = CommitRequest(
-      transaction: transaction,
-      writes: documentsToWrites([doc], exists: true),
+    final response = await firestoreService.commit(
+      transaction,
+      documentsToWrites([doc], exists: true),
     );
-    final response = await docRes.commit(commitRequest, kDatabase);
     log.info(
       '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
     );
@@ -433,12 +432,9 @@ For CI stage $stage:
       // Calling createDocument multiple times for the same documentId will return a 409 - ALREADY_EXISTS error;
       // this is good because it means we don't have to do any transactions.
       // curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" "https://firestore.googleapis.com/v1beta1/projects/flutter-dashboard/databases/cocoon/documents/ciStaging?documentId=foo_bar_baz" -d '{"fields": {"test": {"stringValue": "baz"}}}'
-      final databasesDocumentsResource =
-          await firestoreService.documentResource();
-      final newDoc = await databasesDocumentsResource.createDocument(
+      final newDoc = await firestoreService.createDocument(
         document,
-        kDocumentParent,
-        _collectionId,
+        collectionId: _collectionId,
         documentId:
             documentIdFor(
               slug: slug,

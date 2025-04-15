@@ -86,9 +86,9 @@ Server createServer({
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
-      scheduler: scheduler,
       githubChecksService: githubChecksService,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
@@ -120,11 +120,13 @@ Server createServer({
       config: config,
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     ),
     '/api/v2/scheduler/batch-request-subscription':
         SchedulerRequestSubscription(

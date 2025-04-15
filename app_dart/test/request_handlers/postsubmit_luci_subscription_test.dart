@@ -34,7 +34,6 @@ void main() {
   late SubscriptionTester tester;
   late MockGithubChecksService mockGithubChecksService;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeScheduler scheduler;
   late FakeCiYamlFetcher ciYamlFetcher;
 
   setUp(() async {
@@ -69,18 +68,14 @@ void main() {
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    scheduler = FakeScheduler(
-      config: config,
-      luciBuildService: luciBuildService,
-    );
     ciYamlFetcher = FakeCiYamlFetcher();
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
       authProvider: FakeAuthenticationProvider(),
       githubChecksService: mockGithubChecksService,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     );
     request = FakeHttpRequest();
     tester = SubscriptionTester(request: request);
@@ -526,6 +521,7 @@ void main() {
     final fsCommit = generateFirestoreCommit(
       1,
       sha: '87f88734747805589f2131753620d61b22922822',
+      repo: 'packages',
     );
     final fsTask = generateFirestoreTask(
       1,
@@ -575,7 +571,7 @@ void main() {
   });
 
   test('unsupported repo target does not update check run', () async {
-    ciYamlFetcher.ciYaml = unsupportedPostsubmitCheckrunConfig;
+    ciYamlFetcher.ciYaml = unsupportedPostsubmitCheckrunFusionConfig;
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),

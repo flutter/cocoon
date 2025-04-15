@@ -55,7 +55,7 @@ void main() {
     final authContext = FakeAuthenticatedContext(clientContext: clientContext);
     tester = ApiRequestHandlerTester(context: authContext);
     mockLuciBuildService = MockLuciBuildService();
-    ciYamlFetcher = FakeCiYamlFetcher(ciYaml: exampleConfig);
+    ciYamlFetcher = FakeCiYamlFetcher(ciYaml: multiTargetFusionConfig);
     handler = RerunProdTask(
       config: config,
       authenticationProvider: FakeAuthenticationProvider(

@@ -117,7 +117,7 @@ void main() {
         status: Task.statusFailed,
         testFlaky: true,
       );
-      task.resetAsRetry(attempt: 2);
+      task.resetAsRetry();
 
       expect(int.parse(task.name!.split('_').last), 2);
       expect(task.status, Task.statusNew);
