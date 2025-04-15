@@ -11,12 +11,30 @@ import 'base.dart';
 
 /// A tree-status update.
 final class BuildStatusSnapshot extends AppDocument<BuildStatusSnapshot> {
+  /// Returns the latest [BuildStatusSnapshot].
+  ///
+  /// If no snapshots exist, returns `null`.
   static Future<BuildStatusSnapshot?> getLatest(
     FirestoreService firestore,
   ) async {
     final docs = await firestore.query(
       metadata.collectionId,
       {},
+      limit: 1,
+      orderMap: {_fieldCreateTimestamp: kQueryOrderDescending},
+    );
+    return docs.isEmpty ? null : BuildStatusSnapshot.fromDocument(docs.first);
+  }
+
+  /// Returns the latest _successful_ [BuildStatusSnapshot].
+  ///
+  /// If no successful snapshots exist, returns `null`.
+  static Future<BuildStatusSnapshot?> getLatestPassing(
+    FirestoreService firestore,
+  ) async {
+    final docs = await firestore.query(
+      metadata.collectionId,
+      {'$_fieldStatus =': BuildStatus.success.name},
       limit: 1,
       orderMap: {_fieldCreateTimestamp: kQueryOrderDescending},
     );
