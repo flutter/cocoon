@@ -172,7 +172,7 @@ Future<List<Target>> getTargetsToRun(
     case SuccessfulFilesChanged(:final pullRequestNumber, :final filesChanged):
       final targetsToRun = <Target>[];
       for (final target in targets) {
-        final globs = target.value.runIf;
+        final globs = target.runIf;
         // Handle case where [Target] initializes empty runif
         if (globs.isEmpty) {
           targetsToRun.add(target);
@@ -189,7 +189,7 @@ Future<List<Target>> getTargetsToRun(
       }
 
       log.info(
-        'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.map((t) => t.value.name).join(', ')}',
+        'Running a subset of targets on PR#$pullRequestNumber: ${targetsToRun.map((t) => t.name).join(', ')}',
       );
 
       return targetsToRun;

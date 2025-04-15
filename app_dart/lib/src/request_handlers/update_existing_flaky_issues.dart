@@ -162,9 +162,9 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final builderFlakyMap = <String, bool>{};
     final ignoreFlakyMap = <String, bool>{};
     for (var target in ciYaml.postsubmitTargets()) {
-      builderFlakyMap[target.value.name] = target.value.bringup;
+      builderFlakyMap[target.name] = target.isBringup;
       if (target.getIgnoreFlakiness()) {
-        ignoreFlakyMap[target.value.name] = true;
+        ignoreFlakyMap[target.name] = true;
       }
     }
     // Update an existing flaky bug with only prod stats if the builder is with `bringup: false`, such as a shard builder.

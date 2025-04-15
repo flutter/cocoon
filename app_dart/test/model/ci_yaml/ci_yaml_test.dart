@@ -91,7 +91,7 @@ void main() {
         ciYaml.postsubmitTargets(),
       );
       final initialTargetNames =
-          initialTargets.map((Target target) => target.value.name).toList();
+          initialTargets.map((Target target) => target.name).toList();
       expect(
         initialTargetNames,
         containsAll(<String>['Linux A', 'Mac A', 'Windows A']),
@@ -119,7 +119,7 @@ void main() {
         ciYaml.postsubmitTargets(),
       );
       final initialTargetNames =
-          initialTargets.map((Target target) => target.value.name).toList();
+          initialTargets.map((Target target) => target.name).toList();
       expect(initialTargetNames, containsAll(<String>['Linux A']));
     });
 
@@ -160,7 +160,7 @@ void main() {
       test('filter targets removed from presubmit', () {
         final initialTargets = ciYaml.presubmitTargets;
         final initialTargetNames =
-            initialTargets.map((Target target) => target.value.name).toList();
+            initialTargets.map((Target target) => target.name).toList();
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
@@ -186,7 +186,7 @@ void main() {
 
         final initialTargetNames =
             ciYaml.presubmitTargets
-                .map((Target target) => target.value.name)
+                .map((Target target) => target.name)
                 .toList();
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
@@ -194,7 +194,7 @@ void main() {
       test('filter targets removed from postsubmit', () {
         final initialTargets = ciYaml.postsubmitTargets;
         final initialTargetNames =
-            initialTargets.map((Target target) => target.value.name).toList();
+            initialTargets.map((Target target) => target.name).toList();
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
@@ -202,7 +202,7 @@ void main() {
         final ciYaml = exampleBackfillFusionConfig;
         final backfillTargets = ciYaml.backfillTargets();
         final backfillTargetNames =
-            backfillTargets.map((Target target) => target.value.name).toList();
+            backfillTargets.map((Target target) => target.name).toList();
         expect(backfillTargetNames, containsAll(<String>['Linux A', 'Mac A']));
       });
 
@@ -229,8 +229,8 @@ void main() {
         );
         final initialTargets = releaseYaml.postsubmitTargets;
         final initialTargetNames =
-            initialTargets.map((Target target) => target.value.name).toList();
-        expect(initialTargetNames, isEmpty);
+            initialTargets.map((Target target) => target.name).toList();
+        expect(initialTargetNames, ['Linux B']);
       });
 
       test('release_build targets for master are filtered out', () {
@@ -255,7 +255,7 @@ void main() {
         );
         final initialTargets = releaseYaml.postsubmitTargets;
         final initialTargetNames =
-            initialTargets.map((target) => target.value.name).toList();
+            initialTargets.map((target) => target.name).toList();
         expect(initialTargetNames, containsAll(<String>['Mac A']));
       });
 
@@ -282,7 +282,7 @@ void main() {
           );
           final initialTargets = releaseYaml.postsubmitTargets;
           final initialTargetNames =
-              initialTargets.map((Target target) => target.value.name).toList();
+              initialTargets.map((Target target) => target.name).toList();
           expect(initialTargetNames, <String>[
             // This is a non-release target and therefore must run in post-submit in fusion mode.
             'Linux B',
@@ -353,7 +353,7 @@ void main() {
         () {
           final initialTargets = ciYaml.presubmitTargets;
           final initialTargetNames =
-              initialTargets.map((Target target) => target.value.name).toList();
+              initialTargets.map((Target target) => target.name).toList();
           expect(initialTargetNames, containsAll(<String>['Linux A']));
         },
       );

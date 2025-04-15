@@ -130,7 +130,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       if (ciYaml.isFusion)
         ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
     ];
-    return {for (final t in targets) t.value.name: t};
+    return {for (final t in targets) t.name: t};
   }
 
   @useResult

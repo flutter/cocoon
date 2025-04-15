@@ -152,10 +152,10 @@ class CiYaml {
     final totTargets = totConfig?._targets ?? <Target>[];
     final totEnabledTargets = _filterEnabledTargets(totTargets);
     totTargetNames =
-        totEnabledTargets.map((Target target) => target.value.name).toList();
+        totEnabledTargets.map((Target target) => target.name).toList();
     totPostsubmitTargetNames =
         totConfig?.postsubmitTargets
-            .map((Target target) => target.value.name)
+            .map((Target target) => target.name)
             .toList() ??
         <String>[];
   }
@@ -187,7 +187,7 @@ class CiYaml {
   /// Gets all [Target] that run on presubmit for this config.
   List<Target> get presubmitTargets {
     final presubmitTargets = _targets.where(
-      (Target target) => target.value.presubmit && !target.value.bringup,
+      (Target target) => target.presubmit && !target.isBringup,
     );
     var enabledTargets = _filterEnabledTargets(presubmitTargets);
 
@@ -208,7 +208,7 @@ class CiYaml {
   /// Gets all [Target] that run on postsubmit for this config.
   List<Target> get postsubmitTargets {
     final postsubmitTargets = _targets.where(
-      (Target target) => target.value.postsubmit,
+      (Target target) => target.postsubmit,
     );
 
     var enabledTargets = _filterEnabledTargets(postsubmitTargets);
@@ -228,7 +228,7 @@ class CiYaml {
   /// Gets the first [Target] matching [builderName] or null.
   Target? getFirstPostsubmitTarget(String builderName) {
     return postsubmitTargets.singleWhereOrNull(
-      (Target target) => target.value.name == builderName,
+      (Target target) => target.name == builderName,
     );
   }
 
@@ -256,7 +256,7 @@ class CiYaml {
       // fusion and non-fusion repos.
       return [
         ...targets.where(
-          (target) => !target.isReleaseBuildTarget && !target.isBringupTarget,
+          (target) => !target.isReleaseBuild && !target.isBringup,
         ),
       ];
     } else {
@@ -265,7 +265,7 @@ class CiYaml {
       if (isFusion) {
         // Fusion repos run release targets in the MQ, so we only need to
         // schedule non-release targets in post-submit.
-        return [...targets.where((target) => !target.isReleaseBuildTarget)];
+        return [...targets.where((target) => !target.isReleaseBuild)];
       } else {
         // Non-fusion repos run all targets in post-submit. There's no MQ to run
         // release builds prior to post-submit.
@@ -287,9 +287,8 @@ class CiYaml {
     return targets
         .where(
           (target) =>
-              (target.value.enabledBranches.isNotEmpty &&
-                  !target.value.enabledBranches.contains(defaultBranch)) ||
-              totTargetNames.contains(target.value.name),
+              (!target.enabledBranches.contains(defaultBranch)) ||
+              totTargetNames.contains(target.name),
         )
         .toList();
   }
@@ -301,13 +300,11 @@ class CiYaml {
   /// flutter_deps recipe module on LUCI.
   List<Target> getInitialTargets(List<Target> targets) {
     Iterable<Target> initialTargets =
-        targets
-            .where((Target target) => target.value.dependencies.isEmpty)
-            .toList();
+        targets.where((Target target) => target.dependencies.isEmpty).toList();
     if (branch != Config.defaultBranch(slug)) {
       // Filter out bringup targets for release branches
       initialTargets = initialTargets.where(
-        (Target target) => !target.value.bringup,
+        (Target target) => !target.isBringup,
       );
     }
 
@@ -336,11 +333,11 @@ class CiYaml {
 
     // 1. Add targets with local definition
     final overrideBranchTargets = targets.where(
-      (Target target) => target.value.enabledBranches.isNotEmpty,
+      (Target target) => target.enabledBranches.isNotEmpty,
     );
     final enabledTargets = overrideBranchTargets.where(
       (Target target) => enabledBranchesMatchesCurrentBranch(
-        target.value.enabledBranches,
+        target.enabledBranches,
         realBranch,
       ),
     );
@@ -352,7 +349,7 @@ class CiYaml {
       realBranch,
     )) {
       final defaultBranchTargets = targets.where(
-        (Target target) => target.value.enabledBranches.isEmpty,
+        (Target target) => target.enabledBranches.isEmpty,
       );
       filteredTargets.addAll(defaultBranchTargets);
     }
@@ -362,7 +359,7 @@ class CiYaml {
 
   /// Whether any of the possible [RegExp] in [enabledBranches] match [branch].
   static bool enabledBranchesMatchesCurrentBranch(
-    List<String> enabledBranches,
+    Iterable<String> enabledBranches,
     String branch,
   ) {
     final regexes = <String>[];

@@ -142,7 +142,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     // Do not block on the target not found.
     if (!postsubmitTargets.any(
-      (element) => element.value.name == firestoreTask.taskName,
+      (element) => element.name == firestoreTask.taskName,
     )) {
       log.warn(
         'Target ${firestoreTask.taskName} has been deleted from TOT. Skip '
@@ -151,7 +151,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       return Body.empty;
     }
     final target = postsubmitTargets.singleWhere(
-      (Target target) => target.value.name == firestoreTask.taskName,
+      (Target target) => target.name == firestoreTask.taskName,
     );
     if (await _shouldAutomaticallyRerun(firestoreTask)) {
       log.debug('Trying to auto-retry...');
@@ -165,9 +165,9 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
 
     // Only update GitHub checks if target is not bringup
-    if (target.value.bringup == false &&
+    if (target.isBringup == false &&
         config.postsubmitSupportedRepos.contains(target.slug)) {
-      log.info('Updating check status for ${target.getTestName}');
+      log.info('Updating check status for ${target.name}');
       await _githubChecksService.updateCheckStatus(
         build: build,
         checkRunId: userData.checkRunId!,

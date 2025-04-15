@@ -107,10 +107,7 @@ void main() {
       validate: true,
     );
 
-    expect(
-      ciYaml.targets().map((t) => t.value.name),
-      unorderedEquals(['Linux A']),
-    );
+    expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
   });
 
   test('fetches the root .ci.yaml for a repository (GoB fallback)', () async {
@@ -148,10 +145,7 @@ void main() {
       validate: true,
     );
 
-    expect(
-      ciYaml.targets().map((t) => t.value.name),
-      unorderedEquals(['Linux A']),
-    );
+    expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
   });
 
   test('fetches the root .ci.yaml for a datastore commit', () async {
@@ -179,10 +173,7 @@ void main() {
       validate: true,
     );
 
-    expect(
-      ciYaml.targets().map((t) => t.value.name),
-      unorderedEquals(['Linux A']),
-    );
+    expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
   });
 
   test('fetches the root .ci.yaml for a firestore commit', () async {
@@ -215,10 +206,7 @@ void main() {
       validate: true,
     );
 
-    expect(
-      ciYaml.targets().map((t) => t.value.name),
-      unorderedEquals(['Linux A']),
-    );
+    expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
   });
 
   test('prevents an invalid target when in conflict with ToT', () async {
@@ -301,7 +289,7 @@ void main() {
     );
 
     expect(
-      ciYaml.targets().map((t) => t.value.name),
+      ciYaml.targets().map((t) => t.name),
       unorderedEquals(['Linux A', 'Linux B']),
     );
   });
@@ -338,10 +326,7 @@ void main() {
       validate: true,
     );
 
-    expect(
-      ciYaml.targets().map((t) => t.value.name),
-      unorderedEquals(['Linux A']),
-    );
+    expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
   });
 
   test('merges targets from dual .ci.yaml in a fusion repo', () async {
@@ -374,13 +359,13 @@ void main() {
     );
 
     expect(
-      ciYaml.targets().map((t) => t.value.name),
+      ciYaml.targets().map((t) => t.name),
       unorderedEquals(['Linux A']),
       reason: 'Root .ci.yaml should only contain Linux A',
     );
 
     expect(
-      ciYaml.targets(type: CiType.fusionEngine).map((t) => t.value.name),
+      ciYaml.targets(type: CiType.fusionEngine).map((t) => t.name),
       unorderedEquals(['Linux Engine']),
       reason: 'Engine .ci.yaml should only contain Linux Engine',
     );
