@@ -13,7 +13,7 @@ import 'package:meta/meta.dart';
 import '../../../cocoon_service.dart';
 import '../../../protos.dart' as pb;
 import '../../model/github/checks.dart' as cocoon_checks;
-import '../../model/github/checks.dart';
+import '../../model/github/workflow_job.dart' as workflow_job;
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/commit_service.dart';
@@ -143,6 +143,20 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           );
           await commitService.handleCreateGithubRequest(createEvent);
         }
+      case 'workflow_job':
+        try {
+          final job = workflow_job.WorkflowJobEvent.fromJson(
+            json.decode(webhook.payload) as Map<String, Object?>,
+          );
+          log.debug('workflow_job: $job');
+          await scheduler.processWorkflowJob(job);
+        } catch (e, s) {
+          log.warn(
+            'Failed to parse workflow_job event: ${webhook.payload}',
+            e,
+            s,
+          );
+        }
     }
 
     return Body.empty;
@@ -262,8 +276,9 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       throw BadRequestException('Malformed merge_group request:\n$rawRequest');
     }
 
-    final mergeGroupEvent = MergeGroupEvent.fromJson(request);
-    final MergeGroupEvent(:mergeGroup, :action, :reason) = mergeGroupEvent;
+    final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(request);
+    final cocoon_checks.MergeGroupEvent(:mergeGroup, :action, :reason) =
+        mergeGroupEvent;
     final headSha = mergeGroup.headSha;
     final slug = mergeGroupEvent.repository!.slug();
 

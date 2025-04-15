@@ -46,7 +46,9 @@ void main() {
       luciBuildService: mockLuciBuildService,
     );
 
-    ciYamlFetcher = FakeCiYamlFetcher(ciYaml: examplePresubmitRescheduleConfig);
+    ciYamlFetcher = FakeCiYamlFetcher(
+      ciYaml: examplePresubmitRescheduleFusionConfig,
+    );
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,

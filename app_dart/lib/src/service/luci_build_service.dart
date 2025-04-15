@@ -1118,8 +1118,7 @@ class LuciBuildService {
     fs.Task task,
   ) async {
     // Update task status in Firestore.
-    final newAttempt = task.currentAttempt + 1;
-    task.resetAsRetry(attempt: newAttempt);
+    task.resetAsRetry();
     task.setStatus(fs.Task.statusInProgress);
 
     final firestore = await _config.createFirestoreService();
@@ -1142,11 +1141,11 @@ class LuciBuildService {
       name: task.taskName,
     );
     dsExistingTask
-      ..attempts = newAttempt
+      ..attempts = task.currentAttempt
       ..status = Task.statusInProgress;
     await datastore.insert([dsExistingTask]);
 
-    return newAttempt;
+    return task.currentAttempt;
   }
 
   /// Check if a builder should be rerun.

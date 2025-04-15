@@ -53,6 +53,10 @@ final class DartInternalSubscription extends SubscriptionHandler {
       );
       if (existing != null) {
         fsTask = existing;
+        if (build.number != fsTask.buildNumber) {
+          fsTask.resetAsRetry();
+          fsTask.setBuildNumber(build.number);
+        }
         fsTask.updateFromBuild(build);
       } else {
         fsTask = fs.Task(
