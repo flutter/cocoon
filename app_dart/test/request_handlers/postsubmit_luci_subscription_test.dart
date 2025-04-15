@@ -667,18 +667,9 @@ void main() {
       ),
     );
 
-    final luciBuildService = MockLuciBuildService();
-    scheduler.luciBuildService = luciBuildService;
-
     await tester.post(handler);
 
-    verifyNever(
-      luciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
-        target: anyNamed('target'),
-        taskDocument: anyNamed('taskDocument'),
-      ),
-    );
+    expect(firestore, existsInStorage(fs.Task.metadata, hasLength(1)));
   });
 
   test('skips rerunning if past retry limit', () async {
@@ -718,19 +709,11 @@ void main() {
       ),
     );
 
-    final luciBuildService = MockLuciBuildService();
-    scheduler.luciBuildService = luciBuildService;
     config.maxLuciTaskRetriesValue = 0;
 
     await tester.post(handler);
 
-    verifyNever(
-      luciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
-        target: anyNamed('target'),
-        taskDocument: anyNamed('taskDocument'),
-      ),
-    );
+    expect(firestore, existsInStorage(fs.Task.metadata, hasLength(1)));
   });
 
   test('skips rerunning when builder is not in tip-of-tree', () async {
@@ -773,17 +756,8 @@ void main() {
       ),
     );
 
-    final luciBuildService = MockLuciBuildService();
-    scheduler.luciBuildService = luciBuildService;
-
     await tester.post(handler);
 
-    verifyNever(
-      luciBuildService.checkRerunBuilder(
-        commit: anyNamed('commit'),
-        target: anyNamed('target'),
-        taskDocument: anyNamed('taskDocument'),
-      ),
-    );
+    expect(firestore, existsInStorage(fs.Task.metadata, hasLength(1)));
   });
 }
