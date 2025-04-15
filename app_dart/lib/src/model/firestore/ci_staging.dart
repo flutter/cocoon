@@ -169,13 +169,13 @@ final class CiStaging extends AppDocument<CiStaging> {
   String get checkRunGuard => fields[kCheckRunGuardField]!.stringValue!;
 
   static const keysOfImport = [
-      kRemainingField,
-      kTotalField,
-      kFailedField,
-      kCheckRunGuardField,
-      fieldRepoFullPath,
-      fieldCommitSha,
-      fieldStage,    
+    kRemainingField,
+    kTotalField,
+    kFailedField,
+    kCheckRunGuardField,
+    fieldRepoFullPath,
+    fieldCommitSha,
+    fieldStage,
   ];
 
   /// The recorded check-runs, a map of "test_name": "check_run id".
