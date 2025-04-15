@@ -87,14 +87,14 @@ class BatchBackfiller extends RequestHandler {
 
       // Skips scheduling if the task is not in TOT commit anymore.
       final taskInToT = ciYamlTargets
-          .map((Target target) => target.value.name)
+          .map((Target target) => target.name)
           .toList()
           .contains(task.task.name);
       if (!taskInToT) {
         continue;
       }
       final target = ciYamlTargets.singleWhere(
-        (target) => target.value.name == task.task.name,
+        (target) => target.name == task.task.name,
       );
       if (target.schedulerPolicy is! BatchPolicy) {
         continue;
@@ -112,7 +112,7 @@ class BatchBackfiller extends RequestHandler {
     backfill = getFilteredBackfill(backfill);
 
     log.debug('Backfilling ${backfill.length} builds');
-    log.debug('${[...backfill.map((tuple) => tuple.first.value.name)]}');
+    log.debug('${[...backfill.map((tuple) => tuple.first.name)]}');
 
     // Update tasks status as in progress to avoid duplicate scheduling.
     final backfillTasks = [...backfill.map((tuple) => tuple.second.task)];
@@ -332,9 +332,7 @@ class BatchBackfiller extends RequestHandler {
   /// Otherwise, returns null indicating nothing should be backfilled.
   FullTask? _backfillTask(Target target, List<FullTask> tasks) {
     final relevantTasks =
-        tasks
-            .where((FullTask task) => task.task.name == target.value.name)
-            .toList();
+        tasks.where((FullTask task) => task.task.name == target.name).toList();
     if (relevantTasks.any(
       (FullTask task) => task.task.status == Task.statusInProgress,
     )) {

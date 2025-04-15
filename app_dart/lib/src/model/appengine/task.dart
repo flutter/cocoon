@@ -57,16 +57,16 @@ class Task extends Model<int> {
   factory Task.fromTarget({required Commit commit, required Target target}) {
     return Task(
       attempts: 1,
-      builderName: target.value.name,
+      builderName: target.name,
       commitKey: commit.key,
       createTimestamp: commit.timestamp!,
-      isFlaky: target.value.bringup,
+      isFlaky: target.isBringup,
       key: commit.key.append(Task),
-      name: target.value.name,
-      requiredCapabilities: <String>[target.value.testbed],
-      stageName: target.value.scheduler.toString(),
+      name: target.name,
+      requiredCapabilities: <String>[/*Unused anyway*/],
+      stageName: target.scheduler.name,
       status: Task.statusNew,
-      timeoutInMinutes: target.value.timeout,
+      timeoutInMinutes: target.timeoutInMinutes,
     );
   }
 

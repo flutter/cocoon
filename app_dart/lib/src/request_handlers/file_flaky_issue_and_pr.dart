@@ -218,7 +218,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   @visibleForTesting
   static bool getIgnoreFlakiness(String builderName, CiYamlSet ciYaml) {
     final target = ciYaml.postsubmitTargets().singleWhereOrNull(
-      (Target target) => target.value.name == builderName,
+      (Target target) => target.name == builderName,
     );
     return target == null ? false : target.getIgnoreFlakiness();
   }

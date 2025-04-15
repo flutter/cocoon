@@ -227,7 +227,7 @@ class Scheduler {
     final toBeScheduled = <PendingTask>[];
     for (var target in targets) {
       final task = tasks.singleWhere(
-        (ds.Task task) => task.name == target.value.name,
+        (ds.Task task) => task.name == target.name,
       );
       var policy = target.schedulerPolicy;
 
@@ -280,7 +280,7 @@ class Scheduler {
     }
 
     log.info(
-      'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.value.name}"').join(', ')}',
+      'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.name}"').join(', ')}',
     );
     final commitDocument = fs.Commit(
       author: commit.author!,
@@ -491,7 +491,7 @@ class Scheduler {
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
-            tasks: [...presubmitTriggerTargets.map((t) => t.value.name)],
+            tasks: [...presubmitTriggerTargets.map((t) => t.name)],
             checkRunGuard: '$lock',
           );
 
@@ -709,7 +709,7 @@ class Scheduler {
       );
       final availableTargets = {
         ...mergeGroupTargets.where(
-          (target) => availableBuilders.contains(target.value.name),
+          (target) => availableBuilders.contains(target.name),
         ),
       };
       if (availableTargets.length != mergeGroupTargets.length) {
@@ -726,7 +726,7 @@ class Scheduler {
         slug: slug,
         sha: headSha,
         stage: CiStage.fusionEngineBuild,
-        tasks: [...availableTargets.map((t) => t.value.name)],
+        tasks: [...availableTargets.map((t) => t.name)],
         checkRunGuard: '$lock',
       );
 
@@ -785,10 +785,8 @@ $s
       ),
     ].where(
       (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild =>
-          target.value.properties['release_build'] == 'true',
-        CiStage.fusionTests =>
-          target.value.properties['release_build'] != 'true',
+        CiStage.fusionEngineBuild => target.isReleaseBuild,
+        CiStage.fusionTests => !target.isReleaseBuild,
       },
     );
 
@@ -820,8 +818,8 @@ $s
 
     // Filter out targets with schedulers different than luci or cocoon.
     bool filter(Target target) =>
-        target.value.scheduler == pb.SchedulerSystem.luci ||
-        target.value.scheduler == pb.SchedulerSystem.cocoon;
+        target.scheduler == pb.SchedulerSystem.luci ||
+        target.scheduler == pb.SchedulerSystem.cocoon;
     return [...inner.presubmitTargets.where(filter)];
   }
 
@@ -915,9 +913,7 @@ $s
   ) {
     if (builderTriggerList != null && builderTriggerList.isNotEmpty) {
       return presubmitTarget
-          .where(
-            (Target target) => builderTriggerList.contains(target.value.name),
-          )
+          .where((Target target) => builderTriggerList.contains(target.name))
           .toList();
     }
     return presubmitTarget;
@@ -956,8 +952,8 @@ $s
         inner.presubmitTargets
             .where(
               (Target target) =>
-                  target.value.scheduler == pb.SchedulerSystem.luci ||
-                  target.value.scheduler == pb.SchedulerSystem.cocoon,
+                  target.scheduler == pb.SchedulerSystem.luci ||
+                  target.scheduler == pb.SchedulerSystem.cocoon,
             )
             .toList();
 
@@ -974,8 +970,8 @@ $s
       for (var target in inner.postsubmitTargets) {
         // We don't want to include a presubmit twice
         // We don't want to run the builder_cache target as a presubmit
-        if (!target.value.presubmit &&
-            !target.value.properties.containsKey('cache_name')) {
+        if (!target.presubmit &&
+            !target.getProperties().containsKey('cache_name')) {
           presubmitTargets.add(target);
         }
       }
@@ -1225,10 +1221,8 @@ $s
         ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
     ].where(
       (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild =>
-          target.value.properties['release_build'] == 'true',
-        CiStage.fusionTests =>
-          target.value.properties['release_build'] != 'true',
+        CiStage.fusionEngineBuild => target.isReleaseBuild,
+        CiStage.fusionTests => !target.isReleaseBuild,
       },
     );
     return [...presubmitTargets];
@@ -1280,7 +1274,7 @@ $s
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
           stage: CiStage.fusionTests,
-          tasks: [...presubmitTargets.map((t) => t.value.name)],
+          tasks: [...presubmitTargets.map((t) => t.name)],
           checkRunGuard: checkRunGuard,
         );
 
@@ -1568,12 +1562,12 @@ $stacktrace
               }
 
               final target = presubmitTargets.firstWhereOrNull(
-                (target) => checkRunEvent.checkRun!.name == target.value.name,
+                (target) => checkRunEvent.checkRun!.name == target.name,
               );
               if (target == null) {
                 return ProcessCheckRunResult.unexpectedError(
                   'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
-                  'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.value.name).toList()}',
+                  'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.name).toList()}',
                 );
               }
               await luciBuildService.scheduleTryBuilds(
@@ -1606,7 +1600,7 @@ $stacktrace
                 commit,
               );
               final target = ciYaml.postsubmitTargets().singleWhere(
-                (Target target) => target.value.name == task.name,
+                (Target target) => target.name == task.name,
               );
               await luciBuildService
                   .reschedulePostsubmitBuildUsingCheckRunEvent(

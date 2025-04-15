@@ -254,7 +254,7 @@ void main() {
       final presubmitTargets = await scheduler.getPresubmitTargets(pullRequest);
 
       expect([
-        ...presubmitTargets.map((Target target) => target.value.name),
+        ...presubmitTargets.map((Target target) => target.name),
       ], containsAll(<String>['Linux A']));
       presubmitTargets
         ..clear()
@@ -265,7 +265,7 @@ void main() {
           ),
         );
       expect([
-        ...presubmitTargets.map((Target target) => target.value.name),
+        ...presubmitTargets.map((Target target) => target.name),
       ], containsAll(<String>['Linux Z']));
     });
 
@@ -1095,7 +1095,7 @@ void main() {
             ).captured;
 
         expect(captured, hasLength(2));
-        expect(captured[0].first.value.name, 'Linux A');
+        expect(captured[0].first.name, 'Linux A');
         expect(captured[1], pullRequest);
       });
 
@@ -1661,9 +1661,9 @@ targets:
             final captured = result.captured;
             expect(captured[0], hasLength(3));
             // see the blend of fusionCiYaml and singleCiYaml
-            expect(captured[0][0].getTestName, 'A');
-            expect(captured[0][1].getTestName, 'Z');
-            expect(captured[0][2].getTestName, 'engine_presubmit');
+            expect(captured[0][0].name, 'Linux A');
+            expect(captured[0][1].name, 'Linux Z');
+            expect(captured[0][2].name, 'Linux engine_presubmit');
             expect(captured[1], pullRequest);
           });
 
@@ -2251,9 +2251,9 @@ targets:
               final captured = result.captured;
               expect(captured[0], hasLength(3));
               // see the blend of fusionCiYaml and singleCiYaml
-              expect(captured[0][0].getTestName, 'A');
-              expect(captured[0][1].getTestName, 'Z');
-              expect(captured[0][2].getTestName, 'engine_presubmit');
+              expect(captured[0][0].name, 'Linux A');
+              expect(captured[0][1].name, 'Linux Z');
+              expect(captured[0][2].name, 'Linux engine_presubmit');
               expect(captured[1], pullRequest);
             },
           );
@@ -2295,7 +2295,7 @@ targets:
           pullRequest,
         );
         expect(
-          presubmitTargets.map((Target target) => target.value.name).toList(),
+          presubmitTargets.map((Target target) => target.name).toList(),
           containsAll(<String>['Linux A', 'Linux C']),
         );
       });
@@ -2338,17 +2338,16 @@ targets:
           final presubmitTargets = await scheduler.getPresubmitTargets(
             enginePr,
           );
-          expect(
-            presubmitTargets.map((Target target) => target.value.name).toList(),
-            <String>[
-              // Always runs.
-              'Linux Presubmit',
-              // test: all label is present, so runIf is skipped.
-              'Linux Conditional Presubmit (runIf)',
-              // test: all label is present, so postsubmit is treated as presubmit.
-              'Linux Postsubmit',
-            ],
-          );
+          expect(presubmitTargets.map((Target target) => target.name).toList(), <
+            String
+          >[
+            // Always runs.
+            'Linux Presubmit',
+            // test: all label is present, so runIf is skipped.
+            'Linux Conditional Presubmit (runIf)',
+            // test: all label is present, so postsubmit is treated as presubmit.
+            'Linux Postsubmit',
+          ]);
         });
 
         test('with a specific label in the flutter/flutter repo', () async {
@@ -2360,17 +2359,16 @@ targets:
           final presubmitTargets = await scheduler.getPresubmitTargets(
             frameworkPr,
           );
-          expect(
-            presubmitTargets.map((Target target) => target.value.name).toList(),
-            <String>[
-              // Always runs.
-              'Linux Presubmit',
-              // test: all label is present, so runIf is skipped.
-              'Linux Conditional Presubmit (runIf)',
-              // test: all label is present, so postsubmit is treated as presubmit.
-              'Linux Postsubmit',
-            ],
-          );
+          expect(presubmitTargets.map((Target target) => target.name).toList(), <
+            String
+          >[
+            // Always runs.
+            'Linux Presubmit',
+            // test: all label is present, so runIf is skipped.
+            'Linux Conditional Presubmit (runIf)',
+            // test: all label is present, so postsubmit is treated as presubmit.
+            'Linux Postsubmit',
+          ]);
         });
 
         test('without a specific label', () async {
@@ -2386,7 +2384,7 @@ targets:
             enginePr,
           );
           expect(
-            presubmitTargets.map((Target target) => target.value.name).toList(),
+            presubmitTargets.map((Target target) => target.name).toList(),
             <String>[
               // Always runs.
               'Linux Presubmit',
@@ -2429,7 +2427,7 @@ targets:
         final targets = await scheduler.getPresubmitTargets(
           generatePullRequest(branch: branch),
         );
-        expect(targets.single.value.name, 'Linux A');
+        expect(targets.single.name, 'Linux A');
       });
 
       test('triggers expected presubmit build checks', () async {
@@ -2582,7 +2580,7 @@ targets:
           );
           final targets = await scheduler.getPresubmitTargets(pr);
           expect(
-            targets.map((Target target) => target.value.name).toList(),
+            targets.map((Target target) => target.name).toList(),
             containsAll(<String>['Linux A', 'Linux B']),
           );
         },
@@ -2821,7 +2819,7 @@ targets:
             <String>['Linux 1', 'Linux 3'],
           );
           expect(presubmitTriggerTargets.length, 1);
-          expect(presubmitTargets[0].value.name, 'Linux 1');
+          expect(presubmitTargets[0].name, 'Linux 1');
         },
       );
 
@@ -2921,7 +2919,7 @@ targets:
         final captured = result.captured;
         expect(captured[0], hasLength(1));
         // see the blend of fusionCiYaml and singleCiYaml
-        expect(captured[0][0].getTestName, 'engine_build');
+        expect(captured[0][0].name, 'Linux engine_build');
 
         expect(checkRuns, hasLength(2));
         verify(
@@ -3099,9 +3097,7 @@ targets:
         );
         expect(result.callCount, 1);
         expect(
-          result.captured.cast<List<Target>>()[0].map(
-            (target) => target.value.name,
-          ),
+          result.captured.cast<List<Target>>()[0].map((target) => target.name),
           ['Linux engine_build', 'Mac engine_build'],
         );
 
@@ -3241,9 +3237,7 @@ targets:
         );
         expect(result.callCount, 1);
         expect(
-          result.captured.cast<List<Target>>()[0].map(
-            (target) => target.value.name,
-          ),
+          result.captured.cast<List<Target>>()[0].map((target) => target.name),
           ['Mac engine_build'],
         );
 
@@ -3391,9 +3385,7 @@ targets:
         );
         expect(result.callCount, 1);
         expect(
-          result.captured.cast<List<Target>>()[0].map(
-            (target) => target.value.name,
-          ),
+          result.captured.cast<List<Target>>()[0].map((target) => target.name),
           ['Linux engine_build', 'Mac engine_build'],
         );
 
@@ -3478,7 +3470,7 @@ targets:
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
           ['Linux engine_build'],
           reason: 'Should still run engine phase',
         );
@@ -3493,7 +3485,7 @@ targets:
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
           ['Linux engine_build'],
           reason: 'Should still run engine phase',
         );
@@ -3514,7 +3506,7 @@ targets:
 
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
           expect(
-            fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+            fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
             ['Linux engine_build'],
             reason: 'Should still run engine phase',
           );
@@ -3534,7 +3526,7 @@ targets:
           reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
           ['Linux A'],
           reason: 'Should skip Linux engine_build',
         );
@@ -3559,7 +3551,7 @@ targets:
           reason: 'Release candidates use an "existing" dart-internal build',
         );
         expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.value.name),
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
           ['Linux engine_build'],
           reason: 'Should run the engine_build',
         );

@@ -387,7 +387,7 @@ List<String>? _getTags(
   }
 
   final target = allUniqueTargets.firstWhereOrNull(
-    (element) => element.value.name == targetName,
+    (element) => element.name == targetName,
   );
   return target?.tags;
 }

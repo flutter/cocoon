@@ -13,7 +13,7 @@ final class TargetMatcher extends Matcher {
 
   TargetMatcher hasName(Object? valueOrMatcher) {
     return TargetMatcher._(
-      _delegate.having((e) => e.value.name, 'value.name', valueOrMatcher),
+      _delegate.having((e) => e.name, 'name', valueOrMatcher),
     );
   }
 
@@ -94,7 +94,7 @@ final class TargetMatcher extends Matcher {
   TargetMatcher hasIsReleaseBuildTarget(Object? valueOrMatcher) {
     return TargetMatcher._(
       _delegate.having(
-        (e) => e.isReleaseBuildTarget,
+        (e) => e.isReleaseBuild,
         'isReleaseBuildTarget',
         valueOrMatcher,
       ),
@@ -103,11 +103,7 @@ final class TargetMatcher extends Matcher {
 
   TargetMatcher hasIsBringupTarget(Object? valueOrMatcher) {
     return TargetMatcher._(
-      _delegate.having(
-        (e) => e.isBringupTarget,
-        'isBringupTarget',
-        valueOrMatcher,
-      ),
+      _delegate.having((e) => e.isBringup, 'isBringupTarget', valueOrMatcher),
     );
   }
 

@@ -15,17 +15,17 @@ import '../proto/internal/scheduler.pb.dart' as pb;
 ///
 /// Changes here may also need to be upstreamed in:
 ///  * https://flutter.googlesource.com/infra/+/refs/heads/main/config/lib/ci_yaml/ci_yaml.star
-class Target {
+final class Target {
   Target({
-    required this.value,
+    required pb.Target value,
     required this.schedulerConfig,
     required this.slug,
-  });
+  }) : _value = value;
 
   /// Underlying [Target] this is based on.
-  final pb.Target value;
+  final pb.Target _value;
 
-  /// The [SchedulerConfig] [value] is from.
+  /// The [SchedulerConfig] [_value] is from.
   ///
   /// This is passed for necessary lookups to platform level details.
   final pb.SchedulerConfig schedulerConfig;
@@ -95,7 +95,7 @@ class Target {
   ///
   /// All targets except from [Config.guaranteedSchedulingRepos] run with [BatchPolicy] to reduce queue time.
   SchedulerPolicy get schedulerPolicy {
-    if (value.scheduler != pb.SchedulerSystem.cocoon) {
+    if (_value.scheduler != pb.SchedulerSystem.cocoon) {
       return const OmitPolicy();
     }
     if (Config.guaranteedSchedulingRepos.contains(slug)) {
@@ -114,10 +114,37 @@ class Target {
         : [];
   }
 
-  String get getTestName {
-    final words = value.name.split(' ');
-    return words.length < 2 ? words[0] : words[1];
-  }
+  /// Name of the target.
+  String get name => _value.name;
+
+  /// Timeout in minutes.
+  int get timeoutInMinutes => _value.timeout;
+
+  /// Scheduler system of the target.
+  pb.SchedulerSystem get scheduler => _value.scheduler;
+
+  /// Whether the target runs in presubmit.
+  bool get presubmit => _value.presubmit;
+
+  /// Whether the target runs in postsubmit.
+  bool get postsubmit => _value.postsubmit;
+
+  /// The target's enabled branches.
+  ///
+  /// This set is unmodifiable.
+  late final Set<String> enabledBranches = Set.unmodifiable(
+    _value.enabledBranches,
+  );
+
+  /// The target's dependencies.
+  ///
+  /// This list is unmodifiable.
+  late final List<String> dependencies = List.unmodifiable(_value.dependencies);
+
+  /// The target's `runIf` configuration.
+  ///
+  /// This list is unmodifiable.
+  late final List<String> runIf = List.unmodifiable(_value.runIf);
 
   /// Gets the assembled properties for this [pb.Target].
   ///
@@ -160,24 +187,24 @@ class Target {
         mergedDependencies.values
             .map((Dependency dep) => dep.toJson())
             .toList();
-    mergedProperties['bringup'] = value.bringup;
+    mergedProperties['bringup'] = _value.bringup;
 
     return mergedProperties;
   }
 
   Map<String, Object> _getTargetDimensions() {
     final dimensions = <String, Object>{};
-    for (var key in value.dimensions.keys) {
-      dimensions[key] = _parseProperty(key, value.dimensions[key]!);
+    for (var key in _value.dimensions.keys) {
+      dimensions[key] = _parseProperty(key, _value.dimensions[key]!);
     }
 
     return dimensions;
   }
 
   Map<String, Object> _getTargetProperties() {
-    final properties = <String, Object>{'recipe': value.recipe};
-    for (var key in value.properties.keys) {
-      properties[key] = _parseProperty(key, value.properties[key]!);
+    final properties = <String, Object>{'recipe': _value.recipe};
+    for (var key in _value.properties.keys) {
+      properties[key] = _parseProperty(key, _value.properties[key]!);
     }
 
     return properties;
@@ -246,12 +273,12 @@ class Target {
   ///
   /// Platform is extracted as the first word in a target's name.
   String getPlatform() {
-    return value.name.split(' ').first.toLowerCase();
+    return _value.name.split(' ').first.toLowerCase();
   }
 
   /// Get the associated LUCI bucket to run this [Target] in.
   String getBucket() {
-    return value.bringup ? 'staging' : 'prod';
+    return _value.bringup ? 'staging' : 'prod';
   }
 
   /// Returns value of ignore_flakiness property.
@@ -276,14 +303,19 @@ class Target {
   }
 
   /// Whether this target was marked with `release_build: true` in `.ci.yaml`.
-  bool get isReleaseBuildTarget {
+  bool get isReleaseBuild {
     final properties = getProperties();
     return properties.containsKey('release_build') &&
         (properties['release_build'] as bool);
   }
 
   /// Whether this target was marked with `bringup: true` in `.ci.yaml`.
-  bool get isBringupTarget => value.bringup;
+  bool get isBringup => _value.bringup;
+
+  @override
+  String toString() {
+    return 'Target <$_value>';
+  }
 }
 
 /// Representation of a Flutter dependency.

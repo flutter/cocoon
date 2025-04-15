@@ -257,7 +257,7 @@ class LuciBuildService {
         _config,
         target.slug,
         commitSha,
-        target.value.name,
+        target.name,
       );
       checkRuns.add(checkRun);
 
@@ -321,7 +321,7 @@ class LuciBuildService {
             slug: slug,
             sha: pullRequest.head!.sha!,
             //Use target.value.name here otherwise tests will die due to null checkRun.name.
-            checkName: target.value.name,
+            checkName: target.name,
             pullRequestNumber: pullRequest.number!,
             cipdVersion: cipdVersion,
             userData: userData,
@@ -646,14 +646,14 @@ class LuciBuildService {
     log.info('Available builder list: $availableBuilderSet');
     for (var pending in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
-      if (!availableBuilderSet.contains(pending.target.value.name)) {
+      if (!availableBuilderSet.contains(pending.target.name)) {
         log.warn(
-          'Found no available builder for ${pending.target.value.name}, commit ${commit.sha}',
+          'Found no available builder for ${pending.target.name}, commit ${commit.sha}',
         );
         continue;
       }
       log.info(
-        'create postsubmit schedule request for target: ${pending.target.value} in commit ${commit.sha}',
+        'create postsubmit schedule request for target: ${pending.target} in commit ${commit.sha}',
       );
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
@@ -665,7 +665,7 @@ class LuciBuildService {
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
       );
       log.info(
-        'created postsubmit schedule request for target: ${pending.target.value} in commit ${commit.sha}',
+        'created postsubmit schedule request for target: ${pending.target} in commit ${commit.sha}',
       );
     }
 
@@ -707,15 +707,15 @@ class LuciBuildService {
     log.info('Available builder list: $availableBuilderSet');
     for (var target in targets) {
       // Non-existing builder target will be skipped from scheduling.
-      if (!availableBuilderSet.contains(target.value.name)) {
+      if (!availableBuilderSet.contains(target.name)) {
         log.warn(
-          'Found no available builder for ${target.value.name}, commit '
+          'Found no available builder for ${target.name}, commit '
           '${commit.sha}',
         );
         continue;
       }
       log.info(
-        'create postsubmit schedule request for target: ${target.value} in commit ${commit.sha}',
+        'create postsubmit schedule request for target: $target in commit ${commit.sha}',
       );
 
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
@@ -726,7 +726,7 @@ class LuciBuildService {
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
       );
       log.info(
-        'created postsubmit schedule request for target: ${target.value} in commit ${commit.sha}',
+        'created postsubmit schedule request for target: $target in commit ${commit.sha}',
       );
     }
 
@@ -829,7 +829,7 @@ class LuciBuildService {
     int priority = kDefaultPriority,
   }) async {
     log.info(
-      'Creating postsubmit schedule builder for ${target.value.name} on commit ${commit.sha}',
+      'Creating postsubmit schedule builder for ${target.name} on commit ${commit.sha}',
     );
     tags ??= BuildTags([
       ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
@@ -841,15 +841,13 @@ class LuciBuildService {
 
     final commitKey = task.parentKey!.id.toString();
     final taskKey = task.key.id.toString();
-    log.info(
-      'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
-    );
+    log.info('Scheduling builder: ${target.name} for commit ${commit.sha}');
     log.info('Task commit_key: $commitKey for task name: ${task.name}');
     log.info('Task task_key: $taskKey for task name: ${task.name}');
 
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
     final CheckRun? checkRun;
-    if (!target.value.bringup &&
+    if (!target.isBringup &&
         _config.postsubmitSupportedRepos.contains(target.slug)) {
       checkRun = await createPostsubmitCheckRun(commit, target);
     } else {
@@ -857,7 +855,7 @@ class LuciBuildService {
     }
 
     tags.addOrReplace(UserAgentBuildTag.flutterCocoon);
-    tags.addOrReplace(SchedulerJobIdBuildTag(targetName: target.value.name));
+    tags.addOrReplace(SchedulerJobIdBuildTag(targetName: target.name));
     final currentAttempt = tags.addIfAbsent(
       CurrentAttemptBuildTag(attemptNumber: 1),
     );
@@ -894,14 +892,14 @@ class LuciBuildService {
     final executable = bbv2.Executable(cipdVersion: cipdExe);
 
     log.info(
-      'Constructing the postsubmit schedule build request for ${target.value.name} on commit ${commit.sha}.',
+      'Constructing the postsubmit schedule build request for ${target.name} on commit ${commit.sha}.',
     );
 
     return bbv2.ScheduleBuildRequest(
       builder: bbv2.BuilderID(
         project: 'flutter',
         bucket: target.getBucket(),
-        builder: target.value.name,
+        builder: target.name,
       ),
       dimensions: requestedDimensions,
       exe: executable,
@@ -930,11 +928,9 @@ class LuciBuildService {
     int priority = kDefaultPriority,
   }) async {
     log.info(
-      'Creating merge group schedule builder for ${target.value.name} on commit ${commit.sha}',
+      'Creating merge group schedule builder for ${target.name} on commit ${commit.sha}',
     );
-    log.info(
-      'Scheduling builder: ${target.value.name} for commit ${commit.sha}',
-    );
+    log.info('Scheduling builder: ${target.name} for commit ${commit.sha}');
 
     final checkRun = await createPostsubmitCheckRun(commit, target);
     final preUserData = PresubmitUserData(
@@ -962,14 +958,14 @@ class LuciBuildService {
     final executable = bbv2.Executable(cipdVersion: cipdExe);
 
     log.info(
-      'Constructing the merge group schedule build request for ${target.value.name} on commit ${commit.sha}.',
+      'Constructing the merge group schedule build request for ${target.name} on commit ${commit.sha}.',
     );
 
     return bbv2.ScheduleBuildRequest(
       builder: bbv2.BuilderID(
         project: 'flutter',
         bucket: target.getBucket(),
-        builder: target.value.name,
+        builder: target.name,
       ),
       dimensions: requestedDimensions,
       exe: executable,
@@ -993,7 +989,7 @@ class LuciBuildService {
               slugName: commit.slug.name,
             ),
             UserAgentBuildTag.flutterCocoon,
-            SchedulerJobIdBuildTag(targetName: target.value.name),
+            SchedulerJobIdBuildTag(targetName: target.name),
             CurrentAttemptBuildTag(attemptNumber: 1),
             InMergeQueueBuildTag(),
           ]).toStringPairs(),
@@ -1015,7 +1011,7 @@ class LuciBuildService {
       _config,
       target.slug,
       commit.sha,
-      target.value.name,
+      target.name,
     );
   }
 
@@ -1040,7 +1036,7 @@ class LuciBuildService {
       return false;
     }
 
-    log.info('Rerun builder: ${target.value.name} for commit ${commit.sha}');
+    log.info('Rerun builder: ${target.name} for commit ${commit.sha}');
 
     final buildTags = BuildTags(tags);
     buildTags.add(TriggerTypeBuildTag.autoRetry);
