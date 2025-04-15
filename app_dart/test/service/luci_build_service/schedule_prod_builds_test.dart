@@ -354,6 +354,111 @@ void main() {
     );
   });
 
+  // Regression test for https://github.com/flutter/flutter/issues/167010.
+  test('schedules a post-submit release candidate build', () async {
+    final commit = generateCommit(
+      1,
+      branch: 'flutter-0.42-candidate.0',
+      repo: 'flutter',
+    );
+
+    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+      return bbv2.ListBuildersResponse(
+        builders: [
+          bbv2.BuilderItem(
+            id: bbv2.BuilderID(
+              bucket: 'prod',
+              project: 'flutter',
+              builder: 'Linux 1',
+            ),
+          ),
+        ],
+      );
+    });
+
+    await expectLater(
+      luci.schedulePostsubmitBuilds(
+        commit: OpaqueCommit.fromDatastore(commit),
+        toBeScheduled: [
+          PendingTask(
+            target: generateTarget(
+              1,
+              properties: {
+                'recipe': 'devicelab/devicelab',
+                'os': 'debian-10.12',
+              },
+              slug: Config.flutterSlug,
+            ),
+            task: generateTask(1, parent: commit),
+            priority: LuciBuildService.kDefaultPriority,
+          ),
+        ],
+      ),
+      completion(isEmpty),
+    );
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(
+      scheduleBuild.builder,
+      isA<bbv2.BuilderID>()
+          .having((b) => b.bucket, 'bucket', 'prod')
+          .having((b) => b.builder, 'builder', 'Linux 1'),
+    );
+
+    expect(
+      scheduleBuild.notify.pubsubTopic,
+      'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+    );
+
+    expect(
+      PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
+      PostsubmitUserData(
+        commitKey: 'flutter/flutter/flutter-0.42-candidate.0/1',
+        taskKey: '1',
+        firestoreTaskDocumentName: fs.TaskId.parse('1_task1_1'),
+        checkRunId: null /* Uses batch backfiller */,
+      ),
+    );
+
+    expect(scheduleBuild.properties.fields, {
+      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+      'bringup': bbv2.Value(boolValue: false),
+      'git_branch': bbv2.Value(stringValue: 'flutter-0.42-candidate.0'),
+      'git_repo': bbv2.Value(stringValue: 'flutter'),
+      'exe_cipd_version': bbv2.Value(
+        stringValue: 'refs/heads/flutter-0.42-candidate.0',
+      ),
+      'os': bbv2.Value(stringValue: 'debian-10.12'),
+      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: commit.sha),
+      'flutter_realm': bbv2.Value(stringValue: ''),
+    });
+
+    expect(scheduleBuild.dimensions, [
+      isA<bbv2.RequestedDimension>()
+          .having((d) => d.key, 'key', 'os')
+          .having((d) => d.value, 'value', 'debian-10.12'),
+    ]);
+
+    verifyNever(
+      mockGithubChecksUtil.createCheckRun(
+        any,
+        Config.packagesSlug,
+        any,
+        'Linux 1',
+      ),
+    );
+  });
+
   test('does not run a non-existent builder', () async {
     final commit = generateCommit(1, branch: 'main', repo: 'flutter');
 
