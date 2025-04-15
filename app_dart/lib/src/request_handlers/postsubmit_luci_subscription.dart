@@ -218,6 +218,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     );
     final latestCommit = commitList.single;
 
+    // Merge queue uses PresubmitLuciSubscription, so this is safe.
     if (latestCommit.sha != currentCommit.sha) {
       log.info('Not tip of tree: ${currentCommit.sha}');
       return false;
