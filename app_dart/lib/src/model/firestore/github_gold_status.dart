@@ -25,8 +25,7 @@ const String kGithubGoldStatusRepositoryField = 'repository';
 ///  /projects/flutter-dashboard/databases/cocoon/commits/
 ///    document: <this.slug.owner>_<this.slug.name>_<this.prNumber>
 /// ```
-/*final - TODO(matanlurey): Can't add because of MockFirestoreService. */
-class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
+final class GithubGoldStatus extends AppDocument<GithubGoldStatus> {
   static AppDocumentId<GithubGoldStatus> documentIdFor({
     required String owner,
     required String repo,

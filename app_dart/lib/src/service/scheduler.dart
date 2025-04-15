@@ -270,7 +270,7 @@ class Scheduler {
         'Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}',
       );
       final datastore = datastoreProvider(_config.db);
-      await datastore.withTransaction<void>((Transaction transaction) async {
+      await datastore.withTransaction<void>((transaction) async {
         transaction.queueMutations(inserts: <ds.Commit>[commit]);
         transaction.queueMutations(inserts: tasks);
         await transaction.commit();

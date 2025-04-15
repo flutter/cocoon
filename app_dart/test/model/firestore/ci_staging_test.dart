@@ -7,11 +7,9 @@ import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/service/fake_firestore_service.dart';
-import '../../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -73,33 +71,26 @@ void main() {
   });
 
   group('markConclusion', () {
-    const kTransaction = 'a-totally-real-transaction-string';
     final slug = RepositorySlug('flutter', 'flutter');
-
-    late MockProjectsDatabasesDocumentsResource docRes;
-
     final expectedName = CiStaging.documentNameFor(
       slug: RepositorySlug('flutter', 'flutter'),
       sha: '1234',
       stage: CiStage.fusionEngineBuild,
     );
 
-    setUp(() {
-      docRes = MockProjectsDatabasesDocumentsResource();
-      when(
-        // ignore: discarded_futures
-        docRes.rollback(captureAny, captureAny),
-      ).thenAnswer((_) async => Empty());
-      when(
-        // ignore: discarded_futures
-        firestoreService.mock.documentResource(),
-      ).thenAnswer((_) async => docRes);
+    setUp(() async {
+      await CiStaging.initializeDocument(
+        firestoreService: firestoreService,
+        slug: slug,
+        sha: '1234',
+        stage: CiStage.fusionEngineBuild,
+        checkRunGuard: 'check-run-guard',
+        tasks: ['test'],
+      );
     });
 
     test('bad transaction throws', () async {
-      when(
-        docRes.beginTransaction(any, any),
-      ).thenAnswer((_) async => BeginTransactionResponse());
+      firestoreService.failOnTransactionCommit();
       expect(
         CiStaging.markConclusion(
           firestoreService: firestoreService,
@@ -109,30 +100,20 @@ void main() {
           checkRun: 'test',
           conclusion: TaskConclusion.unknown,
         ),
-        throwsA(isA<String>()),
+        throwsA(isA<DetailedApiRequestError>()),
       );
     });
 
     test('handles missing fields', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
+      firestoreService.putDocument(
+        Document(
+          name: CiStaging.documentNameFor(
+            slug: slug,
+            sha: '1234',
+            stage: CiStage.fusionEngineBuild,
+          ),
         ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer((_) async => Document());
-
+      );
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
         slug: slug,
@@ -143,53 +124,11 @@ void main() {
       );
 
       await expectLater(future, throwsA(isA<String>()));
-      verify(
-        docRes.get(
-          expectedName,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: argThat(equals(kTransaction), named: 'transaction'),
-        ),
-      ).called(1);
-      verify(
-        docRes.rollback(
-          argThat(
-            predicate((RollbackRequest t) => t.transaction == kTransaction),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verify(
-        docRes.beginTransaction(
-          argThat(
-            predicate(
-              (BeginTransactionRequest t) => t.options!.readWrite != null,
-            ),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
     });
 
     test('handles missing check_runs', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kRemainingField: 1.toValue(),
@@ -228,36 +167,11 @@ void main() {
           details: 'Change flutter_flutter_1234',
         ),
       );
-      verify(
-        docRes.rollback(
-          argThat(
-            predicate((RollbackRequest t) => t.transaction == kTransaction),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
     });
 
     test('handles transaction failures', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kTotalField: 1.toValue(),
@@ -270,10 +184,7 @@ void main() {
           },
         ),
       );
-
-      when(
-        docRes.commit(any, kDatabase),
-      ).thenAnswer((_) async => Future.error('commit failure'));
+      firestoreService.failOnTransactionCommit();
 
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
@@ -284,56 +195,12 @@ void main() {
         conclusion: TaskConclusion.unknown,
       );
 
-      await expectLater(future, throwsA(isA<String>()));
-      verify(
-        docRes.commit(
-          argThat(
-            predicate((CommitRequest t) {
-              return t.transaction == kTransaction &&
-                  t.writes!.length == 1 &&
-                  t.writes!.first.update!.fields!.length == 5 &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields!['Linux build_test']!
-                          .stringValue ==
-                      'unknown' &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kRemainingField]!
-                          .integerValue ==
-                      '0';
-            }),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verifyNever(docRes.rollback(any, kDatabase));
+      await expectLater(future, throwsA(isA<DetailedApiRequestError>()));
     });
 
     test('handles writing updating', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kRemainingField: 1.toValue(),
@@ -346,10 +213,6 @@ void main() {
           },
         ),
       );
-
-      when(
-        docRes.commit(any, kDatabase),
-      ).thenAnswer((_) async => CommitResponse());
 
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
@@ -377,55 +240,11 @@ For CI stage engine:
 ''',
         ),
       );
-      verify(
-        docRes.commit(
-          argThat(
-            predicate((CommitRequest t) {
-              return t.transaction == kTransaction &&
-                  t.writes!.length == 1 &&
-                  t.writes!.first.update!.fields!.length == 5 &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields!['Linux build_test']!
-                          .stringValue ==
-                      'unknown' &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kRemainingField]!
-                          .integerValue ==
-                      '0';
-            }),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verifyNever(docRes.rollback(any, kDatabase));
     });
 
     test('handles previously completed check_runs', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kRemainingField: 1.toValue(),
@@ -436,10 +255,6 @@ For CI stage engine:
           },
         ),
       );
-
-      when(
-        docRes.commit(any, kDatabase),
-      ).thenAnswer((_) async => CommitResponse());
 
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
@@ -463,55 +278,11 @@ For CI stage engine:
               'Attempted to transition the state of check run MacOS build_test from "success" to "unknown".',
         ),
       );
-      verify(
-        docRes.commit(
-          argThat(
-            predicate((CommitRequest t) {
-              return t.transaction == kTransaction &&
-                  t.writes!.length == 1 &&
-                  t.writes!.first.update!.fields!.length == 5 &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields!['MacOS build_test']!
-                          .stringValue ==
-                      'unknown' &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kRemainingField]!
-                          .integerValue ==
-                      '1';
-            }),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verifyNever(docRes.rollback(any, kDatabase));
     });
 
     test('handles a test flip-flop after re-running', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kRemainingField: 1.toValue(),
@@ -522,10 +293,6 @@ For CI stage engine:
           },
         ),
       );
-
-      when(
-        docRes.commit(any, kDatabase),
-      ).thenAnswer((_) async => CommitResponse());
 
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
@@ -554,62 +321,11 @@ For CI stage engine:
 ''',
         ),
       );
-      verify(
-        docRes.commit(
-          argThat(
-            predicate((CommitRequest t) {
-              return t.transaction == kTransaction &&
-                  t.writes!.length == 1 &&
-                  t.writes!.first.update!.fields!.length == 5 &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields!['MacOS build_test']!
-                          .stringValue ==
-                      TaskConclusion.success.name &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kRemainingField]!
-                          .integerValue ==
-                      '1' &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kFailedField]!
-                          .integerValue ==
-                      '0';
-            }),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verifyNever(docRes.rollback(any, kDatabase));
     });
 
     test('ignored repeat failures', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kRemainingField: 1.toValue(),
@@ -620,10 +336,6 @@ For CI stage engine:
           },
         ),
       );
-
-      when(
-        docRes.commit(any, kDatabase),
-      ).thenAnswer((_) async => CommitResponse());
 
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
@@ -647,62 +359,11 @@ For CI stage engine:
               'Attempted to transition the state of check run MacOS build_test from "failure" to "failure".',
         ),
       );
-      verify(
-        docRes.commit(
-          argThat(
-            predicate((CommitRequest t) {
-              return t.transaction == kTransaction &&
-                  t.writes!.length == 1 &&
-                  t.writes!.first.update!.fields!.length == 5 &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields!['MacOS build_test']!
-                          .stringValue ==
-                      TaskConclusion.failure.name &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kRemainingField]!
-                          .integerValue ==
-                      '1' &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kFailedField]!
-                          .integerValue ==
-                      '1';
-            }),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verifyNever(docRes.rollback(any, kDatabase));
     });
 
     test('handles success to failure case', () async {
-      when(
-        docRes.beginTransaction(
-          any,
-          any,
-          $fields: argThat(isNull, named: r'$fields'),
-        ),
-      ).thenAnswer((_) async {
-        return BeginTransactionResponse(transaction: kTransaction);
-      });
-      when(
-        docRes.get(
-          any,
-          mask_fieldPaths: anyNamed('mask_fieldPaths'),
-          transaction: anyNamed('transaction'),
-          $fields: argThat(isNull, named: r'$fields'),
-          readTime: argThat(isNull, named: 'readTime'),
-        ),
-      ).thenAnswer(
-        (_) async => Document(
+      firestoreService.putDocument(
+        Document(
           name: expectedName,
           fields: {
             CiStaging.kRemainingField: 1.toValue(),
@@ -713,10 +374,6 @@ For CI stage engine:
           },
         ),
       );
-
-      when(
-        docRes.commit(any, kDatabase),
-      ).thenAnswer((_) async => CommitResponse());
 
       final future = CiStaging.markConclusion(
         firestoreService: firestoreService,
@@ -744,40 +401,6 @@ For CI stage engine:
 ''',
         ),
       );
-      verify(
-        docRes.commit(
-          argThat(
-            predicate((CommitRequest t) {
-              return t.transaction == kTransaction &&
-                  t.writes!.length == 1 &&
-                  t.writes!.first.update!.fields!.length == 5 &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields!['MacOS build_test']!
-                          .stringValue ==
-                      TaskConclusion.failure.name &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kRemainingField]!
-                          .integerValue ==
-                      '1' &&
-                  t
-                          .writes!
-                          .first
-                          .update!
-                          .fields![CiStaging.kFailedField]!
-                          .integerValue ==
-                      '1';
-            }),
-          ),
-          kDatabase,
-        ),
-      ).called(1);
-      verifyNever(docRes.rollback(any, kDatabase));
     });
   });
 
@@ -788,62 +411,7 @@ For CI stage engine:
     const sha = '1234abc';
     const stage = CiStage.fusionTests;
 
-    late MockProjectsDatabasesDocumentsResource docRes;
-
-    setUp(() {
-      docRes = MockProjectsDatabasesDocumentsResource();
-      when(
-        // ignore: discarded_futures
-        firestoreService.documentResource(),
-      ).thenAnswer((_) async => docRes);
-    });
-
     test('creates a document with the correct fields', () async {
-      when(
-        docRes.createDocument(
-          any,
-          any,
-          any,
-          documentId: anyNamed('documentId'),
-          $fields: anyNamed(r'$fields'),
-        ),
-      ).thenAnswer((Invocation inv) async {
-        final document = inv.positionalArguments[0] as Document;
-        final collectionId = inv.positionalArguments[2] as String;
-        final documentId = inv.namedArguments[#documentId] as String;
-
-        // Check the fields of the document
-        expect(document.fields, isNotNull);
-        expect(
-          document.fields![CiStaging.kTotalField]!.integerValue,
-          tasks.length.toString(),
-        );
-        expect(
-          document.fields![CiStaging.kRemainingField]!.integerValue,
-          tasks.length.toString(),
-        );
-        expect(document.fields![CiStaging.kFailedField]!.integerValue, '0');
-        expect(
-          document.fields![CiStaging.kCheckRunGuardField]!.stringValue,
-          checkRunGuard,
-        );
-        expect(
-          document.fields![CiStaging.fieldRepoFullPath]!.stringValue,
-          '${slug.owner}/${slug.name}',
-        );
-        expect(document.fields![CiStaging.fieldCommitSha]!.stringValue, sha);
-        expect(document.fields![CiStaging.fieldStage]!.stringValue, stage.name);
-
-        for (final task in tasks) {
-          expect(
-            document.fields![task]!.stringValue,
-            TaskConclusion.scheduled.name,
-          );
-        }
-
-        return Document(name: '$kDocumentParent/$collectionId/$documentId');
-      });
-
       final createdDoc = await CiStaging.initializeDocument(
         firestoreService: firestoreService,
         slug: slug,
@@ -856,26 +424,27 @@ For CI stage engine:
         createdDoc.name,
         CiStaging.documentNameFor(slug: slug, sha: sha, stage: stage),
       );
-      verify(
-        docRes.createDocument(
-          any,
-          any,
-          any,
-          documentId: anyNamed('documentId'),
-        ),
-      ).called(1);
+
+      expect(
+        firestoreService,
+        existsInStorage(CiStaging.metadata, [
+          isCiStaging
+              .hasTotal(tasks.length)
+              .hasRemaining(tasks.length)
+              .hasFailed(0)
+              .hasCheckRunGuard(checkRunGuard)
+              .hasSlug(slug)
+              .hasSha(sha)
+              .hasStage(stage)
+              .hasCheckRuns({
+                for (final t in tasks) t: TaskConclusion.scheduled,
+              }),
+        ]),
+      );
     });
 
     test('throws error if document creation fails', () async {
-      when(
-        docRes.createDocument(
-          any,
-          any,
-          any,
-          documentId: anyNamed('documentId'),
-          $fields: anyNamed(r'$fields'),
-        ),
-      ).thenThrow(Exception('Document creation failed'));
+      firestoreService.failOnWriteCollection(CiStaging.metadata.collectionId);
 
       expect(
         CiStaging.initializeDocument(

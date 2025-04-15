@@ -13,7 +13,7 @@ import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../service/firestore.dart';
+import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/opaque_commit.dart';
