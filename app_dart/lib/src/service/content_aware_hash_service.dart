@@ -53,7 +53,10 @@ interface class ContentAwareHashService {
   ///
   /// This should only be used for workflow events in the merge group.
   Future<String?> hashFromWorkflowJobEvent(WorkflowJobEvent workflow) async {
-    // 1. validate this was sent by whom we expect and is OK.
+    // Step 1: Perform a very conservative validation
+    // We've triggered a workflow from a dispatch workflow event.
+    // We want to make sure we're only looking at CAH values from:
+    //   cocoon, merge groups, finished successfully, flutter/flutter.
     if (workflow.action != 'completed') return null;
     final workflowJob = workflow.workflowJob;
     if (workflowJob == null) return null;
@@ -73,16 +76,17 @@ interface class ContentAwareHashService {
       return null;
     }
 
+    // Step 2: Download the annotations
     final gh = await _config.createGithubService(
       RepositorySlug.full('flutter/flutter'),
     );
-
     final response = await gh.github.request(
       'GET',
       '${workflowJob.checkRunUrl}/annotations',
     );
     if (response.statusCode != 200) return null;
 
+    // Step 3: Find the correct annotation.
     final List<dynamic> data;
     try {
       data = json.decode(response.body) as List<dynamic>;
@@ -90,7 +94,6 @@ interface class ContentAwareHashService {
       log.debug('error decoding annotation json: ${response.body}', e);
       return null;
     }
-
     final annotations = Annotation.fromJsonList(data);
     for (final annotation in annotations) {
       if (annotation.message == null) continue;
@@ -99,12 +102,14 @@ interface class ContentAwareHashService {
         if (message case {'engine_content_hash': final String hash}) {
           if (_validSha.hasMatch(hash)) {
             log.debug('content_aware_hash = $hash');
+            // Success!
             return hash;
           }
         }
       } catch (_) {}
     }
 
+    // Fail
     return null;
   }
 }
