@@ -168,21 +168,23 @@ final class CiStaging extends AppDocument<CiStaging> {
   /// The check_run to complete when this stage is closed.
   String get checkRunGuard => fields[kCheckRunGuardField]!.stringValue!;
 
-  /// The recorded check-runs, a map of "test_name": "check_run id".
-  Map<String, TaskConclusion> get checkRuns {
-    final fields = this.fields.map((k, v) => MapEntry(k, v.stringValue));
-    for (final existing in const [
+  static const keysOfImport = [
       kRemainingField,
       kTotalField,
       kFailedField,
       kCheckRunGuardField,
       fieldRepoFullPath,
       fieldCommitSha,
-      fieldStage,
-    ]) {
-      fields.remove(existing);
-    }
-    return fields.map((k, v) => MapEntry(k, TaskConclusion.fromName(v)));
+      fieldStage,    
+  ];
+
+  /// The recorded check-runs, a map of "test_name": "check_run id".
+  Map<String, TaskConclusion> get checkRuns {
+    return {
+      for (final MapEntry(:key, :value) in fields.entries)
+        if (!keysOfImport.contains(key))
+          key: TaskConclusion.fromName(value.stringValue),
+    };
   }
 
   /// Mark a [checkRun] for a given [stage] with [conclusion].
