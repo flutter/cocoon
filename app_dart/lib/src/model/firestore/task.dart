@@ -373,9 +373,18 @@ final class Task extends AppDocument<Task> {
     _setStatusFromLuciStatus(build);
   }
 
-  void resetAsRetry({int attempt = 1}) {
-    name =
-        '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${taskName}_$attempt';
+  void resetAsRetry({int? attempt}) {
+    attempt ??= currentAttempt + 1;
+    name = p.posix.join(
+      kDatabase,
+      'documents',
+      kTaskCollectionId,
+      Task.documentIdFor(
+        commitSha: commitSha,
+        currentAttempt: attempt,
+        taskName: taskName,
+      ).documentId,
+    );
     fields = <String, Value>{
       fieldCreateTimestamp: DateTime.now().millisecondsSinceEpoch.toValue(),
       fieldEndTimestamp: 0.toValue(),
@@ -387,6 +396,10 @@ final class Task extends AppDocument<Task> {
       fieldCommitSha: commitSha.toValue(),
       fieldAttempt: attempt.toValue(),
     };
+  }
+
+  void setBuildNumber(int buildNumber) {
+    fields[fieldBuildNumber] = buildNumber.toValue();
   }
 
   String _setStatusFromLuciStatus(bbv2.Build build) {

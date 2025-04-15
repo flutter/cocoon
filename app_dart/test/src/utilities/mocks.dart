@@ -43,7 +43,6 @@ export 'mocks.mocks.dart';
     DatastoreService,
     DiscordService,
     FakeEntry,
-    FirestoreService,
     IssuesService,
     GithubChecksService,
     GithubChecksUtil,

@@ -8,7 +8,6 @@ import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -16,6 +15,7 @@ import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../model/firestore/task.dart';
+import 'firestore/commit_and_tasks.dart';
 
 export '../model/common/firestore_extensions.dart';
 
@@ -260,37 +260,35 @@ class FirestoreService with FirestoreQueries {
         databaseId: Config.flutterGcpFirestoreDatabase,
       ),
     );
-    return FirestoreService._(client);
+    return FirestoreService._(FirestoreApi(client));
   }
 
-  const FirestoreService._(this._client);
-  final http.Client _client;
-
-  /// Return a [ProjectsDatabasesDocumentsResource] with an authenticated [client]
-  Future<ProjectsDatabasesDocumentsResource> documentResource() async {
-    return FirestoreApi(_client).projects.databases.documents;
-  }
+  const FirestoreService._(this._api);
+  final FirestoreApi _api;
 
   /// Gets a document based on name.
-  Future<Document> getDocument(String name) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.get(name);
+  Future<Document> getDocument(String name, {Transaction? transaction}) async {
+    return _api.projects.databases.documents.get(
+      name,
+      transaction: transaction?.identifier,
+    );
   }
 
   /// Creates a document.
   ///
-  /// A document name is automatically generated.
+  /// A document name is automatically generated if [documentId] is omitted.
   ///
   /// If the document already exists, a 409 [DetailedApiRequestError] is thrown.
   Future<Document> createDocument(
     Document document, {
     required String collectionId,
+    String? documentId,
   }) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.createDocument(
+    return _api.projects.databases.documents.createDocument(
       document,
       '$kDatabase/documents',
       collectionId,
+      documentId: documentId,
     );
   }
 
@@ -304,25 +302,53 @@ class FirestoreService with FirestoreQueries {
     BatchWriteRequest request,
     String database,
   ) async {
-    final databasesDocumentsResource = await documentResource();
-    return databasesDocumentsResource.batchWrite(request, database);
+    return _api.projects.databases.documents.batchWrite(request, database);
+  }
+
+  /// Begins a read-write transaction.
+  Future<Transaction> beginTransaction() async {
+    final request = BeginTransactionRequest(
+      options: TransactionOptions(readWrite: ReadWrite()),
+    );
+    final response = await _api.projects.databases.documents.beginTransaction(
+      request,
+      kDatabase,
+    );
+    return Transaction._unwrap(response);
+  }
+
+  /// Commits a transaction.
+  Future<CommitResponse> commit(
+    Transaction transaction,
+    List<Write> writes,
+  ) async {
+    final request = CommitRequest(
+      transaction: transaction.identifier,
+      writes: writes,
+    );
+    return await _api.projects.databases.documents.commit(request, kDatabase);
+  }
+
+  /// Rolls back a transaction.
+  Future<void> rollback(Transaction transaction) async {
+    final request = RollbackRequest(transaction: transaction.identifier);
+    await _api.projects.databases.documents.rollback(request, kDatabase);
   }
 
   /// Writes [writes] to Firestore within a transaction.
   ///
   /// This is an atomic operation: either all writes succeed or all writes fail.
   Future<CommitResponse> writeViaTransaction(List<Write> writes) async {
-    final databasesDocumentsResource = await documentResource();
     final beginTransactionRequest = BeginTransactionRequest(
       options: TransactionOptions(readWrite: ReadWrite()),
     );
-    final beginTransactionResponse = await databasesDocumentsResource
+    final beginTransactionResponse = await _api.projects.databases.documents
         .beginTransaction(beginTransactionRequest, kDatabase);
     final commitRequest = CommitRequest(
       transaction: beginTransactionResponse.transaction,
       writes: writes,
     );
-    return databasesDocumentsResource.commit(commitRequest, kDatabase);
+    return _api.projects.databases.documents.commit(commitRequest, kDatabase);
   }
 
   /// Returns Firestore [Value] based on corresponding object type.
@@ -388,7 +414,6 @@ class FirestoreService with FirestoreQueries {
     Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
   }) async {
-    final databasesDocumentsResource = await documentResource();
     final from = <CollectionSelector>[
       CollectionSelector(collectionId: collectionId),
     ];
@@ -402,10 +427,8 @@ class FirestoreService with FirestoreQueries {
         limit: limit,
       ),
     );
-    final runQueryResponseElements = await databasesDocumentsResource.runQuery(
-      runQueryRequest,
-      kDocumentParent,
-    );
+    final runQueryResponseElements = await _api.projects.databases.documents
+        .runQuery(runQueryRequest, kDocumentParent);
     return _documentsFromQueryResponse(runQueryResponseElements);
   }
 
@@ -439,34 +462,33 @@ List<Write> documentsToWrites(List<Document> documents, {bool? exists}) {
       .toList();
 }
 
-/// A pairing of a [Commit] and [Task]s associated with that commit.
+/// An opaque object that represents a Firestore transaction.
 @immutable
-final class CommitAndTasks {
-  /// Creates a [CommitAndTasks] with the provided commit and tasks.
-  CommitAndTasks(this.commit, Iterable<Task> tasks)
-    : tasks = List.unmodifiable(tasks);
-
-  /// Commit from Firestore.
-  final Commit commit;
-
-  /// Tasks where [Task.commitSha] is the same as [Commit.sha].
-  ///
-  /// This list is unmodifiable.`
-  final List<Task> tasks;
-
-  /// Returns a copy of `this` with only the most recent task per builder.
-  ///
-  /// For example, if a task `Linux foo` was run 3 times, only the most recent
-  /// task (`Linux foo`, `attempt = 3`) is retained in the accompanying [tasks]
-  /// list, and the rest of the tasks are removed.
-  @useResult
-  CommitAndTasks withMostRecentTaskOnly() {
-    final mostRecent = <String, Task>{};
-    for (final task in tasks) {
-      mostRecent.update(task.taskName, (current) {
-        return current.currentAttempt > task.createTimestamp ? current : task;
-      }, ifAbsent: () => task);
+final class Transaction {
+  factory Transaction._unwrap(BeginTransactionResponse response) {
+    if (response.transaction case final tx?) {
+      return Transaction.fromIdentifier(tx);
     }
-    return CommitAndTasks(commit, mostRecent.values);
+    throw StateError('Unable to begin transaction');
+  }
+
+  @visibleForTesting
+  const Transaction.fromIdentifier(this.identifier);
+
+  /// The value that originates from [BeginTransactionResponse.transaction].
+  @visibleForTesting
+  final String identifier;
+
+  @override
+  bool operator ==(Object other) {
+    return other is Transaction && identifier == other.identifier;
+  }
+
+  @override
+  int get hashCode => identifier.hashCode;
+
+  @override
+  String toString() {
+    return 'Transaction <$identifier>';
   }
 }

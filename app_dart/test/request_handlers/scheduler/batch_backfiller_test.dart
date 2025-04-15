@@ -70,21 +70,24 @@ void main() {
       ),
     ).thenAnswer((_) async => generateCheckRun(1));
 
-    ciYamlFetcher = FakeCiYamlFetcher(ciYaml: batchPolicyConfig);
+    ciYamlFetcher = FakeCiYamlFetcher(ciYaml: batchPolicyFusionConfig);
+    final luciBuildService = FakeLuciBuildService(
+      config: config,
+      pubsub: pubsub,
+      githubChecksUtil: mockGithubChecksUtil,
+    );
+
     scheduler = FakeScheduler(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
-      luciBuildService: FakeLuciBuildService(
-        config: config,
-        pubsub: pubsub,
-        githubChecksUtil: mockGithubChecksUtil,
-      ),
+      luciBuildService: luciBuildService,
     );
 
     handler = BatchBackfiller(
       config: config,
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     );
 
     tester = RequestHandlerTester();
@@ -183,20 +186,22 @@ void main() {
   });
 
   test('does not backfill when task does not exist in TOT', () async {
-    ciYamlFetcher.ciYaml = notInToTConfig;
+    ciYamlFetcher.ciYaml = notInToTFusionConfig;
+    final luciBuildService = FakeLuciBuildService(
+      config: config,
+      pubsub: pubsub,
+      githubChecksUtil: mockGithubChecksUtil,
+    );
     scheduler = FakeScheduler(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
-      luciBuildService: FakeLuciBuildService(
-        config: config,
-        pubsub: pubsub,
-        githubChecksUtil: mockGithubChecksUtil,
-      ),
+      luciBuildService: luciBuildService,
     );
     handler = BatchBackfiller(
       config: config,
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      luciBuildService: luciBuildService,
     );
     final allGray = <Task>[
       generateTask(1, name: 'Linux_android B', status: Task.statusNew),

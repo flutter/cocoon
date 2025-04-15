@@ -86,7 +86,7 @@ void main() {
 
   group('initialTargets', () {
     test('targets without deps', () {
-      final ciYaml = exampleConfig;
+      final ciYaml = multiTargetFusionConfig;
       final initialTargets = ciYaml.getInitialTargets(
         ciYaml.postsubmitTargets(),
       );
@@ -199,7 +199,7 @@ void main() {
       });
 
       test('Get backfill targets from postsubmit', () {
-        final ciYaml = exampleBackfillConfig;
+        final ciYaml = exampleBackfillFusionConfig;
         final backfillTargets = ciYaml.backfillTargets();
         final backfillTargetNames =
             backfillTargets.map((Target target) => target.name).toList();
@@ -233,11 +233,11 @@ void main() {
         expect(initialTargetNames, ['Linux B']);
       });
 
-      test('release_build targets for main are not filtered', () {
+      test('release_build targets for master are filtered out', () {
         final releaseYaml = CiYaml(
           type: CiType.any,
           slug: Config.flutterSlug,
-          branch: 'main',
+          branch: 'master',
           config: pb.SchedulerConfig(
             targets: <pb.Target>[
               pb.Target(
@@ -255,8 +255,8 @@ void main() {
         );
         final initialTargets = releaseYaml.postsubmitTargets;
         final initialTargetNames =
-            initialTargets.map((Target target) => target.name).toList();
-        expect(initialTargetNames, containsAll(<String>['Linux A']));
+            initialTargets.map((target) => target.name).toList();
+        expect(initialTargetNames, containsAll(<String>['Mac A']));
       });
 
       test(
@@ -279,7 +279,6 @@ void main() {
                 ),
               ],
             ),
-            isFusion: true,
           );
           final initialTargets = releaseYaml.postsubmitTargets;
           final initialTargetNames =
@@ -363,14 +362,14 @@ void main() {
 
   group('flakiness_threshold', () {
     test('is set', () {
-      final ciYaml = exampleFlakyConfig;
+      final ciYaml = exampleFlakyFusionConfig;
       final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky 1');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, 0.04);
     });
 
     test('is missing', () {
-      final ciYaml = exampleFlakyConfig;
+      final ciYaml = exampleFlakyFusionConfig;
       final flaky1 = ciYaml.getFirstPostsubmitTarget('Flaky Skip');
       expect(flaky1, isNotNull);
       expect(flaky1?.flakinessThreshold, isNull);

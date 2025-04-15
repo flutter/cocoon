@@ -187,4 +187,62 @@ void main() {
           .having((t) => t.status, 'status', 'Succeeded'),
     ]);
   });
+
+  test('records a retry of an existing task', () async {
+    // Insert into Datastore:
+    await config.db.commit(
+      inserts: [
+        generateTask(
+          1,
+          attempts: 1,
+          buildNumber: buildNumber - 1,
+          builderName: builder,
+          name: builder,
+          status: fs.Task.statusFailed,
+          parent: dsCommit,
+        ),
+      ],
+    );
+
+    // Insert into Firestore:
+    firestoreService.putDocument(
+      generateFirestoreTask(
+        1,
+        attempts: 1,
+        buildNumber: buildNumber - 1,
+        name: builder,
+        status: fs.Task.statusFailed,
+        commitSha: dsCommit.sha,
+      ),
+    );
+
+    tester.message = const PushMessage(data: buildMessageJson);
+    await tester.post(handler);
+
+    // Check Firestore:
+    expect(
+      firestoreService,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName(builder)
+            .hasCurrentAttempt(1)
+            .hasBuildNumber(buildNumber - 1)
+            .hasStatus(fs.Task.statusFailed),
+        isTask
+            .hasTaskName(builder)
+            .hasCurrentAttempt(2)
+            .hasBuildNumber(buildNumber)
+            .hasStatus(fs.Task.statusSucceeded),
+      ]),
+    );
+
+    // Check Datastore:
+    expect(config.db.values.values.whereType<ds.Task>(), [
+      isA<ds.Task>()
+          .having((t) => t.builderName, 'builderName', builder)
+          .having((t) => t.attempts, 'attempts', 2)
+          .having((t) => t.buildNumber, 'buildNumber', buildNumber)
+          .having((t) => t.status, 'status', 'Succeeded'),
+    ]);
+  });
 }

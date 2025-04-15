@@ -100,7 +100,7 @@ class FakeScheduler extends Scheduler {
   }
 }
 
-final emptyConfig = CiYamlSet(
+final singleTargetFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -110,10 +110,13 @@ final emptyConfig = CiYamlSet(
         pb.Target(name: 'Linux A', scheduler: pb.SchedulerSystem.luci),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final exampleConfig = CiYamlSet(
+final multiTargetFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -131,10 +134,13 @@ final exampleConfig = CiYamlSet(
         ),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final exampleNaughtyConfig = CiYamlSet(
+final exampleNaughtyFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -145,10 +151,13 @@ final exampleNaughtyConfig = CiYamlSet(
         pb.Target(name: 'Windows A', scheduler: pb.SchedulerSystem.luci),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final exampleFlakyConfig = CiYamlSet(
+final exampleFlakyFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -167,10 +176,13 @@ final exampleFlakyConfig = CiYamlSet(
         ),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final exampleBackfillConfig = CiYamlSet(
+final exampleBackfillFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -196,10 +208,13 @@ final exampleBackfillConfig = CiYamlSet(
         ),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final examplePresubmitRescheduleConfig = CiYamlSet(
+final examplePresubmitRescheduleFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -218,10 +233,14 @@ final examplePresubmitRescheduleConfig = CiYamlSet(
         ),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+      targets: <pb.Target>[pb.Target(name: 'Engine A')],
+    ),
   },
 );
 
-final batchPolicyConfig = CiYamlSet(
+final batchPolicyFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -233,16 +252,22 @@ final batchPolicyConfig = CiYamlSet(
         pb.Target(name: 'Linux_android C'),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final unsupportedPostsubmitCheckrunConfig = CiYamlSet(
+final unsupportedPostsubmitCheckrunFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
     CiType.any: pb.SchedulerConfig(
       enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
       targets: <pb.Target>[pb.Target(name: 'Linux flutter')],
+    ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
     ),
   },
 );
@@ -269,7 +294,7 @@ final bringupPackagesConfig = CiYamlSet(
   },
 );
 
-final totCiYaml = CiYamlSet(
+final totCiFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -280,10 +305,13 @@ final totCiYaml = CiYamlSet(
         pb.Target(name: 'Linux_android C'),
       ],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
 );
 
-final notInToTConfig = CiYamlSet(
+final notInToTFusionConfig = CiYamlSet(
   slug: Config.flutterSlug,
   branch: Config.defaultBranch(Config.flutterSlug),
   yamls: {
@@ -291,6 +319,9 @@ final notInToTConfig = CiYamlSet(
       enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
       targets: <pb.Target>[pb.Target(name: 'Linux_android A')],
     ),
+    CiType.fusionEngine: pb.SchedulerConfig(
+      enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
+    ),
   },
-  totConfig: totCiYaml,
+  totConfig: totCiFusionConfig,
 );

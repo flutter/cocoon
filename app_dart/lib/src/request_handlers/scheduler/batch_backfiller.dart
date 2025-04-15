@@ -21,16 +21,18 @@ import '../../service/scheduler/policy.dart';
 ///
 /// Targets that have a [BatchPolicy] need to have backfilling enabled to ensure that ToT is always being tested.
 @immutable
-class BatchBackfiller extends RequestHandler {
+final class BatchBackfiller extends RequestHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const BatchBackfiller({
     required super.config,
     required this.scheduler,
     required this.ciYamlFetcher,
+    required LuciBuildService luciBuildService,
     @visibleForTesting
     this.datastoreProvider = DatastoreService.defaultProvider,
-  });
+  }) : _luciBuildService = luciBuildService;
 
+  final LuciBuildService _luciBuildService;
   final DatastoreServiceProvider datastoreProvider;
   final Scheduler scheduler;
   final CiYamlFetcher ciYamlFetcher;
@@ -268,7 +270,7 @@ class BatchBackfiller extends RequestHandler {
       );
       futures.add(
         // ignore: discarded_futures
-        scheduler.luciBuildService.schedulePostsubmitBuilds(
+        _luciBuildService.schedulePostsubmitBuilds(
           commit: tuple.second.commit,
           toBeScheduled: [toBeScheduled],
         ),
