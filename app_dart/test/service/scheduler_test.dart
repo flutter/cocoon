@@ -73,6 +73,28 @@ targets:
     scheduler: google_internal
 ''';
 
+const String singleCiYamlWithLinuxAnalyze = r'''
+enabled_branches:
+  - master
+  - main
+  - flutter-\d+\.\d+-candidate\.\d+
+targets:
+  - name: Linux A
+    properties:
+      custom: abc
+  - name: Linux B
+    enabled_branches:
+      - stable
+    scheduler: luci
+  - name: Linux runIf
+    runIf:
+      - .ci.yaml
+      - DEPS
+      - dev/**
+      - engine/**
+  - name: Linux analyze
+''';
+
 const String fusionCiYaml = r'''
 enabled_branches:
   - master
@@ -3403,7 +3425,10 @@ targets:
       setUp(() {
         mockGithubService = MockGithubService();
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
-        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+        ciYamlFetcher.setCiYamlFrom(
+          singleCiYamlWithLinuxAnalyze,
+          engine: fusionCiYaml,
+        );
 
         scheduler = Scheduler(
           cache: cache,
@@ -3492,7 +3517,7 @@ targets:
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux A'],
+          ['Linux A', 'Linux analyze'],
           reason: 'Should skip Linux engine_build',
         );
         // TODO(matanlurey): Refactoring should allow us to verify the first stage
@@ -3501,20 +3526,22 @@ targets:
       });
 
       // Regression test for https://github.com/flutter/flutter/issues/167124.
-      test('skips all builds', () async {
+      test('skips all tests except "Linux analyze"', () async {
         getFilesChanged.cannedFiles = ['CHANGELOG.md'];
         final pullRequest = generatePullRequest(authorLogin: allowListedUser);
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.engineArtifacts,
-          isNull,
-          reason: 'Did not schdule tests',
+          EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.base!.sha!,
+          ),
+          reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          isEmpty,
-          reason: 'Did not schdule tests',
+          ['Linux analyze'],
+          reason: 'Only scheduled a special-cased build',
         );
       });
 

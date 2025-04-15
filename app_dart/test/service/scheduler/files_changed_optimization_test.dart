@@ -131,7 +131,7 @@ void main() {
       optimizer.checkPullRequest(
         generatePullRequest(repo: 'flutter', changedFilesCount: 1, number: 123),
       ),
-      completion(FilesChangedOptimization.skipPresubmitAll),
+      completion(FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze),
     );
   });
 

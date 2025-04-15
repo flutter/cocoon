@@ -472,8 +472,8 @@ class Scheduler {
 
             // The if-branch already skips the engine build phase.
             testsToRun: switch (opt) {
-              FilesChangedOptimization.skipPresubmitAll =>
-                _FlutterRepoTestsToRun.noTests,
+              FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze =>
+                _FlutterRepoTestsToRun.frameworkFlutterAnalyzeOnly,
               FilesChangedOptimization.skipPresubmitEngine =>
                 _FlutterRepoTestsToRun.frameworkTestsOnly,
               FilesChangedOptimization.none => throw StateError('Unreachable'),
@@ -1228,11 +1228,7 @@ $s
     try {
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
-      if (testsToRun == _FlutterRepoTestsToRun.noTests) {
-        log.info(
-          '$logCrumb: skipping generating the full set of checks: no tests required.',
-        );
-      } else if (pullRequest.user!.login == _config.autosubmitBot &&
+      if (pullRequest.user!.login == _config.autosubmitBot &&
           pullRequest.labels!.any(
             (element) => element.name == Config.revertOfLabel,
           )) {
@@ -1242,7 +1238,7 @@ $s
       } else {
         // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
         // engine and the framework.
-        final presubmitTargets = await _getTestsForStage(
+        var presubmitTargets = await _getTestsForStage(
           pullRequest,
           CiStage.fusionTests,
           skipEngine:
@@ -1250,12 +1246,33 @@ $s
         );
 
         // Create the document for tracking test check runs.
+        final List<String> tasks;
+        if (testsToRun == _FlutterRepoTestsToRun.frameworkFlutterAnalyzeOnly) {
+          const linuxAnalyze = 'Linux analyze';
+          if (presubmitTargets.firstWhereOrNull(
+                (t) => t.name == linuxAnalyze,
+              ) ==
+              null) {
+            log.warn('No target found named "$linuxAnalyze"');
+            tasks = [];
+            presubmitTargets = [];
+          } else {
+            log.info('Only running target "$linuxAnalyze"');
+            tasks = [linuxAnalyze];
+            presubmitTargets = [
+              ...presubmitTargets.where((t) => t.name == linuxAnalyze),
+            ];
+          }
+        } else {
+          tasks = [...presubmitTargets.map((t) => t.name)];
+        }
+
         await initializeCiStagingDocument(
           firestoreService: await _config.createFirestoreService(),
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
           stage: CiStage.fusionTests,
-          tasks: [...presubmitTargets.map((t) => t.name)],
+          tasks: tasks,
           checkRunGuard: checkRunGuard,
         );
 
@@ -1267,7 +1284,7 @@ $s
         // from source and rely on remote-build execution (RBE) for builds to
         // fast and cached.
         final EngineArtifacts engineArtifacts;
-        if (testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly) {
+        if (testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests) {
           // Use the engine that this PR was branched off of.
           engineArtifacts = EngineArtifacts.usingExistingEngine(
             commitSha: pullRequest.base!.sha!,
@@ -1682,5 +1699,5 @@ enum _FlutterRepoTestsToRun {
   frameworkTestsOnly,
 
   /// No tests.
-  noTests,
+  frameworkFlutterAnalyzeOnly,
 }
