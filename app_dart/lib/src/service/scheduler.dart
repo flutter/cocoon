@@ -27,6 +27,7 @@ import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/github/checks.dart' show MergeGroup;
+import '../model/github/workflow_job.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import 'cache_service.dart';
 import 'config.dart';
@@ -766,6 +767,18 @@ $s
 ''',
         lock,
       );
+    }
+  }
+
+  // Work in progress - Content Aware hash retrieval.
+  Future<void> processWorkflowJob(WorkflowJobEvent job) async {
+    try {
+      final hash = await _contentAwareHash.hashFromWorkflowJobEvent(job);
+      log.debug(
+        'scheduler.processWorkflowJob(): Content-Aware-Hash = $hash for $job',
+      );
+    } catch (e) {
+      log.debug('scheduler.processWorkflowJob($job) failed (no-op)', e);
     }
   }
 
