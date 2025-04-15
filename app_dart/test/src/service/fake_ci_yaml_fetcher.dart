@@ -31,7 +31,6 @@ final class FakeCiYamlFetcher extends CiYamlFetcher {
           CiType.fusionEngine:
               pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(engine)),
       },
-      isFusion: engine != null,
     );
   }
 
@@ -55,7 +54,6 @@ final class FakeCiYamlFetcher extends CiYamlFetcher {
       slug: slug,
       branch: commitBranch,
       yamls: ci.configs.map((k, v) => MapEntry(k, v.config)),
-      isFusion: ci.isFusion,
     );
   }
 
