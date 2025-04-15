@@ -60,14 +60,12 @@ class Scheduler {
     required LuciBuildService luciBuildService,
     required GetFilesChanged getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
+    required ContentAwareHashService contentAwareHash,
     this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
     this.initializeCiStagingDocument = CiStaging.initializeDocument,
     @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
-    @visibleForTesting
-    this.findPullRequestForSha = PrCheckRuns.findPullRequestForSha,
-    required ContentAwareHashService contentAwareHash,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
@@ -115,12 +113,6 @@ class Scheduler {
     String checkRunName,
   )
   findPullRequestFor;
-
-  final Future<PullRequest?> Function(
-    FirestoreService firestoreService,
-    String sha,
-  )
-  findPullRequestForSha;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -1512,7 +1504,7 @@ $stacktrace
               log.debug(
                 'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
               );
-              final pullRequest = await findPullRequestForSha(
+              final pullRequest = await PrCheckRuns.findPullRequestForSha(
                 await _config.createFirestoreService(),
                 checkRunEvent.checkRun!.headSha!,
               );
