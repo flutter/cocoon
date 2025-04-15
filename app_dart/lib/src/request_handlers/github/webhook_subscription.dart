@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:github/github.dart' as github;
@@ -132,11 +133,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final createEvent = CreateEvent.fromJson(
           json.decode(webhook.payload) as Map<String, dynamic>,
         );
-        final candidateBranchRegex = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
         // Create a commit object for candidate branches in the datastore so
         // dart-internal builds that are triggered by the initial branch
         // creation have an associated commit.
-        if (candidateBranchRegex.hasMatch(createEvent.ref!)) {
+        if (isReleaseCandidateBranch(branchName: createEvent.ref!)) {
           log.debug(
             'Branch ${createEvent.ref} is a candidate branch, creating new '
             'commit in the datastore',
@@ -626,7 +626,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
+    if (!hasTests &&
+        needsTests &&
+        !pr.draft! &&
+        !_isPrUpdatingReleaseBranch(pr)) {
       final body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -752,7 +755,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
+    if (!hasTests &&
+        needsTests &&
+        !pr.draft! &&
+        !_isPrUpdatingReleaseBranch(pr)) {
       final body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -831,7 +837,10 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    if (!hasTests && needsTests && !pr.draft! && !_isReleaseBranch(pr)) {
+    if (!hasTests &&
+        needsTests &&
+        !pr.draft! &&
+        !_isPrUpdatingReleaseBranch(pr)) {
       final body = config.missingTestsPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -858,7 +867,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     if (baseName == defaultBranchName) {
       return;
     }
-    if (_isReleaseBranch(pr)) {
+    if (_isPrUpdatingReleaseBranch(pr)) {
       body = config.releaseBranchPullRequestMessage;
       if (!await _alreadyCommented(gitHubClient, pr, body)) {
         await gitHubClient.issues.createComment(slug, pr.number!, body);
@@ -887,24 +896,8 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
-  bool _isReleaseBranch(PullRequest pr) {
-    final defaultBranchName = Config.defaultBranch(pr.base!.repo!.slug());
-    final baseName = pr.base!.ref!;
-
-    if (baseName == defaultBranchName) {
-      return false;
-    }
-    // Check if branch name confroms to the format flutter-x.x-candidate.x,
-    // A pr with conforming branch name is likely to be intended
-    // for a release branch, whereas a pr with non conforming name is likely
-    // caused by user misoperations, in which case bot
-    // will suggest open pull request against default branch instead.
-    final candidateTest = RegExp(r'flutter-\d+\.\d+-candidate\.\d+');
-    if (candidateTest.hasMatch(baseName) &&
-        candidateTest.hasMatch(pr.head!.ref!)) {
-      return true;
-    }
-    return false;
+  static bool _isPrUpdatingReleaseBranch(PullRequest pr) {
+    return isReleaseCandidateBranch(branchName: pr.base!.ref!);
   }
 
   Future<bool> _alreadyCommented(

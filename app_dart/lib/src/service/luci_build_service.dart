@@ -7,6 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
@@ -884,17 +885,17 @@ class LuciBuildService {
 
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
-      processedProperties.addAll({
-        'is_fusion': 'true',
-
-        // Always provide an engine version, just like we do in presubmit.
-        // See https://github.com/flutter/flutter/issues/167010.
-        'flutter_prebuilt_engine_version': commit.sha,
-
-        // Prod build bucket, built during the merge queue.
-        'flutter_realm': '',
-      });
       processedProperties['is_fusion'] = 'true';
+      if (isReleaseCandidateBranch(branchName: commit.branch)) {
+        processedProperties.addAll({
+          // Always provide an engine version, just like we do in presubmit.
+          // See https://github.com/flutter/flutter/issues/167010.
+          'flutter_prebuilt_engine_version': commit.sha,
+
+          // Prod build bucket, built during the merge queue.
+          'flutter_realm': '',
+        });
+      }
     }
     final propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);

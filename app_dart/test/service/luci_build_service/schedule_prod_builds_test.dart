@@ -336,8 +336,6 @@ void main() {
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'is_fusion': bbv2.Value(stringValue: 'true'),
-      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: commit.sha),
-      'flutter_realm': bbv2.Value(stringValue: ''),
     });
 
     expect(scheduleBuild.dimensions, [
@@ -358,7 +356,11 @@ void main() {
 
   // Regression test for https://github.com/flutter/flutter/issues/167010.
   test('schedules a post-submit release candidate build', () async {
-    final commit = generateCommit(1, branch: 'main', repo: 'flutter');
+    final commit = generateCommit(
+      1,
+      branch: 'flutter-0.42-candidate.0',
+      repo: 'flutter',
+    );
 
     when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
       return bbv2.ListBuildersResponse(
@@ -419,7 +421,7 @@ void main() {
     expect(
       PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PostsubmitUserData(
-        commitKey: 'flutter/flutter/main/1',
+        commitKey: 'flutter/flutter/flutter-0.42-candidate.0/1',
         taskKey: '1',
         firestoreTaskDocumentName: fs.TaskId.parse('1_task1_1'),
         checkRunId: null /* Uses batch backfiller */,
@@ -429,9 +431,11 @@ void main() {
     expect(scheduleBuild.properties.fields, {
       'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
       'bringup': bbv2.Value(boolValue: false),
-      'git_branch': bbv2.Value(stringValue: 'main'),
+      'git_branch': bbv2.Value(stringValue: 'flutter-0.42-candidate.0'),
       'git_repo': bbv2.Value(stringValue: 'flutter'),
-      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+      'exe_cipd_version': bbv2.Value(
+        stringValue: 'refs/heads/flutter-0.42-candidate.0',
+      ),
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'is_fusion': bbv2.Value(stringValue: 'true'),
