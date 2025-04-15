@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
-import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/service/firebase_auth.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/fake_flutter_app_icons.dart';
@@ -77,7 +77,7 @@ void main() {
 
     testWidgets('start calls fetch branches', (WidgetTester tester) async {
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
       void listener() {}
@@ -93,7 +93,7 @@ void main() {
       WidgetTester tester,
     ) async {
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
       verifyNever(
@@ -135,7 +135,7 @@ void main() {
       WidgetTester tester,
     ) async {
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
 
@@ -180,7 +180,7 @@ void main() {
 
     test('multiple start updates should not change the timer', () {
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
       void listener1() {}
@@ -211,7 +211,7 @@ void main() {
     ) async {
       String? lastError;
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       )..errors.addListener((String message) => lastError = message);
       verifyNever(
@@ -300,7 +300,7 @@ void main() {
       (WidgetTester tester) async {
         String? lastError;
         final buildState = BuildState(
-          authService: MockGoogleSignInService(),
+          authService: MockFirebaseAuthService(),
           cocoonService: mockCocoonService,
         )..errors.addListener((String message) => lastError = message);
         verifyNever(
@@ -375,7 +375,7 @@ void main() {
       WidgetTester tester,
     ) async {
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
       void listener() {}
@@ -418,7 +418,7 @@ void main() {
       WidgetTester tester,
     ) async {
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
       void listener() {}
@@ -497,7 +497,7 @@ void main() {
         ),
       );
       final buildState = BuildState(
-        authService: MockGoogleSignInService(),
+        authService: MockFirebaseAuthService(),
         cocoonService: mockCocoonService,
       );
       void listener() {}
@@ -526,11 +526,11 @@ void main() {
 
   group('refreshGitHubCommits', () {
     late MockCocoonService cocoonService;
-    late MockGoogleSignInService authService;
+    late MockFirebaseAuthService authService;
 
     setUp(() {
       cocoonService = MockCocoonService();
-      authService = MockGoogleSignInService();
+      authService = MockFirebaseAuthService();
     });
 
     testWidgets('fails fast when !isAuthenticated', (_) async {
@@ -591,13 +591,13 @@ void main() {
 
   group('rerunTask', () {
     late MockCocoonService cocoonService;
-    late MockGoogleSignInService authService;
+    late MockFirebaseAuthService authService;
     final task = generateTaskForTest(status: TaskBox.statusFailed);
     final commit = generateCommitForTest();
 
     setUp(() {
       cocoonService = MockCocoonService();
-      authService = MockGoogleSignInService();
+      authService = MockFirebaseAuthService();
     });
 
     testWidgets('fails fast when !isAuthenticated', (_) async {
@@ -711,19 +711,14 @@ void main() {
   testWidgets('sign in functions call notify listener', (
     WidgetTester tester,
   ) async {
-    final mockSignInPlugin = MockGoogleSignIn();
+    final mockSignIn = MockFirebaseAuth();
     when(
-      mockSignInPlugin.signIn(),
-    ).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
+      mockSignIn.authStateChanges(),
+    ).thenAnswer((_) => const Stream<User>.empty());
     when(
-      mockSignInPlugin.signOut(),
-    ).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-    when(
-      mockSignInPlugin.signInSilently(),
-    ).thenAnswer((_) => Future<GoogleSignInAccount?>.value(null));
-    when(
-      mockSignInPlugin.onCurrentUserChanged,
-    ).thenAnswer((_) => Stream<GoogleSignInAccount?>.value(null));
+      mockSignIn.signInWithPopup(any),
+    ).thenAnswer((_) async => MockUserCredential());
+    when(mockSignIn.signOut()).thenAnswer((_) async {});
     final mockCocoonService = MockCocoonService();
     when(
       mockCocoonService.fetchFlutterBranches(),
@@ -745,24 +740,23 @@ void main() {
     ).thenAnswer(
       (_) => Completer<CocoonResponse<BuildStatusResponse>>().future,
     );
-    final signInService = GoogleSignInService(googleSignIn: mockSignInPlugin);
+    final signInService = FirebaseAuthService(auth: mockSignIn);
+
     final buildState = BuildState(
       cocoonService: mockCocoonService,
-      authService:
-          signInService, // TODO(ianh): Settle on one of these two for the whole codebase.
+      authService: signInService,
     );
 
     var callCount = 0;
     buildState.addListener(() => callCount += 1);
 
     await tester.pump(const Duration(seconds: 5));
-    expect(callCount, 1);
 
     await signInService.signIn();
-    expect(callCount, 2);
+    expect(callCount, 1);
 
     await signInService.signOut();
-    expect(callCount, 3);
+    expect(callCount, 2);
 
     buildState.dispose();
   });
