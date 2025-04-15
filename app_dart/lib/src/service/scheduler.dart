@@ -42,6 +42,7 @@ import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/opaque_commit.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
+import 'scheduler/files_changed_optimization.dart';
 import 'scheduler/policy.dart';
 import 'scheduler/process_check_run_result.dart';
 
@@ -72,7 +73,12 @@ class Scheduler {
        _config = config,
        _getFilesChanged = getFilesChanged,
        _ciYamlFetcher = ciYamlFetcher,
-       _contentAwareHash = contentAwareHash;
+       _contentAwareHash = contentAwareHash,
+       _filesChangedOptimizer = FilesChangedOptimizer(
+         getFilesChanged: getFilesChanged,
+         ciYamlFetcher: ciYamlFetcher,
+         config: config,
+       );
 
   final GetFilesChanged _getFilesChanged;
   final Config _config;
@@ -81,6 +87,7 @@ class Scheduler {
   final CiYamlFetcher _ciYamlFetcher;
   final ContentAwareHashService _contentAwareHash;
   final LuciBuildService _luciBuildService;
+  final FilesChangedOptimizer _filesChangedOptimizer;
 
   Future<StagingConclusion> Function({
     required String checkRun,
@@ -443,13 +450,8 @@ class Scheduler {
         // NOTE: This creates an empty staging doc for the engine builds as staging is handled on check_run completion
         //       events from GitHub. Engine Tests are also skipped, and the base.sha is passed to LUCI to use prod
         //       binaries.
-        if (isFusion &&
-            await _applyFrameworkOnlyPrOptimization(
-              slug,
-              changedFilesCount: pullRequest.changedFilesCount!,
-              prNumber: pullRequest.number!,
-              prBranch: pullRequest.base!.ref!,
-            )) {
+        if (await _filesChangedOptimizer.checkPullRequest(pullRequest)
+            case final opt when opt.shouldUsePrebuiltEngine) {
           final logCrumb =
               'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
           log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
@@ -469,7 +471,13 @@ class Scheduler {
             logCrumb: logCrumb,
 
             // The if-branch already skips the engine build phase.
-            testsToRun: _FlutterRepoTestsToRun.frameworkTestsOnly,
+            testsToRun: switch (opt) {
+              FilesChangedOptimization.skipPresubmitAll =>
+                _FlutterRepoTestsToRun.noTests,
+              FilesChangedOptimization.skipPresubmitEngine =>
+                _FlutterRepoTestsToRun.frameworkTestsOnly,
+              FilesChangedOptimization.none => throw StateError('Unreachable'),
+            },
           );
           break;
         }
@@ -554,53 +562,6 @@ class Scheduler {
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
     );
-  }
-
-  Future<bool> _applyFrameworkOnlyPrOptimization(
-    RepositorySlug slug, {
-    required int changedFilesCount,
-    required int prNumber,
-    required String prBranch,
-  }) async {
-    // The flutter/recipes change that makes this optimization possible
-    // (https://flutter-review.googlesource.com/c/recipes/+/62501) occurred
-    // *after* the branch to flutter-release "flutter-3.29-candidate.0", meaning
-    // that release branch is using an older version of recipes that does not
-    // support this optimization.
-    //
-    // So, to avoid making it impossible to create a release branch, or to
-    // or to update the existing release branch (i.e. hot fixes), we skip this
-    // optimziation on that specific branch.
-    final refuseLogPrefix = 'Refusing to skip engine builds for PR#$prNumber';
-    if (prBranch == 'flutter-3.29-candidate.0') {
-      log.info(
-        '$refuseLogPrefix: $prBranch (not ${Config.defaultBranch(Config.flutterSlug)} branch)',
-      );
-      return false;
-    }
-    if (changedFilesCount > _config.maxFilesChangedForSkippingEnginePhase) {
-      log.info(
-        '$refuseLogPrefix: $changedFilesCount > ${_config.maxFilesChangedForSkippingEnginePhase}',
-      );
-      return false;
-    }
-    final filesChanged = await _getFilesChanged.get(slug, prNumber);
-    switch (filesChanged) {
-      case InconclusiveFilesChanged(:final reason):
-        // We would have hoped to avoid making this call at all (based on changedFilesCount), or we hit an HTTP issue.
-        log.warn('$refuseLogPrefix: $reason');
-        return false;
-      case SuccessfulFilesChanged(:final filesChanged):
-        for (final file in filesChanged) {
-          if (file == 'DEPS' || file.startsWith('engine/')) {
-            log.info(
-              '$refuseLogPrefix: Engine source files or dependencies changed.\n${filesChanged.join('\n')}',
-            );
-            return false;
-          }
-        }
-        return true;
-    }
   }
 
   Future<void> closeCiYamlCheckRun(
@@ -1267,7 +1228,11 @@ $s
     try {
       // Both the author and label should be checked to make sure that no one is
       // attempting to get a pull request without check through.
-      if (pullRequest.user!.login == _config.autosubmitBot &&
+      if (testsToRun == _FlutterRepoTestsToRun.noTests) {
+        log.info(
+          '$logCrumb: skipping generating the full set of checks: no tests required.',
+        );
+      } else if (pullRequest.user!.login == _config.autosubmitBot &&
           pullRequest.labels!.any(
             (element) => element.name == Config.revertOfLabel,
           )) {
@@ -1280,7 +1245,8 @@ $s
         final presubmitTargets = await _getTestsForStage(
           pullRequest,
           CiStage.fusionTests,
-          skipEngine: testsToRun == _FlutterRepoTestsToRun.frameworkTestsOnly,
+          skipEngine:
+              testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
         );
 
         // Create the document for tracking test check runs.
@@ -1524,7 +1490,10 @@ $stacktrace
               log.debug('Commit not found in datastore.');
             }
 
-            if (commit == null) {
+            // TODO(matanlurey): Refactor into its own branch.
+            // https://github.com/flutter/flutter/issues/167211.
+            final isPresubmit = commit == null;
+            if (isPresubmit) {
               log.debug(
                 'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
               );
@@ -1552,12 +1521,10 @@ $stacktrace
                     type: CiType.fusionEngine,
                   ),
                 ];
-                if (await _applyFrameworkOnlyPrOptimization(
-                  slug,
-                  changedFilesCount: pullRequest.changedFilesCount!,
-                  prNumber: pullRequest.number!,
-                  prBranch: pullRequest.base!.ref!,
-                )) {
+                final opt = await _filesChangedOptimizer.checkPullRequest(
+                  pullRequest,
+                );
+                if (opt.shouldUsePrebuiltEngine) {
                   engineArtifacts = EngineArtifacts.usingExistingEngine(
                     commitSha: pullRequest.base!.sha!,
                   );
@@ -1713,4 +1680,7 @@ enum _FlutterRepoTestsToRun {
 
   /// Run only tests in the framework (that use an engine), skpping engine tests.
   frameworkTestsOnly,
+
+  /// No tests.
+  noTests,
 }

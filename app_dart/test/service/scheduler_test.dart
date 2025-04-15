@@ -3500,6 +3500,24 @@ targets:
         // list.
       });
 
+      // Regression test for https://github.com/flutter/flutter/issues/167124.
+      test('skips all builds', () async {
+        getFilesChanged.cannedFiles = ['CHANGELOG.md'];
+        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
+
+        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
+        expect(
+          fakeLuciBuildService.engineArtifacts,
+          isNull,
+          reason: 'Did not schdule tests',
+        );
+        expect(
+          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
+          isEmpty,
+          reason: 'Did not schdule tests',
+        );
+      });
+
       // Regression test for https://github.com/flutter/flutter/issues/162403.
       test('engine builds still run for flutter-3.29-candidate.0', () async {
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
