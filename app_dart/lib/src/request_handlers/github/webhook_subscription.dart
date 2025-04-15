@@ -146,7 +146,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'workflow_job':
         try {
           final job = workflow_job.WorkflowJobEvent.fromJson(
-            json.decode(webhook.payload) as Map<String, dynamic>,
+            json.decode(webhook.payload) as Map<String, Object?>,
           );
           log.debug('workflow_job: $job');
           await scheduler.processWorkflowJob(job);

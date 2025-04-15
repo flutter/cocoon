@@ -144,7 +144,7 @@ void main() {
 
 extension on String {
   WorkflowJobEvent toWorkflowJob() => WorkflowJobEvent.fromJson(
-    json.decode(workflowJobTemplate()) as Map<String, dynamic>,
+    json.decode(workflowJobTemplate()) as Map<String, Object?>,
   );
 }
 

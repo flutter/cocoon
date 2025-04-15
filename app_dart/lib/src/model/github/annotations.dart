@@ -12,11 +12,11 @@ part 'annotations.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 class Annotation {
   /// Support parsing directly from the API's `[{},]` response.
-  static List<Annotation> fromJsonList(List<dynamic> input) =>
+  static List<Annotation> fromJsonList(List<Object?> input) =>
       input.whereType<Map<String, dynamic>>().map(Annotation.fromJson).toList();
 
   Annotation({this.annotationLevel, this.message});
-  factory Annotation.fromJson(Map<String, dynamic> input) =>
+  factory Annotation.fromJson(Map<String, Object?> input) =>
       _$AnnotationFromJson(input);
 
   String? annotationLevel;

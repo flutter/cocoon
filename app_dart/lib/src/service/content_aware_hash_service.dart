@@ -87,9 +87,9 @@ interface class ContentAwareHashService {
     if (response.statusCode != 200) return null;
 
     // Step 3: Find the correct annotation.
-    final List<dynamic> data;
+    final List<Object?> data;
     try {
-      data = json.decode(response.body) as List<dynamic>;
+      data = json.decode(response.body) as List<Object?>;
     } catch (e) {
       log.debug('error decoding annotation json: ${response.body}', e);
       return null;
