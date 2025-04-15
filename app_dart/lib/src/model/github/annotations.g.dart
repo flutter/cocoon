@@ -8,10 +8,10 @@ part of 'annotations.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Annotation _$AnnotationFromJson(Map<String, dynamic> json) =>
-    Annotation()
-      ..annotationLevel = json['annotation_level'] as String?
-      ..message = json['message'] as String?;
+Annotation _$AnnotationFromJson(Map<String, dynamic> json) => Annotation(
+  annotationLevel: json['annotation_level'] as String?,
+  message: json['message'] as String?,
+);
 
 Map<String, dynamic> _$AnnotationToJson(Annotation instance) =>
     <String, dynamic>{

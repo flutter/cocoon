@@ -88,7 +88,6 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        ignoreChecks: anyNamed('ignoreChecks'),
         taskDocument: anyNamed('taskDocument'),
       ),
     ).thenAnswer((_) async => true);
@@ -143,7 +142,6 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        ignoreChecks: true,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).called(1);
@@ -216,7 +214,6 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        ignoreChecks: true,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).called(2);
@@ -253,7 +250,6 @@ void main() {
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         taskDocument: anyNamed('taskDocument'),
-        ignoreChecks: false,
       ),
     );
   });
@@ -289,7 +285,6 @@ void main() {
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         taskDocument: anyNamed('taskDocument'),
-        ignoreChecks: false,
       ),
     );
   });
@@ -328,7 +323,6 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        ignoreChecks: true,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).called(1);
@@ -390,7 +384,6 @@ void main() {
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         taskDocument: anyNamed('taskDocument'),
-        ignoreChecks: false,
       ),
     );
 
@@ -439,7 +432,6 @@ void main() {
         task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        ignoreChecks: true,
         taskDocument: anyNamed('taskDocument'),
       ),
     ).thenAnswer((_) async => false);
