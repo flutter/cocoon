@@ -113,12 +113,7 @@ final class PresubmitUserData extends BuildBucketUserData {
 /// Represents the data passed to Buildbucket as part of a postsubmit build.
 @JsonSerializable(checked: true, includeIfNull: false)
 final class PostsubmitUserData extends BuildBucketUserData {
-  PostsubmitUserData({
-    required this.checkRunId,
-    required this.taskKey,
-    required this.commitKey,
-    required this.firestoreTaskDocumentName,
-  });
+  PostsubmitUserData({required this.checkRunId, required this.taskId});
 
   factory PostsubmitUserData.fromJson(Map<String, Object?> object) {
     try {
@@ -146,19 +141,13 @@ final class PostsubmitUserData extends BuildBucketUserData {
   @JsonKey(name: 'check_run_id', includeIfNull: false)
   final int? checkRunId;
 
-  @JsonKey(name: 'task_key')
-  final String taskKey;
-
-  @JsonKey(name: 'commit_key')
-  final String commitKey;
-
   /// The firestore task document name storing results of this build.
   @JsonKey(
     name: 'firestore_task_document_name',
     fromJson: TaskId.parse,
     toJson: _documentToString,
   )
-  final TaskId firestoreTaskDocumentName;
+  final TaskId taskId;
   static String _documentToString(TaskId firestoreTask) {
     return firestoreTask.documentId;
   }

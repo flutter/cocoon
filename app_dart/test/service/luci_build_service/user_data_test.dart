@@ -75,9 +75,7 @@ void main() {
     test('should encode to JSON', () {
       final userData = PostsubmitUserData(
         checkRunId: 1234,
-        taskKey: 'task-key',
-        commitKey: 'commit-key',
-        firestoreTaskDocumentName: firestore.TaskId(
+        taskId: firestore.TaskId(
           commitSha: 'abc123',
           currentAttempt: 1,
           taskName: 'task-name',
@@ -85,8 +83,6 @@ void main() {
       );
       expect(userData.toJson(), {
         'check_run_id': 1234,
-        'task_key': 'task-key',
-        'commit_key': 'commit-key',
         'firestore_task_document_name': 'abc123_task-name_1',
       });
     });
@@ -95,15 +91,11 @@ void main() {
       expect(
         PostsubmitUserData.fromJson(const {
           'check_run_id': 1234,
-          'task_key': 'task-key',
-          'commit_key': 'commit-key',
           'firestore_task_document_name': 'abc123_task-name_1',
         }),
         PostsubmitUserData(
           checkRunId: 1234,
-          taskKey: 'task-key',
-          commitKey: 'commit-key',
-          firestoreTaskDocumentName: firestore.TaskId(
+          taskId: firestore.TaskId(
             commitSha: 'abc123',
             currentAttempt: 1,
             taskName: 'task-name',
@@ -122,9 +114,7 @@ void main() {
     test('should encode/decode to bytes', () {
       final userData = PostsubmitUserData(
         checkRunId: 1234,
-        taskKey: 'task-key',
-        commitKey: 'commit-key',
-        firestoreTaskDocumentName: firestore.TaskId(
+        taskId: firestore.TaskId(
           commitSha: 'abc123',
           currentAttempt: 1,
           taskName: 'task-name',
