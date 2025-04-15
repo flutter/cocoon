@@ -36,6 +36,9 @@ final class FilesChangedOptimizer {
   // ```
   final CiYamlFetcher _ciYamlFetcher;
 
+  // See https://github.com/flutter/flutter/issues/162403.
+  static const _doNotSkipFrameworkTestsForBranch = {'flutter-3.29-candidate.0'};
+
   final Config _config;
 
   /// Returns an optimization type possible given the pull request.
@@ -43,6 +46,11 @@ final class FilesChangedOptimizer {
     final slug = pr.base!.repo!.slug();
     final commitSha = pr.head!.sha!;
     final commitBranch = pr.base!.ref!;
+
+    if (_doNotSkipFrameworkTestsForBranch.contains(commitBranch)) {
+      log.info('$commitBranch does not support the framework-only optimizer');
+      return FilesChangedOptimization.none;
+    }
 
     final ciYaml = await _ciYamlFetcher.getCiYaml(
       slug: slug,
@@ -91,5 +99,11 @@ enum FilesChangedOptimization {
   skipPresubmitEngine,
 
   /// All builds (and tests) can be skipped for this presubmit run.
-  skipPresubmitAll,
+  skipPresubmitAll;
+
+  /// Whether the engine should be prebuilt.
+  bool get shouldUsePrebuiltEngine => !shouldBuildEngineFromSource;
+
+  /// Whether the engine must be built from source.
+  bool get shouldBuildEngineFromSource => this == none;
 }
