@@ -1249,19 +1249,17 @@ $s
         final List<String> tasks;
         if (testsToRun == _FlutterRepoTestsToRun.frameworkFlutterAnalyzeOnly) {
           const linuxAnalyze = 'Linux analyze';
-          if (presubmitTargets.firstWhereOrNull(
-                (t) => t.name == linuxAnalyze,
-              ) ==
-              null) {
+          final singleTarget = presubmitTargets.firstWhereOrNull(
+            (t) => t.name == linuxAnalyze,
+          );
+          if (singleTarget == null) {
             log.warn('No target found named "$linuxAnalyze"');
             tasks = [];
             presubmitTargets = [];
           } else {
             log.info('Only running target "$linuxAnalyze"');
             tasks = [linuxAnalyze];
-            presubmitTargets = [
-              ...presubmitTargets.where((t) => t.name == linuxAnalyze),
-            ];
+            presubmitTargets = [singleTarget];
           }
         } else {
           tasks = [...presubmitTargets.map((t) => t.name)];
