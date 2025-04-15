@@ -864,9 +864,7 @@ class LuciBuildService {
       currentAttempt: currentAttempt.attemptNumber,
     );
     final userData = PostsubmitUserData(
-      commitKey: commitKey,
-      taskKey: taskKey,
-      firestoreTaskDocumentName: firestoreTask,
+      taskId: firestoreTask,
       checkRunId: checkRun?.id,
     );
 

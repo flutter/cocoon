@@ -137,12 +137,7 @@ void main() {
 
     expect(
       PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
-      PostsubmitUserData(
-        commitKey: 'flutter/packages/main/1',
-        taskKey: '1',
-        firestoreTaskDocumentName: fs.TaskId.parse('1_task1_1'),
-        checkRunId: 1,
-      ),
+      PostsubmitUserData(taskId: fs.TaskId.parse('1_task1_1'), checkRunId: 1),
     );
 
     expect(scheduleBuild.properties.fields, {
@@ -225,9 +220,7 @@ void main() {
     expect(
       PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PostsubmitUserData(
-        commitKey: 'flutter/packages/main/1',
-        taskKey: '1',
-        firestoreTaskDocumentName: fs.TaskId.parse('1_task1_1'),
+        taskId: fs.TaskId.parse('1_task1_1'),
         checkRunId: null /* Bringup */,
       ),
     );
@@ -320,9 +313,7 @@ void main() {
     expect(
       PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PostsubmitUserData(
-        commitKey: 'flutter/flutter/main/1',
-        taskKey: '1',
-        firestoreTaskDocumentName: fs.TaskId.parse('1_task1_1'),
+        taskId: fs.TaskId.parse('1_task1_1'),
         checkRunId: null /* Uses batch backfiller */,
       ),
     );
@@ -421,9 +412,7 @@ void main() {
     expect(
       PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PostsubmitUserData(
-        commitKey: 'flutter/flutter/flutter-0.42-candidate.0/1',
-        taskKey: '1',
-        firestoreTaskDocumentName: fs.TaskId.parse('1_task1_1'),
+        taskId: fs.TaskId.parse('1_task1_1'),
         checkRunId: null /* Uses batch backfiller */,
       ),
     );
