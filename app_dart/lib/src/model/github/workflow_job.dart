@@ -22,7 +22,7 @@ class WorkflowJobEvent {
     this.repository,
   });
 
-  factory WorkflowJobEvent.fromJson(Map<String, dynamic> input) =>
+  factory WorkflowJobEvent.fromJson(Map<String, Object?> input) =>
       _$WorkflowJobEventFromJson(input);
 
   WorkflowJob? workflowJob;
@@ -32,7 +32,7 @@ class WorkflowJobEvent {
   User? sender;
   Repository? repository;
 
-  Map<String, dynamic> toJson() => _$WorkflowJobEventToJson(this);
+  Map<String, Object?> toJson() => _$WorkflowJobEventToJson(this);
 
   @override
   String toString() {
@@ -59,7 +59,7 @@ class WorkflowJob {
     this.steps,
   });
 
-  factory WorkflowJob.fromJson(Map<String, dynamic> input) =>
+  factory WorkflowJob.fromJson(Map<String, Object?> input) =>
       _$WorkflowJobFromJson(input);
   final int? id;
   final int? runId;
@@ -78,7 +78,7 @@ class WorkflowJob {
   @JsonKey(name: 'steps', defaultValue: <Steps>[])
   final List<Steps>? steps;
 
-  Map<String, dynamic> toJson() => _$WorkflowJobToJson(this);
+  Map<String, Object?> toJson() => _$WorkflowJobToJson(this);
 
   @override
   String toString() {
@@ -90,14 +90,14 @@ class WorkflowJob {
 class Steps {
   const Steps({this.name, this.status, this.conclusion, this.number});
 
-  factory Steps.fromJson(Map<String, dynamic> input) => _$StepsFromJson(input);
+  factory Steps.fromJson(Map<String, Object?> input) => _$StepsFromJson(input);
 
   final String? name;
   final String? status;
   final String? conclusion;
   final int? number;
 
-  Map<String, dynamic> toJson() => _$StepsToJson(this);
+  Map<String, Object?> toJson() => _$StepsToJson(this);
 
   @override
   String toString() {

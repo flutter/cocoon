@@ -13,7 +13,7 @@ part 'annotations.g.dart';
 class Annotation {
   /// Support parsing directly from the API's `[{},]` response.
   static List<Annotation> fromJsonList(List<Object?> input) =>
-      input.whereType<Map<String, dynamic>>().map(Annotation.fromJson).toList();
+      input.whereType<Map<String, Object?>>().map(Annotation.fromJson).toList();
 
   Annotation({this.annotationLevel, this.message});
   factory Annotation.fromJson(Map<String, Object?> input) =>
@@ -22,7 +22,7 @@ class Annotation {
   String? annotationLevel;
   String? message;
 
-  Map<String, dynamic> toJson() => _$AnnotationToJson(this);
+  Map<String, Object?> toJson() => _$AnnotationToJson(this);
 
   @override
   String toString() {
