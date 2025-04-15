@@ -7,6 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
@@ -19,7 +20,6 @@ import '../foundation/github_checks_util.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
-import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
@@ -306,10 +306,8 @@ class LuciBuildService {
         }
       } else if (engineArtifacts is! UnnecessaryEngineArtifacts) {
         // This is an error case, as we're setting artifacts for a PR that will never use them.
-        log.warn(
+        throw StateError(
           'Unexpected engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha})',
-          null,
-          StackTrace.current,
         );
       }
 
@@ -883,6 +881,16 @@ class LuciBuildService {
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
+      if (isReleaseCandidateBranch(branchName: commit.branch)) {
+        processedProperties.addAll({
+          // Always provide an engine version, just like we do in presubmit.
+          // See https://github.com/flutter/flutter/issues/167010.
+          'flutter_prebuilt_engine_version': commit.sha,
+
+          // Prod build bucket, built during the merge queue.
+          'flutter_realm': '',
+        });
+      }
     }
     final propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);
@@ -1029,13 +1037,7 @@ class LuciBuildService {
     required fs.Task taskDocument,
     Task? task,
     Iterable<BuildTag> tags = const [],
-    bool ignoreChecks = false,
   }) async {
-    if (ignoreChecks == false &&
-        await _shouldRerunBuilderFirestore(taskDocument) == false) {
-      return false;
-    }
-
     log.info('Rerun builder: ${target.name} for commit ${commit.sha}');
 
     final buildTags = BuildTags(tags);
@@ -1132,41 +1134,5 @@ class LuciBuildService {
     await datastore.insert([dsExistingTask]);
 
     return task.currentAttempt;
-  }
-
-  /// Check if a builder should be rerun.
-  ///
-  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
-  Future<bool> _shouldRerunBuilderFirestore(fs.Task task) async {
-    if (!fs.Task.taskFailStatusSet.contains(task.status)) {
-      log.info(
-        'A re-run was requested for ${task.taskName} which is not failing '
-        '(${task.status})',
-      );
-      return false;
-    }
-    final retries = task.currentAttempt;
-    if (retries > _config.maxLuciTaskRetries) {
-      log.info('Max retries reached for ${task.taskName}');
-      return false;
-    }
-
-    final firestoreService = await _config.createFirestoreService();
-    final currentCommit = await fs.Commit.fromFirestoreBySha(
-      firestoreService,
-      sha: task.commitSha,
-    );
-    final commitList = await firestoreService.queryRecentCommits(
-      limit: 1,
-      slug: currentCommit.slug,
-      branch: currentCommit.branch,
-    );
-    final latestCommit = commitList.single;
-
-    if (latestCommit.sha != currentCommit.sha) {
-      log.info('Not tip of tree: ${currentCommit.sha}');
-      return false;
-    }
-    return true;
   }
 }

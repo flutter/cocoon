@@ -4537,7 +4537,6 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
     required _i42.Task? taskDocument,
     _i33.Task? task,
     Iterable<_i45.BuildTag>? tags = const [],
-    bool? ignoreChecks = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#checkRerunBuilder, [], {
@@ -4546,7 +4545,6 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
               #taskDocument: taskDocument,
               #task: task,
               #tags: tags,
-              #ignoreChecks: ignoreChecks,
             }),
             returnValue: _i15.Future<bool>.value(false),
           )

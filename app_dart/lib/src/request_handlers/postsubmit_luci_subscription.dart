@@ -14,8 +14,8 @@ import 'package:meta/meta.dart';
 import '../../ci_yaml.dart';
 import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
-import '../model/firestore/commit.dart' as firestore;
-import '../model/firestore/task.dart' as firestore;
+import '../model/firestore/commit.dart' as fs;
+import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
@@ -100,7 +100,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     log.info('Looking up task document: ${userData.firestoreTaskDocumentName}');
     final taskKey = Key<int>(commitKey, Task, int.parse(userData.taskKey));
     final task = await datastore.lookupByValue<Task>(taskKey);
-    final firestoreTask = await firestore.Task.fromFirestore(
+    final firestoreTask = await fs.Task.fromFirestore(
       firestoreService,
       userData.firestoreTaskDocumentName,
     );
@@ -129,7 +129,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       );
     }
 
-    final fsCommit = await firestore.Commit.fromFirestoreBySha(
+    final fsCommit = await fs.Commit.fromFirestoreBySha(
       firestoreService,
       sha: firestoreTask.commitSha,
     );
@@ -153,9 +153,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     final target = postsubmitTargets.singleWhere(
       (Target target) => target.name == firestoreTask.taskName,
     );
-    if (firestoreTask.status == firestore.Task.statusFailed ||
-        firestoreTask.status == firestore.Task.statusInfraFailure ||
-        firestoreTask.status == firestore.Task.statusCancelled) {
+    if (await _shouldAutomaticallyRerun(firestoreTask)) {
       log.debug('Trying to auto-retry...');
       final retried = await _luciBuildService.checkRerunBuilder(
         commit: OpaqueCommit.fromFirestore(fsCommit),
@@ -189,8 +187,42 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
   //    b) `completed`: update info like status.
   // 2) the task is already completed.
   //    The task may have been marked as completed from test framework via update-task-status API.
-  bool _shouldUpdateTask(bbv2.Build build, firestore.Task task) {
+  bool _shouldUpdateTask(bbv2.Build build, fs.Task task) {
     return build.status != bbv2.Status.SCHEDULED &&
-        !firestore.Task.finishedStatusValues.contains(task.status);
+        !fs.Task.finishedStatusValues.contains(task.status);
+  }
+
+  /// Check if a builder should be rerun.
+  ///
+  /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
+  Future<bool> _shouldAutomaticallyRerun(fs.Task task) async {
+    if (!fs.Task.taskFailStatusSet.contains(task.status)) {
+      log.debug('${task.taskName} is not failing. No rerun needed.');
+      return false;
+    }
+    final retries = task.currentAttempt;
+    if (retries > config.maxLuciTaskRetries) {
+      log.info('Max retries reached for ${task.taskName}');
+      return false;
+    }
+
+    final firestoreService = await config.createFirestoreService();
+    final currentCommit = await fs.Commit.fromFirestoreBySha(
+      firestoreService,
+      sha: task.commitSha,
+    );
+    final commitList = await firestoreService.queryRecentCommits(
+      limit: 1,
+      slug: currentCommit.slug,
+      branch: currentCommit.branch,
+    );
+    final latestCommit = commitList.single;
+
+    // Merge queue uses PresubmitLuciSubscription, so this is safe.
+    if (latestCommit.sha != currentCommit.sha) {
+      log.info('Not tip of tree: ${currentCommit.sha}');
+      return false;
+    }
+    return true;
   }
 }
