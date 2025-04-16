@@ -25,17 +25,16 @@ final class BatchBackfiller extends RequestHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const BatchBackfiller({
     required super.config,
-    required this.scheduler,
-    required this.ciYamlFetcher,
+    required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
     @visibleForTesting
     this.datastoreProvider = DatastoreService.defaultProvider,
-  }) : _luciBuildService = luciBuildService;
+  }) : _ciYamlFetcher = ciYamlFetcher,
+       _luciBuildService = luciBuildService;
 
   final LuciBuildService _luciBuildService;
   final DatastoreServiceProvider datastoreProvider;
-  final Scheduler scheduler;
-  final CiYamlFetcher ciYamlFetcher;
+  final CiYamlFetcher _ciYamlFetcher;
 
   @override
   Future<Body> get() async {
@@ -76,7 +75,7 @@ final class BatchBackfiller extends RequestHandler {
     for (var taskColumn in taskMap.values) {
       final task = taskColumn.first;
 
-      final ciYaml = await ciYamlFetcher.getCiYaml(
+      final ciYaml = await _ciYamlFetcher.getCiYaml(
         commitBranch: task.commit.branch,
         commitSha: task.commit.sha,
         slug: task.commit.slug,
