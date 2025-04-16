@@ -265,7 +265,7 @@ final class BatchBackfiller extends RequestHandler {
       // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
       final toBeScheduled = PendingTask(
         target: tuple.first,
-        task: tuple.second.task,
+        taskName: tuple.second.task.builderName!,
         priority: tuple.third,
       );
       futures.add(

@@ -266,7 +266,11 @@ class Scheduler {
         // Mark task as in progress to ensure it isn't scheduled over
         task.status = ds.Task.statusInProgress;
         toBeScheduled.add(
-          PendingTask(target: target, task: task, priority: priority),
+          PendingTask(
+            target: target,
+            taskName: task.builderName!,
+            priority: priority,
+          ),
         );
       }
     }
@@ -313,7 +317,8 @@ class Scheduler {
     }
 
     log.info(
-      'Immediately scheduled tasks for $commit: ${toBeScheduled.map((t) => '"${t.task.name}"').join(', ')}',
+      'Immediately scheduled tasks for $commit: '
+      '${toBeScheduled.map((t) => '"${t.taskName}"').join(', ')}',
     );
     await _batchScheduleBuilds(
       OpaqueCommit.fromDatastore(commit),
@@ -338,9 +343,7 @@ class Scheduler {
         i,
         min(i + _config.batchSize, toBeScheduled.length),
       );
-      batchLog.writeln(
-        '  - ${batch.map((t) => '"${t.task.name}"').join(', ')}',
-      );
+      batchLog.writeln('  - ${batch.map((t) => '"${t.taskName}"').join(', ')}');
       futures.add(
         _luciBuildService.schedulePostsubmitBuilds(
           commit: commit,

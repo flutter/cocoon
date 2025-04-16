@@ -541,7 +541,7 @@ class LuciBuildService {
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
-            task: task,
+            taskName: task.builderName!,
             properties: properties,
             priority: kRerunPriority,
             tags: tags,
@@ -656,7 +656,7 @@ class LuciBuildService {
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: pending.target,
-        task: pending.task,
+        taskName: pending.taskName,
         priority: pending.priority,
       );
       buildRequests.add(
@@ -821,7 +821,7 @@ class LuciBuildService {
   Future<bbv2.ScheduleBuildRequest> _createPostsubmitScheduleBuild({
     required OpaqueCommit commit,
     required Target target,
-    required Task task,
+    required String taskName,
     Map<String, Object?>? properties,
     BuildTags? tags,
     int priority = kDefaultPriority,
@@ -836,12 +836,6 @@ class LuciBuildService {
         slugName: commit.slug.name,
       ),
     ]);
-
-    final commitKey = task.parentKey!.id.toString();
-    final taskKey = task.key.id.toString();
-    log.info('Scheduling builder: ${target.name} for commit ${commit.sha}');
-    log.info('Task commit_key: $commitKey for task name: ${task.name}');
-    log.info('Task task_key: $taskKey for task name: ${task.name}');
 
     // Creates post submit checkrun only for unflaky targets from [config.postsubmitSupportedRepos].
     final CheckRun? checkRun;
@@ -860,7 +854,7 @@ class LuciBuildService {
 
     final firestoreTask = fs.TaskId(
       commitSha: commit.sha,
-      taskName: task.name!,
+      taskName: taskName,
       currentAttempt: currentAttempt.attemptNumber,
     );
     final userData = PostsubmitUserData(
@@ -1082,7 +1076,7 @@ class LuciBuildService {
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
-            task: task,
+            taskName: task.builderName!,
             priority: kRerunPriority,
             properties: Config.defaultProperties,
             tags: buildTags,

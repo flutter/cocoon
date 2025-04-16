@@ -464,12 +464,8 @@ void main() {
             ).captured;
         final toBeScheduled = captured.first as List<Object?>;
         expect(toBeScheduled.length, 2);
-        final tuples = toBeScheduled.map(
-          (dynamic tuple) => tuple as PendingTask,
-        );
-        final scheduledTargetNames = tuples.map(
-          (PendingTask tuple) => tuple.task.name!,
-        );
+        final tuples = toBeScheduled.cast<PendingTask>();
+        final scheduledTargetNames = tuples.map((tuple) => tuple.taskName);
         expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
         // Tasks triggered by cocoon are marked as in progress
         final tasks = db.values.values.whereType<Task>();
