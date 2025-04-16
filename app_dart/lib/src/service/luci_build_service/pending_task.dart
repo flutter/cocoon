@@ -8,7 +8,6 @@ library;
 import 'package:meta/meta.dart';
 
 import '../../../ci_yaml.dart';
-import '../../model/appengine/task.dart';
 
 /// Represents a task that has yet to be scheduled in [LuciBuildService].
 ///
@@ -17,7 +16,7 @@ import '../../model/appengine/task.dart';
 final class PendingTask {
   const PendingTask({
     required this.target,
-    required this.task,
+    required this.taskName,
     required this.priority,
   });
 
@@ -25,7 +24,7 @@ final class PendingTask {
   final Target target;
 
   /// Task that, when executed, faithfully cares out the request in [target].
-  final Task task;
+  final String taskName;
 
   /// Priority of the task.
   final int priority;
@@ -34,15 +33,15 @@ final class PendingTask {
   bool operator ==(Object other) {
     return other is PendingTask &&
         target == other.target &&
-        task == other.task &&
+        taskName == other.taskName &&
         priority == other.priority;
   }
 
   @override
-  int get hashCode => Object.hash(target, task, priority);
+  int get hashCode => Object.hash(target, taskName, priority);
 
   @override
   String toString() {
-    return 'PendingTask <${task.builderName} | $target | $priority>';
+    return 'PendingTask <$taskName | $target | $priority>';
   }
 }

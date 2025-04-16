@@ -118,13 +118,11 @@ Server createServer({
     ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
     ),
