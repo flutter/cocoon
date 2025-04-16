@@ -37,7 +37,6 @@ void main() {
   late RequestHandlerTester tester;
   late FakeDatastoreDB db;
   late FakePubSub pubsub;
-  late FakeScheduler scheduler;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Config config;
   late FakeFirestoreService firestore;
@@ -77,15 +76,8 @@ void main() {
       githubChecksUtil: mockGithubChecksUtil,
     );
 
-    scheduler = FakeScheduler(
-      config: config,
-      githubChecksUtil: mockGithubChecksUtil,
-      luciBuildService: luciBuildService,
-    );
-
     handler = BatchBackfiller(
       config: config,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
     );
@@ -192,14 +184,8 @@ void main() {
       pubsub: pubsub,
       githubChecksUtil: mockGithubChecksUtil,
     );
-    scheduler = FakeScheduler(
-      config: config,
-      githubChecksUtil: mockGithubChecksUtil,
-      luciBuildService: luciBuildService,
-    );
     handler = BatchBackfiller(
       config: config,
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
     );

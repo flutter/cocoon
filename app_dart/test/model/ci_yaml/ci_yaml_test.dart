@@ -230,7 +230,15 @@ void main() {
         final initialTargets = releaseYaml.postsubmitTargets;
         final initialTargetNames =
             initialTargets.map((Target target) => target.name).toList();
-        expect(initialTargetNames, ['Linux B']);
+
+        expect(
+          initialTargetNames,
+          isEmpty,
+          // See https://github.com/flutter/flutter/issues/167288.
+          reason:
+              'Linux B is not present in ToT, and the remaining builds are '
+              'bringup or release builds',
+        );
       });
 
       test('release_build targets for master are filtered out', () {

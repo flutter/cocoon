@@ -161,11 +161,12 @@ void main() {
         status: Task.statusSucceeded,
         commitSha: '1',
         name: 'Linux foo',
+        created: alwaysTime,
       ),
     );
     await firestore.createDocument(
       BuildStatusSnapshot(
-        createdOn: alwaysTime.toUtc(),
+        createdOn: alwaysTime.subtract(const Duration(hours: 1)),
         status: BuildStatus.failure,
         failingTasks: ['Linux foo'],
       ),
@@ -190,6 +191,7 @@ void main() {
       message,
       stringContainsInOrder([
         'flutter/flutter is now :green_circle:',
+        'It took 60 minutes to become green',
         'Now passing',
         'Linux foo',
       ]),
