@@ -73,6 +73,20 @@ final class UpdateDiscordStatus extends GetBuildStatus {
 
     final diff = latest.diffContents(previous);
 
+    // Determine how much time has gone by since the last green, if applicable.
+    final Duration? durationSinceGreen;
+    if (latest.status != BuildStatus.success) {
+      durationSinceGreen = null;
+    } else if (previous.status == BuildStatus.failure) {
+      assert(latest.status == BuildStatus.success);
+      durationSinceGreen = latest.createdOn.difference(previous.createdOn);
+    } else if (await BuildStatusSnapshot.getLatestPassing(firestore)
+        case final previousGreen?) {
+      durationSinceGreen = latest.createdOn.difference(previousGreen.createdOn);
+    } else {
+      durationSinceGreen = null;
+    }
+
     // Record the new status.
     if (diff.isDifferent) {
       log.debug('[update_discord_status] status changed: $latest');
@@ -93,8 +107,10 @@ final class UpdateDiscordStatus extends GetBuildStatus {
       message.writeln('still :red_circle:!');
     }
 
-    final duration = latest.createdOn.difference(previous.createdOn);
-    message.writeln('It has been ${duration.inMinutes} minutes');
+    if (durationSinceGreen != null) {
+      final duration = latest.createdOn.difference(previous.createdOn);
+      message.writeln('It took ${duration.inMinutes} minutes to become green');
+    }
 
     final details = StringBuffer();
     if (diff.nowFailing.isNotEmpty) {
