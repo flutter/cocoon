@@ -33,7 +33,7 @@ enum CiType {
 /// Merged repositories can have multiple `.ci.yaml` files located throughout
 /// the tree. Today we only support the root type as [CiType.any] and the second
 /// as [CiType.fusionEngine].
-class CiYamlSet {
+final class CiYamlSet {
   CiYamlSet({
     required this.slug,
     required this.branch,
