@@ -115,11 +115,4 @@ abstract class Callbacks {
     int checkRunId,
     String checkRunName,
   );
-
-  /// See [PrCheckRuns.findPullRequestForSha]
-  // ignore: unreachable_from_main
-  Future<PullRequest?> findPullRequestForSha(
-    FirestoreService firestoreService,
-    String sha,
-  );
 }

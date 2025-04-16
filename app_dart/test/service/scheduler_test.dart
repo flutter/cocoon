@@ -15,6 +15,7 @@ import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -885,7 +886,9 @@ void main() {
             firestoreService: firestoreService,
           );
 
-          final pullRequest = generatePullRequest();
+          final pullRequest = generatePullRequest(
+            headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+          );
 
           // Enable fusion (modern flutter/flutter merged)
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
@@ -903,11 +906,15 @@ void main() {
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
             ),
-            findPullRequestForSha: (_, sha) async {
-              return pullRequest;
-            },
             contentAwareHash: fakeContentAwareHash,
           );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestoreService,
+            pullRequest: pullRequest,
+            checks: [generateCheckRun(1, name: 'Linux engine_presubmit')],
+          );
+
           when(mockGithubService.github).thenReturn(mockGithubClient);
           when(
             mockGithubService.searchIssuesAndPRs(
@@ -1061,13 +1068,12 @@ void main() {
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the datastore.
+        final pullRequest = generatePullRequest(
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        );
+
         db = FakeDatastoreDB();
         config = FakeConfig(dbValue: db, firestoreService: firestoreService);
-
-        when(callbacks.findPullRequestForSha(any, any)).thenAnswer((inv) async {
-          return pullRequest;
-        });
-
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         final luci = MockLuciBuildService();
@@ -1090,9 +1096,14 @@ void main() {
           ),
           getFilesChanged: getFilesChanged,
           luciBuildService: luci,
-          findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
           contentAwareHash: fakeContentAwareHash,
+        );
+
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestoreService,
+          pullRequest: pullRequest,
+          checks: [generateCheckRun(1, name: 'Linux A')],
         );
 
         final checkrun = jsonDecode(checkRunString()) as Map<String, dynamic>;
@@ -1104,21 +1115,20 @@ void main() {
           const ProcessCheckRunResult.success(),
         );
 
-        verify(
-          callbacks.findPullRequestForSha(any, checkRunEvent.checkRun!.headSha),
-        ).called(1);
-        final captured =
-            verify(
-              luci.scheduleTryBuilds(
-                targets: captureAnyNamed('targets'),
-                pullRequest: captureAnyNamed('pullRequest'),
-                engineArtifacts: anyNamed('engineArtifacts'),
-              ),
-            ).captured;
-
-        expect(captured, hasLength(2));
-        expect(captured[0].first.name, 'Linux A');
-        expect(captured[1], pullRequest);
+        expect(
+          firestoreService,
+          existsInStorage(PrCheckRuns.metadata, [
+            isPrCheckRun
+                .hasCheckRuns({'Linux A': '1'})
+                .hasPullRequest(
+                  isA<PullRequest>().having(
+                    (p) => p.number,
+                    'number',
+                    pullRequest.number,
+                  ),
+                ),
+          ]),
+        );
       });
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
@@ -1247,9 +1257,7 @@ targets:
             'check_suite': <String, dynamic>{'id': 2},
           });
         });
-        when(callbacks.findPullRequestForSha(any, any)).thenAnswer((inv) async {
-          return null;
-        });
+
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunWithEmptyPullRequests) as Map<String, dynamic>,
         );
@@ -1263,7 +1271,6 @@ targets:
           ),
           getFilesChanged: getFilesChanged,
           luciBuildService: FakeLuciBuildService(config: config),
-          findPullRequestForSha: callbacks.findPullRequestForSha,
           ciYamlFetcher: ciYamlFetcher,
           contentAwareHash: fakeContentAwareHash,
         );

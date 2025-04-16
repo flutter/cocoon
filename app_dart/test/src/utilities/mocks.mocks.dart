@@ -5740,17 +5740,6 @@ class MockCallbacks extends _i1.Mock implements _i47.Callbacks {
             ),
           )
           as _i15.Future<_i10.PullRequest>);
-
-  @override
-  _i15.Future<_i10.PullRequest?> findPullRequestForSha(
-    _i12.FirestoreService? firestoreService,
-    String? sha,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#findPullRequestForSha, [firestoreService, sha]),
-            returnValue: _i15.Future<_i10.PullRequest?>.value(),
-          )
-          as _i15.Future<_i10.PullRequest?>);
 }
 
 /// A class which mocks [PullRequestLabelProcessor].

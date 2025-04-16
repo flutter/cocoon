@@ -235,13 +235,16 @@ String checkSuiteTemplate(String action) => '''\
 }
 ''';
 
-String checkRunString({String repository = 'cocoon'}) => '''
+String checkRunString({
+  String repository = 'cocoon',
+  String headSha = '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+}) => '''
 {
     "action": "rerequested",
     "check_run": {
         "id": 660053389,
         "node_id": "MDg6Q2hlY2tSdW42NjAwNTMzODk=",
-        "head_sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
+        "head_sha": "$headSha",
         "external_id": "",
         "url": "https://api.github.com/repos/flutter/$repository/check-runs/660053389",
         "html_url": "https://github.com/flutter/$repository/runs/660053389",
@@ -262,12 +265,12 @@ String checkRunString({String repository = 'cocoon'}) => '''
             "id": 668083231,
             "node_id": "MDEwOkNoZWNrU3VpdGU2NjgwODMyMzE=",
             "head_branch": "independent_agent",
-            "head_sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
+            "head_sha": "$headSha",
             "status": "queued",
             "conclusion": null,
             "url": "https://api.github.com/repos/flutter/$repository/check-suites/668083231",
             "before": "918f7fdf0337dac0fca0254e1b0e46e79f8e7a37",
-            "after": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
+            "after": "$headSha",
             "pull_requests": [
                 {
                     "url": "https://api.github.com/repos/flutter/$repository/pulls/1",
@@ -275,7 +278,7 @@ String checkRunString({String repository = 'cocoon'}) => '''
                     "number": 1,
                     "head": {
                         "ref": "independent_agent",
-                        "sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
+                        "sha": "$headSha",
                         "repo": {
                             "id": 212688278,
                             "url": "https://api.github.com/repos/flutter/$repository",
@@ -391,7 +394,7 @@ String checkRunString({String repository = 'cocoon'}) => '''
                 "number": 1,
                 "head": {
                     "ref": "independent_agent",
-                    "sha": "66d6bd9a3f79a36fe4f5178ccefbc781488a596c",
+                    "sha": "$headSha",
                     "repo": {
                         "id": 212688278,
                         "url": "https://api.github.com/repos/flutter/$repository",
