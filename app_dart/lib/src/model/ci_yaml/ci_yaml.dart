@@ -104,17 +104,6 @@ class CiYamlSet {
   List<Target> backfillTargets({CiType type = CiType.any}) =>
       configs[type]!.backfillTargets;
 
-  /// Filters targets that were removed from main. [slug] is the gihub
-  /// slug for branch under test, [targets] is the list of targets from
-  /// the branch under test and [totTargetNames] is the list of target
-  /// names enabled on the default branch.
-  List<Target> filterOutdatedTargets(
-    RepositorySlug slug,
-    Iterable<Target> targets,
-    Iterable<String> totTargetNames, {
-    CiType type = CiType.any,
-  }) => configs[type]!._filterOutdatedTargets(slug, targets, totTargetNames);
-
   /// Filters [targets] to those that should be started immediately.
   ///
   /// Targets with a dependency are triggered when there dependency pushes a notification that it has finished.
