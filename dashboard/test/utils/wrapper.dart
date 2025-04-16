@@ -8,7 +8,7 @@ import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:mockito/mockito.dart';
 
 import 'fake_build.dart';
-import 'fake_google_account.dart';
+import 'fake_firebase_user.dart';
 import 'mocks.dart';
 
 class FakeInserter extends StatelessWidget {
@@ -20,10 +20,10 @@ class FakeInserter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fakeAuthService = MockGoogleSignInService();
+    final fakeAuthService = MockFirebaseAuthService();
     if (signedIn) {
       when(fakeAuthService.isAuthenticated).thenReturn(true);
-      when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
+      when(fakeAuthService.user).thenReturn(FakeFirebaseUser());
     } else {
       when(fakeAuthService.isAuthenticated).thenReturn(false);
       when(fakeAuthService.user).thenReturn(null);
