@@ -56,12 +56,6 @@ void main() {
     status: bbv2.Status.STARTED,
   );
 
-  final exampleMacBuild = generateBbv2Build(
-    Int64(999),
-    name: 'Mac',
-    status: bbv2.Status.STARTED,
-  );
-
   test('getProdBuilds searches using "batch"', () async {
     when(mockBuildBucketClient.batch(any)).thenAnswer((i) async {
       final [bbv2.BatchRequest request] = i.positionalArguments;
