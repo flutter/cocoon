@@ -10,7 +10,7 @@ import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/dev_cocoon.dart';
-import 'package:flutter_dashboard/service/firebase_auth.dart';
+import 'package:flutter_dashboard/service/google_authentication.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/error_brook_watcher.dart';
@@ -21,8 +21,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import 'utils/fake_build.dart';
-import 'utils/fake_firebase_user.dart';
 import 'utils/fake_flutter_app_icons.dart';
+import 'utils/fake_google_account.dart';
 import 'utils/generate_commit_for_tests.dart';
 import 'utils/generate_task_for_tests.dart';
 import 'utils/golden.dart';
@@ -31,7 +31,7 @@ import 'utils/output.dart';
 import 'utils/task_icons.dart';
 
 void main() {
-  late MockFirebaseAuthService fakeAuthService;
+  late MockGoogleSignInService fakeAuthService;
 
   final dropdownButtonType =
       DropdownButton<String>(
@@ -50,9 +50,9 @@ void main() {
   }
 
   setUp(() {
-    fakeAuthService = MockFirebaseAuthService();
+    fakeAuthService = MockGoogleSignInService();
     when(fakeAuthService.isAuthenticated).thenReturn(true);
-    when(fakeAuthService.user).thenReturn(FakeFirebaseUser());
+    when(fakeAuthService.user).thenReturn(FakeGoogleSignInAccount());
 
     FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
   });
@@ -92,7 +92,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: buildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -115,7 +115,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -136,7 +136,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -157,7 +157,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -178,7 +178,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -210,7 +210,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: fakeBuildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: fakeBuildState.authService,
               child: const BuildDashboardPage(),
             ),
@@ -250,7 +250,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: fakeBuildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: fakeBuildState.authService,
               child: const BuildDashboardPage(),
             ),
@@ -295,7 +295,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: fakeBuildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: fakeBuildState.authService,
               child: const BuildDashboardPage(),
             ),
@@ -338,7 +338,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -367,7 +367,7 @@ void main() {
         theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -396,7 +396,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -430,7 +430,7 @@ void main() {
         theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -464,7 +464,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -493,7 +493,7 @@ void main() {
         theme: ThemeData.dark(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -523,7 +523,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: buildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -575,7 +575,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: buildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: buildState.authService,
             child: const BuildDashboardPage(
               // TODO(matanlurey): Either find a Linux machine, or remove.
@@ -620,7 +620,7 @@ void main() {
           theme: ThemeData.dark(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
               child: const BuildDashboardPage(
                 // TODO(matanlurey): Either find a Linux machine, or remove.
@@ -664,7 +664,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: controlledBuildDashboardPage,
           ),
@@ -706,7 +706,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: fakeBuildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: fakeBuildState.authService,
               child: const BuildDashboardPage(),
             ),
@@ -739,7 +739,7 @@ void main() {
         theme: theme,
         home: ValueProvider<BuildState>(
           value: fakeBuildState,
-          child: ValueProvider<FirebaseAuthService>(
+          child: ValueProvider<GoogleSignInService>(
             value: fakeBuildState.authService,
             child: const BuildDashboardPage(),
           ),
@@ -816,7 +816,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
               child: const BuildDashboardPage(
                 queryParameters: {
@@ -851,7 +851,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
               child: const BuildDashboardPage(
                 queryParameters: {'repo': 'flutter', 'branch': 'master'},
@@ -883,7 +883,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
               child: const BuildDashboardPage(
                 queryParameters: {
@@ -918,7 +918,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: ValueProvider<FirebaseAuthService>(
+            child: ValueProvider<GoogleSignInService>(
               value: buildState.authService,
               child: const BuildDashboardPage(
                 queryParameters: {

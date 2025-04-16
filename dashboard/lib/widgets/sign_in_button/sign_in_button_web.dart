@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in_web/web_only.dart' as gsi_web;
 
 /// Widget that users can click to initiate the Sign In process.
 class SignInButton extends StatelessWidget {
@@ -11,10 +11,6 @@ class SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const GoogleSignInButton(
-      loadingIndicator: CircularProgressIndicator(),
-      clientId:
-          '308150028417-8macvev15e97pqjo44dvailsrqolgs0k.apps.googleusercontent.com',
-    );
+    return gsi_web.renderButton();
   }
 }
