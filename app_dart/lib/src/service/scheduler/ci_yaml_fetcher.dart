@@ -208,7 +208,9 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   ///
   /// A tip of tree commit is used to help generate the tip of tree [CiYamlSet],
   /// where it is compared against presubmit targets to ensure new targets
-  /// (without `bringup: true`) are not added to the build.
+  /// (without `bringup: true`) are not added to the build, as well that targets
+  /// that no longer exist at tip of tree do not run on older branches (such as
+  /// release candidates).
   Future<firestore.Commit> _fetchTipOfTreeCommit({
     required RepositorySlug slug,
   }) async {
