@@ -95,25 +95,6 @@ class LuciBuildService {
 
   /// Fetches an Iterable of try BuildBucket [Build]s.
   ///
-  /// Returns a list of BuildBucket [Build]s for a given Github [sha],
-  /// and [builderName].
-  Future<Iterable<bbv2.Build>> getTryBuilds({
-    // TODO(matanlurey): Make this private and rewrite tests to test the public API instead.
-    required String sha,
-    String? builderName,
-  }) async {
-    return _getBuilds(
-      builderName: builderName,
-      bucket: 'try',
-      tags: BuildTags([
-        ByPresubmitCommitBuildSetBuildTag(commitSha: sha),
-        UserAgentBuildTag.flutterCocoon,
-      ]),
-    );
-  }
-
-  /// Fetches an Iterable of try BuildBucket [Build]s.
-  ///
   /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
   Future<Iterable<bbv2.Build>> getTryBuildsByPullRequest({
     required github.PullRequest pullRequest,
