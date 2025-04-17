@@ -4316,20 +4316,6 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
   }
 
   @override
-  _i15.Future<Iterable<_i6.Build>> getTryBuilds({
-    required String? sha,
-    String? builderName,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getTryBuilds, [], {
-              #sha: sha,
-              #builderName: builderName,
-            }),
-            returnValue: _i15.Future<Iterable<_i6.Build>>.value(<_i6.Build>[]),
-          )
-          as _i15.Future<Iterable<_i6.Build>>);
-
-  @override
   _i15.Future<Iterable<_i6.Build>> getTryBuildsByPullRequest({
     required _i10.PullRequest? pullRequest,
   }) =>

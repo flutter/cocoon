@@ -4,6 +4,7 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
@@ -176,6 +177,33 @@ void main() {
         isEmpty,
       );
     });
+  });
+
+  /// This test exists because the Firebase JWT is valid json with different
+  /// representations. The [SecondsSinceEpochConverter] and [BoolConverter] were
+  /// both broken.
+  test('TokenInfo handles claims', () {
+    final json = {
+      'name': 'Code Fu',
+      'picture': 'https://nopes.jpg',
+      'iss': 'https://securetoken.google.com/flutter-dashboard',
+      'aud': 'flutter-dashboard',
+      'auth_time': 1744827144,
+      'user_id': 'abcdefg',
+      'sub': '123456ab',
+      'iat': 1744926570,
+      'exp': 1744930170,
+      'email': 'codefu@flutter.dev',
+      'email_verified': true,
+    };
+    final token = TokenInfo.fromJson(json);
+    expect(token.email, 'codefu@flutter.dev');
+    expect(token.issued, DateTime.fromMillisecondsSinceEpoch(1744926570000));
+    expect(
+      token.expiration,
+      DateTime.fromMillisecondsSinceEpoch(1744930170000),
+    );
+    expect(token.emailIsVerified, true);
   });
 }
 

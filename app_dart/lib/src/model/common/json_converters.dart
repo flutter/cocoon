@@ -107,15 +107,18 @@ class MicrosecondsSinceEpochConverter
 }
 
 /// A converter for "timestamp" fields encoded as seconds since epoch.
-class SecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
+class SecondsSinceEpochConverter implements JsonConverter<DateTime?, Object?> {
   const SecondsSinceEpochConverter();
 
   @override
-  DateTime? fromJson(String? json) {
-    if (json == null) {
-      return null;
+  DateTime? fromJson(Object? json) {
+    if (json is int) {
+      return DateTime.fromMillisecondsSinceEpoch(json * 1000);
     }
-    return DateTime.fromMillisecondsSinceEpoch(int.parse(json) * 1000);
+    if (json is String) {
+      return DateTime.fromMillisecondsSinceEpoch(int.parse(json) * 1000);
+    }
+    return null;
   }
 
   @override
@@ -129,15 +132,16 @@ class SecondsSinceEpochConverter implements JsonConverter<DateTime?, String?> {
 }
 
 /// A converter for boolean fields encoded as strings.
-class BoolConverter implements JsonConverter<bool?, String?> {
+class BoolConverter implements JsonConverter<bool?, Object?> {
   const BoolConverter();
 
   @override
-  bool? fromJson(String? json) {
-    if (json == null) {
-      return null;
+  bool? fromJson(Object? json) {
+    if (json is bool) return json;
+    if (json is String) {
+      return json.toLowerCase() == 'true';
     }
-    return json.toLowerCase() == 'true';
+    return null;
   }
 
   @override
