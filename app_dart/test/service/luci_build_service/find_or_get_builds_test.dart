@@ -23,7 +23,6 @@ import '../../src/utilities/mocks.mocks.dart';
 ///
 /// Specifically:
 /// - [LuciBuildService.getAvailableBuilderSet]
-/// - [LuciBuildService.getTryBuilds]
 /// - [LuciBuildService.getTryBuildsByPullRequest]
 /// - [LuciBuildService.getProdBuilds]
 /// - [LuciBuildService.getBuildById]
@@ -56,51 +55,6 @@ void main() {
     bucket: 'try',
     status: bbv2.Status.STARTED,
   );
-
-  final exampleMacBuild = generateBbv2Build(
-    Int64(999),
-    name: 'Mac',
-    status: bbv2.Status.STARTED,
-  );
-
-  test('getTryBuilds searches using "batch"', () async {
-    when(mockBuildBucketClient.batch(any)).thenAnswer((i) async {
-      final [bbv2.BatchRequest request] = i.positionalArguments;
-      expect(request.requests, [
-        isA<bbv2.BatchRequest_Request>().having(
-          (r) => r.searchBuilds,
-          'searchBuilds',
-          isA<bbv2.SearchBuildsRequest>().having(
-            (r) => r.predicate,
-            'predicate',
-            isA<bbv2.BuildPredicate>().having(
-              (r) => r.builder,
-              'builder',
-              isA<bbv2.BuilderID>()
-                  .having((r) => r.project, 'project', 'flutter')
-                  .having((r) => r.bucket, 'bucket', 'try')
-                  .having((r) => r.builder, 'builder', 'abcd'),
-            ),
-          ),
-        ),
-      ]);
-
-      return bbv2.BatchResponse(
-        responses: [
-          bbv2.BatchResponse_Response(
-            searchBuilds: bbv2.SearchBuildsResponse(
-              builds: [exampleLinuxBuild],
-            ),
-          ),
-        ],
-      );
-    });
-
-    await expectLater(
-      luci.getTryBuilds(sha: 'shasha', builderName: 'abcd'),
-      completion([exampleLinuxBuild]),
-    );
-  });
 
   test('getProdBuilds searches using "batch"', () async {
     when(mockBuildBucketClient.batch(any)).thenAnswer((i) async {
@@ -185,56 +139,6 @@ void main() {
         ),
       ),
       completion([exampleLinuxBuild]),
-    );
-  });
-
-  test('deep empty responses are handled correctly', () async {
-    when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-      return bbv2.BatchResponse(
-        responses: [
-          bbv2.BatchResponse_Response(
-            searchBuilds: bbv2.SearchBuildsResponse(builds: []),
-          ),
-        ],
-      );
-    });
-
-    await expectLater(
-      luci.getTryBuilds(sha: 'shasha', builderName: 'abcd'),
-      completion(isEmpty),
-    );
-  });
-
-  test('shallow empty responses are handled correctly', () async {
-    when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-      return bbv2.BatchResponse(responses: []);
-    });
-
-    await expectLater(
-      luci.getTryBuilds(sha: 'shasha', builderName: 'abcd'),
-      completion(isEmpty),
-    );
-  });
-
-  test('multiple shallow responses are handled correctly', () async {
-    when(mockBuildBucketClient.batch(any)).thenAnswer((_) async {
-      return bbv2.BatchResponse(
-        responses: [
-          bbv2.BatchResponse_Response(
-            searchBuilds: bbv2.SearchBuildsResponse(builds: [exampleMacBuild]),
-          ),
-          bbv2.BatchResponse_Response(
-            searchBuilds: bbv2.SearchBuildsResponse(
-              builds: [exampleLinuxBuild],
-            ),
-          ),
-        ],
-      );
-    });
-
-    await expectLater(
-      luci.getTryBuilds(sha: 'shasha', builderName: 'abcd'),
-      completion([exampleMacBuild, exampleLinuxBuild]),
     );
   });
 
