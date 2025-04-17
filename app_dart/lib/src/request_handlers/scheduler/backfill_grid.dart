@@ -35,18 +35,18 @@ final class BackfillGrid {
     Iterable<(OpaqueCommit, List<OpaqueTask>)> grid, {
     required Iterable<Target> tipOfTreeTargets,
   }) {
-    final targetsByName = {for (final t in tipOfTreeTargets) t.name: t};
+    final totTargetsByName = {for (final t in tipOfTreeTargets) t.name: t};
     final commitsByName = <String, OpaqueCommit>{};
     final tasksByName = <String, List<OpaqueTask>>{};
     for (final (commit, tasks) in grid) {
       commitsByName[commit.sha] = commit;
       for (final task in tasks) {
         // Must exist at ToT (in this Map) and must be BatchPolicy.
-        if (targetsByName[task.name]?.schedulerPolicy is! BatchPolicy) {
+        if (totTargetsByName[task.name]?.schedulerPolicy is! BatchPolicy) {
           // Even if it existed, let's remove it at this point because it is no
           // longer relevant to the BackfillGrid, and if there are future API
           // changes to the class it shouldn't show up.
-          targetsByName.remove(task.name);
+          totTargetsByName.remove(task.name);
           continue;
         }
         (tasksByName[task.name] ??= []).add(task);
@@ -55,9 +55,9 @@ final class BackfillGrid {
 
     // Final filtering step: remove empty targets/tasks.
     tasksByName.removeWhere((_, tasks) => tasks.isEmpty);
-    targetsByName.removeWhere((name, _) => !tasksByName.containsKey(name));
+    totTargetsByName.removeWhere((name, _) => !tasksByName.containsKey(name));
 
-    return BackfillGrid._(commitsByName, targetsByName, tasksByName);
+    return BackfillGrid._(commitsByName, totTargetsByName, tasksByName);
   }
 
   BackfillGrid._(
@@ -71,17 +71,35 @@ final class BackfillGrid {
   final Map<String, Target> _targetsByName;
 
   /// Returns a [BackfillTask] with the provided LUCI scheduling [priority].
+  ///
+  /// If [task] does not originate from [targets] the behavior is undefined.
   @useResult
   BackfillTask createBackfillTask(OpaqueTask task, {required int priority}) {
+    final target = _targetsByName[task.name];
+    if (target == null) {
+      throw ArgumentError.value(
+        task,
+        'task',
+        'No target for task "${task.name}',
+      );
+    }
+    final commit = _commitsBySha[task.commitSha];
+    if (commit == null) {
+      throw ArgumentError.value(
+        task,
+        'task',
+        'No commit for task "${task.name}',
+      );
+    }
     return BackfillTask._from(
       task,
-      target: _targetsByName[task.name]!,
-      commit: _commitsBySha[task.commitSha]!,
+      target: target,
+      commit: commit,
       priority: priority,
     );
   }
 
-  /// Removes tasks (a column) from the grid that return `true` for [predicate].
+  /// Removes a task column from the grid for which [predicate] returns `true`.
   void removeColumnWhere(bool Function(List<OpaqueTask>) predicate) {
     return _tasksByName.removeWhere((_, tasks) {
       return predicate(UnmodifiableListView(tasks));
@@ -89,6 +107,8 @@ final class BackfillGrid {
   }
 
   /// Each task, ordered by column (task by task).
+  ///
+  /// Returned [OpaqueTask]s are eligible to be used in [createBackfillTask].
   Iterable<(Target, List<OpaqueTask>)> get targets sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
       if (column.isEmpty) {

@@ -84,7 +84,7 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
 
         // Determine whether it is high priority or regular priority.
         if (column
-            .getRange(i, min(i + BatchPolicy.kBatchSize, column.length))
+            .getRange(i, min(i + BatchPolicy.kBatchSize + 1, column.length))
             .any((t) => fs.Task.taskFailStatusSet.contains(t.status))) {
           hadRecentFailure.add(row);
         } else {

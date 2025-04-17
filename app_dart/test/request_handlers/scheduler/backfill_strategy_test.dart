@@ -143,7 +143,7 @@ void main() {
     // 🧑‍💼 🟥 ⬜ ⬜ < 7
     //
     // OUTPUT:
-    // 🧑‍💼 2️⃣ 3️⃣ 1️⃣ kBatchSize = 6
+    // 🧑‍💼 3️⃣ 1️⃣ 2️⃣ kBatchSize = 6
     // 🧑‍💼 ⬜ ⬜ ⬜ < 1
     // 🧑‍💼 ⬜ ⬜ ⬜ < 2
     // 🧑‍💼 ⬜ ⬜ ⬜ < 3
@@ -171,9 +171,9 @@ void main() {
       // dart format on
 
       expect(strategy.determineBackfill(grid), [
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[2]), // 1️⃣
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[0]), // 2️⃣
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[1]), // 3️⃣
+        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[1]), // 1️⃣
+        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[2]), // 2️⃣
+        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[0]), // 3️⃣
       ]);
     });
   });
