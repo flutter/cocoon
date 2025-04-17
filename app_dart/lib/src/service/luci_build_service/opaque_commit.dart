@@ -17,6 +17,7 @@ import '../../model/firestore/task.dart' as fs;
 abstract final class OpaqueCommit {
   factory OpaqueCommit.fromFirestore(fs.Commit commit) = _FirestoreCommit;
   factory OpaqueCommit.fromDatastore(ds.Commit commit) = _DatastoreCommit;
+  const OpaqueCommit();
 
   /// The commit SHA.
   String get sha;
@@ -26,9 +27,27 @@ abstract final class OpaqueCommit {
 
   /// The commit repository (owner and repo) on GitHub.
   RepositorySlug get slug;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! OpaqueCommit) {
+      return false;
+    }
+    return sha == other.sha && branch == other.branch && slug == other.slug;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(sha, branch, slug);
+  }
+
+  @override
+  String toString() {
+    return 'Commit <$sha (${slug.fullName}/$branch)>';
+  }
 }
 
-final class _FirestoreCommit implements OpaqueCommit {
+final class _FirestoreCommit extends OpaqueCommit {
   _FirestoreCommit(this._commit);
   final fs.Commit _commit;
 
@@ -42,7 +61,7 @@ final class _FirestoreCommit implements OpaqueCommit {
   RepositorySlug get slug => _commit.slug;
 }
 
-final class _DatastoreCommit implements OpaqueCommit {
+final class _DatastoreCommit extends OpaqueCommit {
   _DatastoreCommit(this._commit);
   final ds.Commit _commit;
 
@@ -63,23 +82,51 @@ final class _DatastoreCommit implements OpaqueCommit {
 abstract final class OpaqueTask {
   factory OpaqueTask.fromFirestore(fs.Task task) = _FirestoreTask;
   factory OpaqueTask.fromDatastore(ds.Task task) = _DatastoreTask;
+  const OpaqueTask();
 
   /// Name of the task.
   String get name;
+
+  /// Which attempt number;
+  int get currentAttempt;
 
   /// Status of the task.
   String get status;
 
   /// Commit the task belongs to.
   String get commitSha;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! OpaqueTask) {
+      return false;
+    }
+    return name == other.name &&
+        currentAttempt == other.currentAttempt &&
+        status == other.status &&
+        commitSha == other.commitSha;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(name, currentAttempt, status, commitSha);
+  }
+
+  @override
+  String toString() {
+    return 'Task <$name ($commitSha): $status ($currentAttempt)>';
+  }
 }
 
-final class _FirestoreTask implements OpaqueTask {
+final class _FirestoreTask extends OpaqueTask {
   const _FirestoreTask(this._task);
   final fs.Task _task;
 
   @override
   String get name => _task.taskName;
+
+  @override
+  int get currentAttempt => _task.currentAttempt;
 
   @override
   String get status => _task.status;
@@ -88,12 +135,15 @@ final class _FirestoreTask implements OpaqueTask {
   String get commitSha => _task.commitSha;
 }
 
-final class _DatastoreTask implements OpaqueTask {
+final class _DatastoreTask extends OpaqueTask {
   const _DatastoreTask(this._task);
   final ds.Task _task;
 
   @override
   String get name => _task.builderName!;
+
+  @override
+  int get currentAttempt => _task.attempts!;
 
   @override
   String get status => _task.status;
