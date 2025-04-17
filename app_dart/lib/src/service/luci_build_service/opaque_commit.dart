@@ -67,6 +67,9 @@ abstract final class OpaqueTask {
   /// Name of the task.
   String get name;
 
+  /// Which attempt number;
+  int get currentAttempt;
+
   /// Status of the task.
   String get status;
 
@@ -82,6 +85,9 @@ final class _FirestoreTask implements OpaqueTask {
   String get name => _task.taskName;
 
   @override
+  int get currentAttempt => _task.currentAttempt;
+
+  @override
   String get status => _task.status;
 
   @override
@@ -94,6 +100,9 @@ final class _DatastoreTask implements OpaqueTask {
 
   @override
   String get name => _task.builderName!;
+
+  @override
+  int get currentAttempt => _task.attempts!;
 
   @override
   String get status => _task.status;

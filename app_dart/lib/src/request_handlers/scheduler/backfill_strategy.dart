@@ -6,11 +6,11 @@ import 'dart:math';
 
 import 'package:meta/meta.dart';
 
-import '../../model/ci_yaml/target.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../service/luci_build_service.dart';
 import '../../service/luci_build_service/opaque_commit.dart';
 import '../../service/scheduler/policy.dart';
+import 'backfill_grid.dart';
 
 /// Defines an interface for determining what tasks to backfill in which order.
 ///
@@ -27,7 +27,9 @@ import '../../service/scheduler/policy.dart';
 /// A backfilling strategy would decide which `⬜` boxes to schedule (turning
 /// them to `🟨` ),
 @immutable
-abstract interface class BackfillerStrategy {
+abstract base class BackfillStrategy {
+  const BackfillStrategy();
+
   /// Given a grid of (\~50) commits to (\~20) tasks, returns tasks to backfill.
   ///
   /// Each commit reflects something like the following:
@@ -38,10 +40,7 @@ abstract interface class BackfillerStrategy {
   /// The returned list of tasks are `⬜` tasks that should be prioritized, in
   /// order of most important to least important. That is, implementations may
   /// only (due to capacity) backfill the top `N` tasks returned by this method.
-  List<(OpaqueTask, int)> determineBackfill(
-    List<Target> targets,
-    List<(OpaqueCommit, List<OpaqueTask>)> recent,
-  );
+  List<BackfillTask> determineBackfill(BackfillGrid grid);
 }
 
 /// The "original" backfiller strategy ported from `BatchBackfiller`.
@@ -52,37 +51,19 @@ abstract interface class BackfillerStrategy {
 /// - Both high and low priority targets are shuffled (using [List.shuffle])
 ///
 /// [^1]: As determined by [BatchPolicy.kBatchSize] tasks after a given task
-final class DefaultBackfillerStrategy implements BackfillerStrategy {
+final class DefaultBackfillStrategy extends BackfillStrategy {
   /// Creates a default backfiller strategy.
   ///
   /// If [Random] is provided, it used for [List.shuffle] determinism.
-  const DefaultBackfillerStrategy(@visibleForTesting this._random);
+  const DefaultBackfillStrategy([@visibleForTesting this._random]);
   final Random? _random;
 
   @override
-  List<(OpaqueTask, int)> determineBackfill(
-    List<Target> targets,
-    List<(OpaqueCommit, List<OpaqueTask>)> recent,
-  ) {
-    // First, index the tasks by "column": Map<{Name}, List<OpaqueTask>.
-    final tasksByName = <String, List<OpaqueTask>>{};
-    for (final (_, tasks) in recent) {
-      for (final task in tasks) {
-        tasksByName.update(
-          task.name,
-          (list) => list..add(task),
-          ifAbsent: () => [task],
-        );
-      }
-    }
-
-    // Next index the targets as well.
-    final targetsByName = {for (final target in targets) target.name: target};
-
-    // Next, remove entire columns where any of the following is true.
-    tasksByName.removeWhere((_, tasks) {
+  List<BackfillTask> determineBackfill(BackfillGrid grid) {
+    // Remove entire columns where any of the following is true.
+    grid.removeTaskColumnWhere((tasks) {
       // 1. The target is not supposed to be run by the backfilling process.
-      if (targetsByName[tasks.first.name]?.schedulerPolicy is! BatchPolicy) {
+      if (grid.getTargetFor(tasks.first).schedulerPolicy is! BatchPolicy) {
         return true;
       }
 
@@ -99,7 +80,7 @@ final class DefaultBackfillerStrategy implements BackfillerStrategy {
     final hadRecentFailure = <OpaqueTask>[];
     final noRecentFailures = <OpaqueTask>[];
 
-    for (final column in tasksByName.values) {
+    for (final column in grid.rows) {
       for (var i = 0; i < column.length; i++) {
         final row = column[i];
         if (row.status != fs.Task.statusNew) {
@@ -122,9 +103,20 @@ final class DefaultBackfillerStrategy implements BackfillerStrategy {
     noRecentFailures.shuffle(_random);
 
     // Return both of these lists, concatted.
+    // TODO(matanlurey): ToT tasks should be run with kDefaultPriority.
     return [
-      ...hadRecentFailure.map((t) => (t, LuciBuildService.kRerunPriority)),
-      ...noRecentFailures.map((t) => (t, LuciBuildService.kBackfillPriority)),
+      ...hadRecentFailure.map(
+        (t) => grid.createBackfillTask(
+          t,
+          priority: LuciBuildService.kRerunPriority,
+        ),
+      ),
+      ...noRecentFailures.map(
+        (t) => grid.createBackfillTask(
+          t,
+          priority: LuciBuildService.kBackfillPriority,
+        ),
+      ),
     ];
   }
 }

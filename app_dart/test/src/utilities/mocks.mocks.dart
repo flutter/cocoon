@@ -1450,24 +1450,6 @@ class MockDatastoreService extends _i1.Mock implements _i30.DatastoreService {
           as _i15.Stream<_i33.Task>);
 
   @override
-  _i15.Stream<_i33.FullTask> queryRecentTasks({
-    String? taskName,
-    int? commitLimit = 20,
-    String? branch,
-    required _i10.RepositorySlug? slug,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#queryRecentTasks, [], {
-              #taskName: taskName,
-              #commitLimit: commitLimit,
-              #branch: branch,
-              #slug: slug,
-            }),
-            returnValue: _i15.Stream<_i33.FullTask>.empty(),
-          )
-          as _i15.Stream<_i33.FullTask>);
-
-  @override
   _i15.Future<List<List<_i8.Model<dynamic>>>> shard(
     List<_i8.Model<dynamic>>? rows,
   ) =>

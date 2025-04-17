@@ -4,6 +4,7 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/appengine/task.dart' as ds;
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:gcloud/datastore.dart' as gcloud_datastore;
@@ -140,11 +141,12 @@ void main() {
       }
 
       config.db.values[commit.key] = commit;
-      final datastoreTasks =
-          await datastoreService
-              .queryRecentTasks(slug: Config.flutterSlug)
-              .toList();
-      expect(datastoreTasks, hasLength(taskNumber));
+      final datastoreTasks = await datastoreService.queryRecentTasks(
+        slug: Config.flutterSlug,
+      );
+      expect(datastoreTasks, [
+        isA<(Commit, List<ds.Task>)>().having((t) => t.$2, '\$2', hasLength(2)),
+      ]);
     });
 
     test('Shard', () async {

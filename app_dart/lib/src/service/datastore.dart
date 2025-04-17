@@ -18,7 +18,6 @@ import '../model/appengine/commit.dart';
 import '../model/appengine/task.dart';
 import '../request_handling/exceptions.dart';
 import 'config.dart';
-import 'luci_build_service/opaque_commit.dart';
 
 /// Per the docs in [DatastoreDB.withTransaction], only 5 entity groups can
 /// be touched in any given transaction, or the backing datastore will throw
@@ -134,13 +133,14 @@ class DatastoreService {
   ///
   /// The returned tasks will be ordered by most recent [Commit.timestamp]
   /// first, then by most recent [Task.createTimestamp].
-  Stream<FullTask> queryRecentTasks({
+  Future<List<(Commit, List<Task>)>> queryRecentTasks({
     String? taskName,
     int commitLimit = 20,
     String? branch,
     required RepositorySlug slug,
-  }) async* {
-    await for (Commit commit in queryRecentCommits(
+  }) async {
+    final results = <(Commit, List<Task>)>[];
+    await for (final commit in queryRecentCommits(
       limit: commitLimit,
       branch: branch,
       slug: slug,
@@ -150,10 +150,10 @@ class DatastoreService {
       if (taskName != null) {
         query.filter('name =', taskName);
       }
-      yield* query.run().map<FullTask>(
-        (Task task) => FullTask(task, OpaqueCommit.fromDatastore(commit)),
-      );
+      final tasks = await query.run().toList();
+      results.add((commit, tasks));
     }
+    return results;
   }
 
   /// Shards [rows] into several sublists of size [maxEntityGroups].
