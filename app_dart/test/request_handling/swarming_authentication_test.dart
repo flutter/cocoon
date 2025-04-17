@@ -13,7 +13,7 @@ import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 
 void main() {

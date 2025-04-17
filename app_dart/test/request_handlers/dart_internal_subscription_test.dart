@@ -14,7 +14,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_firestore_service.dart';
@@ -82,7 +82,7 @@ void main() {
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
       config: config,
-      authProvider: FakeAuthenticationProvider(),
+      authProvider: FakeDashboardAuthentication(),
     );
 
     request = FakeHttpRequest();

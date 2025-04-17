@@ -16,7 +16,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -146,7 +146,7 @@ class UnauthTest extends SubscriptionHandler {
     : super(
         cache: CacheService(inMemory: true),
         config: FakeConfig(),
-        authProvider: FakeAuthenticationProvider(authenticated: false),
+        authProvider: FakeDashboardAuthentication(authenticated: false),
         subscriptionName: 'unauth',
       );
 
@@ -160,7 +160,7 @@ class AuthTest extends SubscriptionHandler {
     : super(
         cache: CacheService(inMemory: true),
         config: FakeConfig(),
-        authProvider: FakeAuthenticationProvider(),
+        authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'auth',
       );
 
@@ -174,7 +174,7 @@ class ErrorTest extends SubscriptionHandler {
     : super(
         cache: cache ?? CacheService(inMemory: true),
         config: FakeConfig(),
-        authProvider: FakeAuthenticationProvider(),
+        authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'error',
       );
 
@@ -188,7 +188,7 @@ class ErrorCodeTest extends SubscriptionHandler {
     : super(
         cache: cache ?? CacheService(inMemory: true),
         config: FakeConfig(),
-        authProvider: FakeAuthenticationProvider(),
+        authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'error',
       );
 
@@ -205,7 +205,7 @@ class ReadMessageTest extends SubscriptionHandler {
     : super(
         cache: cache ?? CacheService(inMemory: true),
         config: FakeConfig(),
-        authProvider: FakeAuthenticationProvider(),
+        authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'read',
       );
 

@@ -9,12 +9,13 @@ import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
+import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/config.dart';
 
 // ignore: must_be_immutable
-class FakeAuthenticationProvider implements AuthenticationProvider {
-  FakeAuthenticationProvider({
+class FakeDashboardAuthentication implements DashboardAuthentication {
+  FakeDashboardAuthentication({
     FakeClientContext? clientContext,
     this.authenticated = true,
   }) : clientContext = clientContext ?? FakeClientContext();
@@ -72,6 +73,9 @@ class FakeAuthenticatedContext implements AuthenticatedContext {
 
   @override
   FakeClientContext clientContext;
+
+  @override
+  String email = 'fake@example.com';
 }
 
 class FakeClientContext implements ClientContext {

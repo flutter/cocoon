@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:meta/meta.dart';
 
-import 'fake_authentication.dart';
+import 'fake_dashboard_authentication.dart';
 import 'request_handler_tester.dart';
 
 class ApiRequestHandlerTester extends RequestHandlerTester {

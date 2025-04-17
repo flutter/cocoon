@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s for PubSub messages.
@@ -25,12 +26,27 @@ import 'exceptions.dart';
 ///
 /// If there is no token, or it cannot be authenticated, [Unauthenticated] is thrown.
 @immutable
-class PubsubAuthenticationProvider extends AuthenticationProvider {
+class PubsubAuthenticationProvider implements AuthenticationProvider {
   const PubsubAuthenticationProvider({
-    required super.config,
-    super.clientContextProvider = Providers.serviceScopeContext,
-    super.httpClientProvider = Providers.freshHttpClient,
+    required this.config,
+    this.clientContextProvider = Providers.serviceScopeContext,
+    this.httpClientProvider = Providers.freshHttpClient,
   });
+
+  /// The Cocoon config, guaranteed to be non-null.
+  final Config config;
+
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
+  final ClientContextProvider clientContextProvider;
+
+  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
+  /// ID tokens (JWT tokens).
+  ///
+  /// This is guaranteed to be non-null.
+  final HttpClientProvider httpClientProvider;
 
   static const String kBearerTokenPrefix = 'Bearer ';
 
@@ -72,7 +88,10 @@ class PubsubAuthenticationProvider extends AuthenticationProvider {
     }
 
     if (Config.allowedPubsubServiceAccounts.contains(info.email)) {
-      return AuthenticatedContext(clientContext: clientContext);
+      return AuthenticatedContext(
+        clientContext: clientContext,
+        email: info.email!,
+      );
     }
     throw Unauthenticated(
       '${info.email} is not in allowedPubsubServiceAccounts',
