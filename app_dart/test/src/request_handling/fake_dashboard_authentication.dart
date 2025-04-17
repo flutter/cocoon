@@ -5,13 +5,10 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/foundation/typedefs.dart';
 import 'package:cocoon_service/src/model/appengine/key_helper.dart';
-import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/config.dart';
 
 // ignore: must_be_immutable
 class FakeDashboardAuthentication implements DashboardAuthentication {
@@ -30,39 +27,6 @@ class FakeDashboardAuthentication implements DashboardAuthentication {
     } else {
       throw const Unauthenticated('Not authenticated');
     }
-  }
-
-  @override
-  Future<AuthenticatedContext> authenticateToken(
-    TokenInfo token, {
-    ClientContext? clientContext,
-    Logging? log,
-  }) async {
-    if (authenticated) {
-      return FakeAuthenticatedContext(
-        clientContext: clientContext as FakeClientContext?,
-      );
-    } else {
-      throw const Unauthenticated('Not authenticated');
-    }
-  }
-
-  @override
-  ClientContextProvider get clientContextProvider => throw UnimplementedError();
-
-  @override
-  Config get config => throw UnimplementedError();
-
-  @override
-  HttpClientProvider get httpClientProvider => throw UnimplementedError();
-
-  @override
-  Future<TokenInfo> tokenInfo(
-    HttpRequest request, {
-    Logging? log,
-    String tokenType = 'id_token',
-  }) async {
-    return TokenInfo(email: 'abc@gmail.com', issued: DateTime.now());
   }
 }
 

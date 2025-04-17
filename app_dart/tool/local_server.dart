@@ -8,9 +8,11 @@ import 'package:appengine/appengine.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
+import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:gcloud/db.dart';
@@ -20,7 +22,10 @@ import '../test/src/service/fake_content_aware_hash_service.dart';
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
   final config = Config(dbService, cache, FakeSecretManager());
-  final authProvider = DashboardAuthentication(config: config);
+  final authProvider = DashboardAuthentication(
+    config: config,
+    firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+  );
   final AuthenticationProvider swarmingAuthProvider =
       SwarmingAuthenticationProvider(config: config);
 
@@ -31,7 +36,7 @@ Future<void> main() async {
   // Gerrit service class to communicate with GoB.
   final gerritService = GerritService(
     config: config,
-    authClient: authProvider.httpClientProvider(),
+    authClient: Providers.freshHttpClient(),
   );
 
   /// LUCI service class to communicate with buildBucket service.
