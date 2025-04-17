@@ -63,7 +63,7 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     // Remove entire columns where any of the following is true.
     grid.removeColumnWhere((tasks) {
       // At least one task in progress;
-      if (!tasks.any((t) => t.status == fs.Task.statusInProgress)) {
+      if (tasks.any((t) => t.status == fs.Task.statusInProgress)) {
         return true;
       }
 
@@ -90,6 +90,9 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
         } else {
           noRecentFailures.add(row);
         }
+
+        // If we made it this far, we scheduled an item in the column.
+        break;
       }
     }
 
