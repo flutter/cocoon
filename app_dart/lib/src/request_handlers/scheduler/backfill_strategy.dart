@@ -80,7 +80,7 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     final hadRecentFailure = <OpaqueTask>[];
     final noRecentFailures = <OpaqueTask>[];
 
-    for (final column in grid.rows) {
+    for (final column in grid.columns) {
       for (var i = 0; i < column.length; i++) {
         final row = column[i];
         if (row.status != fs.Task.statusNew) {

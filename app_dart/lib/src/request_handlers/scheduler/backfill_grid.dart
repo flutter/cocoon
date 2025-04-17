@@ -14,12 +14,13 @@ import '../../service/luci_build_service/pending_task.dart';
 /// An indexed grid-like mutable view of the last recent N commits and M tasks.
 final class BackfillGrid {
   /// Creates an indexed data structure from the provided `(commit, [tasks])`.
+  ///
+  /// Tasks that that do not exist in [tipOfTreeTargets] are ignored.
   factory BackfillGrid.from(
     Iterable<(OpaqueCommit, List<OpaqueTask>)> grid, {
-    required Iterable<Target> targets,
-    bool omitTasksMissingFromTargets = true,
+    required Iterable<Target> tipOfTreeTargets,
   }) {
-    final targetsByName = {for (final t in targets) t.name: t};
+    final targetsByName = {for (final t in tipOfTreeTargets) t.name: t};
     final commitsByName = <String, OpaqueCommit>{};
     final tasksByName = <String, List<OpaqueTask>>{};
     for (final (commit, tasks) in grid) {
@@ -66,8 +67,8 @@ final class BackfillGrid {
     });
   }
 
-  /// Each task, ordered by row (commit by commit).
-  Iterable<List<OpaqueTask>> get rows sync* {
+  /// Each task, ordered by column (task by task).
+  Iterable<List<OpaqueTask>> get columns sync* {
     for (final column in _tasksByName.values) {
       if (column.isNotEmpty) {
         yield column;
@@ -104,10 +105,10 @@ final class BackfillTask {
   @override
   String toString() {
     return 'BackfillTask ${const JsonEncoder.withIndent('  ').convert({
-      task: '$task', //
-      target: '$target',
-      commit: '$commit',
-      priority: priority,
+      'task': '$task', //
+      'target': '$target',
+      'commit': '$commit',
+      'priority': priority,
     })}';
   }
 

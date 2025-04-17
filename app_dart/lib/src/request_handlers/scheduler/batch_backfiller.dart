@@ -85,7 +85,7 @@ final class BatchBackfiller extends RequestHandler {
 
     // Produce a list of tasks, ordered from highest to lowest, to backfill.
     // ... but only take the top N tasks, at most.
-    final backfillGrid = BackfillGrid.from(grid, targets: totTargets);
+    final backfillGrid = BackfillGrid.from(grid, tipOfTreeTargets: totTargets);
     final toBackfillTasks = _backfillerStrategy.determineBackfill(backfillGrid);
 
     // Reduce the list to at most the backfill capacity.
