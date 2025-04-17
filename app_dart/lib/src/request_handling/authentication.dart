@@ -21,45 +21,6 @@ abstract interface class AuthenticationProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   Future<AuthenticatedContext> authenticate(HttpRequest request);
-
-  /// Gets oauth token information. This method requires the token to be stored in
-  /// X-Flutter-IdToken header.
-  // Future<TokenInfo> tokenInfo(
-  //   HttpRequest request, {
-  //   String tokenType = 'id_token',
-  // }) async {
-  //   final idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-  //   final client = httpClientProvider();
-  //   try {
-  //     final verifyTokenResponse = await client.get(
-  //       Uri.https('oauth2.googleapis.com', '/tokeninfo', <String, String?>{
-  //         tokenType: idTokenFromHeader,
-  //       }),
-  //     );
-
-  //     if (verifyTokenResponse.statusCode != HttpStatus.ok) {
-  //       /// Google Auth API returns a message in the response body explaining why
-  //       /// the request failed. Such as "Invalid Token".
-  //       log.debug(
-  //         'Token verification failed: ${verifyTokenResponse.statusCode}; '
-  //         '${verifyTokenResponse.body}',
-  //       );
-  //       throw const Unauthenticated('Invalid ID token');
-  //     }
-
-  //     try {
-  //       return TokenInfo.fromJson(
-  //         json.decode(verifyTokenResponse.body) as Map<String, dynamic>,
-  //       );
-  //     } on FormatException {
-  //       throw InternalServerError(
-  //         'Invalid JSON: "${verifyTokenResponse.body}"',
-  //       );
-  //     }
-  //   } finally {
-  //     client.close();
-  //   }
-  // }
 }
 
 /// Class that represents an authenticated request having been made, and any
