@@ -89,12 +89,12 @@ final class BackfillTaskMatcher extends Matcher {
   }
 
   @override
-  bool matches(Object? item, _) {
+  bool matches(Object? item, Map matchState) {
     if (item is! BackfillTask) {
       return false;
     }
 
-    return _delegate.matches(item, {});
+    return _delegate.matches(item, matchState);
   }
 
   @override
@@ -106,10 +106,15 @@ final class BackfillTaskMatcher extends Matcher {
   Description describeMismatch(
     Object? item,
     Description mismatchDescription,
-    _,
+    Map matchState,
     _,
   ) {
-    return _delegate.describeMismatch(item, mismatchDescription, {}, false);
+    return _delegate.describeMismatch(
+      item,
+      mismatchDescription,
+      matchState,
+      false,
+    );
   }
 }
 

@@ -114,7 +114,7 @@ abstract final class OpaqueTask {
 
   @override
   String toString() {
-    return 'Task <$name ($commitSha): $status ($currentAttempt)>';
+    return 'Task <$name (SHA=$commitSha): $status ($currentAttempt)>';
   }
 }
 
