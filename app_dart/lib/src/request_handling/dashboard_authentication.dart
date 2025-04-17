@@ -15,9 +15,10 @@ import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/firestore/account.dart';
 import '../model/google/token_info.dart';
+import '../service/firebase_jwt_validator.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s.
+/// Class capable of authenticating [HttpRequest]s from the Dashboard
 ///
 /// There are two types of authentication this class supports:
 ///
@@ -48,26 +49,28 @@ import 'exceptions.dart';
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
 class DashboardAuthentication implements AuthenticationProvider {
-  const DashboardAuthentication({
-    required this.config,
-    this.clientContextProvider = Providers.serviceScopeContext,
-    this.httpClientProvider = Providers.freshHttpClient,
-  });
+  DashboardAuthentication({
+    required Config config,
+    required FirebaseJwtValidator firebaseJwtValidator,
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+  }) {
+    _authenticationChain.addAll([
+      DashboardCronAuthentication(clientContextProvider: clientContextProvider),
+      DashboardGoogleAuthentication(
+        config: config,
+        httpClientProvider: httpClientProvider,
+        clientContextProvider: clientContextProvider,
+      ),
+      DashboardFirebaseAuthentication(
+        config: config,
+        validator: firebaseJwtValidator,
+        clientContextProvider: clientContextProvider,
+      ),
+    ]);
+  }
 
-  /// The Cocoon config, guaranteed to be non-null.
-  final Config config;
-
-  /// Provides the App Engine client context as part of the
-  /// [AuthenticatedContext].
-  ///
-  /// This is guaranteed to be non-null.
-  final ClientContextProvider clientContextProvider;
-
-  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
-  /// ID tokens (JWT tokens).
-  ///
-  /// This is guaranteed to be non-null.
-  final HttpClientProvider httpClientProvider;
+  final List<AuthenticationProvider> _authenticationChain = [];
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
@@ -79,23 +82,156 @@ class DashboardAuthentication implements AuthenticationProvider {
   /// unauthenticated.
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final isCron = request.headers.value('X-Appengine-Cron') == 'true';
-    final idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final clientContext = clientContextProvider();
-    if (isCron) {
-      // Authenticate cron requests
+    /// Walk through the providers
+    for (final provider in _authenticationChain) {
+      try {
+        return await provider.authenticate(request);
+      } on Unauthenticated {
+        // nothing
+      }
+    }
+    throw const Unauthenticated('User is not signed in');
+  }
+
+  static Future<bool> _isAllowed(Config config, String? email) async {
+    if (email == null) {
+      return false;
+    }
+    final firestore = await config.createFirestoreService();
+    final account = await Account.getByEmail(firestore, email: email);
+    return account != null;
+  }
+}
+
+class DashboardFirebaseAuthentication implements AuthenticationProvider {
+  DashboardFirebaseAuthentication({
+    required Config config,
+    required FirebaseJwtValidator validator,
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
+  }) : _config = config,
+       _validator = validator,
+       _clientContextProvider = clientContextProvider;
+
+  /// The Cocoon config, guaranteed to be non-null.
+  final Config _config;
+
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
+  final ClientContextProvider _clientContextProvider;
+
+  final FirebaseJwtValidator _validator;
+
+  /// Attempt to validate a JWT as a Firebase token.
+  ///
+  /// NOTE: Until we fully switch over to Firebase; we could have a mix of JWT
+  /// coming into cocoon. This should not be fatal.
+  @override
+  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+    try {
+      if (request.headers.value('X-Flutter-IdToken')
+          case final idTokenFromHeader?) {
+        final token = await _validator.decodeAndVerify(idTokenFromHeader);
+        log.info('authed with firebase: ${token.email}');
+        return authenticateFirebase(
+          token,
+          clientContext: _clientContextProvider(),
+        );
+      }
+    } on JwtException {
+      // do nothing while in transition
+    }
+    throw const Unauthenticated('Not a Firebase token');
+  }
+
+  @visibleForTesting
+  Future<AuthenticatedContext> authenticateFirebase(
+    TokenInfo token, {
+    required ClientContext clientContext,
+  }) async {
+    if (token.email case final email?) {
+      if (email.endsWith('@google.com') ||
+          await DashboardAuthentication._isAllowed(_config, token.email)) {
+        return AuthenticatedContext(
+          clientContext: clientContext,
+          email: token.email!,
+        );
+      }
+    }
+    throw Unauthenticated(
+      '${token.email} is not authorized to access the dashboard',
+    );
+  }
+}
+
+class DashboardCronAuthentication implements AuthenticationProvider {
+  const DashboardCronAuthentication({
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
+  }) : _clientContextProvider = clientContextProvider;
+
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
+  final ClientContextProvider _clientContextProvider;
+
+  @override
+  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+    if (request.headers.value('X-Appengine-Cron') == 'true') {
       return AuthenticatedContext(
-        clientContext: clientContext,
+        clientContext: _clientContextProvider(),
         email: 'CRON_JOB',
       );
-    } else if (idTokenFromHeader != null) {
+    }
+    throw const Unauthenticated('Not a cron job');
+  }
+}
+
+/// This is the original GoogleSignIn handler
+class DashboardGoogleAuthentication implements AuthenticationProvider {
+  const DashboardGoogleAuthentication({
+    required Config config,
+    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
+  }) : _config = config,
+       _clientContextProvider = clientContextProvider,
+       _httpClientProvider = httpClientProvider;
+
+  /// The Cocoon config, guaranteed to be non-null.
+  final Config _config;
+
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
+  final ClientContextProvider _clientContextProvider;
+
+  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
+  /// ID tokens (JWT tokens).
+  ///
+  /// This is guaranteed to be non-null.
+  final HttpClientProvider _httpClientProvider;
+
+  /// Authenticates the specified [request] and returns the associated
+  /// [AuthenticatedContext].
+  ///
+  /// See the class documentation on [AuthenticationProvider] for a discussion
+  /// of the different types of authentication that are accepted.
+  ///
+  /// This will throw an [Unauthenticated] exception if the request is
+  /// unauthenticated.
+  @override
+  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+    if (request.headers.value('X-Flutter-IdToken')
+        case final idTokenFromHeader?) {
       TokenInfo token;
       try {
-        token = await tokenInfo(request);
+        token = await tokenInfo(idTokenFromHeader);
       } on Unauthenticated {
-        token = await tokenInfo(request, tokenType: 'access_token');
+        token = await tokenInfo(idTokenFromHeader, tokenType: 'access_token');
       }
-      return authenticateToken(token, clientContext: clientContext);
+      return authenticateToken(token, clientContext: _clientContextProvider());
     }
 
     throw const Unauthenticated('User is not signed in');
@@ -103,12 +239,12 @@ class DashboardAuthentication implements AuthenticationProvider {
 
   /// Gets oauth token information. This method requires the token to be stored in
   /// X-Flutter-IdToken header.
+  @visibleForTesting
   Future<TokenInfo> tokenInfo(
-    HttpRequest request, {
+    String idTokenFromHeader, {
     String tokenType = 'id_token',
   }) async {
-    final idTokenFromHeader = request.headers.value('X-Flutter-IdToken');
-    final client = httpClientProvider();
+    final client = _httpClientProvider();
     try {
       final verifyTokenResponse = await client.get(
         Uri.https('oauth2.googleapis.com', '/tokeninfo', <String, String?>{
@@ -140,12 +276,13 @@ class DashboardAuthentication implements AuthenticationProvider {
     }
   }
 
+  @visibleForTesting
   Future<AuthenticatedContext> authenticateToken(
     TokenInfo token, {
     required ClientContext clientContext,
   }) async {
     // Authenticate as a signed-in Google account via OAuth id token.
-    final clientId = await config.oauthClientId;
+    final clientId = await _config.oauthClientId;
     if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
       log.warn(
         'Possible forged token: "${token.audience}" (expected "$clientId")',
@@ -154,7 +291,10 @@ class DashboardAuthentication implements AuthenticationProvider {
     }
 
     if (token.hostedDomain != 'google.com') {
-      final isAllowed = await _isAllowed(token.email);
+      final isAllowed = await DashboardAuthentication._isAllowed(
+        _config,
+        token.email,
+      );
       if (!isAllowed) {
         throw Unauthenticated(
           '${token.email} is not authorized to access the dashboard',
@@ -165,14 +305,5 @@ class DashboardAuthentication implements AuthenticationProvider {
       clientContext: clientContext,
       email: token.email ?? 'EMAIL MISSING',
     );
-  }
-
-  Future<bool> _isAllowed(String? email) async {
-    if (email == null) {
-      return false;
-    }
-    final firestore = await config.createFirestoreService();
-    final account = await Account.getByEmail(firestore, email: email);
-    return account != null;
   }
 }

@@ -18,17 +18,95 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+// import '../src/service/fake_firebase_jwt_validator.dart';
+import '../src/service/fake_firebase_jwt_validator.dart';
 import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  group('DashboardAuthentication', () {
+  group('DashboardCronAuthentication', () {
+    late DashboardCronAuthentication auth;
+    late FakeClientContext clientContext;
+    late FakeHttpRequest request;
+
+    setUp(() {
+      request = FakeHttpRequest();
+      clientContext = FakeClientContext();
+      auth = DashboardCronAuthentication(
+        clientContextProvider: () => clientContext,
+      );
+    });
+
+    test('succeeds for App Engine cronjobs', () async {
+      request.headers.set('X-Appengine-Cron', 'true');
+      final result = await auth.authenticate(request);
+      expect(result.clientContext, same(clientContext));
+    });
+
+    test('throws for non App Engine cronjobs', () async {
+      expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+    });
+  });
+
+  group('DashboardFirebaseAuthentication', () {
+    late DashboardFirebaseAuthentication auth;
+    late FakeFirestoreService firestoreService;
+    late FakeClientContext clientContext;
+    late FakeFirebaseJwtValidator validator;
+    late FakeHttpRequest request;
+
+    setUp(() {
+      firestoreService = FakeFirestoreService();
+      request = FakeHttpRequest();
+      clientContext = FakeClientContext();
+      validator = FakeFirebaseJwtValidator();
+      auth = DashboardFirebaseAuthentication(
+        config: FakeConfig(firestoreService: firestoreService),
+        clientContextProvider: () => clientContext,
+        validator: validator,
+      );
+    });
+
+    test('succeeds for firebase jwt for googler', () async {
+      validator.jwts.add(
+        TokenInfo(email: 'abc123@google.com', issued: DateTime.now()),
+      );
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      final result = await auth.authenticate(request);
+      expect(result.email, 'abc123@google.com');
+    });
+
+    test('succeeds for firebase jwt with allowed non-googler', () async {
+      firestoreService.putDocument(Account(email: 'abc123@gmail.com'));
+      validator.jwts.add(
+        TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now()),
+      );
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      final result = await auth.authenticate(request);
+      expect(result.email, 'abc123@gmail.com');
+    });
+
+    test('fails for firebase jwt with non-allowed non-googler', () async {
+      validator.jwts.add(
+        TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now()),
+      );
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+    });
+
+    test('fails for non-firebase jwt', () {
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+    });
+  });
+
+  group('DashboardGoogleAuthentication', () {
     late FakeConfig config;
     late FakeFirestoreService firestoreService;
     late FakeClientContext clientContext;
     late FakeHttpRequest request;
-    late DashboardAuthentication auth;
+    late DashboardGoogleAuthentication auth;
     late TokenInfo token;
 
     setUp(() {
@@ -37,7 +115,7 @@ void main() {
       token = TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now());
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
-      auth = DashboardAuthentication(
+      auth = DashboardGoogleAuthentication(
         config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => throw AssertionError(),
@@ -48,17 +126,11 @@ void main() {
       expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
     });
 
-    test('succeeds for App Engine cronjobs', () async {
-      request.headers.set('X-Appengine-Cron', 'true');
-      final result = await auth.authenticate(request);
-      expect(result.clientContext, same(clientContext));
-    });
-
     group('when id token is given', () {
       late MockClient httpClient;
 
       setUp(() {
-        auth = DashboardAuthentication(
+        auth = DashboardGoogleAuthentication(
           config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
@@ -72,7 +144,7 @@ void main() {
             HttpStatus.ok,
           ),
         );
-        auth = DashboardAuthentication(
+        auth = DashboardGoogleAuthentication(
           config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
@@ -99,7 +171,7 @@ void main() {
           (_) async => http.Response('Not JSON!', HttpStatus.ok),
         );
         await expectLater(
-          auth.tokenInfo(request),
+          auth.tokenInfo('totally not a token'),
           throwsA(isA<InternalServerError>()),
         );
         expect(log, bufferedLoggerOf(isEmpty));
