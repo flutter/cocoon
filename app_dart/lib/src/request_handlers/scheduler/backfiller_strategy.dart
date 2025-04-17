@@ -68,11 +68,7 @@ final class DefaultBackfillerStrategy implements BackfillerStrategy {
     final tasksByName = <String, List<OpaqueTask>>{};
     for (final (_, tasks) in recent) {
       for (final task in tasks) {
-        tasksByName.update(
-          task.name,
-          (list) => list..add(task),
-          ifAbsent: () => [task],
-        );
+        (tasksByName[task.name] ??= []).add(task);
       }
     }
 
