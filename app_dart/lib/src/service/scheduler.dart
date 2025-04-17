@@ -1554,7 +1554,7 @@ $stacktrace
                 (target) => checkRunEvent.checkRun!.name == target.name,
               );
               if (target == null) {
-                return ProcessCheckRunResult.unexpectedError(
+                return ProcessCheckRunResult.missingEntity(
                   'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
                   'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.name).toList()}',
                 );
