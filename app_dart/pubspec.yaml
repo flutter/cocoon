@@ -33,6 +33,7 @@ dependencies:
   graphql: ^5.2.0-beta.11
   grpc: ^4.0.1
   http: ^1.2.1
+  jose_plus: ^0.4.6
   json_annotation: ^4.9.0
   logging: ^1.3.0
   meta: ^1.16.0
