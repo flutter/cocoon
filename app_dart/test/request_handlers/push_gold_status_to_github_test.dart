@@ -25,7 +25,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_graphql_client.dart';
 import '../src/utilities/entity_generators.dart';
@@ -38,7 +38,7 @@ void main() {
 
   late FakeConfig config;
   late FakeClientContext clientContext;
-  late FakeAuthenticationProvider auth;
+  late FakeDashboardAuthentication auth;
   late FakeFirestoreService firestore;
   late FakeDatastoreDB db;
   late ApiRequestHandlerTester tester;
@@ -51,7 +51,7 @@ void main() {
   setUp(() {
     clientContext = FakeClientContext();
     firestore = FakeFirestoreService();
-    auth = FakeAuthenticationProvider(clientContext: clientContext);
+    auth = FakeDashboardAuthentication(clientContext: clientContext);
     db = FakeDatastoreDB();
     config = FakeConfig(dbValue: db, firestoreService: firestore);
     tester = ApiRequestHandlerTester(

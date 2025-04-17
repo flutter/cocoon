@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import '../model/google/token_info.dart';
 import 'authentication.dart';
 import 'body.dart';
 import 'exceptions.dart';
@@ -50,11 +49,11 @@ abstract class ApiRequestHandler<T extends Body> extends RequestHandler<T> {
     }
   }
 
-  /// Gets [TokenInfo] using X-Flutter-IdToken header from an authenticated request.
-  @protected
-  Future<TokenInfo> tokenInfo(HttpRequest request) async {
-    return authenticationProvider.tokenInfo(request);
-  }
+  // /// Gets [TokenInfo] using X-Flutter-IdToken header from an authenticated request.
+  // @protected
+  // Future<TokenInfo> tokenInfo(HttpRequest request) async {
+  //   return authenticationProvider.tokenInfo(request);
+  // }
 
   /// Throws a [BadRequestException] if any of [requiredQueryParameters] are missing from [requestData].
   @protected

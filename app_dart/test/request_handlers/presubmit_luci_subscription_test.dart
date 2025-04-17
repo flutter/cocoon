@@ -13,7 +13,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
@@ -54,7 +54,7 @@ void main() {
       config: config,
       luciBuildService: FakeLuciBuildService(config: config),
       githubChecksService: mockGithubChecksService,
-      authProvider: FakeAuthenticationProvider(),
+      authProvider: FakeDashboardAuthentication(),
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
@@ -242,7 +242,7 @@ void main() {
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
-      authProvider: FakeAuthenticationProvider(),
+      authProvider: FakeDashboardAuthentication(),
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
@@ -421,7 +421,7 @@ void main() {
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
-      authProvider: FakeAuthenticationProvider(),
+      authProvider: FakeDashboardAuthentication(),
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     );

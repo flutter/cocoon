@@ -55,7 +55,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       _paramTaskName: String taskName,
     } = requestData!;
 
-    final token = await tokenInfo(request!);
+    final email = authContext?.email ?? 'EMAIL-MISSING';
     final slug = RepositorySlug('flutter', repo);
 
     // Ensure the commit exists in Firestore.
@@ -83,7 +83,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
         commit: commit,
         slug: slug,
         branch: branch,
-        email: token.email!,
+        email: email,
         statusesToRerun: statusesToRerun,
       );
       return Body.forJson(ranTasks);
@@ -111,7 +111,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       task: task,
       slug: slug,
       branch: branch,
-      email: token.email!,
+      email: email,
     );
     if (!didRerun) {
       throw InternalServerError('Failed to rerun task "$taskName"');

@@ -13,7 +13,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
@@ -72,7 +72,7 @@ void main() {
     handler = PostsubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
-      authProvider: FakeAuthenticationProvider(),
+      authProvider: FakeDashboardAuthentication(),
       githubChecksService: mockGithubChecksService,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,

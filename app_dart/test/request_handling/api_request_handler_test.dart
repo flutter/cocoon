@@ -15,7 +15,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -131,7 +131,7 @@ class Unauth extends ApiRequestHandler<Body> {
   Unauth()
     : super(
         config: FakeConfig(),
-        authenticationProvider: FakeAuthenticationProvider(
+        authenticationProvider: FakeDashboardAuthentication(
           authenticated: false,
         ),
       );
@@ -144,7 +144,7 @@ class ReadParams extends ApiRequestHandler<Body> {
   ReadParams()
     : super(
         config: FakeConfig(),
-        authenticationProvider: FakeAuthenticationProvider(),
+        authenticationProvider: FakeDashboardAuthentication(),
       );
 
   @override
@@ -159,7 +159,7 @@ class NeedsParams extends ApiRequestHandler<Body> {
   NeedsParams()
     : super(
         config: FakeConfig(),
-        authenticationProvider: FakeAuthenticationProvider(),
+        authenticationProvider: FakeDashboardAuthentication(),
       );
 
   @override
@@ -173,7 +173,7 @@ class AccessAuth extends ApiRequestHandler<Body> {
   AccessAuth()
     : super(
         config: FakeConfig(),
-        authenticationProvider: FakeAuthenticationProvider(),
+        authenticationProvider: FakeDashboardAuthentication(),
       );
 
   @override

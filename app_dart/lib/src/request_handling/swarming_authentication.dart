@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import '../model/google/token_info.dart';
 import 'exceptions.dart';
 
@@ -28,12 +29,27 @@ import 'exceptions.dart';
 /// request, then the request is unauthenticated, and any call to
 /// [authenticate] will throw an [Unauthenticated] exception.
 @immutable
-class SwarmingAuthenticationProvider extends AuthenticationProvider {
+class SwarmingAuthenticationProvider implements AuthenticationProvider {
   const SwarmingAuthenticationProvider({
-    required super.config,
-    super.clientContextProvider = Providers.serviceScopeContext,
-    super.httpClientProvider = Providers.freshHttpClient,
+    required this.config,
+    this.clientContextProvider = Providers.serviceScopeContext,
+    this.httpClientProvider = Providers.freshHttpClient,
   });
+
+  /// The Cocoon config, guaranteed to be non-null.
+  final Config config;
+
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
+  final ClientContextProvider clientContextProvider;
+
+  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
+  /// ID tokens (JWT tokens).
+  ///
+  /// This is guaranteed to be non-null.
+  final HttpClientProvider httpClientProvider;
 
   /// Name of the header that LUCI requests will put their service account token.
   static const String kSwarmingTokenHeader = 'Service-Account-Token';
@@ -109,12 +125,18 @@ class SwarmingAuthenticationProvider extends AuthenticationProvider {
 
       // Update is from Flutter LUCI builds
       if (token.email == Config.luciProdAccount) {
-        return AuthenticatedContext(clientContext: clientContext);
+        return AuthenticatedContext(
+          clientContext: clientContext,
+          email: token.email!,
+        );
       }
 
       if (token.email == Config.frobAccount) {
         log.debug('Authenticating as FRoB request');
-        return AuthenticatedContext(clientContext: clientContext);
+        return AuthenticatedContext(
+          clientContext: clientContext,
+          email: token.email!,
+        );
       }
 
       log.debug(verifyTokenResponse.body);
