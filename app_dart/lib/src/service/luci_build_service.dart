@@ -622,7 +622,6 @@ class LuciBuildService {
       log.error('Failed to get buildbucket builder list', e);
       return toBeScheduled;
     }
-    log.info('Available builder list: $availableBuilderSet');
     for (var pending in toBeScheduled) {
       // Non-existing builder target will be skipped from scheduling.
       if (!availableBuilderSet.contains(pending.target.name)) {
@@ -683,7 +682,6 @@ class LuciBuildService {
       log.warn('Failed to get buildbucket builder list', e);
       throw 'Failed to get buildbucket builder list due to $e';
     }
-    log.info('Available builder list: $availableBuilderSet');
     for (var target in targets) {
       // Non-existing builder target will be skipped from scheduling.
       if (!availableBuilderSet.contains(target.name)) {
