@@ -9,26 +9,26 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
-import 'package:cocoon_service/src/request_handling/authentication.dart';
+import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  group('AuthenticationProvider', () {
+  group('DashboardAuthentication', () {
     late FakeConfig config;
     late FakeFirestoreService firestoreService;
     late FakeClientContext clientContext;
     late FakeHttpRequest request;
-    late AuthenticationProvider auth;
+    late DashboardAuthentication auth;
     late TokenInfo token;
 
     setUp(() {
@@ -37,7 +37,7 @@ void main() {
       token = TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now());
       clientContext = FakeClientContext();
       request = FakeHttpRequest();
-      auth = AuthenticationProvider(
+      auth = DashboardAuthentication(
         config: config,
         clientContextProvider: () => clientContext,
         httpClientProvider: () => throw AssertionError(),
@@ -58,7 +58,7 @@ void main() {
       late MockClient httpClient;
 
       setUp(() {
-        auth = AuthenticationProvider(
+        auth = DashboardAuthentication(
           config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
@@ -72,7 +72,7 @@ void main() {
             HttpStatus.ok,
           ),
         );
-        auth = AuthenticationProvider(
+        auth = DashboardAuthentication(
           config: config,
           clientContextProvider: () => clientContext,
           httpClientProvider: () => httpClient,
@@ -80,6 +80,7 @@ void main() {
         config.oauthClientIdValue = 'client-id';
         request.headers.add('X-Flutter-IdToken', 'authenticated');
         final result = await auth.authenticate(request);
+        expect(result.email, 'EMAIL MISSING');
         expect(result.clientContext, same(clientContext));
         expect(result, isNotNull);
       });
@@ -174,6 +175,7 @@ void main() {
           token,
           clientContext: clientContext,
         );
+        expect(result.email, 'test@gmail.com');
         expect(result.clientContext, same(clientContext));
       });
     });

@@ -22,7 +22,7 @@ import 'package:yaml/yaml.dart';
 
 import '../src/datastore/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/utilities/mocks.dart';
 import 'check_flaky_builders_test_data.dart';
@@ -42,7 +42,7 @@ void main() {
     FakeHttpRequest request;
     late FakeConfig config;
     FakeClientContext clientContext;
-    FakeAuthenticationProvider auth;
+    FakeDashboardAuthentication auth;
     late MockBigqueryService mockBigqueryService;
     MockGitHub mockGitHubClient;
     late MockRepositoriesService mockRepositoriesService;
@@ -59,7 +59,7 @@ void main() {
       );
 
       clientContext = FakeClientContext();
-      auth = FakeAuthenticationProvider(clientContext: clientContext);
+      auth = FakeDashboardAuthentication(clientContext: clientContext);
       mockBigqueryService = MockBigqueryService();
       mockGitHubClient = MockGitHub();
       mockRepositoriesService = MockRepositoriesService();

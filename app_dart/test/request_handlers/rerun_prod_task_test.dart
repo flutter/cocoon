@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_authentication.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_scheduler.dart';
@@ -58,7 +58,7 @@ void main() {
     ciYamlFetcher = FakeCiYamlFetcher(ciYaml: multiTargetFusionConfig);
     handler = RerunProdTask(
       config: config,
-      authenticationProvider: FakeAuthenticationProvider(
+      authenticationProvider: FakeDashboardAuthentication(
         clientContext: clientContext,
       ),
       luciBuildService: mockLuciBuildService,

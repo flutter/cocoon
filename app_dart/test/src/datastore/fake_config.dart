@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 
-import '../request_handling/fake_authentication.dart';
+import '../request_handling/fake_dashboard_authentication.dart';
 import '../service/fake_github_service.dart';
 import 'fake_datastore.dart';
 

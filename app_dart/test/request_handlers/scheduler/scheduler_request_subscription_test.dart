@@ -16,7 +16,7 @@ import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
-import '../../src/request_handling/fake_authentication.dart';
+import '../../src/request_handling/fake_dashboard_authentication.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_github_service.dart';
@@ -36,7 +36,7 @@ void main() {
     handler = SchedulerRequestSubscription(
       cache: CacheService(inMemory: true),
       config: FakeConfig()..githubService = githubService,
-      authProvider: FakeAuthenticationProvider(),
+      authProvider: FakeDashboardAuthentication(),
       buildBucketClient: buildBucketClient,
       retryOptions: const RetryOptions(maxAttempts: 3, maxDelay: Duration.zero),
     );
