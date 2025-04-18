@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 import 'build_dashboard_page.dart';
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
-import 'service/google_authentication.dart';
+import 'service/firebase_auth.dart';
 import 'src/v2/router.dart';
 import 'state/build.dart';
 import 'widgets/now.dart';
@@ -60,7 +60,8 @@ void main([List<String> args = const <String>[]]) async {
     };
   }
 
-  final authService = GoogleSignInService();
+  final authService = FirebaseAuthService();
+
   final cocoonService = CocoonService(
     useProductionService: useProductionService,
   );

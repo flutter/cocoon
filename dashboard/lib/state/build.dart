@@ -11,7 +11,7 @@ import 'package:flutter_app_icons/flutter_app_icons.dart';
 
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
-import '../service/google_authentication.dart';
+import '../service/firebase_auth.dart';
 
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
@@ -23,7 +23,7 @@ class BuildState extends ChangeNotifier {
   final CocoonService cocoonService;
 
   /// Authentication service for managing Google Sign In.
-  GoogleSignInService authService;
+  FirebaseAuthService authService;
 
   /// Recent branches for flutter related to releases.
   List<Branch> get branches => _branches;

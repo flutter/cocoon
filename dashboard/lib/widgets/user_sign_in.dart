@@ -4,12 +4,13 @@
 
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/widgets.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
-import '../service/google_authentication.dart';
+import '../service/firebase_auth.dart';
 import 'sign_in_button/sign_in_button.dart';
 
 enum _SignInButtonAction { logout }
@@ -23,7 +24,7 @@ class UserSignIn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<GoogleSignInService>(context);
+    final authService = Provider.of<FirebaseAuthService>(context);
 
     // Listen to the changes of `authService` to re-render.
     return AnimatedBuilder(
@@ -52,10 +53,12 @@ class UserSignIn extends StatelessWidget {
                     Platform.environment.containsKey('FLUTTER_TEST')) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 10.0, top: 20.0),
-                    child: Text(authService.user!.email),
+                    child: Text(authService.user?.email ?? 'user@example.com'),
                   );
                 }
-                return GoogleUserCircleAvatar(identity: authService.user!);
+                return GoogleUserCircleAvatar(
+                  identity: FirebaseUserIdentity(authService.user!),
+                );
               },
             ),
           );
@@ -64,4 +67,26 @@ class UserSignIn extends StatelessWidget {
       },
     );
   }
+}
+
+class FirebaseUserIdentity implements GoogleIdentity {
+  FirebaseUserIdentity(this.user);
+
+  final User user;
+
+  @override
+  String? get displayName => user.displayName;
+
+  @override
+  String get email => user.email!;
+
+  @override
+  String get id => '1234';
+
+  @override
+  // TODO: implement photoUrl
+  String? get photoUrl => user.photoURL;
+
+  @override
+  String? get serverAuthCode => '';
 }
