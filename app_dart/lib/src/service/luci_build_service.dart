@@ -57,6 +57,10 @@ class LuciBuildService {
   final GerritService _gerritService;
   final PubSub _pubsub;
 
+  // TODO(matanlurey): Re-enable to true/remove.
+  // See https://github.com/flutter/flutter/issues/167383.
+  static final _useFlutterPrebuiltEngineForReleaseCandidateBuilds = false;
+
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
@@ -852,7 +856,8 @@ class LuciBuildService {
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
-      if (isReleaseCandidateBranch(branchName: commit.branch)) {
+      if (_useFlutterPrebuiltEngineForReleaseCandidateBuilds &&
+          isReleaseCandidateBranch(branchName: commit.branch)) {
         processedProperties.addAll({
           // Always provide an engine version, just like we do in presubmit.
           // See https://github.com/flutter/flutter/issues/167010.
