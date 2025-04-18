@@ -7,9 +7,8 @@ import 'dart:async';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
 import 'package:meta/meta.dart';
-import 'package:truncate/truncate.dart';
 
-import '../model/appengine/commit.dart';
+import '../model/firestore/commit.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../service/config.dart';
@@ -63,7 +62,7 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
     await scheduler.addCommits(commits);
   }
 
-  Future<List<Commit>> _vacuumBranch(
+  Future<List<fs.Commit>> _vacuumBranch(
     gh.RepositorySlug slug,
     String branch, {
     DatastoreService? datastore,
@@ -98,35 +97,9 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
       log.error('Failed retriving commits from GitHub', e);
     }
 
-    return _toDatastoreCommit(slug, commits, datastore, branch);
-  }
-
-  /// Convert [gh.RepositoryCommit] to Cocoon's [Commit] format.
-  Future<List<Commit>> _toDatastoreCommit(
-    gh.RepositorySlug slug,
-    List<gh.RepositoryCommit> commits,
-    DatastoreService? datastore,
-    String branch,
-  ) async {
-    final recentCommits = <Commit>[];
-    for (var commit in commits) {
-      final id = '${slug.fullName}/$branch/${commit.sha}';
-      final key = datastore!.db.emptyKey.append<String>(Commit, id: id);
-      recentCommits.add(
-        Commit(
-          key: key,
-          timestamp: commit.commit!.committer!.date!.millisecondsSinceEpoch,
-          repository: slug.fullName,
-          sha: commit.sha!,
-          author: commit.author!.login!,
-          authorAvatarUrl: commit.author!.avatarUrl!,
-          // The field has a size of 1500 we need to ensure the commit message
-          // is at most 1500 chars long.
-          message: truncate(commit.commit!.message!, 1490, omission: '...'),
-          branch: branch,
-        ),
-      );
-    }
-    return recentCommits;
+    return [
+      for (final commit in commits)
+        fs.Commit.fromGithubCommit(commit, slug: slug, branch: branch),
+    ];
   }
 }

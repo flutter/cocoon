@@ -294,25 +294,21 @@ void main() {
 
     group('add commits', () {
       final pubsub = FakePubSub();
-      List<Commit> createCommitList(
+      List<fs.Commit> createCommitList(
         List<String> shas, {
         String repo = 'flutter',
         String branch = 'master',
       }) {
-        return List<Commit>.generate(
+        return List.generate(
           shas.length,
-          (int index) => Commit(
+          (int index) => fs.Commit(
             author: 'Username',
-            authorAvatarUrl: 'http://example.org/avatar.jpg',
+            avatar: 'http://example.org/avatar.jpg',
             branch: branch,
-            key: db.emptyKey.append(
-              Commit,
-              id: 'flutter/$repo/$branch/${shas[index]}',
-            ),
             message: 'commit message',
-            repository: 'flutter/$repo',
+            repositoryPath: 'flutter/$repo',
             sha: shas[index],
-            timestamp:
+            createTimestamp:
                 DateTime.fromMillisecondsSinceEpoch(
                   int.parse(shas[index]),
                 ).millisecondsSinceEpoch,
@@ -321,7 +317,7 @@ void main() {
       }
 
       test('succeeds when GitHub returns no commits', () async {
-        await scheduler.addCommits(<Commit>[]);
+        await scheduler.addCommits(<fs.Commit>[]);
         expect(db.values, isEmpty);
       });
 
@@ -369,20 +365,23 @@ void main() {
           }
         };
         // Commits are expect from newest to oldest timestamps
-        await scheduler.addCommits(
-          createCommitList(
-            <String>['2', '3', '4'],
-            repo: 'packages',
-            branch: 'main',
+        await expectLater(
+          scheduler.addCommits(
+            createCommitList(
+              <String>['2', '3', '4'],
+              repo: 'packages',
+              branch: 'main',
+            ),
           ),
+          throwsA(isStateError),
         );
-        expect(db.values.values.whereType<Commit>().length, 3);
-        // The 2 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 3);
+
+        // The 1 new commits are scheduled 3 tasks, existing commit has none.
+        expect(db.values.values.whereType<Task>().length, 1 * 3);
         // Check commits were added, but 3 was not
         expect(
           db.values.values.whereType<Commit>().map<String>(toSha),
-          containsAll(<String>['1', '2', '4']),
+          <String>['1', '4'],
         );
         expect(
           db.values.values.whereType<Commit>().map<String>(toSha),
@@ -409,24 +408,23 @@ void main() {
           }
         };
         // Commits are expect from newest to oldest timestamps
-        await scheduler.addCommits(
-          createCommitList(
-            <String>['2', '3', '4'],
-            repo: 'packages',
-            branch: 'main',
+        await expectLater(
+          scheduler.addCommits(
+            createCommitList(
+              <String>['2', '3', '4'],
+              repo: 'packages',
+              branch: 'main',
+            ),
           ),
+          throwsA(isStateError),
         );
-        expect(db.values.values.whereType<Commit>().length, 3);
-        // The 2 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 3);
+
+        // The 1 new commits are scheduled 3 tasks, existing commit has none.
+        expect(db.values.values.whereType<Task>().length, 1 * 3);
         // Check commits were added, but 3 was not
         expect(
           db.values.values.whereType<Commit>().map<String>(toSha),
-          containsAll(<String>['1', '2', '4']),
-        );
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          isNot(contains('3')),
+          <String>['1', '4'],
         );
       });
 

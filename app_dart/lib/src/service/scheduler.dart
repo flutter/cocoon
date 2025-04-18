@@ -13,7 +13,6 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
-import 'package:truncate/truncate.dart';
 
 import '../foundation/utils.dart';
 import '../model/appengine/commit.dart' as ds;
@@ -142,10 +141,10 @@ class Scheduler {
   /// If the commit already exists, it is ignored.
   ///
   /// Otherwise it is stored in Firestore, and scheduled, if appropriate.
-  Future<void> addCommits(List<ds.Commit> commits) async {
+  Future<void> addCommits(List<fs.Commit> commits) async {
     final newCommits = await _getMissingCommits(commits);
     log.debug('Found ${newCommits.length} new commits on GitHub');
-    for (var commit in newCommits) {
+    for (final commit in newCommits) {
       await _addCommit(commit);
     }
   }
@@ -155,7 +154,6 @@ class Scheduler {
   /// If [PullRequest] was merged, schedule prod tasks against it.
   /// Otherwise if it is presubmit, schedule try tasks against it.
   Future<void> addPullRequest(PullRequest pr) async {
-    final datastore = datastoreProvider(_config.db);
     // TODO(chillers): Support triggering on presubmit. https://github.com/flutter/flutter/issues/77858
     if (!pr.merged!) {
       log.warn(
@@ -165,7 +163,6 @@ class Scheduler {
     }
 
     final branch = pr.base!.ref;
-    final fullRepo = pr.base!.repo!.fullName;
     final sha = pr.mergeCommitSha!;
 
     // TODO(matanlurey): Expand to every release candidate branch instead of a test branch.
@@ -178,21 +175,8 @@ class Scheduler {
       );
     }
 
-    final id = '$fullRepo/$branch/$sha';
-    final key = datastore.db.emptyKey.append<String>(ds.Commit, id: id);
-    final mergedCommit = ds.Commit(
-      author: pr.user!.login!,
-      authorAvatarUrl: pr.user!.avatarUrl!,
-      branch: branch,
-      key: key,
-      // The field has a max length of 1500 so ensure the commit message is not longer.
-      message: truncate(pr.title!, 1490, omission: '...'),
-      repository: fullRepo,
-      sha: sha,
-      timestamp: pr.mergedAt!.millisecondsSinceEpoch,
-    );
-
-    if (await _commitExistsInFirestore(sha: mergedCommit.sha!)) {
+    final mergedCommit = fs.Commit.fromGithubPullRequest(pr);
+    if (await _commitExistsInFirestore(sha: mergedCommit.sha)) {
       log.debug('$sha already exists in datastore. Scheduling skipped.');
       return;
     }
@@ -202,13 +186,13 @@ class Scheduler {
   }
 
   /// Processes postsubmit tasks.
-  Future<void> _addCommit(ds.Commit commit, {bool skipAllTasks = false}) async {
+  Future<void> _addCommit(fs.Commit commit, {bool skipAllTasks = false}) async {
     if (!_config.supportedRepos.contains(commit.slug)) {
-      log.debug('Skipping ${commit.id} as repo is not supported');
+      log.debug('Skipping ${commit.sha} as repo is not supported');
       return;
     }
 
-    final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(commit);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(commit);
     final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
@@ -223,13 +207,13 @@ class Scheduler {
       // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 
-    final tasks = [...ds.targetsToTasks(commit, targets)];
+    final tasks = [
+      ...targets.map((t) => fs.Task.initialFromTarget(t, commit: commit)),
+    ];
     final firestoreService = await _config.createFirestoreService();
     final toBeScheduled = <PendingTask>[];
     for (var target in targets) {
-      final task = tasks.singleWhere(
-        (ds.Task task) => task.name == target.name,
-      );
+      final task = tasks.singleWhere((task) => task.taskName == target.name);
       var policy = target.schedulerPolicy;
 
       // TODO(matanlurey): Clean up the logic below, we actually do *not* want
@@ -238,7 +222,7 @@ class Scheduler {
       //
       // See https://github.com/flutter/flutter/issues/163896.
       if (skipAllTasks) {
-        task.status = ds.Task.statusSkipped;
+        task.setStatus(ds.Task.statusSkipped);
         continue;
       }
 
@@ -248,72 +232,94 @@ class Scheduler {
       }
       final priority = await policy.triggerPriority(
         taskName: task.name!,
-        commitSha: commit.sha!,
+        commitSha: commit.sha,
         recentTasks: await firestoreService.queryRecentTasks(name: task.name!),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
-        task.status = ds.Task.statusInProgress;
+        task.setStatus(ds.Task.statusInProgress);
         toBeScheduled.add(
           PendingTask(
             target: target,
-            taskName: task.builderName!,
+            taskName: task.taskName,
             priority: priority,
           ),
         );
       }
     }
 
-    // Datastore must be written to generate task keys
-    try {
-      log.info(
-        'Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}',
-      );
-      final datastore = datastoreProvider(_config.db);
-      await datastore.withTransaction<void>((transaction) async {
-        transaction.queueMutations(inserts: <ds.Commit>[commit]);
-        transaction.queueMutations(inserts: tasks);
-        await transaction.commit();
-        log.debug(
-          'Committed ${tasks.length} new tasks for commit ${commit.sha!}',
-        );
-      });
-    } catch (e, s) {
-      log.error('Failed to add commit ${commit.sha!}', e, s);
-    }
-
     log.info(
-      'Firestore initial targets created for $commit: ${targets.map((t) => '"${t.name}"').join(', ')}',
+      'Initial targets created for $commit: '
+      '${targets.map((t) => '"${t.name}"').join(', ')}',
     );
-    final commitDocument = fs.Commit(
-      author: commit.author!,
-      avatar: commit.authorAvatarUrl!,
-      branch: commit.branch!,
-      createTimestamp: commit.timestamp!,
-      message: commit.message!,
-      repositoryPath: commit.repository!,
-      sha: commit.sha!,
-    );
-    final writes = documentsToWrites([
-      ...[...tasks.map(fs.Task.fromDatastore)],
-      commitDocument,
-    ], exists: false);
-    // TODO(keyonghan): remove try catch logic after validated to work.
-    try {
-      await firestoreService.writeViaTransaction(writes);
-    } catch (e, s) {
-      log.warn('Failed to add to Firestore', e, s);
-    }
+    await Future.wait([
+      _addCommitFirestore(commit, tasks),
+      _addCommitDatastore(commit, tasks),
+    ]);
 
     log.info(
       'Immediately scheduled tasks for $commit: '
       '${toBeScheduled.map((t) => '"${t.taskName}"').join(', ')}',
     );
     await _batchScheduleBuilds(
-      OpaqueCommit.fromDatastore(commit),
+      OpaqueCommit.fromFirestore(commit),
       toBeScheduled,
     );
     await _uploadToBigQuery(commit);
+  }
+
+  Future<void> _addCommitFirestore(
+    fs.Commit commit,
+    List<fs.Task> tasks,
+  ) async {
+    final firestore = await _config.createFirestoreService();
+    await firestore.writeViaTransaction(
+      documentsToWrites([...tasks, commit], exists: false),
+    );
+  }
+
+  Future<void> _addCommitDatastore(
+    fs.Commit fsCommit,
+    List<fs.Task> fsTasks,
+  ) async {
+    final datastore = datastoreProvider(_config.db);
+    await datastore.withTransaction<void>((tx) async {
+      final dsCommit = ds.Commit(
+        key: ds.Commit.createKey(
+          db: _config.db,
+          slug: fsCommit.slug,
+          gitBranch: fsCommit.branch,
+          sha: fsCommit.sha,
+        ),
+        author: fsCommit.author,
+        authorAvatarUrl: fsCommit.avatar,
+        branch: fsCommit.branch,
+        message: fsCommit.message,
+        repository: fsCommit.repositoryPath,
+        sha: fsCommit.sha,
+        timestamp: fsCommit.createTimestamp,
+      );
+      tx.queueMutations(inserts: [dsCommit]);
+
+      for (final fsTask in fsTasks) {
+        final dsTask = ds.Task(
+          commitKey: dsCommit.key,
+          key: dsCommit.key.append(ds.Task),
+          attempts: fsTask.currentAttempt,
+          builderName: fsTask.taskName,
+          name: fsTask.taskName,
+          isFlaky: fsTask.bringup,
+          status: fsTask.status,
+          createTimestamp: fsTask.createTimestamp,
+          startTimestamp: fsTask.startTimestamp,
+          endTimestamp: fsTask.endTimestamp,
+        );
+        tx.queueMutations(inserts: [dsTask]);
+      }
+
+      await tx.commit();
+      log.debug('Wrote to Datastore for backfill');
+    });
   }
 
   /// Schedule all builds in batch requests instead of a single request.
@@ -345,13 +351,13 @@ class Scheduler {
   }
 
   /// Return subset of [commits] not stored in Datastore.
-  Future<List<ds.Commit>> _getMissingCommits(List<ds.Commit> commits) async {
-    final newCommits = <ds.Commit>[];
+  Future<List<fs.Commit>> _getMissingCommits(List<fs.Commit> commits) async {
+    final newCommits = <fs.Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
-    commits.sort((a, b) => b.timestamp!.compareTo(a.timestamp!));
-    for (var commit in commits) {
+    commits.sort((a, b) => b.createTimestamp.compareTo(a.createTimestamp));
+    for (final commit in commits) {
       // Cocoon may randomly drop commits, so check the entire list.
-      if (!await _commitExistsInFirestore(sha: commit.sha!)) {
+      if (!await _commitExistsInFirestore(sha: commit.sha)) {
         newCommits.add(commit);
       }
     }
@@ -1604,7 +1610,7 @@ $stacktrace
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.
-  Future<void> _uploadToBigQuery(ds.Commit commit) async {
+  Future<void> _uploadToBigQuery(fs.Commit commit) async {
     const projectId = 'flutter-dashboard';
     const dataset = 'cocoon';
     const table = 'Checklist';
@@ -1620,12 +1626,11 @@ $stacktrace
     /// Prepare for bigquery [insertAll]
     tableDataInsertAllRequestRows.add(<String, Object>{
       'json': <String, Object?>{
-        'ID': commit.id,
-        'CreateTimestamp': commit.timestamp,
-        'FlutterRepositoryPath': commit.repository,
-        'CommitSha': commit.sha!,
+        'CreateTimestamp': commit.createTimestamp,
+        'FlutterRepositoryPath': commit.repositoryPath,
+        'CommitSha': commit.sha,
         'CommitAuthorLogin': commit.author,
-        'CommitAuthorAvatarURL': commit.authorAvatarUrl,
+        'CommitAuthorAvatarURL': commit.avatar,
         'CommitMessage': commit.message,
         'Branch': commit.branch,
       },
