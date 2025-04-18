@@ -201,12 +201,12 @@ class Config {
   /// of Datastore should be guarded with if-statements and early terminations:
   /// ```dart
   /// // OK
-  /// if (config.useLegacyDatastore) {
+  /// if (await config.useLegacyDatastore) {
   ///   final db = config.db;
   /// }
   ///
   /// // OK
-  /// if (!config.useLegacyDatastore) {
+  /// if (!await config.useLegacyDatastore) {
   ///   return;
   /// }
   /// final db = config.db;
@@ -216,7 +216,9 @@ class Config {
       'APP_DART_USE_DATASTORE',
       ttl: const Duration(minutes: 5),
     );
-    return _useLegacyDatastoreLastCachedAccess = value == 'true';
+    final bool = value == 'true';
+    log.info('useLegacyDatastore: $bool');
+    return _useLegacyDatastoreLastCachedAccess = bool;
   }
 
   late bool _useLegacyDatastoreLastCachedAccess;
