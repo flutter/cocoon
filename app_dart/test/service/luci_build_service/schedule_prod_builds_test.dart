@@ -578,9 +578,8 @@ void main() {
       await luci.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
         commit: OpaqueCommit.fromDatastore(dsCommit),
-        task: generateTask(0, parent: dsCommit),
         target: generateTarget(0),
-        taskDocument: fsTask,
+        task: fsTask,
       );
 
       expect(
@@ -615,9 +614,8 @@ void main() {
         luci.reschedulePostsubmitBuildUsingCheckRunEvent(
           checkRunEvent,
           commit: OpaqueCommit.fromDatastore(generateCommit(0)),
-          task: generateTask(0),
           target: generateTarget(0),
-          taskDocument: generateFirestoreTask(0),
+          task: generateFirestoreTask(0),
         ),
         throwsA(isA<NoBuildFoundException>()),
       );

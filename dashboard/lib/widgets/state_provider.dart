@@ -5,7 +5,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-import '../service/firebase_auth.dart';
+import '../service/google_authentication.dart';
 import '../state/build.dart';
 
 class StateProvider extends StatelessWidget {
@@ -16,7 +16,7 @@ class StateProvider extends StatelessWidget {
     this.child,
   });
 
-  final FirebaseAuthService? signInService;
+  final GoogleSignInService? signInService;
 
   final BuildState? buildState;
 
@@ -26,7 +26,7 @@ class StateProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: <ValueProvider<Object?>>[
-        ValueProvider<FirebaseAuthService?>(value: signInService),
+        ValueProvider<GoogleSignInService?>(value: signInService),
         ValueProvider<BuildState?>(value: buildState),
       ],
       child: child,

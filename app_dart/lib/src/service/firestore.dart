@@ -95,12 +95,29 @@ mixin FirestoreQueries {
     return [...documents.map(Commit.fromDocument)];
   }
 
-  /// Queries for recent [Task] by [name].
-  Future<List<Task>> queryRecentTasksByName({
-    int limit = 100,
-    required String name,
+  Future<List<Task>> _queryTasks({
+    required int? limit,
+    String? name,
+    String? status,
+    String? commitSha,
   }) async {
-    final filterMap = {'${Task.fieldName} =': name};
+    final filterMap = {
+      if (name != null) '${Task.fieldName} =': name,
+      if (status != null) '${Task.fieldStatus} =': status,
+      if (commitSha != null) '${Task.fieldCommitSha} =': commitSha,
+    };
+
+    // Avoid a full table-scan.
+    // TODO(matanlurey): Debatably this should be in the root query method.
+    if (limit == null && filterMap.isEmpty) {
+      throw ArgumentError.value(
+        limit,
+        'limit',
+        'Cannot set limit to "null" without other fields',
+      );
+    }
+
+    // For tasks, therer is no reason to _not_ order this way.
     final orderMap = {Task.fieldCreateTimestamp: kQueryOrderDescending};
     final documents = await query(
       kTaskCollectionId,
@@ -110,24 +127,35 @@ mixin FirestoreQueries {
     return [...documents.map(Task.fromDocument)];
   }
 
-  /// Returns all tasks running against the speificed [commitSha].
-  Future<List<Task>> queryCommitTasks(
-    String commitSha, {
+  /// Queries for recent [Task]s.
+  ///
+  /// If other named arguments are provided, they are used as a query filter.
+  Future<List<Task>> queryRecentTasks({
+    int limit = 100,
+    String? name,
     String? status,
+    String? commitSha,
   }) async {
-    final filterMap = <String, Object>{
-      '${Task.fieldCommitSha} =': commitSha,
-      if (status != null) '${Task.fieldStatus} =': status,
-    };
-    final orderMap = <String, String>{
-      Task.fieldCreateTimestamp: kQueryOrderDescending,
-    };
-    final documents = await query(
-      kTaskCollectionId,
-      filterMap,
-      orderMap: orderMap,
+    return await _queryTasks(
+      limit: limit,
+      name: name,
+      status: status,
+      commitSha: commitSha,
     );
-    return [...documents.map(Task.fromDocument)];
+  }
+
+  /// Returns _all_ tasks running against the speificed [commitSha].
+  Future<List<Task>> queryAllTasksForCommit({
+    required String commitSha,
+    String? status,
+    String? name,
+  }) async {
+    return await _queryTasks(
+      limit: null,
+      commitSha: commitSha,
+      status: status,
+      name: name,
+    );
   }
 
   /// Queries the last [commitLimit] commits, and returns the commit and tasks.
@@ -145,7 +173,7 @@ mixin FirestoreQueries {
       for (final commit in commits)
         CommitAndTasks(
           commit,
-          await queryCommitTasks(commit.sha, status: status),
+          await queryAllTasksForCommit(commitSha: commit.sha, status: status),
         ).withMostRecentTaskOnly(),
     ];
   }

@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -250,9 +249,7 @@ class Scheduler {
       final priority = await policy.triggerPriority(
         taskName: task.name!,
         commitSha: commit.sha!,
-        recentTasks: await firestoreService.queryRecentTasksByName(
-          name: task.name!,
-        ),
+        recentTasks: await firestoreService.queryRecentTasks(name: task.name!),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
@@ -1554,29 +1551,32 @@ $stacktrace
               log.debug('Rescheduling postsubmit build.');
 
               final checkName = checkRunEvent.checkRun!.name!;
-              // Query the lastest run of the `checkName` againt commit `sha`.
-              final fskTask = await firestore.queryCommitTasks(fsCommit.sha);
-              final taskDocument =
-                  taskDocuments
-                      .where(
-                        (taskDocument) => taskDocument.taskName == checkName,
-                      )
-                      .toList()
-                      .first;
-              log.debug('Latest firestore task is $taskDocument');
-              final ciYaml = await _ciYamlFetcher.getCiYamlByDatastoreCommit(
-                commit,
+              final fs.Task fsTask;
+              {
+                // Query the lastest run of the `checkName` againt commit `sha`.
+                final fsTasks = await firestore.queryRecentTasks(
+                  limit: 1,
+                  commitSha: fsCommit.sha,
+                  name: checkName,
+                );
+                if (fsTasks.isEmpty) {
+                  throw StateError('Expected 1+ tasks for $checkName');
+                }
+                fsTask = fsTasks.first;
+              }
+              log.debug('Latest firestore task is $fsTask');
+              final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(
+                fsCommit,
               );
               final target = ciYaml.postsubmitTargets().singleWhere(
-                (Target target) => target.name == task.name,
+                (target) => target.name == fsTask.taskName,
               );
               await _luciBuildService
                   .reschedulePostsubmitBuildUsingCheckRunEvent(
                     checkRunEvent,
-                    commit: OpaqueCommit.fromDatastore(commit),
-                    task: task,
+                    commit: OpaqueCommit.fromFirestore(fsCommit),
+                    task: fsTask,
                     target: target,
-                    taskDocument: taskDocument,
                   );
             }
 
