@@ -481,9 +481,8 @@ class LuciBuildService {
   Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
     required OpaqueCommit commit,
-    required Task task,
     required Target target,
-    required fs.Task taskDocument,
+    required fs.Task task,
   }) async {
     final checkName = checkRunEvent.checkRun!.name!;
 
@@ -507,13 +506,13 @@ class LuciBuildService {
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
         commit,
-        taskDocument,
+        task,
       );
       tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
       log.error(
-        'updating task ${taskDocument.taskName} of commit '
-        '${taskDocument.commitSha}. Skipping rescheduling.',
+        'updating task ${task.taskName} of commit '
+        '${task.commitSha}. Skipping rescheduling.',
         e,
         s,
       );
@@ -526,7 +525,7 @@ class LuciBuildService {
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
-            taskName: task.builderName!,
+            taskName: task.taskName,
             properties: properties,
             priority: kRerunPriority,
             tags: tags,
