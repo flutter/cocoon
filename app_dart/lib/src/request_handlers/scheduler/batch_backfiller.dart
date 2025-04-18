@@ -15,6 +15,7 @@ import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
+import '../../service/firestore/commit_and_tasks.dart';
 import '../../service/luci_build_service/opaque_commit.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/ci_yaml_fetcher.dart';
@@ -54,20 +55,20 @@ final class BatchBackfiller extends RequestHandler {
     final BackfillGrid grid;
     {
       // TODO(matanlurey): Switch this to use Firestore.
-      final datastore = DatastoreService.defaultProvider(config.db);
-      final dsGrid = await datastore.queryRecentTasks(
-        slug: slug,
+      final firestore = await config.createFirestoreService();
+      final fsGrid = await firestore.queryRecentCommitsAndTasks(
+        slug,
         commitLimit: config.backfillerCommitLimit,
       );
       log.debug(
-        'Fetched ${dsGrid.length} commits and '
-        '${dsGrid.map((i) => i.$2).expand((i) => i).length} tasks',
+        'Fetched ${fsGrid.length} commits and '
+        '${fsGrid.map((i) => i.tasks).expand((i) => i).length} tasks',
       );
 
       // Download the ToT .ci.yaml targets.
       final ciYaml = await _ciYamlFetcher.getCiYaml(
         slug: slug,
-        commitSha: dsGrid.first.$1.sha!,
+        commitSha: fsGrid.first.commit.sha,
         commitBranch: Config.defaultBranch(slug),
       );
 
@@ -79,10 +80,10 @@ final class BatchBackfiller extends RequestHandler {
       log.debug('Fetched ${totTargets.length} tip-of-tree targets');
 
       grid = BackfillGrid.from([
-        for (final (commit, tasks) in dsGrid)
+        for (final CommitAndTasks(:commit, :tasks) in fsGrid)
           (
-            OpaqueCommit.fromDatastore(commit),
-            [...tasks.map(OpaqueTask.fromDatastore)],
+            OpaqueCommit.fromFirestore(commit),
+            [...tasks.map(OpaqueTask.fromFirestore)],
           ),
       ], tipOfTreeTargets: totTargets);
     }
