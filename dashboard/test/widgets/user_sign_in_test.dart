@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/service/firebase_auth.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/user_sign_in.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 
-import '../utils/fake_google_account.dart';
+import '../utils/fake_firebase_user.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
 
@@ -20,10 +20,10 @@ final Widget testApp = MaterialApp(
 );
 
 void main() {
-  late GoogleSignInService mockAuthService;
+  late MockFirebaseAuthService mockAuthService;
 
   setUp(() {
-    mockAuthService = MockGoogleSignInService();
+    mockAuthService = MockFirebaseAuthService();
   });
 
   tearDown(() {
@@ -37,14 +37,14 @@ void main() {
     when(mockAuthService.user).thenReturn(null);
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<FirebaseAuthService?>(
         value: mockAuthService,
         child: testApp,
       ),
     );
     await tester.pump();
 
-    expect(find.byType(GoogleUserCircleAvatar), findsNothing);
+    expect(find.byType(UserAvatar), findsNothing);
     expect(find.text('SIGN IN'), findsOneWidget);
     expect(find.text('test@flutter.dev'), findsNothing);
     await expectGoldenMatches(
@@ -60,7 +60,7 @@ void main() {
     when(mockAuthService.user).thenReturn(null);
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<FirebaseAuthService?>(
         value: mockAuthService,
         child: testApp,
       ),
@@ -80,11 +80,11 @@ void main() {
   ) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
 
-    final GoogleSignInAccount user = FakeGoogleSignInAccount();
+    final user = FakeFirebaseUser();
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<FirebaseAuthService?>(
         value: mockAuthService,
         child: testApp,
       ),
@@ -104,11 +104,11 @@ void main() {
   ) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
 
-    final GoogleSignInAccount user = FakeGoogleSignInAccount();
+    final user = FakeFirebaseUser();
     when(mockAuthService.user).thenReturn(user);
 
     await tester.pumpWidget(
-      ValueProvider<GoogleSignInService?>(
+      ValueProvider<FirebaseAuthService?>(
         value: mockAuthService,
         child: testApp,
       ),

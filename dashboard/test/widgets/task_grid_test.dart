@@ -57,7 +57,7 @@ void main() {
     final service = DevelopmentCocoonService(DateTime.utc(2020));
     final buildState = BuildState(
       cocoonService: service,
-      authService: MockGoogleSignInService(),
+      authService: MockFirebaseAuthService(),
     );
     void listener1() {}
     buildState.addListener(listener1);
@@ -133,7 +133,7 @@ void main() {
     final service = DevelopmentCocoonService(DateTime.utc(2020));
     final buildState = BuildState(
       cocoonService: service,
-      authService: MockGoogleSignInService(),
+      authService: MockFirebaseAuthService(),
     );
     void listener1() {}
     buildState.addListener(listener1);
@@ -232,7 +232,7 @@ void main() {
     final service = DevelopmentCocoonService(DateTime.utc(2020));
     final buildState = BuildState(
       cocoonService: service,
-      authService: MockGoogleSignInService(),
+      authService: MockFirebaseAuthService(),
     );
     void listener1() {}
     buildState.addListener(listener1);
@@ -309,7 +309,7 @@ void main() {
   ) async {
     final buildState = BuildState(
       cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
-      authService: MockGoogleSignInService(),
+      authService: MockFirebaseAuthService(),
     );
     void listener1() {}
     buildState.addListener(listener1);
@@ -553,7 +553,7 @@ void main() {
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(
-              authService: MockGoogleSignInService(),
+              authService: MockFirebaseAuthService(),
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: [
@@ -577,7 +577,7 @@ void main() {
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(
-              authService: MockGoogleSignInService(),
+              authService: MockFirebaseAuthService(),
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: [
@@ -606,7 +606,7 @@ void main() {
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(
-              authService: MockGoogleSignInService(),
+              authService: MockFirebaseAuthService(),
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: [
@@ -630,7 +630,7 @@ void main() {
         home: Material(
           child: TaskGrid(
             buildState: FakeBuildState(
-              authService: MockGoogleSignInService(),
+              authService: MockFirebaseAuthService(),
               cocoonService: MockCocoonService(),
             ),
             commitStatuses: [
@@ -654,7 +654,7 @@ void main() {
           home: Material(
             child: TaskGrid(
               buildState: FakeBuildState(
-                authService: MockGoogleSignInService(),
+                authService: MockFirebaseAuthService(),
                 cocoonService: MockCocoonService(),
               ),
               commitStatuses: [
@@ -813,7 +813,7 @@ Future<void> expectTaskBoxColorWithMessage(
             child: RepaintBoundary(
               child: TaskGrid(
                 buildState: FakeBuildState(
-                  authService: MockGoogleSignInService(),
+                  authService: MockFirebaseAuthService(),
                   cocoonService: MockCocoonService(),
                 ),
                 commitStatuses: <CommitStatus>[
