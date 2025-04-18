@@ -53,7 +53,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '308150028417',
     projectId: 'flutter-dashboard',
     authDomain: 'flutter-dashboard.firebaseapp.com',
-    storageBucket: 'flutter-dashboard.firebasestorage.app',
+    storageBucket: 'flutter-dashboard.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

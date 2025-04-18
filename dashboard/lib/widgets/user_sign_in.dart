@@ -4,12 +4,12 @@
 
 import 'dart:io';
 
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/widgets.dart';
 import 'package:provider/provider.dart';
 
-import '../service/firebase_auth.dart';
+import '../service/google_authentication.dart';
 import 'sign_in_button/sign_in_button.dart';
 
 enum _SignInButtonAction { logout }
@@ -23,7 +23,7 @@ class UserSignIn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<FirebaseAuthService>(context);
+    final authService = Provider.of<GoogleSignInService>(context);
 
     // Listen to the changes of `authService` to re-render.
     return AnimatedBuilder(
@@ -52,10 +52,10 @@ class UserSignIn extends StatelessWidget {
                     Platform.environment.containsKey('FLUTTER_TEST')) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 10.0, top: 20.0),
-                    child: Text(authService.user?.email ?? 'user@example.com'),
+                    child: Text(authService.user!.email),
                   );
                 }
-                return const UserAvatar();
+                return GoogleUserCircleAvatar(identity: authService.user!);
               },
             ),
           );
