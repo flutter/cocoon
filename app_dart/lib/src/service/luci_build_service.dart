@@ -1074,7 +1074,7 @@ class LuciBuildService {
     );
 
     // Legacy: Write task status to Datastore.
-    if (_config.useLegacyDatastore) {
+    if (await _config.useLegacyDatastore) {
       final datastore = DatastoreService.defaultProvider(_config.db);
       final commitKey = Commit.createKey(
         db: datastore.db,

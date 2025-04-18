@@ -133,7 +133,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
   }
 
   Future<void> _legacyUpdateDatastore(List<_UpdateTaskIntent> toUpdate) async {
-    if (!config.useLegacyDatastore) {
+    if (!await config.useLegacyDatastore) {
       return;
     }
     final datastore = DatastoreService.defaultProvider(config.db);

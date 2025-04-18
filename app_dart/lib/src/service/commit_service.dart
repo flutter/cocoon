@@ -66,7 +66,7 @@ interface class CommitService {
   }
 
   Future<void> _insertDatastore(_Commit commit) async {
-    if (!_config.useLegacyDatastore) {
+    if (!await _config.useLegacyDatastore) {
       return;
     }
     final datastore = DatastoreService.defaultProvider(_config.db);

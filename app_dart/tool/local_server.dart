@@ -21,7 +21,11 @@ import '../test/src/service/fake_content_aware_hash_service.dart';
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
-  final config = Config(dbService, cache, FakeSecretManager());
+  final config = await Config.createDuringDatastoreMigration(
+    dbService,
+    cache,
+    FakeSecretManager(),
+  );
   final authProvider = DashboardAuthentication(
     config: config,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),

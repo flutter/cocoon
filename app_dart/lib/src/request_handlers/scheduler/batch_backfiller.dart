@@ -131,7 +131,7 @@ final class BatchBackfiller extends RequestHandler {
   // datastoreService.queryRecentTasks, and turn it into Map<String, dsTask>,
   // and look those up in the loop instead of making 75 sequential reads.
   Future<void> _updateDatastore(List<BackfillTask> tasks) async {
-    if (!config.useLegacyDatastore) {
+    if (!await config.useLegacyDatastore) {
       return;
     }
     final datastore = DatastoreService.defaultProvider(config.db);

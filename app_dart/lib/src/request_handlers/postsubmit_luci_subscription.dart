@@ -161,7 +161,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     bbv2.Build build, {
     required fs.Commit commit,
   }) async {
-    if (!config.useLegacyDatastore) {
+    if (!await config.useLegacyDatastore) {
       return;
     }
     final datastore = DatastoreService.defaultProvider(config.db);

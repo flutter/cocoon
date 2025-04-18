@@ -34,7 +34,7 @@ Future<void> main() async {
     }
 
     final cache = CacheService(inMemory: false);
-    final config = Config(
+    final config = await Config.createDuringDatastoreMigration(
       dbService,
       cache,
       await SecretManager.create(

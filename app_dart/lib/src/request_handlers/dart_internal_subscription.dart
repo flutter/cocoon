@@ -88,7 +88,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
   }
 
   Future<void> _legacyUpdateDatastoretask(bbv2.Build build) async {
-    if (!config.useLegacyDatastore) {
+    if (!await config.useLegacyDatastore) {
       return;
     }
 

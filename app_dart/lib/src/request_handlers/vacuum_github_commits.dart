@@ -12,25 +12,19 @@ import '../model/firestore/commit.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../service/config.dart';
-import '../service/datastore.dart';
 import '../service/github_service.dart';
 import '../service/scheduler.dart';
 
-/// Query GitHub for commits from the past day and ensure they exist in datastore.
+/// Ensures Github commits from the past day exist in Firestore.
 @immutable
-class VacuumGithubCommits extends ApiRequestHandler<Body> {
+final class VacuumGithubCommits extends ApiRequestHandler<Body> {
   const VacuumGithubCommits({
     required super.config,
     required super.authenticationProvider,
-    required this.scheduler,
-    @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
-  });
+    required Scheduler scheduler,
+  }) : _scheduler = scheduler;
 
-  final DatastoreServiceProvider datastoreProvider;
-
-  final Scheduler scheduler;
-
+  final Scheduler _scheduler;
   static const String branchParam = 'branch';
 
   @override
@@ -47,23 +41,20 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   Future<void> _vacuumRepository(
     gh.RepositorySlug slug, {
-    DatastoreService? datastore,
     required String branch,
   }) async {
     final githubService = await config.createGithubService(slug);
     final commits = await _vacuumBranch(
       slug,
       branch,
-      datastore: datastore,
       githubService: githubService,
     );
-    await scheduler.addCommits(commits);
+    await _scheduler.addCommits(commits);
   }
 
   Future<List<fs.Commit>> _vacuumBranch(
     gh.RepositorySlug slug,
     String branch, {
-    DatastoreService? datastore,
     required GithubService githubService,
   }) async {
     var commits = <gh.RepositoryCommit>[];

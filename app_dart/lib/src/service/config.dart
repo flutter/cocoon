@@ -28,7 +28,18 @@ import 'luci_build_service/cipd_version.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(this._db, this._cache, this._secrets);
+  /// Creates and returns a [Config] instance with [useLegacyDatastore] primed.
+  static Future<Config> createDuringDatastoreMigration(
+    DatastoreDB db,
+    CacheService cache,
+    SecretManager secrets,
+  ) async {
+    final config = Config._(db, cache, secrets);
+    await config.useLegacyDatastore;
+    return config;
+  }
+
+  Config._(this._db, this._cache, this._secrets);
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -142,12 +153,12 @@ class Config {
     return releaseAccountsConcat.split(',');
   }
 
-  Future<String> _getSingleValue(String id) async {
+  Future<String> _getSingleValue(String id, {Duration? ttl}) async {
     final cacheValue = await _cache.getOrCreate(
       configCacheName,
       id,
       createFn: () => _secrets.getBytes(id),
-      ttl: configCacheTtl,
+      ttl: ttl ?? configCacheTtl,
     );
     return String.fromCharCodes(cacheValue!);
   }
@@ -200,10 +211,18 @@ class Config {
   /// }
   /// final db = config.db;
   /// ```
-  bool get useLegacyDatastore => true;
+  Future<bool> get useLegacyDatastore async {
+    final value = await _getSingleValue(
+      'APP_DART_USE_DATASTORE',
+      ttl: const Duration(minutes: 5),
+    );
+    return _useLegacyDatastoreLastCachedAccess = value == 'true';
+  }
+
+  late bool _useLegacyDatastoreLastCachedAccess;
 
   DatastoreDB get db {
-    if (!useLegacyDatastore) {
+    if (!_useLegacyDatastoreLastCachedAccess) {
       throw UnsupportedError(
         'Datastore is disabled. This error should never occur in production, '
         'and is the sign of a critical bug. Please escalate to "team-infra".',
