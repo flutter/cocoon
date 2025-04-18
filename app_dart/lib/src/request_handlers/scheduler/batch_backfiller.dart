@@ -91,6 +91,7 @@ final class BatchBackfiller extends RequestHandler {
     // Produce a list of tasks, ordered from highest to lowest, to backfill.
     // ... but only take the top N tasks, at most.
     final toBackfillTasks = _backfillerStrategy.determineBackfill(grid);
+    final beforePruning = toBackfillTasks.length;
 
     // Reduce the list to at most the backfill capacity.
     ///
@@ -103,14 +104,19 @@ final class BatchBackfiller extends RequestHandler {
       toBackfillTasks.length,
       config.backfillerTargetLimit,
     );
+    log.debug(
+      'Backfilling ${toBackfillTasks.length} tasks (pruned from $beforePruning)',
+    );
 
     // Update the database first before we schedule builds.
     await Future.wait([
       _updateDatastore(toBackfillTasks),
       _updateFirestore(toBackfillTasks),
     ]);
+    log.info('Wrote updates to ${toBackfillTasks.length} tasks for backfill');
 
     await _scheduleWithRetries(toBackfillTasks);
+    log.info('Scheduled ${toBackfillTasks.length} tasks with LUCI');
   }
 
   // ⚠️ WARNING ⚠️ This function makes up to ~75 sequential reads in a row.
@@ -126,6 +132,7 @@ final class BatchBackfiller extends RequestHandler {
   Future<void> _updateDatastore(List<BackfillTask> tasks) async {
     final datastore = DatastoreService.defaultProvider(config.db);
     await datastore.withTransaction<void>((tx) async {
+      log.debug('Querying ${tasks.length} tasks in Datastore...');
       for (final BackfillTask(:commit, :task) in tasks) {
         final commitKey = ds.Commit.createKey(
           db: config.db,
@@ -150,11 +157,13 @@ final class BatchBackfiller extends RequestHandler {
       }
 
       await tx.commit();
+      log.debug('Wrote to Datastore for backfill');
     });
   }
 
   Future<void> _updateFirestore(List<BackfillTask> tasks) async {
     final firestore = await config.createFirestoreService();
+    log.debug('Querying ${tasks.length} tasks in Firestore...');
     await firestore.writeViaTransaction([
       ...tasks.map((toUpdate) {
         final BackfillTask(:task) = toUpdate;
@@ -168,6 +177,7 @@ final class BatchBackfiller extends RequestHandler {
         );
       }),
     ]);
+    log.debug('Wrote to Firestore for backfill');
   }
 
   /// Schedules tasks with retry when hitting pub/sub server errors.
