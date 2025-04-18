@@ -248,25 +248,6 @@ class Scheduler {
       }
     }
 
-    // FIXME: Restore
-    // Datastore must be written to generate task keys
-    // try {
-    //   log.info(
-    //     'Datastore tasks created for $commit: ${tasks.map((t) => '"${t.name}"').join(', ')}',
-    //   );
-    //   final datastore = datastoreProvider(_config.db);
-    //   await datastore.withTransaction<void>((transaction) async {
-    //     transaction.queueMutations(inserts: <ds.Commit>[commit]);
-    //     transaction.queueMutations(inserts: tasks);
-    //     await transaction.commit();
-    //     log.debug(
-    //       'Committed ${tasks.length} new tasks for commit ${commit.sha!}',
-    //     );
-    //   });
-    // } catch (e, s) {
-    //   log.error('Failed to add commit ${commit.sha!}', e, s);
-    // }
-
     log.info(
       'Initial targets created for $commit: '
       '${targets.map((t) => '"${t.name}"').join(', ')}',
