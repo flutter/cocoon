@@ -9,11 +9,15 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart'
+    show GoogleSignInPlatform, SignInInitParameters;
+import 'package:google_sign_in_web/google_sign_in_web.dart'
+    show GoogleSignInPlugin;
 
 import 'build_dashboard_page.dart';
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
-import 'service/google_authentication.dart';
+import 'service/firebase_auth.dart';
 import 'src/v2/router.dart';
 import 'state/build.dart';
 import 'widgets/now.dart';
@@ -60,7 +64,12 @@ void main([List<String> args = const <String>[]]) async {
     };
   }
 
-  final authService = GoogleSignInService();
+  final authService = FirebaseAuthService();
+  GoogleSignInPlatform.instance as GoogleSignInPlugin;
+  await GoogleSignInPlatform.instance.initWithParams(
+    const SignInInitParameters(scopes: []),
+  );
+
   final cocoonService = CocoonService(
     useProductionService: useProductionService,
   );

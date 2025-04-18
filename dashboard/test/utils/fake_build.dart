@@ -8,7 +8,7 @@ import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
-import 'package:flutter_dashboard/service/google_authentication.dart';
+import 'package:flutter_dashboard/service/firebase_auth.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 
@@ -16,16 +16,16 @@ import 'mocks.dart';
 
 class FakeBuildState extends ChangeNotifier implements BuildState {
   FakeBuildState({
-    GoogleSignInService? authService,
+    FirebaseAuthService? authService,
     CocoonService? cocoonService,
     this.statuses = const <CommitStatus>[],
     this.moreStatusesExist = true,
     this.rerunTaskResult = false,
-  }) : authService = authService ?? MockGoogleSignInService(),
+  }) : authService = authService ?? MockFirebaseAuthService(),
        cocoonService = cocoonService ?? MockCocoonService();
 
   @override
-  late GoogleSignInService authService;
+  late FirebaseAuthService authService;
 
   @override
   final CocoonService cocoonService;
