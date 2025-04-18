@@ -2,20 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
-import '../../model/appengine/task.dart';
+import '../../model/appengine/commit.dart' as ds;
+import '../../model/appengine/task.dart' as ds;
 import '../../model/ci_yaml/ci_yaml.dart';
-import '../../model/ci_yaml/target.dart';
-import '../../model/firestore/task.dart' as firestore;
+import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
 import '../../service/datastore.dart';
+import '../../service/luci_build_service/opaque_commit.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/ci_yaml_fetcher.dart';
 import '../../service/scheduler/policy.dart';
+import 'backfill_grid.dart';
+import 'backfill_strategy.dart';
 
 /// Cron request handler for scheduling targets when capacity becomes available.
 ///
@@ -27,213 +32,181 @@ final class BatchBackfiller extends RequestHandler {
     required super.config,
     required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
-    @visibleForTesting
-    this.datastoreProvider = DatastoreService.defaultProvider,
+    BackfillStrategy backfillerStrategy = const DefaultBackfillStrategy(),
   }) : _ciYamlFetcher = ciYamlFetcher,
-       _luciBuildService = luciBuildService;
+       _luciBuildService = luciBuildService,
+       _backfillerStrategy = backfillerStrategy;
 
   final LuciBuildService _luciBuildService;
-  final DatastoreServiceProvider datastoreProvider;
   final CiYamlFetcher _ciYamlFetcher;
+  final BackfillStrategy _backfillerStrategy;
 
   @override
   Future<Body> get() async {
-    final futures = <Future<void>>[];
-
-    for (var slug in config.supportedRepos) {
-      futures.add(backfillRepository(slug));
-    }
-
-    // Process all repos asynchronously
-    await Future.wait<void>(futures);
-
+    await Future.forEach(config.supportedRepos, _backfillRepository);
     return Body.empty;
   }
 
-  Future<void> backfillRepository(RepositorySlug slug) async {
-    final datastore = datastoreProvider(config.db);
-    final tasks =
-        await datastore
-            .queryRecentTasks(
-              slug: slug,
-              commitLimit: config.backfillerCommitLimit,
-            )
-            .toList();
+  Future<void> _backfillRepository(RepositorySlug slug) async {
+    log.debug('Running backfiller for "$slug"');
 
-    // Construct Task columns to scan for backfilling
-    final taskMap = <String, List<FullTask>>{};
-    for (var fullTask in tasks) {
-      if (taskMap.containsKey(fullTask.task.name)) {
-        taskMap[fullTask.task.name]!.add(fullTask);
-      } else {
-        taskMap[fullTask.task.name!] = <FullTask>[fullTask];
-      }
-    }
-
-    // Check if should be scheduled (there is no yellow runs). Run the most recent gray.
-    var backfill = <Tuple<Target, FullTask, int>>[];
-    for (var taskColumn in taskMap.values) {
-      final task = taskColumn.first;
-
-      final ciYaml = await _ciYamlFetcher.getCiYaml(
-        commitBranch: task.commit.branch,
-        commitSha: task.commit.sha,
-        slug: task.commit.slug,
+    // Fetch and build a "grid" of List<(OpaqueCommit, List<OpaqueTask>>).
+    final BackfillGrid grid;
+    {
+      // TODO(matanlurey): Switch this to use Firestore.
+      final datastore = DatastoreService.defaultProvider(config.db);
+      final dsGrid = await datastore.queryRecentTasks(
+        slug: slug,
+        commitLimit: config.backfillerCommitLimit,
       );
-      final ciYamlTargets = [
+      log.debug(
+        'Fetched ${dsGrid.length} commits and '
+        '${dsGrid.map((i) => i.$2).expand((i) => i).length} tasks',
+      );
+
+      // Download the ToT .ci.yaml targets.
+      final ciYaml = await _ciYamlFetcher.getCiYaml(
+        slug: slug,
+        commitSha: dsGrid.first.$1.sha!,
+        commitBranch: Config.defaultBranch(slug),
+      );
+
+      final totTargets = [
         ...ciYaml.backfillTargets(),
         if (ciYaml.isFusion)
           ...ciYaml.backfillTargets(type: CiType.fusionEngine),
       ];
+      log.debug('Fetched ${totTargets.length} tip-of-tree targets');
 
-      // Skips scheduling if the task is not in TOT commit anymore.
-      final taskInToT = ciYamlTargets
-          .map((Target target) => target.name)
-          .toList()
-          .contains(task.task.name);
-      if (!taskInToT) {
-        continue;
-      }
-      final target = ciYamlTargets.singleWhere(
-        (target) => target.name == task.task.name,
-      );
-      if (target.schedulerPolicy is! BatchPolicy) {
-        continue;
-      }
-      final backfillTask = _backfillTask(target, taskColumn);
-      final priority = backfillPriority(taskColumn.map((e) => e.task).toList());
-      if (priority != null && backfillTask != null) {
-        backfill.add(
-          Tuple<Target, FullTask, int>(target, backfillTask, priority),
-        );
-      }
+      grid = BackfillGrid.from([
+        for (final (commit, tasks) in dsGrid)
+          (
+            OpaqueCommit.fromDatastore(commit),
+            [...tasks.map(OpaqueTask.fromDatastore)],
+          ),
+      ], tipOfTreeTargets: totTargets);
     }
+    log.debug('Built a grid of ${grid.targets.length} target columns');
 
-    // Get the number of targets to be backfilled in each cycle.
-    backfill = getFilteredBackfill(backfill);
+    // Produce a list of tasks, ordered from highest to lowest, to backfill.
+    // ... but only take the top N tasks, at most.
+    final toBackfillTasks = _backfillerStrategy.determineBackfill(grid);
+    final beforePruning = toBackfillTasks.length;
 
-    log.debug('Backfilling ${backfill.length} builds');
-    log.debug('${[...backfill.map((tuple) => tuple.first.name)]}');
-
-    // Update tasks status as in progress to avoid duplicate scheduling.
-    final backfillTasks = [...backfill.map((tuple) => tuple.second.task)];
-    try {
-      await datastore.withTransaction<void>((transaction) async {
-        transaction.queueMutations(inserts: backfillTasks);
-        await transaction.commit();
-        log.debug(
-          'Updated ${backfillTasks.length} tasks: '
-          '${[...backfillTasks.map((e) => e.name)]} when backfilling.',
-        );
-      });
-      // TODO(keyonghan): remove try catch logic after validated to work.
-      try {
-        await updateTaskDocuments(backfillTasks);
-      } catch (e) {
-        log.warn(
-          'Failed to update batch backfilled task documents in Firestore',
-          e,
-        );
-      }
-
-      // Schedule all builds asynchronously.
-      // Schedule after db updates to avoid duplicate scheduling when db update fails.
-      await _scheduleWithRetries(backfill);
-    } catch (e) {
-      log.error('Failed to update tasks when backfilling', e);
-    }
-  }
-
-  /// Updates task documents in Firestore.
-  Future<void> updateTaskDocuments(List<Task> tasks) async {
-    if (tasks.isEmpty) {
-      return;
-    }
-    final writes = documentsToWrites([
-      ...tasks.map(firestore.Task.fromDatastore),
-    ], exists: true);
-    final firestoreService = await config.createFirestoreService();
-    await firestoreService.writeViaTransaction(writes);
-  }
-
-  /// Filters [config.backfillerTargetLimit] targets to backfill.
-  ///
-  /// High priority targets will be guranteed to get back filled first. If more targets
-  /// than [config.backfillerTargetLimit], pick the limited number of targets after a
-  /// shuffle. This is to make sure all targets are picked with the same chance.
-  List<Tuple<Target, FullTask, int>> getFilteredBackfill(
-    List<Tuple<Target, FullTask, int>> backfill,
-  ) {
-    if (backfill.length <= config.backfillerTargetLimit) {
-      return backfill;
-    }
-    final filteredBackfill = <Tuple<Target, FullTask, int>>[];
-    final highPriorityBackfill = [
-      ...backfill.where(
-        (element) => element.third == LuciBuildService.kRerunPriority,
-      ),
-    ];
-    final normalPriorityBackfill = [
-      ...backfill.where(
-        (element) => element.third != LuciBuildService.kRerunPriority,
-      ),
-    ];
-    log.debug(
-      'high priority backfill (${highPriorityBackfill.length}): $highPriorityBackfill',
+    // Reduce the list to at most the backfill capacity.
+    ///
+    // Note this doesn't do exactly what it seems - it just means *per API call*
+    // we at most consider this many targets, not that we limit ourselves to
+    // that many targets running at once. For example, even with a capacity of
+    // 75, we can run 150+ targets, the first API call will be 75, the next one
+    // 75 more, and so on.
+    toBackfillTasks.length = min(
+      toBackfillTasks.length,
+      config.backfillerTargetLimit,
     );
     log.debug(
-      'normal priority backfill (${normalPriorityBackfill.length}): $normalPriorityBackfill',
+      'Backfilling ${toBackfillTasks.length} tasks (pruned from $beforePruning)',
     );
-    if (highPriorityBackfill.length >= config.backfillerTargetLimit) {
-      highPriorityBackfill.shuffle();
-      filteredBackfill.addAll(
-        highPriorityBackfill.sublist(0, config.backfillerTargetLimit),
-      );
-    } else {
-      filteredBackfill.addAll(highPriorityBackfill);
-      normalPriorityBackfill.shuffle();
-      filteredBackfill.addAll(
-        normalPriorityBackfill.sublist(
-          0,
-          config.backfillerTargetLimit - highPriorityBackfill.length,
-        ),
-      );
-    }
-    return filteredBackfill;
+
+    // Update the database first before we schedule builds.
+    await Future.wait([
+      _updateDatastore(toBackfillTasks),
+      _updateFirestore(toBackfillTasks),
+    ]);
+    log.info('Wrote updates to ${toBackfillTasks.length} tasks for backfill');
+
+    await _scheduleWithRetries(toBackfillTasks);
+    log.info('Scheduled ${toBackfillTasks.length} tasks with LUCI');
+  }
+
+  // ⚠️ WARNING ⚠️ This function makes up to ~75 sequential reads in a row.
+  //
+  // There is no batch query functionality in Datastore, and since we don't
+  // want to rely on Datastore-first reads (for example, if the tasks origiante
+  // from Firestore), this will read/write in a transaction.
+  //
+  // There is a chance this is too slow, or is error-prone due to the QPS to
+  // Datastore. If that happens, it could be augmented where we make a call to
+  // datastoreService.queryRecentTasks, and turn it into Map<String, dsTask>,
+  // and look those up in the loop instead of making 75 sequential reads.
+  Future<void> _updateDatastore(List<BackfillTask> tasks) async {
+    final datastore = DatastoreService.defaultProvider(config.db);
+    await datastore.withTransaction<void>((tx) async {
+      log.debug('Querying ${tasks.length} tasks in Datastore...');
+      for (final BackfillTask(:commit, :task) in tasks) {
+        final commitKey = ds.Commit.createKey(
+          db: config.db,
+          slug: commit.slug,
+          gitBranch: commit.branch,
+          sha: commit.sha,
+        );
+
+        final query = tx.db.query<ds.Task>(ancestorKey: commitKey);
+        query.filter('name =', task.name);
+
+        final dsTasks = await query.run().toList();
+        if (dsTasks.length != 1) {
+          throw InternalServerError(
+            'Expected to find 1 task for ${task.name}, but found '
+            '${dsTasks.length}',
+          );
+        }
+        final dsTask = dsTasks.first;
+        dsTask.status = ds.Task.statusInProgress;
+        tx.queueMutations(inserts: [dsTask]);
+      }
+
+      await tx.commit();
+      log.debug('Wrote to Datastore for backfill');
+    });
+  }
+
+  Future<void> _updateFirestore(List<BackfillTask> tasks) async {
+    final firestore = await config.createFirestoreService();
+    log.debug('Querying ${tasks.length} tasks in Firestore...');
+    await firestore.writeViaTransaction([
+      ...tasks.map((toUpdate) {
+        final BackfillTask(:task) = toUpdate;
+        return fs.Task.patchStatus(
+          fs.TaskId(
+            commitSha: task.commitSha,
+            taskName: task.name,
+            currentAttempt: task.currentAttempt,
+          ),
+          fs.Task.statusInProgress,
+        );
+      }),
+    ]);
+    log.debug('Wrote to Firestore for backfill');
   }
 
   /// Schedules tasks with retry when hitting pub/sub server errors.
-  Future<void> _scheduleWithRetries(
-    List<Tuple<Target, FullTask, int>> backfill,
-  ) async {
+  Future<void> _scheduleWithRetries(List<BackfillTask> backfill) async {
     const retryOptions = Config.schedulerRetry;
     try {
       await retryOptions.retry(() async {
-        final pendingTasks = await Future.wait<List<PendingTask>>(
-          backfillRequestList(backfill),
-        );
-        if (pendingTasks.any(
-          (List<PendingTask> tupleList) => tupleList.isNotEmpty,
-        )) {
-          final nonEmptyListLenght =
-              pendingTasks
-                  .where((element) => element.isNotEmpty)
-                  .toList()
-                  .length;
+        if (await Future.wait(_backfillRequestList(backfill))
+            case final pendingTasks
+            when pendingTasks.any((pending) => pending.isNotEmpty)) {
+          final didNotBackfill = pendingTasks.where(
+            (element) => element.isNotEmpty,
+          );
           log.info(
-            'Backfill fails and retry backfilling $nonEmptyListLenght targets.',
+            'Backfill fails and retry backfilling ${didNotBackfill.length} targets.',
           );
           backfill = _updateBackfill(backfill, pendingTasks);
           throw InternalServerError(
             'Failed to backfill ${backfill.length} targets.',
           );
         }
-      }, retryIf: (Exception e) => e is InternalServerError);
-    } catch (e) {
+      }, retryIf: (e) => e is InternalServerError);
+    } catch (e, s) {
       log.error(
         'Failed to backfill ${backfill.length} targets due to error',
         e,
+        s,
       );
+      rethrow;
     }
   }
 
@@ -242,11 +215,11 @@ final class BatchBackfiller extends RequestHandler {
   /// [tupleLists] maintains the same tuple order as those in [backfill].
   /// Each element from [backfill] is encapsulated as a list in [tupleLists] to prepare for
   /// [scheduler.luciBuildService.schedulePostsubmitBuilds].
-  List<Tuple<Target, FullTask, int>> _updateBackfill(
-    List<Tuple<Target, FullTask, int>> backfill,
+  List<BackfillTask> _updateBackfill(
+    List<BackfillTask> backfill,
     List<List<PendingTask>> tupleLists,
   ) {
-    final updatedBackfill = <Tuple<Target, FullTask, int>>[];
+    final updatedBackfill = <BackfillTask>[];
     for (var i = 0; i < tupleLists.length; i++) {
       if (tupleLists[i].isNotEmpty) {
         updatedBackfill.add(backfill[i]);
@@ -256,102 +229,16 @@ final class BatchBackfiller extends RequestHandler {
   }
 
   /// Creates a list of backfill requests.
-  List<Future<List<PendingTask>>> backfillRequestList(
-    List<Tuple<Target, FullTask, int>> backfill,
+  @useResult
+  List<Future<List<PendingTask>>> _backfillRequestList(
+    List<BackfillTask> backfill,
   ) {
-    final futures = <Future<List<PendingTask>>>[];
-    for (var tuple in backfill) {
-      // TODO(chillers): The backfill priority is always going to be low. If this is a ToT task, we should run it at the default priority.
-      final toBeScheduled = PendingTask(
-        target: tuple.first,
-        taskName: tuple.second.task.builderName!,
-        priority: tuple.third,
-      );
-      futures.add(
-        // ignore: discarded_futures
+    return [
+      for (final item in backfill)
         _luciBuildService.schedulePostsubmitBuilds(
-          commit: tuple.second.commit,
-          toBeScheduled: [toBeScheduled],
+          commit: item.commit,
+          toBeScheduled: [item.toPendingTask()],
         ),
-      );
-    }
-
-    return futures;
-  }
-
-  /// Returns priority for back filled targets.
-  ///
-  /// Skips scheduling newly created targets whose available entries are
-  /// less than `BatchPolicy.kBatchSize`.
-  ///
-  /// Uses a higher priority if there is an earlier failed build. Otherwise,
-  /// uses default `LuciBuildService.kBackfillPriority`
-  int? backfillPriority(List<Task> tasks) {
-    if (tasks.length < BatchPolicy.kBatchSize) {
-      return null;
-    }
-
-    // TODO(matanlurey): This was duplicated as part of (incrementally) removing
-    // datastore to prioritize firestore in other parts of the codebase; keep
-    // this in sync with "shouldRerunPriority" in scheduler/policy.dart.
-    if (_shouldRerunPriorityDatastore(tasks, BatchPolicy.kBatchSize)) {
-      return LuciBuildService.kRerunPriority;
-    }
-    return LuciBuildService.kBackfillPriority;
-  }
-
-  // TODO(matanlurey): This was duplicated as part of (incrementally) removing
-  // datastore to prioritize firestore in other parts of the codebase; keep
-  // this in sync with "shouldRerunPriority" in scheduler/policy.dart.
-  //
-  // See https://github.com/flutter/flutter/issues/142951.
-  static bool _shouldRerunPriorityDatastore(
-    List<Task> tasks,
-    int pastTaskNumber,
-  ) {
-    // Prioritize tasks that recently failed.
-    var hasRecentFailure = false;
-    for (var i = 0; i < pastTaskNumber && i < tasks.length; i++) {
-      final task = tasks[i];
-      if (task.status == Task.statusFailed ||
-          task.status == Task.statusInfraFailure) {
-        hasRecentFailure = true;
-        break;
-      }
-    }
-    return hasRecentFailure;
-  }
-
-  /// Returns the most recent [FullTask] to backfill.
-  ///
-  /// A [FullTask] is only returned iff:
-  ///   1. There are no running builds (yellow)
-  ///   2. There are tasks that haven't been run (gray)
-  ///
-  /// This is naive, and doesn't rely on knowing the actual Flutter infra capacity.
-  ///
-  /// Otherwise, returns null indicating nothing should be backfilled.
-  FullTask? _backfillTask(Target target, List<FullTask> tasks) {
-    final relevantTasks =
-        tasks.where((FullTask task) => task.task.name == target.name).toList();
-    if (relevantTasks.any(
-      (FullTask task) => task.task.status == Task.statusInProgress,
-    )) {
-      // Don't schedule more builds where there is already a running task
-      return null;
-    }
-
-    final backfillTask =
-        relevantTasks
-            .where((FullTask task) => task.task.status == Task.statusNew)
-            .toList();
-    if (backfillTask.isEmpty) {
-      return null;
-    }
-
-    // First item in the list is guranteed to be most recent.
-    // Mark task as in progress to ensure it isn't scheduled over
-    backfillTask.first.task.status = Task.statusInProgress;
-    return backfillTask.first;
+    ];
   }
 }

@@ -219,6 +219,24 @@ final class Task extends AppDocument<Task> {
       ..name = name;
   }
 
+  /// Returns a Firestore [Write] that patches the [status] field for [id].
+  @useResult
+  static Write patchStatus(AppDocumentId<Task> id, String status) {
+    return Write(
+      currentDocument: Precondition(exists: true),
+      update: Document(
+        name: p.posix.join(
+          kDatabase,
+          'documents',
+          kTaskCollectionId,
+          id.documentId,
+        ),
+        fields: {fieldStatus: Value(stringValue: status)},
+      ),
+      updateMask: DocumentMask(fieldPaths: [fieldStatus]),
+    );
+  }
+
   /// The task was cancelled.
   static const String statusCancelled = 'Cancelled';
 
