@@ -140,6 +140,7 @@ abstract base class _FakeInMemoryFirestoreService
     Document document, {
     DateTime? created,
     DateTime? updated,
+    List<String>? fieldMask,
   }) {
     final name = document.name;
     if (name == null) {
@@ -154,9 +155,25 @@ abstract base class _FakeInMemoryFirestoreService
       throw exception;
     }
     final existing = tryPeekDocumentByName(name);
+    // FIXME: Use fieldMask.
+    final Map<String, Value> fields;
+    if (fieldMask == null) {
+      fields = {...?document.fields};
+    } else if (existing == null) {
+      throw ArgumentError.value(
+        document,
+        'document',
+        'not found, cannot patch',
+      );
+    } else {
+      fields = {...?existing.fields};
+      for (final fieldName in fieldMask) {
+        fields[fieldName] = document.fields![fieldName]!;
+      }
+    }
     _documents[name] = Document(
       name: name,
-      fields: {...?document.fields},
+      fields: fields,
       createTime:
           created?.toUtc().toIso8601String() ??
           existing?.createTime ??
@@ -185,10 +202,16 @@ abstract base class _FakeInMemoryFirestoreService
     Iterable<Document> documents, {
     DateTime? created,
     DateTime? updated,
+    List<String>? fieldMask,
   }) {
     return [
       for (final d in documents)
-        putDocument(d, created: created, updated: updated),
+        putDocument(
+          d,
+          created: created,
+          updated: updated,
+          fieldMask: fieldMask,
+        ),
     ];
   }
 
@@ -257,7 +280,7 @@ abstract base class _FakeInMemoryFirestoreService
             response.add(Status(code: 9, message: '"$name" does not exist'));
             continue;
           }
-          putDocument(document);
+          putDocument(document, fieldMask: write.updateMask?.fieldPaths);
 
         // Must not find an existing document and insert.
         case final p? when p.exists == false:
@@ -266,11 +289,11 @@ abstract base class _FakeInMemoryFirestoreService
             response.add(Status(code: 9, message: '"$name" already exists'));
             continue;
           }
-          putDocument(document);
+          putDocument(document, fieldMask: write.updateMask?.fieldPaths);
 
         // Upsert: update if existing and insert if missing.
         default:
-          putDocument(document);
+          putDocument(document, fieldMask: write.updateMask?.fieldPaths);
       }
       response.add(Status(code: 0));
     }
