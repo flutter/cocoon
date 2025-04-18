@@ -1476,33 +1476,19 @@ $stacktrace
         } else {
           try {
             final slug = checkRunEvent.repository!.slug();
-            final gitBranch =
-                checkRunEvent.checkRun!.checkSuite!.headBranch ??
-                Config.defaultBranch(slug);
             final sha = checkRunEvent.checkRun!.headSha!;
 
-            // Only merged commits are added to the datastore. If a matching commit is found, this must be a postsubmit checkrun.
-            final datastore = datastoreProvider(_config.db);
-            final commitKey = ds.Commit.createKey(
-              db: datastore.db,
-              slug: slug,
-              gitBranch: gitBranch,
+            // Only merged commits are added to the Database.
+            // If a commit is found, this must be a postsubmit checkrun.
+            final firestore = await _config.createFirestoreService();
+            final fsCommit = await fs.Commit.tryFromFirestoreBySha(
+              firestore,
               sha: sha,
             );
-            ds.Commit? commit;
-            try {
-              commit = await ds.Commit.fromDatastore(
-                datastore: datastore,
-                key: commitKey,
-              );
-              log.debug('Commit found in datastore.');
-            } on KeyNotFoundException {
-              log.debug('Commit not found in datastore.');
-            }
 
             // TODO(matanlurey): Refactor into its own branch.
             // https://github.com/flutter/flutter/issues/167211.
-            final isPresubmit = commit == null;
+            final isPresubmit = fsCommit == null;
             if (isPresubmit) {
               log.debug(
                 'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
@@ -1566,17 +1552,10 @@ $stacktrace
               );
             } else {
               log.debug('Rescheduling postsubmit build.');
+
               final checkName = checkRunEvent.checkRun!.name!;
-              final task = await ds.Task.fromDatastore(
-                datastore: datastore,
-                commitKey: commitKey,
-                name: checkName,
-              );
               // Query the lastest run of the `checkName` againt commit `sha`.
-              final firestoreService = await _config.createFirestoreService();
-              final taskDocuments = await firestoreService.queryCommitTasks(
-                commit.sha!,
-              );
+              final fskTask = await firestore.queryCommitTasks(fsCommit.sha);
               final taskDocument =
                   taskDocuments
                       .where(
