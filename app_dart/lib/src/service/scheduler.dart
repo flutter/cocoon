@@ -318,6 +318,7 @@ class Scheduler {
           endTimestamp: fsTask.endTimestamp,
 
           // Unused, but crashes without existing.
+          stageName: '',
           timeoutInMinutes: 0,
           reason: '',
           requiredCapabilities: [],
