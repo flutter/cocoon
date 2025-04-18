@@ -316,6 +316,12 @@ class Scheduler {
           createTimestamp: fsTask.createTimestamp,
           startTimestamp: fsTask.startTimestamp,
           endTimestamp: fsTask.endTimestamp,
+
+          // Unused, but crashes without existing.
+          timeoutInMinutes: 0,
+          reason: '',
+          requiredCapabilities: [],
+          reservedForAgentId: '',
         );
         tx.queueMutations(inserts: [dsTask]);
       }
