@@ -107,7 +107,7 @@ void main() {
       engine: '''
     enabled_branches:
       - master
-    
+
     targets:
       - name: Engine 0
     ''',
@@ -201,7 +201,7 @@ void main() {
       engine: '''
     enabled_branches:
       - master
-    
+
     targets:
       - name: Engine 0
     ''',
