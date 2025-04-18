@@ -4421,20 +4421,14 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
   _i15.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     _i40.CheckRunEvent? checkRunEvent, {
     required _i41.OpaqueCommit? commit,
-    required _i33.Task? task,
     required _i37.Target? target,
-    required _i42.Task? taskDocument,
+    required _i42.Task? task,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #reschedulePostsubmitBuildUsingCheckRunEvent,
               [checkRunEvent],
-              {
-                #commit: commit,
-                #task: task,
-                #target: target,
-                #taskDocument: taskDocument,
-              },
+              {#commit: commit, #task: task, #target: target},
             ),
             returnValue: _i15.Future<void>.value(),
             returnValueForMissingStub: _i15.Future<void>.value(),
