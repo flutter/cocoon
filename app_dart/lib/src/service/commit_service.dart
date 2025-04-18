@@ -66,6 +66,9 @@ interface class CommitService {
   }
 
   Future<void> _insertDatastore(_Commit commit) async {
+    if (!await _config.useLegacyDatastore) {
+      return;
+    }
     final datastore = DatastoreService.defaultProvider(_config.db);
     final commitKey = datastore.db.emptyKey.append<String>(
       ds.Commit,

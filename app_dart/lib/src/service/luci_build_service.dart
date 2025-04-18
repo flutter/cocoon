@@ -1036,30 +1036,13 @@ class LuciBuildService {
 
     log.info('Tags from rerun after update: $tags');
 
-    // TODO(matanlurey): Some APIs still provide task.
-    // If they do not, look it up as needed, otherwise party on.
-    if (task == null) {
-      final commitKey = Commit.createKey(
-        db: _config.db,
-        slug: commit.slug,
-        gitBranch: commit.branch,
-        sha: commit.sha,
-      );
-      final dsExistingTask = await Task.fromDatastore(
-        datastore: DatastoreService.defaultProvider(_config.db),
-        commitKey: commitKey,
-        name: taskDocument.taskName,
-      );
-      task = dsExistingTask;
-    }
-
     final request = bbv2.BatchRequest(
       requests: <bbv2.BatchRequest_Request>[
         bbv2.BatchRequest_Request(
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
-            taskName: task.builderName!,
+            taskName: taskDocument.taskName,
             priority: kRerunPriority,
             properties: Config.defaultProperties,
             tags: buildTags,
@@ -1091,22 +1074,24 @@ class LuciBuildService {
     );
 
     // Legacy: Write task status to Datastore.
-    final datastore = DatastoreService.defaultProvider(_config.db);
-    final commitKey = Commit.createKey(
-      db: datastore.db,
-      slug: commit.slug,
-      gitBranch: commit.branch,
-      sha: commit.sha,
-    );
-    final dsExistingTask = await Task.fromDatastore(
-      datastore: datastore,
-      commitKey: commitKey,
-      name: task.taskName,
-    );
-    dsExistingTask
-      ..attempts = task.currentAttempt
-      ..status = Task.statusInProgress;
-    await datastore.insert([dsExistingTask]);
+    if (await _config.useLegacyDatastore) {
+      final datastore = DatastoreService.defaultProvider(_config.db);
+      final commitKey = Commit.createKey(
+        db: datastore.db,
+        slug: commit.slug,
+        gitBranch: commit.branch,
+        sha: commit.sha,
+      );
+      final dsExistingTask = await Task.fromDatastore(
+        datastore: datastore,
+        commitKey: commitKey,
+        name: task.taskName,
+      );
+      dsExistingTask
+        ..attempts = task.currentAttempt
+        ..status = Task.statusInProgress;
+      await datastore.insert([dsExistingTask]);
+    }
 
     return task.currentAttempt;
   }

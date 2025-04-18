@@ -110,6 +110,9 @@ class FakeConfig implements Config {
   Duration? githubRequestDelayValue;
 
   @override
+  Future<bool> get useLegacyDatastore async => true;
+
+  @override
   Future<gh.GitHub> createGitHubClient({
     gh.PullRequest? pullRequest,
     gh.RepositorySlug? slug,

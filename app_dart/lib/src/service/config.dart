@@ -28,7 +28,18 @@ import 'luci_build_service/cipd_version.dart';
 const String kDefaultBranchName = 'master';
 
 class Config {
-  Config(this._db, this._cache, this._secrets);
+  /// Creates and returns a [Config] instance with [useLegacyDatastore] primed.
+  static Future<Config> createDuringDatastoreMigration(
+    DatastoreDB db,
+    CacheService cache,
+    SecretManager secrets,
+  ) async {
+    final config = Config._(db, cache, secrets);
+    await config.useLegacyDatastore;
+    return config;
+  }
+
+  Config._(this._db, this._cache, this._secrets);
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -142,12 +153,12 @@ class Config {
     return releaseAccountsConcat.split(',');
   }
 
-  Future<String> _getSingleValue(String id) async {
+  Future<String> _getSingleValue(String id, {Duration? ttl}) async {
     final cacheValue = await _cache.getOrCreate(
       configCacheName,
       id,
       createFn: () => _secrets.getBytes(id),
-      ttl: configCacheTtl,
+      ttl: ttl ?? configCacheTtl,
     );
     return String.fromCharCodes(cacheValue!);
   }
@@ -184,7 +195,43 @@ class Config {
   String get releaseCandidateBranchPath =>
       'bin/internal/release-candidate-branch.version';
 
-  DatastoreDB get db => _db;
+  /// Whether to read and write to Datastore.
+  ///
+  /// If `false`, the [db] will throw `UnsupportedError`, and as such usages
+  /// of Datastore should be guarded with if-statements and early terminations:
+  /// ```dart
+  /// // OK
+  /// if (await config.useLegacyDatastore) {
+  ///   final db = config.db;
+  /// }
+  ///
+  /// // OK
+  /// if (!await config.useLegacyDatastore) {
+  ///   return;
+  /// }
+  /// final db = config.db;
+  /// ```
+  Future<bool> get useLegacyDatastore async {
+    final value = await _getSingleValue(
+      'APP_DART_USE_DATASTORE',
+      ttl: const Duration(minutes: 5),
+    );
+    final bool = value == 'true';
+    log.info('useLegacyDatastore: $bool');
+    return _useLegacyDatastoreLastCachedAccess = bool;
+  }
+
+  late bool _useLegacyDatastoreLastCachedAccess;
+
+  DatastoreDB get db {
+    if (!_useLegacyDatastoreLastCachedAccess) {
+      throw UnsupportedError(
+        'Datastore is disabled. This error should never occur in production, '
+        'and is the sign of a critical bug. Please escalate to "team-infra".',
+      );
+    }
+    return _db;
+  }
 
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;

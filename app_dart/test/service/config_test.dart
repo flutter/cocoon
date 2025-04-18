@@ -15,56 +15,56 @@ import '../src/datastore/fake_datastore.dart';
 void main() {
   useTestLoggerPerTest();
 
-  group('Config', () {
-    FakeDatastoreDB datastore;
-    late CacheService cacheService;
-    late Config config;
-    late FakeSecretManager secrets;
+  FakeDatastoreDB datastore;
+  late CacheService cacheService;
+  late Config config;
+  late FakeSecretManager secrets;
 
-    setUp(() {
-      datastore = FakeDatastoreDB();
-      cacheService = CacheService(inMemory: true);
-      secrets = FakeSecretManager();
-      config = Config(datastore, cacheService, secrets);
-    });
-    test('githubAppInstallations when builder config does not exist', () async {
-      const configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
-      final cachedValue = Uint8List.fromList(configValue.codeUnits);
+  setUp(() async {
+    datastore = FakeDatastoreDB();
+    cacheService = CacheService(inMemory: true);
+    secrets = FakeSecretManager()..putString('APP_DART_USE_DATASTORE', 'true');
+    config = await Config.createDuringDatastoreMigration(
+      datastore,
+      cacheService,
+      secrets,
+    );
+  });
 
-      await cacheService.set(
-        Config.configCacheName,
-        'APP_DART_GITHUBAPP_INSTALLATIONS',
-        cachedValue,
-      );
-      final installation = await config.githubAppInstallations;
-      expect(
-        installation['godofredoc/cocoon']['installation_id'],
-        equals('123'),
-      );
-    });
+  test('githubAppInstallations when builder config does not exist', () async {
+    const configValue = '{"godofredoc/cocoon":{"installation_id":"123"}}';
+    final cachedValue = Uint8List.fromList(configValue.codeUnits);
 
-    test('generateGithubToken pulls from cache', () async {
-      const configValue = 'githubToken';
-      final cachedValue = Uint8List.fromList(configValue.codeUnits);
-      await cacheService.set(
-        Config.configCacheName,
-        'githubToken-${Config.flutterSlug}',
-        cachedValue,
-      );
+    await cacheService.set(
+      Config.configCacheName,
+      'APP_DART_GITHUBAPP_INSTALLATIONS',
+      cachedValue,
+    );
+    final installation = await config.githubAppInstallations;
+    expect(installation['godofredoc/cocoon']['installation_id'], equals('123'));
+  });
 
-      final githubToken = await config.generateGithubToken(Config.flutterSlug);
-      expect(githubToken, 'githubToken');
-    });
+  test('generateGithubToken pulls from cache', () async {
+    const configValue = 'githubToken';
+    final cachedValue = Uint8List.fromList(configValue.codeUnits);
+    await cacheService.set(
+      Config.configCacheName,
+      'githubToken-${Config.flutterSlug}',
+      cachedValue,
+    );
 
-    test('Returns the right flutter gold alert', () {
-      expect(
-        config.flutterGoldAlertConstant(RepositorySlug.full('flutter/flutter')),
-        contains('package:flutter'),
-      );
-      expect(
-        config.flutterGoldAlertConstant(RepositorySlug.full('flutter/engine')),
-        isNot(contains('package:flutter')),
-      );
-    });
+    final githubToken = await config.generateGithubToken(Config.flutterSlug);
+    expect(githubToken, 'githubToken');
+  });
+
+  test('Returns the right flutter gold alert', () {
+    expect(
+      config.flutterGoldAlertConstant(RepositorySlug.full('flutter/flutter')),
+      contains('package:flutter'),
+    );
+    expect(
+      config.flutterGoldAlertConstant(RepositorySlug.full('flutter/engine')),
+      isNot(contains('package:flutter')),
+    );
   });
 }
