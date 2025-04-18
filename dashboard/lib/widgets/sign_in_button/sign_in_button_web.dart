@@ -26,13 +26,6 @@ class _SignInButtonState extends State<SignInButton> {
     _initializing = GoogleSignInPlatform.instance.initWithParams(
       const SignInInitParameters(scopes: []),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initGoogleSignIn();
-
     // This appears to be the only way to get the userDataEvents stream -
     // which is needed to convert users to Firebase Auth
     _googleSignInPlugin = GoogleSignInPlatform.instance as GoogleSignInPlugin;
@@ -52,6 +45,14 @@ class _SignInButtonState extends State<SignInButton> {
 
   @override
   Widget build(BuildContext context) {
-    return _googleSignInPlugin.renderButton();
+    return FutureBuilder(
+      future: _initGoogleSignIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return _googleSignInPlugin.renderButton();
+        }
+        return const CircularProgressIndicator();
+      },
+    );
   }
 }
