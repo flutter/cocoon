@@ -164,7 +164,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     final latestTasks =
         CommitAndTasks(
           commit,
-          await firestore.queryCommitTasks(commit.sha),
+          await firestore.queryAllTasksForCommit(commitSha: commit.sha),
         ).withMostRecentTaskOnly().tasks;
 
     // For each task that would be rerun, rerun it.

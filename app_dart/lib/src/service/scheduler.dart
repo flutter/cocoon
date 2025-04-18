@@ -250,9 +250,7 @@ class Scheduler {
       final priority = await policy.triggerPriority(
         taskName: task.name!,
         commitSha: commit.sha!,
-        recentTasks: await firestoreService.queryRecentTasksByName(
-          name: task.name!,
-        ),
+        recentTasks: await firestoreService.queryRecentTasks(name: task.name!),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
@@ -1574,9 +1572,8 @@ $stacktrace
               );
               // Query the lastest run of the `checkName` againt commit `sha`.
               final firestoreService = await _config.createFirestoreService();
-              final taskDocuments = await firestoreService.queryCommitTasks(
-                commit.sha!,
-              );
+              final taskDocuments = await firestoreService
+                  .queryAllTasksForCommit(commitSha: commit.sha!);
               final taskDocument =
                   taskDocuments
                       .where(
