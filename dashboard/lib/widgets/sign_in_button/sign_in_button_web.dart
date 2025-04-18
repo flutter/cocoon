@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:google_sign_in_web/google_sign_in_web.dart';
 
-// import '../../consts/client_id.dart';
-
 /// Widget that users can click to initiate the Sign In process.
 class SignInButton extends StatefulWidget {
   const SignInButton({super.key});
@@ -21,9 +19,19 @@ class SignInButton extends StatefulWidget {
 class _SignInButtonState extends State<SignInButton> {
   late GoogleSignInPlugin _googleSignInPlugin;
 
+  static Future<void>? _initializing;
+
+  Future<void> _initGoogleSignIn() async {
+    if (_initializing != null) return _initializing;
+    _initializing = GoogleSignInPlatform.instance.initWithParams(
+      const SignInInitParameters(scopes: []),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    _initGoogleSignIn();
 
     // This appears to be the only way to get the userDataEvents stream -
     // which is needed to convert users to Firebase Auth
