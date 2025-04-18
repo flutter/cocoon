@@ -282,6 +282,9 @@ class Scheduler {
     fs.Commit fsCommit,
     List<fs.Task> fsTasks,
   ) async {
+    if (!_config.useLegacyDatastore) {
+      return;
+    }
     final datastore = datastoreProvider(_config.db);
     await datastore.withTransaction<void>((tx) async {
       final dsCommit = ds.Commit(

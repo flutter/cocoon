@@ -35,13 +35,11 @@ class VacuumGithubCommits extends ApiRequestHandler<Body> {
 
   @override
   Future<Body> get() async {
-    final datastore = datastoreProvider(config.db);
-
     for (var slug in config.supportedRepos) {
       final branch =
           request!.uri.queryParameters[branchParam] ??
           Config.defaultBranch(slug);
-      await _vacuumRepository(slug, datastore: datastore, branch: branch);
+      await _vacuumRepository(slug, branch: branch);
     }
 
     return Body.empty;

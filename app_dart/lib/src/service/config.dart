@@ -184,7 +184,33 @@ class Config {
   String get releaseCandidateBranchPath =>
       'bin/internal/release-candidate-branch.version';
 
-  DatastoreDB get db => _db;
+  /// Whether to read and write to Datastore.
+  ///
+  /// If `false`, the [db] will throw `UnsupportedError`, and as such usages
+  /// of Datastore should be guarded with if-statements and early terminations:
+  /// ```dart
+  /// // OK
+  /// if (config.useLegacyDatastore) {
+  ///   final db = config.db;
+  /// }
+  ///
+  /// // OK
+  /// if (!config.useLegacyDatastore) {
+  ///   return;
+  /// }
+  /// final db = config.db;
+  /// ```
+  bool get useLegacyDatastore => true;
+
+  DatastoreDB get db {
+    if (!useLegacyDatastore) {
+      throw UnsupportedError(
+        'Datastore is disabled. This error should never occur in production, '
+        'and is the sign of a critical bug. Please escalate to "team-infra".',
+      );
+    }
+    return _db;
+  }
 
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;

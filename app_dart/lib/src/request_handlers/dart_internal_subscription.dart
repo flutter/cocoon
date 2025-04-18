@@ -88,6 +88,10 @@ final class DartInternalSubscription extends SubscriptionHandler {
   }
 
   Future<void> _legacyUpdateDatastoretask(bbv2.Build build) async {
+    if (!config.useLegacyDatastore) {
+      return;
+    }
+
     log.info('Checking for existing task in Datastore');
     final datastore = DatastoreService.defaultProvider(config.db);
     final existingTask = await datastore.getTaskFromBuildbucketBuild(build);

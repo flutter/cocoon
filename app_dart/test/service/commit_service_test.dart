@@ -11,6 +11,7 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
+import '../src/datastore/fake_config.dart';
 import '../src/datastore/fake_datastore.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -20,7 +21,7 @@ import '../src/utilities/webhook_generators.dart';
 void main() {
   useTestLoggerPerTest();
 
-  late MockConfig config;
+  late FakeConfig config;
   late FakeDatastoreDB db;
   late CommitService commitService;
   late MockGithubService githubService;
@@ -45,18 +46,12 @@ void main() {
     when(githubService.github).thenReturn(github);
     repositories = MockRepositoriesService();
     when(github.repositories).thenReturn(repositories);
-    config = MockConfig();
+    config = FakeConfig(
+      dbValue: db,
+      firestoreService: firestore,
+      githubService: githubService,
+    );
     commitService = CommitService(config: config);
-
-    when(
-      // ignore: discarded_futures
-      config.createDefaultGitHubService(),
-    ).thenAnswer((_) async => githubService);
-    when(
-      // ignore: discarded_futures
-      config.createFirestoreService(),
-    ).thenAnswer((_) async => firestore);
-    when(config.db).thenReturn(db);
   });
 
   group('handleCreateGithubRequest', () {
