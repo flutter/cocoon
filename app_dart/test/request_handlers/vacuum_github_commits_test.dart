@@ -174,13 +174,12 @@ void main() {
         throw StateError('Commit failed');
       }
     };
-    final body = await tester.get<Body>(handler);
+    await expectLater(tester.get<Body>(handler), throwsA(isStateError));
 
     expect(
       db.values.values.whereType<Commit>().map<String>(toSha),
-      unorderedEquals(['1', '2', '4']),
+      unorderedEquals(['1', '4']),
     );
-    expect(await body.serialize().toList(), isEmpty);
   });
 }
 
