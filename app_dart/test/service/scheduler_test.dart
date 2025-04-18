@@ -294,25 +294,21 @@ void main() {
 
     group('add commits', () {
       final pubsub = FakePubSub();
-      List<Commit> createCommitList(
+      List<fs.Commit> createCommitList(
         List<String> shas, {
         String repo = 'flutter',
         String branch = 'master',
       }) {
-        return List<Commit>.generate(
+        return List.generate(
           shas.length,
-          (int index) => Commit(
+          (int index) => fs.Commit(
             author: 'Username',
-            authorAvatarUrl: 'http://example.org/avatar.jpg',
+            avatar: 'http://example.org/avatar.jpg',
             branch: branch,
-            key: db.emptyKey.append(
-              Commit,
-              id: 'flutter/$repo/$branch/${shas[index]}',
-            ),
             message: 'commit message',
-            repository: 'flutter/$repo',
+            repositoryPath: 'flutter/$repo',
             sha: shas[index],
-            timestamp:
+            createTimestamp:
                 DateTime.fromMillisecondsSinceEpoch(
                   int.parse(shas[index]),
                 ).millisecondsSinceEpoch,
@@ -321,7 +317,7 @@ void main() {
       }
 
       test('succeeds when GitHub returns no commits', () async {
-        await scheduler.addCommits(<Commit>[]);
+        await scheduler.addCommits(<fs.Commit>[]);
         expect(db.values, isEmpty);
       });
 

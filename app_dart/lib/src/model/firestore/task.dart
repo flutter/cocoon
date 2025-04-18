@@ -14,7 +14,9 @@ import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../appengine/task.dart' as datastore;
+import '../ci_yaml/target.dart';
 import 'base.dart';
+import 'commit.dart' as fs;
 
 const String kTaskCollectionId = 'tasks';
 
@@ -210,6 +212,21 @@ final class Task extends AppDocument<Task> {
       endTimestamp: task.endTimestamp!,
       status: task.status,
       testFlaky: task.isTestFlaky!,
+    );
+  }
+
+  factory Task.initialFromTarget(Target target, {required fs.Commit commit}) {
+    return Task(
+      currentAttempt: 1,
+      createTimestamp: commit.createTimestamp,
+      bringup: target.isBringup,
+      status: statusNew,
+      commitSha: commit.sha,
+      builderName: target.name,
+      buildNumber: null,
+      startTimestamp: 0,
+      endTimestamp: 0,
+      testFlaky: false,
     );
   }
 

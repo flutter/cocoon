@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:path/path.dart' as p;
+import 'package:truncate/truncate.dart';
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
@@ -99,6 +100,36 @@ final class Commit extends AppDocument<Commit> {
       fieldRepositoryPath: repositoryPath.toValue(),
       fieldSha: sha.toValue(),
     }, name: p.posix.join(kDatabase, 'documents', collectionId, sha));
+  }
+
+  /// Creates a Cocoon commit from a Github-authored [commit] on a [branch].
+  factory Commit.fromGithubCommit(
+    RepositoryCommit commit, {
+    required RepositorySlug slug,
+    required String branch,
+  }) {
+    return Commit(
+      author: commit.author!.login!,
+      avatar: commit.author!.avatarUrl!,
+      branch: branch,
+      message: truncate(commit.commit!.message!, 1490, omission: '...'),
+      createTimestamp: commit.commit!.committer!.date!.millisecondsSinceEpoch,
+      repositoryPath: slug.fullName,
+      sha: commit.sha!,
+    );
+  }
+
+  /// Creates a Cocoon commit from a Github-authored [pr].
+  factory Commit.fromGithubPullRequest(PullRequest pr) {
+    return Commit(
+      author: pr.user!.login!,
+      avatar: pr.user!.avatarUrl!,
+      branch: pr.base!.ref!,
+      message: truncate(pr.title!, 1490, omission: '...'),
+      repositoryPath: pr.base!.repo!.fullName,
+      sha: pr.mergeCommitSha!,
+      createTimestamp: pr.mergedAt!.millisecondsSinceEpoch,
+    );
   }
 
   factory Commit.fromDocument(Document document) {
