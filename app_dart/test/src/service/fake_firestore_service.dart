@@ -155,7 +155,6 @@ abstract base class _FakeInMemoryFirestoreService
       throw exception;
     }
     final existing = tryPeekDocumentByName(name);
-    // FIXME: Use fieldMask.
     final Map<String, Value> fields;
     if (fieldMask == null) {
       fields = {...?document.fields};
