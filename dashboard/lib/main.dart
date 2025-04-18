@@ -6,17 +6,14 @@ import 'dart:io' if (kIsWeb) '';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'build_dashboard_page.dart';
-import 'consts/client_id.dart';
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
-import 'service/firebase_auth.dart';
+import 'service/google_authentication.dart';
 import 'src/v2/router.dart';
 import 'state/build.dart';
 import 'widgets/now.dart';
@@ -63,9 +60,7 @@ void main([List<String> args = const <String>[]]) async {
     };
   }
 
-  final authService = FirebaseAuthService();
-  FirebaseUIAuth.configureProviders([GoogleProvider(clientId: signInClientId)]);
-
+  final authService = GoogleSignInService();
   final cocoonService = CocoonService(
     useProductionService: useProductionService,
   );
