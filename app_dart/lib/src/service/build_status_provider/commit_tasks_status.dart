@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 import '../../model/firestore/commit.dart';
 import '../../model/firestore/task.dart';
 
@@ -10,7 +12,8 @@ import '../../model/firestore/task.dart';
 ///
 /// Tasks may still be running, and thus their status is subject to change.
 /// Put another way, this class holds information that is a snapshot in time.
-class CommitTasksStatus {
+@immutable
+final class CommitTasksStatus {
   /// Creates a new [CommitTasksStatus].
   const CommitTasksStatus(this.commit, this.tasks);
 
@@ -66,27 +69,14 @@ class CommitTasksStatus {
   }
 }
 
-/// Latest task entry and its rerun build list.
-class FullTask {
+/// Latest [task] entry and its re-run [buildList].
+@immutable
+final class FullTask {
   const FullTask(this.task, this.buildList);
 
+  /// Task representing a [Task.taskName] builder.
   final Task task;
-  final List<int> buildList;
 
-  Map<String, Object?> toJson() {
-    return {
-      'Task': {
-        'DocumentName': task.name,
-        'TaskName': task.taskName,
-        'CommitSha': task.commitSha,
-        'CreateTimestamp': task.createTimestamp,
-        'StartTimestamp': task.startTimestamp,
-        'EndTimestamp': task.endTimestamp,
-        'Status': task.status,
-        'Bringup': task.bringup,
-        'TestFlaky': task.testFlaky,
-      },
-      'BuildList': buildList.join(','),
-    };
-  }
+  /// Every [Task.buildNumber] associated with [Task.taskName].
+  final List<int> buildList;
 }
