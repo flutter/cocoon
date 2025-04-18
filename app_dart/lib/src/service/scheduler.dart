@@ -304,6 +304,7 @@ class Scheduler {
       for (final fsTask in fsTasks) {
         final dsTask = ds.Task(
           commitKey: dsCommit.key,
+          key: dsCommit.key.append(ds.Task),
           attempts: fsTask.currentAttempt,
           builderName: fsTask.taskName,
           name: fsTask.taskName,

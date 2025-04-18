@@ -365,20 +365,23 @@ void main() {
           }
         };
         // Commits are expect from newest to oldest timestamps
-        await scheduler.addCommits(
-          createCommitList(
-            <String>['2', '3', '4'],
-            repo: 'packages',
-            branch: 'main',
+        await expectLater(
+          scheduler.addCommits(
+            createCommitList(
+              <String>['2', '3', '4'],
+              repo: 'packages',
+              branch: 'main',
+            ),
           ),
+          throwsA(isStateError),
         );
-        expect(db.values.values.whereType<Commit>().length, 3);
-        // The 2 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 3);
+
+        // The 1 new commits are scheduled 3 tasks, existing commit has none.
+        expect(db.values.values.whereType<Task>().length, 1 * 3);
         // Check commits were added, but 3 was not
         expect(
           db.values.values.whereType<Commit>().map<String>(toSha),
-          containsAll(<String>['1', '2', '4']),
+          <String>['1', '4'],
         );
         expect(
           db.values.values.whereType<Commit>().map<String>(toSha),
@@ -405,24 +408,23 @@ void main() {
           }
         };
         // Commits are expect from newest to oldest timestamps
-        await scheduler.addCommits(
-          createCommitList(
-            <String>['2', '3', '4'],
-            repo: 'packages',
-            branch: 'main',
+        await expectLater(
+          scheduler.addCommits(
+            createCommitList(
+              <String>['2', '3', '4'],
+              repo: 'packages',
+              branch: 'main',
+            ),
           ),
+          throwsA(isStateError),
         );
-        expect(db.values.values.whereType<Commit>().length, 3);
-        // The 2 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 2 * 3);
+
+        // The 1 new commits are scheduled 3 tasks, existing commit has none.
+        expect(db.values.values.whereType<Task>().length, 1 * 3);
         // Check commits were added, but 3 was not
         expect(
           db.values.values.whereType<Commit>().map<String>(toSha),
-          containsAll(<String>['1', '2', '4']),
-        );
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          isNot(contains('3')),
+          <String>['1', '4'],
         );
       });
 
