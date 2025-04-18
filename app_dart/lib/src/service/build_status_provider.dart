@@ -134,7 +134,10 @@ interface class BuildStatusService {
     return [
       for (final commit in commits)
         // It's not obvious, but this is ordered by task creation time, descending.
-        CommitTasksStatus(commit, await firestore.queryCommitTasks(commit.sha)),
+        CommitTasksStatus(
+          commit,
+          await firestore.queryAllTasksForCommit(commitSha: commit.sha),
+        ),
     ];
   }
 
