@@ -203,7 +203,8 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
                 slug,
                 issueNumber: int.parse(match.namedGroup('id')!),
               )!;
-          if (issue.isClosed) {
+          // issue.isClosed checks for (strictly) "CLOSED", sigh.
+          if (issue.state.toLowerCase() == 'closed') {
             toBeAdded = _BuilderInfo(name: builder, existingIssue: issue);
           } else {
             log.debug(
