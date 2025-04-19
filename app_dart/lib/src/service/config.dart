@@ -87,16 +87,33 @@ class Config {
     packagesSlug,
   };
 
-  /// List of guaranteed scheduling Github repos.
-  static Set<gh.RepositorySlug> get guaranteedSchedulingRepos =>
-      <gh.RepositorySlug>{packagesSlug};
-
-  /// List of Github postsubmit supported repos.
+  /// Repositories that have all tasks scheduled immediately upon merge.
   ///
-  /// This adds support for check runs to the repo.
-  Set<gh.RepositorySlug> get postsubmitSupportedRepos => <gh.RepositorySlug>{
-    packagesSlug,
-  };
+  /// In particular, the `flutter/packages` repository has [GitHub actions][1]
+  /// that want to know [wait until][2] all of the tests, which are recorded as
+  /// check-runs, are complete, so it's safe to publish a release of a package.
+  ///
+  /// See https://github.com/flutter/flutter/issues/167294#issuecomment-2810462794.
+  ///
+  /// This set is unmodifiable.
+  ///
+  /// [1]: https://github.com/flutter/packages/blob/7e6aaf4a2dce3147e98dc3b2e9539873054eaa5a/.github/workflows/release.yml
+  /// [2]: https://github.com/flutter/packages/blob/7e6aaf4a2dce3147e98dc3b2e9539873054eaa5a/.github/workflows/release.yml#L53-L79
+  static final guaranteedSchedulingRepos = Set.unmodifiable({packagesSlug});
+
+  /// Repositories where postsubmit tasks are recored as check-runs on Github.
+  ///
+  /// In particular, the `flutter/packages` repository has [GitHub actions][1]
+  /// that want to know [wait until][2] all of the tests, which are recorded as
+  /// check-runs, are complete, so it's safe to publish a release of a package.
+  ///
+  /// See https://github.com/flutter/flutter/issues/167294#issuecomment-2810462794.
+  ///
+  /// This set is unmodifiable.
+  ///
+  /// [1]: https://github.com/flutter/packages/blob/7e6aaf4a2dce3147e98dc3b2e9539873054eaa5a/.github/workflows/release.yml
+  /// [2]: https://github.com/flutter/packages/blob/7e6aaf4a2dce3147e98dc3b2e9539873054eaa5a/.github/workflows/release.yml#L53-L79
+  late final postsubmitSupportedRepos = Set.unmodifiable({packagesSlug});
 
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<gh.RepositorySlug> reposWithTreeStatus = <gh.RepositorySlug>{
