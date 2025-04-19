@@ -16,8 +16,8 @@ import '../model/appengine/task.dart' as ds;
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
+import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
@@ -164,19 +164,28 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (!await config.useLegacyDatastore) {
       return;
     }
-    final datastore = DatastoreService.defaultProvider(config.db);
-    final dsTask = await ds.Task.fromDatastore(
-      datastore: datastore,
-      commitKey: ds.Commit.createKey(
+    await config.db.withTransaction((tx) async {
+      final commitKey = ds.Commit.createKey(
         db: config.db,
         slug: commit.slug,
         gitBranch: commit.branch,
         sha: commit.sha,
-      ),
-      name: fsTask.taskName,
-    );
-    dsTask.updateFromBuildbucketBuild(build);
-    await datastore.insert([dsTask]);
+      );
+      final query = tx.db.query<ds.Task>(ancestorKey: commitKey);
+      query.filter('name =', fsTask.taskName);
+
+      final dsTasks = await query.run().toList();
+      if (dsTasks.length != 1) {
+        throw InternalServerError(
+          'Expected to find 1 task for ${fsTask.taskName}, but found '
+          '${dsTasks.length}',
+        );
+      }
+      final dsTask = dsTasks.first;
+      dsTask.updateFromBuildbucketBuild(build);
+      tx.queueMutations(inserts: [dsTask]);
+      await tx.commit();
+    });
   }
 
   // No need to update task in datastore if
