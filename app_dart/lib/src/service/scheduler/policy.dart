@@ -75,7 +75,7 @@ final class BatchPolicy implements SchedulerPolicy {
       (Task t) => t.taskName == taskName && t.commitSha == commitSha,
     );
     if (recentTasks.length < kBatchSize) {
-      log.debug(
+      log.warn(
         '$taskName has less than $kBatchSize, skip scheduling to wait for '
         'ci.yaml roll.',
       );

@@ -233,7 +233,9 @@ class Scheduler {
       final priority = await policy.triggerPriority(
         taskName: task.taskName,
         commitSha: commit.sha,
-        recentTasks: await firestoreService.queryRecentTasks(name: task.name!),
+        recentTasks: await firestoreService.queryRecentTasks(
+          name: task.taskName,
+        ),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
