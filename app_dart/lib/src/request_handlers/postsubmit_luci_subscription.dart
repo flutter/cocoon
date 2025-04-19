@@ -18,7 +18,6 @@ import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/datastore.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
