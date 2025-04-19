@@ -21,7 +21,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/datastore/fake_config.dart';
-import '../../src/datastore/fake_datastore.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
@@ -45,21 +44,16 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeFirestoreService firestoreService;
   late FakePubSub pubSub;
-  late FakeDatastoreDB datastoreDB;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestoreService = FakeFirestoreService();
-    datastoreDB = FakeDatastoreDB();
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
-      config: FakeConfig(
-        firestoreService: firestoreService,
-        dbValue: datastoreDB,
-      ),
+      config: FakeConfig(firestoreService: firestoreService),
       gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
@@ -567,17 +561,14 @@ void main() {
         );
       }
 
-      final dsCommit = generateCommit(0);
-      datastoreDB.values[dsCommit.key] = dsCommit;
-      final dsTask = generateTask(0, parent: dsCommit);
-      datastoreDB.values[dsTask.key] = dsTask;
+      final fsCommit = generateFirestoreCommit(0);
 
-      final fsTask = generateFirestoreTask(0, commitSha: dsCommit.sha);
+      final fsTask = generateFirestoreTask(0, commitSha: fsCommit.sha);
       firestoreService.putDocument(fsTask);
 
       await luci.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
-        commit: OpaqueCommit.fromDatastore(dsCommit),
+        commit: OpaqueCommit.fromFirestore(fsCommit),
         target: generateTarget(0),
         task: fsTask,
       );

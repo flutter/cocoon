@@ -15,7 +15,6 @@ import 'package:graphql/client.dart';
 
 import '../request_handling/fake_dashboard_authentication.dart';
 import '../service/fake_github_service.dart';
-import 'fake_datastore.dart';
 
 // ignore: must_be_immutable
 // TODO(matanlurey): Make this *not* a mess. See https://github.com/flutter/flutter/issues/164646.
@@ -63,15 +62,13 @@ class FakeConfig implements Config {
     this.backfillerCommitLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
-    FakeDatastoreDB? dbValue,
-  }) : dbValue = dbValue ?? FakeDatastoreDB();
+  });
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
   BigqueryService? bigqueryService;
   FirestoreService? firestoreService;
   GithubService? githubService;
-  FakeDatastoreDB dbValue;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
@@ -110,7 +107,7 @@ class FakeConfig implements Config {
   Duration? githubRequestDelayValue;
 
   @override
-  Future<bool> get useLegacyDatastore async => true;
+  Future<bool> get useLegacyDatastore async => false;
 
   @override
   Future<gh.GitHub> createGitHubClient({
@@ -139,7 +136,7 @@ class FakeConfig implements Config {
   GithubService createGithubServiceWithToken(String token) => githubService!;
 
   @override
-  FakeDatastoreDB get db => dbValue;
+  Never get db => throw UnsupportedError('FakeConfig does not support db');
 
   @override
   Duration get githubRequestDelay => githubRequestDelayValue ?? Duration.zero;

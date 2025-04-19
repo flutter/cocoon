@@ -14,7 +14,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
@@ -38,12 +37,10 @@ void main() {
   final firestoreTask = generateFirestoreTask(1, attempts: 1);
 
   setUp(() {
-    final datastoreDB = FakeDatastoreDB();
     final clientContext = FakeClientContext();
     firestoreService = FakeFirestoreService();
     clientContext.isDevelopmentEnvironment = false;
     config = FakeConfig(
-      dbValue: datastoreDB,
       keyHelperValue: FakeKeyHelper(
         applicationContext: clientContext.applicationContext,
       ),
@@ -94,8 +91,6 @@ void main() {
   });
 
   test('Schedule new task', () async {
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
     final fsCommit = generateFirestoreCommit(1);
     final fsTask = generateFirestoreTask(
       1,
@@ -123,8 +118,6 @@ void main() {
   });
 
   test('Re-schedule passing all the parameters', () async {
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
     final fsCommit = generateFirestoreCommit(1);
     final fsTask = generateFirestoreTask(
       1,
@@ -172,22 +165,6 @@ void main() {
   });
 
   test('Rerun all failed tasks when task name is all', () async {
-    final taskA = generateTask(
-      2,
-      name: 'Linux A',
-      parent: commit,
-      status: Task.statusFailed,
-    );
-    final taskB = generateTask(
-      3,
-      name: 'Mac A',
-      parent: commit,
-      status: Task.statusFailed,
-    );
-    config.db.values[taskA.key] = taskA;
-    config.db.values[taskB.key] = taskB;
-    config.db.values[commit.key] = commit;
-
     final fsCommit = generateFirestoreCommit(1);
     final fsTaskA = generateFirestoreTask(
       2,
@@ -220,15 +197,6 @@ void main() {
   });
 
   test('Rerun all runs nothing when everything is passed', () async {
-    final task = generateTask(
-      2,
-      name: 'Windows A',
-      parent: commit,
-      status: Task.statusSucceeded,
-    );
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
-
     final fsCommit = generateFirestoreCommit(1);
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(
@@ -255,15 +223,6 @@ void main() {
   });
 
   test('Rerun all runs nothing when everything is skipped', () async {
-    final task = generateTask(
-      2,
-      name: 'Windows A',
-      parent: commit,
-      status: Task.statusSkipped,
-    );
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
-
     final fsCommit = generateFirestoreCommit(1);
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(
@@ -290,15 +249,6 @@ void main() {
   });
 
   test('Rerun all can optionally include other statuses (skipped)', () async {
-    final task = generateTask(
-      2,
-      name: 'Windows A',
-      parent: commit,
-      status: Task.statusSkipped,
-    );
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
-
     final fsCommit = generateFirestoreCommit(1);
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(
@@ -350,16 +300,6 @@ void main() {
   });
 
   test('No matching target fails with a 500', () async {
-    final task = generateTask(
-      2,
-      // This task is in datastore, but not in .ci.yaml.
-      name: 'Windows C',
-      parent: commit,
-      status: Task.statusSucceeded,
-    );
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
-
     final fsCommit = generateFirestoreCommit(1);
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(
@@ -408,9 +348,6 @@ void main() {
   test(
     'Re-schedule existing task even though taskName is missing in the task',
     () async {
-      config.db.values[task.key] = task;
-      config.db.values[commit.key] = commit;
-
       final fsCommit = generateFirestoreCommit(1);
       final fsTask = generateFirestoreTask(
         1,
@@ -435,8 +372,6 @@ void main() {
         taskDocument: anyNamed('taskDocument'),
       ),
     ).thenAnswer((_) async => false);
-    config.db.values[task.key] = task;
-    config.db.values[commit.key] = commit;
 
     final fsCommit = generateFirestoreCommit(1);
     final fsTask = generateFirestoreTask(
