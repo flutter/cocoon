@@ -28,10 +28,10 @@ import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart'
     as _i39;
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
     as _i27;
+import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart'
+    as _i35;
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
     as _i32;
-import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart'
-    as _i35;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
     as _i38;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
@@ -4216,7 +4216,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
   @override
   _i16.Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     _i34.CheckRunEvent? checkRunEvent, {
-    required _i35.OpaqueCommit? commit,
+    required _i35.CommitRef? commit,
     required _i31.Target? target,
     required _i36.Task? task,
   }) =>
@@ -4263,7 +4263,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i16.Future<List<_i38.PendingTask>> schedulePostsubmitBuilds({
-    required _i35.OpaqueCommit? commit,
+    required _i35.CommitRef? commit,
     required List<_i38.PendingTask>? toBeScheduled,
   }) =>
       (super.noSuchMethod(
@@ -4279,7 +4279,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i16.Future<void> scheduleMergeGroupBuilds({
-    required _i35.OpaqueCommit? commit,
+    required _i35.CommitRef? commit,
     required List<_i31.Target>? targets,
   }) =>
       (super.noSuchMethod(
@@ -4294,7 +4294,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i16.Future<_i8.CheckRun> createPostsubmitCheckRun(
-    _i35.OpaqueCommit? commit,
+    _i35.CommitRef? commit,
     _i31.Target? target,
   ) =>
       (super.noSuchMethod(
@@ -4310,7 +4310,7 @@ class MockLuciBuildService extends _i1.Mock implements _i22.LuciBuildService {
 
   @override
   _i16.Future<bool> checkRerunBuilder({
-    required _i35.OpaqueCommit? commit,
+    required _i35.CommitRef? commit,
     required _i31.Target? target,
     required _i36.Task? task,
     Iterable<_i39.BuildTag>? tags = const [],
