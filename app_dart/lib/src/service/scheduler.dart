@@ -33,8 +33,8 @@ import 'firestore.dart';
 import 'get_files_changed.dart';
 import 'github_checks_service.dart';
 import 'luci_build_service.dart';
+import 'luci_build_service/commit_task_ref.dart';
 import 'luci_build_service/engine_artifacts.dart';
-import 'luci_build_service/opaque_commit.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
 import 'scheduler/files_changed_optimization.dart';
@@ -172,7 +172,7 @@ class Scheduler {
 
     final mergedCommit = fs.Commit.fromGithubPullRequest(pr);
     if (await _commitExistsInFirestore(sha: mergedCommit.sha)) {
-      log.debug('$sha already exists in datastore. Scheduling skipped.');
+      log.debug('$sha already exists in Firestore. Scheduling skipped.');
       return;
     }
 
@@ -255,10 +255,7 @@ class Scheduler {
       'Immediately scheduled tasks for $commit: '
       '${toBeScheduled.map((t) => '"${t.taskName}"').join(', ')}',
     );
-    await _batchScheduleBuilds(
-      OpaqueCommit.fromFirestore(commit),
-      toBeScheduled,
-    );
+    await _batchScheduleBuilds(CommitRef.fromFirestore(commit), toBeScheduled);
     await _uploadToBigQuery(commit);
   }
 
@@ -276,7 +273,7 @@ class Scheduler {
   ///
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
   Future<void> _batchScheduleBuilds(
-    OpaqueCommit commit,
+    CommitRef commit,
     List<PendingTask> toBeScheduled,
   ) async {
     final batchLog = StringBuffer(
@@ -300,7 +297,7 @@ class Scheduler {
     await Future.wait<void>(futures);
   }
 
-  /// Return subset of [commits] not stored in Datastore.
+  /// Return subset of [commits] not stored in Firestore.
   Future<List<fs.Commit>> _getMissingCommits(List<fs.Commit> commits) async {
     final newCommits = <fs.Commit>[];
     // Ensure commits are sorted from newest to oldest (descending order)
@@ -316,7 +313,7 @@ class Scheduler {
     return newCommits;
   }
 
-  /// Whether [Commit] already exists in [datastore].
+  /// Whether [Commit] already exists in Firestore.
   ///
   /// Firestore is Cocoon's source of truth for what commits have been
   /// scheduled. Since webhooks or cron jobs can schedule commits, we must
@@ -646,7 +643,7 @@ class Scheduler {
       // Note: headRef encodes refs/heads/... and what we want is the branch
       await _luciBuildService.scheduleMergeGroupBuilds(
         targets: [...availableTargets],
-        commit: OpaqueCommit(
+        commit: CommitRef(
           branch: headRef.substring('refs/heads/'.length),
           slug: slug,
           sha: headSha,
@@ -1528,7 +1525,7 @@ $stacktrace
               await _luciBuildService
                   .reschedulePostsubmitBuildUsingCheckRunEvent(
                     checkRunEvent,
-                    commit: OpaqueCommit.fromFirestore(fsCommit),
+                    commit: CommitRef.fromFirestore(fsCommit),
                     task: fsTask,
                     target: target,
                   );

@@ -18,7 +18,7 @@ import '../request_handling/subscription_handler.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
-import '../service/luci_build_service/opaque_commit.dart';
+import '../service/luci_build_service/commit_task_ref.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -27,7 +27,7 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 /// The PubSub subscription is set up here:
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/build-bucket-postsubmit-sub?project=flutter-dashboard
 ///
-/// This endpoint is responsible for updating Datastore with the result of builds from LUCI.
+/// This endpoint is responsible for updating Firestore with the result of builds from LUCI.
 @immutable
 final class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
@@ -81,22 +81,21 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     final fsTask = await fs.Task.fromFirestore(firestore, userData.taskId);
     log.info('Found $fsTask');
 
-    // TODO(matanlurey): Move below _shouldUpdateTask after Datastore removed.
-    final fsCommit = await fs.Commit.fromFirestoreBySha(
-      firestore,
-      sha: fsTask.commitSha,
-    );
-
     if (_shouldUpdateTask(build, fsTask)) {
       final oldTaskStatus = fsTask.status;
       await _updateFirestore(fsTask, build);
-      log.debug('Updated datastore from $oldTaskStatus to ${fsTask.status}');
+      log.debug('Updated Firestore from $oldTaskStatus to ${fsTask.status}');
     } else {
       log.debug(
         'skip processing for build with status scheduled or task with status '
         'finished.',
       );
     }
+
+    final fsCommit = await fs.Commit.fromFirestoreBySha(
+      firestore,
+      sha: fsTask.commitSha,
+    );
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(fsCommit);
     final postsubmitTargets = [
@@ -119,7 +118,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (await _shouldAutomaticallyRerun(fsTask)) {
       log.debug('Trying to auto-retry...');
       final retried = await _luciBuildService.checkRerunBuilder(
-        commit: OpaqueCommit.fromFirestore(fsCommit),
+        commit: CommitRef.fromFirestore(fsCommit),
         target: target,
         task: fsTask,
       );
@@ -150,10 +149,10 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     );
   }
 
-  // No need to update task in datastore if
+  // No need to update task in Firestore if
   // 1) the build is `scheduled`. Task is marked as `In Progress`
   //    whenever scheduled, either from scheduler/backfiller/rerun. We need to update
-  //    task in datastore only for
+  //    task in Firestore only for
   //    a) `started`: update info like builder number.
   //    b) `completed`: update info like status.
   // 2) the task is already completed.

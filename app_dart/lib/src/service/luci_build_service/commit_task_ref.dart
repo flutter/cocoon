@@ -9,19 +9,13 @@ import '../../model/firestore/commit.dart' as fs;
 import '../../model/firestore/task.dart' as fs;
 
 /// Represents components of a GitHub commit without specifying the backend.
-///
-/// This is used transitory to migrate from Datastore -> Firestore.
 @immutable
-final class OpaqueCommit {
-  factory OpaqueCommit.fromFirestore(fs.Commit commit) {
-    return OpaqueCommit(
-      sha: commit.sha,
-      branch: commit.branch,
-      slug: commit.slug,
-    );
+final class CommitRef {
+  factory CommitRef.fromFirestore(fs.Commit commit) {
+    return CommitRef(sha: commit.sha, branch: commit.branch, slug: commit.slug);
   }
 
-  const OpaqueCommit({
+  const CommitRef({
     required this.sha,
     required this.branch,
     required this.slug,
@@ -38,7 +32,7 @@ final class OpaqueCommit {
 
   @override
   bool operator ==(Object other) {
-    if (other is! OpaqueCommit) {
+    if (other is! CommitRef) {
       return false;
     }
     return sha == other.sha && branch == other.branch && slug == other.slug;
@@ -56,12 +50,10 @@ final class OpaqueCommit {
 }
 
 /// Represents components of a backend task without specifying the backend.
-///
-/// This is used transitory to migrate from Datastore -> Firestore.
 @immutable
-final class OpaqueTask {
-  factory OpaqueTask.fromFirestore(fs.Task task) {
-    return OpaqueTask(
+final class TaskRef {
+  factory TaskRef.fromFirestore(fs.Task task) {
+    return TaskRef(
       name: task.taskName,
       currentAttempt: task.currentAttempt,
       status: task.status,
@@ -69,7 +61,7 @@ final class OpaqueTask {
     );
   }
 
-  const OpaqueTask({
+  const TaskRef({
     required this.name,
     required this.currentAttempt,
     required this.status,
@@ -90,7 +82,7 @@ final class OpaqueTask {
 
   @override
   bool operator ==(Object other) {
-    if (other is! OpaqueTask) {
+    if (other is! TaskRef) {
       return false;
     }
     return name == other.name &&

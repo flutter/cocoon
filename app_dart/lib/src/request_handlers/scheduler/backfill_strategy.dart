@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../../model/firestore/task.dart' as fs;
 import '../../service/luci_build_service.dart';
-import '../../service/luci_build_service/opaque_commit.dart';
+import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/scheduler/policy.dart';
 import 'backfill_grid.dart';
 
@@ -72,8 +72,8 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     });
 
     // Now, create two lists: high priority (recent failure) and regular.
-    final hadRecentFailure = <OpaqueTask>[];
-    final noRecentFailures = <OpaqueTask>[];
+    final hadRecentFailure = <TaskRef>[];
+    final noRecentFailures = <TaskRef>[];
 
     for (final (_, column) in grid.targets) {
       for (var i = 0; i < column.length; i++) {

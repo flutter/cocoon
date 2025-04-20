@@ -12,7 +12,7 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/service/fake_ci_yaml_fetcher.dart';

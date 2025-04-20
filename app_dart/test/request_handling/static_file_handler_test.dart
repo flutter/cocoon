@@ -11,7 +11,7 @@ import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {

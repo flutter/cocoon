@@ -13,7 +13,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/workflow_job_data.dart';
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/service/fake_github_service.dart';
 
 void main() {

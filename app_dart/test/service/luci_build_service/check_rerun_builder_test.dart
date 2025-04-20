@@ -6,10 +6,10 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
+import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
@@ -65,7 +65,7 @@ void main() {
 
     await expectLater(
       luci.checkRerunBuilder(
-        commit: OpaqueCommit.fromFirestore(fsCommit),
+        commit: CommitRef.fromFirestore(fsCommit),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
@@ -122,7 +122,7 @@ void main() {
 
     await expectLater(
       luci.checkRerunBuilder(
-        commit: OpaqueCommit.fromFirestore(fsCommit),
+        commit: CommitRef.fromFirestore(fsCommit),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
@@ -181,7 +181,7 @@ void main() {
 
     await expectLater(
       luci.checkRerunBuilder(
-        commit: OpaqueCommit.fromFirestore(fsCommit),
+        commit: CommitRef.fromFirestore(fsCommit),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],

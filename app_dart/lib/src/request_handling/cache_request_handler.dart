@@ -17,9 +17,9 @@ import 'body.dart';
 ///
 /// High traffic endpoints that have responses that do not change
 /// based on request are good for caching. Additionally, saves
-/// reading from Datastore which is expensive both timewise and monetarily.
+/// reading from Firestore which is expensive both timewise and monetarily.
 @immutable
-class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
+final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// Creates a new [CacheRequestHandler].
   const CacheRequestHandler({
     required RequestHandler<T> delegate,

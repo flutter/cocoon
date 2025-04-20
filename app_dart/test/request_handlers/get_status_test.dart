@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';

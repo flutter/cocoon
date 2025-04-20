@@ -12,7 +12,7 @@ import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 
-import '../service/fake_github_service.dart';
+import 'service/fake_github_service.dart';
 
 // ignore: must_be_immutable
 // TODO(matanlurey): Make this *not* a mess. See https://github.com/flutter/flutter/issues/164646.

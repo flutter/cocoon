@@ -15,7 +15,7 @@ import 'package:cocoon_service/src/service/scheduler/files_changed_optimization.
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
+import '../../src/fake_config.dart';
 import '../../src/service/fake_ci_yaml_fetcher.dart';
 import '../../src/service/fake_get_files_changed.dart';
 import '../../src/utilities/entity_generators.dart';

@@ -30,7 +30,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
@@ -948,7 +948,7 @@ void main() {
 
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
-        // only postsubmit commits are stored in the datastore.
+        // only postsubmit commits are stored in the Firestore.
         final pullRequest = generatePullRequest(
           headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
         );
@@ -1011,7 +1011,7 @@ void main() {
       });
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
-        // Set up datastore with postsubmit entities matching [checkRunString].
+        // Set up Firestore with postsubmit entities matching [checkRunString].
         config = FakeConfig(
           postsubmitSupportedReposValue: {RepositorySlug('flutter', 'cocoon')},
           firestoreService: firestoreService,

@@ -10,7 +10,7 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/mocks.mocks.dart';
 import '../src/utilities/webhook_generators.dart';
@@ -49,7 +49,7 @@ void main() {
   });
 
   group('handleCreateGithubRequest', () {
-    test('adds commit to db if it does not exist in the datastore', () async {
+    test('adds commit to db if it does not exist in Firestore', () async {
       when(
         githubService.getReference(
           RepositorySlug(owner, repository),
@@ -93,7 +93,7 @@ void main() {
       );
     });
 
-    test('does not add commit to db if it exists in the datastore', () async {
+    test('does not add commit to db if it exists in Firestore', () async {
       when(
         githubService.getReference(
           RepositorySlug(owner, repository),
@@ -132,7 +132,7 @@ void main() {
   });
 
   group('handlePushGithubRequest', () {
-    test('adds commit to db if it does not exist in the datastore', () async {
+    test('adds commit to db if it does not exist in Firestore', () async {
       final pushEvent = generatePushEvent(
         branch,
         owner,
@@ -158,7 +158,7 @@ void main() {
       );
     });
 
-    test('does not add commit to db if it exists in the datastore', () async {
+    test('does not add commit to db if it exists in Firestore', () async {
       final pushEvent = generatePushEvent(
         branch,
         owner,

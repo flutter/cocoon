@@ -13,7 +13,7 @@ import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore/commit_and_tasks.dart';
-import '../../service/luci_build_service/opaque_commit.dart';
+import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/ci_yaml_fetcher.dart';
 import '../../service/scheduler/policy.dart';
@@ -79,8 +79,8 @@ final class BatchBackfiller extends RequestHandler {
       grid = BackfillGrid.from([
         for (final CommitAndTasks(:commit, :tasks) in fsGrid)
           (
-            OpaqueCommit.fromFirestore(commit),
-            [...tasks.map(OpaqueTask.fromFirestore)],
+            CommitRef.fromFirestore(commit),
+            [...tasks.map(TaskRef.fromFirestore)],
           ),
       ], tipOfTreeTargets: totTargets);
     }

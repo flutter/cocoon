@@ -11,7 +11,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';

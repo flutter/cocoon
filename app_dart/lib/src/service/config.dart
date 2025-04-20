@@ -150,7 +150,6 @@ interface class Config {
   Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
 
   Future<List<String>> _getReleaseAccounts() async {
-    // Previously: Datastore/CocoonConfig/name=ReleaseAccounts
     final releaseAccountsConcat = await _getSingleValue(
       'APP_DART_RELEASE_ACCOUNTS',
     );
@@ -169,18 +168,14 @@ interface class Config {
 
   // GitHub App properties.
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_private_pem
   Future<String> get githubPrivateKey =>
       _getSingleValue('APP_DART_GITHUBAPP_PRIVATE_PEM');
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_public_pem
   Future<String> get githubPublicKey =>
       _getSingleValue('APP_DART_GITHUBAPP_PUBLIC_PEM');
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_id
   Future<String> get githubAppId => _getSingleValue('APP_DART_GITHUBAPP_ID');
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_id
   Future<Map<String, dynamic>> get githubAppInstallations async {
     final installations = await _getSingleValue(
       'APP_DART_GITHUBAPP_INSTALLATIONS',
@@ -232,20 +227,16 @@ interface class Config {
   /// List of GitHub accounts related to releases.
   Future<List<String>> get releaseAccounts => _getReleaseAccounts();
 
-  // Previously: Datastore/CocoonConfig/name=OAuthClientId
   Future<String> get oauthClientId =>
       _getSingleValue('APP_DART_OAUTH_CLIENT_ID');
 
   /// Webhook secret for the "Flutter Roll on Borg" GitHub App.
-  // Previously: Datastore/CocoonConfig/name=FrobWebhookKey
   Future<String> get frobWebhookKey =>
       _getSingleValue('APP_DART_FROB_WEBHOOK_KEY');
 
-  // Previously: Datastore/CocoonConfig/name=GitHubPRToken
   Future<String> get githubOAuthToken =>
       _getSingleValue('APP_DART_GITHUB_PR_TOKEN');
 
-  // Discord Webhook Token for posting messages about the tree status.
   Future<String> get discordTreeStatusWebhookUrl =>
       _getSingleValue('TREE_STATUS_DISCORD_WEBHOOK_URL');
 
@@ -282,7 +273,6 @@ interface class Config {
       '__Reviewers__: Use caution before merging pull requests to release '
       'branches. Ensure the proper procedure has been followed.';
 
-  // Previously: Datastore/CocoonConfig/name=WebhookKey
   Future<String> get webhookKey => _getSingleValue('APP_DART_WEBHOOK_KEY');
 
   String get mergeConflictPullRequestMessage =>

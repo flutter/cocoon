@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
-import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
+import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/expect.dart';
 
 import '../../src/model/ci_yaml_matcher.dart';
@@ -122,7 +122,7 @@ const isOpaqueCommit = OpaqueCommitMatcher._(TypeMatcher());
 
 final class OpaqueCommitMatcher extends Matcher {
   const OpaqueCommitMatcher._(this._delegate);
-  final TypeMatcher<OpaqueCommit> _delegate;
+  final TypeMatcher<CommitRef> _delegate;
 
   OpaqueCommitMatcher hasSha(Object matcherOr) {
     return OpaqueCommitMatcher._(
@@ -144,7 +144,7 @@ final class OpaqueCommitMatcher extends Matcher {
 
   @override
   bool matches(Object? item, _) {
-    if (item is! OpaqueCommit) {
+    if (item is! CommitRef) {
       return false;
     }
 
@@ -171,7 +171,7 @@ const isOpaqueTask = OpaqueTaskMatcher._(TypeMatcher());
 
 final class OpaqueTaskMatcher extends Matcher {
   const OpaqueTaskMatcher._(this._delegate);
-  final TypeMatcher<OpaqueTask> _delegate;
+  final TypeMatcher<TaskRef> _delegate;
 
   OpaqueTaskMatcher hasName(Object matcherOr) {
     return OpaqueTaskMatcher._(
@@ -199,7 +199,7 @@ final class OpaqueTaskMatcher extends Matcher {
 
   @override
   bool matches(Object? item, _) {
-    if (item is! OpaqueTask) {
+    if (item is! TaskRef) {
       return false;
     }
 

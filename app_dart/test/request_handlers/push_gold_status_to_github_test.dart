@@ -21,7 +21,7 @@ import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_firestore_service.dart';
@@ -170,7 +170,7 @@ void main() {
         ..updatedAt = updated ?? DateTime.now();
     }
 
-    group('does not update GitHub or Datastore', () {
+    group('does not update GitHub or Firestore', () {
       test('if there are no PRs', () async {
         prsFromGitHub = <PullRequest>[];
         final body = await tester.get<Body>(handler);
@@ -680,7 +680,7 @@ void main() {
       });
     });
 
-    group('updates GitHub and/or Datastore', () {
+    group('updates GitHub and/or Firestore', () {
       test('new commit, checks running', () async {
         // New commit
         final flutterPr = newPullRequest(123, 'f-abc', 'master');

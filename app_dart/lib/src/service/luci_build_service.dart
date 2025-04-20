@@ -24,8 +24,8 @@ import '../model/github/checks.dart' as cocoon_checks;
 import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/cipd_version.dart';
+import 'luci_build_service/commit_task_ref.dart';
 import 'luci_build_service/engine_artifacts.dart';
-import 'luci_build_service/opaque_commit.dart';
 import 'luci_build_service/pending_task.dart';
 import 'luci_build_service/user_data.dart';
 
@@ -477,7 +477,7 @@ class LuciBuildService {
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     required fs.Task task,
   }) async {
@@ -599,7 +599,7 @@ class LuciBuildService {
   /// returns the original list.
   @useResult
   Future<List<PendingTask>> schedulePostsubmitBuilds({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required List<PendingTask> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
@@ -667,7 +667,7 @@ class LuciBuildService {
 
   /// Schedules [targets] for building of prod artifacts while in a merge queue.
   Future<void> scheduleMergeGroupBuilds({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required List<Target> targets,
   }) async {
     final buildRequests = <bbv2.BatchRequest_Request>[];
@@ -798,7 +798,7 @@ class LuciBuildService {
   ///
   /// By default, build [priority] is increased for release branches.
   Future<bbv2.ScheduleBuildRequest> _createPostsubmitScheduleBuild({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     required String taskName,
     Map<String, Object?>? properties,
@@ -903,7 +903,7 @@ class LuciBuildService {
   /// Creates a build request for a commit in a merge queue which will notify
   /// presubmit channels.
   Future<bbv2.ScheduleBuildRequest> _createMergeGroupScheduleBuild({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     int priority = kDefaultPriority,
   }) async {
@@ -981,7 +981,7 @@ class LuciBuildService {
   /// Creates postsubmit check runs for prod targets in supported repositories.
   @useResult
   Future<CheckRun> createPostsubmitCheckRun(
-    OpaqueCommit commit,
+    CommitRef commit,
     Target target,
   ) async {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
@@ -1004,7 +1004,7 @@ class LuciBuildService {
   ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
   @useResult
   Future<bool> checkRerunBuilder({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     required fs.Task task,
     Iterable<BuildTag> tags = const [],
@@ -1056,7 +1056,7 @@ class LuciBuildService {
   /// re-run, and returns the new attempt number.
   @useResult
   Future<int> _updateTaskStatusInDatabaseForRetry(
-    OpaqueCommit commit,
+    CommitRef commit,
     fs.Task task,
   ) async {
     // Update task status in Firestore.

@@ -13,7 +13,7 @@ import 'package:github/github.dart' as gh;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_gerrit_service.dart';
 import '../../src/utilities/entity_generators.dart';

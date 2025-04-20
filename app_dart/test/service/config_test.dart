@@ -19,7 +19,7 @@ void main() {
 
   setUp(() async {
     cacheService = CacheService(inMemory: true);
-    secrets = FakeSecretManager()..putString('APP_DART_USE_DATASTORE', 'true');
+    secrets = FakeSecretManager();
     config = Config(cacheService, secrets);
   });
 

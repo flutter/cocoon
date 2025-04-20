@@ -159,9 +159,6 @@ final class Commit extends AppDocument<Commit> {
   String get avatar => fields[fieldAvatar]!.stringValue!;
 
   /// The commit message.
-  ///
-  /// This may be null, since we didn't always load/store this property in
-  /// the datastore, so historical entries won't have this information.
   String get message => fields[fieldMessage]!.stringValue!;
 
   /// A serializable form of [slug].

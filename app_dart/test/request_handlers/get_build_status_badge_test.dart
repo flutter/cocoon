@@ -8,7 +8,7 @@ import 'package:cocoon_service/src/request_handlers/get_build_status_badge.dart'
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 
 void main() {
   useTestLoggerPerTest();

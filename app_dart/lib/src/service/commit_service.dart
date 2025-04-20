@@ -14,7 +14,7 @@ import '../model/firestore/commit.dart' as fs;
 import 'config.dart';
 import 'firestore.dart';
 
-/// Converts and stores GitHub-originated commits into Datastore and Firestore.
+/// Converts and stores GitHub-originated commits into Firestore.
 interface class CommitService {
   CommitService({
     required Config config,
@@ -25,7 +25,7 @@ interface class CommitService {
   final Config _config;
   final DateTime Function() _now;
 
-  /// Add a commit based on a [CreateEvent] to the Datastore.
+  /// Add a commit based on a [CreateEvent] to the Firestore.
   Future<void> handleCreateGithubRequest(gh.CreateEvent createEvent) async {
     // Extract some information from the event.
     final slug = gh.RepositorySlug.full(createEvent.repository!.fullName);
@@ -51,7 +51,7 @@ interface class CommitService {
     );
   }
 
-  /// Add a commit based on a Push event to the Datastore.
+  /// Add a commit based on a Push event to the Firestore.
   /// https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
   Future<void> handlePushGithubRequest(Map<String, Object?> pushEvent) async {
     await _insertFirestore(_Commit.fromPushEventJson(pushEvent));
