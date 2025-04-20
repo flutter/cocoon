@@ -2,11 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_server/logging.dart';
 import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-
-import '../../service/datastore.dart';
 
 /// Class that represents a commit that has landed on the master branch of a
 /// Flutter repository.
@@ -34,15 +31,6 @@ class Commit extends Model<String> {
     required String sha,
   }) {
     return db.emptyKey.append(Commit, id: '${slug.fullName}/$gitBranch/$sha');
-  }
-
-  /// Lookup [Commit] from Datastore.
-  static Future<Commit> fromDatastore({
-    required DatastoreService datastore,
-    required Key<String> key,
-  }) async {
-    log.debug('Looking up commit by key with id: ${key.id}');
-    return datastore.lookupByValue<Commit>(key);
   }
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit
