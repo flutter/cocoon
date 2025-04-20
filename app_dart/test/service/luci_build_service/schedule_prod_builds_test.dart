@@ -509,7 +509,7 @@ void main() {
         properties: <String, String>{'os': 'debian-10.12'},
         slug: Config.packagesSlug,
       ),
-      taskName: generateTask(1).builderName!,
+      taskName: generateFirestoreTask(1).taskName,
       priority: LuciBuildService.kDefaultPriority,
     );
     await expectLater(

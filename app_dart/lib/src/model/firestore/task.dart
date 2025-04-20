@@ -13,7 +13,6 @@ import 'package:path/path.dart' as p;
 import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
-import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
 import 'base.dart';
 import 'commit.dart' as fs;
@@ -191,28 +190,6 @@ final class Task extends AppDocument<Task> {
   /// Create [Task] from a task Document.
   factory Task.fromDocument(Document document) {
     return Task._(document.fields!, name: document.name!);
-  }
-
-  factory Task.fromDatastore(datastore.Task task) {
-    final commitSha = task.commitKey!.id!.split('/').last;
-    final int? buildNumber;
-    if (task.buildNumberList case final list? when list.isNotEmpty) {
-      buildNumber = int.parse(list.split(',').last);
-    } else {
-      buildNumber = null;
-    }
-    return Task(
-      builderName: task.builderName!,
-      currentAttempt: task.attempts!,
-      commitSha: commitSha,
-      bringup: task.isFlaky!,
-      buildNumber: buildNumber,
-      createTimestamp: task.createTimestamp!,
-      startTimestamp: task.startTimestamp!,
-      endTimestamp: task.endTimestamp!,
-      status: task.status,
-      testFlaky: task.isTestFlaky!,
-    );
   }
 
   factory Task.initialFromTarget(Target target, {required fs.Commit commit}) {

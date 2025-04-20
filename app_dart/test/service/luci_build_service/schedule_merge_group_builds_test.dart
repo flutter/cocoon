@@ -85,14 +85,14 @@ void main() {
       );
     });
 
-    final dsCommit = generateCommit(
+    final commit = generateFirestoreCommit(
       1,
       sha: 'abc1234',
       repo: 'flutter',
       branch: 'gh-readonly-queue/master/pr-1234-abcd',
     );
     await luci.scheduleMergeGroupBuilds(
-      commit: OpaqueCommit.fromDatastore(dsCommit),
+      commit: OpaqueCommit.fromFirestore(commit),
       targets: [
         generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
         generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),
@@ -138,14 +138,14 @@ void main() {
       );
     });
 
-    final dsCommit = generateCommit(
+    final commit = generateFirestoreCommit(
       1,
       sha: 'abc1234',
       repo: 'flutter',
       branch: 'gh-readonly-queue/master/pr-1234-abcd',
     );
     await luci.scheduleMergeGroupBuilds(
-      commit: OpaqueCommit.fromDatastore(dsCommit),
+      commit: OpaqueCommit.fromFirestore(commit),
       targets: [
         generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
         generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),
