@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert' hide json;
-import 'dart:convert' as convert show json;
 
 import 'package:json_annotation/json_annotation.dart';
 
