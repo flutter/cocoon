@@ -10,7 +10,6 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
-import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
@@ -19,7 +18,6 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/key_helper.dart';
 import 'bigquery.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
@@ -27,19 +25,9 @@ import 'luci_build_service/cipd_version.dart';
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
 
-class Config {
-  /// Creates and returns a [Config] instance with [useLegacyDatastore] primed.
-  static Future<Config> createDuringDatastoreMigration(
-    DatastoreDB db,
-    CacheService cache,
-    SecretManager secrets,
-  ) async {
-    final config = Config._(db, cache, secrets);
-    await config.useLegacyDatastore;
-    return config;
-  }
-
-  Config._(this._db, this._cache, this._secrets);
+interface class Config {
+  /// Creates and returns a [Config] instance.
+  Config(this._cache, this._secrets);
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -72,7 +60,6 @@ class Config {
   /// workflow.
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
-  final DatastoreDB _db;
   final CacheService _cache;
   final SecretManager _secrets;
 
@@ -212,43 +199,7 @@ class Config {
   String get releaseCandidateBranchPath =>
       'bin/internal/release-candidate-branch.version';
 
-  /// Whether to read and write to Datastore.
-  ///
-  /// If `false`, the [db] will throw `UnsupportedError`, and as such usages
-  /// of Datastore should be guarded with if-statements and early terminations:
-  /// ```dart
-  /// // OK
-  /// if (await config.useLegacyDatastore) {
-  ///   final db = config.db;
-  /// }
-  ///
-  /// // OK
-  /// if (!await config.useLegacyDatastore) {
-  ///   return;
-  /// }
-  /// final db = config.db;
-  /// ```
-  Future<bool> get useLegacyDatastore async {
-    final value = await _getSingleValue(
-      'APP_DART_USE_DATASTORE',
-      ttl: const Duration(minutes: 5),
-    );
-    final bool = value == 'true';
-    log.info('useLegacyDatastore: $bool');
-    return _useLegacyDatastoreLastCachedAccess = bool;
-  }
-
-  late bool _useLegacyDatastoreLastCachedAccess;
-
-  DatastoreDB get db {
-    if (!_useLegacyDatastoreLastCachedAccess) {
-      throw UnsupportedError(
-        'Datastore is disabled. This error should never occur in production, '
-        'and is the sign of a critical bug. Please escalate to "team-infra".',
-      );
-    }
-    return _db;
-  }
+  Never get db => throw UnsupportedError('');
 
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
@@ -431,9 +382,6 @@ class Config {
 
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
-
-  KeyHelper get keyHelper =>
-      KeyHelper(applicationContext: context.applicationContext);
 
   /// Default number of commits to return for benchmark dashboard.
   int get maxRecords => 50;

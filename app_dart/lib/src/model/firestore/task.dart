@@ -279,6 +279,23 @@ final class Task extends AppDocument<Task> {
     statusSucceeded,
   };
 
+  static String convertBuildbucketStatusToString(bbv2.Status status) {
+    switch (status) {
+      case bbv2.Status.SUCCESS:
+        return statusSucceeded;
+      case bbv2.Status.CANCELED:
+        return statusCancelled;
+      case bbv2.Status.INFRA_FAILURE:
+        return statusInfraFailure;
+      case bbv2.Status.STARTED:
+        return statusInProgress;
+      case bbv2.Status.SCHEDULED:
+        return statusNew;
+      default:
+        return statusFailed;
+    }
+  }
+
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
   ///

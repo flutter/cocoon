@@ -15,17 +15,12 @@ import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
-import 'package:gcloud/db.dart';
 
 import '../test/src/service/fake_content_aware_hash_service.dart';
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
-  final config = await Config.createDuringDatastoreMigration(
-    dbService,
-    cache,
-    FakeSecretManager(),
-  );
+  final config = Config(cache, FakeSecretManager());
   final authProvider = DashboardAuthentication(
     config: config,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),

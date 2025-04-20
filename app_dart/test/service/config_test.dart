@@ -7,12 +7,8 @@ import 'dart:typed_data';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
-
-final class _NullDatastoreDB extends Fake implements DatastoreDB {}
 
 void main() {
   useTestLoggerPerTest();
@@ -24,11 +20,7 @@ void main() {
   setUp(() async {
     cacheService = CacheService(inMemory: true);
     secrets = FakeSecretManager()..putString('APP_DART_USE_DATASTORE', 'true');
-    config = await Config.createDuringDatastoreMigration(
-      _NullDatastoreDB(),
-      cacheService,
-      secrets,
-    );
+    config = Config(cacheService, secrets);
   });
 
   test('githubAppInstallations when builder config does not exist', () async {

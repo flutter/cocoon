@@ -6,8 +6,8 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -36,9 +36,6 @@ void main() {
     firestoreService = FakeFirestoreService();
     clientContext.isDevelopmentEnvironment = false;
     config = FakeConfig(
-      keyHelperValue: FakeKeyHelper(
-        applicationContext: clientContext.applicationContext,
-      ),
       supportedBranchesValue: <String>[
         Config.defaultBranch(Config.flutterSlug),
       ],
@@ -61,10 +58,9 @@ void main() {
       // ignore: discarded_futures
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     ).thenAnswer((_) async => true);
   });
@@ -125,10 +121,9 @@ void main() {
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     ).called(1);
   });
@@ -194,10 +189,9 @@ void main() {
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     ).called(2);
   });
@@ -225,10 +219,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     );
   });
@@ -256,10 +249,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     );
   });
@@ -288,10 +280,9 @@ void main() {
     verify(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     ).called(1);
   });
@@ -342,10 +333,9 @@ void main() {
     when(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     ).thenAnswer((_) async => false);
 
@@ -357,10 +347,9 @@ void main() {
     verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     );
 
@@ -386,10 +375,9 @@ void main() {
     when(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
-        task: anyNamed('task'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
-        taskDocument: anyNamed('taskDocument'),
+        task: anyNamed('task'),
       ),
     ).thenAnswer((_) async => false);
 

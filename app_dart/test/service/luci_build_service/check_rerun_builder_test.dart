@@ -66,7 +66,7 @@ void main() {
     await expectLater(
       luci.checkRerunBuilder(
         commit: OpaqueCommit.fromFirestore(fsCommit),
-        taskDocument: fsTask,
+        task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -123,7 +123,7 @@ void main() {
     await expectLater(
       luci.checkRerunBuilder(
         commit: OpaqueCommit.fromFirestore(fsCommit),
-        taskDocument: fsTask,
+        task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),
@@ -182,7 +182,7 @@ void main() {
     await expectLater(
       luci.checkRerunBuilder(
         commit: OpaqueCommit.fromFirestore(fsCommit),
-        taskDocument: fsTask,
+        task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
       ),

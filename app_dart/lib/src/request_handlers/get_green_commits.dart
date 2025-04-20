@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -73,6 +72,8 @@ final class GetGreenCommits extends RequestHandler<Body> {
   bool everyNonFlakyTaskSucceed(CommitTasksStatus status) {
     return status.tasks
         .where((task) => !task.testFlaky)
-        .every((nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded);
+        .every(
+          (nonFlakyTask) => nonFlakyTask.status == fs.Task.statusSucceeded,
+        );
   }
 }

@@ -15,8 +15,6 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../foundation/utils.dart';
-import '../model/appengine/commit.dart' as ds;
-import '../model/appengine/task.dart' as ds;
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/firestore/ci_staging.dart';
@@ -30,7 +28,6 @@ import '../model/proto/internal/scheduler.pb.dart' as pb;
 import 'cache_service.dart';
 import 'config.dart';
 import 'content_aware_hash_service.dart';
-import 'datastore.dart';
 import 'exceptions.dart';
 import 'firestore.dart';
 import 'get_files_changed.dart';
@@ -59,7 +56,6 @@ class Scheduler {
     required GetFilesChanged getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     required ContentAwareHashService contentAwareHash,
-    this.datastoreProvider = DatastoreService.defaultProvider,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
     this.initializeCiStagingDocument = CiStaging.initializeDocument,
@@ -78,7 +74,6 @@ class Scheduler {
 
   final GetFilesChanged _getFilesChanged;
   final Config _config;
-  final DatastoreServiceProvider datastoreProvider;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
   final ContentAwareHashService _contentAwareHash;
@@ -222,7 +217,7 @@ class Scheduler {
       //
       // See https://github.com/flutter/flutter/issues/163896.
       if (skipAllTasks) {
-        task.setStatus(ds.Task.statusSkipped);
+        task.setStatus(fs.Task.statusSkipped);
         continue;
       }
 
@@ -239,7 +234,7 @@ class Scheduler {
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
-        task.setStatus(ds.Task.statusInProgress);
+        task.setStatus(fs.Task.statusInProgress);
         toBeScheduled.add(
           PendingTask(
             target: target,
@@ -254,10 +249,7 @@ class Scheduler {
       'Initial targets created for $commit: '
       '${targets.map((t) => '"${t.name}"').join(', ')}',
     );
-    await Future.wait([
-      _addCommitFirestore(commit, tasks),
-      _addCommitDatastore(commit, tasks),
-    ]);
+    await _addCommitFirestore(commit, tasks);
 
     log.info(
       'Immediately scheduled tasks for $commit: '
@@ -278,60 +270,6 @@ class Scheduler {
     await firestore.writeViaTransaction(
       documentsToWrites([...tasks, commit], exists: false),
     );
-  }
-
-  Future<void> _addCommitDatastore(
-    fs.Commit fsCommit,
-    List<fs.Task> fsTasks,
-  ) async {
-    if (!await _config.useLegacyDatastore) {
-      return;
-    }
-    final datastore = datastoreProvider(_config.db);
-    await datastore.withTransaction<void>((tx) async {
-      final dsCommit = ds.Commit(
-        key: ds.Commit.createKey(
-          db: _config.db,
-          slug: fsCommit.slug,
-          gitBranch: fsCommit.branch,
-          sha: fsCommit.sha,
-        ),
-        author: fsCommit.author,
-        authorAvatarUrl: fsCommit.avatar,
-        branch: fsCommit.branch,
-        message: fsCommit.message,
-        repository: fsCommit.repositoryPath,
-        sha: fsCommit.sha,
-        timestamp: fsCommit.createTimestamp,
-      );
-      tx.queueMutations(inserts: [dsCommit]);
-
-      for (final fsTask in fsTasks) {
-        final dsTask = ds.Task(
-          commitKey: dsCommit.key,
-          key: dsCommit.key.append(ds.Task),
-          attempts: fsTask.currentAttempt,
-          builderName: fsTask.taskName,
-          name: fsTask.taskName,
-          isFlaky: fsTask.bringup,
-          status: fsTask.status,
-          createTimestamp: fsTask.createTimestamp,
-          startTimestamp: fsTask.startTimestamp,
-          endTimestamp: fsTask.endTimestamp,
-
-          // Unused, but crashes without existing.
-          stageName: '',
-          timeoutInMinutes: 0,
-          reason: '',
-          requiredCapabilities: [],
-          reservedForAgentId: '',
-        );
-        tx.queueMutations(inserts: [dsTask]);
-      }
-
-      await tx.commit();
-      log.debug('Wrote to Datastore for backfill');
-    });
   }
 
   /// Schedule all builds in batch requests instead of a single request.
@@ -706,15 +644,13 @@ class Scheduler {
 
       // Create the minimal Commit needed to pass the next stage.
       // Note: headRef encodes refs/heads/... and what we want is the branch
-      final commit = ds.Commit(
-        branch: headRef.substring('refs/heads/'.length),
-        repository: slug.fullName,
-        sha: headSha,
-      );
-
       await _luciBuildService.scheduleMergeGroupBuilds(
         targets: [...availableTargets],
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit(
+          branch: headRef.substring('refs/heads/'.length),
+          slug: slug,
+          sha: headSha,
+        ),
       );
 
       // Do not unlock the merge group guard in successful case - that will be done by staging checks.

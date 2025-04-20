@@ -17,13 +17,10 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/firestore/pr_check_runs.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
-import '../service/datastore.dart';
 import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/cipd_version.dart';
@@ -1009,8 +1006,7 @@ class LuciBuildService {
   Future<bool> checkRerunBuilder({
     required OpaqueCommit commit,
     required Target target,
-    required fs.Task taskDocument,
-    Task? task,
+    required fs.Task task,
     Iterable<BuildTag> tags = const [],
   }) async {
     log.info('Rerun builder: ${target.name} for commit ${commit.sha}');
@@ -1021,13 +1017,13 @@ class LuciBuildService {
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
         commit,
-        taskDocument,
+        task,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
       log.error(
-        'Updating task ${taskDocument.taskName} of commit '
-        '${taskDocument.commitSha} failure. Skipping rescheduling.',
+        'Updating task ${task.taskName} of commit '
+        '${task.commitSha} failure. Skipping rescheduling.',
         e,
         s,
       );
@@ -1042,7 +1038,7 @@ class LuciBuildService {
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
-            taskName: taskDocument.taskName,
+            taskName: task.taskName,
             priority: kRerunPriority,
             properties: Config.defaultProperties,
             tags: buildTags,
@@ -1072,26 +1068,6 @@ class LuciBuildService {
       BatchWriteRequest(writes: documentsToWrites([task], exists: false)),
       kDatabase,
     );
-
-    // Legacy: Write task status to Datastore.
-    if (await _config.useLegacyDatastore) {
-      final datastore = DatastoreService.defaultProvider(_config.db);
-      final commitKey = Commit.createKey(
-        db: datastore.db,
-        slug: commit.slug,
-        gitBranch: commit.branch,
-        sha: commit.sha,
-      );
-      final dsExistingTask = await Task.fromDatastore(
-        datastore: datastore,
-        commitKey: commitKey,
-        name: task.taskName,
-      );
-      dsExistingTask
-        ..attempts = task.currentAttempt
-        ..status = Task.statusInProgress;
-      await datastore.insert([dsExistingTask]);
-    }
 
     return task.currentAttempt;
   }

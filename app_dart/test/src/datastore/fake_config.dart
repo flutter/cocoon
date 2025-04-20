@@ -6,14 +6,12 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 
-import '../request_handling/fake_dashboard_authentication.dart';
 import '../service/fake_github_service.dart';
 
 // ignore: must_be_immutable
@@ -24,7 +22,6 @@ class FakeConfig implements Config {
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
     this.maxFilesChangedForSkippingEnginePhaseValue,
-    this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.mergeConflictPullRequestMessageValue =
@@ -73,7 +70,6 @@ class FakeConfig implements Config {
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
   int? batchSizeValue;
-  FakeKeyHelper? keyHelperValue;
   String? oauthClientIdValue;
   String? githubOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
@@ -105,9 +101,6 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
-
-  @override
-  Future<bool> get useLegacyDatastore async => false;
 
   @override
   Future<gh.GitHub> createGitHubClient({
@@ -201,9 +194,6 @@ class FakeConfig implements Config {
 
   @override
   int get commitNumber => 30;
-
-  @override
-  KeyHelper get keyHelper => keyHelperValue!;
 
   @override
   Future<String> get oauthClientId async => oauthClientIdValue!;

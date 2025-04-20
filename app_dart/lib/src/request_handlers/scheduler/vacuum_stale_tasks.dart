@@ -6,17 +6,13 @@ import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
-import '../../model/appengine/commit.dart' as ds;
-import '../../model/appengine/task.dart' as ds;
 import '../../model/firestore/commit.dart' as fs;
 import '../../model/firestore/task.dart' as fs;
-import '../../service/datastore.dart';
 import '../../service/firestore/commit_and_tasks.dart';
 
 /// Vacuum stale tasks.
@@ -74,10 +70,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       '${toUpdate.map((e) => '(${e.commit.sha}) $e').join('\n')}',
     );
 
-    await Future.wait([
-      _updateFirestore(toUpdate, firestore),
-      _legacyUpdateDatastore(toUpdate),
-    ]);
+    await _updateFirestore(toUpdate, firestore);
   }
 
   Future<_UpdateTaskIntent?> _considerTaskReset(
@@ -129,37 +122,6 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     await firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites(tasks)),
       kDatabase,
-    );
-  }
-
-  Future<void> _legacyUpdateDatastore(List<_UpdateTaskIntent> toUpdate) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-    final datastore = DatastoreService.defaultProvider(config.db);
-    final tasks = <ds.Task>[];
-    for (final intent in toUpdate) {
-      final commitKey = _toCommitKey(datastore.db, intent.commit);
-      final task = await ds.Task.fromCommitKey(
-        datastore: datastore,
-        commitKey: commitKey,
-        name: intent.task.taskName,
-      );
-      switch (intent) {
-        case _ResetTaskStatusToNew():
-          task.status = ds.Task.statusNew;
-        case _UpdateTaskFromLuciBuild():
-          task.updateFromBuildbucketBuild(intent.build);
-      }
-      tasks.add(task);
-    }
-    await datastore.insert(tasks);
-  }
-
-  static Key<String> _toCommitKey(DatastoreDB db, fs.Commit commit) {
-    return db.emptyKey.append<String>(
-      ds.Commit,
-      id: '${commit.slug.fullName}/${commit.branch}/${commit.sha}',
     );
   }
 }

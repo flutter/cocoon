@@ -192,7 +192,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
           commit: OpaqueCommit.fromFirestore(commit),
           target: taskTarget,
           tags: [TriggerdByBuildTag(email: email)],
-          taskDocument: task,
+          task: task,
         ),
       );
     }
@@ -218,7 +218,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       commit: OpaqueCommit.fromFirestore(commit),
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
-      taskDocument: task,
+      task: task,
     );
   }
 }

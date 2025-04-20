@@ -9,12 +9,9 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
-import '../../model/appengine/commit.dart' as ds;
-import '../../model/appengine/task.dart' as ds;
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
-import '../../service/datastore.dart';
 import '../../service/firestore/commit_and_tasks.dart';
 import '../../service/luci_build_service/opaque_commit.dart';
 import '../../service/luci_build_service/pending_task.dart';
@@ -110,59 +107,11 @@ final class BatchBackfiller extends RequestHandler {
     );
 
     // Update the database first before we schedule builds.
-    await Future.wait([
-      _updateDatastore(toBackfillTasks),
-      _updateFirestore(toBackfillTasks),
-    ]);
+    await _updateFirestore(toBackfillTasks);
     log.info('Wrote updates to ${toBackfillTasks.length} tasks for backfill');
 
     await _scheduleWithRetries(toBackfillTasks);
     log.info('Scheduled ${toBackfillTasks.length} tasks with LUCI');
-  }
-
-  // ⚠️ WARNING ⚠️ This function makes up to ~75 sequential reads in a row.
-  //
-  // There is no batch query functionality in Datastore, and since we don't
-  // want to rely on Datastore-first reads (for example, if the tasks origiante
-  // from Firestore), this will read/write in a transaction.
-  //
-  // There is a chance this is too slow, or is error-prone due to the QPS to
-  // Datastore. If that happens, it could be augmented where we make a call to
-  // datastoreService.queryRecentTasks, and turn it into Map<String, dsTask>,
-  // and look those up in the loop instead of making 75 sequential reads.
-  Future<void> _updateDatastore(List<BackfillTask> tasks) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-    final datastore = DatastoreService.defaultProvider(config.db);
-    await datastore.withTransaction<void>((tx) async {
-      log.debug('Querying ${tasks.length} tasks in Datastore...');
-      for (final BackfillTask(:commit, :task) in tasks) {
-        final commitKey = ds.Commit.createKey(
-          db: config.db,
-          slug: commit.slug,
-          gitBranch: commit.branch,
-          sha: commit.sha,
-        );
-
-        final query = tx.db.query<ds.Task>(ancestorKey: commitKey);
-        query.filter('name =', task.name);
-
-        final dsTasks = await query.run().toList();
-        if (dsTasks.length != 1) {
-          throw InternalServerError(
-            'Expected to find 1 task for ${task.name}, but found '
-            '${dsTasks.length}',
-          );
-        }
-        final dsTask = dsTasks.first;
-        dsTask.status = ds.Task.statusInProgress;
-        tx.queueMutations(inserts: [dsTask]);
-      }
-
-      await tx.commit();
-      log.debug('Wrote to Datastore for backfill');
-    });
   }
 
   Future<void> _updateFirestore(List<BackfillTask> tasks) async {

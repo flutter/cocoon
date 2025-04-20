@@ -11,12 +11,9 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../../ci_yaml.dart';
-import '../model/appengine/commit.dart' as ds;
-import '../model/appengine/task.dart' as ds;
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
@@ -92,10 +89,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     if (_shouldUpdateTask(build, fsTask)) {
       final oldTaskStatus = fsTask.status;
-      await Future.wait([
-        _updateFirestore(fsTask, build),
-        _updateDatastore(fsTask, build, commit: fsCommit),
-      ]);
+      await _updateFirestore(fsTask, build);
       log.debug('Updated datastore from $oldTaskStatus to ${fsTask.status}');
     } else {
       log.debug(
@@ -127,7 +121,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       final retried = await _luciBuildService.checkRerunBuilder(
         commit: OpaqueCommit.fromFirestore(fsCommit),
         target: target,
-        taskDocument: fsTask,
+        task: fsTask,
       );
       log.info('Retried: $retried');
     }
@@ -154,38 +148,6 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       BatchWriteRequest(writes: documentsToWrites([fsTask], exists: true)),
       kDatabase,
     );
-  }
-
-  Future<void> _updateDatastore(
-    fs.Task fsTask,
-    bbv2.Build build, {
-    required fs.Commit commit,
-  }) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-    await config.db.withTransaction((tx) async {
-      final commitKey = ds.Commit.createKey(
-        db: config.db,
-        slug: commit.slug,
-        gitBranch: commit.branch,
-        sha: commit.sha,
-      );
-      final query = tx.db.query<ds.Task>(ancestorKey: commitKey);
-      query.filter('name =', fsTask.taskName);
-
-      final dsTasks = await query.run().toList();
-      if (dsTasks.length != 1) {
-        throw InternalServerError(
-          'Expected to find 1 task for ${fsTask.taskName}, but found '
-          '${dsTasks.length}',
-        );
-      }
-      final dsTask = dsTasks.first;
-      dsTask.updateFromBuildbucketBuild(build);
-      tx.queueMutations(inserts: [dsTask]);
-      await tx.commit();
-    });
   }
 
   // No need to update task in datastore if

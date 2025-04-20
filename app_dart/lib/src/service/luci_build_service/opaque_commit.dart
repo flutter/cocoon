@@ -5,8 +5,6 @@
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../../model/appengine/commit.dart' as ds;
-import '../../model/appengine/task.dart' as ds;
 import '../../model/firestore/commit.dart' as fs;
 import '../../model/firestore/task.dart' as fs;
 
@@ -14,19 +12,29 @@ import '../../model/firestore/task.dart' as fs;
 ///
 /// This is used transitory to migrate from Datastore -> Firestore.
 @immutable
-abstract final class OpaqueCommit {
-  factory OpaqueCommit.fromFirestore(fs.Commit commit) = _FirestoreCommit;
-  factory OpaqueCommit.fromDatastore(ds.Commit commit) = _DatastoreCommit;
-  const OpaqueCommit();
+final class OpaqueCommit {
+  factory OpaqueCommit.fromFirestore(fs.Commit commit) {
+    return OpaqueCommit(
+      sha: commit.sha,
+      branch: commit.branch,
+      slug: commit.slug,
+    );
+  }
+
+  const OpaqueCommit({
+    required this.sha,
+    required this.branch,
+    required this.slug,
+  });
 
   /// The commit SHA.
-  String get sha;
+  final String sha;
 
   /// The commit branch.
-  String get branch;
+  final String branch;
 
   /// The commit repository (owner and repo) on GitHub.
-  RepositorySlug get slug;
+  final RepositorySlug slug;
 
   @override
   bool operator ==(Object other) {
@@ -47,54 +55,38 @@ abstract final class OpaqueCommit {
   }
 }
 
-final class _FirestoreCommit extends OpaqueCommit {
-  _FirestoreCommit(this._commit);
-  final fs.Commit _commit;
-
-  @override
-  String get sha => _commit.sha;
-
-  @override
-  String get branch => _commit.branch;
-
-  @override
-  RepositorySlug get slug => _commit.slug;
-}
-
-final class _DatastoreCommit extends OpaqueCommit {
-  _DatastoreCommit(this._commit);
-  final ds.Commit _commit;
-
-  @override
-  String get sha => _commit.sha!;
-
-  @override
-  String get branch => _commit.branch!;
-
-  @override
-  RepositorySlug get slug => _commit.slug;
-}
-
 /// Represents components of a backend task without specifying the backend.
 ///
 /// This is used transitory to migrate from Datastore -> Firestore.
 @immutable
-abstract final class OpaqueTask {
-  factory OpaqueTask.fromFirestore(fs.Task task) = _FirestoreTask;
-  factory OpaqueTask.fromDatastore(ds.Task task) = _DatastoreTask;
-  const OpaqueTask();
+final class OpaqueTask {
+  factory OpaqueTask.fromFirestore(fs.Task task) {
+    return OpaqueTask(
+      name: task.taskName,
+      currentAttempt: task.currentAttempt,
+      status: task.status,
+      commitSha: task.commitSha,
+    );
+  }
+
+  const OpaqueTask({
+    required this.name,
+    required this.currentAttempt,
+    required this.status,
+    required this.commitSha,
+  });
 
   /// Name of the task.
-  String get name;
+  final String name;
 
   /// Which attempt number;
-  int get currentAttempt;
+  final int currentAttempt;
 
   /// Status of the task.
-  String get status;
+  final String status;
 
   /// Commit the task belongs to.
-  String get commitSha;
+  final String commitSha;
 
   @override
   bool operator ==(Object other) {
@@ -116,38 +108,4 @@ abstract final class OpaqueTask {
   String toString() {
     return 'Task <$name (SHA=$commitSha): $status ($currentAttempt)>';
   }
-}
-
-final class _FirestoreTask extends OpaqueTask {
-  const _FirestoreTask(this._task);
-  final fs.Task _task;
-
-  @override
-  String get name => _task.taskName;
-
-  @override
-  int get currentAttempt => _task.currentAttempt;
-
-  @override
-  String get status => _task.status;
-
-  @override
-  String get commitSha => _task.commitSha;
-}
-
-final class _DatastoreTask extends OpaqueTask {
-  const _DatastoreTask(this._task);
-  final ds.Task _task;
-
-  @override
-  String get name => _task.builderName!;
-
-  @override
-  int get currentAttempt => _task.attempts!;
-
-  @override
-  String get status => _task.status;
-
-  @override
-  String get commitSha => _task.commitKey!.id!.split('/').last;
 }

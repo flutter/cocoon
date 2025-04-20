@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/request_handling/authentication.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -89,9 +88,4 @@ class FakeAppEngineContext implements AppEngineContext {
 
   @override
   late String version;
-}
-
-class FakeKeyHelper extends KeyHelper {
-  FakeKeyHelper({AppEngineContext? applicationContext})
-    : super(applicationContext: applicationContext ?? FakeAppEngineContext());
 }
