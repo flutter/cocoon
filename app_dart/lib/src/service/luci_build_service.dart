@@ -670,7 +670,7 @@ class LuciBuildService {
 
   /// Schedules [targets] for building of prod artifacts while in a merge queue.
   Future<void> scheduleMergeGroupBuilds({
-    required Commit commit,
+    required OpaqueCommit commit,
     required List<Target> targets,
   }) async {
     final buildRequests = <bbv2.BatchRequest_Request>[];
@@ -699,7 +699,7 @@ class LuciBuildService {
       );
 
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: commit,
         target: target,
       );
       buildRequests.add(

@@ -71,7 +71,7 @@ void main() {
       ),
     ).thenAnswer((_) async => generateCheckRun(1));
 
-    final commit = generateCommit(1, branch: 'main', repo: 'packages');
+    final commit = generateFirestoreCommit(1, branch: 'main', repo: 'packages');
 
     when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
       return bbv2.ListBuildersResponse(
@@ -89,7 +89,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit.fromFirestore(commit),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -100,7 +100,7 @@ void main() {
               },
               slug: Config.packagesSlug,
             ),
-            taskName: generateTask(1, parent: commit).builderName!,
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
             priority: LuciBuildService.kDefaultPriority,
           ),
         ],
@@ -152,7 +152,7 @@ void main() {
   });
 
   test('does not create a postsubmit checkrun when bringup: true', () async {
-    final commit = generateCommit(1, branch: 'main', repo: 'packages');
+    final commit = generateFirestoreCommit(1, branch: 'main', repo: 'packages');
 
     when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
       return bbv2.ListBuildersResponse(
@@ -170,7 +170,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit.fromFirestore(commit),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -182,7 +182,7 @@ void main() {
               slug: Config.packagesSlug,
               bringup: true,
             ),
-            taskName: generateTask(1, parent: commit).builderName!,
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
             priority: LuciBuildService.kDefaultPriority,
           ),
         ],
@@ -246,7 +246,7 @@ void main() {
   });
 
   test('schedules a post-submit build inside of flutter/flutter', () async {
-    final commit = generateCommit(1, branch: 'main', repo: 'flutter');
+    final commit = generateFirestoreCommit(1, branch: 'main', repo: 'flutter');
 
     when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
       return bbv2.ListBuildersResponse(
@@ -264,7 +264,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit.fromFirestore(commit),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -275,7 +275,7 @@ void main() {
               },
               slug: Config.flutterSlug,
             ),
-            taskName: generateTask(1, parent: commit).builderName!,
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
             priority: LuciBuildService.kDefaultPriority,
           ),
         ],
@@ -341,7 +341,7 @@ void main() {
 
   // Regression test for https://github.com/flutter/flutter/issues/167010.
   test('schedules a post-submit release candidate build', () async {
-    final commit = generateCommit(
+    final commit = generateFirestoreCommit(
       1,
       branch: 'flutter-0.42-candidate.0',
       repo: 'flutter',
@@ -363,7 +363,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit.fromFirestore(commit),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -374,7 +374,7 @@ void main() {
               },
               slug: Config.flutterSlug,
             ),
-            taskName: generateTask(1, parent: commit).builderName!,
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
             priority: LuciBuildService.kDefaultPriority,
           ),
         ],
@@ -446,7 +446,7 @@ void main() {
   });
 
   test('does not run a non-existent builder', () async {
-    final commit = generateCommit(1, branch: 'main', repo: 'flutter');
+    final commit = generateFirestoreCommit(1, branch: 'main', repo: 'flutter');
 
     when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
       return bbv2.ListBuildersResponse(
@@ -464,7 +464,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit.fromFirestore(commit),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -475,7 +475,7 @@ void main() {
               },
               slug: Config.flutterSlug,
             ),
-            taskName: generateTask(1, parent: commit).builderName!,
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
             priority: LuciBuildService.kDefaultPriority,
           ),
         ],
@@ -498,7 +498,7 @@ void main() {
   });
 
   test('return the orignal list when hitting buildbucket exception', () async {
-    final commit = generateCommit(0, repo: 'packages');
+    final commit = generateFirestoreCommit(0, repo: 'packages');
     when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
       throw const BuildBucketException(1, 'error');
     });
@@ -514,7 +514,7 @@ void main() {
     );
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: OpaqueCommit.fromFirestore(commit),
         toBeScheduled: [toBeScheduled],
       ),
       completion([toBeScheduled]),
@@ -604,7 +604,7 @@ void main() {
       await expectLater(
         luci.reschedulePostsubmitBuildUsingCheckRunEvent(
           checkRunEvent,
-          commit: OpaqueCommit.fromDatastore(generateCommit(0)),
+          commit: OpaqueCommit.fromFirestore(generateFirestoreCommit(0)),
           target: generateTarget(0),
           task: generateFirestoreTask(0),
         ),

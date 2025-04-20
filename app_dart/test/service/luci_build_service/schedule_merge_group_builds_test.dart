@@ -7,6 +7,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/opaque_commit.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
@@ -91,7 +92,7 @@ void main() {
       branch: 'gh-readonly-queue/master/pr-1234-abcd',
     );
     await luci.scheduleMergeGroupBuilds(
-      commit: dsCommit,
+      commit: OpaqueCommit.fromDatastore(dsCommit),
       targets: [
         generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
         generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),
@@ -144,7 +145,7 @@ void main() {
       branch: 'gh-readonly-queue/master/pr-1234-abcd',
     );
     await luci.scheduleMergeGroupBuilds(
-      commit: dsCommit,
+      commit: OpaqueCommit.fromDatastore(dsCommit),
       targets: [
         generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
         generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),

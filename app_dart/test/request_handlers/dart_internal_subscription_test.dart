@@ -53,15 +53,6 @@ void main() {
   late SubscriptionTester tester;
   late FakeFirestoreService firestoreService;
 
-  final dsCommit = generateCommit(
-    1,
-    sha: 'HASH12345',
-    branch: 'test-branch',
-    owner: 'flutter',
-    repo: 'flutter',
-    timestamp: 0,
-  );
-
   final fsCommit = generateFirestoreCommit(
     1,
     sha: 'HASH12345',
@@ -131,7 +122,7 @@ void main() {
         buildNumber: buildNumber,
         name: builder,
         status: 'In Progress',
-        commitSha: dsCommit.sha,
+        commitSha: fsCommit.sha,
       ),
     );
 
@@ -160,7 +151,7 @@ void main() {
         buildNumber: buildNumber - 1,
         name: builder,
         status: fs.Task.statusFailed,
-        commitSha: dsCommit.sha,
+        commitSha: fsCommit.sha,
       ),
     );
 

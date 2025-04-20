@@ -714,7 +714,7 @@ class Scheduler {
 
       await _luciBuildService.scheduleMergeGroupBuilds(
         targets: [...availableTargets],
-        commit: commit,
+        commit: OpaqueCommit.fromDatastore(commit),
       );
 
       // Do not unlock the merge group guard in successful case - that will be done by staging checks.

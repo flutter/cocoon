@@ -27,7 +27,6 @@ void main() {
     late FakeFirestoreService firestoreService;
     late MockLuciBuildService luciBuildService;
 
-    final dsCommit = generateCommit(1);
     final fsCommit = generateFirestoreCommit(1);
 
     setUp(() {
@@ -59,7 +58,7 @@ void main() {
       when(
         luciBuildService.getProdBuilds(
           builderName: argThat(equals(fsTask.taskName), named: 'builderName'),
-          sha: argThat(equals(dsCommit.sha), named: 'sha'),
+          sha: argThat(equals(fsCommit.sha), named: 'sha'),
         ),
       ).thenAnswer((_) async {
         return [

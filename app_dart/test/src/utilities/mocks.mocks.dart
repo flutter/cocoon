@@ -4483,7 +4483,7 @@ class MockLuciBuildService extends _i1.Mock implements _i24.LuciBuildService {
 
   @override
   _i15.Future<void> scheduleMergeGroupBuilds({
-    required _i32.Commit? commit,
+    required _i41.OpaqueCommit? commit,
     required List<_i37.Target>? targets,
   }) =>
       (super.noSuchMethod(

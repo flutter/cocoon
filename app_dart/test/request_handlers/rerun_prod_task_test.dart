@@ -6,7 +6,6 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
 import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -30,11 +29,7 @@ void main() {
   late MockLuciBuildService mockLuciBuildService;
   late FakeFirestoreService firestoreService;
   late ApiRequestHandlerTester tester;
-  late Commit commit;
-  late Task task;
   late FakeCiYamlFetcher ciYamlFetcher;
-
-  final firestoreTask = generateFirestoreTask(1, attempts: 1);
 
   setUp(() {
     final clientContext = FakeClientContext();
@@ -61,22 +56,6 @@ void main() {
       luciBuildService: mockLuciBuildService,
       ciYamlFetcher: ciYamlFetcher,
     );
-    commit = generateCommit(1);
-    task = generateTask(
-      1,
-      name: 'Linux A',
-      parent: commit,
-      status: Task.statusFailed,
-    );
-    tester.requestData = {
-      'branch': commit.branch,
-      'repo': commit.slug.name,
-      'commit': commit.sha,
-      'task': task.name,
-    };
-
-    // ignore: discarded_futures
-    firestoreService.putDocument(firestoreTask);
 
     when(
       // ignore: discarded_futures
@@ -101,6 +80,13 @@ void main() {
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(fsTask);
 
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': fsTask.taskName,
+    };
+
     expect(await tester.post(handler), Body.empty);
 
     expect(
@@ -109,9 +95,9 @@ void main() {
         fs.Task.metadata,
         contains(
           isTask
-              .hasCommitSha(commit.sha)
-              .hasTaskName(task.name)
-              .hasCurrentAttempt(task.attempts),
+              .hasCommitSha(fsCommit.sha)
+              .hasTaskName(fsTask.taskName)
+              .hasCurrentAttempt(fsTask.currentAttempt),
         ),
       ),
     );
@@ -127,6 +113,13 @@ void main() {
     );
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(fsTask);
+
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': fsTask.taskName,
+    };
 
     expect(await tester.post(handler), Body.empty);
     verify(
@@ -151,7 +144,14 @@ void main() {
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(fsTask);
 
-    tester.requestData = {...tester.requestData, 'include': Task.statusSkipped};
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': fsTask.taskName,
+      'include': Task.statusSkipped,
+    };
+
     await expectLater(
       tester.post(handler),
       throwsA(
@@ -182,7 +182,13 @@ void main() {
     firestoreService.putDocument(fsTaskA);
     firestoreService.putDocument(fsTaskB);
 
-    tester.requestData = {...tester.requestData, 'task': 'all'};
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': 'all',
+    };
+
     await tester.post(handler);
 
     verify(
@@ -208,7 +214,12 @@ void main() {
       ),
     );
 
-    tester.requestData = {...tester.requestData, 'task': 'all'};
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': 'all',
+    };
     await tester.post(handler);
 
     verifyNever(
@@ -234,7 +245,12 @@ void main() {
       ),
     );
 
-    tester.requestData = {...tester.requestData, 'task': 'all'};
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': 'all',
+    };
     await tester.post(handler);
 
     verifyNever(
@@ -261,7 +277,9 @@ void main() {
     );
 
     tester.requestData = {
-      ...tester.requestData,
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
       'task': 'all',
       'include': Task.statusSkipped,
     };
@@ -283,10 +301,13 @@ void main() {
     firestoreService.putDocument(fsCommit);
 
     tester.requestData = {
-      ...tester.requestData,
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
       'task': 'all',
       'include': 'Malformed',
     };
+
     await expectLater(
       tester.post(handler),
       throwsA(
@@ -311,7 +332,23 @@ void main() {
       ),
     );
 
-    tester.requestData = {...tester.requestData, 'task': 'Windows C'};
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': 'Windows C',
+    };
+
+    when(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        task: anyNamed('task'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        taskDocument: anyNamed('taskDocument'),
+      ),
+    ).thenAnswer((_) async => false);
+
     await expectLater(
       tester.post(handler),
       throwsA(isA<InternalServerError>()),
@@ -345,23 +382,6 @@ void main() {
     expect(() => tester.post(handler), throwsA(isA<BadRequestException>()));
   });
 
-  test(
-    'Re-schedule existing task even though taskName is missing in the task',
-    () async {
-      final fsCommit = generateFirestoreCommit(1);
-      final fsTask = generateFirestoreTask(
-        1,
-        name: 'Linux A',
-        commitSha: fsCommit.sha,
-        status: Task.statusFailed,
-      );
-      firestoreService.putDocument(fsCommit);
-      firestoreService.putDocument(fsTask);
-
-      expect(await tester.post(handler), Body.empty);
-    },
-  );
-
   test('Fails if task is not rerun', () async {
     when(
       mockLuciBuildService.checkRerunBuilder(
@@ -382,6 +402,13 @@ void main() {
     );
     firestoreService.putDocument(fsCommit);
     firestoreService.putDocument(fsTask);
+
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': fsTask.taskName,
+    };
 
     expect(() => tester.post(handler), throwsA(isA<InternalServerError>()));
   });
