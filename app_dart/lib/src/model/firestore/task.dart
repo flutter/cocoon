@@ -179,7 +179,7 @@ final class Task extends AppDocument<Task> {
         fieldTestFlaky: testFlaky.toValue(),
         fieldAttempt: currentAttempt.toValue(),
       },
-      name: p.posix.join(
+      documentName: p.posix.join(
         kDatabase,
         'documents',
         kTaskCollectionId,
@@ -190,7 +190,7 @@ final class Task extends AppDocument<Task> {
 
   /// Create [Task] from a task Document.
   factory Task.fromDocument(Document document) {
-    return Task._(document.fields!, name: document.name!);
+    return Task._(document.fields!, documentName: document.name!);
   }
 
   factory Task.fromDatastore(datastore.Task task) {
@@ -230,10 +230,10 @@ final class Task extends AppDocument<Task> {
     );
   }
 
-  Task._(Map<String, Value> fields, {required String name}) {
+  Task._(Map<String, Value> fields, {required String documentName}) {
     this
       ..fields = fields
-      ..name = name;
+      ..documentName = documentName;
   }
 
   /// Returns a Firestore [Write] that patches the [status] field for [id].
@@ -342,7 +342,7 @@ final class Task extends AppDocument<Task> {
     }
 
     // Read the attempts from the document name.
-    final documentId = p.basename(name!);
+    final documentId = p.basename(documentName!);
     return TaskId.parse(documentId).currentAttempt;
   }
 
@@ -410,7 +410,7 @@ final class Task extends AppDocument<Task> {
 
   void resetAsRetry({int? attempt}) {
     attempt ??= currentAttempt + 1;
-    name = p.posix.join(
+    documentName = p.posix.join(
       kDatabase,
       'documents',
       kTaskCollectionId,

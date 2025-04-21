@@ -98,7 +98,7 @@ final class AppDocumentMetadata<T extends AppDocument<T>> {
 abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
   AppDocument([g.Document? from])
     : _fields = from?.fields ?? {},
-      name = from?.name,
+      documentName = from?.name,
       createTime = from?.createTime,
       updateTime = from?.updateTime;
 
@@ -116,7 +116,15 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
   final Map<String, g.Value> _fields;
 
   @override
-  String? name;
+  String? get name => documentName;
+
+  @override
+  set name(String? value) {
+    documentName = value;
+  }
+
+  /// The name of the document corresponding to `name` in [g.Document].
+  String? documentName;
 
   @override
   String? updateTime;
@@ -130,7 +138,7 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
     return {
       'fields': fields,
       if (createTime != null) 'createTime': createTime!,
-      if (name != null) 'name': name!,
+      if (documentName != null) 'documentName': documentName!,
       if (updateTime != null) 'updateTime': updateTime!,
     };
   }
