@@ -1994,11 +1994,11 @@ targets:
                 ],
               );
 
-              when(callbacks.findPullRequestFor(any, any, any)).thenAnswer((
-                inv,
-              ) async {
-                return pullRequest;
-              });
+              await PrCheckRuns.initializeDocument(
+                firestoreService: firestoreService,
+                checks: [generateCheckRun(1, name: 'Bar bar')],
+                pullRequest: pullRequest,
+              );
 
               ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
               final luci = MockLuciBuildService();
@@ -2038,7 +2038,6 @@ targets:
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
-                findPullRequestFor: callbacks.findPullRequestFor,
                 initializeCiStagingDocument: callbacks.initializeDocument,
                 contentAwareHash: fakeContentAwareHash,
               );
@@ -2073,9 +2072,6 @@ targets:
                 isTrue,
               );
 
-              verify(
-                callbacks.findPullRequestFor(firestoreService, 1, 'Bar bar'),
-              ).called(1);
               verifyNever(
                 gitHubChecksService.findMatchingPullRequest(any, any, any),
               );
@@ -2125,7 +2121,14 @@ targets:
               expect(captured[0][0].name, 'Linux A');
               expect(captured[0][1].name, 'Linux Z');
               expect(captured[0][2].name, 'Linux engine_presubmit');
-              expect(captured[1], pullRequest);
+              expect(
+                captured[1],
+                isA<PullRequest>().having(
+                  (p) => p.number,
+                  'number',
+                  pullRequest.number,
+                ),
+              );
             },
           );
           // end of group

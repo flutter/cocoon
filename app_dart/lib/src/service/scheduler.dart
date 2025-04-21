@@ -59,7 +59,6 @@ class Scheduler {
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
     this.initializeCiStagingDocument = CiStaging.initializeDocument,
-    @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
@@ -99,13 +98,6 @@ class Scheduler {
     required String checkRunGuard,
   })
   initializeCiStagingDocument;
-
-  final Future<PullRequest> Function(
-    FirestoreService firestoreService,
-    int checkRunId,
-    String checkRunName,
-  )
-  findPullRequestFor;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -1277,7 +1269,7 @@ $s
     final id = checkRun.id!;
     final name = checkRun.name!;
     try {
-      pullRequest = await findPullRequestFor(
+      pullRequest = await PrCheckRuns.findPullRequestFor(
         await _config.createFirestoreService(),
         id,
         name,
