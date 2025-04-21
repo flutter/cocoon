@@ -7,7 +7,6 @@ import 'dart:math' as math;
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:http/http.dart';
 
 class GithubService {
   GithubService(this.github);
