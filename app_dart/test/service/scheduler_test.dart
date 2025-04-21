@@ -1473,7 +1473,6 @@ targets:
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
               markCheckRunConclusion: callbacks.markCheckRunConclusion,
-              initializeCiStagingDocument: callbacks.initializeDocument,
               contentAwareHash: fakeContentAwareHash,
             );
 
@@ -2039,7 +2038,6 @@ targets:
                 luciBuildService: luci,
                 markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 findPullRequestFor: callbacks.findPullRequestFor,
-                initializeCiStagingDocument: callbacks.initializeDocument,
                 contentAwareHash: fakeContentAwareHash,
               );
 
@@ -2758,7 +2756,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
@@ -2898,7 +2895,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
         );
 
@@ -2921,22 +2917,18 @@ targets:
           'refs/heads/gh-readonly-queue/main/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ]);
 
-        verify(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: argThat(
-              equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
-              named: 'sha',
-            ),
-            stage: anyNamed('stage'),
-            tasks: argThat(
-              equals(['Linux engine_build', 'Mac engine_build']),
-              named: 'tasks',
-            ),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).called(1);
+        expect(
+          firestoreService,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                .hasCheckRuns({
+                  'Linux engine_build': TaskConclusion.scheduled,
+                  'Mac engine_build': TaskConclusion.scheduled,
+                }),
+          ]),
+        );
+
         verify(
           luci.getAvailableBuilderSet(
             project: argThat(equals('flutter'), named: 'project'),
@@ -3025,17 +3017,6 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        when(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: anyNamed('sha'),
-            stage: anyNamed('stage'),
-            tasks: anyNamed('tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
@@ -3051,7 +3032,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
         );
 
@@ -3069,19 +3049,16 @@ targets:
         await scheduler.triggerMergeGroupTargets(
           mergeGroupEvent: mergeGroupEvent,
         );
-        verify(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: argThat(
-              equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
-              named: 'sha',
-            ),
-            stage: anyNamed('stage'),
-            tasks: argThat(equals(['Mac engine_build']), named: 'tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).called(1);
+
+        expect(
+          firestoreService,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                .hasCheckRuns(contains('Mac engine_build')),
+          ]),
+        );
+
         verify(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -3187,7 +3164,6 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
         );
 
@@ -3205,22 +3181,21 @@ targets:
         await scheduler.triggerMergeGroupTargets(
           mergeGroupEvent: mergeGroupEvent,
         );
-        verify(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: argThat(
-              equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
-              named: 'sha',
-            ),
-            stage: anyNamed('stage'),
-            tasks: argThat(
-              equals(['Linux engine_build', 'Mac engine_build']),
-              named: 'tasks',
-            ),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).called(1);
+
+        expect(
+          firestoreService,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                .hasCheckRuns(
+                  allOf(
+                    contains('Linux engine_build'),
+                    contains('Mac engine_build'),
+                  ),
+                ),
+          ]),
+        );
+
         verify(
           luci.getAvailableBuilderSet(
             project: argThat(equals('flutter'), named: 'project'),
