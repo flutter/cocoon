@@ -63,6 +63,7 @@ mixin FirestoreQueries {
     int? limit,
     Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
+    Transaction? transaction,
   });
 
   /// Queries for recent commits.
@@ -100,6 +101,7 @@ mixin FirestoreQueries {
     String? name,
     String? status,
     String? commitSha,
+    Transaction? transaction,
   }) async {
     final filterMap = {
       if (name != null) '${Task.fieldName} =': name,
@@ -123,6 +125,7 @@ mixin FirestoreQueries {
       kTaskCollectionId,
       filterMap,
       orderMap: orderMap,
+      transaction: transaction,
     );
     return [...documents.map(Task.fromDocument)];
   }
@@ -149,12 +152,14 @@ mixin FirestoreQueries {
     required String commitSha,
     String? status,
     String? name,
+    Transaction? transaction,
   }) async {
     return await _queryTasks(
       limit: null,
       commitSha: commitSha,
       status: status,
       name: name,
+      transaction: transaction,
     );
   }
 
@@ -441,6 +446,7 @@ class FirestoreService with FirestoreQueries {
     int? limit,
     Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
+    Transaction? transaction,
   }) async {
     final from = <CollectionSelector>[
       CollectionSelector(collectionId: collectionId),
@@ -454,6 +460,7 @@ class FirestoreService with FirestoreQueries {
         orderBy: orders,
         limit: limit,
       ),
+      transaction: transaction?.identifier,
     );
     final runQueryResponseElements = await _api.projects.databases.documents
         .runQuery(runQueryRequest, kDocumentParent);
