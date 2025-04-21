@@ -42,7 +42,7 @@ dev_dependencies:
     path: ../packages/cocoon_server_test
   dart_flutter_team_lints: 3.5.1
   json_serializable: ^6.9.4
-  mockito: ^5.4.5
+  mockito: ^5.4.6
   test: 1.25.15
 
 builders:
