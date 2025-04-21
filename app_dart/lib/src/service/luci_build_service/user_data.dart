@@ -143,13 +143,22 @@ final class PostsubmitUserData extends BuildBucketUserData {
 
   /// The firestore task document name storing results of this build.
   @JsonKey(
-    name: 'firestore_task_document_name',
+    name: 'task_id',
     fromJson: TaskId.parse,
     toJson: _documentToString,
+
+    // TODO(matanlurey): Remove after a week in production.
+    // See https://github.com/flutter/flutter/issues/167464.
+    readValue: _readTaskIdDuringMigration,
   )
   final TaskId taskId;
   static String _documentToString(TaskId firestoreTask) {
     return firestoreTask.documentId;
+  }
+
+  static Object? _readTaskIdDuringMigration(Map map, String _) {
+    // Check task_id, and fallback to firestore_task_document_name.
+    return map['task_id'] ?? map['firestore_task_document_name'];
   }
 
   @override
