@@ -37,7 +37,7 @@ dev_dependencies:
   dart_flutter_team_lints: 3.5.1
   flutter_test:
     sdk: flutter
-  mockito: 5.4.4 # Remember to run ./regen_mocks.sh!
+  mockito: ^5.4.6 # Remember to run ./regen_mocks.sh!
   path: any # Match Flutter SDK
 
 flutter:
