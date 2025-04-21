@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';

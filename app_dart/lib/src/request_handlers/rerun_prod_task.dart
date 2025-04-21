@@ -16,7 +16,7 @@ import '../request_handling/exceptions.dart';
 import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
-import '../service/luci_build_service/opaque_commit.dart';
+import '../service/luci_build_service/commit_task_ref.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
@@ -189,10 +189,10 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       didRerun.add(task.taskName);
       futures.add(
         _luciBuildService.checkRerunBuilder(
-          commit: OpaqueCommit.fromFirestore(commit),
+          commit: CommitRef.fromFirestore(commit),
           target: taskTarget,
           tags: [TriggerdByBuildTag(email: email)],
-          taskDocument: task,
+          task: task,
         ),
       );
     }
@@ -215,10 +215,10 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     return await _luciBuildService.checkRerunBuilder(
-      commit: OpaqueCommit.fromFirestore(commit),
+      commit: CommitRef.fromFirestore(commit),
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
-      taskDocument: task,
+      task: task,
     );
   }
 }

@@ -12,8 +12,7 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
-import '../../src/datastore/fake_datastore.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/service/fake_ci_yaml_fetcher.dart';
@@ -29,7 +28,6 @@ void main() {
   late BatchBackfiller handler;
 
   // Dependencies.
-  late FakeDatastoreDB db;
   late FakePubSub pubSub;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeConfig config;
@@ -40,12 +38,10 @@ void main() {
   late RequestHandlerTester tester;
 
   setUp(() {
-    db = FakeDatastoreDB();
     pubSub = FakePubSub();
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestore = FakeFirestoreService();
     config = FakeConfig(
-      dbValue: db,
       firestoreService: firestore,
       backfillerCommitLimitValue: 10,
       backfillerTargetLimitValue: 100,
@@ -121,12 +117,6 @@ void main() {
       );
       firestore.putDocument(fsCommit);
 
-      final dsCommit = generateCommit(
-        i,
-        timestamp: date.millisecondsSinceEpoch,
-      );
-      db.values[dsCommit.key] = dsCommit;
-
       for (final (n, column) in row.indexed) {
         final fsTask = generateFirestoreTask(
           n,
@@ -135,14 +125,6 @@ void main() {
           name: 'Linux $n',
         );
         firestore.putDocument(fsTask);
-
-        final dsTask = generateTask(
-          n,
-          status: column,
-          parent: dsCommit,
-          name: 'Linux $n',
-        );
-        db.values[dsTask.key] = dsTask;
       }
 
       date = date.subtract(const Duration(seconds: 1));

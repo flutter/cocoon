@@ -16,7 +16,6 @@ import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
 Future<void> main() async {
@@ -34,8 +33,7 @@ Future<void> main() async {
     }
 
     final cache = CacheService(inMemory: false);
-    final config = await Config.createDuringDatastoreMigration(
-      dbService,
+    final config = Config(
       cache,
       await SecretManager.create(
         const GoogleAuthProvider(),

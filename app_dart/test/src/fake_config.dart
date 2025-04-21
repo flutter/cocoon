@@ -6,16 +6,13 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/key_helper.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 
-import '../request_handling/fake_dashboard_authentication.dart';
-import '../service/fake_github_service.dart';
-import 'fake_datastore.dart';
+import 'service/fake_github_service.dart';
 
 // ignore: must_be_immutable
 // TODO(matanlurey): Make this *not* a mess. See https://github.com/flutter/flutter/issues/164646.
@@ -25,7 +22,6 @@ class FakeConfig implements Config {
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
     this.maxFilesChangedForSkippingEnginePhaseValue,
-    this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.mergeConflictPullRequestMessageValue =
@@ -63,20 +59,17 @@ class FakeConfig implements Config {
     this.backfillerCommitLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
-    FakeDatastoreDB? dbValue,
-  }) : dbValue = dbValue ?? FakeDatastoreDB();
+  });
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
   BigqueryService? bigqueryService;
   FirestoreService? firestoreService;
   GithubService? githubService;
-  FakeDatastoreDB dbValue;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
   int? batchSizeValue;
-  FakeKeyHelper? keyHelperValue;
   String? oauthClientIdValue;
   String? githubOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
@@ -110,9 +103,6 @@ class FakeConfig implements Config {
   Duration? githubRequestDelayValue;
 
   @override
-  Future<bool> get useLegacyDatastore async => true;
-
-  @override
   Future<gh.GitHub> createGitHubClient({
     gh.PullRequest? pullRequest,
     gh.RepositorySlug? slug,
@@ -139,7 +129,7 @@ class FakeConfig implements Config {
   GithubService createGithubServiceWithToken(String token) => githubService!;
 
   @override
-  FakeDatastoreDB get db => dbValue;
+  Never get db => throw UnsupportedError('FakeConfig does not support db');
 
   @override
   Duration get githubRequestDelay => githubRequestDelayValue ?? Duration.zero;
@@ -204,9 +194,6 @@ class FakeConfig implements Config {
 
   @override
   int get commitNumber => 30;
-
-  @override
-  KeyHelper get keyHelper => keyHelperValue!;
 
   @override
   Future<String> get oauthClientId async => oauthClientIdValue!;

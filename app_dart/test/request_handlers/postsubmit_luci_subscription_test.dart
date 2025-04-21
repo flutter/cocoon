@@ -5,14 +5,14 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
@@ -94,16 +94,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      parent: commit,
-    );
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
@@ -111,27 +101,18 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
       number: 63405,
     );
-
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
-
-    expect(task.status, Task.statusNew);
-    expect(task.endTimestamp, 0);
 
     // Firestore checks before API call.
     expect(fsTask.status, Task.statusNew);
     expect(fsTask.buildNumber, null);
 
     await tester.post(handler);
-
-    expect(task.status, Task.statusSucceeded);
-    expect(task.endTimestamp, 1717430718072);
 
     expect(
       firestore,
@@ -158,13 +139,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      status: Task.statusInProgress,
-    );
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SCHEDULED,
@@ -173,8 +147,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -206,13 +180,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      status: Task.statusSucceeded,
-    );
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.STARTED,
@@ -221,14 +188,12 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
 
-    expect(task.status, Task.statusSucceeded);
-    expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
 
     expect(
@@ -256,19 +221,12 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux B',
-      status: Task.statusSucceeded,
-    );
-    config.db.values[task.key] = task;
-
     final userData = PostsubmitUserData(
       checkRunId: null,
       taskId: fs.TaskId(
         commitSha: fsCommit.sha,
-        taskName: task.name!,
-        currentAttempt: task.attempts!,
+        taskName: fsTask.taskName,
+        currentAttempt: fsTask.currentAttempt,
       ),
     );
     tester.message = createPushMessage(
@@ -278,8 +236,6 @@ void main() {
       userData: userData,
     );
 
-    expect(task.status, Task.statusSucceeded);
-    expect(task.attempts, 1);
     expect(await tester.post(handler), Body.empty);
 
     expect(
@@ -307,13 +263,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      status: Task.statusFailed,
-    );
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.FAILURE,
@@ -322,8 +271,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -358,13 +307,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final task = generateTask(
-      4507531199512576,
-      name: 'Linux A',
-      status: Task.statusInfraFailure,
-    );
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.CANCELED,
@@ -373,8 +315,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -411,13 +353,6 @@ void main() {
       firestore.putDocument(fsCommit);
       firestore.putDocument(fsTask);
 
-      final task = generateTask(
-        4507531199512576,
-        name: 'Linux A',
-        status: Task.statusInfraFailure,
-      );
-      config.db.values[task.key] = task;
-
       tester.message = createPushMessage(
         Int64(1),
         status: bbv2.Status.INFRA_FAILURE,
@@ -426,8 +361,8 @@ void main() {
           checkRunId: null,
           taskId: fs.TaskId(
             commitSha: fsCommit.sha,
-            taskName: task.name!,
-            currentAttempt: task.attempts!,
+            taskName: fsTask.taskName,
+            currentAttempt: fsTask.currentAttempt,
           ),
         ),
       );
@@ -474,16 +409,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-      repo: 'packages',
-      branch: Config.defaultBranch(Config.packagesSlug),
-    );
-    final task = generateTask(1, name: 'Linux nonbringup', parent: commit);
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
@@ -492,8 +417,8 @@ void main() {
         checkRunId: 1,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -543,16 +468,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-      repo: 'packages',
-      branch: Config.defaultBranch(Config.packagesSlug),
-    );
-    final task = generateTask(1, name: 'Linux bringup', parent: commit);
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
@@ -561,8 +476,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -601,14 +516,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
-    final task = generateTask(1, name: 'Linux flutter', parent: commit);
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
@@ -617,8 +524,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -655,19 +562,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
-    final task = generateTask(
-      1,
-      name: 'Linux A',
-      status: Task.statusFailed,
-      parent: commit,
-    );
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.SUCCESS,
@@ -676,8 +570,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -701,19 +595,6 @@ void main() {
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
-    final task = generateTask(
-      1,
-      name: 'Linux A',
-      status: Task.statusFailed,
-      parent: commit,
-    );
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
-
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.FAILURE,
@@ -722,8 +603,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );
@@ -752,18 +633,6 @@ void main() {
     // Add another commit to ToT.
     firestore.putDocument(generateFirestoreCommit(2));
 
-    final commit = generateCommit(
-      1,
-      sha: '87f88734747805589f2131753620d61b22922822',
-    );
-    final task = generateTask(
-      1,
-      name: 'Linux A',
-      status: Task.statusFailed,
-      parent: commit,
-    );
-    config.db.values[commit.key] = commit;
-    config.db.values[task.key] = task;
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.FAILURE,
@@ -772,8 +641,8 @@ void main() {
         checkRunId: null,
         taskId: fs.TaskId(
           commitSha: fsCommit.sha,
-          taskName: task.name!,
-          currentAttempt: task.attempts!,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
         ),
       ),
     );

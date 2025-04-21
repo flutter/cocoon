@@ -11,7 +11,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 
 import '../../model/ci_yaml/target.dart';
-import '../../service/luci_build_service/opaque_commit.dart';
+import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/policy.dart';
 
@@ -32,12 +32,12 @@ final class BackfillGrid {
   /// - [tipOfTreeTargets] without a task;
   /// - task that does have a matching [tipOfTreeTargets].
   factory BackfillGrid.from(
-    Iterable<(OpaqueCommit, List<OpaqueTask>)> grid, {
+    Iterable<(CommitRef, List<TaskRef>)> grid, {
     required Iterable<Target> tipOfTreeTargets,
   }) {
     final totTargetsByName = {for (final t in tipOfTreeTargets) t.name: t};
-    final commitsByName = <String, OpaqueCommit>{};
-    final tasksByName = <String, List<OpaqueTask>>{};
+    final commitsByName = <String, CommitRef>{};
+    final tasksByName = <String, List<TaskRef>>{};
     for (final (commit, tasks) in grid) {
       commitsByName[commit.sha] = commit;
       for (final task in tasks) {
@@ -66,15 +66,15 @@ final class BackfillGrid {
     this._tasksByName,
   );
 
-  final Map<String, OpaqueCommit> _commitsBySha;
-  final Map<String, List<OpaqueTask>> _tasksByName;
+  final Map<String, CommitRef> _commitsBySha;
+  final Map<String, List<TaskRef>> _tasksByName;
   final Map<String, Target> _targetsByName;
 
   /// Returns a [BackfillTask] with the provided LUCI scheduling [priority].
   ///
   /// If [task] does not originate from [targets] the behavior is undefined.
   @useResult
-  BackfillTask createBackfillTask(OpaqueTask task, {required int priority}) {
+  BackfillTask createBackfillTask(TaskRef task, {required int priority}) {
     final target = _targetsByName[task.name];
     if (target == null) {
       throw ArgumentError.value(
@@ -100,7 +100,7 @@ final class BackfillGrid {
   }
 
   /// Removes a task column from the grid for which [predicate] returns `true`.
-  void removeColumnWhere(bool Function(List<OpaqueTask>) predicate) {
+  void removeColumnWhere(bool Function(List<TaskRef>) predicate) {
     return _tasksByName.removeWhere((_, tasks) {
       return predicate(UnmodifiableListView(tasks));
     });
@@ -108,8 +108,8 @@ final class BackfillGrid {
 
   /// Each task, ordered by column (task by task).
   ///
-  /// Returned [OpaqueTask]s are eligible to be used in [createBackfillTask].
-  Iterable<(Target, List<OpaqueTask>)> get targets sync* {
+  /// Returned [TaskRef]s are eligible to be used in [createBackfillTask].
+  Iterable<(Target, List<TaskRef>)> get targets sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
       if (column.isEmpty) {
         throw StateError('A target ("$name") should never have 0 tasks');
@@ -134,13 +134,13 @@ final class BackfillTask {
   });
 
   /// The task itself.
-  final OpaqueTask task;
+  final TaskRef task;
 
   /// Which [Target] (originating from `.ci.yaml`) defined this task.
   final Target target;
 
   /// The commit this task is associated with.
-  final OpaqueCommit commit;
+  final CommitRef commit;
 
   /// The LUCI scheduling priority of backfilling this task.
   final int priority;

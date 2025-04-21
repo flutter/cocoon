@@ -11,17 +11,14 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../../ci_yaml.dart';
-import '../model/appengine/commit.dart' as ds;
-import '../model/appengine/task.dart' as ds;
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
-import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
-import '../service/luci_build_service/opaque_commit.dart';
+import '../service/luci_build_service/commit_task_ref.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -30,7 +27,7 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 /// The PubSub subscription is set up here:
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/build-bucket-postsubmit-sub?project=flutter-dashboard
 ///
-/// This endpoint is responsible for updating Datastore with the result of builds from LUCI.
+/// This endpoint is responsible for updating Firestore with the result of builds from LUCI.
 @immutable
 final class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
@@ -84,25 +81,21 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     final fsTask = await fs.Task.fromFirestore(firestore, userData.taskId);
     log.info('Found $fsTask');
 
-    // TODO(matanlurey): Move below _shouldUpdateTask after Datastore removed.
-    final fsCommit = await fs.Commit.fromFirestoreBySha(
-      firestore,
-      sha: fsTask.commitSha,
-    );
-
     if (_shouldUpdateTask(build, fsTask)) {
       final oldTaskStatus = fsTask.status;
-      await Future.wait([
-        _updateFirestore(fsTask, build),
-        _updateDatastore(fsTask, build, commit: fsCommit),
-      ]);
-      log.debug('Updated datastore from $oldTaskStatus to ${fsTask.status}');
+      await _updateFirestore(fsTask, build);
+      log.debug('Updated Firestore from $oldTaskStatus to ${fsTask.status}');
     } else {
       log.debug(
         'skip processing for build with status scheduled or task with status '
         'finished.',
       );
     }
+
+    final fsCommit = await fs.Commit.fromFirestoreBySha(
+      firestore,
+      sha: fsTask.commitSha,
+    );
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(fsCommit);
     final postsubmitTargets = [
@@ -125,9 +118,9 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (await _shouldAutomaticallyRerun(fsTask)) {
       log.debug('Trying to auto-retry...');
       final retried = await _luciBuildService.checkRerunBuilder(
-        commit: OpaqueCommit.fromFirestore(fsCommit),
+        commit: CommitRef.fromFirestore(fsCommit),
         target: target,
-        taskDocument: fsTask,
+        task: fsTask,
       );
       log.info('Retried: $retried');
     }
@@ -156,42 +149,10 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     );
   }
 
-  Future<void> _updateDatastore(
-    fs.Task fsTask,
-    bbv2.Build build, {
-    required fs.Commit commit,
-  }) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-    await config.db.withTransaction((tx) async {
-      final commitKey = ds.Commit.createKey(
-        db: config.db,
-        slug: commit.slug,
-        gitBranch: commit.branch,
-        sha: commit.sha,
-      );
-      final query = tx.db.query<ds.Task>(ancestorKey: commitKey);
-      query.filter('name =', fsTask.taskName);
-
-      final dsTasks = await query.run().toList();
-      if (dsTasks.length != 1) {
-        throw InternalServerError(
-          'Expected to find 1 task for ${fsTask.taskName}, but found '
-          '${dsTasks.length}',
-        );
-      }
-      final dsTask = dsTasks.first;
-      dsTask.updateFromBuildbucketBuild(build);
-      tx.queueMutations(inserts: [dsTask]);
-      await tx.commit();
-    });
-  }
-
-  // No need to update task in datastore if
+  // No need to update task in Firestore if
   // 1) the build is `scheduled`. Task is marked as `In Progress`
   //    whenever scheduled, either from scheduler/backfiller/rerun. We need to update
-  //    task in datastore only for
+  //    task in Firestore only for
   //    a) `started`: update info like builder number.
   //    b) `completed`: update info like status.
   // 2) the task is already completed.

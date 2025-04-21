@@ -9,23 +9,19 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/bigquery.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:gcloud/db.dart' as gcloud_db;
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -34,8 +30,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
-import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
@@ -156,7 +151,6 @@ void main() {
 
   late CacheService cache;
   late FakeConfig config;
-  late FakeDatastoreDB db;
   late FakeCiYamlFetcher ciYamlFetcher;
   late FakeFirestoreService firestoreService;
   late MockGithubChecksUtil mockGithubChecksUtil;
@@ -166,20 +160,6 @@ void main() {
   late FakeGetFilesChanged getFilesChanged;
 
   final pullRequest = generatePullRequest(id: 42);
-
-  Commit shaToCommit(
-    String sha, {
-    String branch = 'master',
-    String repository = 'flutter',
-  }) {
-    return Commit(
-      key: db.emptyKey.append(Commit, id: 'flutter/$repository/$branch/$sha'),
-      repository: 'flutter/$repository',
-      sha: sha,
-      branch: branch,
-      timestamp: int.parse(sha),
-    );
-  }
 
   setUp(() {
     ciYamlFetcher = FakeCiYamlFetcher();
@@ -198,7 +178,6 @@ void main() {
 
       cache = CacheService(inMemory: true);
       getFilesChanged = FakeGetFilesChanged();
-      db = FakeDatastoreDB();
       firestoreService = FakeFirestoreService();
 
       config = FakeConfig(
@@ -206,7 +185,6 @@ void main() {
           tabledataResource,
           MockJobsResource(),
         ),
-        dbValue: db,
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),
         firestoreService: firestoreService,
@@ -241,7 +219,6 @@ void main() {
       scheduler = Scheduler(
         cache: cache,
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         githubChecksService: GithubChecksService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
@@ -317,25 +294,29 @@ void main() {
       }
 
       test('succeeds when GitHub returns no commits', () async {
-        await scheduler.addCommits(<fs.Commit>[]);
-        expect(db.values, isEmpty);
+        await expectLater(scheduler.addCommits([]), completes);
       });
 
       test('inserts all relevant fields of the commit', () async {
         config.supportedBranchesValue = <String>['main'];
-        expect(db.values.values.whereType<Commit>().length, 0);
+        expect(firestoreService, existsInStorage(fs.Commit.metadata, isEmpty));
         await scheduler.addCommits(
           createCommitList(<String>['1'], repo: 'packages', branch: 'main'),
         );
-        expect(db.values.values.whereType<Commit>().length, 1);
-        final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/packages');
-        expect(commit.branch, 'main');
-        expect(commit.sha, '1');
-        expect(commit.timestamp, 1);
-        expect(commit.author, 'Username');
-        expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
-        expect(commit.message, 'commit message');
+
+        expect(
+          firestoreService,
+          existsInStorage(fs.Commit.metadata, [
+            isCommit
+                .hasRepositoryPath('flutter/packages')
+                .hasSha('1')
+                .hasBranch('main')
+                .hasCreateTimestamp(1)
+                .hasAuthor('Username')
+                .hasAvatar('http://example.org/avatar.jpg')
+                .hasMessage('commit message'),
+          ]),
+        );
       });
 
       test('skips scheduling for unsupported repos', () async {
@@ -343,89 +324,8 @@ void main() {
         await scheduler.addCommits(
           createCommitList(<String>['1'], repo: 'not-supported'),
         );
-        expect(db.values.values.whereType<Commit>().length, 0);
-      });
 
-      test('skips commits for which transaction commit fails', () async {
-        config.supportedBranchesValue = <String>['main'];
-
-        // Existing commits should not be duplicated.
-        final commit = shaToCommit('1', branch: 'main', repository: 'packages');
-        db.values[commit.key] = commit;
-
-        db.onCommit = (
-          List<gcloud_db.Model<Object?>> inserts,
-          List<gcloud_db.Key<Object?>> deletes,
-        ) {
-          if (inserts
-              .whereType<Commit>()
-              .where((Commit commit) => commit.sha == '3')
-              .isNotEmpty) {
-            throw StateError('Commit failed');
-          }
-        };
-        // Commits are expect from newest to oldest timestamps
-        await expectLater(
-          scheduler.addCommits(
-            createCommitList(
-              <String>['2', '3', '4'],
-              repo: 'packages',
-              branch: 'main',
-            ),
-          ),
-          throwsA(isStateError),
-        );
-
-        // The 1 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 1 * 3);
-        // Check commits were added, but 3 was not
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '4'],
-        );
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          isNot(contains('3')),
-        );
-      });
-
-      test('skips commits for which task transaction fails', () async {
-        config.supportedBranchesValue = <String>['main'];
-
-        // Existing commits should not be duplicated.
-        final commit = shaToCommit('1', branch: 'main', repository: 'packages');
-        db.values[commit.key] = commit;
-
-        db.onCommit = (
-          List<gcloud_db.Model<Object?>> inserts,
-          List<gcloud_db.Key<Object?>> deletes,
-        ) {
-          if (inserts
-              .whereType<Task>()
-              .where((Task task) => task.createTimestamp == 3)
-              .isNotEmpty) {
-            throw StateError('Task failed');
-          }
-        };
-        // Commits are expect from newest to oldest timestamps
-        await expectLater(
-          scheduler.addCommits(
-            createCommitList(
-              <String>['2', '3', '4'],
-              repo: 'packages',
-              branch: 'main',
-            ),
-          ),
-          throwsA(isStateError),
-        );
-
-        // The 1 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 1 * 3);
-        // Check commits were added, but 3 was not
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '4'],
-        );
+        expect(firestoreService, existsInStorage(fs.Commit.metadata, isEmpty));
       });
 
       test('schedules cocoon based targets', () async {
@@ -439,7 +339,6 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -466,11 +365,17 @@ void main() {
         final tuples = toBeScheduled.cast<PendingTask>();
         final scheduledTargetNames = tuples.map((tuple) => tuple.taskName);
         expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
+
         // Tasks triggered by cocoon are marked as in progress
-        final tasks = db.values.values.whereType<Task>();
         expect(
-          tasks.singleWhere((Task task) => task.name == 'Linux A').status,
-          Task.statusInProgress,
+          firestoreService,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasTaskName('Linux A').hasStatus(Task.statusInProgress),
+            isTask.hasTaskName('Linux runIf').hasStatus(Task.statusInProgress),
+            isTask
+                .hasTaskName('Google Internal Roll')
+                .hasStatus(Task.statusNew),
+          ]),
         );
       });
 
@@ -519,7 +424,6 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -543,19 +447,18 @@ void main() {
         final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/packages');
-        expect(commit.branch, 'main');
-        expect(commit.sha, 'abc');
-        expect(commit.timestamp, 1);
-        expect(commit.author, 'dash');
-        expect(commit.authorAvatarUrl, 'dashatar');
-        expect(commit.message, 'example message');
-
         expect(
           firestoreService,
-          existsInStorage(fs.Commit.metadata, hasLength(1)),
+          existsInStorage(fs.Commit.metadata, [
+            isCommit
+                .hasRepositoryPath('flutter/packages')
+                .hasSha('abc')
+                .hasBranch('main')
+                .hasCreateTimestamp(1)
+                .hasAuthor('dash')
+                .hasAvatar('dashatar')
+                .hasMessage('example message'),
+          ]),
         );
 
         expect(
@@ -573,15 +476,11 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(
-          db.values.values.whereType<Task>(),
-          everyElement(
-            isA<Task>().having(
-              (t) => t.status,
-              'status',
-              Task.statusInProgress,
-            ),
+          firestoreService,
+          existsInStorage(
+            fs.Task.metadata,
+            everyElement(isTask.hasStatus(Task.statusInProgress)),
           ),
-          reason: 'Skips all post-submit targets',
         );
       });
 
@@ -596,11 +495,11 @@ void main() {
           await scheduler.addPullRequest(mergedPr);
 
           expect(
-            db.values.values.whereType<Task>(),
-            everyElement(
-              isA<Task>().having((t) => t.status, 'status', Task.statusSkipped),
+            firestoreService,
+            existsInStorage(
+              fs.Task.metadata,
+              everyElement(isTask.hasStatus(Task.statusSkipped)),
             ),
-            reason: 'Skips all post-submit targets',
           );
         },
       );
@@ -609,8 +508,19 @@ void main() {
         final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 3);
+        expect(
+          firestoreService,
+          existsInStorage(fs.Commit.metadata, hasLength(1)),
+        );
+
+        expect(
+          firestoreService,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasTaskName('Linux A'),
+            isTask.hasTaskName('Linux runIf'),
+            isTask.hasTaskName('Google Internal Roll'),
+          ]),
+        );
       });
 
       test('schedules tasks against merged PRs (fusion)', () async {
@@ -619,20 +529,6 @@ void main() {
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
         final mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
-
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(
-          db.values.values.whereType<Task>().map((t) => t.name),
-          [
-            'Linux A',
-            'Linux runIf',
-            'Google Internal Roll',
-            'Linux Z',
-            'Linux engine_presubmit',
-            'Linux runIf engine',
-          ],
-          reason: 'removes release_build targets (Linux engine_build)',
-        );
 
         expect(
           firestoreService,
@@ -661,20 +557,26 @@ void main() {
           );
           await scheduler.addPullRequest(mergedPr);
 
-          expect(db.values.values.whereType<Commit>().length, 1);
-          expect(db.values.values.whereType<Task>().length, 6);
-          // Ensure all tasks have been marked in progress
           expect(
-            db.values.values.whereType<Task>().where(
-              (Task task) => task.status == Task.statusNew,
-            ),
-            isEmpty,
+            firestoreService,
+            existsInStorage(fs.Commit.metadata, hasLength(1)),
+          );
+          expect(
+            firestoreService,
+            existsInStorage(fs.Task.metadata, [
+              isTask.hasTaskName('Linux A'),
+              isTask.hasTaskName('Linux runIf'),
+              isTask.hasTaskName('Google Internal Roll'),
+              isTask.hasTaskName('Linux Z'),
+              isTask.hasTaskName('Linux engine_presubmit'),
+              isTask.hasTaskName('Linux runIf engine'),
+            ]),
           );
         },
       );
 
       test(
-        'Release candidate branch commit filters builders not in default branch',
+        'release candidate branch commit filters builders not in default branch',
         () async {
           ciYamlFetcher.setCiYamlFrom(r'''
           enabled_branches:
@@ -688,7 +590,6 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -711,17 +612,14 @@ void main() {
           );
           await scheduler.addPullRequest(mergedPr);
 
-          final tasks = db.values.values.whereType<Task>().toList();
-          expect(db.values.values.whereType<Commit>().length, 1);
-          expect(tasks, hasLength(1));
-          expect(tasks.first.name, 'Linux A');
-          // Ensure all tasks under cocoon scheduler have been marked in progress
           expect(
-            db.values.values
-                .whereType<Task>()
-                .where((Task task) => task.status == Task.statusInProgress)
-                .length,
-            1,
+            firestoreService,
+            existsInStorage(fs.Commit.metadata, hasLength(1)),
+          );
+
+          expect(
+            firestoreService,
+            existsInStorage(fs.Task.metadata, [isTask.hasTaskName('Linux A')]),
           );
         },
       );
@@ -730,28 +628,22 @@ void main() {
         final notMergedPr = generatePullRequest(merged: false);
         await scheduler.addPullRequest(notMergedPr);
 
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha).length,
-          0,
-        );
-        expect(db.values.values.whereType<Task>().length, 0);
+        expect(firestoreService, existsInStorage(fs.Commit.metadata, isEmpty));
+        expect(firestoreService, existsInStorage(fs.Task.metadata, isEmpty));
       });
 
       test('does not schedule tasks against already added PRs', () async {
         firestoreService.putDocument(generateFirestoreCommit(1));
 
-        final commit = shaToCommit('1');
-        db.values[commit.key] = commit;
-
         final alreadyLandedPr = generatePullRequest(headSha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);
 
         expect(
-          db.values.values.whereType<Commit>().map<String>(toSha).length,
-          1,
+          firestoreService,
+          existsInStorage(fs.Commit.metadata, hasLength(1)),
         );
-        // No tasks should be scheduled as that is done on commit insert.
-        expect(db.values.values.whereType<Task>().length, 0);
+
+        expect(firestoreService, existsInStorage(fs.Task.metadata, isEmpty));
       });
 
       test('creates expected commit from release branch PR', () async {
@@ -768,15 +660,10 @@ void main() {
         final mergedPr = generatePullRequest(branch: '1.26');
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/flutter');
-        expect(commit.branch, '1.26');
-        expect(commit.sha, 'abc');
-        expect(commit.timestamp, 1);
-        expect(commit.author, 'dash');
-        expect(commit.authorAvatarUrl, 'dashatar');
-        expect(commit.message, 'example message');
+        expect(
+          firestoreService,
+          existsInStorage(fs.Commit.metadata, hasLength(1)),
+        );
       });
     });
 
@@ -1061,13 +948,11 @@ void main() {
 
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
-        // only postsubmit commits are stored in the datastore.
+        // only postsubmit commits are stored in the Firestore.
         final pullRequest = generatePullRequest(
           headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
         );
 
-        db = FakeDatastoreDB();
-        config = FakeConfig(dbValue: db, firestoreService: firestoreService);
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         final luci = MockLuciBuildService();
@@ -1126,25 +1011,16 @@ void main() {
       });
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
-        // Set up datastore with postsubmit entities matching [checkRunString].
-        db = FakeDatastoreDB();
+        // Set up Firestore with postsubmit entities matching [checkRunString].
         config = FakeConfig(
-          dbValue: db,
           postsubmitSupportedReposValue: {RepositorySlug('flutter', 'cocoon')},
           firestoreService: firestoreService,
         );
 
-        final commit = generateCommit(
+        final commit = generateFirestoreCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           branch: 'independent_agent',
-          owner: 'flutter',
-          repo: 'cocoon',
-        );
-        final commitToT = generateCommit(
-          1,
-          sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
-          branch: 'master',
           owner: 'flutter',
           repo: 'cocoon',
         );
@@ -1170,11 +1046,6 @@ void main() {
         firestoreService.putDocument(
           generateFirestoreTask(1, name: 'test1', commitSha: commit.sha),
         );
-
-        config.db.values[commit.key] = commit;
-        config.db.values[commitToT.key] = commitToT;
-        final task = generateTask(1, name: 'test1', parent: commit);
-        config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].
         ciYamlFetcher.setCiYamlFrom(r'''
@@ -1597,7 +1468,6 @@ targets:
             scheduler = Scheduler(
               cache: cache,
               config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1704,7 +1574,6 @@ targets:
             scheduler = Scheduler(
               cache: cache,
               config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1823,7 +1692,6 @@ targets:
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
-                datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
@@ -1894,7 +1762,6 @@ targets:
             scheduler = Scheduler(
               cache: cache,
               config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
@@ -1990,7 +1857,6 @@ targets:
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
-                datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
@@ -2167,7 +2033,6 @@ targets:
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
-                datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
                 githubChecksService: gitHubChecksService,
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
@@ -2564,7 +2429,6 @@ targets:
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2601,12 +2465,10 @@ targets:
             cache: cache,
             config: FakeConfig(
               // tabledataResource: tabledataResource,
-              dbValue: db,
               githubService: mockGithubService,
               githubClient: MockGitHub(),
               firestoreService: firestoreService,
             ),
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2884,13 +2746,11 @@ targets:
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: firestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 0,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3027,12 +2887,10 @@ targets:
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: firestoreService,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3182,12 +3040,10 @@ targets:
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: firestoreService,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3320,12 +3176,10 @@ targets:
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: firestoreService,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3434,13 +3288,11 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
             firestoreService: firestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 29,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3619,8 +3471,6 @@ CheckRun createCheckRun({
   );
   return CheckRun.fromJson(jsonDecode(checkRunJson) as Map<String, dynamic>);
 }
-
-String toSha(Commit commit) => commit.sha!;
 
 String checkRunFor({
   int id = 1,

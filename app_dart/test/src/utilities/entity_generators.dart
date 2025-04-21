@@ -4,87 +4,18 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_service/ci_yaml.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
-import 'package:cocoon_service/src/model/firestore/commit.dart'
-    as firestore_commit;
+import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
 import 'package:fixnum/fixnum.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as github;
 
 import '../service/fake_scheduler.dart';
 
-Key<T> generateKey<T>(Type type, T id) =>
-    Key<T>.emptyKey(Partition(null)).append<T>(type, id: id);
-
-Commit generateCommit(
-  int i, {
-  String? sha,
-  String branch = 'master',
-  String? owner = 'flutter',
-  String repo = 'flutter',
-  int? timestamp,
-}) => Commit(
-  sha: sha ?? '$i',
-  timestamp: timestamp ?? i,
-  repository: '$owner/$repo',
-  branch: branch,
-  key: generateKey<String>(Commit, '$owner/$repo/$branch/${sha ?? '$i'}'),
-);
-
-github.Branch generateBranch(int i, {String? name, String? sha}) =>
-    github.Branch(
-      name ?? '$i',
-      github.CommitData(
-        sha,
-        github.GitCommit(),
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-      ),
-    );
-
-github.Tag generateTag(int i, {String? name, String? sha}) => github.Tag(
-  name ?? '$i',
-  github.CommitInfo(sha, null),
-  'blah_zip',
-  'blah_tar',
-);
-
-Task generateTask(
-  int i, {
-  String? name,
-  String status = Task.statusNew,
-  int attempts = 1,
-  bool isFlaky = false,
-  String? builderName,
-  String stage = 'test-stage',
-  Commit? parent,
-  int? buildNumber,
-  DateTime? created,
-}) => Task(
-  name: name ?? 'task$i',
-  status: status,
-  commitKey: parent?.key ?? generateCommit(i).key,
-  key: (parent ?? generateCommit(i)).key.append(Task, id: i),
-  attempts: attempts,
-  isFlaky: isFlaky,
-  builderName: builderName ?? name ?? 'task$i',
-  buildNumber: buildNumber,
-  buildNumberList: buildNumber != null ? '$buildNumber' : null,
-  createTimestamp: created?.millisecondsSinceEpoch ?? 0,
-  stageName: stage,
-);
-
-firestore.Task generateFirestoreTask(
+Task generateFirestoreTask(
   int i, {
   String? name,
   String status = Task.statusNew,
@@ -97,7 +28,7 @@ firestore.Task generateFirestoreTask(
   DateTime? ended,
   String? commitSha,
 }) {
-  return firestore.Task(
+  return Task(
     builderName: name ?? 'task$i',
     currentAttempt: attempts,
     commitSha: commitSha ?? 'testSha',
@@ -111,7 +42,7 @@ firestore.Task generateFirestoreTask(
   );
 }
 
-firestore_commit.Commit generateFirestoreCommit(
+Commit generateFirestoreCommit(
   int i, {
   String? sha,
   String branch = 'master',
@@ -123,7 +54,7 @@ firestore_commit.Commit generateFirestoreCommit(
   String avatar = 'avatar',
 }) {
   sha ??= '$i';
-  return firestore_commit.Commit(
+  return Commit(
     createTimestamp: createTimestamp ?? i,
     repositoryPath: '$owner/$repo',
     branch: branch,

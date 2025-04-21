@@ -13,7 +13,6 @@ import '../../../protos.dart' as pb;
 import '../../foundation/providers.dart';
 import '../../foundation/typedefs.dart';
 import '../../foundation/utils.dart';
-import '../../model/appengine/commit.dart' as datastore;
 import '../../model/firestore/commit.dart' as firestore;
 import '../cache_service.dart';
 import '../config.dart';
@@ -33,21 +32,6 @@ abstract base class CiYamlFetcher {
   /// Exists so that a fake implementation can re-use `getCiYamlBy*` methods.
   @visibleForTesting
   CiYamlFetcher.forTesting();
-
-  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
-  ///
-  /// This is a helper method for [getCiYaml] for use with [datastore.Commit].
-  Future<CiYamlSet> getCiYamlByDatastoreCommit(
-    datastore.Commit commit, {
-    bool validate = false,
-  }) async {
-    return getCiYaml(
-      slug: commit.slug,
-      commitSha: commit.sha!,
-      commitBranch: commit.branch!,
-      validate: validate,
-    );
-  }
 
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
   ///

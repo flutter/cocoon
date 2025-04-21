@@ -17,18 +17,15 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/firestore/pr_check_runs.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
-import '../service/datastore.dart';
 import 'exceptions.dart';
 import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/cipd_version.dart';
+import 'luci_build_service/commit_task_ref.dart';
 import 'luci_build_service/engine_artifacts.dart';
-import 'luci_build_service/opaque_commit.dart';
 import 'luci_build_service/pending_task.dart';
 import 'luci_build_service/user_data.dart';
 
@@ -480,7 +477,7 @@ class LuciBuildService {
   /// Sends postsubmit [ScheduleBuildRequest] for a commit using [checkRunEvent], [Commit], [Task], and [Target].
   Future<void> reschedulePostsubmitBuildUsingCheckRunEvent(
     cocoon_checks.CheckRunEvent checkRunEvent, {
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     required fs.Task task,
   }) async {
@@ -602,7 +599,7 @@ class LuciBuildService {
   /// returns the original list.
   @useResult
   Future<List<PendingTask>> schedulePostsubmitBuilds({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required List<PendingTask> toBeScheduled,
   }) async {
     if (toBeScheduled.isEmpty) {
@@ -670,7 +667,7 @@ class LuciBuildService {
 
   /// Schedules [targets] for building of prod artifacts while in a merge queue.
   Future<void> scheduleMergeGroupBuilds({
-    required Commit commit,
+    required CommitRef commit,
     required List<Target> targets,
   }) async {
     final buildRequests = <bbv2.BatchRequest_Request>[];
@@ -699,7 +696,7 @@ class LuciBuildService {
       );
 
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
-        commit: OpaqueCommit.fromDatastore(commit),
+        commit: commit,
         target: target,
       );
       buildRequests.add(
@@ -801,7 +798,7 @@ class LuciBuildService {
   ///
   /// By default, build [priority] is increased for release branches.
   Future<bbv2.ScheduleBuildRequest> _createPostsubmitScheduleBuild({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     required String taskName,
     Map<String, Object?>? properties,
@@ -906,7 +903,7 @@ class LuciBuildService {
   /// Creates a build request for a commit in a merge queue which will notify
   /// presubmit channels.
   Future<bbv2.ScheduleBuildRequest> _createMergeGroupScheduleBuild({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
     int priority = kDefaultPriority,
   }) async {
@@ -984,7 +981,7 @@ class LuciBuildService {
   /// Creates postsubmit check runs for prod targets in supported repositories.
   @useResult
   Future<CheckRun> createPostsubmitCheckRun(
-    OpaqueCommit commit,
+    CommitRef commit,
     Target target,
   ) async {
     // We are not tracking this check run in the PrCheckRuns firestore doc because
@@ -1007,10 +1004,9 @@ class LuciBuildService {
   ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
   @useResult
   Future<bool> checkRerunBuilder({
-    required OpaqueCommit commit,
+    required CommitRef commit,
     required Target target,
-    required fs.Task taskDocument,
-    Task? task,
+    required fs.Task task,
     Iterable<BuildTag> tags = const [],
   }) async {
     log.info('Rerun builder: ${target.name} for commit ${commit.sha}');
@@ -1021,13 +1017,13 @@ class LuciBuildService {
     try {
       final newAttempt = await _updateTaskStatusInDatabaseForRetry(
         commit,
-        taskDocument,
+        task,
       );
       buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
     } catch (e, s) {
       log.error(
-        'Updating task ${taskDocument.taskName} of commit '
-        '${taskDocument.commitSha} failure. Skipping rescheduling.',
+        'Updating task ${task.taskName} of commit '
+        '${task.commitSha} failure. Skipping rescheduling.',
         e,
         s,
       );
@@ -1042,7 +1038,7 @@ class LuciBuildService {
           scheduleBuild: await _createPostsubmitScheduleBuild(
             commit: commit,
             target: target,
-            taskName: taskDocument.taskName,
+            taskName: task.taskName,
             priority: kRerunPriority,
             properties: Config.defaultProperties,
             tags: buildTags,
@@ -1060,7 +1056,7 @@ class LuciBuildService {
   /// re-run, and returns the new attempt number.
   @useResult
   Future<int> _updateTaskStatusInDatabaseForRetry(
-    OpaqueCommit commit,
+    CommitRef commit,
     fs.Task task,
   ) async {
     // Update task status in Firestore.
@@ -1072,26 +1068,6 @@ class LuciBuildService {
       BatchWriteRequest(writes: documentsToWrites([task], exists: false)),
       kDatabase,
     );
-
-    // Legacy: Write task status to Datastore.
-    if (await _config.useLegacyDatastore) {
-      final datastore = DatastoreService.defaultProvider(_config.db);
-      final commitKey = Commit.createKey(
-        db: datastore.db,
-        slug: commit.slug,
-        gitBranch: commit.branch,
-        sha: commit.sha,
-      );
-      final dsExistingTask = await Task.fromDatastore(
-        datastore: datastore,
-        commitKey: commitKey,
-        name: task.taskName,
-      );
-      dsExistingTask
-        ..attempts = task.currentAttempt
-        ..status = Task.statusInProgress;
-      await datastore.insert([dsExistingTask]);
-    }
 
     return task.currentAttempt;
   }

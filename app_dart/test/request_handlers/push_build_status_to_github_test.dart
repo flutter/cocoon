@@ -15,8 +15,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
-import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_build_status_provider.dart';
@@ -32,7 +31,6 @@ void main() {
   late FakeFirestoreService firestore;
   late FakeClientContext clientContext;
   late FakeConfig config;
-  late FakeDatastoreDB db;
   late ApiRequestHandlerTester tester;
   late FakeAuthenticatedContext authContext;
   late FakeTabledataResource tabledataResourceApi;
@@ -51,7 +49,6 @@ void main() {
     buildStatusService = FakeBuildStatusService();
     githubService = FakeGithubService();
     tabledataResourceApi = FakeTabledataResource();
-    db = FakeDatastoreDB();
     github = MockGitHub();
     pullRequestsService = MockPullRequestsService();
     issuesService = MockIssuesService();
@@ -62,7 +59,6 @@ void main() {
         MockJobsResource(),
       ),
       githubService: githubService,
-      dbValue: db,
       firestoreService: firestore,
       githubClient: github,
     );
@@ -180,7 +176,7 @@ void main() {
   });
 
   test(
-    'updates github and datastore if status has changed since last update',
+    'updates github and Firestore if status has changed since last update',
     () async {
       final pr = generatePullRequest(id: 1, headSha: 'sha1');
       when(
@@ -211,7 +207,7 @@ void main() {
     },
   );
 
-  test('updates github and datastore if status is neutral', () async {
+  test('updates github and Firestore if status is neutral', () async {
     final pr = generatePullRequest(
       id: 1,
       headSha: 'sha1',

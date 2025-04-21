@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
 import 'package:cocoon_service/src/service/discord_service.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
@@ -40,7 +39,6 @@ export 'mocks.mocks.dart';
     BuildBucketClient,
     CommitService,
     Config,
-    DatastoreService,
     DiscordService,
     FakeEntry,
     IssuesService,

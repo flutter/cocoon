@@ -15,7 +15,7 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 
 void main() {

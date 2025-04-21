@@ -14,7 +14,7 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/service/fake_auth_client.dart';
 import '../src/utilities/matchers.dart';
 

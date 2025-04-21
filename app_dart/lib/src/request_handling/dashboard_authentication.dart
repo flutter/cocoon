@@ -38,7 +38,7 @@ import 'exceptions.dart';
 ///     E.g. curl '<api_url>' -H "X-Flutter-IdToken: $(gcloud auth print-identity-token)"
 ///
 ///     User accounts are only authorized if the user is either a "@google.com"
-///     account or is an [AllowedAccount] in Cocoon's Datastore.
+///     account or is an [AllowedAccount] in Cocoon's Firestore.
 ///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
