@@ -147,7 +147,6 @@ class BuildBucketClient {
     if (response.responses.length != request.requests.length) {
       throw BatchRequestException('Failed to execute all requests');
     }
-    log.info('Batch response matches request size.');
     return response;
   }
 
