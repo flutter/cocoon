@@ -56,7 +56,6 @@ class Scheduler {
     required CiYamlFetcher ciYamlFetcher,
     required ContentAwareHashService contentAwareHash,
     required FirestoreService firestore,
-    @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
@@ -78,16 +77,6 @@ class Scheduler {
   final LuciBuildService _luciBuildService;
   final FilesChangedOptimizer _filesChangedOptimizer;
   final FirestoreService _firestore;
-
-  Future<StagingConclusion> Function({
-    required String checkRun,
-    required TaskConclusion conclusion,
-    required FirestoreService firestoreService,
-    required String sha,
-    required RepositorySlug slug,
-    required CiStage stage,
-  })
-  markCheckRunConclusion;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -1332,7 +1321,7 @@ $stacktrace
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
 
     return r.retry(() {
-      return markCheckRunConclusion(
+      return CiStaging.markConclusion(
         firestoreService: _firestore,
         slug: slug,
         sha: sha,
