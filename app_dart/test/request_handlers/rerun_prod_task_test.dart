@@ -313,18 +313,69 @@ void main() {
 
     expect(
       firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Windows A')
+            .hasStatus(fs.Task.statusNew)
+            .hasCurrentAttempt(1),
+      ]),
+    );
+  });
+
+  test('Rerun all cancels in-progress tasks', () async {
+    final fsCommit = generateFirestoreCommit(1);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
+      generateFirestoreTask(
+        2,
+        name: 'Windows A',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusInProgress,
+      ),
+    );
+
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': 'all',
+      'include': Task.statusInProgress,
+    };
+    await tester.post(handler);
+
+    verifyNever(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        task: anyNamed('task'),
+      ),
+    );
+
+    expect(
+      firestore,
       existsInStorage(
         fs.Task.metadata,
         unorderedEquals([
           isTask
               .hasTaskName('Windows A')
-              .hasStatus(fs.Task.statusSkipped)
+              .hasStatus(fs.Task.statusCancelled)
               .hasCurrentAttempt(1),
           isTask
               .hasTaskName('Windows A')
               .hasStatus(fs.Task.statusNew)
               .hasCurrentAttempt(2),
         ]),
+      ),
+    );
+
+    verify(
+      mockLuciBuildService.cancelBuildsBySha(
+        sha: argThat(equals(fsCommit.sha), named: 'sha'),
+        reason: argThat(
+          contains('cancelled build to schedule a fresh '),
+          named: 'reason',
+        ),
       ),
     );
   });
@@ -408,6 +459,129 @@ void main() {
           contains('Invalid "include" statuses: Malformed.'),
         ),
       ),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/167600.
+  test('Rerun all only considers the latest task for each target', () async {
+    final date = DateTime(2025, 1, 1);
+    final commit = generateFirestoreCommit(1);
+
+    firestore.putDocuments([
+      commit,
+      generateFirestoreTask(
+        1,
+        name: 'Linux flutter_release_builder',
+        attempts: 1,
+        status: fs.Task.statusFailed,
+        commitSha: '1',
+        created: date,
+      ),
+      generateFirestoreTask(
+        2,
+        name: 'Linux flutter_release_builder',
+        attempts: 2,
+        status: fs.Task.statusSucceeded,
+        commitSha: '1',
+        created: date.add(const Duration(hours: 1)),
+      ),
+      generateFirestoreTask(
+        3,
+        name: 'Linux depends_on_release_builder_passing_first',
+        attempts: 1,
+        status: fs.Task.statusSkipped,
+        commitSha: '1',
+        created: date,
+      ),
+    ]);
+
+    tester.requestData = {
+      'branch': commit.branch,
+      'repo': commit.slug.name,
+      'commit': commit.sha,
+      'task': 'all',
+      'include': 'Skipped',
+    };
+
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux flutter_release_builder')
+            .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusFailed),
+        isTask
+            .hasTaskName('Linux flutter_release_builder')
+            .hasCurrentAttempt(2)
+            .hasStatus(fs.Task.statusSucceeded),
+        isTask
+            .hasTaskName('Linux depends_on_release_builder_passing_first')
+            .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusNew),
+      ]),
+    );
+  });
+
+  test('Rerun specific refuses flutter_release_builder', () async {
+    final commit = generateFirestoreCommit(1);
+
+    firestore.putDocuments([
+      commit,
+      generateFirestoreTask(
+        1,
+        name: 'Linux flutter_release_builder',
+        attempts: 1,
+        status: fs.Task.statusFailed,
+        commitSha: '1',
+      ),
+    ]);
+
+    tester.requestData = {
+      'branch': commit.branch,
+      'repo': commit.slug.name,
+      'commit': commit.sha,
+      'task': 'Linux flutter_release_builder',
+    };
+
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<BadRequestException>()),
+    );
+  });
+
+  test('Rerun all ignores flutter_release_builder', () async {
+    final commit = generateFirestoreCommit(1);
+
+    firestore.putDocuments([
+      commit,
+      generateFirestoreTask(
+        1,
+        name: 'Linux flutter_release_builder',
+        attempts: 1,
+        status: fs.Task.statusFailed,
+        commitSha: '1',
+      ),
+    ]);
+
+    tester.requestData = {
+      'branch': commit.branch,
+      'repo': commit.slug.name,
+      'commit': commit.sha,
+      'task': 'all',
+    };
+
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux flutter_release_builder')
+            .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusFailed),
+      ]),
     );
   });
 

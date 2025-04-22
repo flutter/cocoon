@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
@@ -192,6 +193,10 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
         continue;
       }
 
+      if (!_isTaskOwnedByCocoon(task)) {
+        continue;
+      }
+
       // If it appears the task was in progress, cancel any running builders
       // and crease a _new_ task (to represent a new run).
       if (task.status == fs.Task.statusInProgress) {
@@ -206,6 +211,21 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
             fs.Task.statusCancelled,
           ),
         );
+      } else if (task.status == fs.Task.statusSkipped) {
+        // Mark new.
+        documentWrites.add(
+          fs.Task.patchStatus(
+            fs.TaskId(
+              commitSha: task.commitSha,
+              currentAttempt: task.currentAttempt,
+              taskName: task.taskName,
+            ),
+            fs.Task.statusNew,
+          ),
+        );
+
+        // Since this is not a new attempt, break (do not add a new task).
+        break;
       }
 
       // Start a new task.
@@ -230,6 +250,13 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required String branch,
     required String email,
   }) async {
+    if (!_isTaskOwnedByCocoon(task)) {
+      throw BadRequestException(
+        'Cannot rerun ${task.taskName} through the dashboard. '
+        'See go/flutter-release-workflow#re-running-engine-build-for-release-candidate-branches',
+      );
+    }
+
     final allTargets = await _getPostsubmitTargets(commit);
     final taskTarget = _findMatchingTarget(task, postsubmitTargets: allTargets);
     if (taskTarget == null) {
@@ -242,5 +269,9 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       tags: [TriggerdByBuildTag(email: email)],
       task: task,
     );
+  }
+
+  static bool _isTaskOwnedByCocoon(fs.Task task) {
+    return !isTaskFromDartInternalBuilder(builderName: task.taskName);
   }
 }
