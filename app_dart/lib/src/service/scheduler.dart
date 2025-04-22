@@ -60,7 +60,6 @@ class Scheduler {
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
     @visibleForTesting
     this.initializeCiStagingDocument = CiStaging.initializeDocument,
-    @visibleForTesting this.findPullRequestFor = PrCheckRuns.findPullRequestFor,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
@@ -102,13 +101,6 @@ class Scheduler {
     required String checkRunGuard,
   })
   initializeCiStagingDocument;
-
-  final Future<PullRequest> Function(
-    FirestoreService firestoreService,
-    int checkRunId,
-    String checkRunName,
-  )
-  findPullRequestFor;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -166,7 +158,8 @@ class Scheduler {
     // TODO(matanlurey): Expand to every release candidate branch instead of a test branch.
     // See https://github.com/flutter/flutter/issues/163896.
     var markAllTasksSkipped = false;
-    if (branch == 'flutter-0.42-candidate.0') {
+    if (branch == 'flutter-0.42-candidate.0' ||
+        branch == 'flutter-3.32-candidate.0') {
       markAllTasksSkipped = true;
       log.info(
         '[release-candidate-postsubmit-skip] For merged PR ${pr.number}, SHA=$sha, skipping all post-submit tasks',
@@ -1273,7 +1266,7 @@ $s
     final id = checkRun.id!;
     final name = checkRun.name!;
     try {
-      pullRequest = await findPullRequestFor(_firestore, id, name);
+      pullRequest = await PrCheckRuns.findPullRequestFor(_firestore, id, name);
     } catch (e, s) {
       log.warn('$logCrumb: unable to find PR in PrCheckRuns', e, s);
     }

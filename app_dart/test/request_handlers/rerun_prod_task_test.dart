@@ -159,7 +159,7 @@ void main() {
     );
   });
 
-  test('Rerun all failed tasks when task name is all', () async {
+  test('Mark all failed tasks for rerun task name is all', () async {
     final fsCommit = generateFirestoreCommit(1);
     final fsTaskA = generateFirestoreTask(
       2,
@@ -186,14 +186,39 @@ void main() {
 
     await tester.post(handler);
 
-    verify(
+    verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         task: anyNamed('task'),
       ),
-    ).called(2);
+    );
+
+    expect(
+      firestore,
+      existsInStorage(
+        fs.Task.metadata,
+        unorderedEquals([
+          isTask
+              .hasTaskName('Linux A')
+              .hasStatus(fs.Task.statusFailed)
+              .hasCurrentAttempt(1),
+          isTask
+              .hasTaskName('Linux A')
+              .hasStatus(fs.Task.statusNew)
+              .hasCurrentAttempt(2),
+          isTask
+              .hasTaskName('Mac A')
+              .hasStatus(fs.Task.statusFailed)
+              .hasCurrentAttempt(1),
+          isTask
+              .hasTaskName('Mac A')
+              .hasStatus(fs.Task.statusNew)
+              .hasCurrentAttempt(2),
+        ]),
+      ),
+    );
   });
 
   test('Rerun all runs nothing when everything is passed', () async {
@@ -277,14 +302,89 @@ void main() {
     };
     await tester.post(handler);
 
-    verify(
+    verifyNever(
       mockLuciBuildService.checkRerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
         task: anyNamed('task'),
       ),
-    ).called(1);
+    );
+
+    expect(
+      firestore,
+      existsInStorage(
+        fs.Task.metadata,
+        unorderedEquals([
+          isTask
+              .hasTaskName('Windows A')
+              .hasStatus(fs.Task.statusSkipped)
+              .hasCurrentAttempt(1),
+          isTask
+              .hasTaskName('Windows A')
+              .hasStatus(fs.Task.statusNew)
+              .hasCurrentAttempt(2),
+        ]),
+      ),
+    );
+  });
+
+  test('Rerun all cancels in-progress tasks', () async {
+    final fsCommit = generateFirestoreCommit(1);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
+      generateFirestoreTask(
+        2,
+        name: 'Windows A',
+        commitSha: fsCommit.sha,
+        status: fs.Task.statusInProgress,
+      ),
+    );
+
+    tester.requestData = {
+      'branch': fsCommit.branch,
+      'repo': fsCommit.slug.name,
+      'commit': fsCommit.sha,
+      'task': 'all',
+      'include': Task.statusInProgress,
+    };
+    await tester.post(handler);
+
+    verifyNever(
+      mockLuciBuildService.checkRerunBuilder(
+        commit: anyNamed('commit'),
+        target: anyNamed('target'),
+        tags: anyNamed('tags'),
+        task: anyNamed('task'),
+      ),
+    );
+
+    expect(
+      firestore,
+      existsInStorage(
+        fs.Task.metadata,
+        unorderedEquals([
+          isTask
+              .hasTaskName('Windows A')
+              .hasStatus(fs.Task.statusCancelled)
+              .hasCurrentAttempt(1),
+          isTask
+              .hasTaskName('Windows A')
+              .hasStatus(fs.Task.statusNew)
+              .hasCurrentAttempt(2),
+        ]),
+      ),
+    );
+
+    verify(
+      mockLuciBuildService.cancelBuildsBySha(
+        sha: argThat(equals(fsCommit.sha), named: 'sha'),
+        reason: argThat(
+          contains('cancelled build to schedule a fresh '),
+          named: 'reason',
+        ),
+      ),
+    );
   });
 
   test('Rerun all can verifies included statuses are valid', () async {

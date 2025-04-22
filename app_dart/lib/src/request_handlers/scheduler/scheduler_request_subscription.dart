@@ -157,20 +157,10 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
   _sendBatchRequest(bbv2.BatchRequest request) async {
     log.info('Sending batch request for ${request.toProto3Json().toString()}');
 
+    final response = await buildBucketClient.batch(request);
     final errors = <String>[];
 
-    bbv2.BatchResponse response;
-    try {
-      response = await buildBucketClient.batch(request);
-    } catch (e) {
-      log.error('Exception making batch Requests.', e);
-      rethrow;
-    }
-
-    log.info(
-      'Made ${request.requests.length} and received ${response.responses.length}',
-    );
-    log.info('Responses: ${response.responses}');
+    log.debug('Responses: ${response.responses}');
 
     final retry = <bbv2.BatchRequest_Request>[...request.requests];
     for (final batchResponseResponse in response.responses) {
@@ -182,14 +172,9 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
         );
       } else {
         log.warn(
-          'Response does not have schedule build: $batchResponseResponse',
+          'Response does not have schedule build: $batchResponseResponse.',
         );
         errors.add('$batchResponseResponse');
-      }
-
-      if (batchResponseResponse.hasError() &&
-          batchResponseResponse.error.code != 0) {
-        log.info('Non-zero grpc code: $batchResponseResponse');
       }
     }
 
