@@ -35,7 +35,6 @@ class FakeConfig implements Config {
     this.loggingServiceValue,
     this.githubService,
     this.bigqueryService,
-    this.firestoreService,
     this.githubGraphQLClient,
     this.rollerAccountsValue,
     this.flutterBuildValue,
@@ -117,9 +116,6 @@ class FakeConfig implements Config {
 
   @override
   Future<BigqueryService> createBigQueryService() async => bigqueryService!;
-
-  @override
-  Future<FirestoreService> createFirestoreService() async => firestoreService!;
 
   @override
   Future<GithubService> createGithubService(gh.RepositorySlug slug) async =>

@@ -30,14 +30,17 @@ final class BatchBackfiller extends RequestHandler {
     required super.config,
     required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
+    required FirestoreService firestore,
     BackfillStrategy backfillerStrategy = const DefaultBackfillStrategy(),
   }) : _ciYamlFetcher = ciYamlFetcher,
        _luciBuildService = luciBuildService,
-       _backfillerStrategy = backfillerStrategy;
+       _backfillerStrategy = backfillerStrategy,
+       _firestore = firestore;
 
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
   final BackfillStrategy _backfillerStrategy;
+  final FirestoreService _firestore;
 
   @override
   Future<Body> get() async {
@@ -52,8 +55,7 @@ final class BatchBackfiller extends RequestHandler {
     final BackfillGrid grid;
     {
       // TODO(matanlurey): Switch this to use Firestore.
-      final firestore = await config.createFirestoreService();
-      final fsGrid = await firestore.queryRecentCommitsAndTasks(
+      final fsGrid = await _firestore.queryRecentCommitsAndTasks(
         slug,
         commitLimit: config.backfillerCommitLimit,
       );
@@ -115,9 +117,8 @@ final class BatchBackfiller extends RequestHandler {
   }
 
   Future<void> _updateFirestore(List<BackfillTask> tasks) async {
-    final firestore = await config.createFirestoreService();
     log.debug('Querying ${tasks.length} tasks in Firestore...');
-    await firestore.writeViaTransaction([
+    await _firestore.writeViaTransaction([
       ...tasks.map((toUpdate) {
         final BackfillTask(:task) = toUpdate;
         return fs.Task.patchStatus(

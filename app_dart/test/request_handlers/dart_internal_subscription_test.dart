@@ -47,11 +47,10 @@ void main() {
   }''';
 
   late DartInternalSubscription handler;
-  late FakeConfig config;
   late FakeHttpRequest request;
   late MockBuildBucketClient buildBucketClient;
   late SubscriptionTester tester;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
 
   final fsCommit = generateFirestoreCommit(
     1,
@@ -66,13 +65,13 @@ void main() {
   const buildNumber = 123456;
 
   setUp(() async {
-    firestoreService = FakeFirestoreService();
-    config = FakeConfig(firestoreService: firestoreService);
+    firestore = FakeFirestoreService();
     buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
-      config: config,
+      config: FakeConfig(),
       authProvider: FakeDashboardAuthentication(),
+      firestore: firestore,
     );
 
     request = FakeHttpRequest();
@@ -93,7 +92,7 @@ void main() {
     ).thenAnswer((_) async => build);
 
     // Setup Firestore:
-    firestoreService.putDocument(fsCommit);
+    firestore.putDocument(fsCommit);
   });
 
   test('creates a new task', () async {
@@ -102,7 +101,7 @@ void main() {
 
     // Check Firestore:
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName(builder)
@@ -115,7 +114,7 @@ void main() {
 
   test('updates an existing task', () async {
     // Insert into Firestore:
-    firestoreService.putDocument(
+    firestore.putDocument(
       generateFirestoreTask(
         1,
         attempts: 1,
@@ -131,7 +130,7 @@ void main() {
 
     // Check Firestore:
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName(builder)
@@ -144,7 +143,7 @@ void main() {
 
   test('records a retry of an existing task', () async {
     // Insert into Firestore:
-    firestoreService.putDocument(
+    firestore.putDocument(
       generateFirestoreTask(
         1,
         attempts: 1,
@@ -160,7 +159,7 @@ void main() {
 
     // Check Firestore:
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName(builder)

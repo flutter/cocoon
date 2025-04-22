@@ -19,6 +19,7 @@ typedef Server = Future<void> Function(HttpRequest);
 /// Creates a service with the given dependencies.
 Server createServer({
   required Config config,
+  required FirestoreService firestore,
   required CacheService cache,
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
@@ -45,6 +46,7 @@ Server createServer({
     '/api/dart-internal-subscription': DartInternalSubscription(
       cache: cache,
       config: config,
+      firestore: firestore,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
@@ -89,15 +91,18 @@ Server createServer({
       githubChecksService: githubChecksService,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
       authenticationProvider: authProvider,
       buildStatusService: buildStatusService,
+      firestore: firestore,
     ),
     '/api/push-gold-status-to-github': PushGoldStatusToGithub(
       config: config,
       authenticationProvider: authProvider,
+      firestore: firestore,
     ),
     // I do not believe these recieve a build message.
     '/api/rerun-prod-task': RerunProdTask(
@@ -105,6 +110,7 @@ Server createServer({
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
@@ -120,11 +126,13 @@ Server createServer({
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
     ),
     '/api/v2/scheduler/batch-request-subscription':
         SchedulerRequestSubscription(
@@ -135,6 +143,7 @@ Server createServer({
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,
       luciBuildService: luciBuildService,
+      firestore: firestore,
     ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
@@ -199,13 +208,14 @@ Server createServer({
         config: config,
         discord: DiscordService(config: config),
         buildStatusService: buildStatusService,
+        firestore: firestore,
       ),
       ttl: const Duration(seconds: 15),
     ),
     '/api/public/engine-artifacts-ready': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetEngineArtifactsReady(config: config),
+      delegate: GetEngineArtifactsReady(config: config, firestore: firestore),
       ttl: const Duration(minutes: 5),
     ),
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
@@ -269,6 +279,7 @@ Server createServer({
       delegate: GetStatus(
         config: config,
         buildStatusService: buildStatusService,
+        firestore: firestore,
       ),
     ),
 

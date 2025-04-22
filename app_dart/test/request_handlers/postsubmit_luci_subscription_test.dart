@@ -39,10 +39,7 @@ void main() {
   setUp(() async {
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestore = FakeFirestoreService();
-    config = FakeConfig(
-      maxLuciTaskRetriesValue: 3,
-      firestoreService: firestore,
-    );
+    config = FakeConfig(maxLuciTaskRetriesValue: 3);
     mockGithubChecksService = MockGithubChecksService();
     when(
       mockGithubChecksService.githubChecksUtil,
@@ -67,6 +64,7 @@ void main() {
     final luciBuildService = FakeLuciBuildService(
       config: config,
       githubChecksUtil: mockGithubChecksUtil,
+      firestore: firestore,
     );
     ciYamlFetcher = FakeCiYamlFetcher();
     handler = PostsubmitLuciSubscription(
@@ -76,6 +74,7 @@ void main() {
       githubChecksService: mockGithubChecksService,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
     );
     request = FakeHttpRequest();
     tester = SubscriptionTester(request: request);

@@ -18,6 +18,7 @@ import 'fake_gerrit_service.dart';
 class FakeLuciBuildService extends LuciBuildService {
   FakeLuciBuildService({
     required super.config,
+    required super.firestore,
     BuildBucketClient? buildBucketClient,
     GithubChecksUtil? githubChecksUtil,
     GerritService? gerritService,

@@ -7,11 +7,9 @@ import 'dart:io';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import '../model/firestore/ci_staging.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
-import '../request_handling/request_handler.dart';
-import '../service/config.dart';
 
 /// Query if engine artifacts are ready for a given commit SHA.
 ///
@@ -29,7 +27,12 @@ import '../service/config.dart';
 /// - `{status: "failed"}`; the engine artifacts will not be uploaded as there was a failure building the engine
 @immutable
 final class GetEngineArtifactsReady extends RequestHandler<Body> {
-  const GetEngineArtifactsReady({required super.config});
+  const GetEngineArtifactsReady({
+    required super.config,
+    required FirestoreService firestore,
+  }) : _firestore = firestore;
+
+  final FirestoreService _firestore;
 
   static const _paramSha = 'sha';
 
@@ -40,11 +43,10 @@ final class GetEngineArtifactsReady extends RequestHandler<Body> {
       throw const BadRequestException('Missing query parameter: "$_paramSha"');
     }
 
-    final firestore = await config.createFirestoreService();
     final CiStaging ciStaging;
     try {
       ciStaging = await CiStaging.fromFirestore(
-        firestoreService: firestore,
+        firestoreService: _firestore,
         documentName: CiStaging.documentNameFor(
           slug: Config.flutterSlug,
           sha: commitSha,

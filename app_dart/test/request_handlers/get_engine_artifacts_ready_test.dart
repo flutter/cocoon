@@ -21,16 +21,17 @@ import '../src/service/fake_firestore_service.dart';
 void main() {
   useTestLoggerPerTest();
 
-  late FakeConfig config;
   late FakeFirestoreService firestore;
   late RequestHandlerTester tester;
   late GetEngineArtifactsReady handler;
 
   setUp(() {
     firestore = FakeFirestoreService();
-    config = FakeConfig(firestoreService: firestore);
     tester = RequestHandlerTester();
-    handler = GetEngineArtifactsReady(config: config);
+    handler = GetEngineArtifactsReady(
+      config: FakeConfig(),
+      firestore: firestore,
+    );
   });
 
   Future<Map<String, Object?>> decodeHandlerBody() async {

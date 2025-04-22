@@ -41,11 +41,8 @@ void main() {
     when(githubService.github).thenReturn(github);
     repositories = MockRepositoriesService();
     when(github.repositories).thenReturn(repositories);
-    config = FakeConfig(
-      firestoreService: firestore,
-      githubService: githubService,
-    );
-    commitService = CommitService(config: config);
+    config = FakeConfig(githubService: githubService);
+    commitService = CommitService(config: config, firestore: firestore);
   });
 
   group('handleCreateGithubRequest', () {

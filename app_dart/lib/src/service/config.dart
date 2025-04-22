@@ -502,18 +502,6 @@ interface class Config {
     );
   }
 
-  // GoogleAuthProvider returns a AutoRefreshingAuthClient, so it is not
-  // necessary to keep returning a new instance of FirestoreService for every
-  // call (like it might be for GithubService and similar APIs).
-  //
-  // TODO(matanlurey): Just inject FirestoreService and do not use Config.
-  late final _firestoreService = FirestoreService.from(
-    const GoogleAuthProvider(),
-  );
-  Future<FirestoreService> createFirestoreService() async {
-    return _firestoreService;
-  }
-
   Future<BigqueryService> createBigQueryService() async {
     return BigqueryService.from(const GoogleAuthProvider());
   }

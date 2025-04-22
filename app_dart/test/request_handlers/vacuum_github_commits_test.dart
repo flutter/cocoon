@@ -76,13 +76,12 @@ void main() {
         MockJobsResource(),
       ),
       githubService: githubService,
-      firestoreService: firestore,
       supportedBranchesValue: ['master'],
       supportedReposValue: {Config.flutterSlug},
     );
 
     final auth = FakeDashboardAuthentication();
-    final scheduler = FakeScheduler(config: config);
+    final scheduler = FakeScheduler(config: config, firestore: firestore);
     tester = ApiRequestHandlerTester();
     handler = VacuumGithubCommits(
       config: config,
