@@ -38,14 +38,17 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     required LuciBuildService luciBuildService,
     required GithubChecksService githubChecksService,
     required CiYamlFetcher ciYamlFetcher,
+    required FirestoreService firestore,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
+       _firestore = firestore,
        super(subscriptionName: 'build-bucket-postsubmit-sub');
 
   final LuciBuildService _luciBuildService;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
+  final FirestoreService _firestore;
 
   @override
   Future<Body> post() async {
@@ -77,8 +80,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
     log.info('build ${build.toProto3Json()}');
 
-    final firestore = await config.createFirestoreService();
-    final fsTask = await fs.Task.fromFirestore(firestore, userData.taskId);
+    final fsTask = await fs.Task.fromFirestore(_firestore, userData.taskId);
     log.info('Found $fsTask');
 
     if (_shouldUpdateTask(build, fsTask)) {
@@ -93,7 +95,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     }
 
     final fsCommit = await fs.Commit.fromFirestoreBySha(
-      firestore,
+      _firestore,
       sha: fsTask.commitSha,
     );
 
@@ -142,8 +144,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
 
   Future<void> _updateFirestore(fs.Task fsTask, bbv2.Build build) async {
     fsTask.updateFromBuild(build);
-    final firestore = await config.createFirestoreService();
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites([fsTask], exists: true)),
       kDatabase,
     );
@@ -178,12 +179,11 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       return false;
     }
 
-    final firestoreService = await config.createFirestoreService();
     final currentCommit = await fs.Commit.fromFirestoreBySha(
-      firestoreService,
+      _firestore,
       sha: task.commitSha,
     );
-    final commitList = await firestoreService.queryRecentCommits(
+    final commitList = await _firestore.queryRecentCommits(
       limit: 1,
       slug: currentCommit.slug,
       branch: currentCommit.branch,

@@ -19,7 +19,6 @@ import '../src/utilities/entity_generators.dart';
 void main() {
   useTestLoggerPerTest();
 
-  late FakeConfig config;
   late FakeBuildStatusService buildStatusService;
   late RequestHandlerTester tester;
   late GetStatus handler;
@@ -44,9 +43,12 @@ void main() {
     firestore.putDocument(commit2);
 
     tester = RequestHandlerTester();
-    config = FakeConfig(firestoreService: firestore);
     buildStatusService = FakeBuildStatusService(commitTasksStatuses: []);
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
   });
 
   test('no statuses', () async {
@@ -65,7 +67,11 @@ void main() {
         CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
       ],
     );
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
 
     tester.request = FakeHttpRequest();
     final result = (await decodeHandlerBody<Map<String, Object?>>())!;
@@ -79,7 +85,11 @@ void main() {
         CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
       ],
     );
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {GetStatus.kLastCommitShaParam: commit2.sha},
@@ -115,7 +125,11 @@ void main() {
         ]),
       ],
     );
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {GetStatus.kBranchParam: commit1.branch},

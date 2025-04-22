@@ -79,7 +79,6 @@ void main() {
     config = FakeConfig(
       githubClient: gitHubClient,
       githubService: githubService,
-      firestoreService: firestore,
       githubOAuthTokenValue: 'githubOAuthKey',
       missingTestsPullRequestMessageValue: 'missingTestPullRequestMessage',
       releaseBranchPullRequestMessageValue: 'releaseBranchPullRequestMessage',
@@ -130,6 +129,7 @@ void main() {
       config: config,
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
+      firestore: firestore,
     );
     tester = SubscriptionTester(request: request);
 

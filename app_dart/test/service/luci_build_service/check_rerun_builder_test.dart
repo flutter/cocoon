@@ -29,25 +29,23 @@ void main() {
   // Dependencies (mocked/faked if necessary):
   late MockBuildBucketClient mockBuildBucketClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late FakePubSub pubSub;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    firestoreService = FakeFirestoreService();
+    firestore = FakeFirestoreService();
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
-      config: FakeConfig(
-        firestoreService: firestoreService,
-        maxLuciTaskRetriesValue: 2,
-      ),
+      config: FakeConfig(maxLuciTaskRetriesValue: 2),
       gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
+      firestore: firestore,
     );
   });
 
@@ -60,8 +58,8 @@ void main() {
       commitSha: fsCommit.sha,
       status: fs.Task.statusFailed,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     await expectLater(
       luci.checkRerunBuilder(
@@ -100,7 +98,7 @@ void main() {
     );
 
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask.hasCurrentAttempt(1).hasStatus(fs.Task.statusFailed),
         isTask.hasCurrentAttempt(2).hasStatus(fs.Task.statusInProgress),
@@ -117,8 +115,8 @@ void main() {
       commitSha: fsCommit.sha,
       status: fs.Task.statusInfraFailure,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     await expectLater(
       luci.checkRerunBuilder(
@@ -157,7 +155,7 @@ void main() {
     );
 
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask.hasCurrentAttempt(1).hasStatus(fs.Task.statusInfraFailure),
         isTask.hasCurrentAttempt(2).hasStatus(fs.Task.statusInProgress),
@@ -174,10 +172,10 @@ void main() {
       commitSha: fsCommit.sha,
       status: fs.Task.statusFailed,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
-    firestoreService.failOnWriteCollection(fs.Task.metadata.collectionId);
+    firestore.failOnWriteCollection(fs.Task.metadata.collectionId);
 
     await expectLater(
       luci.checkRerunBuilder(

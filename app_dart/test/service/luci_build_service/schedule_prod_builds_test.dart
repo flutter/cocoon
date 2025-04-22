@@ -42,22 +42,23 @@ void main() {
   // Dependencies (mocked/faked if necessary):
   late MockBuildBucketClient mockBuildBucketClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late FakePubSub pubSub;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    firestoreService = FakeFirestoreService();
+    firestore = FakeFirestoreService();
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
-      config: FakeConfig(firestoreService: firestoreService),
+      config: FakeConfig(),
       gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
+      firestore: firestore,
     );
   });
 
@@ -564,7 +565,7 @@ void main() {
       final fsCommit = generateFirestoreCommit(0);
 
       final fsTask = generateFirestoreTask(0, commitSha: fsCommit.sha);
-      firestoreService.putDocument(fsTask);
+      firestore.putDocument(fsTask);
 
       await luci.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
@@ -574,7 +575,7 @@ void main() {
       );
 
       expect(
-        firestoreService,
+        firestore,
         existsInStorage(fs.Task.metadata, [
           isTask.hasCurrentAttempt(1),
           isTask.hasCurrentAttempt(2),

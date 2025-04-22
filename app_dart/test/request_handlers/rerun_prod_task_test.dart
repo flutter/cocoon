@@ -27,19 +27,18 @@ void main() {
   late RerunProdTask handler;
   late FakeConfig config;
   late MockLuciBuildService mockLuciBuildService;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late ApiRequestHandlerTester tester;
   late FakeCiYamlFetcher ciYamlFetcher;
 
   setUp(() {
     final clientContext = FakeClientContext();
-    firestoreService = FakeFirestoreService();
+    firestore = FakeFirestoreService();
     clientContext.isDevelopmentEnvironment = false;
     config = FakeConfig(
       supportedBranchesValue: <String>[
         Config.defaultBranch(Config.flutterSlug),
       ],
-      firestoreService: firestoreService,
     );
     final authContext = FakeAuthenticatedContext(clientContext: clientContext);
     tester = ApiRequestHandlerTester(context: authContext);
@@ -52,6 +51,7 @@ void main() {
       ),
       luciBuildService: mockLuciBuildService,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     );
 
     when(
@@ -73,8 +73,8 @@ void main() {
       name: 'Linux A',
       commitSha: fsCommit.sha,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     tester.requestData = {
       'branch': fsCommit.branch,
@@ -86,7 +86,7 @@ void main() {
     expect(await tester.post(handler), Body.empty);
 
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(
         fs.Task.metadata,
         contains(
@@ -107,8 +107,8 @@ void main() {
       name: 'Linux A',
       commitSha: fsCommit.sha,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     tester.requestData = {
       'branch': fsCommit.branch,
@@ -136,8 +136,8 @@ void main() {
       name: 'Linux A',
       commitSha: fsCommit.sha,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     tester.requestData = {
       'branch': fsCommit.branch,
@@ -173,9 +173,9 @@ void main() {
       commitSha: fsCommit.sha,
       status: Task.statusFailed,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTaskA);
-    firestoreService.putDocument(fsTaskB);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTaskA);
+    firestore.putDocument(fsTaskB);
 
     tester.requestData = {
       'branch': fsCommit.branch,
@@ -196,7 +196,7 @@ void main() {
     );
 
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(
         fs.Task.metadata,
         unorderedEquals([
@@ -223,8 +223,8 @@ void main() {
 
   test('Rerun all runs nothing when everything is passed', () async {
     final fsCommit = generateFirestoreCommit(1);
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
       generateFirestoreTask(
         2,
         name: 'Windows A',
@@ -253,8 +253,8 @@ void main() {
 
   test('Rerun all runs nothing when everything is skipped', () async {
     final fsCommit = generateFirestoreCommit(1);
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
       generateFirestoreTask(
         2,
         name: 'Windows A',
@@ -283,8 +283,8 @@ void main() {
 
   test('Rerun all can optionally include other statuses (skipped)', () async {
     final fsCommit = generateFirestoreCommit(1);
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
       generateFirestoreTask(
         2,
         name: 'Windows A',
@@ -312,7 +312,7 @@ void main() {
     );
 
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(
         fs.Task.metadata,
         unorderedEquals([
@@ -331,8 +331,8 @@ void main() {
 
   test('Rerun all cancels in-progress tasks', () async {
     final fsCommit = generateFirestoreCommit(1);
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
       generateFirestoreTask(
         2,
         name: 'Windows A',
@@ -360,7 +360,7 @@ void main() {
     );
 
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(
         fs.Task.metadata,
         unorderedEquals([
@@ -389,7 +389,7 @@ void main() {
 
   test('Rerun all can verifies included statuses are valid', () async {
     final fsCommit = generateFirestoreCommit(1);
-    firestoreService.putDocument(fsCommit);
+    firestore.putDocument(fsCommit);
 
     tester.requestData = {
       'branch': fsCommit.branch,
@@ -413,8 +413,8 @@ void main() {
 
   test('No matching target fails with a 500', () async {
     final fsCommit = generateFirestoreCommit(1);
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(
       generateFirestoreTask(
         2,
         name: 'Windows C',
@@ -488,8 +488,8 @@ void main() {
       commitSha: fsCommit.sha,
       status: Task.statusFailed,
     );
-    firestoreService.putDocument(fsCommit);
-    firestoreService.putDocument(fsTask);
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
 
     tester.requestData = {
       'branch': fsCommit.branch,

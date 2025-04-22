@@ -17,6 +17,7 @@ import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_luci_build_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/build_bucket_messages.dart';
@@ -37,13 +38,15 @@ void main() {
   late FakeCiYamlFetcher ciYamlFetcher;
 
   setUp(() async {
+    final firestore = FakeFirestoreService();
+
     config = FakeConfig();
     mockLuciBuildService = MockLuciBuildService();
-
     mockGithubChecksService = MockGithubChecksService();
     scheduler = FakeScheduler(
       config: config,
       luciBuildService: mockLuciBuildService,
+      firestore: firestore,
     );
 
     ciYamlFetcher = FakeCiYamlFetcher(
@@ -52,7 +55,10 @@ void main() {
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
-      luciBuildService: FakeLuciBuildService(config: config),
+      luciBuildService: FakeLuciBuildService(
+        config: config,
+        firestore: firestore,
+      ),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
       scheduler: scheduler,

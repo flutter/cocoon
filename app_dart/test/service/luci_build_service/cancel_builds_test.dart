@@ -29,7 +29,7 @@ void main() {
   // Dependencies (mocked/faked if necessary):
   late MockBuildBucketClient mockBuildBucketClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late FakePubSub pubSub;
 
   final pullRequest = generatePullRequest(id: 1, repo: 'cocoon');
@@ -37,16 +37,17 @@ void main() {
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    firestoreService = FakeFirestoreService();
+    firestore = FakeFirestoreService();
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
-      config: FakeConfig(firestoreService: firestoreService),
+      config: FakeConfig(),
       gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
+      firestore: firestore,
     );
   });
 

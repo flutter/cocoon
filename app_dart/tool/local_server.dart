@@ -17,13 +17,16 @@ import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 
 import '../test/src/service/fake_content_aware_hash_service.dart';
+import '../test/src/service/fake_firestore_service.dart';
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
   final config = Config(cache, FakeSecretManager());
+  final firestore = FakeFirestoreService();
   final authProvider = DashboardAuthentication(
     config: config,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+    firestore: firestore,
   );
   final AuthenticationProvider swarmingAuthProvider =
       SwarmingAuthenticationProvider(config: config);
@@ -45,12 +48,13 @@ Future<void> main() async {
     buildBucketClient: buildBucketClient,
     gerritService: gerritService,
     pubsub: const PubSub(),
+    firestore: firestore,
   );
 
   /// Github checks api service used to provide luci test execution status on the Github UI.
   final githubChecksService = GithubChecksService(config);
 
-  final ciYamlFetcher = CiYamlFetcher(cache: cache, config: config);
+  final ciYamlFetcher = CiYamlFetcher(cache: cache, firestore: firestore);
 
   /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
   final scheduler = Scheduler(
@@ -61,6 +65,7 @@ Future<void> main() async {
     luciBuildService: luciBuildService,
     ciYamlFetcher: ciYamlFetcher,
     contentAwareHash: FakeContentAwareHashService(config: config),
+    firestore: firestore,
   );
 
   final branchService = BranchService(
@@ -68,9 +73,9 @@ Future<void> main() async {
     gerritService: gerritService,
   );
 
-  final commitService = CommitService(config: config);
+  final commitService = CommitService(config: config, firestore: firestore);
 
-  final buildStatusService = BuildStatusService(config);
+  final buildStatusService = BuildStatusService(firestore: firestore);
 
   final server = createServer(
     config: config,
@@ -86,6 +91,7 @@ Future<void> main() async {
     swarmingAuthProvider: swarmingAuthProvider,
     ciYamlFetcher: ciYamlFetcher,
     buildStatusService: buildStatusService,
+    firestore: firestore,
   );
 
   return runAppEngine(

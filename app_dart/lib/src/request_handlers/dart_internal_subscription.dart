@@ -24,8 +24,12 @@ final class DartInternalSubscription extends SubscriptionHandler {
   const DartInternalSubscription({
     required super.cache,
     required super.config,
+    required FirestoreService firestore,
     super.authProvider,
-  }) : super(subscriptionName: 'dart-internal-build-results-sub');
+  }) : _firestore = firestore,
+       super(subscriptionName: 'dart-internal-build-results-sub');
+
+  final FirestoreService _firestore;
 
   @override
   Future<Body> post() async {
@@ -42,10 +46,9 @@ final class DartInternalSubscription extends SubscriptionHandler {
     }
 
     log.info('Checking for existing task in Firestore');
-    final firestore = await config.createFirestoreService();
     final fs.Task fsTask;
     {
-      final existing = await firestore.queryLatestTask(
+      final existing = await _firestore.queryLatestTask(
         commitSha: build.input.gitilesCommit.id,
         builderName: build.builder.builder,
       );
@@ -75,7 +78,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
     }
 
     log.info('Inserting Task into Firestore: ${fsTask.toString()}');
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites([fsTask])),
       kDatabase,
     );

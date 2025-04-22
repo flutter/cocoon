@@ -8,21 +8,22 @@ import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
-import '../request_handling/body.dart';
-import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
-import '../service/config.dart';
 
 @immutable
 final class GetStatus extends RequestHandler<Body> {
   const GetStatus({
     required super.config,
     required BuildStatusService buildStatusService,
+    required FirestoreService firestore,
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _now = now,
-       _buildStatusService = buildStatusService;
+       _buildStatusService = buildStatusService,
+       _firestore = firestore;
 
+  final FirestoreService _firestore;
   final BuildStatusService _buildStatusService;
   final DateTime Function() _now;
 
@@ -40,12 +41,11 @@ final class GetStatus extends RequestHandler<Body> {
     final branch =
         request!.uri.queryParameters[kBranchParam] ??
         Config.defaultBranch(slug);
-    final firestoreService = await config.createFirestoreService();
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null
             ? (await Commit.fromFirestoreBySha(
-              firestoreService,
+              _firestore,
               sha: lastCommitSha,
             )).createTimestamp
             : _now().millisecondsSinceEpoch;

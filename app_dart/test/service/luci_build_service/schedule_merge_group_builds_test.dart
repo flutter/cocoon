@@ -33,23 +33,24 @@ void main() {
   // Dependencies (mocked/faked if necessary):
   late MockBuildBucketClient mockBuildBucketClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late FakePubSub pubSub;
   late FakeGerritService gerritService;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    firestoreService = FakeFirestoreService();
+    firestore = FakeFirestoreService();
     pubSub = FakePubSub();
     gerritService = FakeGerritService();
     luci = LuciBuildService(
-      config: FakeConfig(firestoreService: firestoreService),
+      config: FakeConfig(),
       cache: CacheService(inMemory: true),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
       gerritService: gerritService,
+      firestore: firestore,
     );
   });
 
