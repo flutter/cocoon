@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:http/http.dart';
 
 class GithubService {
   GithubService(this.github);
@@ -42,18 +42,21 @@ class GithubService {
 
     var commits = <Map<String, dynamic>>[];
 
-    /// [lastCommitTimestamp+1] excludes last commit itself.
-    /// Github api url: https://developer.github.com/v3/repos/commits/#list-commits
-    await for (Response response in paginationHelper.fetchStreamed(
+    // [lastCommitTimestamp+1] excludes last commit itself.
+    // Github api url: https://developer.github.com/v3/repos/commits/#list-commits
+    final path = '/repos/${slug.fullName}/commits';
+    final params = {
+      'sha': branch,
+      'since':
+          DateTime.fromMillisecondsSinceEpoch(
+            (lastCommitTimestampMills ?? 0) + 1,
+          ).toUtc().toIso8601String(),
+    };
+    log.debug('Calling ${Uri(path: path, queryParameters: params)}');
+    await for (final response in paginationHelper.fetchStreamed(
       'GET',
-      '/repos/${slug.fullName}/commits',
-      params: <String, dynamic>{
-        'sha': branch,
-        'since':
-            DateTime.fromMillisecondsSinceEpoch(
-              (lastCommitTimestampMills ?? 0) + 1,
-            ).toUtc().toIso8601String(),
-      },
+      path,
+      params: params,
       pages: pages,
       headers: headers,
     )) {
