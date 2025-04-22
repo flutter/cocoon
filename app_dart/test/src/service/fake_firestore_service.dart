@@ -412,6 +412,8 @@ abstract base class _FakeInMemoryFirestoreService
     int? limit,
     Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
+    // TODO(matanlurey): Consider implementing read transactions.
+    Transaction? transaction,
   }) async {
     var results = documents.where((document) {
       final collection = p.basename(p.dirname(document.name!));
