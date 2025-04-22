@@ -10,7 +10,7 @@ import 'package:github/github.dart';
 
 import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
-import '../service/bigquery.dart';
+import '../service/big_query.dart';
 import '../service/github_service.dart';
 import 'test_ownership.dart';
 

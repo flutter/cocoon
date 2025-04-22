@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 
 const String ciYamlContent = '''
 # Describes the targets run in continuous integration environment.

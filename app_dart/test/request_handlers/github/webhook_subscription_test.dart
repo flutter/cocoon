@@ -14,7 +14,7 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -88,10 +88,6 @@ void main() {
         'dependabot',
         'dependabot[bot]',
       },
-      bigqueryService: BigqueryService.forTesting(
-        tabledataResource,
-        MockJobsResource(),
-      ),
       wrongHeadBranchPullRequestMessageValue:
           'wrongHeadBranchPullRequestMessage',
       wrongBaseBranchPullRequestMessageValue:
@@ -130,6 +126,10 @@ void main() {
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       firestore: firestore,
+      bigQuery: BigQueryService.forTesting(
+        tabledataResource,
+        MockJobsResource(),
+      ),
     );
     tester = SubscriptionTester(request: request);
 

@@ -7,7 +7,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
@@ -71,17 +71,20 @@ void main() {
     });
 
     config = FakeConfig(
-      bigqueryService: BigqueryService.forTesting(
-        tabledataResourceApi,
-        MockJobsResource(),
-      ),
       githubService: githubService,
       supportedBranchesValue: ['master'],
       supportedReposValue: {Config.flutterSlug},
     );
 
     final auth = FakeDashboardAuthentication();
-    final scheduler = FakeScheduler(config: config, firestore: firestore);
+    final scheduler = FakeScheduler(
+      config: config,
+      firestore: firestore,
+      bigQuery: BigQueryService.forTesting(
+        tabledataResourceApi,
+        MockJobsResource(),
+      ),
+    );
     tester = ApiRequestHandlerTester();
     handler = VacuumGithubCommits(
       config: config,

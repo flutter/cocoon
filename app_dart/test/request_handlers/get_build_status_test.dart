@@ -33,12 +33,9 @@ void main() {
 
   setUp(() {
     firestore = FakeFirestoreService();
-    final config = FakeConfig();
-    config.firestoreService = firestore;
-
     tester = RequestHandlerTester();
     handler = GetBuildStatus(
-      config: config,
+      config: FakeConfig(),
       buildStatusService: BuildStatusService(firestore: firestore),
     );
   });

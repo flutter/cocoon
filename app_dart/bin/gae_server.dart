@@ -10,6 +10,7 @@ import 'package:cocoon_server/secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
@@ -34,6 +35,7 @@ Future<void> main() async {
 
     final cache = CacheService(inMemory: false);
     final firestore = await FirestoreService.from(const GoogleAuthProvider());
+    final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
     final config = Config(
       cache,
       await SecretManager.create(
@@ -84,6 +86,7 @@ Future<void> main() async {
       ciYamlFetcher: ciYamlFetcher,
       contentAwareHash: ContentAwareHashService(config: config),
       firestore: firestore,
+      bigQuery: bigQuery,
     );
 
     final branchService = BranchService(
@@ -97,6 +100,7 @@ Future<void> main() async {
     final server = createServer(
       config: config,
       firestore: firestore,
+      bigQuery: bigQuery,
       cache: cache,
       authProvider: authProvider,
       branchService: branchService,

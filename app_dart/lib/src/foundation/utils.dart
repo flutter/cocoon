@@ -203,7 +203,7 @@ RegExp _convertGlobToRegExp(String glob) {
   return RegExp('^$glob\$');
 }
 
-Future<void> insertBigquery(
+Future<void> insertBigQuery(
   String tableName,
   Map<String, dynamic> data,
   TabledataResource tabledataResourceApi,

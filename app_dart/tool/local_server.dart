@@ -5,11 +5,13 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
@@ -23,6 +25,11 @@ Future<void> main() async {
   final cache = CacheService(inMemory: false);
   final config = Config(cache, FakeSecretManager());
   final firestore = FakeFirestoreService();
+
+  // TODO(matanlurey): This will not work, but matches the behavior of what
+  // the default FakeConfig service did before refactoring.
+  // https://github.com/flutter/cocoon/blob/2995f3a4b8c778bf41df5cd1a42dce966202a6b9/app_dart/lib/src/service/config.dart#L505-L507
+  final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
   final authProvider = DashboardAuthentication(
     config: config,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
@@ -66,6 +73,7 @@ Future<void> main() async {
     ciYamlFetcher: ciYamlFetcher,
     contentAwareHash: FakeContentAwareHashService(config: config),
     firestore: firestore,
+    bigQuery: bigQuery,
   );
 
   final branchService = BranchService(
@@ -92,6 +100,7 @@ Future<void> main() async {
     ciYamlFetcher: ciYamlFetcher,
     buildStatusService: buildStatusService,
     firestore: firestore,
+    bigQuery: bigQuery,
   );
 
   return runAppEngine(

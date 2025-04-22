@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
@@ -34,7 +34,7 @@ export 'mocks.mocks.dart';
 @GenerateMocks(
   <Type>[
     AccessTokenService,
-    BigqueryService,
+    BigQueryService,
     BranchService,
     BuildBucketClient,
     CommitService,

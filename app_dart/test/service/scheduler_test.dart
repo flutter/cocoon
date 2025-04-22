@@ -17,7 +17,7 @@ import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
@@ -181,10 +181,6 @@ void main() {
       firestore = FakeFirestoreService();
 
       config = FakeConfig(
-        bigqueryService: BigqueryService.forTesting(
-          tabledataResource,
-          MockJobsResource(),
-        ),
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),
         supportedReposValue: <RepositorySlug>{
@@ -232,9 +228,12 @@ void main() {
           ),
           firestore: firestore,
         ),
-        markCheckRunConclusion: callbacks.markCheckRunConclusion,
         contentAwareHash: fakeContentAwareHash,
         firestore: firestore,
+        bigQuery: BigQueryService.forTesting(
+          tabledataResource,
+          MockJobsResource(),
+        ),
       );
 
       // ignore: discarded_futures
@@ -349,6 +348,7 @@ void main() {
           luciBuildService: luciBuildService,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -436,6 +436,7 @@ void main() {
             luciBuildService: luciBuildService,
             contentAwareHash: fakeContentAwareHash,
             firestore: firestore,
+            bigQuery: MockBigQueryService(),
           );
 
           await scheduler.addCommits(
@@ -598,6 +599,7 @@ void main() {
             ),
             contentAwareHash: fakeContentAwareHash,
             firestore: firestore,
+            bigQuery: MockBigQueryService(),
           );
 
           final mergedPr = generatePullRequest(
@@ -673,6 +675,7 @@ void main() {
           ),
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -771,6 +774,7 @@ void main() {
             ),
             contentAwareHash: fakeContentAwareHash,
             firestore: firestore,
+            bigQuery: MockBigQueryService(),
           );
 
           await PrCheckRuns.initializeDocument(
@@ -863,6 +867,7 @@ void main() {
           ),
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -960,6 +965,7 @@ void main() {
           ciYamlFetcher: ciYamlFetcher,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
 
         await PrCheckRuns.initializeDocument(
@@ -1082,6 +1088,7 @@ targets:
           luciBuildService: luciBuildService,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString()) as Map<String, dynamic>,
@@ -1126,6 +1133,7 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
         expect(
           await scheduler.processCheckRun(checkRunEvent),
@@ -1460,9 +1468,9 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
               contentAwareHash: fakeContentAwareHash,
               firestore: firestore,
+              bigQuery: MockBigQueryService(),
             );
 
             when(
@@ -1566,9 +1574,9 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
               contentAwareHash: fakeContentAwareHash,
               firestore: firestore,
+              bigQuery: MockBigQueryService(),
             );
 
             when(
@@ -1685,9 +1693,9 @@ targets:
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 contentAwareHash: fakeContentAwareHash,
                 firestore: firestore,
+                bigQuery: MockBigQueryService(),
               );
 
               when(
@@ -1756,9 +1764,9 @@ targets:
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
               contentAwareHash: fakeContentAwareHash,
               firestore: firestore,
+              bigQuery: MockBigQueryService(),
             );
 
             when(
@@ -1852,9 +1860,9 @@ targets:
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 contentAwareHash: fakeContentAwareHash,
                 firestore: firestore,
+                bigQuery: MockBigQueryService(),
               );
 
               when(
@@ -2029,9 +2037,9 @@ targets:
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 contentAwareHash: fakeContentAwareHash,
                 firestore: firestore,
+                bigQuery: MockBigQueryService(),
               );
 
               when(
@@ -2440,6 +2448,7 @@ targets:
             ),
             contentAwareHash: fakeContentAwareHash,
             firestore: firestore,
+            bigQuery: MockBigQueryService(),
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2481,6 +2490,7 @@ targets:
             ),
             contentAwareHash: fakeContentAwareHash,
             firestore: firestore,
+            bigQuery: MockBigQueryService(),
           );
           await scheduler.triggerPresubmitTargets(
             pullRequest: generatePullRequest(branch: 'main', repo: 'packages'),
@@ -2757,6 +2767,7 @@ targets:
           luciBuildService: luci,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         final results =
@@ -2896,6 +2907,7 @@ targets:
           luciBuildService: luci,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3033,6 +3045,7 @@ targets:
           luciBuildService: luci,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3165,6 +3178,7 @@ targets:
           luciBuildService: luci,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3276,6 +3290,7 @@ targets:
           luciBuildService: fakeLuciBuildService,
           contentAwareHash: fakeContentAwareHash,
           firestore: firestore,
+          bigQuery: MockBigQueryService(),
         );
       });
 

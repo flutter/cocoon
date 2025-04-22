@@ -14,7 +14,7 @@ import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
-import '../service/bigquery.dart';
+import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
@@ -37,7 +37,10 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   const CheckFlakyBuilders({
     required super.config,
     required super.authenticationProvider,
-  });
+    required BigQueryService bigQuery,
+  }) : _bigQuery = bigQuery;
+
+  final BigQueryService _bigQuery;
 
   static int kRecordNumber = 50;
 
@@ -58,7 +61,6 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
     );
-    final bigquery = await config.createBigQueryService();
     final ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
     final ci = loadYaml(ciContent) as YamlMap?;
     final unCheckedSchedulerConfig =
@@ -91,7 +93,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         type,
         testOwnerContent,
       );
-      final builderRecords = await bigquery.listRecentBuildRecordsForBuilder(
+      final builderRecords = await _bigQuery.listRecentBuildRecordsForBuilder(
         kBigQueryProjectId,
         builder: info.name,
         limit: kRecordNumber,
