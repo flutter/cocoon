@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/bigquery.dart';
@@ -15,7 +14,6 @@ import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/discord_service.dart';
-import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -57,7 +55,6 @@ export 'mocks.mocks.dart';
     UsersService,
     ProjectsDatabasesDocumentsResource,
     BeginTransactionResponse,
-    Callbacks,
     PullRequestLabelProcessor,
   ],
   customMocks: [
@@ -75,42 +72,4 @@ void main() {}
 class ThrowingGitHub implements GitHub {
   @override
   dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
-}
-
-abstract class Callbacks {
-  // ignore: unreachable_from_main
-  Future<StagingConclusion> markCheckRunConclusion({
-    required FirestoreService firestoreService,
-    required RepositorySlug slug,
-    required String sha,
-    required CiStage stage,
-    required String checkRun,
-    required TaskConclusion conclusion,
-  });
-
-  // ignore: unreachable_from_main
-  Future<Document> initializeDocument({
-    required FirestoreService firestoreService,
-    required RepositorySlug slug,
-    required String sha,
-    required CiStage stage,
-    required List<String> tasks,
-    required String checkRunGuard,
-  });
-
-  /// See [PrCheckRuns.initializeDocument]
-  // ignore: unreachable_from_main
-  Future<Document> initializePrCheckRuns({
-    required FirestoreService firestoreService,
-    required PullRequest pullRequest,
-    required List<CheckRun> checks,
-  });
-
-  /// See [PrCheckRuns.findPullRequestFor]
-  // ignore: unreachable_from_main
-  Future<PullRequest> findPullRequestFor(
-    FirestoreService firestoreService,
-    int checkRunId,
-    String checkRunName,
-  );
 }
