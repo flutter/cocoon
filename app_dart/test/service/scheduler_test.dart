@@ -1175,7 +1175,9 @@ targets:
                 expect(
                   await scheduler.processCheckRunCompletion(
                     cocoon_checks.CheckRunEvent.fromJson(
-                      json.decode(checkRunEventFor(test: ignored))
+                      json.decode(
+                            checkRunEventFor(test: ignored, sha: 'abc123'),
+                          )
                           as Map<String, Object?>,
                     ),
                   ),
@@ -1196,54 +1198,33 @@ targets:
           );
 
           test('ignores invalid conclusions', () async {
-            // FIXME
-            // when(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: anyNamed('firestoreService'),
-            //     slug: anyNamed('slug'),
-            //     sha: anyNamed('sha'),
-            //     stage: anyNamed('stage'),
-            //     checkRun: anyNamed('checkRun'),
-            //     conclusion: anyNamed('conclusion'),
-            //   ),
-            // ).thenAnswer((_) async {
-            //   return const StagingConclusion(
-            //     result: StagingConclusionResult.internalError,
-            //     remaining: 1,
-            //     checkRunGuard: '{}',
-            //     failed: 0,
-            //     summary: 'Internal error',
-            //     details: 'Some details',
-            //   );
-            // });
+            final document = await CiStaging.initializeDocument(
+              firestoreService: firestoreService,
+              slug: Config.flutterSlug,
+              sha: 'abc123',
+              stage: CiStage.fusionTests,
+              tasks: ['Bar bar'],
+              checkRunGuard: '{}',
+            );
+
+            firestoreService.failOnWriteDocument(document);
 
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar'))
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'abc123'))
                       as Map<String, Object?>,
                 ),
               ),
               isFalse,
             );
 
-            // FIXME
-            // verify(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: argThat(isNotNull, named: 'firestoreService'),
-            //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-            //     sha: '1234',
-            //     stage: argThat(
-            //       equals(CiStage.fusionEngineBuild),
-            //       named: 'stage',
-            //     ),
-            //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-            //     conclusion: argThat(
-            //       equals(TaskConclusion.success),
-            //       named: 'conclusion',
-            //     ),
-            //   ),
-            // ).called(1);
+            expect(
+              firestoreService,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasCheckRuns({'Bar bar': TaskConclusion.scheduled}),
+              ]),
+            );
 
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
@@ -1258,54 +1239,34 @@ targets:
           });
 
           test('does not complete with remaining tests', () async {
-            // FIXME
-            // when(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: anyNamed('firestoreService'),
-            //     slug: anyNamed('slug'),
-            //     sha: anyNamed('sha'),
-            //     stage: anyNamed('stage'),
-            //     checkRun: anyNamed('checkRun'),
-            //     conclusion: anyNamed('conclusion'),
-            //   ),
-            // ).thenAnswer((inv) async {
-            //   return const StagingConclusion(
-            //     result: StagingConclusionResult.ok,
-            //     remaining: 1,
-            //     checkRunGuard: '{}',
-            //     failed: 0,
-            //     summary: 'OK',
-            //     details: 'Some details',
-            //   );
-            // });
+            await CiStaging.initializeDocument(
+              firestoreService: firestoreService,
+              slug: Config.flutterSlug,
+              sha: 'abc123',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Foo foo', 'Bar bar'],
+              checkRunGuard: '{}',
+            );
 
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar'))
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'abc123'))
                       as Map<String, Object?>,
                 ),
               ),
               isFalse,
             );
 
-            // FIXME
-            // verify(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: argThat(isNotNull, named: 'firestoreService'),
-            //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-            //     sha: '1234',
-            //     stage: argThat(
-            //       equals(CiStage.fusionEngineBuild),
-            //       named: 'stage',
-            //     ),
-            //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-            //     conclusion: argThat(
-            //       equals(TaskConclusion.success),
-            //       named: 'conclusion',
-            //     ),
-            //   ),
-            // ).called(1);
+            expect(
+              firestoreService,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasCheckRuns({
+                  'Foo foo': TaskConclusion.scheduled,
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
 
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
@@ -1326,57 +1287,39 @@ targets:
           test(
             'failed tests neither unlock merge queue guard nor schedule test stage',
             () async {
-              // FIXME
-              // when(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: anyNamed('firestoreService'),
-              //     slug: anyNamed('slug'),
-              //     sha: anyNamed('sha'),
-              //     stage: anyNamed('stage'),
-              //     checkRun: anyNamed('checkRun'),
-              //     conclusion: anyNamed('conclusion'),
-              //   ),
-              // ).thenAnswer((inv) async {
-              //   return StagingConclusion(
-              //     result: StagingConclusionResult.ok,
-              //     remaining: 0,
-              //     checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-              //     failed: 1,
-              //     summary: 'OK',
-              //     details: 'Some details',
-              //   );
-              // });
+              await PrCheckRuns.initializeDocument(
+                firestoreService: firestoreService,
+                pullRequest: pullRequest,
+                checks: [createCheckRun(name: 'Bar bar')],
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestoreService,
+                slug: Config.flutterSlug,
+                sha: 'abc123',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
 
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(checkRunEventFor(test: 'Bar bar'))
+                    json.decode(
+                          checkRunEventFor(test: 'Bar bar', sha: 'abc123'),
+                        )
                         as Map<String, Object?>,
                   ),
                 ),
                 isTrue,
               );
 
-              // FIXME
-              // verify(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: argThat(
-              //       isNotNull,
-              //       named: 'firestoreService',
-              //     ),
-              //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-              //     sha: '1234',
-              //     stage: argThat(
-              //       equals(CiStage.fusionEngineBuild),
-              //       named: 'stage',
-              //     ),
-              //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-              //     conclusion: argThat(
-              //       equals(TaskConclusion.success),
-              //       named: 'conclusion',
-              //     ),
-              //   ),
-              // ).called(1);
+              expect(
+                firestoreService,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasCheckRuns({'Bar bar': TaskConclusion.success}),
+                ]),
+              );
 
               verifyNever(
                 mockGithubChecksUtil.updateCheckRun(
@@ -1447,18 +1390,6 @@ targets:
             // Cocoon creates a Firestore document to track the tasks in the
             // test stage.
 
-            // FIXME
-            // when(
-            //   callbacks.initializeDocument(
-            //     firestoreService: anyNamed('firestoreService'),
-            //     slug: anyNamed('slug'),
-            //     sha: anyNamed('sha'),
-            //     stage: anyNamed('stage'),
-            //     tasks: anyNamed('tasks'),
-            //     checkRunGuard: anyNamed('checkRunGuard'),
-            //   ),
-            // ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
             scheduler = Scheduler(
               cache: cache,
               config: config,
@@ -1469,26 +1400,14 @@ targets:
               contentAwareHash: fakeContentAwareHash,
             );
 
-            // FIXME
-            // when(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: anyNamed('firestoreService'),
-            //     slug: anyNamed('slug'),
-            //     sha: anyNamed('sha'),
-            //     stage: anyNamed('stage'),
-            //     checkRun: anyNamed('checkRun'),
-            //     conclusion: anyNamed('conclusion'),
-            //   ),
-            // ).thenAnswer((inv) async {
-            //   return StagingConclusion(
-            //     result: StagingConclusionResult.ok,
-            //     remaining: 0,
-            //     checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-            //     failed: 0,
-            //     summary: 'OK',
-            //     details: 'Some details',
-            //   );
-            // });
+            await CiStaging.initializeDocument(
+              firestoreService: firestoreService,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
 
             expect(
               await scheduler.processCheckRunCompletion(
@@ -1508,23 +1427,19 @@ targets:
               ),
             ).called(1);
 
-            // FIXME
-            // verify(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: argThat(isNotNull, named: 'firestoreService'),
-            //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-            //     sha: 'testSha',
-            //     stage: argThat(
-            //       equals(CiStage.fusionEngineBuild),
-            //       named: 'stage',
-            //     ),
-            //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-            //     conclusion: argThat(
-            //       equals(TaskConclusion.success),
-            //       named: 'conclusion',
-            //     ),
-            //   ),
-            // ).called(1);
+            expect(
+              firestoreService,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+                isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                  'Linux A': TaskConclusion.scheduled,
+                  'Linux Z': TaskConclusion.scheduled,
+                  'Linux engine_presubmit': TaskConclusion.scheduled,
+                }),
+              ]),
+            );
 
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
@@ -1575,30 +1490,23 @@ targets:
               contentAwareHash: fakeContentAwareHash,
             );
 
-            // FIXME
-            // when(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: anyNamed('firestoreService'),
-            //     slug: anyNamed('slug'),
-            //     sha: anyNamed('sha'),
-            //     stage: anyNamed('stage'),
-            //     checkRun: anyNamed('checkRun'),
-            //     conclusion: anyNamed('conclusion'),
-            //   ),
-            // ).thenAnswer((inv) async {
-            //   final stage = inv.namedArguments[#stage] as CiStage;
-            //   return StagingConclusion(
-            //     result: switch (stage) {
-            //       CiStage.fusionEngineBuild => StagingConclusionResult.missing,
-            //       CiStage.fusionTests => StagingConclusionResult.ok,
-            //     },
-            //     remaining: 0,
-            //     checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-            //     failed: 0,
-            //     summary: 'Field missing or OK',
-            //     details: 'Some details',
-            //   );
-            // });
+            await CiStaging.initializeDocument(
+              firestoreService: firestoreService,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: [],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
+
+            await CiStaging.initializeDocument(
+              firestoreService: firestoreService,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionTests,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
 
             expect(
               await scheduler.processCheckRunCompletion(
@@ -1612,40 +1520,17 @@ targets:
 
             // The first invocation looks in the fusionEngineBuild stage, which
             // returns "missing" result.
-            // FIXME
-            // verify(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: argThat(isNotNull, named: 'firestoreService'),
-            //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-            //     sha: 'testSha',
-            //     stage: argThat(
-            //       equals(CiStage.fusionEngineBuild),
-            //       named: 'stage',
-            //     ),
-            //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-            //     conclusion: argThat(
-            //       equals(TaskConclusion.success),
-            //       named: 'conclusion',
-            //     ),
-            //   ),
-            // ).called(1);
-
-            // The second invocation looks in the fusionTests stage, which returns
-            // "ok" result.
-            // FIXME
-            // verify(
-            //   callbacks.markCheckRunConclusion(
-            //     firestoreService: argThat(isNotNull, named: 'firestoreService'),
-            //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-            //     sha: 'testSha',
-            //     stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
-            //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-            //     conclusion: argThat(
-            //       equals(TaskConclusion.success),
-            //       named: 'conclusion',
-            //     ),
-            //   ),
-            // ).called(1);
+            expect(
+              firestoreService,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging
+                    .hasStage(CiStage.fusionEngineBuild)
+                    .hasCheckRuns(isEmpty),
+                isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
 
             // Because tests completed, and completed successfully, the guard is
             // unlocked, allowing the PR to land.
@@ -1858,40 +1743,33 @@ targets:
                 contentAwareHash: fakeContentAwareHash,
               );
 
-              // FIXME
-              // when(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: anyNamed('firestoreService'),
-              //     slug: anyNamed('slug'),
-              //     sha: anyNamed('sha'),
-              //     stage: anyNamed('stage'),
-              //     checkRun: anyNamed('checkRun'),
-              //     conclusion: anyNamed('conclusion'),
-              //   ),
-              // ).thenAnswer((inv) async {
-              //   final stage = inv.namedArguments[#stage] as CiStage;
-              //   return StagingConclusion(
-              //     result: switch (stage) {
-              //       CiStage.fusionEngineBuild =>
-              //         StagingConclusionResult.missing,
-              //       CiStage.fusionTests => StagingConclusionResult.ok,
-              //     },
-              //     remaining: 0,
-              //     checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-              //     failed: switch (stage) {
-              //       CiStage.fusionEngineBuild => 0,
-              //       CiStage.fusionTests => 1,
-              //     },
-              //     summary: 'Field missing or OK',
-              //     details: 'Some details',
-              //   );
-              // });
+              await CiStaging.initializeDocument(
+                firestoreService: firestoreService,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: [],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestoreService,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionTests,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
 
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
                     json.decode(
-                          checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
+                          checkRunEventFor(
+                            test: 'Bar bar',
+                            sha: 'testSha',
+                            conclusion: 'failure',
+                          ),
                         )
                         as Map<String, Object?>,
                   ),
@@ -1901,46 +1779,17 @@ targets:
 
               // The first invocation looks in the fusionEngineBuild stage, which
               // returns "missing" result.
-              // FIXME
-              // verify(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: argThat(
-              //       isNotNull,
-              //       named: 'firestoreService',
-              //     ),
-              //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-              //     sha: 'testSha',
-              //     stage: argThat(
-              //       equals(CiStage.fusionEngineBuild),
-              //       named: 'stage',
-              //     ),
-              //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-              //     conclusion: argThat(
-              //       equals(TaskConclusion.success),
-              //       named: 'conclusion',
-              //     ),
-              //   ),
-              // ).called(1);
-
-              // The second invocation looks in the fusionTests stage, which returns
-              // "ok" result.
-              // FIXME
-              // verify(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: argThat(
-              //       isNotNull,
-              //       named: 'firestoreService',
-              //     ),
-              //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-              //     sha: 'testSha',
-              //     stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
-              //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-              //     conclusion: argThat(
-              //       equals(TaskConclusion.success),
-              //       named: 'conclusion',
-              //     ),
-              //   ),
-              // ).called(1);
+              expect(
+                firestoreService,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging
+                      .hasStage(CiStage.fusionEngineBuild)
+                      .hasCheckRuns(isEmpty),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Bar bar': TaskConclusion.failure,
+                  }),
+                ]),
+              );
 
               // The test stage completed, but with failures. The merge queue
               // guard should stay open to prevent the pull request from landing.
@@ -2013,20 +1862,6 @@ targets:
                 gitHubChecksService.githubChecksUtil,
               ).thenReturn(mockGithubChecksUtil);
 
-              // Cocoon creates a Firestore document to track the tasks in the
-              // test stage.
-              // FIXME
-              // when(
-              //   callbacks.initializeDocument(
-              //     firestoreService: anyNamed('firestoreService'),
-              //     slug: anyNamed('slug'),
-              //     sha: anyNamed('sha'),
-              //     stage: anyNamed('stage'),
-              //     tasks: anyNamed('tasks'),
-              //     checkRunGuard: anyNamed('checkRunGuard'),
-              //   ),
-              // ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
@@ -2037,31 +1872,21 @@ targets:
                 contentAwareHash: fakeContentAwareHash,
               );
 
-              // FIXME
-              // when(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: anyNamed('firestoreService'),
-              //     slug: anyNamed('slug'),
-              //     sha: anyNamed('sha'),
-              //     stage: anyNamed('stage'),
-              //     checkRun: anyNamed('checkRun'),
-              //     conclusion: anyNamed('conclusion'),
-              //   ),
-              // ).thenAnswer((inv) async {
-              //   return StagingConclusion(
-              //     result: StagingConclusionResult.ok,
-              //     remaining: 0,
-              //     checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-              //     failed: 0,
-              //     summary: 'OK',
-              //     details: 'Some details',
-              //   );
-              // });
+              await CiStaging.initializeDocument(
+                firestoreService: firestoreService,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
 
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(checkRunEventFor(test: 'Bar bar'))
+                    json.decode(
+                          checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
+                        )
                         as Map<String, Object?>,
                   ),
                 ),
@@ -2072,26 +1897,19 @@ targets:
                 gitHubChecksService.findMatchingPullRequest(any, any, any),
               );
 
-              // FIXME
-              // verify(
-              //   callbacks.markCheckRunConclusion(
-              //     firestoreService: argThat(
-              //       isNotNull,
-              //       named: 'firestoreService',
-              //     ),
-              //     slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-              //     sha: '1234',
-              //     stage: argThat(
-              //       equals(CiStage.fusionEngineBuild),
-              //       named: 'stage',
-              //     ),
-              //     checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-              //     conclusion: argThat(
-              //       equals(TaskConclusion.success),
-              //       named: 'conclusion',
-              //     ),
-              //   ),
-              // ).called(1);
+              expect(
+                firestoreService,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.success,
+                  }),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Linux A': TaskConclusion.scheduled,
+                    'Linux Z': TaskConclusion.scheduled,
+                    'Linux engine_presubmit': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
 
               verifyNever(
                 mockGithubChecksUtil.updateCheckRun(
@@ -2731,18 +2549,6 @@ targets:
 
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
-        // FIXME
-        // when(
-        //   callbacks.initializeDocument(
-        //     firestoreService: anyNamed('firestoreService'),
-        //     slug: anyNamed('slug'),
-        //     sha: anyNamed('sha'),
-        //     stage: anyNamed('stage'),
-        //     tasks: anyNamed('tasks'),
-        //     checkRunGuard: anyNamed('checkRunGuard'),
-        //   ),
-        // ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
@@ -2871,18 +2677,6 @@ targets:
           return checkRuns.last;
         });
         getFilesChanged.cannedFiles = ['abc/def'];
-
-        // FIXME
-        // when(
-        //   callbacks.initializeDocument(
-        //     firestoreService: anyNamed('firestoreService'),
-        //     slug: anyNamed('slug'),
-        //     sha: anyNamed('sha'),
-        //     stage: anyNamed('stage'),
-        //     tasks: anyNamed('tasks'),
-        //     checkRunGuard: anyNamed('checkRunGuard'),
-        //   ),
-        // ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
 
         scheduler = Scheduler(
           cache: cache,
@@ -3141,18 +2935,6 @@ targets:
           return checkRuns.last;
         });
         getFilesChanged.cannedFiles = ['abc/def'];
-
-        // FIXME
-        // when(
-        //   callbacks.initializeDocument(
-        //     firestoreService: anyNamed('firestoreService'),
-        //     slug: anyNamed('slug'),
-        //     sha: anyNamed('sha'),
-        //     stage: anyNamed('stage'),
-        //     tasks: anyNamed('tasks'),
-        //     checkRunGuard: anyNamed('checkRunGuard'),
-        //   ),
-        // ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
 
         scheduler = Scheduler(
           cache: cache,
