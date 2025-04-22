@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
@@ -57,8 +56,6 @@ class Scheduler {
     required CiYamlFetcher ciYamlFetcher,
     required ContentAwareHashService contentAwareHash,
     @visibleForTesting this.markCheckRunConclusion = CiStaging.markConclusion,
-    @visibleForTesting
-    this.initializeCiStagingDocument = CiStaging.initializeDocument,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
@@ -88,16 +85,6 @@ class Scheduler {
     required CiStage stage,
   })
   markCheckRunConclusion;
-
-  Future<Document> Function({
-    required FirestoreService firestoreService,
-    required RepositorySlug slug,
-    required String sha,
-    required CiStage stage,
-    required List<String> tasks,
-    required String checkRunGuard,
-  })
-  initializeCiStagingDocument;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -394,7 +381,7 @@ class Scheduler {
               'triggerPresubmitTargets($slug, $sha){frameworkOnly}';
           log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
 
-          await initializeCiStagingDocument(
+          await CiStaging.initializeDocument(
             firestoreService: await _config.createFirestoreService(),
             slug: slug,
             sha: sha,
@@ -435,7 +422,7 @@ class Scheduler {
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
         final EngineArtifacts engineArtifacts;
         if (isFusion) {
-          await initializeCiStagingDocument(
+          await CiStaging.initializeDocument(
             firestoreService: await _config.createFirestoreService(),
             slug: slug,
             sha: sha,
@@ -623,7 +610,7 @@ class Scheduler {
 
       // Create the staging doc that will track our engine progress and allow us to unlock
       // the merge group lock later.
-      await initializeCiStagingDocument(
+      await CiStaging.initializeDocument(
         firestoreService: await _config.createFirestoreService(),
         slug: slug,
         sha: headSha,
@@ -1201,7 +1188,7 @@ $s
           tasks = [...presubmitTargets.map((t) => t.name)];
         }
 
-        await initializeCiStagingDocument(
+        await CiStaging.initializeDocument(
           firestoreService: await _config.createFirestoreService(),
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
