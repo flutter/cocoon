@@ -25,15 +25,18 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
   const VacuumStaleTasks({
     required super.config,
     required LuciBuildService luciBuildService,
+    required FirestoreService firestore,
     Duration timeoutLimit = const Duration(hours: 3),
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _luciBuildService = luciBuildService,
        _timeoutLimit = timeoutLimit,
-       _now = now;
+       _now = now,
+       _firestore = firestore;
 
   final DateTime Function() _now;
   final Duration _timeoutLimit;
   final LuciBuildService _luciBuildService;
+  final FirestoreService _firestore;
 
   @override
   Future<Body> get() async {
@@ -45,9 +48,8 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
 
   Future<void> _vaccumRepository(gh.RepositorySlug slug) async {
     final toUpdate = <_UpdateTaskIntent>[];
-    final firestore = await config.createFirestoreService();
 
-    final recentCommits = await firestore.queryRecentCommitsAndTasks(
+    final recentCommits = await _firestore.queryRecentCommitsAndTasks(
       slug,
       commitLimit: config.backfillerCommitLimit,
       status: fs.Task.statusInProgress,
@@ -70,7 +72,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       '${toUpdate.map((e) => '(${e.commit.sha}) $e').join('\n')}',
     );
 
-    await _updateFirestore(toUpdate, firestore);
+    await _updateFirestore(toUpdate);
   }
 
   Future<_UpdateTaskIntent?> _considerTaskReset(
@@ -104,10 +106,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     return _ResetTaskStatusToNew(commit, task);
   }
 
-  Future<void> _updateFirestore(
-    List<_UpdateTaskIntent> toUpdate,
-    FirestoreService firestore,
-  ) async {
+  Future<void> _updateFirestore(List<_UpdateTaskIntent> toUpdate) async {
     final tasks = <fs.Task>[];
     for (final intent in toUpdate) {
       final task = fs.Task.fromDocument(intent.task);
@@ -119,7 +118,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       }
       tasks.add(task);
     }
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites(tasks)),
       kDatabase,
     );

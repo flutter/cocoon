@@ -55,12 +55,14 @@ class Scheduler {
     required GetFilesChanged getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     required ContentAwareHashService contentAwareHash,
+    required FirestoreService firestore,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
        _getFilesChanged = getFilesChanged,
        _ciYamlFetcher = ciYamlFetcher,
        _contentAwareHash = contentAwareHash,
+       _firestore = firestore,
        _filesChangedOptimizer = FilesChangedOptimizer(
          getFilesChanged: getFilesChanged,
          ciYamlFetcher: ciYamlFetcher,
@@ -74,6 +76,7 @@ class Scheduler {
   final ContentAwareHashService _contentAwareHash;
   final LuciBuildService _luciBuildService;
   final FilesChangedOptimizer _filesChangedOptimizer;
+  final FirestoreService _firestore;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -174,7 +177,6 @@ class Scheduler {
     final tasks = [
       ...targets.map((t) => fs.Task.initialFromTarget(t, commit: commit)),
     ];
-    final firestoreService = await _config.createFirestoreService();
     final toBeScheduled = <PendingTask>[];
     for (var target in targets) {
       final task = tasks.singleWhere((task) => task.taskName == target.name);
@@ -197,9 +199,7 @@ class Scheduler {
       final priority = await policy.triggerPriority(
         taskName: task.taskName,
         commitSha: commit.sha,
-        recentTasks: await firestoreService.queryRecentTasks(
-          name: task.taskName,
-        ),
+        recentTasks: await _firestore.queryRecentTasks(name: task.taskName),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
@@ -232,8 +232,7 @@ class Scheduler {
     fs.Commit commit,
     List<fs.Task> tasks,
   ) async {
-    final firestore = await _config.createFirestoreService();
-    await firestore.writeViaTransaction(
+    await _firestore.writeViaTransaction(
       documentsToWrites([...tasks, commit], exists: false),
     );
   }
@@ -288,10 +287,7 @@ class Scheduler {
   /// scheduled. Since webhooks or cron jobs can schedule commits, we must
   /// verify a commit has not already been scheduled.
   Future<bool> _commitExistsInFirestore({required String sha}) async {
-    final commit = await fs.Commit.tryFromFirestoreBySha(
-      await _config.createFirestoreService(),
-      sha: sha,
-    );
+    final commit = await fs.Commit.tryFromFirestoreBySha(_firestore, sha: sha);
     return commit != null;
   }
 
@@ -371,7 +367,7 @@ class Scheduler {
           log.info('$logCrumb: FRAMEWORK_ONLY_TESTING_PR');
 
           await CiStaging.initializeDocument(
-            firestoreService: await _config.createFirestoreService(),
+            firestoreService: _firestore,
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
@@ -412,7 +408,7 @@ class Scheduler {
         final EngineArtifacts engineArtifacts;
         if (isFusion) {
           await CiStaging.initializeDocument(
-            firestoreService: await _config.createFirestoreService(),
+            firestoreService: _firestore,
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
@@ -600,7 +596,7 @@ class Scheduler {
       // Create the staging doc that will track our engine progress and allow us to unlock
       // the merge group lock later.
       await CiStaging.initializeDocument(
-        firestoreService: await _config.createFirestoreService(),
+        firestoreService: _firestore,
         slug: slug,
         sha: headSha,
         stage: CiStage.fusionEngineBuild,
@@ -1178,7 +1174,7 @@ $s
         }
 
         await CiStaging.initializeDocument(
-          firestoreService: await _config.createFirestoreService(),
+          firestoreService: _firestore,
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
           stage: CiStage.fusionTests,
@@ -1246,11 +1242,7 @@ $s
     final id = checkRun.id!;
     final name = checkRun.name!;
     try {
-      pullRequest = await PrCheckRuns.findPullRequestFor(
-        await _config.createFirestoreService(),
-        id,
-        name,
-      );
+      pullRequest = await PrCheckRuns.findPullRequestFor(_firestore, id, name);
     } catch (e, s) {
       log.warn('$logCrumb: unable to find PR in PrCheckRuns', e, s);
     }
@@ -1328,10 +1320,9 @@ $stacktrace
     // a sane amount of times before giving up.
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
 
-    final firestoreService = await _config.createFirestoreService();
     return r.retry(() {
       return CiStaging.markConclusion(
-        firestoreService: firestoreService,
+        firestoreService: _firestore,
         slug: slug,
         sha: sha,
         stage: stage,
@@ -1397,9 +1388,8 @@ $stacktrace
 
             // Only merged commits are added to the Database.
             // If a commit is found, this must be a postsubmit checkrun.
-            final firestore = await _config.createFirestoreService();
             final fsCommit = await fs.Commit.tryFromFirestoreBySha(
-              firestore,
+              _firestore,
               sha: sha,
             );
 
@@ -1411,7 +1401,7 @@ $stacktrace
                 'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
               );
               final pullRequest = await PrCheckRuns.findPullRequestForSha(
-                await _config.createFirestoreService(),
+                _firestore,
                 checkRunEvent.checkRun!.headSha!,
               );
               if (pullRequest == null) {
@@ -1474,7 +1464,7 @@ $stacktrace
               final fs.Task fsTask;
               {
                 // Query the lastest run of the `checkName` againt commit `sha`.
-                final fsTasks = await firestore.queryRecentTasks(
+                final fsTasks = await _firestore.queryRecentTasks(
                   limit: 1,
                   commitSha: fsCommit.sha,
                   name: checkName,

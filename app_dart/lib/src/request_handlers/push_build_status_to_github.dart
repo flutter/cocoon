@@ -21,9 +21,13 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     required super.config,
     required super.authenticationProvider,
     required BuildStatusService buildStatusService,
-  }) : _buildStatusService = buildStatusService;
+    required FirestoreService firestore,
+  }) : _buildStatusService = buildStatusService,
+       _firestore = firestore;
 
   final BuildStatusService _buildStatusService;
+  final FirestoreService _firestore;
+
   static const _fullNameRepoParam = 'repo';
 
   @override
@@ -37,7 +41,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final repository =
         request!.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
     final slug = RepositorySlug.full(repository);
-    final firestoreService = await config.createFirestoreService();
     final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
     await _insertBigquery(
       slug,
@@ -45,7 +48,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       Config.defaultBranch(slug),
       config,
     );
-    await _updatePRs(slug, status.githubStatus, firestoreService);
+    await _updatePRs(slug, status.githubStatus, _firestore);
     log.debug('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
@@ -129,8 +132,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       return;
     }
     final writes = documentsToWrites(githubBuildStatuses);
-    final firestoreService = await config.createFirestoreService();
-    await firestoreService.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: writes),
       kDatabase,
     );

@@ -39,7 +39,7 @@ void main() {
     tester = RequestHandlerTester();
     handler = GetBuildStatus(
       config: config,
-      buildStatusService: BuildStatusService(config),
+      buildStatusService: BuildStatusService(firestore: firestore),
     );
   });
 

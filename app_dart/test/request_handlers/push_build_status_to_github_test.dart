@@ -59,7 +59,6 @@ void main() {
         MockJobsResource(),
       ),
       githubService: githubService,
-      firestoreService: firestore,
       githubClient: github,
     );
     tester = ApiRequestHandlerTester(context: authContext);
@@ -69,6 +68,7 @@ void main() {
         clientContext: clientContext,
       ),
       buildStatusService: buildStatusService,
+      firestore: firestore,
     );
 
     when(github.pullRequests).thenReturn(pullRequestsService);

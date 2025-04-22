@@ -21,26 +21,25 @@ void main() {
   useTestLoggerPerTest();
 
   group(VacuumStaleTasks, () {
-    late FakeConfig config;
     late RequestHandlerTester tester;
     late VacuumStaleTasks handler;
-    late FakeFirestoreService firestoreService;
+    late FakeFirestoreService firestore;
     late MockLuciBuildService luciBuildService;
 
     final fsCommit = generateFirestoreCommit(1);
 
     setUp(() {
       luciBuildService = MockLuciBuildService();
-      firestoreService = FakeFirestoreService();
-      config = FakeConfig(firestoreService: firestoreService);
+      firestore = FakeFirestoreService();
 
       // Insert into Firestore:
-      firestoreService.putDocument(fsCommit);
+      firestore.putDocument(fsCommit);
 
       tester = RequestHandlerTester();
       handler = VacuumStaleTasks(
-        config: config,
+        config: FakeConfig(),
         luciBuildService: luciBuildService,
+        firestore: firestore,
       );
     });
 
@@ -53,7 +52,7 @@ void main() {
         buildNumber: 123,
         commitSha: fsCommit.sha,
       );
-      firestoreService.putDocument(fsTask);
+      firestore.putDocument(fsTask);
 
       when(
         luciBuildService.getProdBuilds(
@@ -75,7 +74,7 @@ void main() {
 
       // Verify Firestore Update:
       expect(
-        firestoreService,
+        firestore,
         existsInStorage(fs.Task.metadata, [
           isTask.hasStatus(fs.Task.statusSucceeded).hasBuildNumber(123),
         ]),
@@ -85,7 +84,7 @@ void main() {
     test(
       'skips when tasks are not yet old enough to be considered stale',
       () async {
-        firestoreService.putDocument(
+        firestore.putDocument(
           generateFirestoreTask(
             1,
             status: Task.statusInProgress,
@@ -97,7 +96,7 @@ void main() {
         await tester.get(handler);
 
         expect(
-          firestoreService,
+          firestore,
           existsInStorage(fs.Task.metadata, [
             isTask.hasStatus(fs.Task.statusInProgress),
           ]),
@@ -107,21 +106,21 @@ void main() {
 
     test('resets stale task', () async {
       // Insert Task into Firestore:
-      firestoreService.putDocument(
+      firestore.putDocument(
         generateFirestoreTask(
           1,
           status: Task.statusInProgress,
           commitSha: fsCommit.sha,
         ),
       );
-      firestoreService.putDocument(
+      firestore.putDocument(
         generateFirestoreTask(
           2,
           status: Task.statusSucceeded,
           commitSha: fsCommit.sha,
         ),
       );
-      firestoreService.putDocument(
+      firestore.putDocument(
         generateFirestoreTask(
           3,
           status: Task.statusInProgress,
@@ -134,7 +133,7 @@ void main() {
 
       // Check Firestore:
       expect(
-        firestoreService,
+        firestore,
         existsInStorage(fs.Task.metadata, [
           isTask.hasStatus(fs.Task.statusNew),
           isTask.hasStatus(fs.Task.statusSucceeded),

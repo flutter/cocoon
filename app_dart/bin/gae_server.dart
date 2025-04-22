@@ -33,6 +33,7 @@ Future<void> main() async {
     }
 
     final cache = CacheService(inMemory: false);
+    final firestore = await FirestoreService.from(const GoogleAuthProvider());
     final config = Config(
       cache,
       await SecretManager.create(
@@ -43,6 +44,7 @@ Future<void> main() async {
     final authProvider = DashboardAuthentication(
       config: config,
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+      firestore: firestore,
     );
     final AuthenticationProvider swarmingAuthProvider =
         SwarmingAuthenticationProvider(config: config);
@@ -64,12 +66,13 @@ Future<void> main() async {
       buildBucketClient: buildBucketClient,
       pubsub: const PubSub(),
       gerritService: gerritService,
+      firestore: firestore,
     );
 
     /// Github checks api service used to provide luci test execution status on the Github UI.
     final githubChecksService = GithubChecksService(config);
 
-    final ciYamlFetcher = CiYamlFetcher(cache: cache, config: config);
+    final ciYamlFetcher = CiYamlFetcher(cache: cache, firestore: firestore);
 
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final scheduler = Scheduler(
@@ -80,6 +83,7 @@ Future<void> main() async {
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
       contentAwareHash: ContentAwareHashService(config: config),
+      firestore: firestore,
     );
 
     final branchService = BranchService(
@@ -87,11 +91,12 @@ Future<void> main() async {
       gerritService: gerritService,
     );
 
-    final commitService = CommitService(config: config);
-    final buildStatusService = BuildStatusService(config);
+    final commitService = CommitService(config: config, firestore: firestore);
+    final buildStatusService = BuildStatusService(firestore: firestore);
 
     final server = createServer(
       config: config,
+      firestore: firestore,
       cache: cache,
       authProvider: authProvider,
       branchService: branchService,

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
@@ -48,29 +47,26 @@ import 'exceptions.dart';
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
-class DashboardAuthentication implements AuthenticationProvider {
+interface class DashboardAuthentication implements AuthenticationProvider {
   DashboardAuthentication({
     required Config config,
     required FirebaseJwtValidator firebaseJwtValidator,
+    required FirestoreService firestore,
     ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
   }) {
     _authenticationChain.addAll([
       DashboardCronAuthentication(clientContextProvider: clientContextProvider),
-      DashboardGoogleAuthentication(
-        config: config,
-        httpClientProvider: httpClientProvider,
-        clientContextProvider: clientContextProvider,
-      ),
       DashboardFirebaseAuthentication(
         config: config,
         validator: firebaseJwtValidator,
         clientContextProvider: clientContextProvider,
+        firestore: firestore,
       ),
     ]);
   }
 
-  final List<AuthenticationProvider> _authenticationChain = [];
+  final _authenticationChain = <AuthenticationProvider>[];
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
@@ -92,24 +88,17 @@ class DashboardAuthentication implements AuthenticationProvider {
     }
     throw const Unauthenticated('User is not signed in');
   }
-
-  static Future<bool> _isAllowed(Config config, String? email) async {
-    if (email == null) {
-      return false;
-    }
-    final firestore = await config.createFirestoreService();
-    final account = await Account.getByEmail(firestore, email: email);
-    return account != null;
-  }
 }
 
 class DashboardFirebaseAuthentication implements AuthenticationProvider {
   DashboardFirebaseAuthentication({
     required Config config,
     required FirebaseJwtValidator validator,
+    required FirestoreService firestore,
     ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
   }) : _config = config,
        _validator = validator,
+       _firestore = firestore,
        _clientContextProvider = clientContextProvider;
 
   /// The Cocoon config, guaranteed to be non-null.
@@ -120,7 +109,7 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
   ///
   /// This is guaranteed to be non-null.
   final ClientContextProvider _clientContextProvider;
-
+  final FirestoreService _firestore;
   final FirebaseJwtValidator _validator;
 
   /// Attempt to validate a JWT as a Firebase token.
@@ -152,7 +141,7 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
   }) async {
     if (token.email case final email?) {
       if (email.endsWith('@google.com') ||
-          await DashboardAuthentication._isAllowed(_config, token.email)) {
+          await _isAllowed(_config, token.email)) {
         return AuthenticatedContext(
           clientContext: clientContext,
           email: token.email!,
@@ -162,6 +151,14 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     throw Unauthenticated(
       '${token.email} is not authorized to access the dashboard',
     );
+  }
+
+  Future<bool> _isAllowed(Config config, String? email) async {
+    if (email == null) {
+      return false;
+    }
+    final account = await Account.getByEmail(_firestore, email: email);
+    return account != null;
   }
 }
 
@@ -185,125 +182,5 @@ class DashboardCronAuthentication implements AuthenticationProvider {
       );
     }
     throw const Unauthenticated('Not a cron job');
-  }
-}
-
-/// This is the original GoogleSignIn handler
-class DashboardGoogleAuthentication implements AuthenticationProvider {
-  const DashboardGoogleAuthentication({
-    required Config config,
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-  }) : _config = config,
-       _clientContextProvider = clientContextProvider,
-       _httpClientProvider = httpClientProvider;
-
-  /// The Cocoon config, guaranteed to be non-null.
-  final Config _config;
-
-  /// Provides the App Engine client context as part of the
-  /// [AuthenticatedContext].
-  ///
-  /// This is guaranteed to be non-null.
-  final ClientContextProvider _clientContextProvider;
-
-  /// Provides the HTTP client that will be used (if necessary) to verify OAuth
-  /// ID tokens (JWT tokens).
-  ///
-  /// This is guaranteed to be non-null.
-  final HttpClientProvider _httpClientProvider;
-
-  /// Authenticates the specified [request] and returns the associated
-  /// [AuthenticatedContext].
-  ///
-  /// See the class documentation on [AuthenticationProvider] for a discussion
-  /// of the different types of authentication that are accepted.
-  ///
-  /// This will throw an [Unauthenticated] exception if the request is
-  /// unauthenticated.
-  @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    if (request.headers.value('X-Flutter-IdToken')
-        case final idTokenFromHeader?) {
-      TokenInfo token;
-      try {
-        token = await tokenInfo(idTokenFromHeader);
-      } on Unauthenticated {
-        token = await tokenInfo(idTokenFromHeader, tokenType: 'access_token');
-      }
-      return authenticateToken(token, clientContext: _clientContextProvider());
-    }
-
-    throw const Unauthenticated('User is not signed in');
-  }
-
-  /// Gets oauth token information. This method requires the token to be stored in
-  /// X-Flutter-IdToken header.
-  @visibleForTesting
-  Future<TokenInfo> tokenInfo(
-    String idTokenFromHeader, {
-    String tokenType = 'id_token',
-  }) async {
-    final client = _httpClientProvider();
-    try {
-      final verifyTokenResponse = await client.get(
-        Uri.https('oauth2.googleapis.com', '/tokeninfo', <String, String?>{
-          tokenType: idTokenFromHeader,
-        }),
-      );
-
-      if (verifyTokenResponse.statusCode != HttpStatus.ok) {
-        /// Google Auth API returns a message in the response body explaining why
-        /// the request failed. Such as "Invalid Token".
-        log.debug(
-          'Token verification failed: ${verifyTokenResponse.statusCode}; '
-          '${verifyTokenResponse.body}',
-        );
-        throw const Unauthenticated('Invalid ID token');
-      }
-
-      try {
-        return TokenInfo.fromJson(
-          json.decode(verifyTokenResponse.body) as Map<String, dynamic>,
-        );
-      } on FormatException {
-        throw InternalServerError(
-          'Invalid JSON: "${verifyTokenResponse.body}"',
-        );
-      }
-    } finally {
-      client.close();
-    }
-  }
-
-  @visibleForTesting
-  Future<AuthenticatedContext> authenticateToken(
-    TokenInfo token, {
-    required ClientContext clientContext,
-  }) async {
-    // Authenticate as a signed-in Google account via OAuth id token.
-    final clientId = await _config.oauthClientId;
-    if (token.audience != clientId && !token.email!.endsWith('@google.com')) {
-      log.warn(
-        'Possible forged token: "${token.audience}" (expected "$clientId")',
-      );
-      throw const Unauthenticated('Invalid ID token');
-    }
-
-    if (token.hostedDomain != 'google.com') {
-      final isAllowed = await DashboardAuthentication._isAllowed(
-        _config,
-        token.email,
-      );
-      if (!isAllowed) {
-        throw Unauthenticated(
-          '${token.email} is not authorized to access the dashboard',
-        );
-      }
-    }
-    return AuthenticatedContext(
-      clientContext: clientContext,
-      email: token.email ?? 'EMAIL MISSING',
-    );
   }
 }

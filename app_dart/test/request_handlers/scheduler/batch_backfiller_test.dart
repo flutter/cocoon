@@ -42,7 +42,6 @@ void main() {
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestore = FakeFirestoreService();
     config = FakeConfig(
-      firestoreService: firestore,
       backfillerCommitLimitValue: 10,
       backfillerTargetLimitValue: 100,
       supportedReposValue: {Config.flutterSlug},
@@ -53,6 +52,7 @@ void main() {
       config: config,
       pubsub: pubSub,
       githubChecksUtil: mockGithubChecksUtil,
+      firestore: firestore,
     );
 
     handler = BatchBackfiller(
@@ -60,6 +60,7 @@ void main() {
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
       backfillerStrategy: const _NaiveBackfillStrategy(),
+      firestore: firestore,
     );
 
     tester = RequestHandlerTester();

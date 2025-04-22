@@ -18,11 +18,14 @@ import 'firestore.dart';
 interface class CommitService {
   CommitService({
     required Config config,
+    required FirestoreService firestore,
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _config = config,
+       _firestore = firestore,
        _now = now;
 
   final Config _config;
+  final FirestoreService _firestore;
   final DateTime Function() _now;
 
   /// Add a commit based on a [CreateEvent] to the Firestore.
@@ -58,7 +61,6 @@ interface class CommitService {
   }
 
   Future<void> _insertFirestore(_Commit commit) async {
-    final firestore = await _config.createFirestoreService();
     final fsCommit = fs.Commit(
       createTimestamp: commit.createdOn.millisecondsSinceEpoch,
       repositoryPath: commit.repository.fullName,
@@ -68,7 +70,7 @@ interface class CommitService {
       message: commit.message,
       branch: commit.branch,
     );
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       fs.BatchWriteRequest(writes: documentsToWrites([fsCommit])),
       kDatabase,
     );

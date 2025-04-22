@@ -16,7 +16,6 @@ import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-import '../../src/fake_config.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
 
@@ -32,7 +31,6 @@ void main() {
   assert(totSha.length >= 40);
 
   late CacheService cache;
-  late FakeConfig config;
   late MockClient httpClient;
   late FakeFirestoreService firestore;
 
@@ -40,19 +38,17 @@ void main() {
 
   setUp(() {
     cache = CacheService(inMemory: true);
-    config = FakeConfig();
     httpClient = MockClient((request) async {
       return http.Response('Missing file: ${request.url}', HttpStatus.notFound);
     });
 
     firestore = FakeFirestoreService();
-    config.firestoreService = firestore;
 
     ciYamlFetcher = CiYamlFetcher(
       cache: cache,
-      config: config,
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),
+      firestore: firestore,
     );
   });
 

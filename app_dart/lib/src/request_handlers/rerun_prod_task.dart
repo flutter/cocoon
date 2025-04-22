@@ -14,6 +14,7 @@ import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/firestore.dart';
 import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
@@ -28,11 +29,14 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required super.authenticationProvider,
     required LuciBuildService luciBuildService,
     required CiYamlFetcher ciYamlFetcher,
+    required FirestoreService firestore,
   }) : _ciYamlFetcher = ciYamlFetcher,
-       _luciBuildService = luciBuildService;
+       _luciBuildService = luciBuildService,
+       _firestore = firestore;
 
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
+  final FirestoreService _firestore;
 
   static const _paramBranch = 'branch';
   static const _paramRepo = 'repo';
@@ -60,9 +64,8 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     final slug = RepositorySlug('flutter', repo);
 
     // Ensure the commit exists in Firestore.
-    final firestore = await config.createFirestoreService();
     final commit = await fs.Commit.tryFromFirestoreBySha(
-      firestore,
+      _firestore,
       sha: commitSha,
     );
     if (commit == null) {
@@ -97,7 +100,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     // Ensure the task exists in Firestore.
-    final task = await firestore.queryLatestTask(
+    final task = await _firestore.queryLatestTask(
       commitSha: commitSha,
       builderName: taskName,
     );
@@ -158,13 +161,12 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required Set<String> statusesToRerun,
   }) async {
     // Find the latest task for each task for this commit.
-    final firestore = await config.createFirestoreService();
-    final transaction = await firestore.beginTransaction();
+    final transaction = await _firestore.beginTransaction();
 
     final latestTasks =
         CommitAndTasks(
           commit,
-          await firestore.queryAllTasksForCommit(
+          await _firestore.queryAllTasksForCommit(
             commitSha: commit.sha,
             transaction: transaction,
           ),
@@ -215,7 +217,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
 
     await Future.wait([
       cancelRunningTasks,
-      firestore.commit(transaction, documentWrites),
+      _firestore.commit(transaction, documentWrites),
     ]);
 
     return wasMarkedNew;

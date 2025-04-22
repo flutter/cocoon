@@ -21,8 +21,9 @@ const Set<String> defaultBranches = <String>{
 
 /// Class that calculates the current build status.
 interface class BuildStatusService {
-  const BuildStatusService(this._config);
-  final Config _config;
+  const BuildStatusService({required FirestoreService firestore})
+    : _firestore = firestore;
+  final FirestoreService _firestore;
 
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
@@ -124,8 +125,7 @@ interface class BuildStatusService {
     String? branch,
     required RepositorySlug slug,
   }) async {
-    final firestore = await _config.createFirestoreService();
-    final commits = await firestore.queryRecentCommits(
+    final commits = await _firestore.queryRecentCommits(
       limit: limit,
       timestamp: timestamp,
       branch: branch,
@@ -136,7 +136,7 @@ interface class BuildStatusService {
         // It's not obvious, but this is ordered by task creation time, descending.
         CommitTasksStatus(
           commit,
-          await firestore.queryAllTasksForCommit(commitSha: commit.sha),
+          await _firestore.queryAllTasksForCommit(commitSha: commit.sha),
         ),
     ];
   }

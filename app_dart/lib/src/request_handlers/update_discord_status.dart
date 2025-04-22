@@ -19,12 +19,15 @@ final class UpdateDiscordStatus extends GetBuildStatus {
     required super.config,
     required super.buildStatusService,
     required DiscordService discord,
+    required FirestoreService firestore,
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _discord = discord,
-       _now = now;
+       _now = now,
+       _firestore = firestore;
 
   final DiscordService _discord;
   final DateTime Function() _now;
+  final FirestoreService _firestore;
 
   static const _kRepoParam = 'repo';
 
@@ -54,7 +57,6 @@ final class UpdateDiscordStatus extends GetBuildStatus {
   /// last sent.
   Future<void> recordStatus(rpc_model.BuildStatusResponse status) async {
     // Fetch the previous status: if it doesn't exist, assume it was passing.
-    final firestore = await config.createFirestoreService();
 
     // Create a new status.
     final latest = BuildStatusSnapshot(
@@ -68,7 +70,7 @@ final class UpdateDiscordStatus extends GetBuildStatus {
 
     // Check against the previous, if any.
     final previous =
-        await BuildStatusSnapshot.getLatest(firestore) ??
+        await BuildStatusSnapshot.getLatest(_firestore) ??
         _getDefaultAssumedPassing();
 
     final diff = latest.diffContents(previous);
@@ -80,7 +82,7 @@ final class UpdateDiscordStatus extends GetBuildStatus {
     } else if (previous.status == BuildStatus.failure) {
       assert(latest.status == BuildStatus.success);
       durationSinceGreen = latest.createdOn.difference(previous.createdOn);
-    } else if (await BuildStatusSnapshot.getLatestPassing(firestore)
+    } else if (await BuildStatusSnapshot.getLatestPassing(_firestore)
         case final previousGreen?) {
       durationSinceGreen = latest.createdOn.difference(previousGreen.createdOn);
     } else {
@@ -90,7 +92,7 @@ final class UpdateDiscordStatus extends GetBuildStatus {
     // Record the new status.
     if (diff.isDifferent) {
       log.debug('[update_discord_status] status changed: $latest');
-      await firestore.createDocument(
+      await _firestore.createDocument(
         latest,
         collectionId: BuildStatusSnapshot.metadata.collectionId,
       );

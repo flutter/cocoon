@@ -39,13 +39,15 @@ class LuciBuildService {
     required BuildBucketClient buildBucketClient,
     required GerritService gerritService,
     required PubSub pubsub,
+    required FirestoreService firestore,
     GithubChecksUtil? githubChecksUtil,
   }) : _pubsub = pubsub,
        _config = config,
        _cache = cache,
        _buildBucketClient = buildBucketClient,
        _githubChecksUtil = githubChecksUtil ?? const GithubChecksUtil(),
-       _gerritService = gerritService;
+       _gerritService = gerritService,
+       _firestore = firestore;
 
   final BuildBucketClient _buildBucketClient;
   final CacheService _cache;
@@ -53,6 +55,7 @@ class LuciBuildService {
   final GithubChecksUtil _githubChecksUtil;
   final GerritService _gerritService;
   final PubSub _pubsub;
+  final FirestoreService _firestore;
 
   // TODO(matanlurey): Re-enable to true/remove.
   // See https://github.com/flutter/flutter/issues/167383.
@@ -318,9 +321,8 @@ class LuciBuildService {
     // All check runs created, now record them in firestore so we can
     // figure out which PR started what check run later (e.g. check_run completed).
     try {
-      final firestore = await _config.createFirestoreService();
       final doc = await fs.PrCheckRuns.initializeDocument(
-        firestoreService: firestore,
+        firestoreService: _firestore,
         pullRequest: pullRequest,
         checks: checkRuns,
       );
@@ -1063,8 +1065,7 @@ class LuciBuildService {
     task.resetAsRetry();
     task.setStatus(fs.Task.statusInProgress);
 
-    final firestore = await _config.createFirestoreService();
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites([task], exists: false)),
       kDatabase,
     );

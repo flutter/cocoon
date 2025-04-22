@@ -49,7 +49,7 @@ void main() {
     clientContext = FakeClientContext();
     firestore = FakeFirestoreService();
     auth = FakeDashboardAuthentication(clientContext: clientContext);
-    config = FakeConfig(firestoreService: firestore);
+    config = FakeConfig();
     tester = ApiRequestHandlerTester(
       context: FakeAuthenticatedContext(clientContext: clientContext),
     );
@@ -81,6 +81,7 @@ void main() {
       authenticationProvider: auth,
       goldClient: mockHttpClient,
       ingestionDelay: Duration.zero,
+      firestore: firestore,
     );
 
     slug = RepositorySlug('flutter', 'flutter');
@@ -409,6 +410,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Already commented for this commit.
@@ -758,6 +760,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         final body = await tester.get<Body>(handler);
@@ -816,6 +819,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         final body = await tester.get<Body>(handler);
@@ -894,6 +898,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         final body = await tester.get<Body>(handler);
@@ -954,6 +959,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Have not already commented for this commit.
@@ -1025,6 +1031,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Have not already commented for this commit.
@@ -1101,6 +1108,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Have not already commented for this commit.
@@ -1175,6 +1183,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         // Have not already commented for this commit.
@@ -1264,6 +1273,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
@@ -1510,6 +1520,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         when(
@@ -1633,6 +1644,7 @@ void main() {
         authenticationProvider: auth,
         goldClient: mockHttpClient,
         ingestionDelay: Duration.zero,
+        firestore: firestore,
       );
 
       // Have not already commented for this commit.
