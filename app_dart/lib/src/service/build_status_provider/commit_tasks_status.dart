@@ -41,14 +41,26 @@ final class CommitTasksStatus {
       if (fullTasksMap[task.taskName] case final fullTask?) {
         // If this task is newer than the existing task, use the new task
         if (task.currentAttempt > fullTask.task.currentAttempt) {
-          taskToAddBuildNumber = FullTask(task, fullTask.buildList);
+          taskToAddBuildNumber = FullTask(
+            task,
+            fullTask.buildList,
+            didAtLeastOneFailureOccur:
+                fullTask.didAtLeastOneFailureOccur ||
+                Task.taskFailStatusSet.contains(task.status),
+          );
         } else {
           // Otherwise, just reference the existing (newer) task
           taskToAddBuildNumber = fullTask;
         }
       } else {
         // Otherwise, use this task as the latest task (so far)
-        taskToAddBuildNumber = FullTask(task, []);
+        taskToAddBuildNumber = FullTask(
+          task,
+          [],
+          didAtLeastOneFailureOccur: Task.taskFailStatusSet.contains(
+            task.status,
+          ),
+        );
       }
 
       // If the task has a build number, add it to the list
@@ -72,11 +84,18 @@ final class CommitTasksStatus {
 /// Latest [task] entry and its re-run [buildList].
 @immutable
 final class FullTask {
-  const FullTask(this.task, this.buildList);
+  const FullTask(
+    this.task,
+    this.buildList, {
+    required this.didAtLeastOneFailureOccur,
+  });
 
   /// Task representing a [Task.taskName] builder.
   final Task task;
 
   /// Every [Task.buildNumber] associated with [Task.taskName].
   final List<int> buildList;
+
+  /// Whether at least one run was considered a failure.
+  final bool didAtLeastOneFailureOccur;
 }

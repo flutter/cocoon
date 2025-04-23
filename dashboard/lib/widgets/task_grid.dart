@@ -237,10 +237,10 @@ class _TaskGridState extends State<TaskGrid> {
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
           var weightStatus = task.status;
-          if (task.isFlaky || task.attempts > 1) {
+          if (task.isBringup) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
-          } else if (task.attempts > 1) {
+          } else if (task.isFlaky) {
             // Reruns take up extra infra capacity and should be prioritized.
             weightStatus += ' - Rerun';
           }
@@ -326,7 +326,7 @@ class _TaskGridState extends State<TaskGrid> {
               TaskBox.statusColor.containsKey(task.status)
                   ? TaskBox.statusColor[task.status]!
                   : Colors.black;
-    if (task.isFlaky) {
+    if (task.isBringup) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
       return (Canvas canvas, Rect rect) {
@@ -335,7 +335,7 @@ class _TaskGridState extends State<TaskGrid> {
     }
     return (Canvas canvas, Rect rect) {
       canvas.drawRect(rect.deflate(2.0), paint);
-      if (task.attempts > 1) {
+      if (task.isFlaky) {
         canvas.drawCircle(
           rect.center,
           (rect.shortestSide / 2.0) - 6.0,
@@ -346,7 +346,7 @@ class _TaskGridState extends State<TaskGrid> {
   }
 
   WidgetBuilder? _builderFor(Task task) {
-    if (task.attempts > 1) {
+    if (task.isFlaky) {
       return (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(4.0),

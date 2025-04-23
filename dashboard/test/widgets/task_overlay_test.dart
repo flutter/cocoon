@@ -283,7 +283,7 @@ void main() {
     final timeTask = generateTaskForTest(
       status: TaskBox.statusInProgress,
       createTime: createTime,
-      buildNumberList: '',
+      buildNumberList: [],
     );
 
     final timeTaskInfoString =
@@ -364,7 +364,7 @@ void main() {
                 buildState: buildState,
                 task: generateTaskForTest(
                   status: TaskBox.statusSucceeded,
-                  buildNumberList: '123',
+                  buildNumberList: [123],
                 ),
               ),
             ),
@@ -395,7 +395,7 @@ void main() {
                 buildState: buildState,
                 task: generateTaskForTest(
                   status: TaskBox.statusSucceeded,
-                  buildNumberList: '123',
+                  buildNumberList: [123],
                   builderName: 'Linux flutter_release_builder',
                 ),
               ),

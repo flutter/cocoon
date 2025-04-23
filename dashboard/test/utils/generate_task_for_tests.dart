@@ -47,7 +47,7 @@ final utc$2020_9_1_12_30 = DateTime.utc(2020, 9, 1, 12, 30);
 /// ```
 Task generateTaskForTest({
   required String status,
-  String? buildNumberList,
+  List<int>? buildNumberList,
   int attempts = 1,
   String builderName = 'Tasky McTaskFace',
   DateTime? nowTime,
@@ -84,7 +84,7 @@ Task generateTaskForTest({
   // Tasks sometimes have a start and finish time.
   if (started) {
     startTime ??= nowTime.subtract(const Duration(minutes: 50));
-    buildNumberList ??= List.generate(attempts, (i) => '$i').join(',');
+    buildNumberList ??= List.generate(attempts, (i) => i);
   }
   if (completed) {
     finishTime ??= nowTime.subtract(const Duration(minutes: 2));
@@ -94,10 +94,12 @@ Task generateTaskForTest({
     status: status,
     builderName: builderName,
     attempts: attempts,
-    buildNumberList: buildNumberList ?? '',
+    buildNumberList: buildNumberList ?? [],
     createTimestamp: createTime.millisecondsSinceEpoch,
     startTimestamp: startTime?.millisecondsSinceEpoch ?? 0,
     endTimestamp: finishTime?.millisecondsSinceEpoch ?? 0,
-    isFlaky: bringup,
+    isBringup: bringup,
+    // This is not strictly true from a domain perspective.
+    isFlaky: attempts > 1,
   );
 }
