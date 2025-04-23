@@ -31,6 +31,8 @@ void main() {
   late ApiRequestHandlerTester tester;
   late FakeCiYamlFetcher ciYamlFetcher;
 
+  DateTime? now;
+
   setUp(() {
     final clientContext = FakeClientContext();
     firestore = FakeFirestoreService();
@@ -52,6 +54,7 @@ void main() {
       luciBuildService: mockLuciBuildService,
       ciYamlFetcher: ciYamlFetcher,
       firestore: firestore,
+      now: () => now ?? DateTime.now(),
     );
 
     when(
@@ -316,8 +319,12 @@ void main() {
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName('Windows A')
-            .hasStatus(fs.Task.statusNew)
+            .hasStatus(fs.Task.statusSkipped)
             .hasCurrentAttempt(1),
+        isTask
+            .hasTaskName('Windows A')
+            .hasStatus(fs.Task.statusNew)
+            .hasCurrentAttempt(2),
       ]),
     );
   });
@@ -519,7 +526,114 @@ void main() {
         isTask
             .hasTaskName('Linux depends_on_release_builder_passing_first')
             .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusSkipped),
+        isTask
+            .hasTaskName('Linux depends_on_release_builder_passing_first')
+            .hasCurrentAttempt(2)
             .hasStatus(fs.Task.statusNew),
+      ]),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/167654.
+  test('Rerun all marks *all* tests to be rerun, not just one', () async {
+    final date = DateTime(2025, 1, 1);
+    final commit = generateFirestoreCommit(1);
+
+    firestore.putDocuments([
+      commit,
+      generateFirestoreTask(
+        1,
+        name: 'Linux A',
+        attempts: 1,
+        status: fs.Task.statusSkipped,
+        commitSha: '1',
+        created: date,
+      ),
+      generateFirestoreTask(
+        1,
+        name: 'Linux B',
+        attempts: 1,
+        status: fs.Task.statusSkipped,
+        commitSha: '1',
+        created: date,
+      ),
+    ]);
+
+    tester.requestData = {
+      'branch': commit.branch,
+      'repo': commit.slug.name,
+      'commit': commit.sha,
+      'task': 'all',
+      'include': 'Skipped',
+    };
+
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux A')
+            .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusSkipped),
+        isTask
+            .hasTaskName('Linux B')
+            .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusSkipped),
+        isTask
+            .hasTaskName('Linux A')
+            .hasCurrentAttempt(2)
+            .hasStatus(fs.Task.statusNew),
+        isTask
+            .hasTaskName('Linux B')
+            .hasCurrentAttempt(2)
+            .hasStatus(fs.Task.statusNew),
+      ]),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/167654.
+  test('Rerun all (Skipped -> New) updates the create timestamp', () async {
+    final oldDate = DateTime(2024, 1, 1);
+    final commit = generateFirestoreCommit(1);
+
+    firestore.putDocuments([
+      commit,
+      generateFirestoreTask(
+        1,
+        name: 'Linux Old',
+        attempts: 1,
+        status: fs.Task.statusSkipped,
+        commitSha: '1',
+        created: oldDate,
+      ),
+    ]);
+
+    tester.requestData = {
+      'branch': commit.branch,
+      'repo': commit.slug.name,
+      'commit': commit.sha,
+      'task': 'all',
+      'include': 'Skipped',
+    };
+
+    final newDate = now = DateTime(2025, 1, 1);
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName('Linux Old')
+            .hasCurrentAttempt(1)
+            .hasStatus(fs.Task.statusSkipped)
+            .hasCreateTimestamp(oldDate.millisecondsSinceEpoch),
+        isTask
+            .hasTaskName('Linux Old')
+            .hasCurrentAttempt(2)
+            .hasStatus(fs.Task.statusNew)
+            .hasCreateTimestamp(newDate.millisecondsSinceEpoch),
       ]),
     );
   });
