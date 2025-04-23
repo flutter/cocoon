@@ -31,10 +31,13 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required LuciBuildService luciBuildService,
     required CiYamlFetcher ciYamlFetcher,
     required FirestoreService firestore,
+    @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _luciBuildService = luciBuildService,
-       _firestore = firestore;
+       _firestore = firestore,
+       _now = now;
 
+  final DateTime Function() _now;
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
   final FirestoreService _firestore;
@@ -211,25 +214,10 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
             fs.Task.statusCancelled,
           ),
         );
-      } else if (task.status == fs.Task.statusSkipped) {
-        // Mark new.
-        documentWrites.add(
-          fs.Task.patchStatus(
-            fs.TaskId(
-              commitSha: task.commitSha,
-              currentAttempt: task.currentAttempt,
-              taskName: task.taskName,
-            ),
-            fs.Task.statusNew,
-          ),
-        );
-
-        // Since this is not a new attempt, break (do not add a new task).
-        break;
       }
 
       // Start a new task.
-      task.resetAsRetry();
+      task.resetAsRetry(now: _now());
       documentWrites.add(
         g.Write(currentDocument: g.Precondition(exists: false), update: task),
       );

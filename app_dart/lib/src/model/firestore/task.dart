@@ -402,7 +402,7 @@ final class Task extends AppDocument<Task> {
     _setStatusFromLuciStatus(build);
   }
 
-  void resetAsRetry({int? attempt}) {
+  void resetAsRetry({int? attempt, DateTime? now}) {
     attempt ??= currentAttempt + 1;
     name = p.posix.join(
       kDatabase,
@@ -414,8 +414,9 @@ final class Task extends AppDocument<Task> {
         taskName: taskName,
       ).documentId,
     );
+    now ??= DateTime.now();
     fields = <String, Value>{
-      fieldCreateTimestamp: DateTime.now().millisecondsSinceEpoch.toValue(),
+      fieldCreateTimestamp: now.millisecondsSinceEpoch.toValue(),
       fieldEndTimestamp: 0.toValue(),
       fieldBringup: bringup.toValue(),
       fieldName: taskName.toValue(),
