@@ -127,12 +127,14 @@ Server createServer({
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
       firestore: firestore,
+      branchService: branchService,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
       firestore: firestore,
+      branchService: branchService,
     ),
     '/api/v2/scheduler/batch-request-subscription':
         SchedulerRequestSubscription(

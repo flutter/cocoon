@@ -172,8 +172,13 @@ mixin FirestoreQueries {
     RepositorySlug slug, {
     required int commitLimit,
     String? status,
+    String? branch,
   }) async {
-    final commits = await queryRecentCommits(slug: slug, limit: commitLimit);
+    final commits = await queryRecentCommits(
+      slug: slug,
+      limit: commitLimit,
+      branch: branch,
+    );
     return [
       for (final commit in commits)
         CommitAndTasks(
