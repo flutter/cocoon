@@ -61,7 +61,7 @@ final class BatchBackfiller extends RequestHandler {
     // 2025-04-23 is every 5 minutes, so this is `3 * 5 * 12` or 180 calls to
     // GitHub per hour.
     //
-    // We could either:
+    // We could possibly do one of the following to mitigate:
     // - Use `githubFileContent`, which doesn't use the GitHub API (uses CDN);
     // - Cache the result and read this less often (it does change, but rarely);
     // - Have some sort of job that periodically updates a Firestore document:
