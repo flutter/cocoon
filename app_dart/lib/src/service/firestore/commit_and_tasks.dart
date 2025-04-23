@@ -30,9 +30,10 @@ final class CommitAndTasks {
   CommitAndTasks withMostRecentTaskOnly() {
     final mostRecent = <String, Task>{};
     for (final task in tasks) {
-      mostRecent.update(task.taskName, (current) {
-        return current.currentAttempt > task.createTimestamp ? current : task;
-      }, ifAbsent: () => task);
+      final previous = mostRecent[task.taskName];
+      if (previous == null || previous.currentAttempt < task.currentAttempt) {
+        mostRecent[task.taskName] = task;
+      }
     }
     return CommitAndTasks(commit, mostRecent.values);
   }

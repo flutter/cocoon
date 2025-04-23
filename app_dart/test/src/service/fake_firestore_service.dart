@@ -351,7 +351,18 @@ abstract base class _FakeInMemoryFirestoreService
       _documents
         ..clear()
         ..addAll(beforeTransaction);
-      throw DetailedApiRequestError(500, 'The transaction was aborted');
+      if (_failOnTransactionCommit) {
+        throw DetailedApiRequestError(
+          500,
+          'The transaction was aborted: failOnTransactionCommit() was used to '
+          'simulate a backend failure.',
+        );
+      }
+      throw DetailedApiRequestError(
+        500,
+        'The transaction was aborted:\n'
+        '${result.where((r) => r.code != 0).map((r) => r.message).join('\n')}',
+      );
     }
 
     final updated = _now().toUtc().toIso8601String();
