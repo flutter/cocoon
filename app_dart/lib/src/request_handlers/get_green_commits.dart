@@ -60,20 +60,29 @@ final class GetGreenCommits extends RequestHandler<Body> {
       branch: branch,
       slug: slug,
     );
-    final greenCommits =
-        allCommits
-            .where(everyNonFlakyTaskSucceed)
-            .map((status) => status.commit.sha)
-            .toList();
-
-    return Body.forJson(greenCommits);
+    return Body.forJson([
+      ...allCommits.where(_isGreenCommit).map((s) => s.commit.sha),
+    ]);
   }
 
-  bool everyNonFlakyTaskSucceed(CommitTasksStatus status) {
-    return status.tasks
-        .where((task) => !task.testFlaky)
-        .every(
-          (nonFlakyTask) => nonFlakyTask.status == fs.Task.statusSucceeded,
-        );
+  bool _isGreenCommit(CommitTasksStatus status) {
+    if (status.tasks.isEmpty) {
+      // If there are no tasks, it can't possibly be (our definition of) green.
+      return false;
+    }
+
+    for (final task in status.tasks) {
+      if (task.bringup) {
+        continue;
+      }
+      if (!const {
+        fs.Task.statusSkipped,
+        fs.Task.statusSucceeded,
+      }.contains(task.status)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

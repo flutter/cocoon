@@ -49,7 +49,7 @@ void main() {
   final task3FailedFlaky = generateFirestoreTask(
     3,
     status: Task.statusFailed,
-    testFlaky: true,
+    bringup: true,
   ); // should succeed if included because `bringup: true`
   final task4SucceedFlaky = generateFirestoreTask(
     4,
