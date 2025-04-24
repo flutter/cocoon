@@ -424,7 +424,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 appBar: CocoonAppBar(
                   title: Tooltip(
                     message: _getStatusTitle(buildState),
-                    child: Text(_getStatusTitle(buildState)),
+                    child: SelectionArea(
+                      child: Text(_getStatusTitle(buildState)),
+                    ),
                   ),
                   backgroundColor: colorTable[buildState.isTreeBuilding],
                   actions: <Widget>[
