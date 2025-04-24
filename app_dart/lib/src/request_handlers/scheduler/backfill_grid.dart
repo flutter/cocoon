@@ -72,7 +72,7 @@ final class BackfillGrid {
 
   /// Returns a [BackfillTask] with the provided LUCI scheduling [priority].
   ///
-  /// If [task] does not originate from [targets] the behavior is undefined.
+  /// If [task] does not originate from [eligibleTasks] the behavior is undefined.
   @useResult
   BackfillTask createBackfillTask(TaskRef task, {required int priority}) {
     final target = _targetsByName[task.name];
@@ -109,7 +109,7 @@ final class BackfillGrid {
   /// Each task, ordered by column (task by task).
   ///
   /// Returned [TaskRef]s are eligible to be used in [createBackfillTask].
-  Iterable<(Target, List<TaskRef>)> get targets sync* {
+  Iterable<(Target, List<TaskRef>)> get eligibleTasks sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
       if (column.isEmpty) {
         throw StateError('A target ("$name") should never have 0 tasks');
@@ -118,7 +118,35 @@ final class BackfillGrid {
       if (target == null) {
         throw StateError('A target ("$name") should have existed in the grid');
       }
-      yield (target, column);
+      if (target.backfill) {
+        yield (target, column);
+      }
+    }
+  }
+
+  /// Each task, ordered by column (task by task).
+  ///
+  /// Returned tasks are not to be backfilled, and should be marked skipped.
+  Iterable<SkippableTask> get skippableTasks sync* {
+    for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
+      if (column.isEmpty) {
+        throw StateError('A target ("$name") should never have 0 tasks');
+      }
+      final target = _targetsByName[name];
+      if (target == null) {
+        throw StateError('A target ("$name") should have existed in the grid');
+      }
+      if (!target.backfill) {
+        for (final task in column) {
+          final commit = _commitsBySha[task.commitSha];
+          if (commit == null) {
+            throw StateError(
+              'A commit ("${task.commitSha}") should have existed in the grid',
+            );
+          }
+          yield SkippableTask._from(task, target: target, commit: commit);
+        }
+      }
     }
   }
 }
@@ -158,5 +186,33 @@ final class BackfillTask {
   /// Converts to a [PendingTask].
   PendingTask toPendingTask() {
     return PendingTask(target: target, taskName: task.name, priority: priority);
+  }
+}
+
+/// A proposed task to be skipped as part of the backfill process.
+@immutable
+final class SkippableTask {
+  const SkippableTask._from(
+    this.task, {
+    required this.target,
+    required this.commit,
+  });
+
+  /// The task itself.
+  final TaskRef task;
+
+  /// Which [Target] (originating from `.ci.yaml`) defined this task.
+  final Target target;
+
+  /// The commit this task is associated with.
+  final CommitRef commit;
+
+  @override
+  String toString() {
+    return 'SkippableTask ${const JsonEncoder.withIndent('  ').convert({
+      'task': '$task', //
+      'target': '$target',
+      'commit': '$commit',
+    })}';
   }
 }

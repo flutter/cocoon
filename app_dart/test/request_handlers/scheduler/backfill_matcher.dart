@@ -8,7 +8,7 @@ import 'package:test/expect.dart';
 
 import '../../src/model/ci_yaml_matcher.dart';
 
-/// Returns a matcher that asserts the state of [BackfillGrid.targets].
+/// Returns a matcher that asserts the state of [BackfillGrid.eligibleTasks].
 Matcher hasGridTargetsMatching(
   Iterable<(TargetMatcher, List<OpaqueTaskMatcher>)> targets,
 ) {
@@ -34,12 +34,12 @@ final class _BackfillGridMatcher extends Matcher {
     if (item is! BackfillGrid) {
       return false;
     }
-    final actual = item.targets.toList();
+    final actual = item.eligibleTasks.toList();
     if (actual.length != _expected.length) {
       return false;
     }
     var i = 0;
-    for (final (actualTarget, actualTasks) in item.targets) {
+    for (final (actualTarget, actualTasks) in item.eligibleTasks) {
       final (expectedTarget, expectedTasks) = _expected[i];
       if (!expectedTarget.matches(actualTarget, {})) {
         return false;

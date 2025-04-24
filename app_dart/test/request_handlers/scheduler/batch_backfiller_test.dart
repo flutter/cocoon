@@ -339,7 +339,7 @@ final class _NaiveBackfillStrategy extends BackfillStrategy {
   @override
   List<BackfillTask> determineBackfill(BackfillGrid grid) {
     return [
-      for (final (_, tasks) in grid.targets)
+      for (final (_, tasks) in grid.eligibleTasks)
         if (tasks.firstWhereOrNull((t) => t.status == fs.Task.statusNew)
             case final task?)
           grid.createBackfillTask(
