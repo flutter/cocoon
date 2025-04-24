@@ -7,7 +7,7 @@ import 'package:googleapis/firestore/v1.dart' as g;
 import '../../service/firestore.dart';
 import 'base.dart';
 
-/// A tree-status update.
+/// Tracking the content aware hashes for engine builds in the merge queue.
 final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
   @override
   AppDocumentMetadata<ContentAwareHashBuilds> get runtimeMetadata => metadata;
@@ -42,7 +42,7 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
     );
   }
 
-  /// Create [ContentAwareHashBuilds] from a GithubBuildStatus Document.
+  /// Create [ContentAwareHashBuilds] from a firestore Document.
   ContentAwareHashBuilds.fromDocument(super.document);
 
   static const _fieldCreateTimestamp = 'createTimestamp';
