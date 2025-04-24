@@ -4,6 +4,7 @@
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:path/path.dart' as p;
 
 import '../config.dart';
 import '../get_files_changed.dart';
@@ -31,8 +32,8 @@ final class FilesChangedOptimizer {
   //   skip-engine-if-not-changed:
   //     - DEPS
   //     - engine/**
-  //   skip-all-if-only-changed:
-  //     - CHANGELOG.md
+  //   skip-framework-if-only-changed:
+  //     - **/*.md
   // ```
   final CiYamlFetcher _ciYamlFetcher;
 
@@ -74,9 +75,7 @@ final class FilesChangedOptimizer {
         log.warn('$refusePrefix: $reason');
         return FilesChangedOptimization.none;
       case SuccessfulFilesChanged(:final filesChanged):
-        if (filesChanged.length == 1 && filesChanged.contains('CHANGELOG.md')) {
-          return FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze;
-        }
+        var markdownOnly = true;
         for (final file in filesChanged) {
           if (file == 'DEPS' || file.startsWith('engine/')) {
             log.info(
@@ -84,8 +83,15 @@ final class FilesChangedOptimizer {
             );
             return FilesChangedOptimization.none;
           }
+          if (markdownOnly && p.posix.extension(file) != '.md') {
+            markdownOnly = false;
+          }
         }
-        return FilesChangedOptimization.skipPresubmitEngine;
+        if (!markdownOnly) {
+          return FilesChangedOptimization.skipPresubmitEngine;
+        } else {
+          return FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze;
+        }
     }
   }
 }
