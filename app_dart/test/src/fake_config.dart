@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
@@ -31,13 +30,10 @@ class FakeConfig implements Config {
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
     this.webhookKeyValue,
-    this.loggingServiceValue,
     this.githubService,
     this.githubGraphQLClient,
     this.rollerAccountsValue,
-    this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
-    this.maxRecordsValue,
     this.flutterGoldPendingValue,
     this.flutterGoldSuccessValue,
     this.flutterGoldChangesValue,
@@ -73,14 +69,10 @@ class FakeConfig implements Config {
   String? wrongHeadBranchPullRequestMessageValue;
   String? releaseBranchPullRequestMessageValue;
   String? webhookKeyValue;
-  String? flutterBuildValue;
   String? flutterBuildDescriptionValue;
-  Logging? loggingServiceValue;
-  String? waitingForTreeToGoGreenLabelNameValue;
   List<String>? releaseBranchesValue;
   String? releaseCandidateBranchPathValue;
   Set<String>? rollerAccountsValue;
-  int? maxRecordsValue;
   int? backfillerTargetLimitValue;
   int? backfillerCommitLimitValue;
   int? issueAndPRLimitValue;
@@ -118,9 +110,6 @@ class FakeConfig implements Config {
   GithubService createGithubServiceWithToken(String token) => githubService!;
 
   @override
-  Never get db => throw UnsupportedError('FakeConfig does not support db');
-
-  @override
   Duration get githubRequestDelay => githubRequestDelayValue ?? Duration.zero;
 
   /// Size of the shards to send to buildBucket when scheduling builds.
@@ -145,9 +134,6 @@ class FakeConfig implements Config {
 
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;
-
-  @override
-  int get maxRecords => maxRecordsValue!;
 
   @override
   String get flutterGoldPending => flutterGoldPendingValue!;
@@ -214,9 +200,6 @@ class FakeConfig implements Config {
   Future<String> get webhookKey async => webhookKeyValue!;
 
   @override
-  String get flutterBuild => flutterBuildValue!;
-
-  @override
   String get flutterTreeStatusRed =>
       flutterBuildDescriptionValue ??
       'Tree is currently broken. Please do not merge this '
@@ -224,13 +207,6 @@ class FakeConfig implements Config {
   @override
   String get flutterTreeStatusEmergency =>
       'The tree is currently broken; however, this PR is marked as `emergency` and will be allowed to merge.';
-
-  @override
-  Logging get loggingService => loggingServiceValue!;
-
-  @override
-  String get waitingForTreeToGoGreenLabelName =>
-      waitingForTreeToGoGreenLabelNameValue!;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;
