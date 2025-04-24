@@ -213,6 +213,7 @@ class Scheduler {
             target: target,
             taskName: task.taskName,
             priority: priority,
+            currentAttempt: 1,
           ),
         );
       }

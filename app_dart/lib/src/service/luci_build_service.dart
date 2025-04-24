@@ -502,12 +502,9 @@ class LuciBuildService {
 
     tags.addOrReplace(TriggerTypeBuildTag.checkRunManualRetry);
 
+    final int newAttempt;
     try {
-      final newAttempt = await _updateTaskStatusInDatabaseForRetry(
-        commit,
-        task,
-      );
-      tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: newAttempt));
+      newAttempt = await _updateTaskStatusInDatabaseForRetry(commit, task);
     } catch (e, s) {
       log.error(
         'updating task ${task.taskName} of commit '
@@ -528,6 +525,7 @@ class LuciBuildService {
             properties: properties,
             priority: kRerunPriority,
             tags: tags,
+            currentAttempt: newAttempt,
           ),
         ),
       ],
@@ -640,6 +638,7 @@ class LuciBuildService {
         target: pending.target,
         taskName: pending.taskName,
         priority: pending.priority,
+        currentAttempt: pending.currentAttempt,
       );
       buildRequests.add(
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
@@ -803,6 +802,7 @@ class LuciBuildService {
     required CommitRef commit,
     required Target target,
     required String taskName,
+    required int currentAttempt,
     Map<String, Object?>? properties,
     BuildTags? tags,
     int priority = kDefaultPriority,
@@ -829,14 +829,12 @@ class LuciBuildService {
 
     tags.addOrReplace(UserAgentBuildTag.flutterCocoon);
     tags.addOrReplace(SchedulerJobIdBuildTag(targetName: target.name));
-    final currentAttempt = tags.addIfAbsent(
-      CurrentAttemptBuildTag(attemptNumber: 1),
-    );
+    tags.addOrReplace(CurrentAttemptBuildTag(attemptNumber: currentAttempt));
 
     final firestoreTask = fs.TaskId(
       commitSha: commit.sha,
       taskName: taskName,
-      currentAttempt: currentAttempt.attemptNumber,
+      currentAttempt: currentAttempt,
     );
     final userData = PostsubmitUserData(
       taskId: firestoreTask,
@@ -1016,12 +1014,9 @@ class LuciBuildService {
     final buildTags = BuildTags(tags);
     buildTags.add(TriggerTypeBuildTag.autoRetry);
 
+    final int newAttempt;
     try {
-      final newAttempt = await _updateTaskStatusInDatabaseForRetry(
-        commit,
-        task,
-      );
-      buildTags.add(CurrentAttemptBuildTag(attemptNumber: newAttempt));
+      newAttempt = await _updateTaskStatusInDatabaseForRetry(commit, task);
     } catch (e, s) {
       log.error(
         'Updating task ${task.taskName} of commit '
@@ -1044,6 +1039,7 @@ class LuciBuildService {
             priority: kRerunPriority,
             properties: Config.defaultProperties,
             tags: buildTags,
+            currentAttempt: newAttempt,
           ),
         ),
       ],
