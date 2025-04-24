@@ -8,7 +8,7 @@ import 'package:test/expect.dart';
 
 import '../../src/model/ci_yaml_matcher.dart';
 
-/// Returns a matcher that asserts the state of [BackfillGrid.targets].
+/// Returns a matcher that asserts the state of [BackfillGrid.eligibleTasks].
 Matcher hasGridTargetsMatching(
   Iterable<(TargetMatcher, List<OpaqueTaskMatcher>)> targets,
 ) {
@@ -34,12 +34,12 @@ final class _BackfillGridMatcher extends Matcher {
     if (item is! BackfillGrid) {
       return false;
     }
-    final actual = item.targets.toList();
+    final actual = item.eligibleTasks.toList();
     if (actual.length != _expected.length) {
       return false;
     }
     var i = 0;
-    for (final (actualTarget, actualTasks) in item.targets) {
+    for (final (actualTarget, actualTasks) in item.eligibleTasks) {
       final (expectedTarget, expectedTasks) = _expected[i];
       if (!expectedTarget.matches(actualTarget, {})) {
         return false;
@@ -55,6 +55,48 @@ final class _BackfillGridMatcher extends Matcher {
       i++;
     }
     return true;
+  }
+}
+
+const isSkippableTask = SkippableTaskMatcher._(TypeMatcher());
+
+final class SkippableTaskMatcher extends Matcher {
+  const SkippableTaskMatcher._(this._delegate);
+  final TypeMatcher<SkippableTask> _delegate;
+
+  SkippableTaskMatcher hasTask(Object matcherOr) {
+    return SkippableTaskMatcher._(
+      _delegate.having((t) => t.task, 'task', matcherOr),
+    );
+  }
+
+  @override
+  bool matches(Object? item, Map matchState) {
+    if (item is! SkippableTask) {
+      return false;
+    }
+
+    return _delegate.matches(item, matchState);
+  }
+
+  @override
+  Description describe(Description description) {
+    return _delegate.describe(description);
+  }
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map matchState,
+    _,
+  ) {
+    return _delegate.describeMismatch(
+      item,
+      mismatchDescription,
+      matchState,
+      false,
+    );
   }
 }
 

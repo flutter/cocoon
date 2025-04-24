@@ -107,6 +107,12 @@ final class TargetMatcher extends Matcher {
     );
   }
 
+  TargetMatcher hasBackfill(Object? valueOrMatcher) {
+    return TargetMatcher._(
+      _delegate.having((e) => e.backfill, 'backfill', valueOrMatcher),
+    );
+  }
+
   @override
   bool matches(Object? item, _) {
     if (item is! Target) {

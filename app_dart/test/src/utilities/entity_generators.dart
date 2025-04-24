@@ -122,6 +122,7 @@ Target generateTarget(
   pb.SchedulerSystem? schedulerSystem,
   String recipe = 'devicelab/devicelab',
   String? name,
+  bool? backfill,
 }) {
   final config =
       schedulerConfig ?? multiTargetFusionConfig.configFor(CiType.any);
@@ -149,6 +150,7 @@ Target generateTarget(
       bringup: bringup ?? false,
       recipe: recipe,
       scheduler: schedulerSystem ?? pb.SchedulerSystem.cocoon,
+      backfill: backfill,
     ),
   );
 }

@@ -67,6 +67,8 @@ message Target {
     // Dimensions used when this build runs within a drone.
     repeated string drone_dimensions = 17;
     reserved 18; // run_if_not
+    // Whether the target should be considered for backfill.
+    optional bool backfill = 19 [default = true];
 }
 
 // Schedulers supported in SchedulerConfig.

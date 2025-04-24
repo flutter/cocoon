@@ -79,7 +79,7 @@ void main() {
 
     tearDown(() {
       printOnFailure(
-        'Grid contents on failure: ${grid.targets.toList().toString()}',
+        'Grid contents on failure: ${grid.eligibleTasks.toList().toString()}',
       );
     });
 

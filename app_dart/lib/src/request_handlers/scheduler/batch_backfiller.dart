@@ -120,9 +120,9 @@ final class BatchBackfiller extends RequestHandler {
       );
 
       final totTargets = [
-        ...ciYaml.backfillTargets(),
+        ...ciYaml.postsubmitTargets(),
         if (ciYaml.isFusion)
-          ...ciYaml.backfillTargets(type: CiType.fusionEngine),
+          ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
       ];
       log.debug('Fetched ${totTargets.length} tip-of-tree targets');
 
@@ -134,7 +134,7 @@ final class BatchBackfiller extends RequestHandler {
           ),
       ], tipOfTreeTargets: totTargets);
     }
-    log.debug('Built a grid of ${grid.targets.length} target columns');
+    log.debug('Built a grid of ${grid.eligibleTasks.length} target columns');
 
     // Produce a list of tasks, ordered from highest to lowest, to backfill.
     // ... but only take the top N tasks, at most.
@@ -157,17 +157,20 @@ final class BatchBackfiller extends RequestHandler {
     );
 
     // Update the database first before we schedule builds.
-    await _updateFirestore(toBackfillTasks);
+    await _updateFirestore(toBackfillTasks, grid.skippableTasks);
     log.info('Wrote updates to ${toBackfillTasks.length} tasks for backfill');
 
     await _scheduleWithRetries(toBackfillTasks);
     log.info('Scheduled ${toBackfillTasks.length} tasks with LUCI');
   }
 
-  Future<void> _updateFirestore(List<BackfillTask> tasks) async {
-    log.debug('Querying ${tasks.length} tasks in Firestore...');
+  Future<void> _updateFirestore(
+    Iterable<BackfillTask> schedule,
+    Iterable<SkippableTask> skip,
+  ) async {
+    log.debug('Querying ${schedule.length} tasks in Firestore...');
     await _firestore.writeViaTransaction([
-      ...tasks.map((toUpdate) {
+      ...schedule.map((toUpdate) {
         final BackfillTask(:task) = toUpdate;
         return fs.Task.patchStatus(
           fs.TaskId(
@@ -176,6 +179,17 @@ final class BatchBackfiller extends RequestHandler {
             currentAttempt: task.currentAttempt,
           ),
           fs.Task.statusInProgress,
+        );
+      }),
+      ...skip.map((toSkip) {
+        final SkippableTask(:task) = toSkip;
+        return fs.Task.patchStatus(
+          fs.TaskId(
+            commitSha: task.commitSha,
+            taskName: task.name,
+            currentAttempt: task.currentAttempt,
+          ),
+          fs.Task.statusSkipped,
         );
       }),
     ]);

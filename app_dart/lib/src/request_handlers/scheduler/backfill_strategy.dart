@@ -75,7 +75,7 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     final hadRecentFailure = <TaskRef>[];
     final noRecentFailures = <TaskRef>[];
 
-    for (final (_, column) in grid.targets) {
+    for (final (_, column) in grid.eligibleTasks) {
       for (var i = 0; i < column.length; i++) {
         final row = column[i];
         if (row.status != fs.Task.statusNew) {

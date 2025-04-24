@@ -198,6 +198,7 @@ class Target extends $pb.GeneratedMessage {
     $core.Map<$core.String, $core.String>? postsubmitProperties,
     $core.Map<$core.String, $core.String>? dimensions,
     $core.Iterable<$core.String>? droneDimensions,
+    $core.bool? backfill,
   }) {
     final $result = create();
     if (name != null) {
@@ -248,6 +249,9 @@ class Target extends $pb.GeneratedMessage {
     }
     if (droneDimensions != null) {
       $result.droneDimensions.addAll(droneDimensions);
+    }
+    if (backfill != null) {
+      $result.backfill = backfill;
     }
     return $result;
   }
@@ -300,6 +304,8 @@ class Target extends $pb.GeneratedMessage {
         valueFieldType: $pb.PbFieldType.OS,
         packageName: const $pb.PackageName('scheduler'))
     ..pPS(17, _omitFieldNames ? '' : 'droneDimensions')
+    ..a<$core.bool>(19, _omitFieldNames ? '' : 'backfill', $pb.PbFieldType.OB,
+        defaultOrMaker: true)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -476,6 +482,19 @@ class Target extends $pb.GeneratedMessage {
   /// Dimensions used when this build runs within a drone.
   @$pb.TagNumber(17)
   $core.List<$core.String> get droneDimensions => $_getList(15);
+
+  /// Whether the target should be considered for backfill.
+  @$pb.TagNumber(19)
+  $core.bool get backfill => $_getB(16, true);
+  @$pb.TagNumber(19)
+  set backfill($core.bool v) {
+    $_setBool(16, v);
+  }
+
+  @$pb.TagNumber(19)
+  $core.bool hasBackfill() => $_has(16);
+  @$pb.TagNumber(19)
+  void clearBackfill() => clearField(19);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

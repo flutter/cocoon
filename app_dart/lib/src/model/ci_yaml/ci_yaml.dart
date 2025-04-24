@@ -100,10 +100,6 @@ final class CiYamlSet {
   List<String>? totPostsubmitTargetNames({CiType type = CiType.any}) =>
       configs[type]!.totPostsubmitTargetNames;
 
-  /// Filters post submit targets to remove targets we do not want backfilled.
-  List<Target> backfillTargets({CiType type = CiType.any}) =>
-      configs[type]!.backfillTargets;
-
   /// Filters [targets] to those that should be started immediately.
   ///
   /// Targets with a dependency are triggered when there dependency pushes a notification that it has finished.
@@ -219,19 +215,6 @@ class CiYaml {
     return postsubmitTargets.singleWhereOrNull(
       (Target target) => target.name == builderName,
     );
-  }
-
-  /// Filters post submit targets to remove targets we do not want backfilled.
-  List<Target> get backfillTargets {
-    final filteredTargets = <Target>[];
-    for (var target in postsubmitTargets) {
-      final properties = target.getProperties();
-      if (!properties.containsKey('backfill') ||
-          properties['backfill'] as bool) {
-        filteredTargets.add(target);
-      }
-    }
-    return filteredTargets;
   }
 
   /// Pick targets out of the given [targets] list that should be run for the
