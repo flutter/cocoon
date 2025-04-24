@@ -117,6 +117,7 @@ class TaskGrid extends StatefulWidget {
 /// largest integer weight.
 const Map<String, double> _statusScores = <String, double>{
   'Failed - Rerun': 1.0,
+  'In Progress - Broke Tree': 0.7,
   'Failed': 0.7,
   'Infra Failure - Rerun': 0.69,
   'Infra Failure': 0.68,
@@ -237,7 +238,9 @@ class _TaskGridState extends State<TaskGrid> {
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
           var weightStatus = task.status;
-          if (task.isBringup) {
+          if (task.lastAttemptFailed) {
+            weightStatus += ' - Broke Tree';
+          } else if (task.isBringup) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.
             weightStatus += ' - Flaky';
           } else if (task.isFlaky) {
@@ -320,12 +323,16 @@ class _TaskGridState extends State<TaskGrid> {
       TaskBox.statusColor.containsKey(task.status),
       'Unknown or unexpected status: ${task.status}',
     );
-    final paint =
-        Paint()
-          ..color =
-              TaskBox.statusColor.containsKey(task.status)
-                  ? TaskBox.statusColor[task.status]!
-                  : Colors.transparent;
+
+    var color =
+        TaskBox.statusColor.containsKey(task.status)
+            ? TaskBox.statusColor[task.status]!
+            : Colors.transparent;
+    if (task.lastAttemptFailed && task.status == TaskBox.statusInProgress) {
+      color = TaskBox.statusColorFailedAndRerunning;
+    }
+
+    final paint = Paint()..color = color;
     if (task.isBringup) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;

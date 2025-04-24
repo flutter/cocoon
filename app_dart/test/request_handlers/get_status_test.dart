@@ -172,6 +172,7 @@ void main() {
               'Status': 'New',
               'BuildNumberList': <Object?>[],
               'BuilderName': 'task1',
+              'LastAttemptFailed': false,
             },
           ],
         },
@@ -195,6 +196,7 @@ void main() {
               'Status': 'New',
               'BuildNumberList': <Object?>[],
               'BuilderName': 'task1',
+              'LastAttemptFailed': false,
             },
             {
               'CreateTimestamp': 0,
@@ -206,6 +208,7 @@ void main() {
               'Status': 'In Progress',
               'BuildNumberList': <Object?>[123, 456],
               'BuilderName': 'task2',
+              'LastAttemptFailed': true,
             },
           ],
         },

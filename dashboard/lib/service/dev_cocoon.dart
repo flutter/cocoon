@@ -368,7 +368,7 @@ class DevelopmentCocoonService implements CocoonService {
 
   static const Map<String, int> _maxAttempts = <String, int>{
     TaskBox.statusNew: 0,
-    TaskBox.statusInProgress: 1,
+    TaskBox.statusInProgress: 2,
     TaskBox.statusSucceeded: 1,
     TaskBox.statusFailed: 2,
     TaskBox.statusInfraFailure: 2,
@@ -430,9 +430,11 @@ class DevelopmentCocoonService implements CocoonService {
       buildNumberList: List.generate(attempts, (i) => i),
       isBringup: index == now.millisecondsSinceEpoch % 13,
 
-      // This is not strictly true from a domain perspective.
-      isFlaky: attempts > 1,
       status: status,
+
+      // Neither of these are strictly true from a domain perspective.
+      lastAttemptFailed: attempts > 1,
+      isFlaky: attempts > 1,
     );
   }
 }

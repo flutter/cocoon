@@ -23,6 +23,7 @@ final class Task extends Model {
     required this.status,
     required this.buildNumberList,
     required this.builderName,
+    required this.lastAttemptFailed,
   });
 
   /// Creates a task from [json] representation.
@@ -60,6 +61,9 @@ final class Task extends Model {
 
   @JsonKey(name: 'BuilderName')
   final String builderName;
+
+  @JsonKey(name: 'LastAttemptFailed')
+  final bool lastAttemptFailed;
 
   @override
   Map<String, Object?> toJson() => _$TaskToJson(this);
