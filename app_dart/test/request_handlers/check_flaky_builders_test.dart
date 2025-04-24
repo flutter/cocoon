@@ -12,7 +12,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart'
     as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -43,7 +43,7 @@ void main() {
     late FakeConfig config;
     FakeClientContext clientContext;
     FakeDashboardAuthentication auth;
-    late MockBigqueryService mockBigqueryService;
+    late MockBigQueryService mockBigQueryService;
     MockGitHub mockGitHubClient;
     late MockRepositoriesService mockRepositoriesService;
     late MockPullRequestsService mockPullRequestsService;
@@ -60,7 +60,7 @@ void main() {
 
       clientContext = FakeClientContext();
       auth = FakeDashboardAuthentication(clientContext: clientContext);
-      mockBigqueryService = MockBigqueryService();
+      mockBigQueryService = MockBigQueryService();
       mockGitHubClient = MockGitHub();
       mockRepositoriesService = MockRepositoriesService();
       mockIssuesService = MockIssuesService();
@@ -139,15 +139,13 @@ void main() {
       when(mockGitHubClient.pullRequests).thenReturn(mockPullRequestsService);
       when(mockGitHubClient.git).thenReturn(mockGitService);
       when(mockGitHubClient.users).thenReturn(mockUsersService);
-      config = FakeConfig(
-        githubService: GithubService(mockGitHubClient),
-        bigqueryService: mockBigqueryService,
-      );
+      config = FakeConfig(githubService: GithubService(mockGitHubClient));
       tester = ApiRequestHandlerTester(request: request);
 
       handler = CheckFlakyBuilders(
         config: config,
         authenticationProvider: auth,
+        bigQuery: mockBigQueryService,
       );
     });
 
@@ -156,7 +154,7 @@ void main() {
       () async {
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listRecentBuildRecordsForBuilder(
+          mockBigQueryService.listRecentBuildRecordsForBuilder(
             kBigQueryProjectId,
             builder: captureAnyNamed('builder'),
             limit: captureAnyNamed('limit'),
@@ -168,7 +166,7 @@ void main() {
         });
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(
+          mockBigQueryService.listBuilderStatistic(
             kBigQueryProjectId,
             bucket: 'staging',
           ),
@@ -234,7 +232,7 @@ void main() {
         // Verify BigQuery is called correctly.
         var captured =
             verify(
-              mockBigqueryService.listRecentBuildRecordsForBuilder(
+              mockBigQueryService.listRecentBuildRecordsForBuilder(
                 captureAny,
                 builder: captureAnyNamed('builder'),
                 limit: captureAnyNamed('limit'),
@@ -340,7 +338,7 @@ void main() {
         });
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listRecentBuildRecordsForBuilder(
+          mockBigQueryService.listRecentBuildRecordsForBuilder(
             kBigQueryProjectId,
             builder: captureAnyNamed('builder'),
             limit: captureAnyNamed('limit'),
@@ -352,7 +350,7 @@ void main() {
         });
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(
+          mockBigQueryService.listBuilderStatistic(
             kBigQueryProjectId,
             bucket: 'staging',
           ),
@@ -412,7 +410,7 @@ void main() {
         // Verify BigQuery is called correctly.
         var captured =
             verify(
-              mockBigqueryService.listRecentBuildRecordsForBuilder(
+              mockBigQueryService.listRecentBuildRecordsForBuilder(
                 captureAny,
                 builder: captureAnyNamed('builder'),
                 limit: captureAnyNamed('limit'),
@@ -514,7 +512,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -546,7 +544,7 @@ void main() {
     test('Do not create pr if the issue is still open', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listRecentBuildRecordsForBuilder(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
           kBigQueryProjectId,
           builder: captureAnyNamed('builder'),
           limit: captureAnyNamed('limit'),
@@ -558,7 +556,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -603,7 +601,7 @@ void main() {
       () async {
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listRecentBuildRecordsForBuilder(
+          mockBigQueryService.listRecentBuildRecordsForBuilder(
             kBigQueryProjectId,
             builder: captureAnyNamed('builder'),
             limit: captureAnyNamed('limit'),
@@ -627,7 +625,7 @@ void main() {
         });
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(
+          mockBigQueryService.listBuilderStatistic(
             kBigQueryProjectId,
             bucket: 'staging',
           ),
@@ -670,7 +668,7 @@ void main() {
         });
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(
+          mockBigQueryService.listBuilderStatistic(
             kBigQueryProjectId,
             bucket: 'staging',
           ),
@@ -705,7 +703,7 @@ void main() {
     test('Do not create pr if the records have failed runs', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listRecentBuildRecordsForBuilder(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
           kBigQueryProjectId,
           builder: captureAnyNamed('builder'),
           limit: captureAnyNamed('limit'),
@@ -717,7 +715,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -752,7 +750,7 @@ void main() {
       // Verify BigQuery is called correctly.
       var captured =
           verify(
-            mockBigqueryService.listRecentBuildRecordsForBuilder(
+            mockBigQueryService.listRecentBuildRecordsForBuilder(
               captureAny,
               builder: captureAnyNamed('builder'),
               limit: captureAnyNamed('limit'),
@@ -781,7 +779,7 @@ void main() {
     test('Do not create pr if there is an open one', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listRecentBuildRecordsForBuilder(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
           kBigQueryProjectId,
           builder: captureAnyNamed('builder'),
           limit: captureAnyNamed('limit'),
@@ -793,7 +791,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -838,7 +836,7 @@ void main() {
     test('Do not create pr if not enough records', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listRecentBuildRecordsForBuilder(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
           kBigQueryProjectId,
           builder: captureAnyNamed('builder'),
           limit: captureAnyNamed('limit'),
@@ -850,7 +848,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -885,7 +883,7 @@ void main() {
       // Verify BigQuery is called correctly.
       var captured =
           verify(
-            mockBigqueryService.listRecentBuildRecordsForBuilder(
+            mockBigQueryService.listRecentBuildRecordsForBuilder(
               captureAny,
               builder: captureAnyNamed('builder'),
               limit: captureAnyNamed('limit'),
@@ -933,7 +931,7 @@ void main() {
 
       // Report not flaky.
       when(
-        mockBigqueryService.listRecentBuildRecordsForBuilder(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
           kBigQueryProjectId,
           builder: captureAnyNamed('builder'),
           limit: captureAnyNamed('limit'),

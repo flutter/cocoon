@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
@@ -34,7 +33,6 @@ class FakeConfig implements Config {
     this.webhookKeyValue,
     this.loggingServiceValue,
     this.githubService,
-    this.bigqueryService,
     this.githubGraphQLClient,
     this.rollerAccountsValue,
     this.flutterBuildValue,
@@ -62,8 +60,6 @@ class FakeConfig implements Config {
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
-  BigqueryService? bigqueryService;
-  FirestoreService? firestoreService;
   GithubService? githubService;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
@@ -113,9 +109,6 @@ class FakeConfig implements Config {
   @override
   Future<GraphQLClient> createGitHubGraphQLClient() async =>
       githubGraphQLClient!;
-
-  @override
-  Future<BigqueryService> createBigQueryService() async => bigqueryService!;
 
   @override
   Future<GithubService> createGithubService(gh.RepositorySlug slug) async =>

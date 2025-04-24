@@ -32,6 +32,7 @@ class FakeScheduler extends Scheduler {
     CiYamlFetcher? ciYamlFetcher,
     ContentAwareHashService? contentAwareHash,
     required super.firestore,
+    required super.bigQuery,
   }) : super(
          cache: CacheService(inMemory: true),
          githubChecksService: GithubChecksService(

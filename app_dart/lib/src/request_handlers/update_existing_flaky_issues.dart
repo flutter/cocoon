@@ -13,7 +13,7 @@ import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
-import '../service/bigquery.dart';
+import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
@@ -24,17 +24,21 @@ import 'flaky_handler_utils.dart';
 /// The query parameter kThresholdKey is required in order for the handler to
 /// properly adjusts the priority labels.
 @immutable
-class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
+final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   const UpdateExistingFlakyIssue({
     required super.config,
     required super.authenticationProvider,
-    @visibleForTesting this.ciYaml,
-  });
+    required BigQueryService bigQuery,
+    @visibleForTesting this.ciYamlForTesting,
+  }) : _bigQuery = bigQuery;
 
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
 
-  final CiYamlSet? ciYaml;
+  final BigQueryService _bigQuery;
+
+  // TODO(matanlurey): Use `CiYamlFetcher` instead.
+  final CiYamlSet? ciYamlForTesting;
 
   @override
   Future<Body> get() async {
@@ -42,9 +46,8 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
     );
-    final bigquery = await config.createBigQueryService();
 
-    var localCiYaml = ciYaml;
+    var localCiYaml = ciYamlForTesting;
     if (localCiYaml == null) {
       final ci =
           loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
@@ -57,11 +60,11 @@ class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       );
     }
 
-    final prodBuilderStatisticList = await bigquery.listBuilderStatistic(
+    final prodBuilderStatisticList = await _bigQuery.listBuilderStatistic(
       kBigQueryProjectId,
       bucket: 'prod',
     );
-    final stagingBuilderStatisticList = await bigquery.listBuilderStatistic(
+    final stagingBuilderStatisticList = await _bigQuery.listBuilderStatistic(
       kBigQueryProjectId,
       bucket: 'staging',
     );

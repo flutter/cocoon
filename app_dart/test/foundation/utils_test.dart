@@ -238,7 +238,7 @@ void main() {
         tabledataResourceApi = FakeTabledataResource();
       });
       test('Insert data to bigquery', () async {
-        await insertBigquery('test', <String, dynamic>{
+        await insertBigQuery('test', <String, dynamic>{
           'test': 'test',
         }, tabledataResourceApi);
         final tableDataList = await tabledataResourceApi.list(

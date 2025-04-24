@@ -48,6 +48,7 @@ void main() {
         config: config,
         githubChecksUtil: mockGithubChecksUtil,
         firestore: FakeFirestoreService(),
+        bigQuery: MockBigQueryService(),
       );
       handler = ResetTryTask(
         config: config,

@@ -9,6 +9,7 @@ import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
+import 'src/service/big_query.dart';
 import 'src/service/build_status_provider.dart';
 import 'src/service/commit_service.dart';
 import 'src/service/discord_service.dart';
@@ -20,6 +21,7 @@ typedef Server = Future<void> Function(HttpRequest);
 Server createServer({
   required Config config,
   required FirestoreService firestore,
+  required BigQueryService bigQuery,
   required CacheService cache,
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
@@ -37,6 +39,7 @@ Server createServer({
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
       authenticationProvider: authProvider,
+      bigQuery: bigQuery,
     ),
     '/api/create-branch': CreateBranch(
       branchService: branchService,
@@ -51,6 +54,7 @@ Server createServer({
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
       authenticationProvider: authProvider,
+      bigQuery: bigQuery,
     ),
     '/api/flush-cache': FlushCache(
       config: config,
@@ -98,6 +102,7 @@ Server createServer({
       authenticationProvider: authProvider,
       buildStatusService: buildStatusService,
       firestore: firestore,
+      bigQuery: bigQuery,
     ),
     '/api/push-gold-status-to-github': PushGoldStatusToGithub(
       config: config,
@@ -148,6 +153,7 @@ Server createServer({
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
       authenticationProvider: authProvider,
+      bigQuery: bigQuery,
     ),
 
     '/api/vacuum-github-commits': VacuumGithubCommits(
@@ -302,7 +308,7 @@ Server createServer({
       config: config,
       cache: cache,
       ttl: const Duration(minutes: 1),
-      delegate: GithubRateLimitStatus(config: config),
+      delegate: GithubRateLimitStatus(config: config, bigQuery: bigQuery),
     ),
     '/api/public/repos': GetRepos(config: config),
 

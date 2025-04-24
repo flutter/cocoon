@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 
 const int existingIssueNumber = 85578;
 const String existingIssueURL =

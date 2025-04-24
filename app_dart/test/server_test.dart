@@ -16,10 +16,12 @@ import 'src/service/fake_firestore_service.dart';
 import 'src/service/fake_gerrit_service.dart';
 import 'src/service/fake_luci_build_service.dart';
 import 'src/service/fake_scheduler.dart';
+import 'src/utilities/mocks.dart';
 
 void main() {
   test('verify server can be created', () {
     final firestore = FakeFirestoreService();
+    final bigQuery = MockBigQueryService();
     createServer(
       config: FakeConfig(webhookKeyValue: 'fake-secret'),
       cache: CacheService(inMemory: true),
@@ -37,10 +39,15 @@ void main() {
       githubChecksService: GithubChecksService(FakeConfig()),
       commitService: CommitService(config: FakeConfig(), firestore: firestore),
       gerritService: FakeGerritService(),
-      scheduler: FakeScheduler(config: FakeConfig(), firestore: firestore),
+      scheduler: FakeScheduler(
+        config: FakeConfig(),
+        firestore: firestore,
+        bigQuery: bigQuery,
+      ),
       ciYamlFetcher: FakeCiYamlFetcher(),
       buildStatusService: FakeBuildStatusService(),
       firestore: firestore,
+      bigQuery: bigQuery,
     );
   });
 }

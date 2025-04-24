@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
-import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
@@ -18,7 +17,6 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import 'bigquery.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
 
@@ -500,10 +498,6 @@ interface class Config {
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
     );
-  }
-
-  Future<BigqueryService> createBigQueryService() async {
-    return BigqueryService.from(const GoogleAuthProvider());
   }
 
   /// Default GitHub service when the repository does not matter.

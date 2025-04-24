@@ -8,7 +8,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
@@ -31,7 +31,7 @@ void main() {
     late UpdateExistingFlakyIssue handler;
     late ApiRequestHandlerTester tester;
     late FakeConfig config;
-    late MockBigqueryService mockBigqueryService;
+    late MockBigQueryService mockBigQueryService;
     late MockGitHub mockGitHubClient;
     late MockIssuesService mockIssuesService;
 
@@ -44,7 +44,7 @@ void main() {
 
       final clientContext = FakeClientContext();
       final auth = FakeDashboardAuthentication(clientContext: clientContext);
-      mockBigqueryService = MockBigqueryService();
+      mockBigQueryService = MockBigQueryService();
       mockGitHubClient = MockGitHub();
       mockIssuesService = MockIssuesService();
       final mockRepositoriesService = MockRepositoriesService();
@@ -84,7 +84,6 @@ void main() {
       ).thenAnswer((_) async => Issue());
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
-        bigqueryService: mockBigqueryService,
         githubOAuthTokenValue: 'token',
       );
       tester = ApiRequestHandlerTester(request: request);
@@ -92,7 +91,8 @@ void main() {
       handler = UpdateExistingFlakyIssue(
         config: config,
         authenticationProvider: auth,
-        ciYaml: testCiYaml,
+        ciYamlForTesting: testCiYaml,
+        bigQuery: mockBigQueryService,
       );
     });
 
@@ -104,14 +104,14 @@ void main() {
       ];
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
         );
       });
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -206,14 +206,14 @@ void main() {
         ];
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+          mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
         ).thenAnswer((Invocation invocation) {
           return Future<List<BuilderStatistic>>.value(
             semanticsIntegrationTestResponse,
           );
         });
         when(
-          mockBigqueryService.listBuilderStatistic(
+          mockBigQueryService.listBuilderStatistic(
             kBigQueryProjectId,
             bucket: 'staging',
           ),
@@ -315,12 +315,12 @@ void main() {
         ];
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+          mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
         ).thenAnswer((Invocation invocation) {
           return Future<List<BuilderStatistic>>.value(ciyamlTestResponse);
         });
         when(
-          mockBigqueryService.listBuilderStatistic(
+          mockBigQueryService.listBuilderStatistic(
             kBigQueryProjectId,
             bucket: 'staging',
           ),
@@ -412,14 +412,14 @@ void main() {
       ];
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
         );
       });
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -493,14 +493,14 @@ void main() {
       ];
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponseZeroFlake,
         );
       });
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),
@@ -596,14 +596,14 @@ void main() {
       ];
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponseZeroFlake,
         );
       });
       when(
-        mockBigqueryService.listBuilderStatistic(
+        mockBigQueryService.listBuilderStatistic(
           kBigQueryProjectId,
           bucket: 'staging',
         ),

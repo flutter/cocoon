@@ -50,12 +50,9 @@ void main() {
 
     firestore = FakeFirestoreService();
 
-    final config = FakeConfig();
-    config.firestoreService = firestore;
-
     tester = RequestHandlerTester();
     handler = UpdateDiscordStatus(
-      config: config,
+      config: FakeConfig(),
       discord: discord,
       buildStatusService: BuildStatusService(firestore: firestore),
       firestore: firestore,

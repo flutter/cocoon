@@ -24,6 +24,7 @@ import '../model/github/checks.dart' as cocoon_checks;
 import '../model/github/checks.dart' show MergeGroup;
 import '../model/github/workflow_job.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
+import 'big_query.dart';
 import 'cache_service.dart';
 import 'config.dart';
 import 'content_aware_hash_service.dart';
@@ -56,6 +57,7 @@ class Scheduler {
     required CiYamlFetcher ciYamlFetcher,
     required ContentAwareHashService contentAwareHash,
     required FirestoreService firestore,
+    required BigQueryService bigQuery,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
@@ -63,6 +65,7 @@ class Scheduler {
        _ciYamlFetcher = ciYamlFetcher,
        _contentAwareHash = contentAwareHash,
        _firestore = firestore,
+       _bigQuery = bigQuery,
        _filesChangedOptimizer = FilesChangedOptimizer(
          getFilesChanged: getFilesChanged,
          ciYamlFetcher: ciYamlFetcher,
@@ -77,6 +80,7 @@ class Scheduler {
   final LuciBuildService _luciBuildService;
   final FilesChangedOptimizer _filesChangedOptimizer;
   final FirestoreService _firestore;
+  final BigQueryService _bigQuery;
 
   /// Name of the subcache to store scheduler related values in redis.
   static const String subcacheName = 'scheduler';
@@ -1521,8 +1525,7 @@ $stacktrace
 
     log.info('Uploading commit ${commit.sha} info to bigquery.');
 
-    final bigquery = await _config.createBigQueryService();
-    final tabledataResource = bigquery.tabledata;
+    final tabledataResource = _bigQuery.tabledata;
     final tableDataInsertAllRequestRows = <Map<String, Object>>[];
 
     /// Consolidate [commits] together

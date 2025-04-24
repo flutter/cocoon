@@ -47,6 +47,7 @@ void main() {
       config: config,
       luciBuildService: mockLuciBuildService,
       firestore: firestore,
+      bigQuery: MockBigQueryService(),
     );
 
     ciYamlFetcher = FakeCiYamlFetcher(

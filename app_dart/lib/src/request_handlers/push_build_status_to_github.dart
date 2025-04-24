@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
 import '../request_handling/api_request_handler.dart';
+import '../service/big_query.dart';
 import '../service/build_status_provider.dart';
 
 @immutable
@@ -22,11 +23,14 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     required super.authenticationProvider,
     required BuildStatusService buildStatusService,
     required FirestoreService firestore,
+    required BigQueryService bigQuery,
   }) : _buildStatusService = buildStatusService,
-       _firestore = firestore;
+       _firestore = firestore,
+       _bigQuery = bigQuery;
 
   final BuildStatusService _buildStatusService;
   final FirestoreService _firestore;
+  final BigQueryService _bigQuery;
 
   static const _fullNameRepoParam = 'repo';
 
@@ -42,7 +46,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
         request!.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
     final slug = RepositorySlug.full(repository);
     final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
-    await _insertBigquery(
+    await _insertBigQuery(
       slug,
       status.githubStatus,
       Config.defaultBranch(slug),
@@ -138,7 +142,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     );
   }
 
-  Future<void> _insertBigquery(
+  Future<void> _insertBigQuery(
     RepositorySlug slug,
     String status,
     String branch,
@@ -152,7 +156,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       'Repo': slug.name,
     };
 
-    final bigquery = await config.createBigQueryService();
-    await insertBigquery(bigqueryTableName, bigqueryData, bigquery.tabledata);
+    await insertBigQuery(bigqueryTableName, bigqueryData, _bigQuery.tabledata);
   }
 }

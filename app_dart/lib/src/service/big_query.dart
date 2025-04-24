@@ -84,23 +84,23 @@ order by time desc
 limit @LIMIT
 ''';
 
-class BigqueryService {
-  /// Creates a [BigqueryService] using Google API authentication.
-  static Future<BigqueryService> from(GoogleAuthProvider authProvider) async {
+class BigQueryService {
+  /// Creates a [BigQueryService] using Google API authentication.
+  static Future<BigQueryService> from(GoogleAuthProvider authProvider) async {
     final client = await authProvider.createClient(
       scopes: const [BigqueryApi.bigqueryScope],
     );
     final api = BigqueryApi(client);
-    return BigqueryService.forTesting(api.tabledata, api.jobs);
+    return BigQueryService.forTesting(api.tabledata, api.jobs);
   }
 
-  /// Creates a [BigqueryService] delegating to a mocked APIs.
+  /// Creates a [BigQueryService] delegating to a mocked APIs.
   ///
-  /// TODO(matanlurey): This is a bad API. Ideally [BigqueryService] would
+  /// TODO(matanlurey): This is a bad API. Ideally [BigQueryService] would
   /// have a combination of internal and external tests, and internal tests
   /// might use this API (annotated with `@visibleForTesting`), but external
   /// tests would use mocks or a specially made `FakeBigqueryService`.
-  const BigqueryService.forTesting(this._defaultTabledata, this._defaultJobs);
+  const BigQueryService.forTesting(this._defaultTabledata, this._defaultJobs);
 
   final TabledataResource _defaultTabledata;
   final JobsResource _defaultJobs;
