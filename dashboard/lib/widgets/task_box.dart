@@ -34,11 +34,11 @@ class TaskBox extends StatelessWidget {
   /// The status messages are based on the messages the backend sends.
   ///
   /// These colors should map to the MILO color scheme.
-  static const Map<String, Color> statusColor = <String, Color>{
+  static final Map<String, Color> statusColor = <String, Color>{
     statusCancelled: Colors.lightBlue,
     statusFailed: Colors.red,
     statusNew: Colors.grey,
-    statusSkipped: Colors.transparent,
+    statusSkipped: Colors.grey.shade800,
     statusSucceeded: Colors.green,
     statusInfraFailure: Colors.purple,
     statusInProgress: Colors.yellow,

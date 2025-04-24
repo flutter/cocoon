@@ -325,7 +325,7 @@ class _TaskGridState extends State<TaskGrid> {
           ..color =
               TaskBox.statusColor.containsKey(task.status)
                   ? TaskBox.statusColor[task.status]!
-                  : Colors.black;
+                  : Colors.transparent;
     if (task.isBringup) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 2.0;
@@ -351,6 +351,14 @@ class _TaskGridState extends State<TaskGrid> {
         return Padding(
           padding: const EdgeInsets.all(4.0),
           child: Icon(Icons.priority_high, size: TaskBox.of(context) * 0.4),
+        );
+      };
+    }
+    if (task.status == TaskBox.statusSkipped) {
+      return (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Icon(Icons.network_ping, size: TaskBox.of(context) * 0.6),
         );
       };
     }
