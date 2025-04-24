@@ -173,6 +173,7 @@ void main() {
               'BuildNumberList': <Object?>[],
               'BuilderName': 'task1',
               'LastAttemptFailed': false,
+              'CurrentBuildNumber': null,
             },
           ],
         },
@@ -197,6 +198,7 @@ void main() {
               'BuildNumberList': <Object?>[],
               'BuilderName': 'task1',
               'LastAttemptFailed': false,
+              'CurrentBuildNumber': null,
             },
             {
               'CreateTimestamp': 0,
@@ -209,6 +211,7 @@ void main() {
               'BuildNumberList': <Object?>[123, 456],
               'BuilderName': 'task2',
               'LastAttemptFailed': true,
+              'CurrentBuildNumber': 456,
             },
           ],
         },
