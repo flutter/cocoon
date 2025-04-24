@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/firestore/v1.dart';
@@ -26,33 +27,50 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     required super.config,
     required LuciBuildService luciBuildService,
     required FirestoreService firestore,
+    required BranchService branchService,
     Duration timeoutLimit = const Duration(hours: 3),
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _luciBuildService = luciBuildService,
        _timeoutLimit = timeoutLimit,
        _now = now,
-       _firestore = firestore;
+       _firestore = firestore,
+       _branchService = branchService;
 
   final DateTime Function() _now;
   final Duration _timeoutLimit;
   final LuciBuildService _luciBuildService;
   final FirestoreService _firestore;
+  final BranchService _branchService;
 
   @override
   Future<Body> get() async {
-    await Future.wait([
-      for (final slug in config.supportedRepos) _vaccumRepository(slug),
-    ]);
+    // Default branches.
+    await Future.forEach(config.supportedRepos, _vaccumRepository);
+
+    // Release candidates.
+    for (final branch in await _branchService.getReleaseBranches(
+      slug: Config.flutterSlug,
+    )) {
+      if (!isReleaseCandidateBranch(branchName: branch.reference)) {
+        continue;
+      }
+      await _vaccumRepository(Config.flutterSlug, branch: branch.reference);
+    }
+
     return Body.empty;
   }
 
-  Future<void> _vaccumRepository(gh.RepositorySlug slug) async {
+  Future<void> _vaccumRepository(
+    gh.RepositorySlug slug, {
+    String? branch,
+  }) async {
     final toUpdate = <_UpdateTaskIntent>[];
 
     final recentCommits = await _firestore.queryRecentCommitsAndTasks(
       slug,
       commitLimit: config.backfillerCommitLimit,
       status: fs.Task.statusInProgress,
+      branch: branch,
     );
     for (final CommitAndTasks(:commit, :tasks) in recentCommits) {
       for (final task in tasks) {
@@ -63,7 +81,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     }
 
     if (toUpdate.isEmpty) {
-      log.info('No tasks to update for $slug.');
+      log.info('No tasks to update for $slug/${branch ?? '<default branch>'}.');
       return;
     }
 

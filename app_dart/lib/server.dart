@@ -151,6 +151,7 @@ Server createServer({
       config: config,
       luciBuildService: luciBuildService,
       firestore: firestore,
+      branchService: branchService,
     ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,

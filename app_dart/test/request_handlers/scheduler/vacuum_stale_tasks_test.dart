@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/rpc_model.dart' as rpc;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
@@ -25,6 +26,7 @@ void main() {
     late VacuumStaleTasks handler;
     late FakeFirestoreService firestore;
     late MockLuciBuildService luciBuildService;
+    late List<rpc.Branch> branchServiceResponse;
 
     final fsCommit = generateFirestoreCommit(1);
 
@@ -35,11 +37,18 @@ void main() {
       // Insert into Firestore:
       firestore.putDocument(fsCommit);
 
+      branchServiceResponse = [];
+      final branchService = MockBranchService();
+      when(
+        branchService.getReleaseBranches(slug: anyNamed('slug')),
+      ).thenAnswer((_) async => branchServiceResponse);
+
       tester = RequestHandlerTester();
       handler = VacuumStaleTasks(
         config: FakeConfig(),
         luciBuildService: luciBuildService,
         firestore: firestore,
+        branchService: branchService,
       );
     });
 
@@ -137,6 +146,38 @@ void main() {
         existsInStorage(fs.Task.metadata, [
           isTask.hasStatus(fs.Task.statusNew),
           isTask.hasStatus(fs.Task.statusSucceeded),
+          isTask.hasStatus(fs.Task.statusNew),
+        ]),
+      );
+    });
+
+    test('resets stale tasks on a release candidate branch', () async {
+      branchServiceResponse = [
+        rpc.Branch(channel: 'beta', reference: 'flutter-3.32-candidate.0'),
+      ];
+
+      // Insert into Firestore:
+      final rcCommit = generateFirestoreCommit(
+        2,
+        sha: 'abc123',
+        branch: 'flutter-3.32-candidate.0',
+      );
+      firestore.putDocuments([
+        rcCommit,
+        generateFirestoreTask(
+          1,
+          status: Task.statusInProgress,
+          commitSha: 'abc123',
+          created: DateTime.now().subtract(const Duration(hours: 4)),
+        ),
+      ]);
+
+      await tester.get(handler);
+
+      // Check Firestore:
+      expect(
+        firestore,
+        existsInStorage(fs.Task.metadata, [
           isTask.hasStatus(fs.Task.statusNew),
         ]),
       );
