@@ -8,6 +8,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
+import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/test.dart';
 
@@ -174,6 +175,32 @@ void main() {
         isBackfillTask.hasCommit(commits[0]).hasTarget(targets[1]), // 1️⃣
         isBackfillTask.hasCommit(commits[0]).hasTarget(targets[2]), // 2️⃣
         isBackfillTask.hasCommit(commits[0]).hasTarget(targets[0]), // 3️⃣
+      ]);
+    });
+
+    test('any commit to a release candidate branch has high priority', () {
+      final commit = CommitRef.fromFirestore(
+        generateFirestoreCommit(
+          1,
+          branch: 'flutter-3.32-candidate.0',
+          sha: '123',
+        ),
+      );
+      // dart format off
+      grid = BackfillGrid.from([
+        (commit, [
+          TaskRef.fromFirestore(generateFirestoreTask(1, commitSha: '123', name: targets[0].name))
+        ])
+      ], tipOfTreeTargets: [
+        targets[0],
+      ]);
+      // dart format on
+
+      expect(strategy.determineBackfill(grid), [
+        isBackfillTask
+            .hasCommit(commit)
+            .hasTarget(targets[0])
+            .hasPriority(LuciBuildService.kRerunPriority),
       ]);
     });
   });
