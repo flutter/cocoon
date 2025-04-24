@@ -240,7 +240,7 @@ class TaskOverlayContents extends StatelessWidget {
             task.attempts > task.buildNumberList.length)) {
       final queuedFor = now.difference(createTime);
       buffer.writeln('Queuing for ${queuedFor.inMinutes} minutes');
-    } else {
+    } else if (task.status != TaskBox.statusSkipped) {
       wasQueued = true;
       final queuedFor = startTime.difference(createTime);
       buffer.writeln('Queued for ${queuedFor.inMinutes} minutes');
