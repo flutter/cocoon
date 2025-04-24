@@ -5,11 +5,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
-import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
@@ -145,8 +143,6 @@ interface class Config {
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
 
-  Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
-
   Future<List<String>> _getReleaseAccounts() async {
     final releaseAccountsConcat = await _getSingleValue(
       'APP_DART_RELEASE_ACCOUNTS',
@@ -191,8 +187,6 @@ interface class Config {
   /// What file, in `flutter/flutter`, defines the releaes candidate branch.
   String get releaseCandidateBranchPath =>
       'bin/internal/release-candidate-branch.version';
-
-  Never get db => throw UnsupportedError('');
 
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
@@ -371,14 +365,8 @@ interface class Config {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
 
-  /// Default number of commits to return for benchmark dashboard.
-  int get maxRecords => 50;
-
   /// Delay between consecutive GitHub deflake request calls.
   Duration get githubRequestDelay => const Duration(seconds: 1);
-
-  /// Repository status context for github status.
-  String get flutterBuild => 'flutter-build';
 
   /// Repository status description for github status.
   String get flutterTreeStatusRed =>
@@ -399,8 +387,6 @@ interface class Config {
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
   static gh.RepositorySlug get recipesSlug =>
       gh.RepositorySlug('flutter', 'recipes');
-
-  String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
   /// The names of autoroller accounts for the repositories.
   ///
