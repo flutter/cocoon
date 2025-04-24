@@ -55,22 +55,6 @@ final class BatchBackfiller extends RequestHandler {
 
   Future<void> _backfillReleaseBranch(RepositorySlug slug) async {
     log.debug('Running release branch backfiller for "$slug"');
-
-    // TODO(matanlurey): This is a tad inefficient, as it means we will make
-    // X calls to GitHub every invocation of the Batch Backfiller, which as of
-    // 2025-04-23 is every 5 minutes, so this is `3 * 5 * 12` or 180 calls to
-    // GitHub per hour.
-    //
-    // We could possibly do one of the following to mitigate:
-    // - Use `githubFileContent`, which doesn't use the GitHub API (uses CDN);
-    // - Cache the result and read this less often (it does change, but rarely);
-    // - Have some sort of job that periodically updates a Firestore document:
-    //   collectionId="release_branches"
-    //   [
-    //     {"channel": "...", "reference: "..."},
-    //     {"channel": "...", "reference: "..."},
-    //     {"channel": "...", "reference: "..."},
-    //   ]
     final branches = await _branchService.getReleaseBranches(slug: slug);
     for (final branch in branches) {
       if (!isReleaseCandidateBranch(branchName: branch.reference)) {
