@@ -207,7 +207,12 @@ final class BackfillTask {
 
   /// Converts to a [PendingTask].
   PendingTask toPendingTask() {
-    return PendingTask(target: target, taskName: task.name, priority: priority);
+    return PendingTask(
+      target: target,
+      taskName: task.name,
+      priority: priority,
+      currentAttempt: task.currentAttempt,
+    );
   }
 }
 

@@ -18,6 +18,7 @@ final class PendingTask {
     required this.target,
     required this.taskName,
     required this.priority,
+    required this.currentAttempt,
   });
 
   /// Target that is represented by [task].
@@ -29,19 +30,23 @@ final class PendingTask {
   /// Priority of the task.
   final int priority;
 
+  /// Which attempt this task is.
+  final int currentAttempt;
+
   @override
   bool operator ==(Object other) {
     return other is PendingTask &&
         target == other.target &&
         taskName == other.taskName &&
-        priority == other.priority;
+        priority == other.priority &&
+        currentAttempt == other.currentAttempt;
   }
 
   @override
-  int get hashCode => Object.hash(target, taskName, priority);
+  int get hashCode => Object.hash(target, taskName, priority, currentAttempt);
 
   @override
   String toString() {
-    return 'PendingTask <$taskName | $target | $priority>';
+    return 'PendingTask <$taskName($currentAttempt) | $target | $priority>';
   }
 }
