@@ -53,11 +53,7 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
             'check_run_id',
             (v) => (v as num?)?.toInt(),
           ),
-          taskId: $checkedConvert(
-            'task_id',
-            (v) => TaskId.parse(v as String),
-            readValue: PostsubmitUserData._readTaskIdDuringMigration,
-          ),
+          taskId: $checkedConvert('task_id', (v) => TaskId.parse(v as String)),
         );
         return val;
       },
