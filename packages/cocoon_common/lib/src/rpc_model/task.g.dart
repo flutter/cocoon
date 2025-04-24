@@ -30,6 +30,10 @@ Task _$TaskFromJson(Map<String, dynamic> json) => $checkedCreate(
       ),
       builderName: $checkedConvert('BuilderName', (v) => v as String),
       lastAttemptFailed: $checkedConvert('LastAttemptFailed', (v) => v as bool),
+      currentBuildNumber: $checkedConvert(
+        'CurrentBuildNumber',
+        (v) => (v as num?)?.toInt(),
+      ),
     );
     return val;
   },
@@ -44,6 +48,7 @@ Task _$TaskFromJson(Map<String, dynamic> json) => $checkedCreate(
     'buildNumberList': 'BuildNumberList',
     'builderName': 'BuilderName',
     'lastAttemptFailed': 'LastAttemptFailed',
+    'currentBuildNumber': 'CurrentBuildNumber',
   },
 );
 
@@ -58,4 +63,5 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
   'BuildNumberList': instance.buildNumberList,
   'BuilderName': instance.builderName,
   'LastAttemptFailed': instance.lastAttemptFailed,
+  'CurrentBuildNumber': instance.currentBuildNumber,
 };

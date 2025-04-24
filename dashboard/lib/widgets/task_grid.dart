@@ -328,8 +328,12 @@ class _TaskGridState extends State<TaskGrid> {
         TaskBox.statusColor.containsKey(task.status)
             ? TaskBox.statusColor[task.status]!
             : Colors.transparent;
-    if (task.lastAttemptFailed && task.status == TaskBox.statusInProgress) {
-      color = TaskBox.statusColorFailedAndRerunning;
+    if (task.status == TaskBox.statusInProgress) {
+      if (task.lastAttemptFailed) {
+        color = TaskBox.statusColorFailedAndRerunning;
+      } else if (task.currentBuildNumber == null) {
+        color = TaskBox.statusColorInProgressButQueued;
+      }
     }
 
     final paint = Paint()..color = color;

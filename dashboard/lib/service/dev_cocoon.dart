@@ -420,6 +420,15 @@ class DevelopmentCocoonService implements CocoonService {
     final attempts =
         minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
 
+    final buildNumberList = List.generate(
+      attempts > 1
+          ? random.nextBool()
+              ? attempts
+              : attempts - 1
+          : 1,
+      (i) => i,
+    );
+
     return Task(
       createTimestamp: commitTimestamp + index,
       startTimestamp: commitTimestamp + (index * 1000 * 60),
@@ -427,13 +436,15 @@ class DevelopmentCocoonService implements CocoonService {
 
       builderName: 'Linux_android $index',
       attempts: attempts,
-      buildNumberList: List.generate(attempts, (i) => i),
+      currentBuildNumber:
+          attempts == buildNumberList.length ? buildNumberList.last : null,
+      buildNumberList: buildNumberList,
       isBringup: index == now.millisecondsSinceEpoch % 13,
 
       status: status,
 
       // Neither of these are strictly true from a domain perspective.
-      lastAttemptFailed: attempts > 1,
+      lastAttemptFailed: random.nextBool() ? attempts > 1 : false,
       isFlaky: attempts > 1,
     );
   }

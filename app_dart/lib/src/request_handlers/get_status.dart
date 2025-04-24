@@ -85,6 +85,7 @@ final class GetStatus extends RequestHandler<Body> {
                   isFlaky: fullTask.didAtLeastOneFailureOccur,
                   status: fullTask.task.status,
                   lastAttemptFailed: fullTask.lastCompletedAttemptWasFailure,
+                  currentBuildNumber: fullTask.task.buildNumber,
                 );
               }),
             ],

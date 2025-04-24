@@ -53,6 +53,7 @@ void main() {
             buildNumberList: [123],
             builderName: 'Linux',
             lastAttemptFailed: false,
+            currentBuildNumber: 123,
           ),
         ],
       );
