@@ -120,9 +120,9 @@ final class BatchBackfiller extends RequestHandler {
       );
 
       final totTargets = [
-        ...ciYaml.backfillTargets(),
+        ...ciYaml.postsubmitTargets(),
         if (ciYaml.isFusion)
-          ...ciYaml.backfillTargets(type: CiType.fusionEngine),
+          ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
       ];
       log.debug('Fetched ${totTargets.length} tip-of-tree targets');
 

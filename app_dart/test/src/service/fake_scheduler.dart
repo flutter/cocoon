@@ -204,7 +204,13 @@ final exampleBackfillFusionConfig = CiYamlSet(
           postsubmit: true,
         ),
         pb.Target(
-          name: 'Windows A',
+          name: 'Windows No Backfill',
+          scheduler: pb.SchedulerSystem.luci,
+          postsubmit: true,
+          backfill: false,
+        ),
+        pb.Target(
+          name: 'Windows No Backfill Legacy',
           scheduler: pb.SchedulerSystem.luci,
           postsubmit: true,
           properties: {'backfill': 'false'},

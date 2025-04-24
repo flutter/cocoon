@@ -198,14 +198,6 @@ void main() {
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
-      test('Get backfill targets from postsubmit', () {
-        final ciYaml = exampleBackfillFusionConfig;
-        final backfillTargets = ciYaml.backfillTargets();
-        final backfillTargetNames =
-            backfillTargets.map((Target target) => target.name).toList();
-        expect(backfillTargetNames, containsAll(<String>['Linux A', 'Mac A']));
-      });
-
       test('filter release_build targets from release candidate branches', () {
         final releaseYaml = CiYaml(
           type: CiType.any,
