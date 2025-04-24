@@ -30,12 +30,6 @@ dart format --set-exit-if-changed .
 echo "########### analyze ###########"
 dart analyze --fatal-infos
 
-# agent doesn't use build_runner as of this writing.
-if grep -lq "build_runner" pubspec.yaml; then
-  echo "############# build ###########"
-  dart run build_runner build --delete-conflicting-outputs
-fi
-
 # Only try tests if test folder exist.
 if [ -d 'test' ]; then
   echo "############ tests ############"
