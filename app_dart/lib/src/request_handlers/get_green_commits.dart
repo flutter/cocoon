@@ -61,7 +61,8 @@ final class GetGreenCommits extends RequestHandler<Body> {
       slug: slug,
     );
     return Body.forJson([
-      ...allCommits.where(_isGreenCommit).map((s) => s.commit.sha),
+      for(final commit in allCommits.where(_isGreenCommit))
+        commit.commit.sha
     ]);
   }
 
