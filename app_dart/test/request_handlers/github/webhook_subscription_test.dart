@@ -1419,6 +1419,39 @@ void main() {
       );
     });
 
+    test('Framework no test comment if customer testing version changed', () async {
+      const issueNumber = 123;
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+
+      when(
+        pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+      ).thenAnswer(
+            (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+          // Change to random other file.
+          PullRequestFile()
+            ..filename =
+                'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
+          // Change to the customer version file.
+          PullRequestFile()
+            ..filename =
+                'dev/customer_testing/tests.version',
+        ]),
+      );
+
+      await tester.post(webhook);
+
+      verifyNever(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      );
+    });
+
     test('Framework no comment if only AUTHORS changed', () async {
       const issueNumber = 123;
       tester.message = generateGithubWebhookMessage(
