@@ -106,18 +106,24 @@ final class BackfillGrid {
     });
   }
 
+  @useResult
+  Target _validateColumnAndTarget(String name, List<TaskRef> column) {
+    if (column.isEmpty) {
+      throw StateError('A target ("$name") should never have 0 tasks');
+    }
+    final target = _targetsByName[name];
+    if (target == null) {
+      throw StateError('A target ("$name") should have existed in the grid');
+    }
+    return target;
+  }
+
   /// Each task, ordered by column (task by task).
   ///
   /// Returned [TaskRef]s are eligible to be used in [createBackfillTask].
   Iterable<(Target, List<TaskRef>)> get eligibleTasks sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
-      if (column.isEmpty) {
-        throw StateError('A target ("$name") should never have 0 tasks');
-      }
-      final target = _targetsByName[name];
-      if (target == null) {
-        throw StateError('A target ("$name") should have existed in the grid');
-      }
+      final target = _validateColumnAndTarget(name, column);
       if (target.backfill) {
         yield (target, column);
       }
@@ -129,23 +135,18 @@ final class BackfillGrid {
   /// Returned tasks are not to be backfilled, and should be marked skipped.
   Iterable<SkippableTask> get skippableTasks sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
-      if (column.isEmpty) {
-        throw StateError('A target ("$name") should never have 0 tasks');
+      final target = _validateColumnAndTarget(name, column);
+      if (target.backfill) {
+        continue;
       }
-      final target = _targetsByName[name];
-      if (target == null) {
-        throw StateError('A target ("$name") should have existed in the grid');
-      }
-      if (!target.backfill) {
-        for (final task in column) {
-          final commit = _commitsBySha[task.commitSha];
-          if (commit == null) {
-            throw StateError(
-              'A commit ("${task.commitSha}") should have existed in the grid',
-            );
-          }
-          yield SkippableTask._from(task, target: target, commit: commit);
+      for (final task in column) {
+        final commit = _commitsBySha[task.commitSha];
+        if (commit == null) {
+          throw StateError(
+            'A commit ("${task.commitSha}") should have existed in the grid',
+          );
         }
+        yield SkippableTask._from(task, target: target, commit: commit);
       }
     }
   }

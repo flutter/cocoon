@@ -33,11 +33,28 @@ final $typed_data.Uint8List schedulerSystemDescriptor = $convert.base64Decode(
 const SchedulerConfig$json = {
   '1': 'SchedulerConfig',
   '2': [
-    {'1': 'targets', '3': 1, '4': 3, '5': 11, '6': '.scheduler.Target', '10': 'targets'},
+    {
+      '1': 'targets',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.Target',
+      '10': 'targets'
+    },
     {'1': 'enabled_branches', '3': 2, '4': 3, '5': 9, '10': 'enabledBranches'},
-    {'1': 'platform_properties', '3': 3, '4': 3, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformPropertiesEntry', '10': 'platformProperties'},
+    {
+      '1': 'platform_properties',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformPropertiesEntry',
+      '10': 'platformProperties'
+    },
   ],
-  '3': [SchedulerConfig_PlatformPropertiesEntry$json, SchedulerConfig_PlatformProperties$json],
+  '3': [
+    SchedulerConfig_PlatformPropertiesEntry$json,
+    SchedulerConfig_PlatformProperties$json
+  ],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
@@ -45,7 +62,14 @@ const SchedulerConfig_PlatformPropertiesEntry$json = {
   '1': 'PlatformPropertiesEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
-    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties', '10': 'value'},
+    {
+      '1': 'value',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformProperties',
+      '10': 'value'
+    },
   ],
   '7': {'7': true},
 };
@@ -54,10 +78,27 @@ const SchedulerConfig_PlatformPropertiesEntry$json = {
 const SchedulerConfig_PlatformProperties$json = {
   '1': 'PlatformProperties',
   '2': [
-    {'1': 'properties', '3': 1, '4': 3, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties.PropertiesEntry', '10': 'properties'},
-    {'1': 'dimensions', '3': 2, '4': 3, '5': 11, '6': '.scheduler.SchedulerConfig.PlatformProperties.DimensionsEntry', '10': 'dimensions'},
+    {
+      '1': 'properties',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.PropertiesEntry',
+      '10': 'properties'
+    },
+    {
+      '1': 'dimensions',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.SchedulerConfig.PlatformProperties.DimensionsEntry',
+      '10': 'dimensions'
+    },
   ],
-  '3': [SchedulerConfig_PlatformProperties_PropertiesEntry$json, SchedulerConfig_PlatformProperties_DimensionsEntry$json],
+  '3': [
+    SchedulerConfig_PlatformProperties_PropertiesEntry$json,
+    SchedulerConfig_PlatformProperties_DimensionsEntry$json
+  ],
 };
 
 @$core.Deprecated('Use schedulerConfigDescriptor instead')
@@ -104,7 +145,14 @@ const Target$json = {
     {'1': 'bringup', '3': 3, '4': 1, '5': 8, '7': 'false', '10': 'bringup'},
     {'1': 'timeout', '3': 4, '4': 1, '5': 5, '7': '30', '10': 'timeout'},
     {'1': 'testbed', '3': 5, '4': 1, '5': 9, '7': 'linux-vm', '10': 'testbed'},
-    {'1': 'properties', '3': 6, '4': 3, '5': 11, '6': '.scheduler.Target.PropertiesEntry', '10': 'properties'},
+    {
+      '1': 'properties',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.Target.PropertiesEntry',
+      '10': 'properties'
+    },
     {
       '1': 'builder',
       '3': 7,
@@ -113,18 +161,51 @@ const Target$json = {
       '8': {'3': true},
       '10': 'builder',
     },
-    {'1': 'scheduler', '3': 8, '4': 1, '5': 14, '6': '.scheduler.SchedulerSystem', '7': 'cocoon', '10': 'scheduler'},
+    {
+      '1': 'scheduler',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.scheduler.SchedulerSystem',
+      '7': 'cocoon',
+      '10': 'scheduler'
+    },
     {'1': 'presubmit', '3': 9, '4': 1, '5': 8, '7': 'true', '10': 'presubmit'},
-    {'1': 'postsubmit', '3': 10, '4': 1, '5': 8, '7': 'true', '10': 'postsubmit'},
+    {
+      '1': 'postsubmit',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '7': 'true',
+      '10': 'postsubmit'
+    },
     {'1': 'run_if', '3': 11, '4': 3, '5': 9, '10': 'runIf'},
     {'1': 'enabled_branches', '3': 12, '4': 3, '5': 9, '10': 'enabledBranches'},
     {'1': 'recipe', '3': 13, '4': 1, '5': 9, '10': 'recipe'},
-    {'1': 'postsubmit_properties', '3': 15, '4': 3, '5': 11, '6': '.scheduler.Target.PostsubmitPropertiesEntry', '10': 'postsubmitProperties'},
-    {'1': 'dimensions', '3': 16, '4': 3, '5': 11, '6': '.scheduler.Target.DimensionsEntry', '10': 'dimensions'},
+    {
+      '1': 'postsubmit_properties',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.Target.PostsubmitPropertiesEntry',
+      '10': 'postsubmitProperties'
+    },
+    {
+      '1': 'dimensions',
+      '3': 16,
+      '4': 3,
+      '5': 11,
+      '6': '.scheduler.Target.DimensionsEntry',
+      '10': 'dimensions'
+    },
     {'1': 'drone_dimensions', '3': 17, '4': 3, '5': 9, '10': 'droneDimensions'},
     {'1': 'backfill', '3': 19, '4': 1, '5': 8, '7': 'true', '10': 'backfill'},
   ],
-  '3': [Target_PropertiesEntry$json, Target_PostsubmitPropertiesEntry$json, Target_DimensionsEntry$json],
+  '3': [
+    Target_PropertiesEntry$json,
+    Target_PostsubmitPropertiesEntry$json,
+    Target_DimensionsEntry$json
+  ],
   '9': [
     {'1': 14, '2': 15},
     {'1': 18, '2': 19},
@@ -181,4 +262,3 @@ final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
     'EgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4ARo9Cg9EaW1lbnNpb25zRW50cnkS'
     'EAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AUoECA4QD0oECBIQEw'
     '==');
-
