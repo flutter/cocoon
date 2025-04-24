@@ -162,12 +162,12 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
-      pullRequestLabelProcessorProvider: ({
-        required Config config,
-        required GithubService githubService,
-        required PullRequest pullRequest,
-      }) =>
-          mockPullRequestLabelProcessor,
+      pullRequestLabelProcessorProvider:
+          ({
+            required Config config,
+            required GithubService githubService,
+            required PullRequest pullRequest,
+          }) => mockPullRequestLabelProcessor,
       now: () => fakeNow,
     );
   });
@@ -674,9 +674,10 @@ void main() {
 
       await tester.post(webhook);
 
-      final reviews = verify(
-        pullRequestsService.createReview(Config.flutterSlug, captureAny),
-      ).captured;
+      final reviews =
+          verify(
+            pullRequestsService.createReview(Config.flutterSlug, captureAny),
+          ).captured;
       expect(reviews.length, 1);
       final review = reviews.single as CreatePullRequestReview;
       expect(review.event, 'APPROVE');
@@ -1291,8 +1292,7 @@ void main() {
       );
     });
 
-    test('Framework no comment if only dev bots or devicelab changed',
-        () async {
+    test('Framework no comment if only dev bots or devicelab changed', () async {
       const issueNumber = 123;
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
@@ -1419,37 +1419,39 @@ void main() {
       );
     });
 
-    test('Framework no test comment if customer testing version changed',
-        () async {
-      const issueNumber = 123;
-      tester.message = generateGithubWebhookMessage(
-        action: 'opened',
-        number: issueNumber,
-      );
+    test(
+      'Framework no test comment if customer testing version changed',
+      () async {
+        const issueNumber = 123;
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+        );
 
-      when(
-        pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
-      ).thenAnswer(
-        (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-          // Change to random other file.
-          PullRequestFile()
-            ..filename =
-                'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
-          // Change to the customer version file.
-          PullRequestFile()..filename = 'dev/customer_testing/tests.version',
-        ]),
-      );
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            // Change to random other file.
+            PullRequestFile()
+              ..filename =
+                  'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
+            // Change to the customer version file.
+            PullRequestFile()..filename = 'dev/customer_testing/tests.version',
+          ]),
+        );
 
-      await tester.post(webhook);
+        await tester.post(webhook);
 
-      verifyNever(
-        issuesService.createComment(
-          Config.flutterSlug,
-          issueNumber,
-          argThat(contains(config.missingTestsPullRequestMessageValue)),
-        ),
-      );
-    });
+        verifyNever(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      },
+    );
 
     test('Framework no comment if only AUTHORS changed', () async {
       const issueNumber = 123;
@@ -1989,9 +1991,11 @@ void foo() {
         ],
       ];
 
-      for (var issueNumber = 0;
-          issueNumber < pullRequestFileList.length;
-          issueNumber++) {
+      for (
+        var issueNumber = 0;
+        issueNumber < pullRequestFileList.length;
+        issueNumber++
+      ) {
         tester.message = generateGithubWebhookMessage(
           action: 'opened',
           number: issueNumber,
@@ -2730,21 +2734,21 @@ void foo() {
 
         fakeBuildBucketClient.batchResponse =
             (_, _) => Future<bbv2.BatchResponse>.value(
-                  bbv2.BatchResponse(
-                    responses: <bbv2.BatchResponse_Response>[
-                      bbv2.BatchResponse_Response(
-                        searchBuilds: bbv2.SearchBuildsResponse(
-                          builds: <bbv2.Build>[],
-                        ),
-                      ),
-                      bbv2.BatchResponse_Response(
-                        searchBuilds: bbv2.SearchBuildsResponse(
-                          builds: <bbv2.Build>[],
-                        ),
-                      ),
-                    ],
+              bbv2.BatchResponse(
+                responses: <bbv2.BatchResponse_Response>[
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[],
+                    ),
                   ),
-                );
+                  bbv2.BatchResponse_Response(
+                    searchBuilds: bbv2.SearchBuildsResponse(
+                      builds: <bbv2.Build>[],
+                    ),
+                  ),
+                ],
+              ),
+            );
 
         tester.message = generateGithubWebhookMessage(
           action: action,
@@ -2806,33 +2810,33 @@ void foo() {
         () async {
           fakeBuildBucketClient.batchResponse =
               (_, _) => Future<bbv2.BatchResponse>.value(
-                    bbv2.BatchResponse(
-                      responses: <bbv2.BatchResponse_Response>[
-                        bbv2.BatchResponse_Response(
-                          searchBuilds: bbv2.SearchBuildsResponse(
-                            builds: <bbv2.Build>[
-                              bbv2.Build(
-                                number: 999,
-                                builder: bbv2.BuilderID(builder: 'Linux'),
-                                status: bbv2.Status.ENDED_MASK,
-                              ),
-                            ],
+                bbv2.BatchResponse(
+                  responses: <bbv2.BatchResponse_Response>[
+                    bbv2.BatchResponse_Response(
+                      searchBuilds: bbv2.SearchBuildsResponse(
+                        builds: <bbv2.Build>[
+                          bbv2.Build(
+                            number: 999,
+                            builder: bbv2.BuilderID(builder: 'Linux'),
+                            status: bbv2.Status.ENDED_MASK,
                           ),
-                        ),
-                        bbv2.BatchResponse_Response(
-                          searchBuilds: bbv2.SearchBuildsResponse(
-                            builds: <bbv2.Build>[
-                              bbv2.Build(
-                                number: 998,
-                                builder: bbv2.BuilderID(builder: 'Linux'),
-                                status: bbv2.Status.ENDED_MASK,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  );
+                    bbv2.BatchResponse_Response(
+                      searchBuilds: bbv2.SearchBuildsResponse(
+                        builds: <bbv2.Build>[
+                          bbv2.Build(
+                            number: 998,
+                            builder: bbv2.BuilderID(builder: 'Linux'),
+                            status: bbv2.Status.ENDED_MASK,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
 
           tester.message = generateGithubWebhookMessage(
             action: 'synchronize',
@@ -3188,8 +3192,7 @@ void foo() {
       ];
     });
 
-    test('checks_requested success for non-fusion repository (simulated)',
-        () async {
+    test('checks_requested success for non-fusion repository (simulated)', () async {
       tester.message = generateMergeGroupMessage(
         repository: 'flutter/packages',
         action: 'checks_requested',
@@ -3337,12 +3340,14 @@ void foo() {
 
         for (final request in batchRequest.requests) {
           if (request.hasSearchBuilds()) {
-            final requestSha = request.searchBuilds.predicate.tags
-                .singleWhere((tag) => tag.key == 'buildset')
-                .value;
-            final userAgent = request.searchBuilds.predicate.tags
-                .singleWhere((tag) => tag.key == 'user_agent')
-                .value;
+            final requestSha =
+                request.searchBuilds.predicate.tags
+                    .singleWhere((tag) => tag.key == 'buildset')
+                    .value;
+            final userAgent =
+                request.searchBuilds.predicate.tags
+                    .singleWhere((tag) => tag.key == 'user_agent')
+                    .value;
             luciLog.add('search builds for $requestSha by $userAgent');
             batchResponseResponses.add(
               bbv2.BatchResponse_Response(
@@ -3461,12 +3466,14 @@ void foo() {
 
         for (final request in batchRequest.requests) {
           if (request.hasSearchBuilds()) {
-            final requestSha = request.searchBuilds.predicate.tags
-                .singleWhere((tag) => tag.key == 'buildset')
-                .value;
-            final userAgent = request.searchBuilds.predicate.tags
-                .singleWhere((tag) => tag.key == 'user_agent')
-                .value;
+            final requestSha =
+                request.searchBuilds.predicate.tags
+                    .singleWhere((tag) => tag.key == 'buildset')
+                    .value;
+            final userAgent =
+                request.searchBuilds.predicate.tags
+                    .singleWhere((tag) => tag.key == 'user_agent')
+                    .value;
             luciLog.add('search builds for $requestSha by $userAgent');
             batchResponseResponses.add(
               bbv2.BatchResponse_Response(
@@ -3525,8 +3532,7 @@ void foo() {
       );
     });
 
-    test('does not cancel builds if destroyed because merged successfully',
-        () async {
+    test('does not cancel builds if destroyed because merged successfully', () async {
       tester.message = generateMergeGroupMessage(
         repository: 'flutter/flutter',
         action: 'destroyed',
