@@ -104,23 +104,6 @@ void main() {
       );
     });
 
-    test('should decode from JSON (legacy key)', () {
-      expect(
-        PostsubmitUserData.fromJson(const {
-          'check_run_id': 1234,
-          'firestore_task_document_name': 'abc123_task-name_1',
-        }),
-        PostsubmitUserData(
-          checkRunId: 1234,
-          taskId: firestore.TaskId(
-            commitSha: 'abc123',
-            currentAttempt: 1,
-            taskName: 'task-name',
-          ),
-        ),
-      );
-    });
-
     test('should gracefully fail decoding if the format is invalid', () {
       expect(
         () => PostsubmitUserData.fromJson(const {'check_run_id': 1234}),
