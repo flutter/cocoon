@@ -20,8 +20,8 @@ final class QualifiedTask {
 
   QualifiedTask.fromTask(Task task)
     : task = task.builderName,
-      pool = task.isFlaky ? 'luci.flutter.staging' : 'luci.flutter.prod',
-      isBringup = task.isFlaky;
+      pool = task.isBringup ? 'luci.flutter.staging' : 'luci.flutter.prod',
+      isBringup = task.isBringup;
 
   final String pool;
   final String task;

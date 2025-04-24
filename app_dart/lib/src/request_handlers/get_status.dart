@@ -76,12 +76,13 @@ final class GetStatus extends RequestHandler<Body> {
               ...status.collateTasksByTaskName().map((fullTask) {
                 return rpc_model.Task(
                   attempts: fullTask.task.currentAttempt,
-                  buildNumberList: fullTask.buildList.join(','),
+                  buildNumberList: fullTask.buildList,
                   builderName: fullTask.task.taskName,
                   createTimestamp: fullTask.task.createTimestamp,
                   startTimestamp: fullTask.task.startTimestamp,
                   endTimestamp: fullTask.task.endTimestamp,
-                  isFlaky: fullTask.task.bringup,
+                  isBringup: fullTask.task.bringup,
+                  isFlaky: fullTask.didAtLeastOneFailureOccur,
                   status: fullTask.task.status,
                 );
               }),

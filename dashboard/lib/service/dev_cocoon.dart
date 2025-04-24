@@ -427,8 +427,11 @@ class DevelopmentCocoonService implements CocoonService {
 
       builderName: 'Linux_android $index',
       attempts: attempts,
-      buildNumberList: List.generate(attempts, (i) => i).join(','),
-      isFlaky: index == now.millisecondsSinceEpoch % 13,
+      buildNumberList: List.generate(attempts, (i) => i),
+      isBringup: index == now.millisecondsSinceEpoch % 13,
+
+      // This is not strictly true from a domain perspective.
+      isFlaky: attempts > 1,
       status: status,
     );
   }

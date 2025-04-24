@@ -27,22 +27,18 @@ class LuciTaskAttemptSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buildNumberList =
-        task.buildNumberList.isEmpty
-            ? <String>[]
-            : task.buildNumberList.split(',');
     return ListBody(
-      children: List<Widget>.generate(buildNumberList.length, (int i) {
+      children: List<Widget>.generate(task.buildNumberList.length, (int i) {
         return ElevatedButton(
-          child: Text('OPEN LOG FOR BUILD #${buildNumberList[i]}'),
+          child: Text('OPEN LOG FOR BUILD #${task.buildNumberList[i]}'),
           onPressed: () async {
             if (isTaskFromDartInternalBuilder(builderName: task.builderName)) {
               await launchUrl(
-                _dartInternalLogUrl(task.builderName, buildNumberList[i]),
+                _dartInternalLogUrl(task.builderName, task.buildNumberList[i]),
               );
             } else {
               await launchUrl(
-                _luciProdLogUrl(task.builderName, buildNumberList[i]),
+                _luciProdLogUrl(task.builderName, task.buildNumberList[i]),
               );
             }
           },
@@ -51,12 +47,12 @@ class LuciTaskAttemptSummary extends StatelessWidget {
     );
   }
 
-  Uri _luciProdLogUrl(String builderName, String buildNumber) {
-    final pool = task.isFlaky ? 'staging' : 'prod';
+  Uri _luciProdLogUrl(String builderName, int buildNumber) {
+    final pool = task.isBringup ? 'staging' : 'prod';
     return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
   }
 
-  Uri _dartInternalLogUrl(String builderName, String buildNumber) {
+  Uri _dartInternalLogUrl(String builderName, int buildNumber) {
     return Uri.parse('$dartInternalLogBase/flutter/$builderName/$buildNumber');
   }
 }

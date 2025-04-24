@@ -42,7 +42,7 @@ void main() {
               LuciTaskAttemptSummary(
                 task: generateTaskForTest(
                   status: TaskBox.statusFailed,
-                  buildNumberList: '123',
+                  buildNumberList: [123],
                 ),
               ),
             ],
@@ -65,7 +65,7 @@ void main() {
                 task: generateTaskForTest(
                   status: TaskBox.statusSucceeded,
                   attempts: 2,
-                  buildNumberList: '123,456',
+                  buildNumberList: [123, 456],
                 ),
               ),
             ],
@@ -89,7 +89,7 @@ void main() {
               LuciTaskAttemptSummary(
                 task: generateTaskForTest(
                   status: TaskBox.statusFailed,
-                  buildNumberList: '123',
+                  buildNumberList: [123],
                   builderName: 'Linux',
                 ),
               ),
@@ -122,7 +122,7 @@ void main() {
                   task: generateTaskForTest(
                     status: TaskBox.statusSucceeded,
                     attempts: 2,
-                    buildNumberList: '123,456',
+                    buildNumberList: [123, 456],
                     builderName: 'Linux',
                   ),
                 ),
@@ -156,7 +156,7 @@ void main() {
                 task: generateTaskForTest(
                   status: TaskBox.statusSucceeded,
                   attempts: 2,
-                  buildNumberList: '123',
+                  buildNumberList: [123],
                   builderName: 'Linux flutter_release_builder',
                 ),
               ),

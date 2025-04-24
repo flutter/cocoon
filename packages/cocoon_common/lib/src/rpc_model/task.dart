@@ -18,6 +18,7 @@ final class Task extends Model {
     required this.startTimestamp,
     required this.endTimestamp,
     required this.attempts,
+    required this.isBringup,
     required this.isFlaky,
     required this.status,
     required this.buildNumberList,
@@ -45,14 +46,17 @@ final class Task extends Model {
   @JsonKey(name: 'Attempts')
   final int attempts;
 
-  @JsonKey(name: 'Flaky')
+  @JsonKey(name: 'IsBringup')
+  final bool isBringup;
+
+  @JsonKey(name: 'IsFlaky')
   final bool isFlaky;
 
   @JsonKey(name: 'Status')
   final String status;
 
   @JsonKey(name: 'BuildNumberList')
-  final String buildNumberList;
+  final List<int> buildNumberList;
 
   @JsonKey(name: 'BuilderName')
   final String builderName;

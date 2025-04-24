@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// This is based off data the Cocoon backend sends out from v1.
-// It doesn't map directly to protos since the backend does
-// not use protos yet.
 const String luciJsonGetStatsResponse = '''{
   "Commits": [
     {
@@ -25,10 +22,11 @@ const String luciJsonGetStatsResponse = '''{
           "Attempts": 1,
           "CreateTimestamp": 1569353940885,
           "EndTimestamp": 1569354700642,
-          "Flaky": false,
+          "IsBringup": false,
+          "IsFlaky": false,
           "StartTimestamp": 1569354594672,
           "Status": "Succeeded",
-          "BuildNumberList": "123",
+          "BuildNumberList": [123],
           "BuilderName": "Linux"
         }
       ]

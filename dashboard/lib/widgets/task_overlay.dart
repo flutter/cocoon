@@ -237,8 +237,7 @@ class TaskOverlayContents extends StatelessWidget {
       buffer.writeln('Waiting for backfill for ${queuedFor.inMinutes} minutes');
     } else if (task.status == TaskBox.statusInProgress &&
         (task.buildNumberList.isEmpty ||
-            task.attempts > task.buildNumberList.split(',').length)) {
-      // TODO(matanlurey): Change buildNumberList to List<int>.
+            task.attempts > task.buildNumberList.length)) {
       final queuedFor = now.difference(createTime);
       buffer.writeln('Queuing for ${queuedFor.inMinutes} minutes');
     } else {
@@ -277,7 +276,7 @@ class TaskOverlayContents extends StatelessWidget {
     final summaryText = [
       'Attempts: ${task.attempts}',
       _describeTaskRunning(task, now: now!),
-      if (task.isFlaky) 'Flaky: ${task.isFlaky}',
+      if (task.isBringup) 'Flaky: ${task.isBringup}',
     ].join('\n');
 
     return Card(
