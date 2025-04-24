@@ -92,6 +92,7 @@ void main() {
   const $I = fs.Task.statusInProgress;
   const $S = fs.Task.statusSucceeded;
   const $F = fs.Task.statusFailed;
+  const $K = fs.Task.statusSkipped;
 
   Future<List<String>> visualizeFirestoreGrid({
     int? commits,
@@ -104,7 +105,7 @@ void main() {
     );
 
     final result = <String>[];
-    const emojis = {$N: '⬜', $I: '🟨', $S: '🟩', $F: '🟥'};
+    const emojis = {$N: '⬜', $I: '🟨', $S: '🟩', $F: '🟥', $K: '⬛️'};
 
     for (final commit in grid) {
       final buffer = StringBuffer('🧑‍💼 ');
@@ -118,7 +119,11 @@ void main() {
   Future<void> fillStorageAndSetCiYaml(
     List<List<String>> statuses, {
     String branch = 'master',
+    List<bool> backfill = const [true, true, true, true],
   }) async {
+    if (backfill.length < 4) {
+      backfill = List.filled(4, true)..setAll(0, backfill);
+    }
     ciYamlFetcher.setCiYamlFrom(
       '''
     enabled_branches:
@@ -126,9 +131,13 @@ void main() {
 
     targets:
       - name: Linux 0
+        backfill: ${backfill[0]}
       - name: Linux 1
+        backfill: ${backfill[1]}
       - name: Linux 2
+        backfill: ${backfill[2]}
       - name: Linux 3
+        backfill: ${backfill[3]}
     ''',
       engine: '''
     enabled_branches:
@@ -327,6 +336,31 @@ void main() {
       ],
       // dart format on
     );
+  });
+
+  // https://github.com/flutter/flutter/issues/167756
+  test('skips backfill=false targets', () async {
+    // dart format off
+    await fillStorageAndSetCiYaml([
+      [$N, $N],
+    ], backfill: [false, true]);
+    // dart format on
+
+    // BEFORE:
+    // dart format off
+    expect(await visualizeFirestoreGrid(), [
+      '🧑‍💼 ⬜ ⬜',
+    ]);
+    // dart format on
+
+    await tester.get(handler);
+
+    // AFTER:
+    // dart format off
+    expect(await visualizeFirestoreGrid(), [
+      '🧑‍💼 ⬛️ 🟨',
+    ]);
+    // dart format on
   });
 }
 

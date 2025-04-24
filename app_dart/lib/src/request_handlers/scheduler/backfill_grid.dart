@@ -149,6 +149,14 @@ final class BackfillGrid {
       }
     }
   }
+
+  @override
+  String toString() {
+    return 'BackfillGrid ${const JsonEncoder.withIndent('  ').convert({
+      'eligibleTasks': '${[...eligibleTasks]}', //
+      'skippableTasks': '${[...skippableTasks]}',
+    })}';
+  }
 }
 
 /// A proposed task to be scheduled as part of the backfill process.

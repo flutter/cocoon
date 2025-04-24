@@ -58,6 +58,48 @@ final class _BackfillGridMatcher extends Matcher {
   }
 }
 
+const isSkippableTask = SkippableTaskMatcher._(TypeMatcher());
+
+final class SkippableTaskMatcher extends Matcher {
+  const SkippableTaskMatcher._(this._delegate);
+  final TypeMatcher<SkippableTask> _delegate;
+
+  SkippableTaskMatcher hasTask(Object matcherOr) {
+    return SkippableTaskMatcher._(
+      _delegate.having((t) => t.task, 'task', matcherOr),
+    );
+  }
+
+  @override
+  bool matches(Object? item, Map matchState) {
+    if (item is! SkippableTask) {
+      return false;
+    }
+
+    return _delegate.matches(item, matchState);
+  }
+
+  @override
+  Description describe(Description description) {
+    return _delegate.describe(description);
+  }
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map matchState,
+    _,
+  ) {
+    return _delegate.describeMismatch(
+      item,
+      mismatchDescription,
+      matchState,
+      false,
+    );
+  }
+}
+
 const isBackfillTask = BackfillTaskMatcher._(TypeMatcher());
 
 final class BackfillTaskMatcher extends Matcher {
