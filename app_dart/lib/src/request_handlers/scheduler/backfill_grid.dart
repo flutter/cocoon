@@ -70,6 +70,19 @@ final class BackfillGrid {
   final Map<String, List<TaskRef>> _tasksByName;
   final Map<String, Target> _targetsByName;
 
+  /// Returns the cooresponding commit for the given [task].
+  CommitRef getCommit(TaskRef task) {
+    final commit = _commitsBySha[task.commitSha];
+    if (commit == null) {
+      throw ArgumentError.value(
+        task,
+        'task',
+        'No commit for task "${task.name}',
+      );
+    }
+    return commit;
+  }
+
   /// Returns a [BackfillTask] with the provided LUCI scheduling [priority].
   ///
   /// If [task] does not originate from [targets] the behavior is undefined.
