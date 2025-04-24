@@ -4,6 +4,7 @@
 
 import 'dart:math';
 
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -31,34 +32,81 @@ final class BatchBackfiller extends RequestHandler {
     required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
     required FirestoreService firestore,
+    required BranchService branchService,
     BackfillStrategy backfillerStrategy = const DefaultBackfillStrategy(),
   }) : _ciYamlFetcher = ciYamlFetcher,
        _luciBuildService = luciBuildService,
        _backfillerStrategy = backfillerStrategy,
-       _firestore = firestore;
+       _firestore = firestore,
+       _branchService = branchService;
 
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
   final BackfillStrategy _backfillerStrategy;
   final FirestoreService _firestore;
+  final BranchService _branchService;
 
   @override
   Future<Body> get() async {
-    await Future.forEach(config.supportedRepos, _backfillRepository);
+    await Future.forEach(config.supportedRepos, _backfillDefaultBranch);
+    await _backfillReleaseBranch(Config.flutterSlug);
     return Body.empty;
   }
 
-  Future<void> _backfillRepository(RepositorySlug slug) async {
-    log.debug('Running backfiller for "$slug"');
+  Future<void> _backfillReleaseBranch(RepositorySlug slug) async {
+    log.debug('Running release branch backfiller for "$slug"');
+
+    // TODO(matanlurey): This is a tad inefficient, as it means we will make
+    // X calls to GitHub every invocation of the Batch Backfiller, which as of
+    // 2025-04-23 is every 5 minutes, so this is `3 * 5 * 12` or 180 calls to
+    // GitHub per hour.
+    //
+    // We could possibly do one of the following to mitigate:
+    // - Use `githubFileContent`, which doesn't use the GitHub API (uses CDN);
+    // - Cache the result and read this less often (it does change, but rarely);
+    // - Have some sort of job that periodically updates a Firestore document:
+    //   collectionId="release_branches"
+    //   [
+    //     {"channel": "...", "reference: "..."},
+    //     {"channel": "...", "reference: "..."},
+    //     {"channel": "...", "reference: "..."},
+    //   ]
+    final branches = await _branchService.getReleaseBranches(slug: slug);
+    for (final branch in branches) {
+      if (!isReleaseCandidateBranch(branchName: branch.reference)) {
+        continue;
+      }
+      final fsGrid = await _firestore.queryRecentCommitsAndTasks(
+        slug,
+        commitLimit: config.backfillerCommitLimit,
+        branch: branch.reference,
+      );
+      await _doBackfillFrom(slug, fsGrid);
+    }
+  }
+
+  Future<void> _backfillDefaultBranch(RepositorySlug slug) async {
+    log.debug('Running default branch backfiller for "$slug"');
+    final fsGrid = await _firestore.queryRecentCommitsAndTasks(
+      slug,
+      commitLimit: config.backfillerCommitLimit,
+      branch: Config.defaultBranch(slug),
+    );
+    return await _doBackfillFrom(slug, fsGrid);
+  }
+
+  Future<void> _doBackfillFrom(
+    RepositorySlug slug,
+    List<CommitAndTasks> fsGrid,
+  ) async {
+    if (fsGrid.isEmpty) {
+      log.warn('No commits to backfill');
+      return;
+    }
 
     // Fetch and build a "grid" of List<(OpaqueCommit, List<OpaqueTask>>).
     final BackfillGrid grid;
     {
-      // TODO(matanlurey): Switch this to use Firestore.
-      final fsGrid = await _firestore.queryRecentCommitsAndTasks(
-        slug,
-        commitLimit: config.backfillerCommitLimit,
-      );
       log.debug(
         'Fetched ${fsGrid.length} commits and '
         '${fsGrid.map((i) => i.tasks).expand((i) => i).length} tasks',

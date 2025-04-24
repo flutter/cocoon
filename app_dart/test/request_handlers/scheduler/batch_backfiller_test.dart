@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/rpc_model.dart' as rpc;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
@@ -10,6 +11,8 @@ import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller.d
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:collection/collection.dart';
+import 'package:github/github.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/fake_config.dart';
@@ -34,6 +37,9 @@ void main() {
   late FakeFirestoreService firestore;
   late FakeCiYamlFetcher ciYamlFetcher;
 
+  // Used to implement BranchService.getBranches.
+  late List<rpc.Branch>? branchesForRepository;
+
   // Fixture.
   late RequestHandlerTester tester;
 
@@ -55,12 +61,28 @@ void main() {
       firestore: firestore,
     );
 
+    final branchService = MockBranchService();
+    branchesForRepository = [];
+    when(branchService.getReleaseBranches(slug: anyNamed('slug'))).thenAnswer((
+      i,
+    ) async {
+      final slug = i.namedArguments[#slug] as RepositorySlug;
+      return branchesForRepository ??
+          [
+            rpc.Branch(
+              channel: Config.defaultBranch(slug),
+              reference: Config.defaultBranch(slug),
+            ),
+          ];
+    });
+
     handler = BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
       backfillerStrategy: const _NaiveBackfillStrategy(),
       firestore: firestore,
+      branchService: branchService,
     );
 
     tester = RequestHandlerTester();
@@ -71,10 +93,14 @@ void main() {
   const $S = fs.Task.statusSucceeded;
   const $F = fs.Task.statusFailed;
 
-  Future<List<String>> visualizeFirestoreGrid({int? commits}) async {
+  Future<List<String>> visualizeFirestoreGrid({
+    int? commits,
+    String? branch,
+  }) async {
     final grid = await firestore.queryRecentCommitsAndTasks(
       Config.flutterSlug,
       commitLimit: commits ?? config.backfillerCommitLimit,
+      branch: branch,
     );
 
     final result = <String>[];
@@ -89,7 +115,10 @@ void main() {
     return result;
   }
 
-  Future<void> fillStorageAndSetCiYaml(List<List<String>> statuses) async {
+  Future<void> fillStorageAndSetCiYaml(
+    List<List<String>> statuses, {
+    String branch = 'master',
+  }) async {
     ciYamlFetcher.setCiYamlFrom(
       '''
     enabled_branches:
@@ -115,6 +144,7 @@ void main() {
       final fsCommit = generateFirestoreCommit(
         i,
         createTimestamp: date.millisecondsSinceEpoch,
+        branch: branch,
       );
       firestore.putDocument(fsCommit);
 
@@ -253,6 +283,50 @@ void main() {
       '🧑‍💼 🟨 🟨 🟥 🟩',
       '🧑‍💼 ⬜ ⬜ ⬜ ⬜',
     ]);
+  });
+
+  test('backfills release candidate branches', () async {
+    branchesForRepository = [
+      rpc.Branch(channel: 'master', reference: 'master'),
+      rpc.Branch(channel: 'beta', reference: 'flutter-3.32-candidate.0'),
+    ];
+
+    // dart format off
+    await fillStorageAndSetCiYaml([
+      [$N, $I, $F, $S],
+      [$N, $N, $N, $N],
+    ], branch: 'flutter-3.32-candidate.0');
+    // dart format on
+
+    // BEFORE:
+    expect(
+      await visualizeFirestoreGrid(
+        commits: 2,
+        branch: 'flutter-3.32-candidate.0',
+      ),
+      // dart format off
+      [
+      '🧑‍💼 ⬜ 🟨 🟥 🟩',
+      '🧑‍💼 ⬜ ⬜ ⬜ ⬜',
+      ],
+      // dart format on
+    );
+
+    await tester.get(handler);
+
+    // AFTER:
+    expect(
+      await visualizeFirestoreGrid(
+        commits: 2,
+        branch: 'flutter-3.32-candidate.0',
+      ),
+      // dart format off
+      [
+      '🧑‍💼 🟨 🟨 🟥 🟩',
+      '🧑‍💼 ⬜ 🟨 🟨 🟨',
+      ],
+      // dart format on
+    );
   });
 }
 
