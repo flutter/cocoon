@@ -1432,10 +1432,6 @@ void main() {
           pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
         ).thenAnswer(
           (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
-            // Change to random other file.
-            PullRequestFile()
-              ..filename =
-                  'packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt',
             // Change to the customer version file.
             PullRequestFile()..filename = 'dev/customer_testing/tests.version',
           ]),

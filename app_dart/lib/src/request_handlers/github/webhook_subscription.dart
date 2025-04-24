@@ -653,7 +653,6 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.startsWith('packages/flutter_tools/gradle/src/test/') ||
         filename.startsWith('dev/bots/analyze.dart') ||
         filename.startsWith('dev/bots/test.dart') ||
-        filename.startsWith('dev/customer_testing/tests.version') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||
         filename.startsWith('dev/devicelab/lib/tasks') ||
         filename.startsWith('dev/benchmarks') ||
@@ -677,6 +676,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
+        filename.startsWith('dev/customer_testing/tests.version') ||
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
         filename.startsWith('dev/integration_tests/') ||
         filename.startsWith('docs/') ||
