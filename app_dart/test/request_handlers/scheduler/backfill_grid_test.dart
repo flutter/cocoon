@@ -83,7 +83,7 @@ void main() {
     final c1 = CommitRef.fromFirestore(generateFirestoreCommit(1));
     final c2 = CommitRef.fromFirestore(generateFirestoreCommit(2));
     final t1c1 = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: c1.sha),
+      generateFirestoreTask(1, commitSha: c1.sha, status: 'In Progress'),
     );
     final t1c2 = TaskRef.fromFirestore(
       generateFirestoreTask(1, commitSha: c2.sha),
@@ -117,7 +117,7 @@ void main() {
 
     expect(
       grid.skippableTasks,
-      [isSkippableTask.hasTask(t1c1), isSkippableTask.hasTask(t1c2)],
+      [isSkippableTask.hasTask(t1c2)],
       reason: 'Target 1 is marked backfill: false, so it is skipped',
     );
   });
