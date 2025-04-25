@@ -171,7 +171,6 @@ targets:
 
   - name: Linux ci_yaml roller
     recipe: infra/ci_yaml
-    properties:
-      backfill: "false"
+    backfill: false
     runIf:
       - .ci.yaml
