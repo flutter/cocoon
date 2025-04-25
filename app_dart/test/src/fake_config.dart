@@ -4,18 +4,13 @@
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/key_helper.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 
-import '../request_handling/fake_dashboard_authentication.dart';
-import '../service/fake_github_service.dart';
-import 'fake_datastore.dart';
+import 'service/fake_github_service.dart';
 
 // ignore: must_be_immutable
 // TODO(matanlurey): Make this *not* a mess. See https://github.com/flutter/flutter/issues/164646.
@@ -25,7 +20,6 @@ class FakeConfig implements Config {
     this.maxTaskRetriesValue,
     this.maxLuciTaskRetriesValue,
     this.maxFilesChangedForSkippingEnginePhaseValue,
-    this.keyHelperValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
     this.mergeConflictPullRequestMessageValue =
@@ -36,15 +30,10 @@ class FakeConfig implements Config {
     this.wrongHeadBranchPullRequestMessageValue,
     this.releaseBranchPullRequestMessageValue,
     this.webhookKeyValue,
-    this.loggingServiceValue,
     this.githubService,
-    this.bigqueryService,
-    this.firestoreService,
     this.githubGraphQLClient,
     this.rollerAccountsValue,
-    this.flutterBuildValue,
     this.flutterBuildDescriptionValue,
-    this.maxRecordsValue,
     this.flutterGoldPendingValue,
     this.flutterGoldSuccessValue,
     this.flutterGoldChangesValue,
@@ -63,20 +52,15 @@ class FakeConfig implements Config {
     this.backfillerCommitLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
-    FakeDatastoreDB? dbValue,
-  }) : dbValue = dbValue ?? FakeDatastoreDB();
+  });
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
-  BigqueryService? bigqueryService;
-  FirestoreService? firestoreService;
   GithubService? githubService;
-  FakeDatastoreDB dbValue;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
   int? batchSizeValue;
-  FakeKeyHelper? keyHelperValue;
   String? oauthClientIdValue;
   String? githubOAuthTokenValue;
   String mergeConflictPullRequestMessageValue;
@@ -85,14 +69,10 @@ class FakeConfig implements Config {
   String? wrongHeadBranchPullRequestMessageValue;
   String? releaseBranchPullRequestMessageValue;
   String? webhookKeyValue;
-  String? flutterBuildValue;
   String? flutterBuildDescriptionValue;
-  Logging? loggingServiceValue;
-  String? waitingForTreeToGoGreenLabelNameValue;
   List<String>? releaseBranchesValue;
   String? releaseCandidateBranchPathValue;
   Set<String>? rollerAccountsValue;
-  int? maxRecordsValue;
   int? backfillerTargetLimitValue;
   int? backfillerCommitLimitValue;
   int? issueAndPRLimitValue;
@@ -110,9 +90,6 @@ class FakeConfig implements Config {
   Duration? githubRequestDelayValue;
 
   @override
-  Future<bool> get useLegacyDatastore async => true;
-
-  @override
   Future<gh.GitHub> createGitHubClient({
     gh.PullRequest? pullRequest,
     gh.RepositorySlug? slug,
@@ -126,20 +103,11 @@ class FakeConfig implements Config {
       githubGraphQLClient!;
 
   @override
-  Future<BigqueryService> createBigQueryService() async => bigqueryService!;
-
-  @override
-  Future<FirestoreService> createFirestoreService() async => firestoreService!;
-
-  @override
   Future<GithubService> createGithubService(gh.RepositorySlug slug) async =>
       githubService ?? FakeGithubService();
 
   @override
   GithubService createGithubServiceWithToken(String token) => githubService!;
-
-  @override
-  FakeDatastoreDB get db => dbValue;
 
   @override
   Duration get githubRequestDelay => githubRequestDelayValue ?? Duration.zero;
@@ -166,9 +134,6 @@ class FakeConfig implements Config {
 
   @override
   int get maxLuciTaskRetries => maxLuciTaskRetriesValue!;
-
-  @override
-  int get maxRecords => maxRecordsValue!;
 
   @override
   String get flutterGoldPending => flutterGoldPendingValue!;
@@ -206,9 +171,6 @@ class FakeConfig implements Config {
   int get commitNumber => 30;
 
   @override
-  KeyHelper get keyHelper => keyHelperValue!;
-
-  @override
   Future<String> get oauthClientId async => oauthClientIdValue!;
 
   @override
@@ -238,9 +200,6 @@ class FakeConfig implements Config {
   Future<String> get webhookKey async => webhookKeyValue!;
 
   @override
-  String get flutterBuild => flutterBuildValue!;
-
-  @override
   String get flutterTreeStatusRed =>
       flutterBuildDescriptionValue ??
       'Tree is currently broken. Please do not merge this '
@@ -248,13 +207,6 @@ class FakeConfig implements Config {
   @override
   String get flutterTreeStatusEmergency =>
       'The tree is currently broken; however, this PR is marked as `emergency` and will be allowed to merge.';
-
-  @override
-  Logging get loggingService => loggingServiceValue!;
-
-  @override
-  String get waitingForTreeToGoGreenLabelName =>
-      waitingForTreeToGoGreenLabelNameValue!;
 
   @override
   Set<String> get rollerAccounts => rollerAccountsValue!;

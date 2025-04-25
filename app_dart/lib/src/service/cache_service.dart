@@ -52,7 +52,7 @@ class CacheService {
   /// write operation while a read operation, getting the value can fail. To
   /// handle this racy condition, this attempts to get the value [maxCacheGetAttempts]
   /// times before giving up. This is because the cache is magnitudes faster
-  /// than the fallback operation (usually a Datastore query).
+  /// than the fallback operation (usually a Firestore query).
   Future<Uint8List?> getOrCreate(
     String subcacheName,
     String key, {

@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
     as fs;
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:gcloud/db.dart' as gcloud_db;
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
@@ -22,8 +21,7 @@ import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_firestore_service.dart';
@@ -40,7 +38,6 @@ void main() {
   late FakeClientContext clientContext;
   late FakeDashboardAuthentication auth;
   late FakeFirestoreService firestore;
-  late FakeDatastoreDB db;
   late ApiRequestHandlerTester tester;
   late PushGoldStatusToGithub handler;
 
@@ -52,8 +49,7 @@ void main() {
     clientContext = FakeClientContext();
     firestore = FakeFirestoreService();
     auth = FakeDashboardAuthentication(clientContext: clientContext);
-    db = FakeDatastoreDB();
-    config = FakeConfig(dbValue: db, firestoreService: firestore);
+    config = FakeConfig();
     tester = ApiRequestHandlerTester(
       context: FakeAuthenticatedContext(clientContext: clientContext),
     );
@@ -85,6 +81,7 @@ void main() {
       authenticationProvider: auth,
       goldClient: mockHttpClient,
       ingestionDelay: Duration.zero,
+      firestore: firestore,
     );
 
     slug = RepositorySlug('flutter', 'flutter');
@@ -174,19 +171,7 @@ void main() {
         ..updatedAt = updated ?? DateTime.now();
     }
 
-    group('does not update GitHub or Datastore', () {
-      setUp(() {
-        db.onCommit =
-            (
-              List<gcloud_db.Model<dynamic>> insert,
-              List<gcloud_db.Key<dynamic>> deletes,
-            ) => throw AssertionError();
-        when(
-          // ignore: discarded_futures
-          repositoriesService.createStatus(any, any, any),
-        ).thenThrow(AssertionError());
-      });
-
+    group('does not update GitHub or Firestore', () {
       test('if there are no PRs', () async {
         prsFromGitHub = <PullRequest>[];
         final body = await tester.get<Body>(handler);
@@ -425,6 +410,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Already commented for this commit.
@@ -696,7 +682,7 @@ void main() {
       });
     });
 
-    group('updates GitHub and/or Datastore', () {
+    group('updates GitHub and/or Firestore', () {
       test('new commit, checks running', () async {
         // New commit
         final flutterPr = newPullRequest(123, 'f-abc', 'master');
@@ -774,6 +760,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         final body = await tester.get<Body>(handler);
@@ -832,6 +819,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         final body = await tester.get<Body>(handler);
@@ -910,6 +898,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         final body = await tester.get<Body>(handler);
@@ -970,6 +959,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Have not already commented for this commit.
@@ -1041,6 +1031,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Have not already commented for this commit.
@@ -1117,6 +1108,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           // Have not already commented for this commit.
@@ -1191,6 +1183,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         // Have not already commented for this commit.
@@ -1280,6 +1273,7 @@ void main() {
             authenticationProvider: auth,
             goldClient: mockHttpClient,
             ingestionDelay: Duration.zero,
+            firestore: firestore,
           );
 
           when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
@@ -1526,6 +1520,7 @@ void main() {
           authenticationProvider: auth,
           goldClient: mockHttpClient,
           ingestionDelay: Duration.zero,
+          firestore: firestore,
         );
 
         when(
@@ -1649,6 +1644,7 @@ void main() {
         authenticationProvider: auth,
         goldClient: mockHttpClient,
         ingestionDelay: Duration.zero,
+        firestore: firestore,
       );
 
       // Have not already commented for this commit.

@@ -24,23 +24,25 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   PushGoldStatusToGithub({
     required super.config,
     required super.authenticationProvider,
+    required FirestoreService firestore,
     http.Client? goldClient,
-    this.ingestionDelay = const Duration(seconds: 10),
-  }) : goldClient = goldClient ?? http.Client();
+    Duration ingestionDelay = const Duration(seconds: 10),
+  }) : _ingestionDelay = ingestionDelay,
+       _goldClient = goldClient ?? http.Client(),
+       _firestore = firestore;
 
-  final http.Client goldClient;
-  final Duration ingestionDelay;
+  final FirestoreService _firestore;
+  final http.Client _goldClient;
+  final Duration _ingestionDelay;
 
   @override
   Future<Body> get() async {
-    final firestoreService = await config.createFirestoreService();
-
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push gold status from the local dev server.
       return Body.empty;
     }
 
-    await _sendStatusUpdates(firestoreService, Config.flutterSlug);
+    await _sendStatusUpdates(_firestore, Config.flutterSlug);
 
     return Body.empty;
   }
@@ -305,13 +307,13 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   Future<String> _getGoldStatus(RepositorySlug slug, PullRequest pr) async {
     // We wait for a few seconds in case tests _just_ finished and the tryjob
     // has not finished ingesting the results.
-    await Future<void>.delayed(ingestionDelay);
+    await Future<void>.delayed(_ingestionDelay);
     final requestForTryjobStatus = Uri.parse(
       '${_getGoldHost(slug)}/json/v1/changelist_summary/github/${pr.number}',
     );
     try {
       log.debug('Querying Gold for image results...');
-      final response = await goldClient.get(requestForTryjobStatus);
+      final response = await _goldClient.get(requestForTryjobStatus);
       if (response.statusCode != HttpStatus.ok) {
         throw HttpException(response.body);
       }

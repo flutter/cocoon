@@ -53,23 +53,15 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
             'check_run_id',
             (v) => (v as num?)?.toInt(),
           ),
-          taskId: $checkedConvert(
-            'firestore_task_document_name',
-            (v) => TaskId.parse(v as String),
-          ),
+          taskId: $checkedConvert('task_id', (v) => TaskId.parse(v as String)),
         );
         return val;
       },
-      fieldKeyMap: const {
-        'checkRunId': 'check_run_id',
-        'taskId': 'firestore_task_document_name',
-      },
+      fieldKeyMap: const {'checkRunId': 'check_run_id', 'taskId': 'task_id'},
     );
 
 Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) =>
     <String, dynamic>{
       if (instance.checkRunId case final value?) 'check_run_id': value,
-      'firestore_task_document_name': PostsubmitUserData._documentToString(
-        instance.taskId,
-      ),
+      'task_id': PostsubmitUserData._documentToString(instance.taskId),
     };

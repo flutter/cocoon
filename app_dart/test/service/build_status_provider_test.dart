@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
 
@@ -26,7 +25,6 @@ void main() {
     createTimestamp: DateTime(2025, 1, 1, 1, 0).millisecondsSinceEpoch,
   );
 
-  late FakeConfig config;
   late BuildStatusService buildStatusService;
   late FakeFirestoreService firestore;
 
@@ -34,8 +32,7 @@ void main() {
 
   setUp(() {
     firestore = FakeFirestoreService();
-    config = FakeConfig()..firestoreService = firestore;
-    buildStatusService = BuildStatusService(config);
+    buildStatusService = BuildStatusService(firestore: firestore);
 
     firestore.putDocuments([olderCommit, newerCommit]);
   });

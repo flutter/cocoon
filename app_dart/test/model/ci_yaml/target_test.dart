@@ -3,11 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/proto/internal/scheduler.pbenum.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/scheduler/policy.dart';
 import 'package:github/github.dart' as github;
 import 'package:test/test.dart';
 
+import '../../src/model/ci_yaml_matcher.dart';
 import '../../src/utilities/entity_generators.dart';
 
 void main() {
@@ -277,6 +280,37 @@ void main() {
           isA<GuaranteedPolicy>(),
         );
       });
+    });
+  });
+
+  group('backfill', () {
+    test('by default is true', () {
+      expect(generateTarget(1), isTarget.hasBackfill(true));
+    });
+
+    test('can be explicitly set to false', () {
+      expect(generateTarget(1, backfill: false), isTarget.hasBackfill(false));
+    });
+
+    test('can be explicitly set to false (legacy via properties)', () {
+      expect(
+        generateTarget(1, properties: {'backfill': 'false'}),
+        isTarget.hasBackfill(false),
+      );
+    });
+
+    test('is false if the scheduling system is not Cocoon', () {
+      expect(
+        generateTarget(1, schedulerSystem: SchedulerSystem.release),
+        isTarget.hasBackfill(false),
+      );
+    });
+
+    test('is false if the repository slug uses guaranteed scheduling', () {
+      expect(
+        generateTarget(1, slug: Config.packagesSlug),
+        isTarget.hasBackfill(false),
+      );
     });
   });
 }

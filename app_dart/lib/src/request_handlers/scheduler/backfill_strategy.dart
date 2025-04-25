@@ -4,11 +4,12 @@
 
 import 'dart:math';
 
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/firestore/task.dart' as fs;
 import '../../service/luci_build_service.dart';
-import '../../service/luci_build_service/opaque_commit.dart';
+import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/scheduler/policy.dart';
 import 'backfill_grid.dart';
 
@@ -71,11 +72,11 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
       return false;
     });
 
-    // Now, create two lists: high priority (recent failure) and regular.
-    final hadRecentFailure = <OpaqueTask>[];
-    final noRecentFailures = <OpaqueTask>[];
+    // Now, create two lists: high priority (recent failure or RC) and regular.
+    final higherPriorityReruns = <TaskRef>[];
+    final lowerPriorityReruns = <TaskRef>[];
 
-    for (final (_, column) in grid.targets) {
+    for (final (_, column) in grid.eligibleTasks) {
       for (var i = 0; i < column.length; i++) {
         final row = column[i];
         if (row.status != fs.Task.statusNew) {
@@ -83,12 +84,13 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
         }
 
         // Determine whether it is high priority or regular priority.
-        if (column
-            .getRange(i, min(i + BatchPolicy.kBatchSize + 1, column.length))
-            .any((t) => fs.Task.taskFailStatusSet.contains(t.status))) {
-          hadRecentFailure.add(row);
+        if (isReleaseCandidateBranch(branchName: grid.getCommit(row).branch) ||
+            column
+                .getRange(i, min(i + BatchPolicy.kBatchSize + 1, column.length))
+                .any((t) => fs.Task.taskFailStatusSet.contains(t.status))) {
+          higherPriorityReruns.add(row);
         } else {
-          noRecentFailures.add(row);
+          lowerPriorityReruns.add(row);
         }
 
         // If we made it this far, we scheduled an item in the column.
@@ -97,19 +99,19 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     }
 
     // Shuffle both sublists.
-    hadRecentFailure.shuffle(_random);
-    noRecentFailures.shuffle(_random);
+    higherPriorityReruns.shuffle(_random);
+    lowerPriorityReruns.shuffle(_random);
 
     // Return both of these lists, concatted.
     // TODO(matanlurey): ToT tasks should be run with kDefaultPriority.
     return [
-      ...hadRecentFailure.map(
+      ...higherPriorityReruns.map(
         (t) => grid.createBackfillTask(
           t,
           priority: LuciBuildService.kRerunPriority,
         ),
       ),
-      ...noRecentFailures.map(
+      ...lowerPriorityReruns.map(
         (t) => grid.createBackfillTask(
           t,
           priority: LuciBuildService.kBackfillPriority,

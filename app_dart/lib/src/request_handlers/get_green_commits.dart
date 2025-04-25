@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/appengine/commit.dart';
-import '../model/appengine/task.dart';
+import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
@@ -61,18 +60,29 @@ final class GetGreenCommits extends RequestHandler<Body> {
       branch: branch,
       slug: slug,
     );
-    final greenCommits =
-        allCommits
-            .where(everyNonFlakyTaskSucceed)
-            .map((status) => status.commit.sha)
-            .toList();
-
-    return Body.forJson(greenCommits);
+    return Body.forJson([
+      for (final commit in allCommits.where(_isGreenCommit)) commit.commit.sha,
+    ]);
   }
 
-  bool everyNonFlakyTaskSucceed(CommitTasksStatus status) {
-    return status.tasks
-        .where((task) => !task.testFlaky)
-        .every((nonFlakyTask) => nonFlakyTask.status == Task.statusSucceeded);
+  bool _isGreenCommit(CommitTasksStatus status) {
+    if (status.tasks.isEmpty) {
+      // If there are no tasks, it can't possibly be (our definition of) green.
+      return false;
+    }
+
+    for (final task in status.tasks) {
+      if (task.bringup) {
+        continue;
+      }
+      if (!const {
+        fs.Task.statusSkipped,
+        fs.Task.statusSucceeded,
+      }.contains(task.status)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

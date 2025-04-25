@@ -11,10 +11,8 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/task.dart' as ds;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/subscription_handler.dart';
-import '../service/datastore.dart';
 
 /// Listens for and saves build updates for `dart-internal` builds.
 ///
@@ -26,8 +24,12 @@ final class DartInternalSubscription extends SubscriptionHandler {
   const DartInternalSubscription({
     required super.cache,
     required super.config,
+    required FirestoreService firestore,
     super.authProvider,
-  }) : super(subscriptionName: 'dart-internal-build-results-sub');
+  }) : _firestore = firestore,
+       super(subscriptionName: 'dart-internal-build-results-sub');
+
+  final FirestoreService _firestore;
 
   @override
   Future<Body> post() async {
@@ -44,10 +46,9 @@ final class DartInternalSubscription extends SubscriptionHandler {
     }
 
     log.info('Checking for existing task in Firestore');
-    final firestore = await config.createFirestoreService();
     final fs.Task fsTask;
     {
-      final existing = await firestore.queryLatestTask(
+      final existing = await _firestore.queryLatestTask(
         commitSha: build.input.gitilesCommit.id,
         builderName: build.builder.builder,
       );
@@ -67,7 +68,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
           startTimestamp: build.startTime.toDateTime().millisecondsSinceEpoch,
           endTimestamp: build.endTime.toDateTime().millisecondsSinceEpoch,
           commitSha: build.input.gitilesCommit.id,
-          status: ds.Task.convertBuildbucketStatusToString(build.status),
+          status: fs.Task.convertBuildbucketStatusToString(build.status),
 
           // These are all assumed values.
           bringup: false,
@@ -77,35 +78,11 @@ final class DartInternalSubscription extends SubscriptionHandler {
     }
 
     log.info('Inserting Task into Firestore: ${fsTask.toString()}');
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites([fsTask])),
       kDatabase,
     );
 
-    await _legacyUpdateDatastoretask(build);
-
     return Body.forJson(fsTask.toString());
-  }
-
-  Future<void> _legacyUpdateDatastoretask(bbv2.Build build) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-
-    log.info('Checking for existing task in Datastore');
-    final datastore = DatastoreService.defaultProvider(config.db);
-    final existingTask = await datastore.getTaskFromBuildbucketBuild(build);
-
-    final ds.Task taskToInsert;
-    if (existingTask != null) {
-      log.info('Updating Task from existing Build');
-      existingTask.updateFromBuildbucketBuild(build);
-      taskToInsert = existingTask;
-    } else {
-      log.info('Creating Task from Buildbucket result');
-      taskToInsert = await ds.Task.fromBuildbucketBuild(build, datastore);
-    }
-
-    await datastore.insert([taskToInsert]);
   }
 }

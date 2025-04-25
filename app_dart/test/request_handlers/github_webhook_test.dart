@@ -13,7 +13,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/request_handler_tester.dart';

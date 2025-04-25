@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/firestore/commit.dart';
@@ -33,50 +34,49 @@ final class CommitTasksStatus {
   ///
   /// Note we use the lastest run as the `task`, surfacing on the dashboard.
   List<FullTask> collateTasksByTaskName() {
-    // Create an initial map of { task-name -> FullTask(latestTask, []) }
-    final fullTasksMap = <String, FullTask>{};
-    for (final task in tasks) {
-      final FullTask taskToAddBuildNumber;
-      // If task.taskName already exists
-      if (fullTasksMap[task.taskName] case final fullTask?) {
-        // If this task is newer than the existing task, use the new task
-        if (task.currentAttempt > fullTask.task.currentAttempt) {
-          taskToAddBuildNumber = FullTask(task, fullTask.buildList);
-        } else {
-          // Otherwise, just reference the existing (newer) task
-          taskToAddBuildNumber = fullTask;
-        }
-      } else {
-        // Otherwise, use this task as the latest task (so far)
-        taskToAddBuildNumber = FullTask(task, []);
-      }
+    // First, create a Map<Builder, [Tasks from High Attempt > Low]>
+    final tasksByBuilder = tasks.groupListsBy((t) => t.taskName);
 
-      // If the task has a build number, add it to the list
-      if (task.buildNumber case final buildNumber?) {
-        taskToAddBuildNumber.buildList.add(buildNumber);
-      }
-
-      // And store it for the next loop
-      fullTasksMap[task.taskName] = taskToAddBuildNumber;
+    // Sort the tasks from MOST RECENT to LEAST RECENT.
+    for (final tasks in tasksByBuilder.values) {
+      tasks.sort((a, b) => b.currentAttempt.compareTo(a.currentAttempt));
     }
 
-    // Sort build numbers, and return.
-    final fullTasks = [...fullTasksMap.values];
-    for (final fullTask in fullTasks) {
-      fullTask.buildList.sort();
-    }
-    return fullTasks;
+    return [
+      for (final tasks in tasksByBuilder.values)
+        FullTask(
+          tasks.first,
+          [...tasks.reversed.map((t) => t.buildNumber).nonNulls],
+          didAtLeastOneFailureOccur: tasks.any(
+            (t) => Task.taskFailStatusSet.contains(t.status),
+          ),
+          lastCompletedAttemptWasFailure:
+              tasks.length > 1 &&
+              Task.taskFailStatusSet.contains(tasks[1].status),
+        ),
+    ];
   }
 }
 
 /// Latest [task] entry and its re-run [buildList].
 @immutable
 final class FullTask {
-  const FullTask(this.task, this.buildList);
+  const FullTask(
+    this.task,
+    this.buildList, {
+    required this.didAtLeastOneFailureOccur,
+    required this.lastCompletedAttemptWasFailure,
+  });
 
   /// Task representing a [Task.taskName] builder.
   final Task task;
 
   /// Every [Task.buildNumber] associated with [Task.taskName].
   final List<int> buildList;
+
+  /// Whether at least one run was considered a failure.
+  final bool didAtLeastOneFailureOccur;
+
+  /// Whether the last _completed_ attempt was a failure.
+  final bool lastCompletedAttemptWasFailure;
 }

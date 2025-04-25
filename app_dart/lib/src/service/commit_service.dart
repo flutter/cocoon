@@ -4,32 +4,31 @@
 
 import 'dart:async';
 
-import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart' as ds;
 import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart' as gh;
 import 'package:googleapis/firestore/v1.dart' as fs;
 import 'package:meta/meta.dart';
 import 'package:truncate/truncate.dart';
 
-import '../model/appengine/commit.dart' as ds;
 import '../model/firestore/commit.dart' as fs;
 import 'config.dart';
-import 'datastore.dart';
 import 'firestore.dart';
 
-/// Converts and stores GitHub-originated commits into Datastore and Firestore.
+/// Converts and stores GitHub-originated commits into Firestore.
 interface class CommitService {
   CommitService({
     required Config config,
+    required FirestoreService firestore,
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _config = config,
+       _firestore = firestore,
        _now = now;
 
   final Config _config;
+  final FirestoreService _firestore;
   final DateTime Function() _now;
 
-  /// Add a commit based on a [CreateEvent] to the Datastore.
+  /// Add a commit based on a [CreateEvent] to the Firestore.
   Future<void> handleCreateGithubRequest(gh.CreateEvent createEvent) async {
     // Extract some information from the event.
     final slug = gh.RepositorySlug.full(createEvent.repository!.fullName);
@@ -45,7 +44,7 @@ interface class CommitService {
     );
 
     // Convert into the format the rest of the service uses.
-    await _insertCommit(
+    await _insertFirestore(
       _Commit.fromBranchEvent(
         repository: slug,
         branch: branch,
@@ -55,47 +54,13 @@ interface class CommitService {
     );
   }
 
-  /// Add a commit based on a Push event to the Datastore.
+  /// Add a commit based on a Push event to the Firestore.
   /// https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
   Future<void> handlePushGithubRequest(Map<String, Object?> pushEvent) async {
-    await _insertCommit(_Commit.fromPushEventJson(pushEvent));
-  }
-
-  Future<void> _insertCommit(_Commit commit) async {
-    await Future.wait([_insertDatastore(commit), _insertFirestore(commit)]);
-  }
-
-  Future<void> _insertDatastore(_Commit commit) async {
-    if (!await _config.useLegacyDatastore) {
-      return;
-    }
-    final datastore = DatastoreService.defaultProvider(_config.db);
-    final commitKey = datastore.db.emptyKey.append<String>(
-      ds.Commit,
-      id: '${commit.repository.fullName}/${commit.branch}/${commit.sha}',
-    );
-    final dsCommit = ds.Commit(
-      key: commitKey,
-      timestamp: commit.createdOn.millisecondsSinceEpoch,
-      repository: commit.repository.fullName,
-      sha: commit.sha,
-      author: commit.author,
-      authorAvatarUrl: commit.avatar,
-      message: commit.message,
-      branch: commit.branch,
-    );
-    // Only insert if the commit does not exist.
-    try {
-      log.info('Checking for existing commit in the datastore');
-      await datastore.lookupByValue<ds.Commit>(commitKey);
-    } on ds.KeyNotFoundException {
-      log.info('Commit does not exist in datastore, inserting into datastore');
-      await datastore.insert([dsCommit]);
-    }
+    await _insertFirestore(_Commit.fromPushEventJson(pushEvent));
   }
 
   Future<void> _insertFirestore(_Commit commit) async {
-    final firestore = await _config.createFirestoreService();
     final fsCommit = fs.Commit(
       createTimestamp: commit.createdOn.millisecondsSinceEpoch,
       repositoryPath: commit.repository.fullName,
@@ -105,7 +70,7 @@ interface class CommitService {
       message: commit.message,
       branch: commit.branch,
     );
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       fs.BatchWriteRequest(writes: documentsToWrites([fsCommit])),
       kDatabase,
     );

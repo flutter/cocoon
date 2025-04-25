@@ -8,21 +8,22 @@ import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
+import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
-import '../request_handling/body.dart';
-import '../request_handling/request_handler.dart';
 import '../service/build_status_provider.dart';
-import '../service/config.dart';
 
 @immutable
 final class GetStatus extends RequestHandler<Body> {
   const GetStatus({
     required super.config,
     required BuildStatusService buildStatusService,
+    required FirestoreService firestore,
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _now = now,
-       _buildStatusService = buildStatusService;
+       _buildStatusService = buildStatusService,
+       _firestore = firestore;
 
+  final FirestoreService _firestore;
   final BuildStatusService _buildStatusService;
   final DateTime Function() _now;
 
@@ -40,12 +41,11 @@ final class GetStatus extends RequestHandler<Body> {
     final branch =
         request!.uri.queryParameters[kBranchParam] ??
         Config.defaultBranch(slug);
-    final firestoreService = await config.createFirestoreService();
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null
             ? (await Commit.fromFirestoreBySha(
-              firestoreService,
+              _firestore,
               sha: lastCommitSha,
             )).createTimestamp
             : _now().millisecondsSinceEpoch;
@@ -76,13 +76,16 @@ final class GetStatus extends RequestHandler<Body> {
               ...status.collateTasksByTaskName().map((fullTask) {
                 return rpc_model.Task(
                   attempts: fullTask.task.currentAttempt,
-                  buildNumberList: fullTask.buildList.join(','),
+                  buildNumberList: fullTask.buildList,
                   builderName: fullTask.task.taskName,
                   createTimestamp: fullTask.task.createTimestamp,
                   startTimestamp: fullTask.task.startTimestamp,
                   endTimestamp: fullTask.task.endTimestamp,
-                  isFlaky: fullTask.task.bringup,
+                  isBringup: fullTask.task.bringup,
+                  isFlaky: fullTask.didAtLeastOneFailureOccur,
                   status: fullTask.task.status,
+                  lastAttemptFailed: fullTask.lastCompletedAttemptWasFailure,
+                  currentBuildNumber: fullTask.task.buildNumber,
                 );
               }),
             ],

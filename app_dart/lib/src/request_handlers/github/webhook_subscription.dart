@@ -123,7 +123,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             )[2]; // Eg: refs/heads/beta would return beta.
         final repository = event['repository']['name'] as String;
         // If the branch is beta/stable, then a commit wasn't created through a PR,
-        // meaning the commit needs to be added to the datastore here instead.
+        // meaning the commit needs to be added to the Firestore here instead.
         if (repository == 'flutter' &&
             (branch == 'stable' || branch == 'beta')) {
           await commitService.handlePushGithubRequest(event);
@@ -133,13 +133,13 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         final createEvent = CreateEvent.fromJson(
           json.decode(webhook.payload) as Map<String, dynamic>,
         );
-        // Create a commit object for candidate branches in the datastore so
+        // Create a commit object for candidate branches in the Firestore so
         // dart-internal builds that are triggered by the initial branch
         // creation have an associated commit.
         if (isReleaseCandidateBranch(branchName: createEvent.ref!)) {
           log.debug(
             'Branch ${createEvent.ref} is a candidate branch, creating new '
-            'commit in the datastore',
+            'commit in the Firestore',
           );
           await commitService.handleCreateGithubRequest(createEvent);
         }
@@ -676,6 +676,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
+        filename.startsWith('dev/customer_testing/tests.version') ||
         filename.startsWith('dev/devicelab/lib/versions/gallery.dart') ||
         filename.startsWith('dev/integration_tests/') ||
         filename.startsWith('docs/') ||

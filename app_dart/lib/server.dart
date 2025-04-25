@@ -9,6 +9,7 @@ import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
+import 'src/service/big_query.dart';
 import 'src/service/build_status_provider.dart';
 import 'src/service/commit_service.dart';
 import 'src/service/discord_service.dart';
@@ -19,6 +20,8 @@ typedef Server = Future<void> Function(HttpRequest);
 /// Creates a service with the given dependencies.
 Server createServer({
   required Config config,
+  required FirestoreService firestore,
+  required BigQueryService bigQuery,
   required CacheService cache,
   required AuthenticationProvider authProvider,
   required AuthenticationProvider swarmingAuthProvider,
@@ -36,6 +39,7 @@ Server createServer({
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
       authenticationProvider: authProvider,
+      bigQuery: bigQuery,
     ),
     '/api/create-branch': CreateBranch(
       branchService: branchService,
@@ -45,10 +49,12 @@ Server createServer({
     '/api/dart-internal-subscription': DartInternalSubscription(
       cache: cache,
       config: config,
+      firestore: firestore,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
       authenticationProvider: authProvider,
+      bigQuery: bigQuery,
     ),
     '/api/flush-cache': FlushCache(
       config: config,
@@ -89,15 +95,19 @@ Server createServer({
       githubChecksService: githubChecksService,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
       authenticationProvider: authProvider,
       buildStatusService: buildStatusService,
+      firestore: firestore,
+      bigQuery: bigQuery,
     ),
     '/api/push-gold-status-to-github': PushGoldStatusToGithub(
       config: config,
       authenticationProvider: authProvider,
+      firestore: firestore,
     ),
     // I do not believe these recieve a build message.
     '/api/rerun-prod-task': RerunProdTask(
@@ -105,6 +115,7 @@ Server createServer({
       authenticationProvider: authProvider,
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
@@ -120,11 +131,15 @@ Server createServer({
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
+      branchService: branchService,
     ),
     '/api/v2/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
+      firestore: firestore,
+      branchService: branchService,
     ),
     '/api/v2/scheduler/batch-request-subscription':
         SchedulerRequestSubscription(
@@ -135,10 +150,13 @@ Server createServer({
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,
       luciBuildService: luciBuildService,
+      firestore: firestore,
+      branchService: branchService,
     ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
       authenticationProvider: authProvider,
+      bigQuery: bigQuery,
     ),
 
     '/api/vacuum-github-commits': VacuumGithubCommits(
@@ -199,13 +217,14 @@ Server createServer({
         config: config,
         discord: DiscordService(config: config),
         buildStatusService: buildStatusService,
+        firestore: firestore,
       ),
       ttl: const Duration(seconds: 15),
     ),
     '/api/public/engine-artifacts-ready': CacheRequestHandler<Body>(
       cache: cache,
       config: config,
-      delegate: GetEngineArtifactsReady(config: config),
+      delegate: GetEngineArtifactsReady(config: config, firestore: firestore),
       ttl: const Duration(minutes: 5),
     ),
     '/api/public/get-release-branches': CacheRequestHandler<Body>(
@@ -269,6 +288,7 @@ Server createServer({
       delegate: GetStatus(
         config: config,
         buildStatusService: buildStatusService,
+        firestore: firestore,
       ),
     ),
 
@@ -291,7 +311,7 @@ Server createServer({
       config: config,
       cache: cache,
       ttl: const Duration(minutes: 1),
-      delegate: GithubRateLimitStatus(config: config),
+      delegate: GithubRateLimitStatus(config: config, bigQuery: bigQuery),
     ),
     '/api/public/repos': GetRepos(config: config),
 

@@ -4,8 +4,12 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
+import 'package:cocoon_service/src/service/firestore/commit_and_tasks.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
+
+import '../src/service/fake_firestore_service.dart';
+import '../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -19,5 +23,19 @@ void main() {
     expect(writes.length, documents.length);
     expect(writes[0].update, documents[0]);
     expect(writes[0].currentDocument!.exists, false);
+  });
+
+  group('CommitAndTasks', () {
+    test('withMostRecentTaskOnly returns the largest currentAttempt', () {
+      final commit = CommitAndTasks(generateFirestoreCommit(1), [
+        generateFirestoreTask(1, name: 'Linux A', attempts: 2),
+        generateFirestoreTask(1, name: 'Linux A', attempts: 1),
+        generateFirestoreTask(1, name: 'Linux A', attempts: 3),
+      ]);
+      final recent = commit.withMostRecentTaskOnly();
+      expect(recent.tasks, [
+        isTask.hasTaskName('Linux A').hasCurrentAttempt(3),
+      ]);
+    });
   });
 }

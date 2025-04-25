@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
 import '../request_handling/api_request_handler.dart';
+import '../service/big_query.dart';
 import '../service/build_status_provider.dart';
 
 @immutable
@@ -21,9 +22,16 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     required super.config,
     required super.authenticationProvider,
     required BuildStatusService buildStatusService,
-  }) : _buildStatusService = buildStatusService;
+    required FirestoreService firestore,
+    required BigQueryService bigQuery,
+  }) : _buildStatusService = buildStatusService,
+       _firestore = firestore,
+       _bigQuery = bigQuery;
 
   final BuildStatusService _buildStatusService;
+  final FirestoreService _firestore;
+  final BigQueryService _bigQuery;
+
   static const _fullNameRepoParam = 'repo';
 
   @override
@@ -37,15 +45,14 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     final repository =
         request!.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
     final slug = RepositorySlug.full(repository);
-    final firestoreService = await config.createFirestoreService();
     final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
-    await _insertBigquery(
+    await _insertBigQuery(
       slug,
       status.githubStatus,
       Config.defaultBranch(slug),
       config,
     );
-    await _updatePRs(slug, status.githubStatus, firestoreService);
+    await _updatePRs(slug, status.githubStatus, _firestore);
     log.debug('All the PRs for $repository have been updated with $status');
 
     return Body.empty;
@@ -129,14 +136,13 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       return;
     }
     final writes = documentsToWrites(githubBuildStatuses);
-    final firestoreService = await config.createFirestoreService();
-    await firestoreService.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: writes),
       kDatabase,
     );
   }
 
-  Future<void> _insertBigquery(
+  Future<void> _insertBigQuery(
     RepositorySlug slug,
     String status,
     String branch,
@@ -150,7 +156,6 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
       'Repo': slug.name,
     };
 
-    final bigquery = await config.createBigQueryService();
-    await insertBigquery(bigqueryTableName, bigqueryData, bigquery.tabledata);
+    await insertBigQuery(bigqueryTableName, bigqueryData, _bigQuery.tabledata);
   }
 }

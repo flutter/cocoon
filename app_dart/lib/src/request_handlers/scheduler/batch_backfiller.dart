@@ -4,19 +4,17 @@
 
 import 'dart:math';
 
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
-import '../../model/appengine/commit.dart' as ds;
-import '../../model/appengine/task.dart' as ds;
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
-import '../../service/datastore.dart';
 import '../../service/firestore/commit_and_tasks.dart';
-import '../../service/luci_build_service/opaque_commit.dart';
+import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/ci_yaml_fetcher.dart';
 import '../../service/scheduler/policy.dart';
@@ -33,33 +31,66 @@ final class BatchBackfiller extends RequestHandler {
     required super.config,
     required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
+    required FirestoreService firestore,
+    required BranchService branchService,
     BackfillStrategy backfillerStrategy = const DefaultBackfillStrategy(),
   }) : _ciYamlFetcher = ciYamlFetcher,
        _luciBuildService = luciBuildService,
-       _backfillerStrategy = backfillerStrategy;
+       _backfillerStrategy = backfillerStrategy,
+       _firestore = firestore,
+       _branchService = branchService;
 
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
   final BackfillStrategy _backfillerStrategy;
+  final FirestoreService _firestore;
+  final BranchService _branchService;
 
   @override
   Future<Body> get() async {
-    await Future.forEach(config.supportedRepos, _backfillRepository);
+    await _backfillReleaseBranch(Config.flutterSlug);
+    await Future.forEach(config.supportedRepos, _backfillDefaultBranch);
     return Body.empty;
   }
 
-  Future<void> _backfillRepository(RepositorySlug slug) async {
-    log.debug('Running backfiller for "$slug"');
+  Future<void> _backfillReleaseBranch(RepositorySlug slug) async {
+    log.debug('Running release branch backfiller for "$slug"');
+    final branches = await _branchService.getReleaseBranches(slug: slug);
+    for (final branch in branches) {
+      if (!isReleaseCandidateBranch(branchName: branch.reference)) {
+        continue;
+      }
+      final fsGrid = await _firestore.queryRecentCommitsAndTasks(
+        slug,
+        commitLimit: config.backfillerCommitLimit,
+        branch: branch.reference,
+      );
+      await _doBackfillFrom(slug, fsGrid);
+    }
+  }
+
+  Future<void> _backfillDefaultBranch(RepositorySlug slug) async {
+    log.debug('Running default branch backfiller for "$slug"');
+    final fsGrid = await _firestore.queryRecentCommitsAndTasks(
+      slug,
+      commitLimit: config.backfillerCommitLimit,
+      branch: Config.defaultBranch(slug),
+    );
+    return await _doBackfillFrom(slug, fsGrid);
+  }
+
+  Future<void> _doBackfillFrom(
+    RepositorySlug slug,
+    List<CommitAndTasks> fsGrid,
+  ) async {
+    if (fsGrid.isEmpty) {
+      log.warn('No commits to backfill');
+      return;
+    }
 
     // Fetch and build a "grid" of List<(OpaqueCommit, List<OpaqueTask>>).
     final BackfillGrid grid;
     {
-      // TODO(matanlurey): Switch this to use Firestore.
-      final firestore = await config.createFirestoreService();
-      final fsGrid = await firestore.queryRecentCommitsAndTasks(
-        slug,
-        commitLimit: config.backfillerCommitLimit,
-      );
       log.debug(
         'Fetched ${fsGrid.length} commits and '
         '${fsGrid.map((i) => i.tasks).expand((i) => i).length} tasks',
@@ -73,21 +104,21 @@ final class BatchBackfiller extends RequestHandler {
       );
 
       final totTargets = [
-        ...ciYaml.backfillTargets(),
+        ...ciYaml.postsubmitTargets(),
         if (ciYaml.isFusion)
-          ...ciYaml.backfillTargets(type: CiType.fusionEngine),
+          ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
       ];
       log.debug('Fetched ${totTargets.length} tip-of-tree targets');
 
       grid = BackfillGrid.from([
         for (final CommitAndTasks(:commit, :tasks) in fsGrid)
           (
-            OpaqueCommit.fromFirestore(commit),
-            [...tasks.map(OpaqueTask.fromFirestore)],
+            CommitRef.fromFirestore(commit),
+            [...tasks.map(TaskRef.fromFirestore)],
           ),
       ], tipOfTreeTargets: totTargets);
     }
-    log.debug('Built a grid of ${grid.targets.length} target columns');
+    log.debug('Built a grid of ${grid.eligibleTasks.length} target columns');
 
     // Produce a list of tasks, ordered from highest to lowest, to backfill.
     // ... but only take the top N tasks, at most.
@@ -110,66 +141,20 @@ final class BatchBackfiller extends RequestHandler {
     );
 
     // Update the database first before we schedule builds.
-    await Future.wait([
-      _updateDatastore(toBackfillTasks),
-      _updateFirestore(toBackfillTasks),
-    ]);
+    await _updateFirestore(toBackfillTasks, grid.skippableTasks);
     log.info('Wrote updates to ${toBackfillTasks.length} tasks for backfill');
 
     await _scheduleWithRetries(toBackfillTasks);
     log.info('Scheduled ${toBackfillTasks.length} tasks with LUCI');
   }
 
-  // ⚠️ WARNING ⚠️ This function makes up to ~75 sequential reads in a row.
-  //
-  // There is no batch query functionality in Datastore, and since we don't
-  // want to rely on Datastore-first reads (for example, if the tasks origiante
-  // from Firestore), this will read/write in a transaction.
-  //
-  // There is a chance this is too slow, or is error-prone due to the QPS to
-  // Datastore. If that happens, it could be augmented where we make a call to
-  // datastoreService.queryRecentTasks, and turn it into Map<String, dsTask>,
-  // and look those up in the loop instead of making 75 sequential reads.
-  Future<void> _updateDatastore(List<BackfillTask> tasks) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-    final datastore = DatastoreService.defaultProvider(config.db);
-    await datastore.withTransaction<void>((tx) async {
-      log.debug('Querying ${tasks.length} tasks in Datastore...');
-      for (final BackfillTask(:commit, :task) in tasks) {
-        final commitKey = ds.Commit.createKey(
-          db: config.db,
-          slug: commit.slug,
-          gitBranch: commit.branch,
-          sha: commit.sha,
-        );
-
-        final query = tx.db.query<ds.Task>(ancestorKey: commitKey);
-        query.filter('name =', task.name);
-
-        final dsTasks = await query.run().toList();
-        if (dsTasks.length != 1) {
-          throw InternalServerError(
-            'Expected to find 1 task for ${task.name}, but found '
-            '${dsTasks.length}',
-          );
-        }
-        final dsTask = dsTasks.first;
-        dsTask.status = ds.Task.statusInProgress;
-        tx.queueMutations(inserts: [dsTask]);
-      }
-
-      await tx.commit();
-      log.debug('Wrote to Datastore for backfill');
-    });
-  }
-
-  Future<void> _updateFirestore(List<BackfillTask> tasks) async {
-    final firestore = await config.createFirestoreService();
-    log.debug('Querying ${tasks.length} tasks in Firestore...');
-    await firestore.writeViaTransaction([
-      ...tasks.map((toUpdate) {
+  Future<void> _updateFirestore(
+    Iterable<BackfillTask> schedule,
+    Iterable<SkippableTask> skip,
+  ) async {
+    log.debug('Querying ${schedule.length} tasks in Firestore...');
+    await _firestore.writeViaTransaction([
+      ...schedule.map((toUpdate) {
         final BackfillTask(:task) = toUpdate;
         return fs.Task.patchStatus(
           fs.TaskId(
@@ -178,6 +163,17 @@ final class BatchBackfiller extends RequestHandler {
             currentAttempt: task.currentAttempt,
           ),
           fs.Task.statusInProgress,
+        );
+      }),
+      ...skip.map((toSkip) {
+        final SkippableTask(:task) = toSkip;
+        return fs.Task.patchStatus(
+          fs.TaskId(
+            commitSha: task.commitSha,
+            taskName: task.name,
+            currentAttempt: task.currentAttempt,
+          ),
+          fs.Task.statusSkipped,
         );
       }),
     ]);

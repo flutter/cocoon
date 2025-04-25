@@ -9,33 +9,27 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
-import 'package:cocoon_service/src/service/bigquery.dart';
-import 'package:cocoon_service/src/service/datastore.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:gcloud/db.dart' as gcloud_db;
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
-import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_build_bucket_client.dart';
 import '../src/service/fake_ci_yaml_fetcher.dart';
@@ -156,30 +150,15 @@ void main() {
 
   late CacheService cache;
   late FakeConfig config;
-  late FakeDatastoreDB db;
   late FakeCiYamlFetcher ciYamlFetcher;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late MockGithubChecksUtil mockGithubChecksUtil;
   late Scheduler scheduler;
   late FakeContentAwareHashService fakeContentAwareHash;
-  late MockCallbacks callbacks;
   late FakeGetFilesChanged getFilesChanged;
+  late BigQueryService bigQuery;
 
   final pullRequest = generatePullRequest(id: 42);
-
-  Commit shaToCommit(
-    String sha, {
-    String branch = 'master',
-    String repository = 'flutter',
-  }) {
-    return Commit(
-      key: db.emptyKey.append(Commit, id: 'flutter/$repository/$branch/$sha'),
-      repository: 'flutter/$repository',
-      sha: sha,
-      branch: branch,
-      timestamp: int.parse(sha),
-    );
-  }
 
   setUp(() {
     ciYamlFetcher = FakeCiYamlFetcher();
@@ -198,18 +177,11 @@ void main() {
 
       cache = CacheService(inMemory: true);
       getFilesChanged = FakeGetFilesChanged();
-      db = FakeDatastoreDB();
-      firestoreService = FakeFirestoreService();
+      firestore = FakeFirestoreService();
 
       config = FakeConfig(
-        bigqueryService: BigqueryService.forTesting(
-          tabledataResource,
-          MockJobsResource(),
-        ),
-        dbValue: db,
         githubService: FakeGithubService(),
         githubClient: MockGitHub(),
-        firestoreService: firestoreService,
         supportedReposValue: <RepositorySlug>{
           Config.flutterSlug,
           Config.packagesSlug,
@@ -236,12 +208,14 @@ void main() {
         );
       });
 
-      callbacks = MockCallbacks();
+      bigQuery = BigQueryService.forTesting(
+        tabledataResource,
+        MockJobsResource(),
+      );
 
       scheduler = Scheduler(
         cache: cache,
         config: config,
-        datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
         githubChecksService: GithubChecksService(
           config,
           githubChecksUtil: mockGithubChecksUtil,
@@ -254,9 +228,11 @@ void main() {
           gerritService: FakeGerritService(
             branchesValue: <String>['master', 'main'],
           ),
+          firestore: firestore,
         ),
-        markCheckRunConclusion: callbacks.markCheckRunConclusion,
+        bigQuery: bigQuery,
         contentAwareHash: fakeContentAwareHash,
+        firestore: firestore,
       );
 
       // ignore: discarded_futures
@@ -317,25 +293,29 @@ void main() {
       }
 
       test('succeeds when GitHub returns no commits', () async {
-        await scheduler.addCommits(<fs.Commit>[]);
-        expect(db.values, isEmpty);
+        await expectLater(scheduler.addCommits([]), completes);
       });
 
       test('inserts all relevant fields of the commit', () async {
         config.supportedBranchesValue = <String>['main'];
-        expect(db.values.values.whereType<Commit>().length, 0);
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
         await scheduler.addCommits(
           createCommitList(<String>['1'], repo: 'packages', branch: 'main'),
         );
-        expect(db.values.values.whereType<Commit>().length, 1);
-        final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/packages');
-        expect(commit.branch, 'main');
-        expect(commit.sha, '1');
-        expect(commit.timestamp, 1);
-        expect(commit.author, 'Username');
-        expect(commit.authorAvatarUrl, 'http://example.org/avatar.jpg');
-        expect(commit.message, 'commit message');
+
+        expect(
+          firestore,
+          existsInStorage(fs.Commit.metadata, [
+            isCommit
+                .hasRepositoryPath('flutter/packages')
+                .hasSha('1')
+                .hasBranch('main')
+                .hasCreateTimestamp(1)
+                .hasAuthor('Username')
+                .hasAvatar('http://example.org/avatar.jpg')
+                .hasMessage('commit message'),
+          ]),
+        );
       });
 
       test('skips scheduling for unsupported repos', () async {
@@ -343,89 +323,8 @@ void main() {
         await scheduler.addCommits(
           createCommitList(<String>['1'], repo: 'not-supported'),
         );
-        expect(db.values.values.whereType<Commit>().length, 0);
-      });
 
-      test('skips commits for which transaction commit fails', () async {
-        config.supportedBranchesValue = <String>['main'];
-
-        // Existing commits should not be duplicated.
-        final commit = shaToCommit('1', branch: 'main', repository: 'packages');
-        db.values[commit.key] = commit;
-
-        db.onCommit = (
-          List<gcloud_db.Model<Object?>> inserts,
-          List<gcloud_db.Key<Object?>> deletes,
-        ) {
-          if (inserts
-              .whereType<Commit>()
-              .where((Commit commit) => commit.sha == '3')
-              .isNotEmpty) {
-            throw StateError('Commit failed');
-          }
-        };
-        // Commits are expect from newest to oldest timestamps
-        await expectLater(
-          scheduler.addCommits(
-            createCommitList(
-              <String>['2', '3', '4'],
-              repo: 'packages',
-              branch: 'main',
-            ),
-          ),
-          throwsA(isStateError),
-        );
-
-        // The 1 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 1 * 3);
-        // Check commits were added, but 3 was not
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '4'],
-        );
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          isNot(contains('3')),
-        );
-      });
-
-      test('skips commits for which task transaction fails', () async {
-        config.supportedBranchesValue = <String>['main'];
-
-        // Existing commits should not be duplicated.
-        final commit = shaToCommit('1', branch: 'main', repository: 'packages');
-        db.values[commit.key] = commit;
-
-        db.onCommit = (
-          List<gcloud_db.Model<Object?>> inserts,
-          List<gcloud_db.Key<Object?>> deletes,
-        ) {
-          if (inserts
-              .whereType<Task>()
-              .where((Task task) => task.createTimestamp == 3)
-              .isNotEmpty) {
-            throw StateError('Task failed');
-          }
-        };
-        // Commits are expect from newest to oldest timestamps
-        await expectLater(
-          scheduler.addCommits(
-            createCommitList(
-              <String>['2', '3', '4'],
-              repo: 'packages',
-              branch: 'main',
-            ),
-          ),
-          throwsA(isStateError),
-        );
-
-        // The 1 new commits are scheduled 3 tasks, existing commit has none.
-        expect(db.values.values.whereType<Task>().length, 1 * 3);
-        // Check commits were added, but 3 was not
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha),
-          <String>['1', '4'],
-        );
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
       });
 
       test('schedules cocoon based targets', () async {
@@ -439,7 +338,6 @@ void main() {
         scheduler = Scheduler(
           cache: cache,
           config: config,
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -448,6 +346,8 @@ void main() {
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
 
         // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
@@ -466,11 +366,17 @@ void main() {
         final tuples = toBeScheduled.cast<PendingTask>();
         final scheduledTargetNames = tuples.map((tuple) => tuple.taskName);
         expect(scheduledTargetNames, ['Linux A', 'Linux runIf']);
+
         // Tasks triggered by cocoon are marked as in progress
-        final tasks = db.values.values.whereType<Task>();
         expect(
-          tasks.singleWhere((Task task) => task.name == 'Linux A').status,
-          Task.statusInProgress,
+          firestore,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasTaskName('Linux A').hasStatus(Task.statusInProgress),
+            isTask.hasTaskName('Linux runIf').hasStatus(Task.statusInProgress),
+            isTask
+                .hasTaskName('Google Internal Roll')
+                .hasStatus(Task.statusNew),
+          ]),
         );
       });
 
@@ -484,6 +390,7 @@ void main() {
             gerritService: FakeGerritService(),
             githubChecksUtil: mockGithubChecksUtil,
             pubsub: pubsub,
+            firestore: firestore,
           );
           when(
             mockGithubChecksUtil.createCheckRun(
@@ -519,7 +426,6 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -528,6 +434,8 @@ void main() {
             ciYamlFetcher: ciYamlFetcher,
             luciBuildService: luciBuildService,
             contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
           );
 
           await scheduler.addCommits(
@@ -543,25 +451,21 @@ void main() {
         final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/packages');
-        expect(commit.branch, 'main');
-        expect(commit.sha, 'abc');
-        expect(commit.timestamp, 1);
-        expect(commit.author, 'dash');
-        expect(commit.authorAvatarUrl, 'dashatar');
-        expect(commit.message, 'example message');
-
         expect(
-          firestoreService,
-          existsInStorage(fs.Commit.metadata, hasLength(1)),
+          firestore,
+          existsInStorage(fs.Commit.metadata, [
+            isCommit
+                .hasRepositoryPath('flutter/packages')
+                .hasSha('abc')
+                .hasBranch('main')
+                .hasCreateTimestamp(1)
+                .hasAuthor('dash')
+                .hasAvatar('dashatar')
+                .hasMessage('example message'),
+          ]),
         );
 
-        expect(
-          firestoreService,
-          existsInStorage(fs.Task.metadata, hasLength(3)),
-        );
+        expect(firestore, existsInStorage(fs.Task.metadata, hasLength(3)));
       });
 
       test('run all tasks if regular release candidate branch', () async {
@@ -573,15 +477,11 @@ void main() {
         await scheduler.addPullRequest(mergedPr);
 
         expect(
-          db.values.values.whereType<Task>(),
-          everyElement(
-            isA<Task>().having(
-              (t) => t.status,
-              'status',
-              Task.statusInProgress,
-            ),
+          firestore,
+          existsInStorage(
+            fs.Task.metadata,
+            everyElement(isTask.hasStatus(Task.statusInProgress)),
           ),
-          reason: 'Skips all post-submit targets',
         );
       });
 
@@ -596,11 +496,11 @@ void main() {
           await scheduler.addPullRequest(mergedPr);
 
           expect(
-            db.values.values.whereType<Task>(),
-            everyElement(
-              isA<Task>().having((t) => t.status, 'status', Task.statusSkipped),
+            firestore,
+            existsInStorage(
+              fs.Task.metadata,
+              everyElement(isTask.hasStatus(Task.statusSkipped)),
             ),
-            reason: 'Skips all post-submit targets',
           );
         },
       );
@@ -609,8 +509,16 @@ void main() {
         final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(db.values.values.whereType<Task>().length, 3);
+        expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
+
+        expect(
+          firestore,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasTaskName('Linux A'),
+            isTask.hasTaskName('Linux runIf'),
+            isTask.hasTaskName('Google Internal Roll'),
+          ]),
+        );
       });
 
       test('schedules tasks against merged PRs (fusion)', () async {
@@ -620,27 +528,10 @@ void main() {
         final mergedPr = generatePullRequest();
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        expect(
-          db.values.values.whereType<Task>().map((t) => t.name),
-          [
-            'Linux A',
-            'Linux runIf',
-            'Google Internal Roll',
-            'Linux Z',
-            'Linux engine_presubmit',
-            'Linux runIf engine',
-          ],
-          reason: 'removes release_build targets (Linux engine_build)',
-        );
+        expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
 
         expect(
-          firestoreService,
-          existsInStorage(fs.Commit.metadata, hasLength(1)),
-        );
-
-        expect(
-          firestoreService,
+          firestore,
           existsInStorage(fs.Task.metadata, [
             isTask.hasTaskName('Linux A'),
             isTask.hasTaskName('Linux runIf'),
@@ -661,20 +552,23 @@ void main() {
           );
           await scheduler.addPullRequest(mergedPr);
 
-          expect(db.values.values.whereType<Commit>().length, 1);
-          expect(db.values.values.whereType<Task>().length, 6);
-          // Ensure all tasks have been marked in progress
+          expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
           expect(
-            db.values.values.whereType<Task>().where(
-              (Task task) => task.status == Task.statusNew,
-            ),
-            isEmpty,
+            firestore,
+            existsInStorage(fs.Task.metadata, [
+              isTask.hasTaskName('Linux A'),
+              isTask.hasTaskName('Linux runIf'),
+              isTask.hasTaskName('Google Internal Roll'),
+              isTask.hasTaskName('Linux Z'),
+              isTask.hasTaskName('Linux engine_presubmit'),
+              isTask.hasTaskName('Linux runIf engine'),
+            ]),
           );
         },
       );
 
       test(
-        'Release candidate branch commit filters builders not in default branch',
+        'release candidate branch commit filters builders not in default branch',
         () async {
           ciYamlFetcher.setCiYamlFrom(r'''
           enabled_branches:
@@ -688,7 +582,6 @@ void main() {
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -701,8 +594,11 @@ void main() {
               gerritService: FakeGerritService(
                 branchesValue: <String>['master', 'main'],
               ),
+              firestore: firestore,
             ),
             contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
           );
 
           final mergedPr = generatePullRequest(
@@ -711,17 +607,11 @@ void main() {
           );
           await scheduler.addPullRequest(mergedPr);
 
-          final tasks = db.values.values.whereType<Task>().toList();
-          expect(db.values.values.whereType<Commit>().length, 1);
-          expect(tasks, hasLength(1));
-          expect(tasks.first.name, 'Linux A');
-          // Ensure all tasks under cocoon scheduler have been marked in progress
+          expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
+
           expect(
-            db.values.values
-                .whereType<Task>()
-                .where((Task task) => task.status == Task.statusInProgress)
-                .length,
-            1,
+            firestore,
+            existsInStorage(fs.Task.metadata, [isTask.hasTaskName('Linux A')]),
           );
         },
       );
@@ -730,28 +620,19 @@ void main() {
         final notMergedPr = generatePullRequest(merged: false);
         await scheduler.addPullRequest(notMergedPr);
 
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha).length,
-          0,
-        );
-        expect(db.values.values.whereType<Task>().length, 0);
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
+        expect(firestore, existsInStorage(fs.Task.metadata, isEmpty));
       });
 
       test('does not schedule tasks against already added PRs', () async {
-        firestoreService.putDocument(generateFirestoreCommit(1));
-
-        final commit = shaToCommit('1');
-        db.values[commit.key] = commit;
+        firestore.putDocument(generateFirestoreCommit(1));
 
         final alreadyLandedPr = generatePullRequest(headSha: '1');
         await scheduler.addPullRequest(alreadyLandedPr);
 
-        expect(
-          db.values.values.whereType<Commit>().map<String>(toSha).length,
-          1,
-        );
-        // No tasks should be scheduled as that is done on commit insert.
-        expect(db.values.values.whereType<Task>().length, 0);
+        expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
+
+        expect(firestore, existsInStorage(fs.Task.metadata, isEmpty));
       });
 
       test('creates expected commit from release branch PR', () async {
@@ -768,15 +649,7 @@ void main() {
         final mergedPr = generatePullRequest(branch: '1.26');
         await scheduler.addPullRequest(mergedPr);
 
-        expect(db.values.values.whereType<Commit>().length, 1);
-        final commit = db.values.values.whereType<Commit>().single;
-        expect(commit.repository, 'flutter/flutter');
-        expect(commit.branch, '1.26');
-        expect(commit.sha, 'abc');
-        expect(commit.timestamp, 1);
-        expect(commit.author, 'dash');
-        expect(commit.authorAvatarUrl, 'dashatar');
-        expect(commit.message, 'example message');
+        expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
       });
     });
 
@@ -784,10 +657,7 @@ void main() {
       test('rerequested ci.yaml check retriggers presubmit', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
-        config = FakeConfig(
-          githubService: mockGithubService,
-          firestoreService: firestoreService,
-        );
+        config = FakeConfig(githubService: mockGithubService);
         scheduler = Scheduler(
           cache: cache,
           config: config,
@@ -800,8 +670,11 @@ void main() {
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
+            firestore: firestore,
           ),
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -875,10 +748,7 @@ void main() {
         () async {
           final mockGithubService = MockGithubService();
           final mockGithubClient = MockGitHub();
-          config = FakeConfig(
-            githubService: mockGithubService,
-            firestoreService: firestoreService,
-          );
+          config = FakeConfig(githubService: mockGithubService);
 
           final pullRequest = generatePullRequest(
             headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
@@ -899,12 +769,15 @@ void main() {
             luciBuildService: FakeLuciBuildService(
               config: config,
               githubChecksUtil: mockGithubChecksUtil,
+              firestore: firestore,
             ),
             contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
           );
 
           await PrCheckRuns.initializeDocument(
-            firestoreService: firestoreService,
+            firestoreService: firestore,
             pullRequest: pullRequest,
             checks: [generateCheckRun(1, name: 'Linux engine_presubmit')],
           );
@@ -976,10 +849,7 @@ void main() {
       test('rerequested merge queue guard check is ignored', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
-        config = FakeConfig(
-          githubService: mockGithubService,
-          firestoreService: firestoreService,
-        );
+        config = FakeConfig(githubService: mockGithubService);
         scheduler = Scheduler(
           cache: cache,
           config: config,
@@ -992,8 +862,11 @@ void main() {
           luciBuildService: FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
+            firestore: firestore,
           ),
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
         when(mockGithubService.github).thenReturn(mockGithubClient);
         when(
@@ -1061,13 +934,11 @@ void main() {
 
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
-        // only postsubmit commits are stored in the datastore.
+        // only postsubmit commits are stored in the Firestore.
         final pullRequest = generatePullRequest(
           headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
         );
 
-        db = FakeDatastoreDB();
-        config = FakeConfig(dbValue: db, firestoreService: firestoreService);
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         final luci = MockLuciBuildService();
@@ -1092,10 +963,12 @@ void main() {
           luciBuildService: luci,
           ciYamlFetcher: ciYamlFetcher,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
 
         await PrCheckRuns.initializeDocument(
-          firestoreService: firestoreService,
+          firestoreService: firestore,
           pullRequest: pullRequest,
           checks: [generateCheckRun(1, name: 'Linux A')],
         );
@@ -1110,7 +983,7 @@ void main() {
         );
 
         expect(
-          firestoreService,
+          firestore,
           existsInStorage(PrCheckRuns.metadata, [
             isPrCheckRun
                 .hasCheckRuns({'Linux A': '1'})
@@ -1126,30 +999,20 @@ void main() {
       });
 
       test('rerequested postsubmit check triggers postsubmit build', () async {
-        // Set up datastore with postsubmit entities matching [checkRunString].
-        db = FakeDatastoreDB();
+        // Set up Firestore with postsubmit entities matching [checkRunString].
         config = FakeConfig(
-          dbValue: db,
           postsubmitSupportedReposValue: {RepositorySlug('flutter', 'cocoon')},
-          firestoreService: firestoreService,
         );
 
-        final commit = generateCommit(
+        final commit = generateFirestoreCommit(
           1,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           branch: 'independent_agent',
           owner: 'flutter',
           repo: 'cocoon',
         );
-        final commitToT = generateCommit(
-          1,
-          sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
-          branch: 'master',
-          owner: 'flutter',
-          repo: 'cocoon',
-        );
 
-        firestoreService.putDocument(
+        firestore.putDocument(
           generateFirestoreCommit(
             1,
             sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
@@ -1158,7 +1021,7 @@ void main() {
             repo: 'cocoon',
           ),
         );
-        firestoreService.putDocument(
+        firestore.putDocument(
           generateFirestoreCommit(
             1,
             sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a592c',
@@ -1167,14 +1030,9 @@ void main() {
             repo: 'cocoon',
           ),
         );
-        firestoreService.putDocument(
+        firestore.putDocument(
           generateFirestoreTask(1, name: 'test1', commitSha: commit.sha),
         );
-
-        config.db.values[commit.key] = commit;
-        config.db.values[commitToT.key] = commitToT;
-        final task = generateTask(1, name: 'test1', parent: commit);
-        config.db.values[task.key] = task;
 
         // Set up ci.yaml with task name and branch name from [checkRunString].
         ciYamlFetcher.setCiYamlFrom(r'''
@@ -1215,6 +1073,7 @@ targets:
             branchesValue: <String>['master', 'main'],
           ),
           pubsub: pubsub,
+          firestore: firestore,
         );
         scheduler = Scheduler(
           cache: cache,
@@ -1227,6 +1086,8 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luciBuildService,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           jsonDecode(checkRunString()) as Map<String, dynamic>,
@@ -1264,9 +1125,14 @@ targets:
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
-          luciBuildService: FakeLuciBuildService(config: config),
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            firestore: firestore,
+          ),
           ciYamlFetcher: ciYamlFetcher,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
         expect(
           await scheduler.processCheckRun(checkRunEvent),
@@ -1296,97 +1162,69 @@ targets:
           test(
             'ignores default check runs that have no side effects',
             () async {
-              when(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: anyNamed('firestoreService'),
-                  slug: anyNamed('slug'),
-                  sha: anyNamed('sha'),
-                  stage: anyNamed('stage'),
-                  checkRun: anyNamed('checkRun'),
-                  conclusion: anyNamed('conclusion'),
-                ),
-              ).thenAnswer((_) async {
-                return const StagingConclusion(
-                  result: StagingConclusionResult.missing,
-                  remaining: 1,
-                  checkRunGuard: '{}',
-                  failed: 0,
-                  summary: 'Field missing',
-                  details: 'Some details',
-                );
-              });
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'abc123',
+                stage: CiStage.fusionTests,
+                tasks: ['foo', 'bar'],
+                checkRunGuard: '{}',
+              );
 
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
                   await scheduler.processCheckRunCompletion(
                     cocoon_checks.CheckRunEvent.fromJson(
-                      json.decode(checkRunEventFor(test: ignored))
+                      json.decode(
+                            checkRunEventFor(test: ignored, sha: 'abc123'),
+                          )
                           as Map<String, Object?>,
                     ),
                   ),
                   isTrue,
                 );
-
-                verifyNever(
-                  callbacks.markCheckRunConclusion(
-                    firestoreService: anyNamed('firestoreService'),
-                    slug: anyNamed('slug'),
-                    sha: anyNamed('sha'),
-                    stage: anyNamed('stage'),
-                    checkRun: anyNamed('checkRun'),
-                    conclusion: anyNamed('conclusion'),
-                  ),
-                );
               }
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasCheckRuns({
+                    'foo': TaskConclusion.scheduled,
+                    'bar': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
             },
           );
 
           test('ignores invalid conclusions', () async {
-            when(
-              callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
-              ),
-            ).thenAnswer((_) async {
-              return const StagingConclusion(
-                result: StagingConclusionResult.internalError,
-                remaining: 1,
-                checkRunGuard: '{}',
-                failed: 0,
-                summary: 'Internal error',
-                details: 'Some details',
-              );
-            });
+            final document = await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'abc123',
+              stage: CiStage.fusionTests,
+              tasks: ['Bar bar'],
+              checkRunGuard: '{}',
+            );
+
+            firestore.failOnWriteDocument(document);
 
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar'))
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'abc123'))
                       as Map<String, Object?>,
                 ),
               ),
               isFalse,
             );
-            verify(
-              callbacks.markCheckRunConclusion(
-                firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                sha: '1234',
-                stage: argThat(
-                  equals(CiStage.fusionEngineBuild),
-                  named: 'stage',
-                ),
-                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(
-                  equals(TaskConclusion.success),
-                  named: 'conclusion',
-                ),
-              ),
-            ).called(1);
+
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasCheckRuns({'Bar bar': TaskConclusion.scheduled}),
+              ]),
+            );
 
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
@@ -1401,51 +1239,34 @@ targets:
           });
 
           test('does not complete with remaining tests', () async {
-            when(
-              callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
-              ),
-            ).thenAnswer((inv) async {
-              return const StagingConclusion(
-                result: StagingConclusionResult.ok,
-                remaining: 1,
-                checkRunGuard: '{}',
-                failed: 0,
-                summary: 'OK',
-                details: 'Some details',
-              );
-            });
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'abc123',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Foo foo', 'Bar bar'],
+              checkRunGuard: '{}',
+            );
 
             expect(
               await scheduler.processCheckRunCompletion(
                 cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar'))
+                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'abc123'))
                       as Map<String, Object?>,
                 ),
               ),
               isFalse,
             );
-            verify(
-              callbacks.markCheckRunConclusion(
-                firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                sha: '1234',
-                stage: argThat(
-                  equals(CiStage.fusionEngineBuild),
-                  named: 'stage',
-                ),
-                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(
-                  equals(TaskConclusion.success),
-                  named: 'conclusion',
-                ),
-              ),
-            ).called(1);
+
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasCheckRuns({
+                  'Foo foo': TaskConclusion.scheduled,
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
 
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
@@ -1466,54 +1287,39 @@ targets:
           test(
             'failed tests neither unlock merge queue guard nor schedule test stage',
             () async {
-              when(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: anyNamed('firestoreService'),
-                  slug: anyNamed('slug'),
-                  sha: anyNamed('sha'),
-                  stage: anyNamed('stage'),
-                  checkRun: anyNamed('checkRun'),
-                  conclusion: anyNamed('conclusion'),
-                ),
-              ).thenAnswer((inv) async {
-                return StagingConclusion(
-                  result: StagingConclusionResult.ok,
-                  remaining: 0,
-                  checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-                  failed: 1,
-                  summary: 'OK',
-                  details: 'Some details',
-                );
-              });
+              await PrCheckRuns.initializeDocument(
+                firestoreService: firestore,
+                pullRequest: pullRequest,
+                checks: [createCheckRun(name: 'Bar bar')],
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'abc123',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
 
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(checkRunEventFor(test: 'Bar bar'))
+                    json.decode(
+                          checkRunEventFor(test: 'Bar bar', sha: 'abc123'),
+                        )
                         as Map<String, Object?>,
                   ),
                 ),
                 isTrue,
               );
-              verify(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: argThat(
-                    isNotNull,
-                    named: 'firestoreService',
-                  ),
-                  slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                  sha: '1234',
-                  stage: argThat(
-                    equals(CiStage.fusionEngineBuild),
-                    named: 'stage',
-                  ),
-                  checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(
-                    equals(TaskConclusion.success),
-                    named: 'conclusion',
-                  ),
-                ),
-              ).called(1);
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasCheckRuns({'Bar bar': TaskConclusion.success}),
+                ]),
+              );
 
               verifyNever(
                 mockGithubChecksUtil.updateCheckRun(
@@ -1583,49 +1389,27 @@ targets:
 
             // Cocoon creates a Firestore document to track the tasks in the
             // test stage.
-            when(
-              callbacks.initializeDocument(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                tasks: anyNamed('tasks'),
-                checkRunGuard: anyNamed('checkRunGuard'),
-              ),
-            ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
 
             scheduler = Scheduler(
               cache: cache,
               config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
-              initializeCiStagingDocument: callbacks.initializeDocument,
               contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
             );
 
-            when(
-              callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
-              ),
-            ).thenAnswer((inv) async {
-              return StagingConclusion(
-                result: StagingConclusionResult.ok,
-                remaining: 0,
-                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-                failed: 0,
-                summary: 'OK',
-                details: 'Some details',
-              );
-            });
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
 
             expect(
               await scheduler.processCheckRunCompletion(
@@ -1645,22 +1429,19 @@ targets:
               ),
             ).called(1);
 
-            verify(
-              callbacks.markCheckRunConclusion(
-                firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                sha: 'testSha',
-                stage: argThat(
-                  equals(CiStage.fusionEngineBuild),
-                  named: 'stage',
-                ),
-                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(
-                  equals(TaskConclusion.success),
-                  named: 'conclusion',
-                ),
-              ),
-            ).called(1);
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+                isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                  'Linux A': TaskConclusion.scheduled,
+                  'Linux Z': TaskConclusion.scheduled,
+                  'Linux engine_presubmit': TaskConclusion.scheduled,
+                }),
+              ]),
+            );
 
             verifyNever(
               mockGithubChecksUtil.updateCheckRun(
@@ -1704,38 +1485,32 @@ targets:
             scheduler = Scheduler(
               cache: cache,
               config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
               contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
             );
 
-            when(
-              callbacks.markCheckRunConclusion(
-                firestoreService: anyNamed('firestoreService'),
-                slug: anyNamed('slug'),
-                sha: anyNamed('sha'),
-                stage: anyNamed('stage'),
-                checkRun: anyNamed('checkRun'),
-                conclusion: anyNamed('conclusion'),
-              ),
-            ).thenAnswer((inv) async {
-              final stage = inv.namedArguments[#stage] as CiStage;
-              return StagingConclusion(
-                result: switch (stage) {
-                  CiStage.fusionEngineBuild => StagingConclusionResult.missing,
-                  CiStage.fusionTests => StagingConclusionResult.ok,
-                },
-                remaining: 0,
-                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-                failed: 0,
-                summary: 'Field missing or OK',
-                details: 'Some details',
-              );
-            });
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: [],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
+
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionTests,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
 
             expect(
               await scheduler.processCheckRunCompletion(
@@ -1749,38 +1524,17 @@ targets:
 
             // The first invocation looks in the fusionEngineBuild stage, which
             // returns "missing" result.
-            verify(
-              callbacks.markCheckRunConclusion(
-                firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                sha: 'testSha',
-                stage: argThat(
-                  equals(CiStage.fusionEngineBuild),
-                  named: 'stage',
-                ),
-                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(
-                  equals(TaskConclusion.success),
-                  named: 'conclusion',
-                ),
-              ),
-            ).called(1);
-
-            // The second invocation looks in the fusionTests stage, which returns
-            // "ok" result.
-            verify(
-              callbacks.markCheckRunConclusion(
-                firestoreService: argThat(isNotNull, named: 'firestoreService'),
-                slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                sha: 'testSha',
-                stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
-                checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                conclusion: argThat(
-                  equals(TaskConclusion.success),
-                  named: 'conclusion',
-                ),
-              ),
-            ).called(1);
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging
+                    .hasStage(CiStage.fusionEngineBuild)
+                    .hasCheckRuns(isEmpty),
+                isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
 
             // Because tests completed, and completed successfully, the guard is
             // unlocked, allowing the PR to land.
@@ -1823,13 +1577,13 @@ targets:
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
-                datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
               );
 
               when(
@@ -1894,13 +1648,13 @@ targets:
             scheduler = Scheduler(
               cache: cache,
               config: config,
-              datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
               getFilesChanged: getFilesChanged,
               githubChecksService: gitHubChecksService,
               ciYamlFetcher: ciYamlFetcher,
               luciBuildService: luci,
-              markCheckRunConclusion: callbacks.markCheckRunConclusion,
               contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
             );
 
             when(
@@ -1990,48 +1744,42 @@ targets:
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
-                datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
                 getFilesChanged: getFilesChanged,
                 githubChecksService: gitHubChecksService,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                markCheckRunConclusion: callbacks.markCheckRunConclusion,
                 contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
               );
 
-              when(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: anyNamed('firestoreService'),
-                  slug: anyNamed('slug'),
-                  sha: anyNamed('sha'),
-                  stage: anyNamed('stage'),
-                  checkRun: anyNamed('checkRun'),
-                  conclusion: anyNamed('conclusion'),
-                ),
-              ).thenAnswer((inv) async {
-                final stage = inv.namedArguments[#stage] as CiStage;
-                return StagingConclusion(
-                  result: switch (stage) {
-                    CiStage.fusionEngineBuild =>
-                      StagingConclusionResult.missing,
-                    CiStage.fusionTests => StagingConclusionResult.ok,
-                  },
-                  remaining: 0,
-                  checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-                  failed: switch (stage) {
-                    CiStage.fusionEngineBuild => 0,
-                    CiStage.fusionTests => 1,
-                  },
-                  summary: 'Field missing or OK',
-                  details: 'Some details',
-                );
-              });
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: [],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionTests,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
 
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
                     json.decode(
-                          checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
+                          checkRunEventFor(
+                            test: 'Bar bar',
+                            sha: 'testSha',
+                            conclusion: 'failure',
+                          ),
                         )
                         as Map<String, Object?>,
                   ),
@@ -2041,44 +1789,17 @@ targets:
 
               // The first invocation looks in the fusionEngineBuild stage, which
               // returns "missing" result.
-              verify(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: argThat(
-                    isNotNull,
-                    named: 'firestoreService',
-                  ),
-                  slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                  sha: 'testSha',
-                  stage: argThat(
-                    equals(CiStage.fusionEngineBuild),
-                    named: 'stage',
-                  ),
-                  checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(
-                    equals(TaskConclusion.success),
-                    named: 'conclusion',
-                  ),
-                ),
-              ).called(1);
-
-              // The second invocation looks in the fusionTests stage, which returns
-              // "ok" result.
-              verify(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: argThat(
-                    isNotNull,
-                    named: 'firestoreService',
-                  ),
-                  slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                  sha: 'testSha',
-                  stage: argThat(equals(CiStage.fusionTests), named: 'stage'),
-                  checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(
-                    equals(TaskConclusion.success),
-                    named: 'conclusion',
-                  ),
-                ),
-              ).called(1);
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging
+                      .hasStage(CiStage.fusionEngineBuild)
+                      .hasCheckRuns(isEmpty),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Bar bar': TaskConclusion.failure,
+                  }),
+                ]),
+              );
 
               // The test stage completed, but with failures. The merge queue
               // guard should stay open to prevent the pull request from landing.
@@ -2128,11 +1849,11 @@ targets:
                 ],
               );
 
-              when(callbacks.findPullRequestFor(any, any, any)).thenAnswer((
-                inv,
-              ) async {
-                return pullRequest;
-              });
+              await PrCheckRuns.initializeDocument(
+                firestoreService: firestore,
+                checks: [generateCheckRun(1, name: 'Bar bar')],
+                pullRequest: pullRequest,
+              );
 
               ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
               final luci = MockLuciBuildService();
@@ -2151,89 +1872,56 @@ targets:
                 gitHubChecksService.githubChecksUtil,
               ).thenReturn(mockGithubChecksUtil);
 
-              // Cocoon creates a Firestore document to track the tasks in the
-              // test stage.
-              when(
-                callbacks.initializeDocument(
-                  firestoreService: anyNamed('firestoreService'),
-                  slug: anyNamed('slug'),
-                  sha: anyNamed('sha'),
-                  stage: anyNamed('stage'),
-                  tasks: anyNamed('tasks'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
-                ),
-              ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
               scheduler = Scheduler(
                 cache: cache,
                 config: config,
-                datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
                 githubChecksService: gitHubChecksService,
                 getFilesChanged: getFilesChanged,
                 ciYamlFetcher: ciYamlFetcher,
                 luciBuildService: luci,
-                markCheckRunConclusion: callbacks.markCheckRunConclusion,
-                findPullRequestFor: callbacks.findPullRequestFor,
-                initializeCiStagingDocument: callbacks.initializeDocument,
                 contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
               );
 
-              when(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: anyNamed('firestoreService'),
-                  slug: anyNamed('slug'),
-                  sha: anyNamed('sha'),
-                  stage: anyNamed('stage'),
-                  checkRun: anyNamed('checkRun'),
-                  conclusion: anyNamed('conclusion'),
-                ),
-              ).thenAnswer((inv) async {
-                return StagingConclusion(
-                  result: StagingConclusionResult.ok,
-                  remaining: 0,
-                  checkRunGuard: checkRunFor(name: 'GUARD TEST'),
-                  failed: 0,
-                  summary: 'OK',
-                  details: 'Some details',
-                );
-              });
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
 
               expect(
                 await scheduler.processCheckRunCompletion(
                   cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(checkRunEventFor(test: 'Bar bar'))
+                    json.decode(
+                          checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
+                        )
                         as Map<String, Object?>,
                   ),
                 ),
                 isTrue,
               );
 
-              verify(
-                callbacks.findPullRequestFor(firestoreService, 1, 'Bar bar'),
-              ).called(1);
               verifyNever(
                 gitHubChecksService.findMatchingPullRequest(any, any, any),
               );
 
-              verify(
-                callbacks.markCheckRunConclusion(
-                  firestoreService: argThat(
-                    isNotNull,
-                    named: 'firestoreService',
-                  ),
-                  slug: argThat(equals(Config.flutterSlug), named: 'slug'),
-                  sha: '1234',
-                  stage: argThat(
-                    equals(CiStage.fusionEngineBuild),
-                    named: 'stage',
-                  ),
-                  checkRun: argThat(equals('Bar bar'), named: 'checkRun'),
-                  conclusion: argThat(
-                    equals(TaskConclusion.success),
-                    named: 'conclusion',
-                  ),
-                ),
-              ).called(1);
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.success,
+                  }),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Linux A': TaskConclusion.scheduled,
+                    'Linux Z': TaskConclusion.scheduled,
+                    'Linux engine_presubmit': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
 
               verifyNever(
                 mockGithubChecksUtil.updateCheckRun(
@@ -2260,7 +1948,14 @@ targets:
               expect(captured[0][0].name, 'Linux A');
               expect(captured[0][1].name, 'Linux Z');
               expect(captured[0][2].name, 'Linux engine_presubmit');
-              expect(captured[1], pullRequest);
+              expect(
+                captured[1],
+                isA<PullRequest>().having(
+                  (p) => p.number,
+                  'number',
+                  pullRequest.number,
+                ),
+              );
             },
           );
           // end of group
@@ -2564,7 +2259,6 @@ targets:
           scheduler = Scheduler(
             cache: cache,
             config: config,
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2577,8 +2271,11 @@ targets:
               gerritService: FakeGerritService(
                 branchesValue: <String>['master', 'main'],
               ),
+              firestore: firestore,
             ),
             contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
           );
           final pr = generatePullRequest(
             repo: Config.flutterSlug.name,
@@ -2601,12 +2298,9 @@ targets:
             cache: cache,
             config: FakeConfig(
               // tabledataResource: tabledataResource,
-              dbValue: db,
               githubService: mockGithubService,
               githubClient: MockGitHub(),
-              firestoreService: firestoreService,
             ),
-            datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
             githubChecksService: GithubChecksService(
               config,
               githubChecksUtil: mockGithubChecksUtil,
@@ -2619,8 +2313,11 @@ targets:
               gerritService: FakeGerritService(
                 branchesValue: <String>['master'],
               ),
+              firestore: firestore,
             ),
             contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
           );
           await scheduler.triggerPresubmitTargets(
             pullRequest: generatePullRequest(branch: 'main', repo: 'packages'),
@@ -2869,28 +2566,14 @@ targets:
 
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
-        when(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: anyNamed('sha'),
-            stage: anyNamed('stage'),
-            tasks: anyNamed('tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: firestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 0,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -2898,8 +2581,9 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         final results =
@@ -3012,27 +2696,13 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        when(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: anyNamed('sha'),
-            stage: anyNamed('stage'),
-            tasks: anyNamed('tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: firestoreService,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3040,8 +2710,9 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3063,22 +2734,18 @@ targets:
           'refs/heads/gh-readonly-queue/main/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
         ]);
 
-        verify(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: argThat(
-              equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
-              named: 'sha',
-            ),
-            stage: anyNamed('stage'),
-            tasks: argThat(
-              equals(['Linux engine_build', 'Mac engine_build']),
-              named: 'tasks',
-            ),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).called(1);
+        expect(
+          firestore,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                .hasCheckRuns({
+                  'Linux engine_build': TaskConclusion.scheduled,
+                  'Mac engine_build': TaskConclusion.scheduled,
+                }),
+          ]),
+        );
+
         verify(
           luci.getAvailableBuilderSet(
             project: argThat(equals('flutter'), named: 'project'),
@@ -3167,27 +2834,13 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        when(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: anyNamed('sha'),
-            stage: anyNamed('stage'),
-            tasks: anyNamed('tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: firestoreService,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3195,8 +2848,9 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3213,19 +2867,16 @@ targets:
         await scheduler.triggerMergeGroupTargets(
           mergeGroupEvent: mergeGroupEvent,
         );
-        verify(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: argThat(
-              equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
-              named: 'sha',
-            ),
-            stage: anyNamed('stage'),
-            tasks: argThat(equals(['Mac engine_build']), named: 'tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).called(1);
+
+        expect(
+          firestore,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                .hasCheckRuns(contains('Mac engine_build')),
+          ]),
+        );
+
         verify(
           mockGithubChecksUtil.createCheckRun(
             any,
@@ -3305,27 +2956,13 @@ targets:
         });
         getFilesChanged.cannedFiles = ['abc/def'];
 
-        when(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: anyNamed('sha'),
-            stage: anyNamed('stage'),
-            tasks: anyNamed('tasks'),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).thenAnswer((_) async => CiStaging.fromDocument(Document()));
-
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: firestoreService,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3333,8 +2970,9 @@ targets:
           getFilesChanged: getFilesChanged,
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: luci,
-          initializeCiStagingDocument: callbacks.initializeDocument,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
 
         final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
@@ -3351,22 +2989,21 @@ targets:
         await scheduler.triggerMergeGroupTargets(
           mergeGroupEvent: mergeGroupEvent,
         );
-        verify(
-          callbacks.initializeDocument(
-            firestoreService: anyNamed('firestoreService'),
-            slug: anyNamed('slug'),
-            sha: argThat(
-              equals('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf'),
-              named: 'sha',
-            ),
-            stage: anyNamed('stage'),
-            tasks: argThat(
-              equals(['Linux engine_build', 'Mac engine_build']),
-              named: 'tasks',
-            ),
-            checkRunGuard: anyNamed('checkRunGuard'),
-          ),
-        ).called(1);
+
+        expect(
+          firestore,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                .hasCheckRuns(
+                  allOf(
+                    contains('Linux engine_build'),
+                    contains('Mac engine_build'),
+                  ),
+                ),
+          ]),
+        );
+
         verify(
           luci.getAvailableBuilderSet(
             project: argThat(equals('flutter'), named: 'project'),
@@ -3434,13 +3071,10 @@ targets:
         scheduler = Scheduler(
           cache: cache,
           config: FakeConfig(
-            dbValue: db,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            firestoreService: firestoreService,
             maxFilesChangedForSkippingEnginePhaseValue: 29,
           ),
-          datastoreProvider: (DatastoreDB db) => DatastoreService(db, 2),
           githubChecksService: GithubChecksService(
             config,
             githubChecksUtil: mockGithubChecksUtil,
@@ -3449,6 +3083,8 @@ targets:
           ciYamlFetcher: ciYamlFetcher,
           luciBuildService: fakeLuciBuildService,
           contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
         );
       });
 
@@ -3619,8 +3255,6 @@ CheckRun createCheckRun({
   );
   return CheckRun.fromJson(jsonDecode(checkRunJson) as Map<String, dynamic>);
 }
-
-String toSha(Commit commit) => commit.sha!;
 
 String checkRunFor({
   int id = 1,

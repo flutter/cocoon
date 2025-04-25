@@ -199,6 +199,7 @@ const Target$json = {
       '10': 'dimensions'
     },
     {'1': 'drone_dimensions', '3': 17, '4': 3, '5': 9, '10': 'droneDimensions'},
+    {'1': 'backfill', '3': 19, '4': 1, '5': 8, '7': 'true', '10': 'backfill'},
   ],
   '3': [
     Target_PropertiesEntry$json,
@@ -255,8 +256,9 @@ final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
     'VibWl0X3Byb3BlcnRpZXMYDyADKAsyKy5zY2hlZHVsZXIuVGFyZ2V0LlBvc3RzdWJtaXRQcm9w'
     'ZXJ0aWVzRW50cnlSFHBvc3RzdWJtaXRQcm9wZXJ0aWVzEkEKCmRpbWVuc2lvbnMYECADKAsyIS'
     '5zY2hlZHVsZXIuVGFyZ2V0LkRpbWVuc2lvbnNFbnRyeVIKZGltZW5zaW9ucxIpChBkcm9uZV9k'
-    'aW1lbnNpb25zGBEgAygJUg9kcm9uZURpbWVuc2lvbnMaPQoPUHJvcGVydGllc0VudHJ5EhAKA2'
-    'tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaRwoZUG9zdHN1Ym1pdFBy'
-    'b3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6Aj'
-    'gBGj0KD0RpbWVuc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIF'
-    'dmFsdWU6AjgBSgQIDhAPSgQIEhAT');
+    'aW1lbnNpb25zGBEgAygJUg9kcm9uZURpbWVuc2lvbnMSIAoIYmFja2ZpbGwYEyABKAg6BHRydW'
+    'VSCGJhY2tmaWxsGj0KD1Byb3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1'
+    'ZRgCIAEoCVIFdmFsdWU6AjgBGkcKGVBvc3RzdWJtaXRQcm9wZXJ0aWVzRW50cnkSEAoDa2V5GA'
+    'EgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4ARo9Cg9EaW1lbnNpb25zRW50cnkS'
+    'EAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AUoECA4QD0oECBIQEw'
+    '==');

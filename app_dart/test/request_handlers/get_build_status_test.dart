@@ -10,7 +10,7 @@ import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
@@ -33,13 +33,10 @@ void main() {
 
   setUp(() {
     firestore = FakeFirestoreService();
-    final config = FakeConfig();
-    config.firestoreService = firestore;
-
     tester = RequestHandlerTester();
     handler = GetBuildStatus(
-      config: config,
-      buildStatusService: BuildStatusService(config),
+      config: FakeConfig(),
+      buildStatusService: BuildStatusService(firestore: firestore),
     );
   });
 

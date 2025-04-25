@@ -11,10 +11,11 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_github_service.dart';
 import '../src/service/fake_scheduler.dart';
 import '../src/utilities/entity_generators.dart';
@@ -46,6 +47,8 @@ void main() {
       final fakeScheduler = FakeScheduler(
         config: config,
         githubChecksUtil: mockGithubChecksUtil,
+        firestore: FakeFirestoreService(),
+        bigQuery: MockBigQueryService(),
       );
       handler = ResetTryTask(
         config: config,

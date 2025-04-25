@@ -15,7 +15,6 @@ analyzer:
     only_throw_errors: ignore
   exclude:
     - ".dart_tool/**"
-    - "**/*.g.dart"
     - "**/*.pb.dart"
     - "**/*.pbjson.dart"
     - "**/*.pbgrpc.dart"

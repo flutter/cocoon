@@ -142,11 +142,7 @@ final class PostsubmitUserData extends BuildBucketUserData {
   final int? checkRunId;
 
   /// The firestore task document name storing results of this build.
-  @JsonKey(
-    name: 'firestore_task_document_name',
-    fromJson: TaskId.parse,
-    toJson: _documentToString,
-  )
+  @JsonKey(name: 'task_id', fromJson: TaskId.parse, toJson: _documentToString)
   final TaskId taskId;
   static String _documentToString(TaskId firestoreTask) {
     return firestoreTask.documentId;

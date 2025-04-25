@@ -10,25 +10,17 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_datastore.dart';
-
 void main() {
   useTestLoggerPerTest();
 
-  FakeDatastoreDB datastore;
   late CacheService cacheService;
   late Config config;
   late FakeSecretManager secrets;
 
   setUp(() async {
-    datastore = FakeDatastoreDB();
     cacheService = CacheService(inMemory: true);
-    secrets = FakeSecretManager()..putString('APP_DART_USE_DATASTORE', 'true');
-    config = await Config.createDuringDatastoreMigration(
-      datastore,
-      cacheService,
-      secrets,
-    );
+    secrets = FakeSecretManager();
+    config = Config(cacheService, secrets);
   });
 
   test('githubAppInstallations when builder config does not exist', () async {

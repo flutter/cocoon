@@ -6,11 +6,11 @@ import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';
@@ -49,7 +49,7 @@ void main() {
   final task3FailedFlaky = generateFirestoreTask(
     3,
     status: Task.statusFailed,
-    testFlaky: true,
+    bringup: true,
   ); // should succeed if included because `bringup: true`
   final task4SucceedFlaky = generateFirestoreTask(
     4,

@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 
 import '../model/ci_yaml/ci_yaml.dart';
@@ -13,10 +15,11 @@ import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../service/firestore.dart';
 import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
-import '../service/luci_build_service/opaque_commit.dart';
+import '../service/luci_build_service/commit_task_ref.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
@@ -27,11 +30,17 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required super.authenticationProvider,
     required LuciBuildService luciBuildService,
     required CiYamlFetcher ciYamlFetcher,
+    required FirestoreService firestore,
+    @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _ciYamlFetcher = ciYamlFetcher,
-       _luciBuildService = luciBuildService;
+       _luciBuildService = luciBuildService,
+       _firestore = firestore,
+       _now = now;
 
+  final DateTime Function() _now;
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
+  final FirestoreService _firestore;
 
   static const _paramBranch = 'branch';
   static const _paramRepo = 'repo';
@@ -59,9 +68,8 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     final slug = RepositorySlug('flutter', repo);
 
     // Ensure the commit exists in Firestore.
-    final firestore = await config.createFirestoreService();
     final commit = await fs.Commit.tryFromFirestoreBySha(
-      firestore,
+      _firestore,
       sha: commitSha,
     );
     if (commit == null) {
@@ -79,7 +87,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
           'Invalid "include" statuses: ${invalid.join(',')}.',
         );
       }
-      final ranTasks = await _rerunAllTasks(
+      final ranTasks = await _markAllTestsForRerun(
         commit: commit,
         slug: slug,
         branch: branch,
@@ -96,7 +104,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     // Ensure the task exists in Firestore.
-    final task = await firestore.queryLatestTask(
+    final task = await _firestore.queryLatestTask(
       commitSha: commitSha,
       builderName: taskName,
     );
@@ -149,56 +157,78 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   }
 
   @useResult
-  Future<List<String>> _rerunAllTasks({
+  Future<List<String>> _markAllTestsForRerun({
     required fs.Commit commit,
     required RepositorySlug slug,
     required String branch,
     required String email,
     required Set<String> statusesToRerun,
   }) async {
-    // Find all possible post-submit targets for the commit.
-    final allTargets = await _getPostsubmitTargets(commit);
-
     // Find the latest task for each task for this commit.
-    final firestore = await config.createFirestoreService();
+    final transaction = await _firestore.beginTransaction();
+
     final latestTasks =
         CommitAndTasks(
           commit,
-          await firestore.queryAllTasksForCommit(commitSha: commit.sha),
+          await _firestore.queryAllTasksForCommit(
+            commitSha: commit.sha,
+            transaction: transaction,
+          ),
         ).withMostRecentTaskOnly().tasks;
 
-    // For each task that would be rerun, rerun it.
-    final futures = <Future<void>>[];
-    final didRerun = <String>[];
+    final wasMarkedNew = <String>[];
+    final documentWrites = <g.Write>[];
+
+    // Wait for cancellations?
+    final Future<void> cancelRunningTasks;
+    if (statusesToRerun.contains(fs.Task.statusInProgress)) {
+      cancelRunningTasks = _luciBuildService.cancelBuildsBySha(
+        sha: commit.sha,
+        reason: '$email cancelled build to schedule a fresh rerun',
+      );
+    } else {
+      cancelRunningTasks = Future.value();
+    }
+
+    // If the task should be ignored, ignore it.
     for (final task in latestTasks) {
       if (!statusesToRerun.contains(task.status)) {
-        log.debug('Skipping task ${task.taskName}, status: ${task.status}');
         continue;
       }
 
-      final taskTarget = _findMatchingTarget(
-        task,
-        postsubmitTargets: allTargets,
-      );
-      if (taskTarget == null) {
-        log.debug('Skipping task ${task.taskName}, no matching target');
+      if (!_isTaskOwnedByCocoon(task)) {
         continue;
       }
 
-      log.info('Resetting failed task ${task.taskName}');
-      didRerun.add(task.taskName);
-      futures.add(
-        _luciBuildService.checkRerunBuilder(
-          commit: OpaqueCommit.fromFirestore(commit),
-          target: taskTarget,
-          tags: [TriggerdByBuildTag(email: email)],
-          taskDocument: task,
-        ),
+      // If it appears the task was in progress, cancel any running builders
+      // and crease a _new_ task (to represent a new run).
+      if (task.status == fs.Task.statusInProgress) {
+        // Mark cancelled.
+        documentWrites.add(
+          fs.Task.patchStatus(
+            fs.TaskId(
+              commitSha: task.commitSha,
+              currentAttempt: task.currentAttempt,
+              taskName: task.taskName,
+            ),
+            fs.Task.statusCancelled,
+          ),
+        );
+      }
+
+      // Start a new task.
+      task.resetAsRetry(now: _now());
+      documentWrites.add(
+        g.Write(currentDocument: g.Precondition(exists: false), update: task),
       );
     }
 
-    await Future.wait(futures);
-    return didRerun;
+    await Future.wait([
+      cancelRunningTasks,
+      _firestore.commit(transaction, documentWrites),
+    ]);
+
+    return wasMarkedNew;
   }
 
   Future<bool> _rerunSpecificTask({
@@ -208,6 +238,13 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required String branch,
     required String email,
   }) async {
+    if (!_isTaskOwnedByCocoon(task)) {
+      throw BadRequestException(
+        'Cannot rerun ${task.taskName} through the dashboard. '
+        'See go/flutter-release-workflow#re-running-engine-build-for-release-candidate-branches',
+      );
+    }
+
     final allTargets = await _getPostsubmitTargets(commit);
     final taskTarget = _findMatchingTarget(task, postsubmitTargets: allTargets);
     if (taskTarget == null) {
@@ -215,10 +252,14 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     return await _luciBuildService.checkRerunBuilder(
-      commit: OpaqueCommit.fromFirestore(commit),
+      commit: CommitRef.fromFirestore(commit),
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
-      taskDocument: task,
+      task: task,
     );
+  }
+
+  static bool _isTaskOwnedByCocoon(fs.Task task) {
+    return !isTaskFromDartInternalBuilder(builderName: task.taskName);
   }
 }

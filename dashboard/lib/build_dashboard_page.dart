@@ -327,6 +327,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
     key.add(
       _getTaskKeyEntry(
+        box: Container(color: TaskBox.statusColorFailedAndRerunning),
+        description: 'Failed but rerunning',
+      ),
+    );
+    key.add(const PopupMenuDivider());
+
+    key.add(
+      _getTaskKeyEntry(
         box: Center(
           child: Container(
             width: TaskBox.of(context) * 0.8,
@@ -424,7 +432,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                 appBar: CocoonAppBar(
                   title: Tooltip(
                     message: _getStatusTitle(buildState),
-                    child: Text(_getStatusTitle(buildState)),
+                    child: SelectionArea(
+                      child: Text(_getStatusTitle(buildState)),
+                    ),
                   ),
                   backgroundColor: colorTable[buildState.isTreeBuilding],
                   actions: <Widget>[

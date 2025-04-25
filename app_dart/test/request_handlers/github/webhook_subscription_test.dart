@@ -10,11 +10,11 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/appengine/commit.dart';
+import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -25,8 +25,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
-import '../../src/datastore/fake_datastore.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
 import '../../src/service/fake_build_bucket_client.dart';
@@ -44,7 +43,6 @@ void main() {
   late GithubWebhookSubscription webhook;
   late FakeBuildBucketClient fakeBuildBucketClient;
   late FakeConfig config;
-  late FakeDatastoreDB db;
   late FakeGithubService githubService;
   late FakeHttpRequest request;
   late FakeScheduler scheduler;
@@ -68,7 +66,6 @@ void main() {
 
   setUp(() {
     request = FakeHttpRequest();
-    db = FakeDatastoreDB();
     firestore = FakeFirestoreService();
 
     gitHubClient = MockGitHub();
@@ -80,10 +77,8 @@ void main() {
       tabledataResource.insertAll(any, any, any, any),
     ).thenAnswer((_) async => TableDataInsertAllResponse());
     config = FakeConfig(
-      dbValue: db,
       githubClient: gitHubClient,
       githubService: githubService,
-      firestoreService: firestore,
       githubOAuthTokenValue: 'githubOAuthKey',
       missingTestsPullRequestMessageValue: 'missingTestPullRequestMessage',
       releaseBranchPullRequestMessageValue: 'releaseBranchPullRequestMessage',
@@ -93,10 +88,6 @@ void main() {
         'dependabot',
         'dependabot[bot]',
       },
-      bigqueryService: BigqueryService.forTesting(
-        tabledataResource,
-        MockJobsResource(),
-      ),
       wrongHeadBranchPullRequestMessageValue:
           'wrongHeadBranchPullRequestMessage',
       wrongBaseBranchPullRequestMessageValue:
@@ -134,6 +125,11 @@ void main() {
       config: config,
       buildbucket: fakeBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
+      firestore: firestore,
+      bigQuery: BigQueryService.forTesting(
+        tabledataResource,
+        MockJobsResource(),
+      ),
     );
     tester = SubscriptionTester(request: request);
 
@@ -1423,6 +1419,36 @@ void main() {
       );
     });
 
+    test(
+      'Framework no test comment if customer testing version changed',
+      () async {
+        const issueNumber = 123;
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            // Change to the customer version file.
+            PullRequestFile()..filename = 'dev/customer_testing/tests.version',
+          ]),
+        );
+
+        await tester.post(webhook);
+
+        verifyNever(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      },
+    );
+
     test('Framework no comment if only AUTHORS changed', () async {
       const issueNumber = 123;
       tester.message = generateGithubWebhookMessage(
@@ -2436,9 +2462,11 @@ void foo() {
         slug: Config.packagesSlug,
       );
 
-      expect(db.values.values.whereType<Commit>().length, 0);
+      expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
+
       await tester.post(webhook);
-      expect(db.values.values.whereType<Commit>().length, 1);
+
+      expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
     });
 
     test(
@@ -2456,15 +2484,17 @@ void foo() {
           mergeCommitSha: mergedSha,
         );
 
-        expect(db.values.values.whereType<Commit>(), isEmpty);
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
+
         await tester.post(webhook);
+
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
 
         expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
         expect(
           tester.response.reasonPhrase,
           contains('$mergedSha was not found on GoB'),
         );
-        expect(db.values.values.whereType<Commit>(), isEmpty);
       },
     );
 
@@ -2483,7 +2513,7 @@ void foo() {
           mergeCommitSha: mergedSha,
         );
 
-        expect(db.values.values.whereType<Commit>(), isEmpty);
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
         await tester.post(webhook);
 
         expect(tester.response.statusCode, HttpStatus.notFound);
@@ -2491,7 +2521,7 @@ void foo() {
           tester.response.reasonPhrase,
           contains('$mergedSha was not found on GoB'),
         );
-        expect(db.values.values.whereType<Commit>(), isEmpty);
+        expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
       },
     );
 

@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/config.dart';
 
 const String expectedSemanticsIntegrationTestIssueComment = '''

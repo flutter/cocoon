@@ -3,69 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert' hide json;
-import 'dart:convert' as convert show json;
 
 import 'package:json_annotation/json_annotation.dart';
-
-/// A converter for tags.
-///
-/// The JSON format is:
-///
-/// ```json
-/// [
-///   {
-///     "key": "tag_key",
-///     "value": "tag_value"
-///   }
-/// ]
-/// ```
-///
-/// Which is flattened out as a `Map<String, List<String>>`.
-class TagsConverter
-    implements JsonConverter<Map<String?, List<String?>>?, List<dynamic>?> {
-  const TagsConverter();
-
-  @override
-  Map<String?, List<String?>>? fromJson(List<dynamic>? json) {
-    if (json == null) {
-      return null;
-    }
-    final result = <String?, List<String?>>{};
-    for (var tag in json.cast<Map<String, dynamic>>()) {
-      final key = tag['key'] as String?;
-      result[key] ??= <String?>[];
-      result[key]!.add(tag['value'] as String?);
-    }
-    return result;
-  }
-
-  @override
-  List<Map<String, dynamic>>? toJson(Map<String?, List<String?>>? object) {
-    if (object == null) {
-      return null;
-    }
-    if (object.isEmpty) {
-      return const <Map<String, List<String>>>[];
-    }
-    final result = <Map<String, String>>[];
-    for (var key in object.keys) {
-      if (key == null) {
-        continue;
-      }
-      final values = object[key];
-      if (values == null) {
-        continue;
-      }
-      for (var value in values) {
-        if (value == null) {
-          continue;
-        }
-        result.add(<String, String>{'key': key, 'value': value});
-      }
-    }
-    return result;
-  }
-}
 
 /// A converter for a "binary" JSON field.
 ///
@@ -81,28 +20,6 @@ class Base64Converter implements JsonConverter<String, String> {
   @override
   String toJson(String object) {
     return base64.encode(utf8.encode(object));
-  }
-}
-
-/// A converter for "timestamp" fields encoded as microseconds since epoch.
-class MicrosecondsSinceEpochConverter
-    implements JsonConverter<DateTime?, String?> {
-  const MicrosecondsSinceEpochConverter();
-
-  @override
-  DateTime? fromJson(String? json) {
-    if (json == null) {
-      return null;
-    }
-    return DateTime.fromMicrosecondsSinceEpoch(int.parse(json));
-  }
-
-  @override
-  String? toJson(DateTime? object) {
-    if (object == null) {
-      return null;
-    }
-    return object.microsecondsSinceEpoch.toString();
   }
 }
 
@@ -150,28 +67,6 @@ class BoolConverter implements JsonConverter<bool?, Object?> {
       return null;
     }
     return '$value';
-  }
-}
-
-/// A converter for fields with nested JSON objects in String format.
-class NestedJsonConverter
-    implements JsonConverter<Map<String, dynamic>?, String?> {
-  const NestedJsonConverter();
-
-  @override
-  Map<String, dynamic>? fromJson(String? json) {
-    if (json == null) {
-      return null;
-    }
-    return convert.json.decode(json) as Map<String, dynamic>?;
-  }
-
-  @override
-  String? toJson(Map<String, dynamic>? object) {
-    if (object == null) {
-      return null;
-    }
-    return convert.json.encode(object);
   }
 }
 

@@ -5,18 +5,15 @@
 import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:gcloud/db.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
-import '../../model/appengine/commit.dart' as ds;
-import '../../model/appengine/task.dart' as ds;
 import '../../model/firestore/commit.dart' as fs;
 import '../../model/firestore/task.dart' as fs;
-import '../../service/datastore.dart';
 import '../../service/firestore/commit_and_tasks.dart';
 
 /// Vacuum stale tasks.
@@ -29,32 +26,51 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
   const VacuumStaleTasks({
     required super.config,
     required LuciBuildService luciBuildService,
+    required FirestoreService firestore,
+    required BranchService branchService,
     Duration timeoutLimit = const Duration(hours: 3),
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _luciBuildService = luciBuildService,
        _timeoutLimit = timeoutLimit,
-       _now = now;
+       _now = now,
+       _firestore = firestore,
+       _branchService = branchService;
 
   final DateTime Function() _now;
   final Duration _timeoutLimit;
   final LuciBuildService _luciBuildService;
+  final FirestoreService _firestore;
+  final BranchService _branchService;
 
   @override
   Future<Body> get() async {
-    await Future.wait([
-      for (final slug in config.supportedRepos) _vaccumRepository(slug),
-    ]);
+    // Default branches.
+    await Future.forEach(config.supportedRepos, _vaccumRepository);
+
+    // Release candidates.
+    for (final branch in await _branchService.getReleaseBranches(
+      slug: Config.flutterSlug,
+    )) {
+      if (!isReleaseCandidateBranch(branchName: branch.reference)) {
+        continue;
+      }
+      await _vaccumRepository(Config.flutterSlug, branch: branch.reference);
+    }
+
     return Body.empty;
   }
 
-  Future<void> _vaccumRepository(gh.RepositorySlug slug) async {
+  Future<void> _vaccumRepository(
+    gh.RepositorySlug slug, {
+    String? branch,
+  }) async {
     final toUpdate = <_UpdateTaskIntent>[];
-    final firestore = await config.createFirestoreService();
 
-    final recentCommits = await firestore.queryRecentCommitsAndTasks(
+    final recentCommits = await _firestore.queryRecentCommitsAndTasks(
       slug,
       commitLimit: config.backfillerCommitLimit,
       status: fs.Task.statusInProgress,
+      branch: branch,
     );
     for (final CommitAndTasks(:commit, :tasks) in recentCommits) {
       for (final task in tasks) {
@@ -65,7 +81,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     }
 
     if (toUpdate.isEmpty) {
-      log.info('No tasks to update for $slug.');
+      log.info('No tasks to update for $slug/${branch ?? '<default branch>'}.');
       return;
     }
 
@@ -74,10 +90,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       '${toUpdate.map((e) => '(${e.commit.sha}) $e').join('\n')}',
     );
 
-    await Future.wait([
-      _updateFirestore(toUpdate, firestore),
-      _legacyUpdateDatastore(toUpdate),
-    ]);
+    await _updateFirestore(toUpdate);
   }
 
   Future<_UpdateTaskIntent?> _considerTaskReset(
@@ -111,10 +124,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     return _ResetTaskStatusToNew(commit, task);
   }
 
-  Future<void> _updateFirestore(
-    List<_UpdateTaskIntent> toUpdate,
-    FirestoreService firestore,
-  ) async {
+  Future<void> _updateFirestore(List<_UpdateTaskIntent> toUpdate) async {
     final tasks = <fs.Task>[];
     for (final intent in toUpdate) {
       final task = fs.Task.fromDocument(intent.task);
@@ -126,40 +136,9 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       }
       tasks.add(task);
     }
-    await firestore.batchWriteDocuments(
+    await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites(tasks)),
       kDatabase,
-    );
-  }
-
-  Future<void> _legacyUpdateDatastore(List<_UpdateTaskIntent> toUpdate) async {
-    if (!await config.useLegacyDatastore) {
-      return;
-    }
-    final datastore = DatastoreService.defaultProvider(config.db);
-    final tasks = <ds.Task>[];
-    for (final intent in toUpdate) {
-      final commitKey = _toCommitKey(datastore.db, intent.commit);
-      final task = await ds.Task.fromCommitKey(
-        datastore: datastore,
-        commitKey: commitKey,
-        name: intent.task.taskName,
-      );
-      switch (intent) {
-        case _ResetTaskStatusToNew():
-          task.status = ds.Task.statusNew;
-        case _UpdateTaskFromLuciBuild():
-          task.updateFromBuildbucketBuild(intent.build);
-      }
-      tasks.add(task);
-    }
-    await datastore.insert(tasks);
-  }
-
-  static Key<String> _toCommitKey(DatastoreDB db, fs.Commit commit) {
-    return db.emptyKey.append<String>(
-      ds.Commit,
-      id: '${commit.slug.fullName}/${commit.branch}/${commit.sha}',
     );
   }
 }

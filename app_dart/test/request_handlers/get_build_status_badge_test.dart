@@ -8,14 +8,15 @@ import 'package:cocoon_service/src/request_handlers/get_build_status_badge.dart'
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
+import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
 
   final handler = GetBuildStatusBadge(
     config: FakeConfig(),
-    buildStatusService: BuildStatusService(FakeConfig()),
+    buildStatusService: BuildStatusService(firestore: FakeFirestoreService()),
   );
 
   test('passing status', () async {

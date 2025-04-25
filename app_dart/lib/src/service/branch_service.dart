@@ -9,9 +9,10 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
 import 'package:retry/retry.dart';
 
+import '../../cocoon_service.dart';
+import '../foundation/providers.dart';
+import '../foundation/typedefs.dart';
 import '../request_handling/exceptions.dart';
-import 'config.dart';
-import 'gerrit_service.dart';
 
 /// Manages, synchronizes, and associates GitHub branches with branch candidate versions.
 interface class BranchService {
@@ -20,13 +21,16 @@ interface class BranchService {
     required Config config,
     required GerritService gerritService,
     RetryOptions retryOptions = const RetryOptions(maxAttempts: 3),
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
   }) : _retryOptions = retryOptions,
        _gerritService = gerritService,
-       _config = config;
+       _config = config,
+       _httpClientProvider = httpClientProvider;
 
   final Config _config;
   final GerritService _gerritService;
   final RetryOptions _retryOptions;
+  final HttpClientProvider _httpClientProvider;
 
   /// Creates a flutter/recipes branch that aligns to a flutter/engine commit.
   ///
@@ -125,12 +129,12 @@ interface class BranchService {
     required String branchName,
   }) async {
     try {
-      // This attempts to regenerate the OAuth token, which is why it isn't stored as a dependency.
-      final githubService = await _config.createDefaultGitHubService();
-      final content = await githubService.getFileContent(
+      final content = await githubFileContent(
         slug,
         _config.releaseCandidateBranchPath,
+        httpClientProvider: _httpClientProvider,
         ref: branchName,
+        retryOptions: _retryOptions,
       );
       return content.trim();
     } catch (e, s) {

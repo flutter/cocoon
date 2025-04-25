@@ -16,7 +16,6 @@ import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
 
@@ -32,7 +31,6 @@ void main() {
   assert(totSha.length >= 40);
 
   late CacheService cache;
-  late FakeConfig config;
   late MockClient httpClient;
   late FakeFirestoreService firestore;
 
@@ -40,19 +38,17 @@ void main() {
 
   setUp(() {
     cache = CacheService(inMemory: true);
-    config = FakeConfig();
     httpClient = MockClient((request) async {
       return http.Response('Missing file: ${request.url}', HttpStatus.notFound);
     });
 
     firestore = FakeFirestoreService();
-    config.firestoreService = firestore;
 
     ciYamlFetcher = CiYamlFetcher(
       cache: cache,
-      config: config,
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),
+      firestore: firestore,
     );
   });
 
@@ -142,34 +138,6 @@ void main() {
       slug: Config.packagesSlug,
       commitSha: currentSha,
       commitBranch: 'main',
-      validate: true,
-    );
-
-    expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
-  });
-
-  test('fetches the root .ci.yaml for a datastore commit', () async {
-    httpClient = MockClient((request) async {
-      if (request.url.host != 'raw.githubusercontent.com') {
-        fail('Unexpected host: ${request.url}');
-      }
-
-      // Extract the URL request ($slug/$ref/$file);
-      final [owner, repository, ref, ...path] = request.url.pathSegments;
-      expect('$owner/$repository', Config.packagesSlug.fullName);
-      expect(p.joinAll(path), kCiYamlPath);
-
-      if (ref == totSha || ref == currentSha) {
-        return http.Response(singleCiYaml, HttpStatus.ok);
-      }
-
-      fail('Should not occur. Unexpected request: ${request.url}');
-    });
-
-    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
-
-    final ciYaml = await ciYamlFetcher.getCiYamlByDatastoreCommit(
-      generateCommit(1, sha: currentSha, repo: 'packages', branch: 'main'),
       validate: true,
     );
 

@@ -13,17 +13,17 @@ import '../../../protos.dart' as pb;
 import '../../foundation/providers.dart';
 import '../../foundation/typedefs.dart';
 import '../../foundation/utils.dart';
-import '../../model/appengine/commit.dart' as datastore;
 import '../../model/firestore/commit.dart' as firestore;
 import '../cache_service.dart';
 import '../config.dart';
+import '../firestore.dart';
 
 /// Fetches a [CiYamlSet] given the current repository and commit context.
 abstract base class CiYamlFetcher {
   /// Creates a [CiYamlFetcher] from the provided configuration.
   factory CiYamlFetcher({
     required CacheService cache,
-    required Config config,
+    required FirestoreService firestore,
     HttpClientProvider httpClientProvider,
     Duration cacheTtl,
     String subcacheName,
@@ -33,21 +33,6 @@ abstract base class CiYamlFetcher {
   /// Exists so that a fake implementation can re-use `getCiYamlBy*` methods.
   @visibleForTesting
   CiYamlFetcher.forTesting();
-
-  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
-  ///
-  /// This is a helper method for [getCiYaml] for use with [datastore.Commit].
-  Future<CiYamlSet> getCiYamlByDatastoreCommit(
-    datastore.Commit commit, {
-    bool validate = false,
-  }) async {
-    return getCiYaml(
-      slug: commit.slug,
-      commitSha: commit.sha!,
-      commitBranch: commit.branch!,
-      validate: validate,
-    );
-  }
 
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
   ///
@@ -76,7 +61,7 @@ abstract base class CiYamlFetcher {
 final class _CiYamlFetcher extends CiYamlFetcher {
   _CiYamlFetcher({
     required CacheService cache,
-    required Config config,
+    required FirestoreService firestore,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
     Duration cacheTtl = const Duration(hours: 1),
     String subcacheName = 'scheduler',
@@ -87,17 +72,17 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   }) : _cache = cache,
        _cacheTtl = cacheTtl,
        _subcacheName = subcacheName,
-       _config = config,
        _retryOptions = retryOptions,
        _httpClientProvider = httpClientProvider,
+       _firestore = firestore,
        super.forTesting();
 
   final CacheService _cache;
   final String _subcacheName;
   final Duration _cacheTtl;
   final RetryOptions _retryOptions;
-  final Config _config;
   final HttpClientProvider _httpClientProvider;
+  final FirestoreService _firestore;
 
   @override
   Future<CiYamlSet> getCiYaml({
@@ -214,8 +199,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   Future<firestore.Commit> _fetchTipOfTreeCommit({
     required RepositorySlug slug,
   }) async {
-    final firestore = await _config.createFirestoreService();
-    final recentCommits = await firestore.queryRecentCommits(
+    final recentCommits = await _firestore.queryRecentCommits(
       slug: slug,
       branch: Config.defaultBranch(slug),
       limit: 1,

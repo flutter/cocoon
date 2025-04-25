@@ -7,7 +7,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/config.dart' show Config;
 import 'package:github/github.dart';
@@ -15,8 +15,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/bigquery/fake_tabledata_resource.dart';
-import '../src/datastore/fake_config.dart';
-import '../src/datastore/fake_datastore.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/service/fake_build_status_provider.dart';
@@ -32,7 +31,6 @@ void main() {
   late FakeFirestoreService firestore;
   late FakeClientContext clientContext;
   late FakeConfig config;
-  late FakeDatastoreDB db;
   late ApiRequestHandlerTester tester;
   late FakeAuthenticatedContext authContext;
   late FakeTabledataResource tabledataResourceApi;
@@ -51,21 +49,11 @@ void main() {
     buildStatusService = FakeBuildStatusService();
     githubService = FakeGithubService();
     tabledataResourceApi = FakeTabledataResource();
-    db = FakeDatastoreDB();
     github = MockGitHub();
     pullRequestsService = MockPullRequestsService();
     issuesService = MockIssuesService();
     repositoriesService = MockRepositoriesService();
-    config = FakeConfig(
-      bigqueryService: BigqueryService.forTesting(
-        tabledataResourceApi,
-        MockJobsResource(),
-      ),
-      githubService: githubService,
-      dbValue: db,
-      firestoreService: firestore,
-      githubClient: github,
-    );
+    config = FakeConfig(githubService: githubService, githubClient: github);
     tester = ApiRequestHandlerTester(context: authContext);
     handler = PushBuildStatusToGithub(
       config: config,
@@ -73,6 +61,11 @@ void main() {
         clientContext: clientContext,
       ),
       buildStatusService: buildStatusService,
+      firestore: firestore,
+      bigQuery: BigQueryService.forTesting(
+        tabledataResourceApi,
+        MockJobsResource(),
+      ),
     );
 
     when(github.pullRequests).thenReturn(pullRequestsService);
@@ -180,7 +173,7 @@ void main() {
   });
 
   test(
-    'updates github and datastore if status has changed since last update',
+    'updates github and Firestore if status has changed since last update',
     () async {
       final pr = generatePullRequest(id: 1, headSha: 'sha1');
       when(
@@ -211,7 +204,7 @@ void main() {
     },
   );
 
-  test('updates github and datastore if status is neutral', () async {
+  test('updates github and Firestore if status is neutral', () async {
     final pr = generatePullRequest(
       id: 1,
       headSha: 'sha1',

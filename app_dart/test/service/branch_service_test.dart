@@ -12,6 +12,8 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart' as gh;
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
@@ -28,9 +30,20 @@ void main() {
   late BranchService branchService;
   late FakeGerritService gerritService;
   late MockGithubService githubService;
+  late Map<String, String> simulateGitubFileContent;
 
   setUp(() {
     githubService = MockGithubService();
+
+    simulateGitubFileContent = {};
+    final mockHttp = MockClient((req) async {
+      final [_, _, channel, ...] = req.url.pathSegments;
+      final result = simulateGitubFileContent[channel];
+      if (result == null) {
+        return Response('Not Found', 404);
+      }
+      return Response(result, 200);
+    });
 
     config = MockConfig();
     when(
@@ -42,42 +55,15 @@ void main() {
       config: config,
       gerritService: gerritService,
       retryOptions: const RetryOptions(maxDelay: Duration.zero),
+      httpClientProvider: () => mockHttp,
     );
   });
 
   group('getReleaseBranches', () {
-    late Map<String, String> simulateGitubFileContent;
-
     setUp(() {
-      simulateGitubFileContent = {};
-
       when(
         config.releaseCandidateBranchPath,
       ).thenReturn('bin/internal/release-candidate-branch.version');
-      when(
-        // ignore: discarded_futures
-        githubService.getFileContent(
-          // Required because RepositorySlug does not implement operator==.
-          argThat(
-            isA<gh.RepositorySlug>().having(
-              (s) => s.fullName,
-              'fullName',
-              'flutter/flutter',
-            ),
-          ),
-          'bin/internal/release-candidate-branch.version',
-          ref: anyNamed('ref'),
-        ),
-      ).thenAnswer((i) async {
-        final ref = i.namedArguments[#ref] as String;
-        final result = simulateGitubFileContent[ref];
-
-        // The error in the actual implementation is not well defined.
-        if (result == null) {
-          throw StateError('Not found: $ref');
-        }
-        return result;
-      });
     });
 
     test(

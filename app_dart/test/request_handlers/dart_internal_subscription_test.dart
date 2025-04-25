@@ -7,13 +7,12 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/appengine/task.dart' as ds;
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/subscription_tester.dart';
@@ -48,20 +47,10 @@ void main() {
   }''';
 
   late DartInternalSubscription handler;
-  late FakeConfig config;
   late FakeHttpRequest request;
   late MockBuildBucketClient buildBucketClient;
   late SubscriptionTester tester;
-  late FakeFirestoreService firestoreService;
-
-  final dsCommit = generateCommit(
-    1,
-    sha: 'HASH12345',
-    branch: 'test-branch',
-    owner: 'flutter',
-    repo: 'flutter',
-    timestamp: 0,
-  );
+  late FakeFirestoreService firestore;
 
   final fsCommit = generateFirestoreCommit(
     1,
@@ -76,13 +65,13 @@ void main() {
   const buildNumber = 123456;
 
   setUp(() async {
-    firestoreService = FakeFirestoreService();
-    config = FakeConfig(firestoreService: firestoreService);
+    firestore = FakeFirestoreService();
     buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
       cache: CacheService(inMemory: true),
-      config: config,
+      config: FakeConfig(),
       authProvider: FakeDashboardAuthentication(),
+      firestore: firestore,
     );
 
     request = FakeHttpRequest();
@@ -102,29 +91,17 @@ void main() {
       ),
     ).thenAnswer((_) async => build);
 
-    // Setup Datastore:
-    await config.db.commit(inserts: [dsCommit]);
-
     // Setup Firestore:
-    firestoreService.putDocument(fsCommit);
+    firestore.putDocument(fsCommit);
   });
 
   test('creates a new task', () async {
     tester.message = const PushMessage(data: buildMessageJson);
     await tester.post(handler);
 
-    // Check Datastore:
-    expect(config.db.values.values.whereType<ds.Task>(), [
-      isA<ds.Task>()
-          .having((t) => t.builderName, 'builderName', builder)
-          .having((t) => t.attempts, 'attempts', 1)
-          .having((t) => t.buildNumber, 'buildNumber', buildNumber)
-          .having((t) => t.status, 'status', 'Succeeded'),
-    ]);
-
     // Check Firestore:
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName(builder)
@@ -136,30 +113,15 @@ void main() {
   });
 
   test('updates an existing task', () async {
-    // Insert into Datastore:
-    await config.db.commit(
-      inserts: [
-        generateTask(
-          1,
-          attempts: 1,
-          buildNumber: buildNumber,
-          builderName: builder,
-          name: builder,
-          status: 'In Progress',
-          parent: dsCommit,
-        ),
-      ],
-    );
-
     // Insert into Firestore:
-    firestoreService.putDocument(
+    firestore.putDocument(
       generateFirestoreTask(
         1,
         attempts: 1,
         buildNumber: buildNumber,
         name: builder,
         status: 'In Progress',
-        commitSha: dsCommit.sha,
+        commitSha: fsCommit.sha,
       ),
     );
 
@@ -168,7 +130,7 @@ void main() {
 
     // Check Firestore:
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName(builder)
@@ -177,42 +139,18 @@ void main() {
             .hasStatus('Succeeded'),
       ]),
     );
-
-    // Check Datastore:
-    expect(config.db.values.values.whereType<ds.Task>(), [
-      isA<ds.Task>()
-          .having((t) => t.builderName, 'builderName', builder)
-          .having((t) => t.attempts, 'attempts', 1)
-          .having((t) => t.buildNumber, 'buildNumber', buildNumber)
-          .having((t) => t.status, 'status', 'Succeeded'),
-    ]);
   });
 
   test('records a retry of an existing task', () async {
-    // Insert into Datastore:
-    await config.db.commit(
-      inserts: [
-        generateTask(
-          1,
-          attempts: 1,
-          buildNumber: buildNumber - 1,
-          builderName: builder,
-          name: builder,
-          status: fs.Task.statusFailed,
-          parent: dsCommit,
-        ),
-      ],
-    );
-
     // Insert into Firestore:
-    firestoreService.putDocument(
+    firestore.putDocument(
       generateFirestoreTask(
         1,
         attempts: 1,
         buildNumber: buildNumber - 1,
         name: builder,
         status: fs.Task.statusFailed,
-        commitSha: dsCommit.sha,
+        commitSha: fsCommit.sha,
       ),
     );
 
@@ -221,7 +159,7 @@ void main() {
 
     // Check Firestore:
     expect(
-      firestoreService,
+      firestore,
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName(builder)
@@ -235,14 +173,5 @@ void main() {
             .hasStatus(fs.Task.statusSucceeded),
       ]),
     );
-
-    // Check Datastore:
-    expect(config.db.values.values.whereType<ds.Task>(), [
-      isA<ds.Task>()
-          .having((t) => t.builderName, 'builderName', builder)
-          .having((t) => t.attempts, 'attempts', 2)
-          .having((t) => t.buildNumber, 'buildNumber', buildNumber)
-          .having((t) => t.status, 'status', 'Succeeded'),
-    ]);
   });
 }

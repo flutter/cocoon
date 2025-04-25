@@ -10,13 +10,13 @@ import 'package:cocoon_server/secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
-import 'package:gcloud/db.dart';
 import 'package:logging/logging.dart';
 
 Future<void> main() async {
@@ -34,8 +34,9 @@ Future<void> main() async {
     }
 
     final cache = CacheService(inMemory: false);
-    final config = await Config.createDuringDatastoreMigration(
-      dbService,
+    final firestore = await FirestoreService.from(const GoogleAuthProvider());
+    final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
+    final config = Config(
       cache,
       await SecretManager.create(
         const GoogleAuthProvider(),
@@ -45,6 +46,7 @@ Future<void> main() async {
     final authProvider = DashboardAuthentication(
       config: config,
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+      firestore: firestore,
     );
     final AuthenticationProvider swarmingAuthProvider =
         SwarmingAuthenticationProvider(config: config);
@@ -66,12 +68,13 @@ Future<void> main() async {
       buildBucketClient: buildBucketClient,
       pubsub: const PubSub(),
       gerritService: gerritService,
+      firestore: firestore,
     );
 
     /// Github checks api service used to provide luci test execution status on the Github UI.
     final githubChecksService = GithubChecksService(config);
 
-    final ciYamlFetcher = CiYamlFetcher(cache: cache, config: config);
+    final ciYamlFetcher = CiYamlFetcher(cache: cache, firestore: firestore);
 
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final scheduler = Scheduler(
@@ -82,6 +85,8 @@ Future<void> main() async {
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
       contentAwareHash: ContentAwareHashService(config: config),
+      firestore: firestore,
+      bigQuery: bigQuery,
     );
 
     final branchService = BranchService(
@@ -89,11 +94,13 @@ Future<void> main() async {
       gerritService: gerritService,
     );
 
-    final commitService = CommitService(config: config);
-    final buildStatusService = BuildStatusService(config);
+    final commitService = CommitService(config: config, firestore: firestore);
+    final buildStatusService = BuildStatusService(firestore: firestore);
 
     final server = createServer(
       config: config,
+      firestore: firestore,
+      bigQuery: bigQuery,
       cache: cache,
       authProvider: authProvider,
       branchService: branchService,

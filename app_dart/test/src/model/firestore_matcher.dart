@@ -6,6 +6,7 @@ import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/build_status_snapshot.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
+import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
@@ -18,6 +19,7 @@ import 'package:test/test.dart';
 part '_build_status_snapshot.dart';
 part '_ci_staging.dart';
 part '_commit.dart';
+part '_content_aware_hash_builds.dart';
 part '_github_build_status.dart';
 part '_github_gold_status.dart';
 part '_pr_check_run.dart';
@@ -43,6 +45,9 @@ const isPrCheckRun = PrCheckRunsMatcher._(TypeMatcher());
 
 /// Matches a Firestore model, or raw document, of type [BuildStatusSnapshot].
 const isBuildStatusSnapshot = BuildStatusSnapshotMatcher._(TypeMatcher());
+
+/// Matches a Firestore model, or raw document, of type [Content].
+const isContentAwareHashBuilds = ContentAwareHashBuildsMatcher._(TypeMatcher());
 
 /// Returns whether the document is a path to the collection [metadata].
 bool isDocumentA(g.Document document, AppDocumentMetadata<void> metadata) {

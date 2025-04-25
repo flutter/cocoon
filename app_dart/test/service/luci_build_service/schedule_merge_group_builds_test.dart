@@ -7,12 +7,13 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import '../../src/datastore/fake_config.dart';
+import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
@@ -32,23 +33,24 @@ void main() {
   // Dependencies (mocked/faked if necessary):
   late MockBuildBucketClient mockBuildBucketClient;
   late MockGithubChecksUtil mockGithubChecksUtil;
-  late FakeFirestoreService firestoreService;
+  late FakeFirestoreService firestore;
   late FakePubSub pubSub;
   late FakeGerritService gerritService;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
-    firestoreService = FakeFirestoreService();
+    firestore = FakeFirestoreService();
     pubSub = FakePubSub();
     gerritService = FakeGerritService();
     luci = LuciBuildService(
-      config: FakeConfig(firestoreService: firestoreService),
+      config: FakeConfig(),
       cache: CacheService(inMemory: true),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
       gerritService: gerritService,
+      firestore: firestore,
     );
   });
 
@@ -84,14 +86,14 @@ void main() {
       );
     });
 
-    final dsCommit = generateCommit(
+    final commit = generateFirestoreCommit(
       1,
       sha: 'abc1234',
       repo: 'flutter',
       branch: 'gh-readonly-queue/master/pr-1234-abcd',
     );
     await luci.scheduleMergeGroupBuilds(
-      commit: dsCommit,
+      commit: CommitRef.fromFirestore(commit),
       targets: [
         generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
         generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),
@@ -137,14 +139,14 @@ void main() {
       );
     });
 
-    final dsCommit = generateCommit(
+    final commit = generateFirestoreCommit(
       1,
       sha: 'abc1234',
       repo: 'flutter',
       branch: 'gh-readonly-queue/master/pr-1234-abcd',
     );
     await luci.scheduleMergeGroupBuilds(
-      commit: dsCommit,
+      commit: CommitRef.fromFirestore(commit),
       targets: [
         generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
         generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),

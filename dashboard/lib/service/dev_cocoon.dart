@@ -368,7 +368,7 @@ class DevelopmentCocoonService implements CocoonService {
 
   static const Map<String, int> _maxAttempts = <String, int>{
     TaskBox.statusNew: 0,
-    TaskBox.statusInProgress: 1,
+    TaskBox.statusInProgress: 2,
     TaskBox.statusSucceeded: 1,
     TaskBox.statusFailed: 2,
     TaskBox.statusInfraFailure: 2,
@@ -420,6 +420,15 @@ class DevelopmentCocoonService implements CocoonService {
     final attempts =
         minAttempts + random.nextInt(maxAttempts - minAttempts + 1);
 
+    final buildNumberList = List.generate(
+      attempts > 1
+          ? random.nextBool()
+              ? attempts
+              : attempts - 1
+          : 1,
+      (i) => i,
+    );
+
     return Task(
       createTimestamp: commitTimestamp + index,
       startTimestamp: commitTimestamp + (index * 1000 * 60),
@@ -427,9 +436,16 @@ class DevelopmentCocoonService implements CocoonService {
 
       builderName: 'Linux_android $index',
       attempts: attempts,
-      buildNumberList: List.generate(attempts, (i) => i).join(','),
-      isFlaky: index == now.millisecondsSinceEpoch % 13,
+      currentBuildNumber:
+          attempts == buildNumberList.length ? buildNumberList.last : null,
+      buildNumberList: buildNumberList,
+      isBringup: index == now.millisecondsSinceEpoch % 13,
+
       status: status,
+
+      // Neither of these are strictly true from a domain perspective.
+      lastAttemptFailed: random.nextBool() ? attempts > 1 : false,
+      isFlaky: attempts > 1,
     );
   }
 }

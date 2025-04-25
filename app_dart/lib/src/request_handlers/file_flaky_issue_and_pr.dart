@@ -14,7 +14,7 @@ import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
-import '../service/bigquery.dart';
+import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import 'flaky_handler_utils.dart';
@@ -29,9 +29,12 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   const FileFlakyIssueAndPR({
     required super.config,
     required super.authenticationProvider,
-  });
+    required BigQueryService bigQuery,
+  }) : _bigQuery = bigQuery;
 
   static const String kThresholdKey = 'threshold';
+
+  final BigQueryService _bigQuery;
 
   @override
   Future<Body> get() async {
@@ -39,8 +42,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
     );
-    final bigquery = await config.createBigQueryService();
-    final builderStatisticList = await bigquery.listBuilderStatistic(
+    final builderStatisticList = await _bigQuery.listBuilderStatistic(
       kBigQueryProjectId,
     );
     final ci =

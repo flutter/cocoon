@@ -9,7 +9,7 @@ import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_build_status_provider.dart';
@@ -19,7 +19,6 @@ import '../src/utilities/entity_generators.dart';
 void main() {
   useTestLoggerPerTest();
 
-  late FakeConfig config;
   late FakeBuildStatusService buildStatusService;
   late RequestHandlerTester tester;
   late GetStatus handler;
@@ -44,9 +43,12 @@ void main() {
     firestore.putDocument(commit2);
 
     tester = RequestHandlerTester();
-    config = FakeConfig(firestoreService: firestore);
     buildStatusService = FakeBuildStatusService(commitTasksStatuses: []);
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
   });
 
   test('no statuses', () async {
@@ -65,7 +67,11 @@ void main() {
         CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
       ],
     );
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
 
     tester.request = FakeHttpRequest();
     final result = (await decodeHandlerBody<Map<String, Object?>>())!;
@@ -79,7 +85,11 @@ void main() {
         CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
       ],
     );
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {GetStatus.kLastCommitShaParam: commit2.sha},
@@ -112,10 +122,28 @@ void main() {
         ]),
         CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), [
           generateFirestoreTask(1, bringup: true),
+          generateFirestoreTask(
+            2,
+            bringup: true,
+            status: 'Failed',
+            attempts: 1,
+            buildNumber: 123,
+          ),
+          generateFirestoreTask(
+            2,
+            bringup: true,
+            status: 'In Progress',
+            attempts: 2,
+            buildNumber: 456,
+          ),
         ]),
       ],
     );
-    handler = GetStatus(config: config, buildStatusService: buildStatusService);
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {GetStatus.kBranchParam: commit1.branch},
@@ -139,10 +167,13 @@ void main() {
               'StartTimestamp': 0,
               'EndTimestamp': 0,
               'Attempts': 1,
-              'Flaky': false,
+              'IsBringup': false,
+              'IsFlaky': false,
               'Status': 'New',
-              'BuildNumberList': '',
+              'BuildNumberList': <Object?>[],
               'BuilderName': 'task1',
+              'LastAttemptFailed': false,
+              'CurrentBuildNumber': null,
             },
           ],
         },
@@ -161,10 +192,26 @@ void main() {
               'StartTimestamp': 0,
               'EndTimestamp': 0,
               'Attempts': 1,
-              'Flaky': true,
+              'IsBringup': true,
+              'IsFlaky': false,
               'Status': 'New',
-              'BuildNumberList': '',
+              'BuildNumberList': <Object?>[],
               'BuilderName': 'task1',
+              'LastAttemptFailed': false,
+              'CurrentBuildNumber': null,
+            },
+            {
+              'CreateTimestamp': 0,
+              'StartTimestamp': 0,
+              'EndTimestamp': 0,
+              'Attempts': 2,
+              'IsBringup': true,
+              'IsFlaky': true,
+              'Status': 'In Progress',
+              'BuildNumberList': <Object?>[123, 456],
+              'BuilderName': 'task2',
+              'LastAttemptFailed': true,
+              'CurrentBuildNumber': 456,
             },
           ],
         },

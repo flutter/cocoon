@@ -13,7 +13,6 @@ import 'package:path/path.dart' as p;
 import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
-import '../appengine/task.dart' as datastore;
 import '../ci_yaml/target.dart';
 import 'base.dart';
 import 'commit.dart' as fs;
@@ -193,28 +192,6 @@ final class Task extends AppDocument<Task> {
     return Task._(document.fields!, documentName: document.name!);
   }
 
-  factory Task.fromDatastore(datastore.Task task) {
-    final commitSha = task.commitKey!.id!.split('/').last;
-    final int? buildNumber;
-    if (task.buildNumberList case final list? when list.isNotEmpty) {
-      buildNumber = int.parse(list.split(',').last);
-    } else {
-      buildNumber = null;
-    }
-    return Task(
-      builderName: task.builderName!,
-      currentAttempt: task.attempts!,
-      commitSha: commitSha,
-      bringup: task.isFlaky!,
-      buildNumber: buildNumber,
-      createTimestamp: task.createTimestamp!,
-      startTimestamp: task.startTimestamp!,
-      endTimestamp: task.endTimestamp!,
-      status: task.status,
-      testFlaky: task.isTestFlaky!,
-    );
-  }
-
   factory Task.initialFromTarget(Target target, {required fs.Commit commit}) {
     return Task(
       currentAttempt: 1,
@@ -301,6 +278,23 @@ final class Task extends AppDocument<Task> {
     statusSkipped,
     statusSucceeded,
   };
+
+  static String convertBuildbucketStatusToString(bbv2.Status status) {
+    switch (status) {
+      case bbv2.Status.SUCCESS:
+        return statusSucceeded;
+      case bbv2.Status.CANCELED:
+        return statusCancelled;
+      case bbv2.Status.INFRA_FAILURE:
+        return statusInfraFailure;
+      case bbv2.Status.STARTED:
+        return statusInProgress;
+      case bbv2.Status.SCHEDULED:
+        return statusNew;
+      default:
+        return statusFailed;
+    }
+  }
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
@@ -408,7 +402,7 @@ final class Task extends AppDocument<Task> {
     _setStatusFromLuciStatus(build);
   }
 
-  void resetAsRetry({int? attempt}) {
+  void resetAsRetry({int? attempt, DateTime? now}) {
     attempt ??= currentAttempt + 1;
     documentName = p.posix.join(
       kDatabase,
@@ -420,8 +414,9 @@ final class Task extends AppDocument<Task> {
         taskName: taskName,
       ).documentId,
     );
+    now ??= DateTime.now();
     fields = <String, Value>{
-      fieldCreateTimestamp: DateTime.now().millisecondsSinceEpoch.toValue(),
+      fieldCreateTimestamp: now.millisecondsSinceEpoch.toValue(),
       fieldEndTimestamp: 0.toValue(),
       fieldBringup: bringup.toValue(),
       fieldName: taskName.toValue(),

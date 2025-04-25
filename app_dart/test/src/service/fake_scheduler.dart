@@ -31,6 +31,8 @@ class FakeScheduler extends Scheduler {
     GithubChecksUtil? githubChecksUtil,
     CiYamlFetcher? ciYamlFetcher,
     ContentAwareHashService? contentAwareHash,
+    required super.firestore,
+    required super.bigQuery,
   }) : super(
          cache: CacheService(inMemory: true),
          githubChecksService: GithubChecksService(
@@ -44,6 +46,7 @@ class FakeScheduler extends Scheduler {
                config: config,
                buildBucketClient: buildbucket,
                githubChecksUtil: githubChecksUtil,
+               firestore: firestore,
              ),
          ciYamlFetcher: ciYamlFetcher ?? FakeCiYamlFetcher(),
          contentAwareHash:
@@ -201,7 +204,13 @@ final exampleBackfillFusionConfig = CiYamlSet(
           postsubmit: true,
         ),
         pb.Target(
-          name: 'Windows A',
+          name: 'Windows No Backfill',
+          scheduler: pb.SchedulerSystem.luci,
+          postsubmit: true,
+          backfill: false,
+        ),
+        pb.Target(
+          name: 'Windows No Backfill Legacy',
           scheduler: pb.SchedulerSystem.luci,
           postsubmit: true,
           properties: {'backfill': 'false'},

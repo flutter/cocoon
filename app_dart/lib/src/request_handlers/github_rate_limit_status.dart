@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import '../foundation/utils.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../service/big_query.dart';
 
 @immutable
 /// Endpoint to collect the current GitHub API quota usage of the flutter-dashboard app.
@@ -24,7 +25,12 @@ import '../request_handling/request_handler.dart';
 ///   `remaining`: Total number of API calls remaining before flutter-dashboard is blocked from sending further requests.
 ///   `resets`: [DateTime] when [remaining] will reset back to [limit].
 class GithubRateLimitStatus extends RequestHandler<Body> {
-  const GithubRateLimitStatus({required super.config});
+  const GithubRateLimitStatus({
+    required super.config,
+    required BigQueryService bigQuery,
+  }) : _bigQuery = bigQuery;
+
+  final BigQueryService _bigQuery;
 
   @override
   Future<Body> get() async {
@@ -37,7 +43,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
     const githubQuotaUsageSLO = 0.5;
     if (remainingQuota < githubQuotaUsageSLO * quotaLimit) {
       log.warn(
-        'Remaining GitHub quota is $remainingQuota, which is less than quota'
+        'Remaining GitHub quota is $remainingQuota, which is less than quota '
         'usage SLO ${githubQuotaUsageSLO * quotaLimit} '
         '(${githubQuotaUsageSLO * 100}% of the limit $quotaLimit)).',
       );
@@ -45,8 +51,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
 
     /// Insert quota usage to BigQuery
     const githubQuotaTable = 'GithubQuotaUsage';
-    final bigquery = await config.createBigQueryService();
-    await insertBigquery(githubQuotaTable, quotaUsage, bigquery.tabledata);
+    await insertBigQuery(githubQuotaTable, quotaUsage, _bigQuery.tabledata);
     return Body.forJson(quotaUsage);
   }
 }

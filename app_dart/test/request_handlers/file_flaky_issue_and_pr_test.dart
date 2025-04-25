@@ -11,7 +11,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart'
     as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
-import 'package:cocoon_service/src/service/bigquery.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
@@ -19,7 +19,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
@@ -42,7 +42,7 @@ void main() {
     late FakeConfig config;
     late FakeClientContext clientContext;
     late FakeDashboardAuthentication auth;
-    late MockBigqueryService mockBigqueryService;
+    late MockBigQueryService mockBigQueryService;
     late MockGitHub mockGitHubClient;
     late MockRepositoriesService mockRepositoriesService;
     late MockPullRequestsService mockPullRequestsService;
@@ -59,7 +59,7 @@ void main() {
 
       clientContext = FakeClientContext();
       auth = FakeDashboardAuthentication(clientContext: clientContext);
-      mockBigqueryService = MockBigqueryService();
+      mockBigQueryService = MockBigQueryService();
       mockGitHubClient = MockGitHub();
       mockRepositoriesService = MockRepositoriesService();
       mockIssuesService = MockIssuesService();
@@ -152,7 +152,6 @@ void main() {
       when(mockGitHubClient.users).thenReturn(mockUsersService);
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
-        bigqueryService: mockBigqueryService,
         githubClient: mockGitHubClient,
       );
       tester = ApiRequestHandlerTester(request: request);
@@ -160,13 +159,14 @@ void main() {
       handler = FileFlakyIssueAndPR(
         config: config,
         authenticationProvider: auth,
+        bigQuery: mockBigQueryService,
       );
     });
 
     test('Can file issue and pr for devicelab test', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
@@ -335,7 +335,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
@@ -403,13 +403,13 @@ void main() {
       // when gets the content of .ci.yaml
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
-        bigqueryService: mockBigqueryService,
         githubClient: mockGitHubClient,
         issueAndPRLimitValue: 1,
       );
       handler = FileFlakyIssueAndPR(
         config: config,
         authenticationProvider: auth,
+        bigQuery: mockBigQueryService,
       );
       when(
         mockRepositoriesService.getContents(captureAny, kCiYamlPath),
@@ -424,7 +424,7 @@ void main() {
       });
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
@@ -491,7 +491,7 @@ void main() {
     test('Can file issue and pr for framework host-only test', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(analyzeTestResponse);
       });
@@ -583,7 +583,7 @@ void main() {
       () async {
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+          mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
         ).thenAnswer((Invocation invocation) {
           return Future<List<BuilderStatistic>>.value(
             limitedNumberOfBuildsResponse,
@@ -666,7 +666,7 @@ void main() {
     test('Can file issue but not pr for shard test', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(frameworkTestResponse);
       });
@@ -710,7 +710,7 @@ void main() {
     test('Do not create issue if there is already one', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
@@ -783,7 +783,7 @@ void main() {
     test('Do not create issue if there is a recently closed one', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
@@ -862,7 +862,7 @@ void main() {
       () async {
         // When queries flaky data from BigQuery.
         when(
-          mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+          mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
         ).thenAnswer((Invocation invocation) {
           return Future<List<BuilderStatistic>>.value(
             semanticsIntegrationTestResponse,
@@ -972,7 +972,7 @@ void main() {
     test('Do not create an issue or PR if the test is already flaky', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,
@@ -1009,7 +1009,7 @@ void main() {
     test('Do not create PR if there is already an opened one', () async {
       // When queries flaky data from BigQuery.
       when(
-        mockBigqueryService.listBuilderStatistic(kBigQueryProjectId),
+        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
       ).thenAnswer((Invocation invocation) {
         return Future<List<BuilderStatistic>>.value(
           semanticsIntegrationTestResponse,

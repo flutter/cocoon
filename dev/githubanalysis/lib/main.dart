@@ -30,11 +30,9 @@ final RepositorySlug issueDatabaseRepo = RepositorySlug(orgName, 'flutter');
 final Set<RepositorySlug> repos = <RepositorySlug>{
   issueDatabaseRepo, // flutter/flutter
   RepositorySlug(orgName, 'assets-for-api-docs'),
-  RepositorySlug(orgName, 'buildroot'),
   RepositorySlug(orgName, 'cocoon'),
   RepositorySlug(orgName, 'codelabs'),
   RepositorySlug(orgName, 'devtools'),
-  RepositorySlug(orgName, 'engine'),
   RepositorySlug(orgName, 'flutter-intellij'),
   RepositorySlug(orgName, 'gallery'),
   RepositorySlug(orgName, 'games'),

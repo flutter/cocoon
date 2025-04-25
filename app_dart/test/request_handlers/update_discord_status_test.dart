@@ -14,7 +14,7 @@ import 'package:cocoon_service/src/service/discord_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_firestore_service.dart'
@@ -50,14 +50,12 @@ void main() {
 
     firestore = FakeFirestoreService();
 
-    final config = FakeConfig();
-    config.firestoreService = firestore;
-
     tester = RequestHandlerTester();
     handler = UpdateDiscordStatus(
-      config: config,
+      config: FakeConfig(),
       discord: discord,
-      buildStatusService: BuildStatusService(config),
+      buildStatusService: BuildStatusService(firestore: firestore),
+      firestore: firestore,
       now: () => alwaysTime,
     );
   });

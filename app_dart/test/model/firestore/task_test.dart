@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
-import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
 

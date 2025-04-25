@@ -14,23 +14,24 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:test/test.dart';
 
-import '../src/datastore/fake_config.dart';
+import '../src/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  late FakeConfig config;
   late FakeFirestoreService firestore;
   late RequestHandlerTester tester;
   late GetEngineArtifactsReady handler;
 
   setUp(() {
     firestore = FakeFirestoreService();
-    config = FakeConfig(firestoreService: firestore);
     tester = RequestHandlerTester();
-    handler = GetEngineArtifactsReady(config: config);
+    handler = GetEngineArtifactsReady(
+      config: FakeConfig(),
+      firestore: firestore,
+    );
   });
 
   Future<Map<String, Object?>> decodeHandlerBody() async {

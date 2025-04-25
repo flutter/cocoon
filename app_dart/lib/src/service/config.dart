@@ -5,13 +5,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
-import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:corsac_jwt/corsac_jwt.dart';
-import 'package:gcloud/db.dart';
-import 'package:gcloud/service_scope.dart' as ss;
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
@@ -19,27 +15,15 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
-import '../model/appengine/key_helper.dart';
-import 'bigquery.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
 
-class Config {
-  /// Creates and returns a [Config] instance with [useLegacyDatastore] primed.
-  static Future<Config> createDuringDatastoreMigration(
-    DatastoreDB db,
-    CacheService cache,
-    SecretManager secrets,
-  ) async {
-    final config = Config._(db, cache, secrets);
-    await config.useLegacyDatastore;
-    return config;
-  }
-
-  Config._(this._db, this._cache, this._secrets);
+interface class Config {
+  /// Creates and returns a [Config] instance.
+  Config(this._cache, this._secrets);
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -72,7 +56,6 @@ class Config {
   /// workflow.
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
-  final DatastoreDB _db;
   final CacheService _cache;
   final SecretManager _secrets;
 
@@ -160,10 +143,7 @@ class Config {
   @visibleForTesting
   static const Duration configCacheTtl = Duration(hours: 12);
 
-  Logging get loggingService => ss.lookup(#appengine.logging) as Logging;
-
   Future<List<String>> _getReleaseAccounts() async {
-    // Previously: Datastore/CocoonConfig/name=ReleaseAccounts
     final releaseAccountsConcat = await _getSingleValue(
       'APP_DART_RELEASE_ACCOUNTS',
     );
@@ -182,18 +162,14 @@ class Config {
 
   // GitHub App properties.
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_private_pem
   Future<String> get githubPrivateKey =>
       _getSingleValue('APP_DART_GITHUBAPP_PRIVATE_PEM');
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_public_pem
   Future<String> get githubPublicKey =>
       _getSingleValue('APP_DART_GITHUBAPP_PUBLIC_PEM');
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_id
   Future<String> get githubAppId => _getSingleValue('APP_DART_GITHUBAPP_ID');
 
-  // Previously: Datastore/CocoonConfig/name=githubapp_id
   Future<Map<String, dynamic>> get githubAppInstallations async {
     final installations = await _getSingleValue(
       'APP_DART_GITHUBAPP_INSTALLATIONS',
@@ -211,44 +187,6 @@ class Config {
   /// What file, in `flutter/flutter`, defines the releaes candidate branch.
   String get releaseCandidateBranchPath =>
       'bin/internal/release-candidate-branch.version';
-
-  /// Whether to read and write to Datastore.
-  ///
-  /// If `false`, the [db] will throw `UnsupportedError`, and as such usages
-  /// of Datastore should be guarded with if-statements and early terminations:
-  /// ```dart
-  /// // OK
-  /// if (await config.useLegacyDatastore) {
-  ///   final db = config.db;
-  /// }
-  ///
-  /// // OK
-  /// if (!await config.useLegacyDatastore) {
-  ///   return;
-  /// }
-  /// final db = config.db;
-  /// ```
-  Future<bool> get useLegacyDatastore async {
-    final value = await _getSingleValue(
-      'APP_DART_USE_DATASTORE',
-      ttl: const Duration(minutes: 5),
-    );
-    final bool = value == 'true';
-    log.info('useLegacyDatastore: $bool');
-    return _useLegacyDatastoreLastCachedAccess = bool;
-  }
-
-  late bool _useLegacyDatastoreLastCachedAccess;
-
-  DatastoreDB get db {
-    if (!_useLegacyDatastoreLastCachedAccess) {
-      throw UnsupportedError(
-        'Datastore is disabled. This error should never occur in production, '
-        'and is the sign of a critical bug. Please escalate to "team-infra".',
-      );
-    }
-    return _db;
-  }
 
   /// Size of the shards to send to buildBucket when scheduling builds.
   int get schedulingShardSize => 5;
@@ -281,20 +219,16 @@ class Config {
   /// List of GitHub accounts related to releases.
   Future<List<String>> get releaseAccounts => _getReleaseAccounts();
 
-  // Previously: Datastore/CocoonConfig/name=OAuthClientId
   Future<String> get oauthClientId =>
       _getSingleValue('APP_DART_OAUTH_CLIENT_ID');
 
   /// Webhook secret for the "Flutter Roll on Borg" GitHub App.
-  // Previously: Datastore/CocoonConfig/name=FrobWebhookKey
   Future<String> get frobWebhookKey =>
       _getSingleValue('APP_DART_FROB_WEBHOOK_KEY');
 
-  // Previously: Datastore/CocoonConfig/name=GitHubPRToken
   Future<String> get githubOAuthToken =>
       _getSingleValue('APP_DART_GITHUB_PR_TOKEN');
 
-  // Discord Webhook Token for posting messages about the tree status.
   Future<String> get discordTreeStatusWebhookUrl =>
       _getSingleValue('TREE_STATUS_DISCORD_WEBHOOK_URL');
 
@@ -331,7 +265,6 @@ class Config {
       '__Reviewers__: Use caution before merging pull requests to release '
       'branches. Ensure the proper procedure has been followed.';
 
-  // Previously: Datastore/CocoonConfig/name=WebhookKey
   Future<String> get webhookKey => _getSingleValue('APP_DART_WEBHOOK_KEY');
 
   String get mergeConflictPullRequestMessage =>
@@ -432,17 +365,8 @@ class Config {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
 
-  KeyHelper get keyHelper =>
-      KeyHelper(applicationContext: context.applicationContext);
-
-  /// Default number of commits to return for benchmark dashboard.
-  int get maxRecords => 50;
-
   /// Delay between consecutive GitHub deflake request calls.
   Duration get githubRequestDelay => const Duration(seconds: 1);
-
-  /// Repository status context for github status.
-  String get flutterBuild => 'flutter-build';
 
   /// Repository status description for github status.
   String get flutterTreeStatusRed =>
@@ -463,8 +387,6 @@ class Config {
   /// Flutter recipes is hosted on Gerrit instead of GitHub.
   static gh.RepositorySlug get recipesSlug =>
       gh.RepositorySlug('flutter', 'recipes');
-
-  String get waitingForTreeToGoGreenLabelName => 'waiting for tree to go green';
 
   /// The names of autoroller accounts for the repositories.
   ///
@@ -562,22 +484,6 @@ class Config {
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
     );
-  }
-
-  // GoogleAuthProvider returns a AutoRefreshingAuthClient, so it is not
-  // necessary to keep returning a new instance of FirestoreService for every
-  // call (like it might be for GithubService and similar APIs).
-  //
-  // TODO(matanlurey): Just inject FirestoreService and do not use Config.
-  late final _firestoreService = FirestoreService.from(
-    const GoogleAuthProvider(),
-  );
-  Future<FirestoreService> createFirestoreService() async {
-    return _firestoreService;
-  }
-
-  Future<BigqueryService> createBigQueryService() async {
-    return BigqueryService.from(const GoogleAuthProvider());
   }
 
   /// Default GitHub service when the repository does not matter.

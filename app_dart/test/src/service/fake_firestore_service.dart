@@ -351,7 +351,18 @@ abstract base class _FakeInMemoryFirestoreService
       _documents
         ..clear()
         ..addAll(beforeTransaction);
-      throw DetailedApiRequestError(500, 'The transaction was aborted');
+      if (_failOnTransactionCommit) {
+        throw DetailedApiRequestError(
+          500,
+          'The transaction was aborted: failOnTransactionCommit() was used to '
+          'simulate a backend failure.',
+        );
+      }
+      throw DetailedApiRequestError(
+        500,
+        'The transaction was aborted:\n'
+        '${result.where((r) => r.code != 0).map((r) => r.message).join('\n')}',
+      );
     }
 
     final updated = _now().toUtc().toIso8601String();
@@ -412,6 +423,8 @@ abstract base class _FakeInMemoryFirestoreService
     int? limit,
     Map<String, String>? orderMap,
     String compositeFilterOp = kCompositeFilterOpAnd,
+    // TODO(matanlurey): Consider implementing read transactions.
+    Transaction? transaction,
   }) async {
     var results = documents.where((document) {
       final collection = p.basename(p.dirname(document.name!));

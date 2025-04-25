@@ -11,7 +11,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 
 import '../../model/ci_yaml/target.dart';
-import '../../service/luci_build_service/opaque_commit.dart';
+import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/policy.dart';
 
@@ -32,12 +32,12 @@ final class BackfillGrid {
   /// - [tipOfTreeTargets] without a task;
   /// - task that does have a matching [tipOfTreeTargets].
   factory BackfillGrid.from(
-    Iterable<(OpaqueCommit, List<OpaqueTask>)> grid, {
+    Iterable<(CommitRef, List<TaskRef>)> grid, {
     required Iterable<Target> tipOfTreeTargets,
   }) {
     final totTargetsByName = {for (final t in tipOfTreeTargets) t.name: t};
-    final commitsByName = <String, OpaqueCommit>{};
-    final tasksByName = <String, List<OpaqueTask>>{};
+    final commitsByName = <String, CommitRef>{};
+    final tasksByName = <String, List<TaskRef>>{};
     for (final (commit, tasks) in grid) {
       commitsByName[commit.sha] = commit;
       for (final task in tasks) {
@@ -66,15 +66,28 @@ final class BackfillGrid {
     this._tasksByName,
   );
 
-  final Map<String, OpaqueCommit> _commitsBySha;
-  final Map<String, List<OpaqueTask>> _tasksByName;
+  final Map<String, CommitRef> _commitsBySha;
+  final Map<String, List<TaskRef>> _tasksByName;
   final Map<String, Target> _targetsByName;
+
+  /// Returns the cooresponding commit for the given [task].
+  CommitRef getCommit(TaskRef task) {
+    final commit = _commitsBySha[task.commitSha];
+    if (commit == null) {
+      throw ArgumentError.value(
+        task,
+        'task',
+        'No commit for task "${task.name}',
+      );
+    }
+    return commit;
+  }
 
   /// Returns a [BackfillTask] with the provided LUCI scheduling [priority].
   ///
-  /// If [task] does not originate from [targets] the behavior is undefined.
+  /// If [task] does not originate from [eligibleTasks] the behavior is undefined.
   @useResult
-  BackfillTask createBackfillTask(OpaqueTask task, {required int priority}) {
+  BackfillTask createBackfillTask(TaskRef task, {required int priority}) {
     final target = _targetsByName[task.name];
     if (target == null) {
       throw ArgumentError.value(
@@ -100,26 +113,63 @@ final class BackfillGrid {
   }
 
   /// Removes a task column from the grid for which [predicate] returns `true`.
-  void removeColumnWhere(bool Function(List<OpaqueTask>) predicate) {
+  void removeColumnWhere(bool Function(List<TaskRef>) predicate) {
     return _tasksByName.removeWhere((_, tasks) {
       return predicate(UnmodifiableListView(tasks));
     });
   }
 
+  @useResult
+  Target _validateColumnAndTarget(String name, List<TaskRef> column) {
+    if (column.isEmpty) {
+      throw StateError('A target ("$name") should never have 0 tasks');
+    }
+    final target = _targetsByName[name];
+    if (target == null) {
+      throw StateError('A target ("$name") should have existed in the grid');
+    }
+    return target;
+  }
+
   /// Each task, ordered by column (task by task).
   ///
-  /// Returned [OpaqueTask]s are eligible to be used in [createBackfillTask].
-  Iterable<(Target, List<OpaqueTask>)> get targets sync* {
+  /// Returned [TaskRef]s are eligible to be used in [createBackfillTask].
+  Iterable<(Target, List<TaskRef>)> get eligibleTasks sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
-      if (column.isEmpty) {
-        throw StateError('A target ("$name") should never have 0 tasks');
+      final target = _validateColumnAndTarget(name, column);
+      if (target.backfill) {
+        yield (target, column);
       }
-      final target = _targetsByName[name];
-      if (target == null) {
-        throw StateError('A target ("$name") should have existed in the grid');
-      }
-      yield (target, column);
     }
+  }
+
+  /// Each task, ordered by column (task by task).
+  ///
+  /// Returned tasks are not to be backfilled, and should be marked skipped.
+  Iterable<SkippableTask> get skippableTasks sync* {
+    for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
+      final target = _validateColumnAndTarget(name, column);
+      if (target.backfill) {
+        continue;
+      }
+      for (final task in column) {
+        final commit = _commitsBySha[task.commitSha];
+        if (commit == null) {
+          throw StateError(
+            'A commit ("${task.commitSha}") should have existed in the grid',
+          );
+        }
+        yield SkippableTask._from(task, target: target, commit: commit);
+      }
+    }
+  }
+
+  @override
+  String toString() {
+    return 'BackfillGrid ${const JsonEncoder.withIndent('  ').convert({
+      'eligibleTasks': '${[...eligibleTasks]}', //
+      'skippableTasks': '${[...skippableTasks]}',
+    })}';
   }
 }
 
@@ -134,13 +184,13 @@ final class BackfillTask {
   });
 
   /// The task itself.
-  final OpaqueTask task;
+  final TaskRef task;
 
   /// Which [Target] (originating from `.ci.yaml`) defined this task.
   final Target target;
 
   /// The commit this task is associated with.
-  final OpaqueCommit commit;
+  final CommitRef commit;
 
   /// The LUCI scheduling priority of backfilling this task.
   final int priority;
@@ -157,6 +207,39 @@ final class BackfillTask {
 
   /// Converts to a [PendingTask].
   PendingTask toPendingTask() {
-    return PendingTask(target: target, taskName: task.name, priority: priority);
+    return PendingTask(
+      target: target,
+      taskName: task.name,
+      priority: priority,
+      currentAttempt: task.currentAttempt,
+    );
+  }
+}
+
+/// A proposed task to be skipped as part of the backfill process.
+@immutable
+final class SkippableTask {
+  const SkippableTask._from(
+    this.task, {
+    required this.target,
+    required this.commit,
+  });
+
+  /// The task itself.
+  final TaskRef task;
+
+  /// Which [Target] (originating from `.ci.yaml`) defined this task.
+  final Target target;
+
+  /// The commit this task is associated with.
+  final CommitRef commit;
+
+  @override
+  String toString() {
+    return 'SkippableTask ${const JsonEncoder.withIndent('  ').convert({
+      'task': '$task', //
+      'target': '$target',
+      'commit': '$commit',
+    })}';
   }
 }
