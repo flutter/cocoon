@@ -465,7 +465,15 @@ void main() {
           ]),
         );
 
-        expect(firestore, existsInStorage(fs.Task.metadata, hasLength(3)));
+        // Regression check for https://github.com/flutter/flutter/issues/167842.
+        expect(
+          firestore,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasStatus(Task.statusNew),
+            isTask.hasStatus(Task.statusNew),
+            isTask.hasStatus(Task.statusNew),
+          ]),
+        );
       });
 
       test('run all tasks if legacy release candidate branch', () async {
