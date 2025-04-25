@@ -84,7 +84,10 @@ Future<void> main() async {
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
-      contentAwareHash: ContentAwareHashService(config: config),
+      contentAwareHash: ContentAwareHashService(
+        config: config,
+        firestore: firestore,
+      ),
       firestore: firestore,
       bigQuery: bigQuery,
     );

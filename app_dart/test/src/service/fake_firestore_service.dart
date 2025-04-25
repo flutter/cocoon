@@ -141,6 +141,7 @@ abstract base class _FakeInMemoryFirestoreService
     DateTime? created,
     DateTime? updated,
     List<String>? fieldMask,
+    List<FieldTransform>? updateTransforms,
   }) {
     final name = document.name;
     if (name == null) {
@@ -170,6 +171,30 @@ abstract base class _FakeInMemoryFirestoreService
         fields[fieldName] = document.fields![fieldName]!;
       }
     }
+
+    for (final transform in updateTransforms ?? const <FieldTransform>[]) {
+      final field = fields[transform.fieldPath];
+      // this is most certainly wrong as the real firestore probably(?) updates
+      // the field. We're not using it that way in the tests, so if you find
+      // yourself getting this error - congrats and welcome to the team.
+      if (field == null) {
+        throw ArgumentError.value(
+          transform.fieldPath,
+          'field',
+          'not found, cannot patch',
+        );
+      }
+      // The following are "union" members; only one operation per transform.
+      if (transform.appendMissingElements?.values case final elements?) {
+        if (field.arrayValue?.values case final fieldArray?) {
+          for (final element in elements) {
+            if (fieldArray.contains(element)) continue;
+            fieldArray.add(element);
+          }
+        }
+      }
+    }
+
     _documents[name] = Document(
       name: name,
       fields: fields,
@@ -292,7 +317,11 @@ abstract base class _FakeInMemoryFirestoreService
 
         // Upsert: update if existing and insert if missing.
         default:
-          putDocument(document, fieldMask: write.updateMask?.fieldPaths);
+          putDocument(
+            document,
+            fieldMask: write.updateMask?.fieldPaths,
+            updateTransforms: write.updateTransforms,
+          );
       }
       response.add(Status(code: 0));
     }
@@ -352,6 +381,7 @@ abstract base class _FakeInMemoryFirestoreService
         ..clear()
         ..addAll(beforeTransaction);
       if (_failOnTransactionCommit) {
+        if (_clearAfterTransactionFailure) _failOnTransactionCommit = false;
         throw DetailedApiRequestError(
           500,
           'The transaction was aborted: failOnTransactionCommit() was used to '
@@ -389,9 +419,11 @@ abstract base class _FakeInMemoryFirestoreService
   }
 
   var _failOnTransactionCommit = false;
+  var _clearAfterTransactionFailure = false;
 
-  void failOnTransactionCommit() {
+  void failOnTransactionCommit({bool clearAfter = false}) {
     _failOnTransactionCommit = true;
+    _clearAfterTransactionFailure = clearAfter;
   }
 
   @override

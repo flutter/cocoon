@@ -205,7 +205,7 @@ String workflowJobTemplate({
       "conclusion" : "$workflowConclusion",
       "created_at" : "2025-04-14T19:39:01Z",
       "head_branch" : "$headBranch",
-      "head_sha" : "296df33be866d0cd8387524e288d9b280e725795",
+      "head_sha" : "$headSha",
       "html_url" : "https://github.com/flutter/flutter/actions/runs/14454255411/job/$id",
       "id" : $id,
       "labels" : [
