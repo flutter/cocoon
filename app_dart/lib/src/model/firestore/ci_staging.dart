@@ -114,7 +114,7 @@ final class CiStaging extends AppDocument<CiStaging> {
   /// Create [CiStaging] from a Commit Document.
   CiStaging.fromDocument(Document other) {
     this
-      ..name = other.name
+      ..documentName = other.name
       ..fields = {...?other.fields}
       ..createTime = other.createTime
       ..updateTime = other.updateTime;
@@ -128,7 +128,7 @@ final class CiStaging extends AppDocument<CiStaging> {
     }
 
     // Read it from the document name.
-    final [owner, repo, _, _] = p.posix.basename(name!).split('_');
+    final [owner, repo, _, _] = p.posix.basename(documentName!).split('_');
     return RepositorySlug(owner, repo);
   }
 
@@ -140,7 +140,7 @@ final class CiStaging extends AppDocument<CiStaging> {
     }
 
     // Read it from the document name.
-    final [_, _, sha, _] = p.posix.basename(name!).split('_');
+    final [_, _, sha, _] = p.posix.basename(documentName!).split('_');
     return sha;
   }
 
@@ -152,7 +152,7 @@ final class CiStaging extends AppDocument<CiStaging> {
     }
 
     // Read it from the document name.
-    final [_, _, _, stageName] = p.posix.basename(name!).split('_');
+    final [_, _, _, stageName] = p.posix.basename(documentName!).split('_');
     return CiStage.values.firstWhereOrNull((e) => e.name == stageName);
   }
 

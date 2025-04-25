@@ -53,7 +53,7 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
   static PrCheckRuns fromDocument(Document prCheckRunsDoc) {
     return PrCheckRuns()
       ..fields = prCheckRunsDoc.fields!
-      ..name = prCheckRunsDoc.name!;
+      ..documentName = prCheckRunsDoc.name!;
   }
 
   /// The json string of the pullrequest belonging to this document.

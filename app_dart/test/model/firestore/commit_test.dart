@@ -26,7 +26,7 @@ void main() {
       firestoreService,
       sha: storedCommit.sha,
     );
-    expect(resultedCommit.name, storedCommit.name);
+    expect(resultedCommit.documentName, storedCommit.documentName);
     expect(resultedCommit.fields, storedCommit.fields);
   });
 }

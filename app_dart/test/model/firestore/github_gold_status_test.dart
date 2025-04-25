@@ -24,9 +24,12 @@ void main() {
 
     final resultedGithubGoldStatus = await GithubGoldStatus.fromFirestore(
       firestoreService: firestoreService,
-      documentName: githubGoldStatus.name!,
+      documentName: githubGoldStatus.documentName!,
     );
-    expect(resultedGithubGoldStatus.name, githubGoldStatus.name);
+    expect(
+      resultedGithubGoldStatus.documentName,
+      githubGoldStatus.documentName,
+    );
     expect(resultedGithubGoldStatus.fields, githubGoldStatus.fields);
   });
 }

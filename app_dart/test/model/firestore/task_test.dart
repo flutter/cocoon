@@ -86,7 +86,7 @@ void main() {
         firestoreService,
         TaskId(commitSha: 'abc123', taskName: 'test', currentAttempt: 1),
       );
-      expect(resultedTask.name, firestoreTask.name);
+      expect(resultedTask.documentName, firestoreTask.documentName);
       expect(resultedTask.fields, firestoreTask.fields);
     });
   });
@@ -100,7 +100,7 @@ void main() {
       );
       task.resetAsRetry();
 
-      expect(int.parse(task.name!.split('_').last), 2);
+      expect(int.parse(task.documentName!.split('_').last), 2);
       expect(task.status, Task.statusNew);
       expect(task.testFlaky, false);
     });

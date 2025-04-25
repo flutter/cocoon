@@ -24,9 +24,12 @@ void main() {
 
     final resultedGithubBuildStatus = await GithubBuildStatus.fromFirestore(
       firestoreService: firestoreService,
-      documentName: githubBuildStatus.name!,
+      documentName: githubBuildStatus.documentName!,
     );
-    expect(resultedGithubBuildStatus.name, githubBuildStatus.name);
+    expect(
+      resultedGithubBuildStatus.documentName,
+      githubBuildStatus.documentName,
+    );
     expect(resultedGithubBuildStatus.fields, githubBuildStatus.fields);
   });
 }

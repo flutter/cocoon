@@ -85,7 +85,7 @@ final class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
   /// Create [GithubBuildStatus] from a GithubBuildStatus Document.
   GithubBuildStatus.fromDocument(Document other) {
     this
-      ..name = other.name
+      ..documentName = other.name
       ..fields = {...?other.fields}
       ..createTime = other.createTime
       ..updateTime = other.updateTime;

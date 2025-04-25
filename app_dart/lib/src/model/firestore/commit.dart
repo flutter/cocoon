@@ -73,7 +73,7 @@ final class Commit extends AppDocument<Commit> {
     final documentName = p.join(kDatabase, 'documents', collectionId, sha);
     try {
       final document = await firestore.getDocument(documentName);
-      return Commit._(document.fields!, name: document.name!);
+      return Commit._(document.fields!, documentName: document.name!);
     } on DetailedApiRequestError catch (e) {
       if (e.status == HttpStatus.notFound) {
         return null;
@@ -99,7 +99,7 @@ final class Commit extends AppDocument<Commit> {
       fieldMessage: message.toValue(),
       fieldRepositoryPath: repositoryPath.toValue(),
       fieldSha: sha.toValue(),
-    }, name: p.posix.join(kDatabase, 'documents', collectionId, sha));
+    }, documentName: p.posix.join(kDatabase, 'documents', collectionId, sha));
   }
 
   /// Creates a Cocoon commit from a Github-authored [commit] on a [branch].
@@ -133,13 +133,13 @@ final class Commit extends AppDocument<Commit> {
   }
 
   factory Commit.fromDocument(Document document) {
-    return Commit._(document.fields!, name: document.name!);
+    return Commit._(document.fields!, documentName: document.name!);
   }
 
-  Commit._(Map<String, Value> fields, {required String name}) {
+  Commit._(Map<String, Value> fields, {required String documentName}) {
     this
       ..fields = fields
-      ..name = name;
+      ..documentName = documentName;
   }
 
   /// The timestamp (in milliseconds since the Epoch) of when the commit

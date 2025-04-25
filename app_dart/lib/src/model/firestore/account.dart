@@ -59,5 +59,5 @@ final class Account extends AppDocument<Account> {
   Account.fromDocument(super.document);
 
   /// Email address of the account.
-  String get email => p.posix.basename(name!);
+  String get email => p.posix.basename(documentName!);
 }
