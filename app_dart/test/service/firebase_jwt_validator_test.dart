@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
@@ -154,6 +156,45 @@ void main() {
       await validator.maybeRefreshKeyStore();
       await validator.maybeRefreshKeyStore();
       expect(pemKeyResponse.length, 1, reason: 'keys fetched once');
+    });
+
+    test('reuses keystore', () async {
+      // This test is important because we run multiple instances on appengine.
+      // The first instance to fetch the keys will store the bytes and have a
+      // valid keystore; every other instance will have empty keystores.
+
+      // 1. preload the cache with a known missing key.
+      await cache.set(
+        'firebase_jwt_keys',
+        'firebase_jwt_keys',
+        utf8.encode(r'''{
+  "9098578c4881dc05ebf19a15ba22d8fd1ab34c8a": "-----BEGIN CERTIFICATE-----\nMIIDHTCCAgWgAwIBAgIJAITtd5bm6VVAMA0GCSqGSIb3DQEBBQUAMDExLzAtBgNV\nBAMMJnNlY3VyZXRva2VuLnN5c3RlbS5nc2VydmljZWFjY291bnQuY29tMB4XDTI1\nMDQxNzA3MzMwNVoXDTI1MDUwMzE5NDgwNVowMTEvMC0GA1UEAwwmc2VjdXJldG9r\nZW4uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wggEiMA0GCSqGSIb3DQEBAQUA\nA4IBDwAwggEKAoIBAQCZbEJGV6kYa1k+TUarePY/yX0A47MmFDDoVJc+9l3MYywg\nv0yZL64mIFZ/GOxwwgcK2PPbpP551QJVOdjDhcPjaX05s1oxraSf0lBJnGDweVGQ\n0d6sRmRendBbk9mFL+6soAEn7TMifpwxuLRRlpEiARwSUdWDKIZewVtUYoE7GYhl\nCmXlIisWNSDxw5r0QErSNC8aFNGxHlfO9mRr7aB8g+6sO9j1vt+xEA49znAs2xTT\n61aKVN/MdEwU3h4lcJYagrEHOoHK6tmNIFHYZXdyi2IrknKAWcII84GA7dCwbPgC\npZdjLWMwtZ8xxMSB4YmPsiCvYxq4xzDnoY1tUUzfAgMBAAGjODA2MAwGA1UdEwEB\n/wQCMAAwDgYDVR0PAQH/BAQDAgeAMBYGA1UdJQEB/wQMMAoGCCsGAQUFBwMCMA0G\nCSqGSIb3DQEBBQUAA4IBAQCQ2KMe1+ElirtXQlYGxqy8Cg9PbIyEn95us1XGTQlR\nS3ZmW1Dzn49fTBMbJQ15RudoIWp+eEbD1nwcWgFAQ7WNsM+zaK+yJ9WNoc9xVnom\nrMYs5IEIsNCOTANH20zH57EBj1DFHeiyflWVbpb93YmCxe0ujlP+p7IedAW/QQWv\nHQiqu+YcaDJfnVU9mGbj7qFEcWe1NkL6wuablPFalnqu/584jLaxH6O5E+uOkk6d\nx4TDLW5IjBEvxCUhAOxzDtPdCZy8U95n2XKM0owth6PWVdoGYSkKk4gzhDwkGvUz\nKxRmrkt862OIy8RtB+YqYvGAqKk1vu8UKFlARot/NBPl\n-----END CERTIFICATE-----\n"
+}'''),
+      );
+
+      final header909 = JoseHeader.fromJson(
+        json.decode(
+              '{"alg":"RS256","kid":"9098578c4881dc05ebf19a15ba22d8fd1ab34c8a","typ":"JWT"}',
+            )
+            as Map<String, Object?>,
+      );
+
+      // See that we're missing this key.
+      expect(
+        await validator.keyStore.findJsonWebKeys(header909, 'verify').toList(),
+        isEmpty,
+      );
+      expect(pemKeyResponse, isNotEmpty, reason: 'should not have fetched url');
+
+      // Now call maybeRefreshKeyStore() and see that _keystore is set
+      await validator.maybeRefreshKeyStore();
+
+      // Presto, we've got the key without downloading.
+      expect(
+        await validator.keyStore.findJsonWebKeys(header909, 'verify').toList(),
+        isNotEmpty,
+      );
+      expect(pemKeyResponse, isNotEmpty, reason: 'should not have fetched url');
     });
 
     test('refreshes keystore', () async {
