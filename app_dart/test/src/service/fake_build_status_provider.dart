@@ -14,11 +14,11 @@ class FakeBuildStatusService implements BuildStatusService {
   List<CommitTasksStatus>? commitTasksStatuses;
 
   @override
-  Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
+  Future<BuildStatus> calculateCumulativeStatus(RepositorySlug slug) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }
-    return cumulativeStatus;
+    return cumulativeStatus!;
   }
 
   @override
