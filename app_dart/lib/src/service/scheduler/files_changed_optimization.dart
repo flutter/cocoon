@@ -37,7 +37,7 @@ final class FilesChangedOptimizer {
   // ```
   final CiYamlFetcher _ciYamlFetcher;
 
-  // See https://github.com/flutter/flutter/issues/162403.
+  // TODO(matanlurey): https://github.com/flutter/flutter/issues/167821.
   static const _doNotSkipFrameworkTestsForBranch = {'flutter-3.29-candidate.0'};
 
   final Config _config;
