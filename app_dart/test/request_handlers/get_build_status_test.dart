@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:test/test.dart';
 
 import '../src/fake_config.dart';
@@ -70,6 +70,35 @@ void main() {
     firestore.putDocument(taskPass);
     firestore.putDocument(taskFail);
 
+    final response = await decodeHandlerBody<Map<String, Object?>>();
+    expect(response, {
+      'buildStatus': 'failure',
+      'failingTasks': [taskFail.taskName],
+    });
+  });
+
+  test('failing status from a non-default branch', () async {
+    final commit = generateFirestoreCommit(
+      1,
+      branch: 'flutter-0.42-candidate.0',
+    );
+    final taskPass = generateFirestoreTask(
+      1,
+      status: Task.statusSucceeded,
+      commitSha: commit.sha,
+    );
+    final taskFail = generateFirestoreTask(
+      2,
+      status: Task.statusFailed,
+      commitSha: commit.sha,
+    );
+    firestore.putDocument(commit);
+    firestore.putDocument(taskPass);
+    firestore.putDocument(taskFail);
+
+    tester.request!.uri = tester.request!.uri.replace(
+      queryParameters: {'branch': 'flutter-0.42-candidate.0'},
+    );
     final response = await decodeHandlerBody<Map<String, Object?>>();
     expect(response, {
       'buildStatus': 'failure',

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/service/build_status_provider.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
+import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
@@ -14,7 +14,10 @@ class FakeBuildStatusService implements BuildStatusService {
   List<CommitTasksStatus>? commitTasksStatuses;
 
   @override
-  Future<BuildStatus> calculateCumulativeStatus(RepositorySlug slug) async {
+  Future<BuildStatus> calculateCumulativeStatus(
+    RepositorySlug slug, {
+    String? branch,
+  }) async {
     if (cumulativeStatus == null) {
       throw AssertionError();
     }
