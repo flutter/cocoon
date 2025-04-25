@@ -17,17 +17,22 @@ void main(List<String> args) async {
 
   if (args.length != 1) {
     io.stderr.writeln(
-      'Usage: dart run tool/update_goldens_from_luci.dart <path-to-raw-luci-log>',
+      'Usage: dart run tool/update_goldens_from_luci.dart <path-to-luci-log>',
     );
     io.exitCode = 1;
     return;
   }
 
-  final url = Uri.tryParse(args.first);
+  var url = Uri.tryParse(args.first);
   if (url == null || url.host != 'logs.chromium.org') {
     io.stderr.writeln('Argument must be a valid HTTP URL to logs.chromium.org');
     io.exitCode = 1;
     return;
+  }
+  if (!url.queryParameters.containsKey('format')) {
+    url = url.replace(
+      queryParameters: {...url.queryParameters, 'format': 'raw'},
+    );
   }
 
   final client = io.HttpClient();
