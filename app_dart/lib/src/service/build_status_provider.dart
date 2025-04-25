@@ -50,7 +50,7 @@ interface class BuildStatusService {
   /// there is currently a newer version that is in progress.
   ///
   /// Tree status is only for [defaultBranches].
-  Future<BuildStatus?> calculateCumulativeStatus(RepositorySlug slug) async {
+  Future<BuildStatus> calculateCumulativeStatus(RepositorySlug slug) async {
     final commits = await retrieveCommitStatusFirestore(
       limit: numberOfCommitsToReferenceForTreeStatus,
       slug: slug,
@@ -60,59 +60,34 @@ interface class BuildStatusService {
       return BuildStatus.failure();
     }
 
-    final mostRecentTasks = _findTasksRelevantToLatestStatus(commits);
-    if (mostRecentTasks.isEmpty) {
-      log.info('Tree status of failure for $slug: no recent tasks found');
-      return BuildStatus.failure();
-    }
+    // First, create a list of every ToT task we want to see non-failing.
+    final toBePassing = {
+      for (final t in commits.first.tasks)
+        if (!t.bringup) t.taskName,
+    };
+    final failingTasks = <String>{};
 
-    final failedTasks = <String>[];
-    for (var status in commits) {
-      for (var task in status.tasks) {
-        /// If a task [isRelevantToLatestStatus] but has not run yet, we look
-        /// for a previous run of the task from the previous commit.
-        final isRelevantToLatestStatus = mostRecentTasks.containsKey(
-          task.taskName,
-        );
-
-        /// Tasks that are not relevant to the latest status will have a
-        /// null value in the map.
-        final taskInProgress = mostRecentTasks[task.taskName] ?? true;
-
-        if (isRelevantToLatestStatus && taskInProgress) {
-          if (task.bringup || _isSuccessful(task)) {
-            /// This task no longer needs to be checked to see if it causing
-            /// the build status to fail.
-            mostRecentTasks[task.taskName] = false;
-          } else if (_isFailed(task) || _isRerunning(task)) {
-            log.debug('${task.taskName} (${task.commitSha}) is failing');
-            failedTasks.add(task.taskName);
-
-            /// This task no longer needs to be checked to see if its causing
-            /// the build status to fail since its been
-            /// added to the failedTasks list.
-            mostRecentTasks[task.taskName] = false;
-          }
+    // Then, iterate through commit by commit.
+    // If we see a task fail, mark as failing.
+    // If we see a task pass, mark as passing and no longer look for it.
+    for (final commit in commits) {
+      for (final collatedTask in commit.collateTasksByTaskName()) {
+        if (!toBePassing.contains(collatedTask.task.taskName)) {
+          continue;
+        }
+        if (collatedTask.lastCompletedAttemptWasFailure) {
+          failingTasks.add(collatedTask.task.taskName);
+        } else if (collatedTask.task.status == Task.statusSucceeded) {
+          toBePassing.remove(collatedTask.task.taskName);
         }
       }
     }
-    return failedTasks.isNotEmpty
-        ? BuildStatus.failure(failedTasks)
-        : BuildStatus.success();
-  }
 
-  /// Creates a map of the tasks that need to be checked for the build status.
-  ///
-  /// This is based on the most recent [CommitStatus] and all of its tasks.
-  Map<String, bool> _findTasksRelevantToLatestStatus(
-    List<CommitTasksStatus> statuses,
-  ) {
-    final tasks = <String, bool>{};
-
-    for (var task in statuses.first.tasks) {
-      tasks[task.taskName] = true;
+    if (failingTasks.isEmpty) {
+      return BuildStatus.success();
+    } else {
+      return BuildStatus.failure([...failingTasks]);
     }
-    return tasks;
   }
 
   /// Retrieves the comprehensive status of every task that runs per commit.
@@ -139,21 +114,6 @@ interface class BuildStatusService {
           await _firestore.queryAllTasksForCommit(commitSha: commit.sha),
         ),
     ];
-  }
-
-  bool _isFailed(Task task) {
-    return task.status == Task.statusFailed ||
-        task.status == Task.statusInfraFailure ||
-        task.status == Task.statusCancelled;
-  }
-
-  bool _isSuccessful(Task task) {
-    return task.status == Task.statusSucceeded;
-  }
-
-  bool _isRerunning(Task task) {
-    return task.currentAttempt > 1 &&
-        (task.status == Task.statusInProgress || task.status == Task.statusNew);
   }
 }
 

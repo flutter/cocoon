@@ -33,8 +33,6 @@ void main() {
   setUp(() {
     firestore = FakeFirestoreService();
     buildStatusService = BuildStatusService(firestore: firestore);
-
-    firestore.putDocuments([olderCommit, newerCommit]);
   });
 
   group('calculateStatus', () {
@@ -45,6 +43,7 @@ void main() {
 
     test('returns success if top commit is all green', () async {
       firestore.putDocuments([
+        newerCommit,
         generateFirestoreTask(
           1,
           status: Task.statusSucceeded,
@@ -64,6 +63,8 @@ void main() {
       'returns success if top commit is all green followed by red commit',
       () async {
         firestore.putDocuments([
+          newerCommit,
+          olderCommit,
           generateFirestoreTask(
             1,
             status: Task.statusSucceeded,
@@ -95,6 +96,7 @@ void main() {
 
     test('returns failure if last commit contains any red tasks', () async {
       firestore.putDocuments([
+        newerCommit,
         generateFirestoreTask(
           1,
           status: Task.statusSucceeded,
@@ -114,6 +116,8 @@ void main() {
       'returns failure if last commit contains any canceled tasks',
       () async {
         firestore.putDocuments([
+          newerCommit,
+          olderCommit,
           generateFirestoreTask(
             1,
             status: Task.statusSucceeded,
@@ -145,6 +149,8 @@ void main() {
       'ensure failed task do not have duplicates when last consecutive commits contains red tasks',
       () async {
         firestore.putDocuments([
+          newerCommit,
+          olderCommit,
           generateFirestoreTask(
             1,
             status: Task.statusSucceeded,
@@ -164,6 +170,8 @@ void main() {
 
     test('ignores failures on flaky commits', () async {
       firestore.putDocuments([
+        newerCommit,
+        olderCommit,
         generateFirestoreTask(
           1,
           status: Task.statusSucceeded,
@@ -185,6 +193,8 @@ void main() {
       'returns success if partial green, and all unfinished tasks were last green',
       () async {
         firestore.putDocuments([
+          newerCommit,
+          olderCommit,
           generateFirestoreTask(
             1,
             status: Task.statusInProgress,
@@ -216,6 +226,8 @@ void main() {
       'returns failure if partial green, and any unfinished task was last red',
       () async {
         firestore.putDocuments([
+          newerCommit,
+          olderCommit,
           generateFirestoreTask(
             1,
             status: Task.statusSucceeded,
@@ -243,8 +255,10 @@ void main() {
       },
     );
 
-    test('returns failure when green but a task is rerunning', () async {
+    test('returns passing when green but a task is rerunning', () async {
       firestore.putDocuments([
+        newerCommit,
+        olderCommit,
         generateFirestoreTask(
           1,
           status: Task.statusSucceeded,
@@ -268,11 +282,13 @@ void main() {
         ),
       ]);
       final status = await buildStatusService.calculateCumulativeStatus(slug);
-      expect(status, BuildStatus.failure(const ['task2']));
+      expect(status, BuildStatus.success());
     });
 
     test('returns failure when a task has an infra failure', () async {
       firestore.putDocuments([
+        newerCommit,
+        olderCommit,
         generateFirestoreTask(
           1,
           status: Task.statusSucceeded,
@@ -300,6 +316,8 @@ void main() {
 
     test('returns success when all green with a successful rerun', () async {
       firestore.putDocuments([
+        newerCommit,
+        olderCommit,
         generateFirestoreTask(
           1,
           status: Task.statusSucceeded,

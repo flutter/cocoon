@@ -50,11 +50,25 @@ final class CommitTasksStatus {
           didAtLeastOneFailureOccur: tasks.any(
             (t) => Task.taskFailStatusSet.contains(t.status),
           ),
-          lastCompletedAttemptWasFailure:
-              tasks.length > 1 &&
-              Task.taskFailStatusSet.contains(tasks[1].status),
+          lastCompletedAttemptWasFailure: _lastCompletedAttemptWasFailure(
+            tasks,
+          ),
         ),
     ];
+  }
+
+  static bool _lastCompletedAttemptWasFailure(List<Task> tasks) {
+    // Iterate through the tasks.
+    // As soon as we find a PASSING or {FAILED, INFRA FAILURE, CANCELLED}, stop.
+    for (final task in tasks) {
+      if (task.status == Task.statusSucceeded) {
+        return false;
+      }
+      if (Task.taskFailStatusSet.contains(task.status)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

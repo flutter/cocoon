@@ -31,7 +31,7 @@ base class GetBuildStatus extends RequestHandler<Body> {
   Future<rpc_model.BuildStatusResponse> createResponse() async {
     final repoName = request!.uri.queryParameters[_kRepoParam] ?? 'flutter';
     final slug = RepositorySlug('flutter', repoName);
-    final status = (await _buildStatusService.calculateCumulativeStatus(slug))!;
+    final status = await _buildStatusService.calculateCumulativeStatus(slug);
     return rpc_model.BuildStatusResponse(
       buildStatus:
           status.succeeded
