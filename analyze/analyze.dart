@@ -275,7 +275,6 @@ const Set<String> kExecutableAllowlist = <String>{
   'cloud_build/deploy_cron_jobs.sh',
   'cloud_build/get_docker_image_provenance.sh',
   'cloud_build/verify_provenance.sh',
-  'dashboard/regen_mocks.sh',
   'dev/provision_salt.sh',
   'dev/prs_to_main.sh',
   'packages/buildbucket-dart/tool/regenerate.sh',
