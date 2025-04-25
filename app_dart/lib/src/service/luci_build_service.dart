@@ -57,10 +57,6 @@ class LuciBuildService {
   final PubSub _pubsub;
   final FirestoreService _firestore;
 
-  // TODO(matanlurey): Re-enable to true/remove.
-  // See https://github.com/flutter/flutter/issues/167383.
-  static final _useFlutterPrebuiltEngineForReleaseCandidateBuilds = false;
-
   static const int kBackfillPriority = 35;
   static const int kDefaultPriority = 30;
   static const int kRerunPriority = 29;
@@ -852,8 +848,10 @@ class LuciBuildService {
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
-      if (_useFlutterPrebuiltEngineForReleaseCandidateBuilds &&
-          isReleaseCandidateBranch(branchName: commit.branch)) {
+      if (isReleaseCandidateBranch(branchName: commit.branch) &&
+          // TODO(matanlurey): Remove carvout for legacy branch after 3.29 is archived.
+          // https://github.com/flutter/flutter/issues/167821
+          commit.branch != 'flutter.3.29-candidate.0') {
         processedProperties.addAll({
           // Always provide an engine version, just like we do in presubmit.
           // See https://github.com/flutter/flutter/issues/167010.

@@ -522,11 +522,8 @@ void main() {
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'is_fusion': bbv2.Value(stringValue: 'true'),
-      // TODO(matanlurey): Re-enable in https://github.com/flutter/flutter/issues/167383.
-      /*
       'flutter_prebuilt_engine_version': bbv2.Value(stringValue: commit.sha),
       'flutter_realm': bbv2.Value(stringValue: ''),
-      */
     });
 
     expect(scheduleBuild.dimensions, [
