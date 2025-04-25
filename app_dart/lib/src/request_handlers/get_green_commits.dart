@@ -10,8 +10,8 @@ import 'package:meta/meta.dart';
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
-import '../service/build_status_provider.dart';
 import '../service/build_status_provider/commit_tasks_status.dart';
+import '../service/build_status_service.dart';
 import '../service/config.dart';
 
 /// Returns [List<String>] of the commit shas that had all passing tests.

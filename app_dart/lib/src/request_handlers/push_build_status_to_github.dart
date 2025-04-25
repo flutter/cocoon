@@ -14,7 +14,7 @@ import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/big_query.dart';
-import '../service/build_status_provider.dart';
+import '../service/build_status_service.dart';
 
 @immutable
 final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {

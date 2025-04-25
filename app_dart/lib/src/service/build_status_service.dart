@@ -13,12 +13,6 @@ import '../model/firestore/github_build_status.dart';
 import '../model/firestore/task.dart';
 import 'build_status_provider/commit_tasks_status.dart';
 
-/// Branches that are used to calculate the tree status.
-const Set<String> defaultBranches = <String>{
-  'refs/heads/main',
-  'refs/heads/master',
-};
-
 /// Class that calculates the current build status.
 interface class BuildStatusService {
   const BuildStatusService({required FirestoreService firestore})
@@ -34,26 +28,25 @@ interface class BuildStatusService {
   /// failure for every (non-flaky) task in the manifest.
   ///
   /// Take the example build dashboard below:
-  /// ✔ = passed, ✖ = failed, ☐ = new, ░ = in progress, s = skipped
-  /// +---+---+---+---+
-  /// | A | B | C | D |
-  /// +---+---+---+---+
-  /// | ✔ | ☐ | ░ | s |
-  /// +---+---+---+---+
-  /// | ✔ | ░ | ✔ | ✖ |
-  /// +---+---+---+---+
-  /// | ✔ | ✖ | ✔ | ✔ |
-  /// +---+---+---+---+
-  /// This build will fail because of Task B only. Task D is not included in
-  /// the latest commit status, so it does not impact the build status.
-  /// Task B fails because its last known status was to be failing, even though
-  /// there is currently a newer version that is in progress.
+  /// ```txt
+  ///    A   B   C   D
+  /// 🧑‍💼 🟩  ⬜  🟨
+  /// 🧑‍💼 🟩  🟨  🟩  🟥
+  /// 🧑‍💼 🟩  🟥  🟩  🟩
+  /// ```
   ///
-  /// Tree status is only for [defaultBranches].
-  Future<BuildStatus> calculateCumulativeStatus(RepositorySlug slug) async {
+  /// This build will fail because of Task `B` only:
+  ///
+  /// - Task `D` is not included in tip of tree (removed or marked `bringup`);
+  /// - Task `B` fails becuse its last known _completed_ status was failing
+  Future<BuildStatus> calculateCumulativeStatus(
+    RepositorySlug slug, {
+    String? branch,
+  }) async {
     final commits = await retrieveCommitStatusFirestore(
       limit: numberOfCommitsToReferenceForTreeStatus,
       slug: slug,
+      branch: branch,
     );
     if (commits.isEmpty) {
       log.info('Tree status of failure for $slug: no commits found');

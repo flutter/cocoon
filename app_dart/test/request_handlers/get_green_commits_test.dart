@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 import '../src/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/service/fake_build_status_provider.dart';
+import '../src/service/fake_build_status_service.dart';
 import '../src/utilities/entity_generators.dart';
 
 void main() {

@@ -12,7 +12,7 @@ import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';

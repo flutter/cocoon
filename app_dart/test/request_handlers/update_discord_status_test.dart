@@ -8,7 +8,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/build_status_snapshot.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/request_handlers/update_discord_status.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart'
+import 'package:cocoon_service/src/service/build_status_service.dart'
     hide BuildStatus;
 import 'package:cocoon_service/src/service/discord_service.dart';
 import 'package:mockito/mockito.dart';

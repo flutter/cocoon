@@ -4,7 +4,7 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
-import 'package:cocoon_service/src/service/build_status_provider.dart';
+import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
@@ -341,6 +341,18 @@ void main() {
         ),
       ]);
       final status = await buildStatusService.calculateCumulativeStatus(slug);
+      expect(status, BuildStatus.success());
+    });
+
+    test('supports a non-default branch', () async {
+      firestore.putDocuments([
+        generateFirestoreCommit(1, branch: 'flutter-0.42-candidate.0'),
+        generateFirestoreTask(1, commitSha: '1', status: Task.statusSucceeded),
+      ]);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'flutter-0.42-candidate.0',
+      );
       expect(status, BuildStatus.success());
     });
   });

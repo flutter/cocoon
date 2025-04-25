@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
-import '../service/build_status_provider.dart';
+import '../service/build_status_service.dart';
 
 @immutable
 final class GetStatus extends RequestHandler<Body> {

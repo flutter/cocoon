@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'src/fake_config.dart';
 import 'src/request_handling/fake_dashboard_authentication.dart';
 import 'src/service/fake_build_bucket_client.dart';
-import 'src/service/fake_build_status_provider.dart';
+import 'src/service/fake_build_status_service.dart';
 import 'src/service/fake_ci_yaml_fetcher.dart';
 import 'src/service/fake_firestore_service.dart';
 import 'src/service/fake_gerrit_service.dart';

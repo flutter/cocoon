@@ -9,7 +9,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../service/build_status_provider.dart';
+import '../service/build_status_service.dart';
 
 @immutable
 base class GetBuildStatus extends RequestHandler<Body> {
@@ -20,6 +20,7 @@ base class GetBuildStatus extends RequestHandler<Body> {
 
   final BuildStatusService _buildStatusService;
   static const _kRepoParam = 'repo';
+  static const _kBranchParam = 'branch';
 
   @override
   Future<Body> get() async {
@@ -30,8 +31,14 @@ base class GetBuildStatus extends RequestHandler<Body> {
   @protected
   Future<rpc_model.BuildStatusResponse> createResponse() async {
     final repoName = request!.uri.queryParameters[_kRepoParam] ?? 'flutter';
+    final repoBranch = request!.uri.queryParameters[_kBranchParam];
+
     final slug = RepositorySlug('flutter', repoName);
-    final status = await _buildStatusService.calculateCumulativeStatus(slug);
+    final status = await _buildStatusService.calculateCumulativeStatus(
+      slug,
+      // Uses default branch if omitted (null)
+      branch: repoBranch,
+    );
     return rpc_model.BuildStatusResponse(
       buildStatus:
           status.succeeded
