@@ -116,11 +116,17 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
   final Map<String, g.Value> _fields;
 
   @override
-  String? get name => documentName;
+  String? get name {
+    throw UnsupportedError(
+      'Accessing name is not allowed. Use documentName instead.',
+    );
+  }
 
   @override
   set name(String? value) {
-    documentName = value;
+    throw UnsupportedError(
+      'Setting name is not allowed. Use documentName instead.',
+    );
   }
 
   /// The name of the document corresponding to `name` in [g.Document].
