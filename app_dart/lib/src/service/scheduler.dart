@@ -135,11 +135,10 @@ class Scheduler {
     final branch = pr.base!.ref;
     final sha = pr.mergeCommitSha!;
 
-    // TODO(matanlurey): Expand to every release candidate branch instead of a test branch.
-    // See https://github.com/flutter/flutter/issues/163896.
+    // TODO(matanlurey): Remove carvout for legacy branch after 3.29 is archived.
+    // https://github.com/flutter/flutter/issues/167821
     var markAllTasksSkipped = false;
-    if (branch == 'flutter-0.42-candidate.0' ||
-        branch == 'flutter-3.32-candidate.0') {
+    if (branch != 'flutter-3.29-candidate.0') {
       markAllTasksSkipped = true;
       log.info(
         '[release-candidate-postsubmit-skip] For merged PR ${pr.number}, SHA=$sha, skipping all post-submit tasks',

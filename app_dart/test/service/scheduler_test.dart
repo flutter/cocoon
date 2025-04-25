@@ -468,11 +468,11 @@ void main() {
         expect(firestore, existsInStorage(fs.Task.metadata, hasLength(3)));
       });
 
-      test('run all tasks if regular release candidate branch', () async {
+      test('run all tasks if legacy release candidate branch', () async {
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
         final mergedPr = generatePullRequest(
-          branch: 'flutter-1.23-candidate.0',
+          branch: 'flutter-3.29-candidate.0',
         );
         await scheduler.addPullRequest(mergedPr);
 
@@ -485,25 +485,22 @@ void main() {
         );
       });
 
-      test(
-        'skips all tasks if experimental release candidate branch',
-        () async {
-          ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+      test('skips all tasks if release candidate branch', () async {
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
-          final mergedPr = generatePullRequest(
-            branch: 'flutter-0.42-candidate.0',
-          );
-          await scheduler.addPullRequest(mergedPr);
+        final mergedPr = generatePullRequest(
+          branch: 'flutter-0.42-candidate.0',
+        );
+        await scheduler.addPullRequest(mergedPr);
 
-          expect(
-            firestore,
-            existsInStorage(
-              fs.Task.metadata,
-              everyElement(isTask.hasStatus(Task.statusSkipped)),
-            ),
-          );
-        },
-      );
+        expect(
+          firestore,
+          existsInStorage(
+            fs.Task.metadata,
+            everyElement(isTask.hasStatus(Task.statusSkipped)),
+          ),
+        );
+      });
 
       test('schedules tasks against merged PRs', () async {
         final mergedPr = generatePullRequest(repo: 'packages', branch: 'main');
