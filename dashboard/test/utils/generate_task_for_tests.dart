@@ -102,6 +102,6 @@ Task generateTaskForTest({
     // Neither of these are strictly true from a domain perspective.
     isFlaky: attempts > 1,
     lastAttemptFailed: attempts > 1,
-    currentBuildNumber: buildNumberList?.last,
+    currentBuildNumber: buildNumberList?.lastOrNull,
   );
 }

@@ -27,7 +27,9 @@ const String luciJsonGetStatsResponse = '''{
           "StartTimestamp": 1569354594672,
           "Status": "Succeeded",
           "BuildNumberList": [123],
-          "BuilderName": "Linux"
+          "BuilderName": "Linux",
+          "LastAttemptFailed": false,
+          "CurrentBuildNumber": 123
         }
       ]
     }
