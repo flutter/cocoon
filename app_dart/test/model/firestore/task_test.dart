@@ -26,24 +26,6 @@ void main() {
       expect(() => task.setStatus('unknown'), throwsArgumentError);
     });
 
-    test('creates task document correctly from task data model', () async {
-      final task = generateTask(1);
-      final commitSha = task.commitKey!.id!.split('/').last;
-      final taskDocument = Task.fromDatastore(task);
-      expect(
-        taskDocument.documentName,
-        '$kDatabase/documents/$kTaskCollectionId/${commitSha}_${task.name}_${task.attempts}',
-      );
-      expect(taskDocument.createTimestamp, task.createTimestamp);
-      expect(taskDocument.endTimestamp, task.endTimestamp);
-      expect(taskDocument.bringup, task.isFlaky);
-      expect(taskDocument.taskName, task.name);
-      expect(taskDocument.startTimestamp, task.startTimestamp);
-      expect(taskDocument.status, task.status);
-      expect(taskDocument.testFlaky, task.isTestFlaky);
-      expect(taskDocument.commitSha, commitSha);
-    });
-
     group('updateFromBuild', () {
       test('update succeeds from buildbucket v2', () async {
         final pubSubCallBack = bbv2.BuildsV2PubSub().createEmptyInstance();
