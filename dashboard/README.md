@@ -4,121 +4,66 @@ For how to use the app, see the [user guide](USER_GUIDE.md)
 
 ## Set up
 
-* Install Flutter
-* Install [Firebase CLI](https://firebase.google.com/docs/flutter/setup)
+- Install [Flutter](https://docs.flutter.dev/get-started/install), or use an existing checkout if a Flutter developer
+- (Optional) Install [Firebase CLI](https://firebase.google.com/docs/flutter/setup)
 
-## Running for web locally
+## Running locally
 
-`flutter run -d chrome --web-port=8080`
+It is possible to run a simulation of the UI locally with fake data:
 
-Must run on port 8080 for Google Sign In to work since that is the
-only enabled port for localhost.
+```sh
+# Launches Chrome
+flutter run -d chrome --web-port=8080
 
-## Running native app locally
+# Starts a web server, bring your own browser instance
+flutter run -d web-server --web-port=8080
+```
 
-`flutter run -d <macos|linux|windows>`
+NOTE: Must run on port 8080[^8080] for authentication to work.
 
-If you want to run a debug native app with production data, you can run it like so:
-
-`flutter run -d <macos|linux|windows> -a --use-production-service`
-
-If you want to run a release native app with fake data, use:
-
-`flutter run -d <macos|linux|windows> --release -a --no-use-production-service`
-
-[Unfortunately, there's no web equivalent for passing command line arguments yet]
-
-You can also build a release AOT-compiled desktop app with `flutter build
-<macos|linux|windows> --release` and then just run the app with the appropriate
-argument.
-
-## Rotating keys
-
-* Run `flutterfire configure -p flutter-dashboard` and check the files in
-
-## Style
-
-### File organization
-
-The `lib` directory is organized in subdirectories as follows:
-
-* `lib/`: main.dart and top-level widgets (e.g. the build dashboard
-  widget). Can import anything.
-
-* `lib/widgets/`: Custom widgets used in this project. The files in
-  this directory should import either the Flutter widgets package or
-  the Flutter material package, and may import any local files except
-  those that are directly in the top-level `lib/` directory (i.e.
-  importing from `lib/logic/` et al is fine).
-
-* `lib/state/`: States, objects that interface between widgets and the
-  services. Files in this directory should not import any Flutter
-  packages other than foundation, and should not import local files
-  that relate to UI (e.g. those in `widgets/`).
-
-* `lib/service/`: Services, objects that interface with the network.
-  Files in this directory should not import any Flutter packages other
-  than foundation, and should not import any local files from other
-  directories.
-
-* `lib/logic/`: Other code, mainly non-UI utility methods and data
-  models. Files in this directory should not import any Flutter
-  packages other than foundation, and should not import any local
-  files from other directories.
-
-The `test` directory should follow the same structure, with files
-testing code from files in `lib` being in the parallel equivalent
-directories.
-
-### Imports
-
-Imports in Dart files in this project should follow the rules
-enforced by the `directives_ordering` lint described
-[here](https://dart-lang.github.io/linter/lints/directives_ordering.html).
+[8080]: Google employees: See [GCP > Client ID for Web App](https://console.cloud.google.com/auth/clients/308150028417-vlj9mqlm3gk1d03fb0efif1fu5nagdtt.apps.googleusercontent.com?e=-13802955&invt=AbvvHw&mods=logs_tg_prod&project=flutter-dashboard).
 
 ## Tests
 
+Most tests can be run locally:
+
+```sh
+flutter test
+```
+
 ### Updating Goldens
 
-The build dashboard has a few custom render objects to optimize rendering of a large 2D array of rects.
-
-The tests require a linux host to be updated:
+Some tests take and compare UI screenshots which will change over time:
 
 ```sh
 flutter test --update-goldens
 ```
 
-## Deploying
+For compatibility reasons, only a Linux host is supported.
 
-### Web
+<details>
 
-Cocoon has a daily Cloud Build trigger that will publish this to
-https://flutter-dashboard-appspot.com.
+<summary>Workaround using <code>tool/update_goldens_from_luci.dart</code></summary>
+As a workaround, you can download the latest images from a failing presubmit run on Cocoon's CI
+which involes a few manual steps (but is way faster than getting another PC):
 
-### Playstore
+1. Open the failing pull request
+1. Click on "Linux Cocoon" in failing checks
 
-#### Set up
+   ![1 failing check, Linux Cocoon](./tool/luci-failing-check.png)
 
-Download signing key from Valentine (under dashboards@flutter.dev). Save to
-`$HOME/upload-keystore.jks`
+1. Find and click on `stdout` under the `dashboard` step
 
-Create `android/key.properties`
+   ![dashoard > stdout](./tool/dashboard-stdout.png)
 
-```sh
-storePassword=$password
-keyPassword=$password
-keyAlias=upload
-storeFile=$HOME/upload-keystore.jks
-```
+1. Run the following command with a link to the stdout URL:
 
-#### Publishing
+   ```sh
+   $ dart run tool/update_goldens_from_luci.dart "<url ending in /stdout>"
 
-`flutter build appbundle`
+   Wrote 36825 bytes to goldens/build_dashboard.defaultPropertySheet.dark.png.
+   Wrote 38556 bytes to goldens/build_dashboard.defaultPropertySheet.png.
+   Wrote 24715 bytes to widgets/goldens/task_grid_test.dev.origin.png.
+   ```
 
-We ship debug mode as it makes it easy to debug issues in production.
-
-In the Play Console for dashboards@flutter.dev, upload the new app.aab output.
-
-### Crashlytics
-
-Visit http://firebase/project/flutter-dashboard to get a list of recent crashes.
+</details>
