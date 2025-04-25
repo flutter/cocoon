@@ -359,7 +359,7 @@ void main() {
     // CommitStatus (row) filters
     await testGrid(
       tester,
-      TaskGridFilter()..authorFilter = RegExp('bob'),
+      TaskGridFilter()..authorFilter = RegExp('yegor'),
       8,
       100,
     );
