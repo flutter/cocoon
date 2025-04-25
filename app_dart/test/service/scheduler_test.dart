@@ -465,7 +465,44 @@ void main() {
           ]),
         );
 
-        expect(firestore, existsInStorage(fs.Task.metadata, hasLength(3)));
+        expect(
+          firestore,
+          existsInStorage(fs.Task.metadata, [
+            isTask.hasStatus(Task.statusInProgress),
+            isTask.hasStatus(Task.statusInProgress),
+            isTask.hasStatus(Task.statusNew),
+          ]),
+        );
+      });
+
+      // Regression test for https://github.com/flutter/flutter/issues/167842.
+      test('marks all tasks as new', () async {
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+
+        final mergedPr = generatePullRequest(repo: 'flutter', branch: 'master');
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(
+          firestore,
+          existsInStorage(fs.Commit.metadata, [
+            isCommit
+                .hasRepositoryPath('flutter/flutter')
+                .hasSha('abc')
+                .hasBranch('master')
+                .hasCreateTimestamp(1)
+                .hasAuthor('dash')
+                .hasAvatar('dashatar')
+                .hasMessage('example message'),
+          ]),
+        );
+
+        expect(
+          firestore,
+          existsInStorage(
+            fs.Task.metadata,
+            allOf(hasLength(6), everyElement(isTask.hasStatus(Task.statusNew))),
+          ),
+        );
       });
 
       test('run all tasks if legacy release candidate branch', () async {
