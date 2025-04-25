@@ -327,6 +327,14 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
     key.add(
       _getTaskKeyEntry(
+        box: Container(color: TaskBox.statusColorFailedAndRerunning),
+        description: 'Failed but rerunning',
+      ),
+    );
+    key.add(const PopupMenuDivider());
+
+    key.add(
+      _getTaskKeyEntry(
         box: Center(
           child: Container(
             width: TaskBox.of(context) * 0.8,

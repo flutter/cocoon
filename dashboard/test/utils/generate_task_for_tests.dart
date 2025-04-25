@@ -99,7 +99,9 @@ Task generateTaskForTest({
     startTimestamp: startTime?.millisecondsSinceEpoch ?? 0,
     endTimestamp: finishTime?.millisecondsSinceEpoch ?? 0,
     isBringup: bringup,
-    // This is not strictly true from a domain perspective.
+    // Neither of these are strictly true from a domain perspective.
     isFlaky: attempts > 1,
+    lastAttemptFailed: attempts > 1,
+    currentBuildNumber: buildNumberList?.lastOrNull,
   );
 }

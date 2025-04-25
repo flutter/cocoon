@@ -23,6 +23,8 @@ final class Task extends Model {
     required this.status,
     required this.buildNumberList,
     required this.builderName,
+    required this.lastAttemptFailed,
+    required this.currentBuildNumber,
   });
 
   /// Creates a task from [json] representation.
@@ -60,6 +62,16 @@ final class Task extends Model {
 
   @JsonKey(name: 'BuilderName')
   final String builderName;
+
+  // TODO(matanlurey): It would be nice to encode a lot more of this bool-ish
+  // state into status, i.e. have status be a more complex object than a string,
+  // or consider how it could be bundled in interesting ways.
+
+  @JsonKey(name: 'LastAttemptFailed')
+  final bool lastAttemptFailed;
+
+  @JsonKey(name: 'CurrentBuildNumber')
+  final int? currentBuildNumber;
 
   @override
   Map<String, Object?> toJson() => _$TaskToJson(this);

@@ -44,6 +44,10 @@ class TaskBox extends StatelessWidget {
     statusInProgress: Colors.yellow,
   };
 
+  static const statusColorFailedAndRerunning = Color(0xFF8A3324);
+
+  static final statusColorInProgressButQueued = Colors.yellow.shade200;
+
   /// Returns the cell size of the nearest task box, or null if there is no
   /// nearest task box.
   static double? maybeOf(BuildContext context) {

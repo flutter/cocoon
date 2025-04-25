@@ -52,6 +52,8 @@ void main() {
             status: TaskBox.statusSucceeded,
             buildNumberList: [123],
             builderName: 'Linux',
+            lastAttemptFailed: false,
+            currentBuildNumber: 123,
           ),
         ],
       );
