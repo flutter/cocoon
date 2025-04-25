@@ -194,13 +194,22 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   final List<String> _authors = <String>[
-    'alice',
-    'bob',
-    'charlie',
-    'dobb',
-    'eli',
-    'fred',
+    'matan',
+    'yegor',
+    'john',
+    'jenn',
+    'kate',
+    'stuart',
   ];
+  final _avatars = [
+    'https://avatars.githubusercontent.com/u/168174?v=4',
+    'https://avatars.githubusercontent.com/u/211513?v=4',
+    'https://avatars.githubusercontent.com/u/1924313?v=4',
+    'https://avatars.githubusercontent.com/u/682784?v=4',
+    'https://avatars.githubusercontent.com/u/16964204?v=4',
+    'https://avatars.githubusercontent.com/u/122189?v=4',
+  ];
+
   final List<int> _messagePrimes = <int>[3, 11, 17, 23, 31, 41, 47, 67, 79];
   final List<String> _words = <String>[
     'fixes',
@@ -309,9 +318,7 @@ class DevelopmentCocoonService implements CocoonService {
     return Commit(
       author: CommitAuthor(
         login: _authors[author],
-        avatarUrl:
-            'https://avatars2.githubusercontent.com/u/'
-            '${2148558 + author}?v=4',
+        avatarUrl: _avatars[author],
       ),
       message: List<String>.generate(
         6,
