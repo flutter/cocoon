@@ -84,13 +84,18 @@ interface class FirebaseJwtValidator {
 
   @visibleForTesting
   Future<void> maybeRefreshKeyStore() async {
-    await _cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreateWithLocking(
       'firebase_jwt_keys',
       'firebase_jwt_keys',
       createFn: _downloadPEMs,
       // It is unlikely the PEM keys are going to rotate.
       ttl: const Duration(minutes: 15),
     );
+    final pems = json.decode(utf8.decode(bytes!)) as Map<String, Object?>;
+    _keyStore = JsonWebKeyStore();
+    for (final MapEntry(:key, :value) in pems.entries) {
+      _keyStore.addKey(JsonWebKey.fromPem(value as String, keyId: key));
+    }
   }
 
   /// Attempts to download PEMs from Firebase and return that json array as bytes.
@@ -111,11 +116,6 @@ interface class FirebaseJwtValidator {
     }
 
     final bytes = response.bodyBytes;
-    final pems = json.decode(utf8.decode(bytes)) as Map<String, Object?>;
-    _keyStore = JsonWebKeyStore();
-    for (final MapEntry(:key, :value) in pems.entries) {
-      _keyStore.addKey(JsonWebKey.fromPem(value as String, keyId: key));
-    }
     return bytes;
   }
 }
