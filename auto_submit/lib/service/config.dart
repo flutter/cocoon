@@ -6,10 +6,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cocoon_server/bigquery.dart';
+import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
-import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 import 'package:neat_cache/cache_provider.dart';
@@ -58,7 +58,7 @@ class Config {
   static const String flutterGcpProjectId = 'flutter-dashboard';
 
   // List of environment variable keys related to the Github app authentication.
-  static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY';
+  static const String kGithubKey = 'AUTO_SUBMIT_GITHUB_KEY_PEM';
   static const String kGithubAppId = 'AUTO_SUBMIT_GITHUB_APP_ID';
   static const String kWebHookKey = 'AUTO_SUBMIT_WEBHOOK_TOKEN';
   static const String kFlutterGitHubBotKey = 'AUTO_SUBMIT_FLUTTER_GITHUB_TOKEN';
@@ -221,7 +221,10 @@ class Config {
   }
 
   Future<String> getInstallationId(RepositorySlug slug) async {
-    final jwt = await _generateGithubJwt();
+    final jwt = generateGitHubJws(
+      privateKeyPem: await secretManager.getString(kGithubKey),
+      githubAppId: await secretManager.getString(kGithubAppId),
+    );
     final headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json',
@@ -274,7 +277,10 @@ class Config {
 
   Future<Uint8List> _generateGithubToken(RepositorySlug slug) async {
     log.info('Generating new GitHub token');
-    final jwt = await _generateGithubJwt();
+    final jwt = generateGitHubJws(
+      privateKeyPem: await secretManager.getString(kGithubKey),
+      githubAppId: await secretManager.getString(kGithubAppId),
+    );
     final headers = <String, String>{
       'Authorization': 'Bearer $jwt',
       'Accept': 'application/vnd.github.machine-man-preview+json',
@@ -301,26 +307,6 @@ class Config {
     }
     log.info('Successfully generated new GitHub token');
     return Uint8List.fromList(token.codeUnits);
-  }
-
-  Future<String> _generateGithubJwt() async {
-    final rawKey = await secretManager.getString(kGithubKey);
-    final sb = StringBuffer();
-    sb.writeln(rawKey.substring(0, 32));
-    sb.writeln(
-      rawKey.substring(32, rawKey.length - 30).replaceAll(' ', '  \n'),
-    );
-    sb.writeln(rawKey.substring(rawKey.length - 30, rawKey.length));
-    final privateKey = sb.toString();
-    final builder = JWTBuilder();
-    final now = DateTime.now();
-    builder
-      ..issuer = await secretManager.getString(kGithubAppId)
-      ..issuedAt = now
-      ..expiresAt = now.add(const Duration(minutes: 10));
-    final signer = JWTRsaSha256Signer(privateKey: privateKey);
-    final signedToken = builder.getSignedToken(signer);
-    return signedToken.toString();
   }
 
   /// Get the webhook key

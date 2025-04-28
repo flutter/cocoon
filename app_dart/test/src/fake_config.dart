@@ -217,11 +217,6 @@ class FakeConfig implements Config {
   }
 
   @override
-  Future<String> generateJsonWebToken() {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String> get githubAppId => throw UnimplementedError();
 
   @override

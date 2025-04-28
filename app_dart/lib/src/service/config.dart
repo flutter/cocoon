@@ -5,9 +5,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
-import 'package:corsac_jwt/corsac_jwt.dart';
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
@@ -399,23 +399,6 @@ interface class Config {
     'dependabot[bot]',
   };
 
-  Future<String> generateJsonWebToken() async {
-    final privateKey = await githubPrivateKey;
-    final publicKey = await githubPublicKey;
-    final builder = JWTBuilder();
-    final now = DateTime.now();
-    builder
-      ..issuer = await githubAppId
-      ..issuedAt = now
-      ..expiresAt = now.add(const Duration(minutes: 10));
-    final signer = JWTRsaSha256Signer(
-      privateKey: privateKey,
-      publicKey: publicKey,
-    );
-    final signedToken = builder.getSignedToken(signer);
-    return signedToken.toString();
-  }
-
   Future<String> generateGithubToken(gh.RepositorySlug slug) async {
     // GitHub's secondary rate limits are run into very frequently when making auth tokens.
     final cacheValue = await _cache.getOrCreateWithLocking(
@@ -434,7 +417,10 @@ interface class Config {
     final appInstallations = await githubAppInstallations;
     final appInstallation =
         appInstallations[slug.fullName]['installation_id'] as String?;
-    final jsonWebToken = await generateJsonWebToken();
+    final jsonWebToken = generateGitHubJws(
+      privateKeyPem: await githubPrivateKey,
+      githubAppId: await githubAppId,
+    );
     final headers = <String, String>{
       'Authorization': 'Bearer $jsonWebToken',
       'Accept': 'application/vnd.github.machine-man-preview+json',
