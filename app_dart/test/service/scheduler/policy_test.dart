@@ -31,6 +31,15 @@ void main() {
       generateFirestoreTask(1, status: Task.statusSucceeded),
     ];
 
+    final latestAllPendingOrSkipped = <Task>[
+      generateFirestoreTask(6),
+      generateFirestoreTask(5, status: Task.statusSkipped),
+      generateFirestoreTask(4, status: Task.statusSkipped),
+      generateFirestoreTask(3, status: Task.statusSkipped),
+      generateFirestoreTask(2, status: Task.statusSkipped),
+      generateFirestoreTask(1, status: Task.statusSucceeded),
+    ];
+
     final latestFinishedButRestPending = <Task>[
       generateFirestoreTask(6, status: Task.statusSucceeded),
       generateFirestoreTask(5),
@@ -79,13 +88,25 @@ void main() {
       );
     });
 
-    test('triggers after batch size', () async {
+    test('triggers after new tasks of batch size', () async {
       final task = generateFirestoreTask(7);
       expect(
         await policy.triggerPriority(
           taskName: task.taskName,
           commitSha: task.commitSha,
           recentTasks: latestAllPending,
+        ),
+        LuciBuildService.kDefaultPriority,
+      );
+    });
+
+    test('triggers after skipped tasks of batch size', () async {
+      final task = generateFirestoreTask(7);
+      expect(
+        await policy.triggerPriority(
+          taskName: task.taskName,
+          commitSha: task.commitSha,
+          recentTasks: latestAllPendingOrSkipped,
         ),
         LuciBuildService.kDefaultPriority,
       );
@@ -141,13 +162,6 @@ void main() {
         isNull,
       );
     });
-
-    test(
-      'do not return rerun priority when tasks length is smaller than batch size',
-      () {
-        expect(shouldRerunPriority(allPending, 5), false);
-      },
-    );
   });
 
   group('GuaranteedPolicy', () {

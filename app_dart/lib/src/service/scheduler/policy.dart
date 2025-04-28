@@ -40,7 +40,7 @@ final class GuaranteedPolicy implements SchedulerPolicy {
       return LuciBuildService.kDefaultPriority;
     }
     // Prioritize tasks that recently failed.
-    if (shouldRerunPriority(recentTasks, 1)) {
+    if (_shouldRerunPriority(recentTasks, 1)) {
       return LuciBuildService.kRerunPriority;
     }
     return LuciBuildService.kDefaultPriority;
@@ -83,11 +83,11 @@ final class BatchPolicy implements SchedulerPolicy {
     }
 
     // Prioritize tasks that recently failed.
-    if (shouldRerunPriority(recentTasks, kBatchSize)) {
+    if (_shouldRerunPriority(recentTasks, kBatchSize)) {
       return LuciBuildService.kRerunPriority;
     }
 
-    if (_allNew(recentTasks.sublist(0, kBatchSize - 1))) {
+    if (_allNewOrSkipped(recentTasks.sublist(0, kBatchSize - 1))) {
       return LuciBuildService.kDefaultPriority;
     }
 
@@ -96,22 +96,13 @@ final class BatchPolicy implements SchedulerPolicy {
 }
 
 /// Checks if all tasks are with [Task.statusNew].
-bool _allNew(List<Task> tasks) {
-  for (var task in tasks) {
-    if (task.status != Task.statusNew) {
-      return false;
-    }
-  }
-  return true;
+bool _allNewOrSkipped(List<Task> tasks) {
+  const newOrSkipped = {Task.statusNew, Task.statusSkipped};
+  return tasks.every((Task task) => newOrSkipped.contains(task.status));
 }
 
-// !!! WARNING !!!
-// If you change the implementation of either of these functions, also
-// change the implementation in scheduler/batch_backfiller.dart
-// !!! !!!!!!! !!!
-
 /// Return true if there is an earlier failed build.
-bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
+bool _shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   // Prioritize tasks that recently failed.
   var hasRecentFailure = false;
   for (var i = 0; i < pastTaskNumber && i < tasks.length; i++) {
@@ -123,15 +114,7 @@ bool shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   return hasRecentFailure;
 }
 
-// !!! WARNING !!!
-// If you change the implementation of either of these functions, also
-// change the implementation in scheduler/batch_backfiller.dart
-// !!! !!!!!!! !!!
-
-bool _isFailed(Task task) {
-  return task.status == Task.statusFailed ||
-      task.status == Task.statusInfraFailure;
-}
+bool _isFailed(Task task) => Task.taskFailStatusSet.contains(task.status);
 
 /// [Task] run outside of Cocoon are not triggered by the Cocoon scheduler.
 final class OmitPolicy implements SchedulerPolicy {
