@@ -1,3 +1,7 @@
+// Copyright 2025 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:jose_plus/jose.dart';
 import 'package:test/test.dart';
@@ -26,6 +30,7 @@ void main() {
   });
 }
 
+/// This is a random RSA 2048 test key and should not be used for anything else.
 const testKeyPem = '''
 -----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC309JyNJthKTto
