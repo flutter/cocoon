@@ -30,7 +30,7 @@ dependencies:
   truncate: 3.0.1 # Rolled by dependabot
   url_launcher: 6.3.1 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
-  url_launcher_web: 2.4.0 # Rolled by dependabot
+  url_launcher_web: 2.4.1 # Rolled by dependabot
 
 dev_dependencies:
   build_runner: ^2.4.15 # Rolled by dependabot
