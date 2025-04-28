@@ -16,7 +16,7 @@ dependencies:
     path: ../packages/cocoon_common
   cocoon_server:
     path: ../packages/cocoon_server
-  corsac_jwt: 1.0.1
+  corsac_jwt: 2.0.1
   crypto: 3.0.6
   github: 9.25.0
   googleapis: 13.2.0
