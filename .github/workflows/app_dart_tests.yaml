@@ -4,9 +4,9 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'app_dart/**'
-      - 'packages/**'
-      - '.github/workflows/app_dart_tests.yaml'
+      - "app_dart/**"
+      - "packages/**"
+      - ".github/workflows/app_dart_tests.yaml"
 
 jobs:
   setup:
@@ -22,7 +22,22 @@ jobs:
           cd app_dart
           dart pub get
 
-      - name: Run Dart tests
+      - name: Run app_dart tests
         run: |
           cd app_dart
           dart test test
+
+      - name: Run dart analyze
+        run: |
+          cd analyze
+          dart --enable-asserts analyze.dart
+
+      - name: Run code_health
+        run: |
+          cd dev/cocoon_code_health
+          dart run bin/check.dart
+
+      - name: Run license check
+        run: |
+          cd licenses
+          dart run check_licenses.dart
