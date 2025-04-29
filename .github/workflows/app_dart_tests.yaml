@@ -1,0 +1,28 @@
+name: Test app_dart
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app_dart/**'
+      - 'packages/**'
+      - '.github/workflows/app_dart_tests.yaml'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Dart dependencies
+        run: |
+          cd app_dart
+          dart pub get
+
+      - name: Run Dart tests
+        run: |
+          cd app_dart
+          dart test test

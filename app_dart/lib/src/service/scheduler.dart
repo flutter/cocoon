@@ -652,7 +652,7 @@ $s
     try {
       final artifactStatus = await _contentAwareHash.processWorkflowJob(job);
       log.info(
-        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus for $job',
+        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus',
       );
     } catch (e, s) {
       log.debug('scheduler.processWorkflowJob($job) failed (no-op)', e, s);
