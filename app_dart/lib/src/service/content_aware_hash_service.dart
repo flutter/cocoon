@@ -6,8 +6,13 @@ import 'dart:convert';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:googleapis/firestore/v1.dart';
+import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
+import '../model/firestore/content_aware_hash_builds.dart'
+    show BuildStatus, ContentAwareHashBuilds;
 import '../model/github/annotations.dart';
 import '../model/github/workflow_job.dart';
 
@@ -15,12 +20,22 @@ enum ContentHashWorkflowStatus { ok, error }
 
 /// Requests GitHub to run the content-aware-hash workflow for a requests REF
 interface class ContentAwareHashService {
-  ContentAwareHashService({required Config config}) : _config = config;
+  ContentAwareHashService({
+    required Config config,
+    required FirestoreService firestore,
+    @visibleForTesting DateTime Function() now = DateTime.now,
+  }) : _config = config,
+       _firestore = firestore,
+       _now = now;
 
   /// The global configuration of this AppEngine server.
   final Config _config;
 
-  /// Trigger
+  final FirestoreService _firestore;
+
+  final DateTime Function() _now;
+
+  /// Trigger github workflow to generate a content aware hash for the [gitRef].
   Future<ContentHashWorkflowStatus> triggerWorkflow(String gitRef) async {
     // Use this specific token to trigger the workflow.
     final gh = _config.createGitHubClientWithToken(
@@ -49,7 +64,7 @@ interface class ContentAwareHashService {
 
   static final _validSha = RegExp(r'^[0-9a-f]{40}$');
 
-  /// Locates the contnet aware hash for [workflow] or null.
+  /// Locates the content aware hash for [workflow] or null.
   ///
   /// This should only be used for workflow events in the merge group.
   Future<String?> hashFromWorkflowJobEvent(WorkflowJobEvent workflow) async {
@@ -112,4 +127,113 @@ interface class ContentAwareHashService {
     // Fail
     return null;
   }
+
+  /// Finds the hash status for [job] and updates any tracking docs.
+  Future<MergeQueueHashStatus> processWorkflowJob(
+    WorkflowJobEvent job, {
+    @visibleForTesting int maxAttempts = 5,
+  }) async {
+    final hash = await hashFromWorkflowJobEvent(job);
+    if (hash == null) return MergeQueueHashStatus.ignoreJob;
+
+    final headSha = job.workflowJob!.headSha!;
+
+    final r = RetryOptions(
+      maxAttempts: maxAttempts, // number of entries in the merge group?
+    );
+
+    try {
+      final result = await r.retry(() async {
+        // Important to do this bit in a transaction.
+        final transaction = await _firestore.beginTransaction();
+
+        try {
+          return _updateFirestore(transaction, hash, headSha);
+        } catch (e, s) {
+          log.warn(
+            'CAHS(headSha: $headSha, hash: $hash): failure to read/modify to firestore',
+            e,
+            s,
+          );
+          await _firestore.rollback(transaction);
+          rethrow;
+        }
+      });
+      return result;
+    } catch (e, s) {
+      log.warn(
+        'CAHS(headSha: $headSha, hash: $hash): multiple failures calling _updateFirestore',
+        e,
+        s,
+      );
+      return MergeQueueHashStatus.error;
+    }
+  }
+
+  Future<MergeQueueHashStatus> _updateFirestore(
+    Transaction transaction,
+    String hash,
+    String headSha,
+  ) async {
+    // First, see if there's a document that already exits. This can be an old
+    // content hash that already has artifacts, or one that is currently being
+    // built.
+    final doc = await ContentAwareHashBuilds.getByContentHash(
+      _firestore,
+      contentHash: hash,
+    );
+
+    // There isn't a doc - so we're the first request. Start one.
+    if (doc == null) {
+      await _firestore.commit(transaction, [
+        Write(
+          currentDocument: Precondition(exists: false),
+          update: ContentAwareHashBuilds(
+            buildStatus: BuildStatus.inProgress,
+            createdOn: _now(),
+            contentHash: hash,
+            commitSha: headSha,
+            waitingShas: [],
+          ),
+        ),
+      ]);
+
+      log.info(
+        'CAHS(headSha: $headSha, hash: $hash): first hash seen; building',
+      );
+      return MergeQueueHashStatus.build;
+    }
+
+    // A doc exists; check to see if the artifacts are ready.
+    if (doc.status == BuildStatus.success) {
+      log.info(
+        'CAHS(headSha: $headSha, hash: $hash): artifacts already built - would auto-complete merge group here',
+      );
+      return MergeQueueHashStatus.complete;
+    }
+
+    // A doc exists, but its not built yet - add ourselves to the waiting list
+    // to be notified later.
+    log.info(
+      'CAHS(headSha: $headSha, hash: $hash): still building; adding to waiting list',
+    );
+    final commitResult = await _firestore.commit(transaction, [
+      Write(
+        update: doc,
+        updateTransforms: [
+          FieldTransform(
+            fieldPath: ContentAwareHashBuilds.fieldWaitingShas,
+            appendMissingElements: ArrayValue(values: [headSha.toValue()]),
+          ),
+        ],
+      ),
+    ]);
+
+    log.debug(
+      'CAHS(headSha: $headSha, hash: $hash): results: ${commitResult.writeResults?.map((e) => e.toJson())}',
+    );
+    return MergeQueueHashStatus.wait;
+  }
 }
+
+enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }

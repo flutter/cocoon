@@ -650,12 +650,12 @@ $s
   // Work in progress - Content Aware hash retrieval.
   Future<void> processWorkflowJob(WorkflowJobEvent job) async {
     try {
-      final hash = await _contentAwareHash.hashFromWorkflowJobEvent(job);
-      log.debug(
-        'scheduler.processWorkflowJob(): Content-Aware-Hash = $hash for $job',
+      final artifactStatus = await _contentAwareHash.processWorkflowJob(job);
+      log.info(
+        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus for $job',
       );
-    } catch (e) {
-      log.debug('scheduler.processWorkflowJob($job) failed (no-op)', e);
+    } catch (e, s) {
+      log.debug('scheduler.processWorkflowJob($job) failed (no-op)', e, s);
     }
   }
 

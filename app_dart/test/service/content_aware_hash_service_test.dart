@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dart';
 import 'package:cocoon_service/src/model/github/workflow_job.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:http/http.dart';
@@ -14,6 +15,7 @@ import 'package:test/test.dart';
 
 import '../model/github/workflow_job_data.dart';
 import '../src/fake_config.dart';
+import '../src/service/fake_firestore_service.dart';
 import '../src/service/fake_github_service.dart';
 
 void main() {
@@ -23,12 +25,14 @@ void main() {
   late MockGitHub github;
   late FakeGithubService githubService;
   late ContentAwareHashService cahs;
+  late FakeFirestoreService firestoreService;
 
   setUp(() {
     github = MockGitHub();
     githubService = FakeGithubService(client: github);
     config = FakeConfig(githubClient: github, githubService: githubService);
-    cahs = ContentAwareHashService(config: config);
+    firestoreService = FakeFirestoreService();
+    cahs = ContentAwareHashService(config: config, firestore: firestoreService);
   });
 
   group('hashFromWorkflowJobEvent', () {
@@ -43,7 +47,7 @@ void main() {
             ),
           ),
         ),
-      ).thenAnswer((_) async => Response(goodAnnotation, 200));
+      ).thenAnswer((_) async => Response(goodAnnotation(), 200));
 
       final hash = await cahs.hashFromWorkflowJobEvent(job);
       expect(hash, '65038ef4984b927fd1762ef01d35c5ecc34ff5f7');
@@ -140,31 +144,139 @@ void main() {
       });
     });
   });
+
+  group('processWorkflowJob', () {
+    test('creates tracking document and returns build status.', () async {
+      when(github.request('GET', any)).thenAnswer(
+        (_) async => Response(goodAnnotation(contentHash: '1' * 40), 200),
+      );
+
+      final job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, MergeQueueHashStatus.build);
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.inProgress)
+              .hasWaitingShas([]),
+        ]),
+      );
+    });
+
+    test('returns `complete` if artifacts exist', () async {
+      when(github.request('GET', any)).thenAnswer(
+        (_) async => Response(goodAnnotation(contentHash: '1' * 40), 200),
+      );
+
+      firestoreService.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime.now(),
+          contentHash: '1' * 40,
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.success,
+          waitingShas: [],
+        ),
+      );
+
+      final job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, MergeQueueHashStatus.complete);
+    });
+
+    test('stacks multiple builds in one doc', () async {
+      when(github.request('GET', any)).thenAnswer(
+        (_) async => Response(goodAnnotation(contentHash: '1' * 40), 200),
+      );
+
+      var job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
+      await cahs.processWorkflowJob(job);
+
+      job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, MergeQueueHashStatus.wait);
+
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.inProgress)
+              .hasWaitingShas(['b' * 40]),
+        ]),
+      );
+    });
+
+    test('handles rollbacks', () async {
+      firestoreService.failOnTransactionCommit(clearAfter: true);
+      when(github.request('GET', any)).thenAnswer((_) async {
+        return Response(goodAnnotation(contentHash: '1' * 40), 200);
+      });
+
+      var job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
+      await cahs.processWorkflowJob(job);
+
+      job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, MergeQueueHashStatus.wait);
+
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.inProgress)
+              .hasWaitingShas(['b' * 40]),
+        ]),
+      );
+    });
+
+    test('handles abject failures', () async {
+      firestoreService.failOnTransactionCommit(clearAfter: false);
+      when(github.request('GET', any)).thenAnswer((_) async {
+        return Response(goodAnnotation(contentHash: '1' * 40), 200);
+      });
+
+      var job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
+      await cahs.processWorkflowJob(job, maxAttempts: 1);
+
+      job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, MergeQueueHashStatus.error);
+    });
+  });
 }
 
 extension on String {
-  WorkflowJobEvent toWorkflowJob() => WorkflowJobEvent.fromJson(
-    json.decode(workflowJobTemplate()) as Map<String, Object?>,
-  );
+  WorkflowJobEvent toWorkflowJob() =>
+      WorkflowJobEvent.fromJson(json.decode(this) as Map<String, Object?>);
 }
 
-const goodAnnotation = r'''[
-   {
-      "message" : "{\"not_content_hash\": \"65038ef4984b927fd1762ef01d35c5ecc34ff5f7\"}"
-   },
-   {
-      "annotation_level" : "notice",
-      "blob_href" : "https://github.com/flutter/flutter/blob/ddb811621061c5ad2767ff4ac84b2be70b8e84bf/.github",
-      "end_column" : null,
-      "end_line" : 18,
-      "message" : "{\"engine_content_hash\": \"65038ef4984b927fd1762ef01d35c5ecc34ff5f7\"}",
-      "path" : ".github",
-      "raw_details" : "",
-      "start_column" : null,
-      "start_line" : 18,
-      "title" : ""
-   }
-]''';
+String goodAnnotation({
+  String contentHash = '65038ef4984b927fd1762ef01d35c5ecc34ff5f7',
+}) => json.encode([
+  {
+    'message':
+        '{"not_content_hash": "65038ef4984b927fd1762ef01d35c5ecc34ff5f7"}',
+  },
+  {
+    'annotation_level': 'notice',
+    'blob_href':
+        'https://github.com/flutter/flutter/blob/ddb811621061c5ad2767ff4ac84b2be70b8e84bf/.github',
+    'end_column': null,
+    'end_line': 18,
+    'message': '{"engine_content_hash": "$contentHash"}',
+    'path': '.github',
+    'raw_details': '',
+    'start_column': null,
+    'start_line': 18,
+    'title': '',
+  },
+]);
 
 const nonsesnseAnnotation = r'''[
    {},
