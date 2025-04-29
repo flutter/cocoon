@@ -234,6 +234,20 @@ void main() {
         ]),
       );
     });
+
+    test('handles abject failures', () async {
+      firestoreService.failOnTransactionCommit(clearAfter: false);
+      when(github.request('GET', any)).thenAnswer((_) async {
+        return Response(goodAnnotation(contentHash: '1' * 40), 200);
+      });
+
+      var job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
+      await cahs.processWorkflowJob(job, maxAttempts: 1);
+
+      job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, MergeQueueHashStatus.error);
+    });
   });
 }
 

@@ -129,34 +129,45 @@ interface class ContentAwareHashService {
   }
 
   /// Finds the hash status for [job] and updates any tracking docs.
-  Future<MergeQueueHashStatus> processWorkflowJob(WorkflowJobEvent job) async {
+  Future<MergeQueueHashStatus> processWorkflowJob(
+    WorkflowJobEvent job, {
+    @visibleForTesting int maxAttempts = 5,
+  }) async {
     final hash = await hashFromWorkflowJobEvent(job);
-    if (hash == null) return MergeQueueHashStatus.unknown;
+    if (hash == null) return MergeQueueHashStatus.ignoreJob;
 
     final headSha = job.workflowJob!.headSha!;
 
-    final r = const RetryOptions(
-      maxAttempts: 5, // number of entries in the merge group?
+    final r = RetryOptions(
+      maxAttempts: maxAttempts, // number of entries in the merge group?
     );
 
-    // Important to do this bit in a transaction.
-    final result = await r.retry(() async {
-      final transaction = await _firestore.beginTransaction();
+    try {
+      final result = await r.retry(() async {
+        // Important to do this bit in a transaction.
+        final transaction = await _firestore.beginTransaction();
 
-      try {
-        return _updateFirestore(transaction, hash, headSha);
-      } catch (e, s) {
-        log.warn(
-          'CAHS(headSha: $headSha, hash: $hash): failure to read/modify to firestore',
-          e,
-          s,
-        );
-        await _firestore.rollback(transaction);
-        rethrow;
-      }
-    });
-
-    return result;
+        try {
+          return _updateFirestore(transaction, hash, headSha);
+        } catch (e, s) {
+          log.warn(
+            'CAHS(headSha: $headSha, hash: $hash): failure to read/modify to firestore',
+            e,
+            s,
+          );
+          await _firestore.rollback(transaction);
+          rethrow;
+        }
+      });
+      return result;
+    } catch (e, s) {
+      log.warn(
+        'CAHS(headSha: $headSha, hash: $hash): multiple failures calling _updateFirestore',
+        e,
+        s,
+      );
+      return MergeQueueHashStatus.error;
+    }
   }
 
   Future<MergeQueueHashStatus> _updateFirestore(
@@ -225,4 +236,4 @@ interface class ContentAwareHashService {
   }
 }
 
-enum MergeQueueHashStatus { wait, build, complete, unknown }
+enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }

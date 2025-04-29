@@ -39,8 +39,11 @@ class FakeContentAwareHashService implements ContentAwareHashService {
   MergeQueueHashStatus? nextStatusReturn;
 
   @override
-  Future<MergeQueueHashStatus> processWorkflowJob(WorkflowJobEvent job) {
-    final status = nextStatusReturn ?? MergeQueueHashStatus.unknown;
+  Future<MergeQueueHashStatus> processWorkflowJob(
+    WorkflowJobEvent job, {
+    int maxAttempts = 5,
+  }) {
+    final status = nextStatusReturn ?? MergeQueueHashStatus.ignoreJob;
     nextStatusReturn = null;
     return Future.value(status);
   }
