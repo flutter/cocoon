@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -116,6 +117,7 @@ class TaskGrid extends StatefulWidget {
 /// Weights should be in the range [0, 1.0] otherwise too much emphasis is placed on the first N rows, where N is the
 /// largest integer weight.
 const Map<String, double> _statusScores = <String, double>{
+  'Release Builder': 1.0,
   'Failed - Rerun': 1.0,
   'In Progress - Broke Tree': 0.7,
   'Failed': 0.7,
@@ -238,7 +240,9 @@ class _TaskGridState extends State<TaskGrid> {
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
           var weightStatus = task.status;
-          if (task.lastAttemptFailed) {
+          if (isTaskFromDartInternalBuilder(builderName: task.builderName)) {
+            weightStatus = 'Release Builder';
+          } else if (task.lastAttemptFailed) {
             weightStatus += ' - Broke Tree';
           } else if (task.isBringup) {
             // Flaky tasks should be shown after failures and reruns as they take up infra capacity.

@@ -30,7 +30,7 @@ dependencies:
   googleapis: 13.2.0
   googleapis_auth: 1.6.0
   gql: ^1.0.1-alpha+1730759315362
-  graphql: ^5.2.0-beta.11
+  graphql: ^5.2.1
   grpc: ^4.0.1
   http: ^1.2.1
   jose_plus: ^0.4.6

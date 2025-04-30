@@ -89,6 +89,8 @@ class FakeGraphQLClient implements GraphQLClient {
     GraphQLCache? cache,
     DefaultPolicies? defaultPolicies,
     bool? alwaysRebroadcast,
+    DeepEqualsFn? deepEquals,
+    bool deduplicatePollers = false,
     Duration? queryRequestTimeout,
   }) {
     throw UnimplementedError();

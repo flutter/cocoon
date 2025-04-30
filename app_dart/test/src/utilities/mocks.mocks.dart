@@ -1147,19 +1147,6 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as String);
 
   @override
-  _i13.Future<String> generateJsonWebToken() =>
-      (super.noSuchMethod(
-            Invocation.method(#generateJsonWebToken, []),
-            returnValue: _i13.Future<String>.value(
-              _i20.dummyValue<String>(
-                this,
-                Invocation.method(#generateJsonWebToken, []),
-              ),
-            ),
-          )
-          as _i13.Future<String>);
-
-  @override
   _i13.Future<String> generateGithubToken(_i7.RepositorySlug? slug) =>
       (super.noSuchMethod(
             Invocation.method(#generateGithubToken, [slug]),
@@ -2814,6 +2801,8 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
     _i8.GraphQLCache? cache,
     _i8.DefaultPolicies? defaultPolicies,
     bool? alwaysRebroadcast,
+    _i8.DeepEqualsFn? deepEquals,
+    bool? deduplicatePollers = false,
     Duration? queryRequestTimeout,
   }) =>
       (super.noSuchMethod(
@@ -2822,6 +2811,8 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
               #cache: cache,
               #defaultPolicies: defaultPolicies,
               #alwaysRebroadcast: alwaysRebroadcast,
+              #deepEquals: deepEquals,
+              #deduplicatePollers: deduplicatePollers,
               #queryRequestTimeout: queryRequestTimeout,
             }),
             returnValue: _FakeGraphQLClient_10(
@@ -2831,6 +2822,8 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
                 #cache: cache,
                 #defaultPolicies: defaultPolicies,
                 #alwaysRebroadcast: alwaysRebroadcast,
+                #deepEquals: deepEquals,
+                #deduplicatePollers: deduplicatePollers,
                 #queryRequestTimeout: queryRequestTimeout,
               }),
             ),
