@@ -78,6 +78,8 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pb.dart'
         GitilesCommit,
         GerritChange,
         Executable;
+export 'src/generated/go.chromium.org/luci/common/proto/structmask/structmask.pb.dart'
+    show StructMask;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pbenum.dart';
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/notification.pb.dart'
     show NotificationConfig, BuildsV2PubSub, PubSubCallBack;

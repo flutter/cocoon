@@ -14,6 +14,7 @@ import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
@@ -1065,5 +1066,97 @@ class LuciBuildService {
     );
 
     return task.currentAttempt;
+  }
+
+  /// Builder is defined in dart-internal:
+  /// https://dart-internal.googlesource.com/dart-internal/+/refs/heads/main/flutter-internal/flutter.star#33
+  static const _releaseBuilderName = 'Linux flutter_release_builder';
+
+  /// Reruns `Linux flutter_release_builder` for a release candidate [commit].
+  Future<void> rerunDartInternalReleaseBuilder({
+    required CommitRef commit,
+  }) async {
+    log.debug('rerunDartInternalReleaseBuilder($commit)');
+
+    // Look up the (previously failing, ostensibly) flutter_release_builder task.
+    final task = await _firestore.queryLatestTask(
+      commitSha: commit.sha,
+      builderName: _releaseBuilderName,
+    );
+    if (task == null) {
+      throw StateError(
+        'No task $_releaseBuilderName for commit SHA ${commit.sha}',
+      );
+    }
+    final buildId = task.buildNumber;
+    if (buildId == null) {
+      throw StateError(
+        'No build number available for document path "${task.name}"',
+      );
+    }
+    log.debug('Found latest executed build: $task');
+
+    // Because this is a large orchestrator build (a build that schedules many other sub-builds), and it is
+    // unlikely that every single build failed, we want to take advantage of the "retry_override_list" optional
+    // property, if able:
+    // https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162
+    final search = await _buildBucketClient.searchBuilds(
+      bbv2.SearchBuildsRequest(
+        predicate: bbv2.BuildPredicate(descendantOf: Int64(buildId)),
+        // build.name is not available by default unless requested (http://shortn/_JMHFmMhfPn)
+        mask: bbv2.BuildMask(
+          inputProperties: [
+            bbv2.StructMask(path: const ['build', 'name']),
+          ],
+        ),
+      ),
+    );
+    if (search.builds.isEmpty) {
+      throw StateError('No builds found for $buildId');
+    }
+    final failedBuilds = [
+      for (final build in search.builds)
+        if (const {
+          bbv2.Status.FAILURE,
+          bbv2.Status.INFRA_FAILURE,
+          bbv2.Status.CANCELED,
+        }.contains(build.status))
+          build.input.properties.fields['name']!.stringValue,
+    ];
+
+    final result = await _buildBucketClient.scheduleBuild(
+      bbv2.ScheduleBuildRequest(
+        builder: bbv2.BuilderID(
+          project: 'dart-internal',
+          bucket: 'flutter',
+          builder: _releaseBuilderName,
+        ),
+        exe: bbv2.Executable(cipdVersion: 'refs/heads/${commit.branch}'),
+        gitilesCommit: bbv2.GitilesCommit(
+          project: 'mirrors/${commit.slug.name}',
+          host: 'flutter.googlesource.com',
+          ref: 'refs/heads/${commit.branch}',
+          id: commit.sha,
+        ),
+        notify: bbv2.NotificationConfig(
+          pubsubTopic: p.posix.join(
+            'projects',
+            'flutter-dashboard',
+            'topics',
+            'dart-internal-build-results',
+          ),
+        ),
+        // See https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162.
+        properties: bbv2.Struct(
+          fields: {
+            'retry_override_list': bbv2.Value(
+              stringValue: failedBuilds.join(' '),
+            ),
+          },
+        ),
+        priority: kRerunPriority,
+      ),
+    );
+    log.info('Scheduled build: $result');
   }
 }
