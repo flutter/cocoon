@@ -326,23 +326,22 @@ class TaskOverlayContents extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  if (qualifiedTask.isLuci)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      // The RERUN button is only enabled if the user is authenticated.
-                      child: AnimatedBuilder(
-                        animation: buildState,
-                        builder: (context, child) {
-                          final isAuthenticated =
-                              buildState.authService.isAuthenticated;
-                          return ProgressButton(
-                            onPressed: isAuthenticated ? _rerunTask : null,
-                            child: child,
-                          );
-                        },
-                        child: const Text('RERUN'),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    // The RERUN button is only enabled if the user is authenticated.
+                    child: AnimatedBuilder(
+                      animation: buildState,
+                      builder: (context, child) {
+                        final isAuthenticated =
+                            buildState.authService.isAuthenticated;
+                        return ProgressButton(
+                          onPressed: isAuthenticated ? _rerunTask : null,
+                          child: child,
+                        );
+                      },
+                      child: const Text('RERUN'),
                     ),
+                  ),
                 ],
               ),
             ],
