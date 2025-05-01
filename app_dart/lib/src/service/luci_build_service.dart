@@ -993,15 +993,9 @@ class LuciBuildService {
     );
   }
 
-  /// Check to auto-rerun TOT test failures.
-  ///
-  /// A builder will be retried if:
-  ///   1. It has been tried below the max retry limit
-  ///   2. It is for the tip of tree
-  ///   3. The last known status is not green
-  ///   4. [ignoreChecks] is false. This allows manual reruns to bypass the Cocoon state.
+  /// Reruns the provided [task], returning `true` if successful.
   @useResult
-  Future<bool> checkRerunBuilder({
+  Future<bool> rerunBuilder({
     required CommitRef commit,
     required Target target,
     required fs.Task task,

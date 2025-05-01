@@ -59,7 +59,7 @@ void main() {
 
     when(
       // ignore: discarded_futures
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -122,7 +122,7 @@ void main() {
 
     expect(await tester.post(handler), Body.empty);
     verify(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -190,7 +190,7 @@ void main() {
     await tester.post(handler);
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -245,7 +245,7 @@ void main() {
     await tester.post(handler);
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -275,7 +275,7 @@ void main() {
     await tester.post(handler);
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -306,7 +306,7 @@ void main() {
     await tester.post(handler);
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -351,7 +351,7 @@ void main() {
     await tester.post(handler);
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -409,7 +409,7 @@ void main() {
     await tester.post(handler);
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -719,7 +719,7 @@ void main() {
     };
 
     when(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -733,7 +733,7 @@ void main() {
     );
 
     verifyNever(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),
@@ -761,7 +761,7 @@ void main() {
 
   test('Fails if task is not rerun', () async {
     when(
-      mockLuciBuildService.checkRerunBuilder(
+      mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),
         target: anyNamed('target'),
         tags: anyNamed('tags'),

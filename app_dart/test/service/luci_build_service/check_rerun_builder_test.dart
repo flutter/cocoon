@@ -19,7 +19,7 @@ import '../../src/utilities/mocks.mocks.dart';
 /// Tests [LuciBuildService] public API related to rerunning TOT test failures.
 ///
 /// Specifically:
-/// - [LuciBuildService.checkRerunBuilder]
+/// - [LuciBuildService.rerunBuilder]
 void main() {
   useTestLoggerPerTest();
 
@@ -62,7 +62,7 @@ void main() {
     firestore.putDocument(fsTask);
 
     await expectLater(
-      luci.checkRerunBuilder(
+      luci.rerunBuilder(
         commit: CommitRef.fromFirestore(fsCommit),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
@@ -119,7 +119,7 @@ void main() {
     firestore.putDocument(fsTask);
 
     await expectLater(
-      luci.checkRerunBuilder(
+      luci.rerunBuilder(
         commit: CommitRef.fromFirestore(fsCommit),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
@@ -178,7 +178,7 @@ void main() {
     firestore.failOnWriteCollection(fs.Task.metadata.collectionId);
 
     await expectLater(
-      luci.checkRerunBuilder(
+      luci.rerunBuilder(
         commit: CommitRef.fromFirestore(fsCommit),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
