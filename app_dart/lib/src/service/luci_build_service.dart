@@ -1067,28 +1067,15 @@ class LuciBuildService {
   static const _releaseBuilderName = 'Linux flutter_release_builder';
 
   /// Reruns `Linux flutter_release_builder` for a release candidate [commit].
-  Future<void> rerunDartInternalReleaseBuilder({
+  ///
+  /// Returns `false` if a rerun was not scheduled.
+  Future<bool> rerunDartInternalReleaseBuilder({
     required CommitRef commit,
+    required int buildNumber,
   }) async {
-    log.debug('rerunDartInternalReleaseBuilder($commit)');
-
-    // Look up the (previously failing, ostensibly) flutter_release_builder task.
-    final task = await _firestore.queryLatestTask(
-      commitSha: commit.sha,
-      builderName: _releaseBuilderName,
+    log.debug(
+      'rerunDartInternalReleaseBuilder(buildNumber=$buildNumber for $commit)',
     );
-    if (task == null) {
-      throw StateError(
-        'No task $_releaseBuilderName for commit SHA ${commit.sha}',
-      );
-    }
-    final buildId = task.buildNumber;
-    if (buildId == null) {
-      throw StateError(
-        'No build number available for document path "${task.name}"',
-      );
-    }
-    log.debug('Found latest executed build: $task');
 
     // Because this is a large orchestrator build (a build that schedules many other sub-builds), and it is
     // unlikely that every single build failed, we want to take advantage of the "retry_override_list" optional
@@ -1096,7 +1083,7 @@ class LuciBuildService {
     // https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162
     final search = await _buildBucketClient.searchBuilds(
       bbv2.SearchBuildsRequest(
-        predicate: bbv2.BuildPredicate(descendantOf: Int64(buildId)),
+        predicate: bbv2.BuildPredicate(descendantOf: Int64(buildNumber)),
         // build.name is not available by default unless requested (http://shortn/_JMHFmMhfPn)
         mask: bbv2.BuildMask(
           inputProperties: [
@@ -1106,7 +1093,8 @@ class LuciBuildService {
       ),
     );
     if (search.builds.isEmpty) {
-      throw StateError('No builds found for $buildId');
+      log.error('No builds found for $buildNumber');
+      return false;
     }
     final failedBuilds = [
       for (final build in search.builds)
@@ -1152,5 +1140,6 @@ class LuciBuildService {
       ),
     );
     log.info('Scheduled build: $result');
+    return true;
   }
 }

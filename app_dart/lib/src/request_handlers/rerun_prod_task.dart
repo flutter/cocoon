@@ -239,9 +239,30 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required String email,
   }) async {
     if (!_isTaskOwnedByCocoon(task)) {
-      throw BadRequestException(
-        'Cannot rerun ${task.taskName} through the dashboard. '
-        'See go/flutter-release-workflow#re-running-engine-build-for-release-candidate-branches',
+      // GUARD: Don't attempt to rerun a release builder that is still WIP, as
+      // we will (confusingly) only run failing targets at this snapshot at time
+      // which could omit targets that _will_ fail once completed.
+      //
+      // If we wanted to do better, that is, allow rerunning targets without
+      // waiting for the task to be complete, we'd need a different strategy
+      // (i.e. multiple tasks per release builder, versus one).
+      if (!fs.Task.finishedStatusValues.contains(task.status)) {
+        throw const BadRequestException(
+          'Cannot rerun a release builder that is not done running',
+        );
+      }
+
+      // GUARD: Should never happen, but just in case.
+      final buildNumber = task.buildNumber;
+      if (buildNumber == null) {
+        throw StateError(
+          'Completed release builder does not have a build number: $task',
+        );
+      }
+
+      return await _luciBuildService.rerunDartInternalReleaseBuilder(
+        buildNumber: buildNumber,
+        commit: CommitRef.fromFirestore(commit),
       );
     }
 
