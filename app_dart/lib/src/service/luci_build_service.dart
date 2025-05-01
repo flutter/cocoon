@@ -1083,11 +1083,12 @@ class LuciBuildService {
     // https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162
     final search = await _buildBucketClient.searchBuilds(
       bbv2.SearchBuildsRequest(
-        predicate: bbv2.BuildPredicate(descendantOf: Int64(buildNumber)),
+        predicate: bbv2.BuildPredicate(childOf: Int64(buildNumber)),
         // build.name is not available by default unless requested (http://shortn/_JMHFmMhfPn)
         mask: bbv2.BuildMask(
           inputProperties: [
             bbv2.StructMask(path: const ['build', 'name']),
+            bbv2.StructMask(path: const ['config_name']),
           ],
         ),
       ),
@@ -1103,7 +1104,7 @@ class LuciBuildService {
           bbv2.Status.INFRA_FAILURE,
           bbv2.Status.CANCELED,
         }.contains(build.status))
-          build.input.properties.fields['name']!.stringValue,
+          build.input.properties.fields['config_name']!.stringValue,
     ];
 
     final result = await _buildBucketClient.scheduleBuild(
