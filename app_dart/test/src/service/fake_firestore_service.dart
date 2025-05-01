@@ -443,8 +443,11 @@ abstract base class _FakeInMemoryFirestoreService
     return response;
   }
 
+  final List<Transaction> rollbacks = [];
+
   @override
   Future<void> rollback(Transaction transaction) async {
+    rollbacks.add(transaction);
     _transactions.remove(transaction.identifier);
   }
 

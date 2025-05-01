@@ -594,7 +594,7 @@ class Scheduler {
       };
       if (availableTargets.length != mergeGroupTargets.length) {
         log.warn(
-          '$logCrumb: missing builders for targtets: '
+          '$logCrumb: missing builders for targets: '
           '${mergeGroupTargets.difference(availableTargets)}',
         );
       }
@@ -652,10 +652,15 @@ $s
     try {
       final artifactStatus = await _contentAwareHash.processWorkflowJob(job);
       log.info(
-        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus',
+        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus '
+        'for ${job.workflowJob?.checkRunUrl}',
       );
     } catch (e, s) {
-      log.debug('scheduler.processWorkflowJob($job) failed (no-op)', e, s);
+      log.debug(
+        'scheduler.processWorkflowJob(${job.workflowJob?.checkRunUrl}) failed (no-op)',
+        e,
+        s,
+      );
     }
   }
 
@@ -1066,6 +1071,11 @@ $s
     //   1) in a presubmit test or
     //   2) in the merge queue
     if (detectMergeGroup(checkRun)) {
+      try {
+        await _contentAwareHash.completeArtifacts(commitSha: sha);
+      } catch (e, s) {
+        log.warn('failed to simulate closing merge group', e, s);
+      }
       await _closeMergeQueue(
         mergeQueueGuard: mergeQueueGuard,
         slug: slug,

@@ -234,6 +234,102 @@ interface class ContentAwareHashService {
     );
     return MergeQueueHashStatus.wait;
   }
+
+  /// Mark the [commitSha] as having finished building artifacts.
+  ///
+  /// The commit sha is tracked along with the content hash; but unless we
+  /// ensure the content has is piped through all the different systems -
+  /// Cocoon will not know about it.
+  Future<List<String>> completeArtifacts({
+    required String commitSha,
+    @visibleForTesting int maxAttempts = 5,
+  }) async {
+    final r = RetryOptions(
+      maxAttempts: maxAttempts, // number of entries in the merge group?
+    );
+
+    try {
+      final result = await r.retry(() async {
+        // Important to do this bit in a transaction.
+        final transaction = await _firestore.beginTransaction();
+
+        try {
+          return await _markShaAsCompleted(transaction, commitSha);
+        } catch (e, s) {
+          log.warn(
+            'CAHS(commitSha: $commitSha): failure to read/modify to firestore',
+            e,
+            s,
+          );
+          await _firestore.rollback(transaction);
+          rethrow;
+        }
+      });
+      return result;
+    } catch (e, s) {
+      log.warn(
+        'CAHS(commitSha: $commitSha): multiple failures calling _markShaAsCompleted',
+        e,
+        s,
+      );
+    }
+    return const [];
+  }
+
+  Future<List<String>> _markShaAsCompleted(
+    Transaction transaction,
+    String commitSha,
+  ) async {
+    // Look up the document via the commit sha - we don't have the hash value
+    // at this point in time.
+    final docs = await _firestore.query(
+      ContentAwareHashBuilds.metadata.collectionId,
+      {'${ContentAwareHashBuilds.fieldCommitSha} =': commitSha},
+      orderMap: {
+        ContentAwareHashBuilds.fieldCreateTimestamp: kQueryOrderDescending,
+      },
+      transaction: transaction,
+    );
+
+    // Do some validation
+    if (docs.isEmpty) {
+      throw 'no matching ContentAwareHashBuilds found for $commitSha';
+    }
+    if (docs.length > 1) {
+      log.warn(
+        'multiple matching ContentAwareHashBuilds found for $commitSha, using latest',
+      );
+    }
+    final contentHash = ContentAwareHashBuilds.fromDocument(docs.first);
+
+    // Don't complete an already completed document.
+    if (contentHash.status == BuildStatus.success) {
+      log.warn(
+        'already completed ContentAwareHashBuilds for $commitSha - nothing to do',
+      );
+      await _firestore.rollback(transaction);
+      return const [];
+    }
+
+    contentHash.status = BuildStatus.success;
+
+    // Commit the change
+    await _firestore.commit(transaction, [
+      Write(
+        currentDocument: Precondition(exists: true),
+        update: contentHash,
+        updateMask: DocumentMask(
+          fieldPaths: [ContentAwareHashBuilds.fieldStatus],
+        ),
+      ),
+    ]);
+
+    log.info(
+      'completed ContentAwareHashBuilds for $commitSha - '
+      'should notify ${contentHash.waitingShas}',
+    );
+    return contentHash.waitingShas;
+  }
 }
 
 enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }

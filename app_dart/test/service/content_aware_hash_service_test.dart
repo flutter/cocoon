@@ -249,6 +249,79 @@ void main() {
       expect(result, MergeQueueHashStatus.error);
     });
   });
+
+  group('markArtifactsAsComplete', () {
+    setUp(() {
+      firestoreService.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime.now(),
+          contentHash: '1' * 40,
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.inProgress,
+          waitingShas: ['b' * 40, 'c' * 40, 'd' * 40],
+        ),
+      );
+    });
+
+    test('does what it says on the tin', () async {
+      final shas = await cahs.completeArtifacts(commitSha: 'a' * 40);
+      expect(shas, ['b' * 40, 'c' * 40, 'd' * 40]);
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.success),
+        ]),
+      );
+    });
+
+    test('does not complete already completed', () async {
+      firestoreService.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime.now(),
+          contentHash: '1' * 40,
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.success,
+          waitingShas: ['b' * 40, 'c' * 40, 'd' * 40],
+        ),
+      );
+      final shas = await cahs.completeArtifacts(
+        commitSha: 'a' * 40,
+        maxAttempts: 1,
+      );
+      expect(shas, isEmpty);
+      expect(firestoreService.rollbacks, hasLength(1));
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.success),
+        ]),
+      );
+    });
+
+    test('handles abject failures', () async {
+      firestoreService.failOnTransactionCommit(clearAfter: false);
+      final shas = await cahs.completeArtifacts(
+        commitSha: 'a' * 40,
+        maxAttempts: 1,
+      );
+      expect(shas, isEmpty);
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.inProgress),
+        ]),
+      );
+    });
+  });
 }
 
 extension on String {
