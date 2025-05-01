@@ -4205,14 +4205,14 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
           as _i13.Future<_i7.CheckRun>);
 
   @override
-  _i13.Future<bool> checkRerunBuilder({
+  _i13.Future<bool> rerunBuilder({
     required _i31.CommitRef? commit,
     required _i27.Target? target,
     required _i32.Task? task,
     Iterable<_i35.BuildTag>? tags = const [],
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#checkRerunBuilder, [], {
+            Invocation.method(#rerunBuilder, [], {
               #commit: commit,
               #target: target,
               #task: task,
