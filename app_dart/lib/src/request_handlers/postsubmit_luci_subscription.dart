@@ -119,7 +119,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     );
     if (await _shouldAutomaticallyRerun(fsTask)) {
       log.debug('Trying to auto-retry...');
-      final retried = await _luciBuildService.checkRerunBuilder(
+      final retried = await _luciBuildService.rerunBuilder(
         commit: CommitRef.fromFirestore(fsCommit),
         target: target,
         task: fsTask,

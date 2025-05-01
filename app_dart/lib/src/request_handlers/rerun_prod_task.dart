@@ -251,7 +251,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       return false;
     }
 
-    return await _luciBuildService.checkRerunBuilder(
+    return await _luciBuildService.rerunBuilder(
       commit: CommitRef.fromFirestore(commit),
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
