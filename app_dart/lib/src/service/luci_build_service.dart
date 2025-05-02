@@ -1129,6 +1129,8 @@ class LuciBuildService {
     ];
     if (failedBuilds.isEmpty) {
       log.info('No failing builds found for $buildId, will rerun all builds');
+    } else {
+      log.debug('Re-running specific builders: $failedBuilds');
     }
 
     final result = await _buildBucketClient.scheduleBuild(
