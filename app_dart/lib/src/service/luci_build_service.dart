@@ -1063,7 +1063,7 @@ class LuciBuildService {
   }
 
   /// Builder is defined in dart-internal:
-  /// https://dart-internal.googlesource.com/dart-internal/+/refs/heads/main/flutter-internal/flutter.star#33
+  /// https://dart-internal.googlesource.com/dart-internal/+/ab97fef445a9e415b504b9398cd2406c9c42ea27/flutter-internal/flutter.star#33
   static const _releaseBuilderName = 'Linux flutter_release_builder';
 
   /// Reruns `Linux flutter_release_builder` for a release candidate [commit].
@@ -1138,15 +1138,12 @@ class LuciBuildService {
           ref: 'refs/heads/${commit.branch}',
           id: commit.sha,
         ),
-        notify: bbv2.NotificationConfig(
-          pubsubTopic: p.posix.join(
-            'projects',
-            'flutter-dashboard',
-            'topics',
-            'dart-internal-build-results',
-          ),
-        ),
-        // See https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162.
+        // Explicitly omitted. We don't want a custom callback, and instead will
+        // rely on the (automatic) callback that happens as part of the dart-interrnal
+        // LUCI configuration:
+        // https://dart-internal.googlesource.com/dart-internal/+/ab97fef445a9e415b504b9398cd2406c9c42ea27/main.star#31
+        notify: null,
+        // See https://flutter.googlesource.com/recipes/+/58bceb87e4a3d3b60e7f148c082eb262db7fd4bb/recipes/release/release_builder.py#162.
         properties: bbv2.Struct(
           fields: {
             'retry_override_list': bbv2.Value(
