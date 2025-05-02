@@ -1077,13 +1077,34 @@ class LuciBuildService {
       'rerunDartInternalReleaseBuilder(buildNumber=$buildNumber for $commit)',
     );
 
+    final builderId = bbv2.BuilderID(
+      project: 'dart-internal',
+      bucket: 'flutter',
+      builder: _releaseBuilderName,
+    );
+
+    // We need to first look up: what is the full build ID given a build number?
+    final Int64 buildId;
+    try {
+      final build = await _buildBucketClient.getBuild(
+        bbv2.GetBuildRequest(buildNumber: buildNumber, builder: builderId),
+      );
+      buildId = build.id;
+    } on BuildBucketException catch (e) {
+      if (e.statusCode == 404) {
+        log.error('No build found for $buildNumber in $builderId');
+        return false;
+      }
+      rethrow;
+    }
+
     // Because this is a large orchestrator build (a build that schedules many other sub-builds), and it is
     // unlikely that every single build failed, we want to take advantage of the "retry_override_list" optional
     // property, if able:
     // https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162
     final search = await _buildBucketClient.searchBuilds(
       bbv2.SearchBuildsRequest(
-        predicate: bbv2.BuildPredicate(childOf: Int64(buildNumber)),
+        predicate: bbv2.BuildPredicate(childOf: buildId),
         // build.name is not available by default unless requested (http://shortn/_JMHFmMhfPn)
         mask: bbv2.BuildMask(
           inputProperties: [
@@ -1109,11 +1130,7 @@ class LuciBuildService {
 
     final result = await _buildBucketClient.scheduleBuild(
       bbv2.ScheduleBuildRequest(
-        builder: bbv2.BuilderID(
-          project: 'dart-internal',
-          bucket: 'flutter',
-          builder: _releaseBuilderName,
-        ),
+        builder: builderId,
         exe: bbv2.Executable(cipdVersion: 'refs/heads/${commit.branch}'),
         gitilesCommit: bbv2.GitilesCommit(
           project: 'mirrors/${commit.slug.name}',
