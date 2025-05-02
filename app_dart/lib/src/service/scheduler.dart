@@ -594,7 +594,7 @@ class Scheduler {
       };
       if (availableTargets.length != mergeGroupTargets.length) {
         log.warn(
-          '$logCrumb: missing builders for targtets: '
+          '$logCrumb: missing builders for targets: '
           '${mergeGroupTargets.difference(availableTargets)}',
         );
       }
@@ -652,10 +652,15 @@ $s
     try {
       final artifactStatus = await _contentAwareHash.processWorkflowJob(job);
       log.info(
-        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus',
+        'scheduler.processWorkflowJob(): artifacts status: $artifactStatus '
+        'for ${job.workflowJob?.checkRunUrl}',
       );
     } catch (e, s) {
-      log.debug('scheduler.processWorkflowJob($job) failed (no-op)', e, s);
+      log.debug(
+        'scheduler.processWorkflowJob(${job.workflowJob?.checkRunUrl}) failed (no-op)',
+        e,
+        s,
+      );
     }
   }
 
@@ -978,6 +983,7 @@ $s
       // and let humans sort it out. If the group is left hanging in the queue, it
       // will hold up all other PRs that are trying to land.
       if (isMergeGroup) {
+        await _completeArtifacts(sha, true);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1006,6 +1012,7 @@ $s
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
       if (isMergeGroup) {
+        await _completeArtifacts(sha, true);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1028,6 +1035,9 @@ $s
     //   enter the MQ).
     switch (stage) {
       case CiStage.fusionEngineBuild:
+        if (isMergeGroup) {
+          await _completeArtifacts(sha, true);
+        }
         await _closeSuccessfulEngineBuildStage(
           checkRun: checkRun,
           mergeQueueGuard: stagingConclusion.checkRunGuard!,
@@ -1044,6 +1054,21 @@ $s
         );
     }
     return true;
+  }
+
+  Future<void> _completeArtifacts(String commitSha, bool successful) async {
+    try {
+      await _contentAwareHash.completeArtifacts(
+        commitSha: commitSha,
+        successful: successful,
+      );
+    } catch (e, s) {
+      log.warn(
+        'failed to simulate completing artifacts with successful:$successful',
+        e,
+        s,
+      );
+    }
   }
 
   /// Whether the [checkRunEvent] is for a merge group (rather than a pull request).

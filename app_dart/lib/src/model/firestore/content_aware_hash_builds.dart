@@ -54,9 +54,9 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
       g.Document(
         name: documentPathFor(contentHash),
         fields: {
-          _fieldCreateTimestamp: createdOn.toValue(),
+          fieldCreateTimestamp: createdOn.toValue(),
           fieldContentHash: contentHash.toValue(),
-          _fieldCommitSha: commitSha.toValue(),
+          fieldCommitSha: commitSha.toValue(),
           fieldStatus: buildStatus.name.toValue(),
           fieldWaitingShas: g.Value(
             arrayValue: g.ArrayValue(
@@ -71,21 +71,21 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
   /// Create [ContentAwareHashBuilds] from a firestore Document.
   ContentAwareHashBuilds.fromDocument(super.document);
 
-  static const _fieldCreateTimestamp = 'createTimestamp';
+  static const fieldCreateTimestamp = 'createTimestamp';
   static const fieldContentHash = 'content_hash';
-  static const _fieldCommitSha = 'commit_sha';
+  static const fieldCommitSha = 'commit_sha';
   static const fieldStatus = 'status';
   static const fieldWaitingShas = 'waiting_shas';
 
   DateTime get createdOn =>
-      DateTime.parse(fields[_fieldCreateTimestamp]!.timestampValue!);
+      DateTime.parse(fields[fieldCreateTimestamp]!.timestampValue!);
 
   BuildStatus get status =>
       BuildStatus.values.byName(fields[fieldStatus]!.stringValue!);
 
   String get contentHash => fields[fieldContentHash]!.stringValue!;
 
-  String get commitSha => fields[_fieldCommitSha]!.stringValue!;
+  String get commitSha => fields[fieldCommitSha]!.stringValue!;
 
   List<String> get waitingShas {
     return [
@@ -93,6 +93,10 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
           in fields[fieldWaitingShas]?.arrayValue?.values ?? <g.Value>[])
         t.stringValue!,
     ];
+  }
+
+  set status(BuildStatus status) {
+    fields[fieldStatus] = status.name.toValue();
   }
 }
 

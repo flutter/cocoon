@@ -96,8 +96,10 @@ final class AppDocumentMetadata<T extends AppDocument<T>> {
 /// Provides methods across [g.Document] sub-types in `model/firestore/*.dart`.
 @internal
 abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
+  /// Makes a new app document with potentially a shallow clone of the [from]
+  /// document.
   AppDocument([g.Document? from])
-    : _fields = from?.fields ?? {},
+    : _fields = {...?from?.fields},
       name = from?.name,
       createTime = from?.createTime,
       updateTime = from?.updateTime;

@@ -47,4 +47,19 @@ class FakeContentAwareHashService implements ContentAwareHashService {
     nextStatusReturn = null;
     return Future.value(status);
   }
+
+  final List<({String commitSha, bool successful})> completedShas = [];
+  List<String>? nextCompletedShas;
+
+  @override
+  Future<List<String>> completeArtifacts({
+    required String commitSha,
+    required bool successful,
+    int maxAttempts = 5,
+  }) async {
+    completedShas.add((commitSha: commitSha, successful: successful));
+    final shas = nextCompletedShas ?? const [];
+    nextCompletedShas = null;
+    return shas;
+  }
 }
