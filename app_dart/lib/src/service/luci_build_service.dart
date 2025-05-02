@@ -14,7 +14,6 @@ import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
