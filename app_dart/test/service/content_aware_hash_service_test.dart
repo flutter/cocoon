@@ -264,7 +264,10 @@ void main() {
     });
 
     test('does what it says on the tin', () async {
-      final shas = await cahs.completeArtifacts(commitSha: 'a' * 40);
+      final shas = await cahs.completeArtifacts(
+        commitSha: 'a' * 40,
+        successful: true,
+      );
       expect(shas, ['b' * 40, 'c' * 40, 'd' * 40]);
       expect(
         firestoreService,
@@ -289,6 +292,7 @@ void main() {
       );
       final shas = await cahs.completeArtifacts(
         commitSha: 'a' * 40,
+        successful: true,
         maxAttempts: 1,
       );
       expect(shas, isEmpty);
@@ -308,6 +312,7 @@ void main() {
       firestoreService.failOnTransactionCommit(clearAfter: false);
       final shas = await cahs.completeArtifacts(
         commitSha: 'a' * 40,
+        successful: true,
         maxAttempts: 1,
       );
       expect(shas, isEmpty);

@@ -242,6 +242,7 @@ interface class ContentAwareHashService {
   /// Cocoon will not know about it.
   Future<List<String>> completeArtifacts({
     required String commitSha,
+    required bool successful,
     @visibleForTesting int maxAttempts = 5,
   }) async {
     final r = RetryOptions(
@@ -254,7 +255,7 @@ interface class ContentAwareHashService {
         final transaction = await _firestore.beginTransaction();
 
         try {
-          return await _markShaAsCompleted(transaction, commitSha);
+          return await _markShaAsCompleted(transaction, commitSha, successful);
         } catch (e, s) {
           log.warn(
             'CAHS(commitSha: $commitSha): failure to read/modify to firestore',
@@ -279,6 +280,7 @@ interface class ContentAwareHashService {
   Future<List<String>> _markShaAsCompleted(
     Transaction transaction,
     String commitSha,
+    bool successful,
   ) async {
     // Look up the document via the commit sha - we don't have the hash value
     // at this point in time.
@@ -303,15 +305,15 @@ interface class ContentAwareHashService {
     final contentHash = ContentAwareHashBuilds.fromDocument(docs.first);
 
     // Don't complete an already completed document.
-    if (contentHash.status == BuildStatus.success) {
+    if (contentHash.status != BuildStatus.inProgress) {
       log.warn(
-        'already completed ContentAwareHashBuilds for $commitSha - nothing to do',
+        'already completed ContentAwareHashBuilds for $commitSha with ${contentHash.status} - nothing to do',
       );
       await _firestore.rollback(transaction);
       return const [];
     }
 
-    contentHash.status = BuildStatus.success;
+    contentHash.status = successful ? BuildStatus.success : BuildStatus.failure;
 
     // Commit the change
     await _firestore.commit(transaction, [
@@ -325,7 +327,7 @@ interface class ContentAwareHashService {
     ]);
 
     log.info(
-      'completed ContentAwareHashBuilds for $commitSha - '
+      'completed ContentAwareHashBuilds($commitSha): ${contentHash.status} - '
       'should notify ${contentHash.waitingShas}',
     );
     return contentHash.waitingShas;

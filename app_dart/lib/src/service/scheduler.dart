@@ -983,6 +983,7 @@ $s
       // and let humans sort it out. If the group is left hanging in the queue, it
       // will hold up all other PRs that are trying to land.
       if (isMergeGroup) {
+        await _completeArtifacts(sha, true);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1011,6 +1012,7 @@ $s
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
       if (isMergeGroup) {
+        await _completeArtifacts(sha, true);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1033,6 +1035,9 @@ $s
     //   enter the MQ).
     switch (stage) {
       case CiStage.fusionEngineBuild:
+        if (isMergeGroup) {
+          await _completeArtifacts(sha, true);
+        }
         await _closeSuccessfulEngineBuildStage(
           checkRun: checkRun,
           mergeQueueGuard: stagingConclusion.checkRunGuard!,
@@ -1049,6 +1054,21 @@ $s
         );
     }
     return true;
+  }
+
+  Future<void> _completeArtifacts(String commitSha, bool successful) async {
+    try {
+      await _contentAwareHash.completeArtifacts(
+        commitSha: commitSha,
+        successful: successful,
+      );
+    } catch (e, s) {
+      log.warn(
+        'failed to simulate completing artifacts with successful:$successful',
+        e,
+        s,
+      );
+    }
   }
 
   /// Whether the [checkRunEvent] is for a merge group (rather than a pull request).
@@ -1071,11 +1091,6 @@ $s
     //   1) in a presubmit test or
     //   2) in the merge queue
     if (detectMergeGroup(checkRun)) {
-      try {
-        await _contentAwareHash.completeArtifacts(commitSha: sha);
-      } catch (e, s) {
-        log.warn('failed to simulate closing merge group', e, s);
-      }
       await _closeMergeQueue(
         mergeQueueGuard: mergeQueueGuard,
         slug: slug,
