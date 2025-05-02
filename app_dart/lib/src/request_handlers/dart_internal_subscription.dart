@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/task.dart' as fs;
+import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 
 /// Listens for and saves build updates for `dart-internal` builds.
@@ -34,10 +35,14 @@ final class DartInternalSubscription extends SubscriptionHandler {
   @override
   Future<Body> post() async {
     final bbv2.Build build;
-    {
+    try {
       final decoded = json.decode(message.data!);
       final pubSub = bbv2.BuildsV2PubSub()..mergeFromProto3Json(decoded);
       build = pubSub.build;
+    } on FormatException catch (e) {
+      // If we can't decode this message, it will never complete.
+      log.error('Could not decode dart-internal message: $message.data', e);
+      throw const BadRequestException('Could not decode dart-internal message');
     }
 
     if (!isTaskFromDartInternalBuilder(builderName: build.builder.builder)) {
