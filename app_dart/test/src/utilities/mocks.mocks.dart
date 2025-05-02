@@ -4221,6 +4221,20 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
             returnValue: _i13.Future<bool>.value(false),
           )
           as _i13.Future<bool>);
+
+  @override
+  _i13.Future<bool> rerunDartInternalReleaseBuilder({
+    required _i31.CommitRef? commit,
+    required int? buildNumber,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#rerunDartInternalReleaseBuilder, [], {
+              #commit: commit,
+              #buildNumber: buildNumber,
+            }),
+            returnValue: _i13.Future<bool>.value(false),
+          )
+          as _i13.Future<bool>);
 }
 
 /// A class which mocks [ProcessManager].

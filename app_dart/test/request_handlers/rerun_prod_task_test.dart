@@ -638,32 +638,36 @@ void main() {
     );
   });
 
-  test('Rerun specific refuses flutter_release_builder', () async {
-    final commit = generateFirestoreCommit(1);
+  test(
+    'Rerun specific refuses flutter_release_builder',
+    () async {
+      final commit = generateFirestoreCommit(1);
 
-    firestore.putDocuments([
-      commit,
-      generateFirestoreTask(
-        1,
-        name: 'Linux flutter_release_builder',
-        attempts: 1,
-        status: fs.Task.statusFailed,
-        commitSha: '1',
-      ),
-    ]);
+      firestore.putDocuments([
+        commit,
+        generateFirestoreTask(
+          1,
+          name: 'Linux flutter_release_builder',
+          attempts: 1,
+          status: fs.Task.statusFailed,
+          commitSha: '1',
+        ),
+      ]);
 
-    tester.requestData = {
-      'branch': commit.branch,
-      'repo': commit.slug.name,
-      'commit': commit.sha,
-      'task': 'Linux flutter_release_builder',
-    };
+      tester.requestData = {
+        'branch': commit.branch,
+        'repo': commit.slug.name,
+        'commit': commit.sha,
+        'task': 'Linux flutter_release_builder',
+      };
 
-    await expectLater(
-      tester.post(handler),
-      throwsA(isA<BadRequestException>()),
-    );
-  });
+      await expectLater(
+        tester.post(handler),
+        throwsA(isA<BadRequestException>()),
+      );
+    },
+    skip: 'https://github.com/flutter/flutter/issues/168090',
+  );
 
   test('Rerun all ignores flutter_release_builder', () async {
     final commit = generateFirestoreCommit(1);
