@@ -72,8 +72,12 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
       return false;
     });
 
-    // Now, create two lists: high priority (recent failure or RC) and regular.
+    // Now, create three lists
+    // 1. Rerun existing failure
     final higherPriorityReruns = <TaskRef>[];
+    // 2. Tip of tree
+    final mediumPriorityReruns = <TaskRef>[];
+    // 3. Everything else
     final lowerPriorityReruns = <TaskRef>[];
 
     for (final (_, column) in grid.eligibleTasks) {
@@ -83,13 +87,27 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
           continue;
         }
 
-        // Determine whether it is high priority or regular priority.
-        if (isReleaseCandidateBranch(branchName: grid.getCommit(row).branch) ||
-            column
-                .getRange(i, min(i + BatchPolicy.kBatchSize + 1, column.length))
-                .any((t) => fs.Task.taskFailStatusSet.contains(t.status))) {
+        // Determine relative priority.
+        if (_indexOfTreeRedCause(column) case final index? when index > i) {
+          // ⬜ i
+          // 🟥 index
+          // ^^ Use high priority, this is turning the tree red.
+          //
+          // ⬜ i
+          // 🟩
+          // 🟥 index will return as `null`
+          // ^^ Uses default (or backfill) priority, next commit passed.
           higherPriorityReruns.add(row);
+        } else if (isReleaseCandidateBranch(
+          branchName: grid.getCommit(row).branch,
+        )) {
+          // Release candidates should take priority over normal backfill.
+          mediumPriorityReruns.add(row);
+        } else if (row.commitSha == grid.getCommit(column[0]).sha) {
+          // Tip of tree should take priority over normal backfill.
+          mediumPriorityReruns.add(row);
         } else {
+          // Everything else.
           lowerPriorityReruns.add(row);
         }
 
@@ -98,17 +116,27 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
       }
     }
 
-    // Shuffle both sublists.
-    higherPriorityReruns.shuffle(_random);
-    lowerPriorityReruns.shuffle(_random);
+    // Shuffle each sublist.
+    for (final list in [
+      higherPriorityReruns,
+      mediumPriorityReruns,
+      lowerPriorityReruns,
+    ]) {
+      list.shuffle(_random);
+    }
 
-    // Return both of these lists, concatted.
-    // TODO(matanlurey): ToT tasks should be run with kDefaultPriority.
+    // Return each list concatted in order.
     return [
       ...higherPriorityReruns.map(
         (t) => grid.createBackfillTask(
           t,
           priority: LuciBuildService.kRerunPriority,
+        ),
+      ),
+      ...mediumPriorityReruns.map(
+        (t) => grid.createBackfillTask(
+          t,
+          priority: LuciBuildService.kDefaultPriority,
         ),
       ),
       ...lowerPriorityReruns.map(
@@ -118,5 +146,22 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
         ),
       ),
     ];
+  }
+
+  static int? _indexOfTreeRedCause(Iterable<TaskRef> tasks) {
+    for (final (i, task) in tasks.indexed) {
+      // Only evaluate completed tasks.
+      if (!fs.Task.finishedStatusValues.contains(task.status)) {
+        continue;
+      }
+
+      // Returns true for failed tasks, and false for successful.
+      if (fs.Task.taskFailStatusSet.contains(task.status)) {
+        return i;
+      } else {
+        return null;
+      }
+    }
+    return null;
   }
 }
