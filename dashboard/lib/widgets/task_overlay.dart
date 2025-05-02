@@ -270,7 +270,6 @@ class TaskOverlayContents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final qualifiedTask = QualifiedTask.fromTask(task);
     final now = Now.of(context);
 
     final summaryText = [
