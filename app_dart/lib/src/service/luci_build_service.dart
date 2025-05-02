@@ -1115,7 +1115,7 @@ class LuciBuildService {
       ),
     );
     if (search.builds.isEmpty) {
-      log.error('No builds found for $buildNumber');
+      log.error('No builds found for $buildId');
       return false;
     }
     final failedBuilds = [
@@ -1127,6 +1127,9 @@ class LuciBuildService {
         }.contains(build.status))
           build.input.properties.fields['config_name']!.stringValue,
     ];
+    if (failedBuilds.isEmpty) {
+      log.info('No failing builds found for $buildId, will rerun all builds');
+    }
 
     final result = await _buildBucketClient.scheduleBuild(
       bbv2.ScheduleBuildRequest(
@@ -1146,9 +1149,10 @@ class LuciBuildService {
         // See https://flutter.googlesource.com/recipes/+/58bceb87e4a3d3b60e7f148c082eb262db7fd4bb/recipes/release/release_builder.py#162.
         properties: bbv2.Struct(
           fields: {
-            'retry_override_list': bbv2.Value(
-              stringValue: failedBuilds.join(' '),
-            ),
+            if (failedBuilds.isNotEmpty)
+              'retry_override_list': bbv2.Value(
+                stringValue: failedBuilds.join(' '),
+              ),
           },
         ),
         priority: kRerunPriority,
