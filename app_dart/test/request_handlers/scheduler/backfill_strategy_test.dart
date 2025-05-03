@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
+import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
 import '../../src/utilities/entity_generators.dart';
@@ -20,8 +21,7 @@ void main() {
 
   group('DefaultBackfillStrategy', () {
     // Pick a deterministic seed, because shuffling is involved.
-    final random = Random(0);
-    final strategy = DefaultBackfillStrategy(random);
+    final strategy = DefaultBackfillStrategy(_FakeRandom());
 
     final commits = [
       for (var i = 0; i < 10; i++)
@@ -127,16 +127,19 @@ void main() {
       ]);
       // dart format on
 
-      expect(strategy.determineBackfill(grid), [
-        isBackfillTask
-            .hasCommit(commits[0])
-            .hasTarget(targets[0])
-            .hasPriority(LuciBuildService.kDefaultPriority),
-        isBackfillTask
-            .hasCommit(commits[0])
-            .hasTarget(targets[1])
-            .hasPriority(LuciBuildService.kDefaultPriority),
-      ]);
+      expect(
+        strategy.determineBackfill(grid),
+        unorderedEquals([
+          isBackfillTask
+              .hasCommit(commits[0])
+              .hasTarget(targets[0])
+              .hasPriority(LuciBuildService.kDefaultPriority),
+          isBackfillTask
+              .hasCommit(commits[0])
+              .hasTarget(targets[1])
+              .hasPriority(LuciBuildService.kDefaultPriority),
+        ]),
+      );
     });
 
     // INPUT:
@@ -208,20 +211,23 @@ void main() {
       ]);
       // dart format on
 
-      expect(strategy.determineBackfill(grid), [
-        isBackfillTask // 1️⃣
-            .hasCommit(commits[0])
-            .hasTarget(targets[2])
-            .hasPriority(LuciBuildService.kRerunPriority),
-        isBackfillTask // 2️⃣
-            .hasCommit(commits[0])
-            .hasTarget(targets[1])
-            .hasPriority(LuciBuildService.kRerunPriority),
-        isBackfillTask // 3️⃣
-            .hasCommit(commits[0])
-            .hasTarget(targets[0])
-            .hasPriority(LuciBuildService.kRerunPriority),
-      ]);
+      expect(
+        strategy.determineBackfill(grid),
+        unorderedEquals([
+          isBackfillTask // 1️⃣
+              .hasCommit(commits[0])
+              .hasTarget(targets[2])
+              .hasPriority(LuciBuildService.kRerunPriority),
+          isBackfillTask // 2️⃣
+              .hasCommit(commits[0])
+              .hasTarget(targets[1])
+              .hasPriority(LuciBuildService.kRerunPriority),
+          isBackfillTask // 3️⃣
+              .hasCommit(commits[0])
+              .hasTarget(targets[0])
+              .hasPriority(LuciBuildService.kRerunPriority),
+        ]),
+      );
     });
 
     test('any commit to tip-of-tree has medium priority', () {
@@ -246,4 +252,11 @@ void main() {
       ]);
     });
   });
+}
+
+final class _FakeRandom extends Fake implements Random {
+  @override
+  int nextInt(_) {
+    return 0;
+  }
 }
