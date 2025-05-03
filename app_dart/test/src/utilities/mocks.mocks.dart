@@ -4225,12 +4225,12 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
   @override
   _i13.Future<bool> rerunDartInternalReleaseBuilder({
     required _i31.CommitRef? commit,
-    required int? buildNumber,
+    required _i32.Task? task,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#rerunDartInternalReleaseBuilder, [], {
               #commit: commit,
-              #buildNumber: buildNumber,
+              #task: task,
             }),
             returnValue: _i13.Future<bool>.value(false),
           )

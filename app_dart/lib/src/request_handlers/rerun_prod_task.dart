@@ -261,8 +261,8 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       }
 
       return await _luciBuildService.rerunDartInternalReleaseBuilder(
-        buildNumber: buildNumber,
         commit: CommitRef.fromFirestore(commit),
+        task: task,
       );
     }
 

@@ -721,9 +721,16 @@ void main() {
             equals(CommitRef.fromFirestore(commit)),
             named: 'commit',
           ),
-          buildNumber: argThat(equals(123), named: 'buildNumber'),
+          task: argThat(anything, named: 'task'),
         ),
-      ).thenAnswer((_) async {
+      ).thenAnswer((i) async {
+        final task = i.namedArguments[#task] as Task;
+        expect(
+          task,
+          isTask
+              .hasTaskName('Linux flutter_release_builder')
+              .hasBuildNumber(123),
+        );
         return true;
       });
 

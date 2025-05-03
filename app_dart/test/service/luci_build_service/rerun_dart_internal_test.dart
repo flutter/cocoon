@@ -7,6 +7,7 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
@@ -16,6 +17,7 @@ import '../../src/fake_config.dart';
 import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/service/fake_gerrit_service.dart';
+import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
 /// Tests [LuciBuildService] public API related to `dart-internal` builds.
@@ -30,9 +32,21 @@ void main() {
 
   // Dependencies (mocked/faked if necessary):
   late MockBuildBucketClient mockBuildBucketClient;
+  late FakeFirestoreService firestore;
+
+  late fs.Task task;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
+
+    firestore = FakeFirestoreService();
+    task = generateFirestoreTask(
+      0,
+      name: 'Linux flutter_release_builder',
+      status: fs.Task.statusFailed,
+      buildNumber: 123,
+    );
+    firestore.putDocument(task);
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
@@ -41,7 +55,7 @@ void main() {
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: MockGithubChecksUtil(),
       pubsub: FakePubSub(),
-      firestore: FakeFirestoreService(),
+      firestore: firestore,
     );
   });
 
@@ -70,7 +84,7 @@ void main() {
           branch: 'flutter-0.42-candidate.0',
           slug: Config.flutterSlug,
         ),
-        buildNumber: 123,
+        task: task,
       ),
       completion(isFalse),
     );
@@ -85,6 +99,12 @@ void main() {
           ),
         ),
       ),
+    );
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
+      ]),
     );
   });
 
@@ -113,7 +133,7 @@ void main() {
           branch: 'flutter-0.42-candidate.0',
           slug: Config.flutterSlug,
         ),
-        buildNumber: 123,
+        task: task,
       ),
       completion(isFalse),
     );
@@ -128,6 +148,12 @@ void main() {
           ),
         ),
       ),
+    );
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
+      ]),
     );
   });
 
@@ -223,12 +249,19 @@ void main() {
           branch: 'flutter-0.42-candidate.0',
           slug: Config.flutterSlug,
         ),
-        buildNumber: 123,
+        task: task,
       ),
       completion(isTrue),
     );
 
     expect(log, hasNoErrorsOrHigher);
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
+        isTask.hasStatus(fs.Task.statusInProgress).hasCurrentAttempt(2),
+      ]),
+    );
   });
 
   test('reruns entire build', () async {
@@ -290,11 +323,18 @@ void main() {
           branch: 'flutter-0.42-candidate.0',
           slug: Config.flutterSlug,
         ),
-        buildNumber: 123,
+        task: task,
       ),
       completion(isTrue),
     );
 
     expect(log, hasNoErrorsOrHigher);
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
+        isTask.hasStatus(fs.Task.statusInProgress).hasCurrentAttempt(2),
+      ]),
+    );
   });
 }
