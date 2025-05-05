@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
+import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
 import '../../src/utilities/entity_generators.dart';
@@ -20,8 +21,7 @@ void main() {
 
   group('DefaultBackfillStrategy', () {
     // Pick a deterministic seed, because shuffling is involved.
-    final random = Random(0);
-    final strategy = DefaultBackfillStrategy(random);
+    final strategy = DefaultBackfillStrategy(_FakeRandom());
 
     final commits = [
       for (var i = 0; i < 10; i++)
@@ -127,14 +127,54 @@ void main() {
       ]);
       // dart format on
 
+      expect(
+        strategy.determineBackfill(grid),
+        unorderedEquals([
+          isBackfillTask
+              .hasCommit(commits[0])
+              .hasTarget(targets[0])
+              .hasPriority(LuciBuildService.kDefaultPriority),
+          isBackfillTask
+              .hasCommit(commits[0])
+              .hasTarget(targets[1])
+              .hasPriority(LuciBuildService.kDefaultPriority),
+        ]),
+      );
+    });
+
+    // INPUT:
+    // 🧑‍💼 ⬜ 🟩
+    // 🧑‍💼 ⬜ ⬜
+    //
+    // OUTPUT:
+    // 🧑‍💼 🟨 🟩
+    // 🧑‍💼 ⬜ 🟨
+    test('gives lowest priority to non-ToT commits', () {
+      // dart format off
+      grid = BackfillGrid.from([
+        //           Linux TASK_0            Linux TASK_1
+        (commits[0], [taskNew       (0, 0),  taskSucceeded (0, 1)]),
+        (commits[1], [taskNew       (1, 0),  taskNew       (1, 1)]),
+      ], tipOfTreeTargets: [
+        targets[0],
+        targets[1],
+      ]);
+      // dart format on
+
       expect(strategy.determineBackfill(grid), [
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[0]),
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[1]),
+        isBackfillTask
+            .hasCommit(commits[0])
+            .hasTarget(targets[0])
+            .hasPriority(LuciBuildService.kDefaultPriority),
+        isBackfillTask
+            .hasCommit(commits[1])
+            .hasTarget(targets[1])
+            .hasPriority(LuciBuildService.kBackfillPriority),
       ]);
     });
 
     // INPUT:
-    // 🧑‍💼 ⬜ ⬜ ⬜ kBatchSize = 6
+    // 🧑‍💼 ⬜ ⬜ ⬜ < 0
     // 🧑‍💼 ⬜ ⬜ ⬜ < 1
     // 🧑‍💼 ⬜ ⬜ ⬜ < 2
     // 🧑‍💼 ⬜ ⬜ ⬜ < 3
@@ -144,7 +184,7 @@ void main() {
     // 🧑‍💼 🟥 ⬜ ⬜ < 7
     //
     // OUTPUT:
-    // 🧑‍💼 3️⃣ 1️⃣ 2️⃣ kBatchSize = 6
+    // 🧑‍💼 3️⃣ 2️⃣ 1️⃣ < 0
     // 🧑‍💼 ⬜ ⬜ ⬜ < 1
     // 🧑‍💼 ⬜ ⬜ ⬜ < 2
     // 🧑‍💼 ⬜ ⬜ ⬜ < 3
@@ -152,7 +192,7 @@ void main() {
     // 🧑‍💼 ⬜ ⬜ 🟥 < 5
     // 🧑‍💼 ⬜ 🟥 ⬜ < 6
     // 🧑‍💼 🟥 ⬜ ⬜ < 7
-    test('places previously failing within kBatchSize as high priority', () {
+    test('places previously failing as high priority ignoring kBatchSize', () {
       // dart format off
       grid = BackfillGrid.from([
         //           Linux TASK_0            Linux TASK_1          Linux TASK_2
@@ -171,20 +211,28 @@ void main() {
       ]);
       // dart format on
 
-      expect(strategy.determineBackfill(grid), [
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[1]), // 1️⃣
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[2]), // 2️⃣
-        isBackfillTask.hasCommit(commits[0]).hasTarget(targets[0]), // 3️⃣
-      ]);
+      expect(
+        strategy.determineBackfill(grid),
+        unorderedEquals([
+          isBackfillTask // 1️⃣
+              .hasCommit(commits[0])
+              .hasTarget(targets[2])
+              .hasPriority(LuciBuildService.kRerunPriority),
+          isBackfillTask // 2️⃣
+              .hasCommit(commits[0])
+              .hasTarget(targets[1])
+              .hasPriority(LuciBuildService.kRerunPriority),
+          isBackfillTask // 3️⃣
+              .hasCommit(commits[0])
+              .hasTarget(targets[0])
+              .hasPriority(LuciBuildService.kRerunPriority),
+        ]),
+      );
     });
 
-    test('any commit to a release candidate branch has high priority', () {
+    test('any commit to tip-of-tree has medium priority', () {
       final commit = CommitRef.fromFirestore(
-        generateFirestoreCommit(
-          1,
-          branch: 'flutter-3.32-candidate.0',
-          sha: '123',
-        ),
+        generateFirestoreCommit(1, sha: '123'),
       );
       // dart format off
       grid = BackfillGrid.from([
@@ -200,8 +248,15 @@ void main() {
         isBackfillTask
             .hasCommit(commit)
             .hasTarget(targets[0])
-            .hasPriority(LuciBuildService.kRerunPriority),
+            .hasPriority(LuciBuildService.kDefaultPriority),
       ]);
     });
   });
+}
+
+final class _FakeRandom extends Fake implements Random {
+  @override
+  int nextInt(_) {
+    return 0;
+  }
 }
