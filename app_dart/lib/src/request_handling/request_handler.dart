@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -52,7 +51,6 @@ abstract class RequestHandler<T extends Body> {
                 throw MethodNotAllowed(request.method);
             }
             await _respond(body: body);
-            httpClient?.close();
             return;
           } on HttpStatusException {
             rethrow;
@@ -75,7 +73,6 @@ abstract class RequestHandler<T extends Body> {
       zoneValues: <RequestKey<dynamic>, Object>{
         RequestKey.request: request,
         RequestKey.response: request.response,
-        RequestKey.httpClient: httpClient ?? http.Client(),
       },
     );
   }
@@ -140,11 +137,6 @@ abstract class RequestHandler<T extends Body> {
   Future<T> post() async {
     throw const MethodNotAllowed('POST');
   }
-
-  /// The package:http Client to use for googleapis requests.
-  @protected
-  http.Client? get httpClient =>
-      getValue<http.Client>(RequestKey.httpClient, allowNull: true);
 }
 
 /// A key that can be used to index a value within the request context.
@@ -162,9 +154,6 @@ class RequestKey<T> {
   );
   static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>(
     'response',
-  );
-  static const RequestKey<http.Client> httpClient = RequestKey<http.Client>(
-    'httpClient',
   );
 
   @override
