@@ -13,6 +13,7 @@ import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -41,7 +42,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   final CiYamlSet? ciYamlForTesting;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
@@ -73,6 +74,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       slug,
       state: 'open',
     );
+    final threshold = double.parse(request.uri.queryParameters[kThresholdKey]!);
     await _updateExistingFlakyIssue(
       gitHub,
       slug,
@@ -80,12 +82,10 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       prodBuilderStatisticList: prodBuilderStatisticList,
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,
+      threshold: threshold,
     );
     return Body.forJson(const <String, dynamic>{'Status': 'success'});
   }
-
-  double get _threshold =>
-      double.parse(request!.uri.queryParameters[kThresholdKey]!);
 
   /// Adds an update comment and adjusts the labels of the existing issue based
   /// on the latest statistics.
@@ -100,17 +100,18 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required BuilderStatistic statistic,
     required Issue existingIssue,
     required CiYamlSet ciYaml,
+    required double threshold,
   }) async {
     if (DateTime.now().difference(existingIssue.createdAt!) <
         const Duration(days: kFreshPeriodForOpenFlake)) {
       return;
     }
-    final threshold =
+    final computedThreshold =
         ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ??
-        _threshold;
+        threshold;
     final updateBuilder = IssueUpdateBuilder(
       statistic: statistic,
-      threshold: threshold,
+      threshold: computedThreshold,
       existingIssue: existingIssue,
       bucket: bucket,
     );
@@ -161,6 +162,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
     required List<BuilderStatistic> prodBuilderStatisticList,
     required List<BuilderStatistic> stagingBuilderStatisticList,
     required Map<String?, Issue> nameToExistingIssue,
+    required double threshold,
   }) async {
     final builderFlakyMap = <String, bool>{};
     final ignoreFlakyMap = <String, bool>{};
@@ -187,6 +189,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
           statistic: statistic,
           existingIssue: nameToExistingIssue[statistic.name]!,
           ciYaml: ciYaml,
+          threshold: threshold,
         );
       }
     }
@@ -203,6 +206,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
           statistic: statistic,
           existingIssue: nameToExistingIssue[statistic.name]!,
           ciYaml: ciYaml,
+          threshold: threshold,
         );
       }
     }

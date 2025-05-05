@@ -151,7 +151,7 @@ class UnauthTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get() async => throw StateError('Unreachable');
+  Future<Body> get(_) async => throw StateError('Unreachable');
 }
 
 /// Test stub of [SubscriptionHandler] to validate authenticated requests.
@@ -165,7 +165,7 @@ class AuthTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get() async => Body.empty;
+  Future<Body> get(_) async => Body.empty;
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
@@ -179,7 +179,7 @@ class ErrorTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get() async => throw const InternalServerError('Test error!');
+  Future<Body> get(_) async => throw const InternalServerError('Test error!');
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
@@ -193,7 +193,7 @@ class ErrorCodeTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(_) async {
     response!.statusCode = HttpStatus.serviceUnavailable;
     return Body.empty;
   }
@@ -210,5 +210,5 @@ class ReadMessageTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get() async => Body.forString(message.data!);
+  Future<Body> get(_) async => Body.forString(message.data!);
 }

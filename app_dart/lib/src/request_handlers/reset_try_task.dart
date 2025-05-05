@@ -29,12 +29,15 @@ class ResetTryTask extends ApiRequestHandler<Body> {
   static const String kBuilderParam = 'builders';
 
   @override
-  Future<Body> get() async {
-    checkRequiredQueryParameters(<String>[kRepoParam, kPullRequestNumberParam]);
-    final owner = request!.uri.queryParameters[kOwnerParam] ?? 'flutter';
-    final repo = request!.uri.queryParameters[kRepoParam]!;
-    final pr = request!.uri.queryParameters[kPullRequestNumberParam]!;
-    final builders = request!.uri.queryParameters[kBuilderParam] ?? '';
+  Future<Body> get(Request request) async {
+    checkRequiredQueryParameters(request, <String>[
+      kRepoParam,
+      kPullRequestNumberParam,
+    ]);
+    final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
+    final repo = request.uri.queryParameters[kRepoParam]!;
+    final pr = request.uri.queryParameters[kPullRequestNumberParam]!;
+    final builders = request.uri.queryParameters[kBuilderParam] ?? '';
     final builderList = getBuilderList(builders);
 
     final prNumber = int.tryParse(pr);

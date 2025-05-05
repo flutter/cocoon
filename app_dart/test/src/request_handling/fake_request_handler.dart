@@ -21,14 +21,14 @@ class FakeRequestHandler extends RequestHandler<Body> {
   String? reasonPhrase;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(_) async {
     callCount++;
     _updateResponseMetadata();
     return body;
   }
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(_) async {
     callCount++;
     _updateResponseMetadata();
     return body;

@@ -11,6 +11,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
@@ -85,16 +86,6 @@ void main() {
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
-    test('non-JSON request body yields HTTP ok', () async {
-      handler = ReadParams();
-      final response = await issueRequest(body: 'abc');
-      expect(response.statusCode, HttpStatus.ok);
-      expect(response.headers.value('X-Test-RequestBody'), '[97, 98, 99]');
-      expect(response.headers.value('X-Test-RequestData'), '{}');
-      expect(await response.toList(), isEmpty);
-      expect(log, bufferedLoggerOf(isEmpty));
-    });
-
     test('can access authContext', () async {
       handler = AccessAuth();
       final response = await issueRequest();
@@ -137,7 +128,7 @@ class Unauth extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get() async => throw StateError('Unreachable');
+  Future<Body> get(_) async => throw StateError('Unreachable');
 }
 
 class ReadParams extends ApiRequestHandler<Body> {
@@ -148,7 +139,9 @@ class ReadParams extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
+    final requestBody = await request.readBodyAsBytes();
+    final requestData = await request.readBodyAsJson();
     response!.headers.add('X-Test-RequestBody', requestBody.toString());
     response!.headers.add('X-Test-RequestData', requestData.toString());
     return Body.empty;
@@ -163,8 +156,11 @@ class NeedsParams extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get() async {
-    checkRequiredParameters(<String>['param1', 'param2']);
+  Future<Body> get(Request request) async {
+    checkRequiredParameters(await request.readBodyAsJson(), <String>[
+      'param1',
+      'param2',
+    ]);
     return Body.empty;
   }
 }
@@ -177,7 +173,7 @@ class AccessAuth extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(_) async {
     response!.headers.add(
       'X-Test-IsDev',
       authContext!.clientContext.isDevelopmentEnvironment,

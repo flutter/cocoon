@@ -14,6 +14,7 @@ import '../../ci_yaml.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
@@ -50,7 +51,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
   final FirestoreService _firestore;
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(Request request) async {
     if (message.data == null) {
       log.info('no data in message');
       return Body.empty;

@@ -14,6 +14,7 @@ import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -56,7 +57,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   };
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,

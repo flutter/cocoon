@@ -9,6 +9,7 @@ import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:meta/meta.dart';
 
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import 'get_build_status.dart';
 
 /// [GetBuildStatusBadge] returns an SVG representing the current tree status for the given repo.
@@ -45,11 +46,10 @@ final class GetBuildStatusBadge extends GetBuildStatus {
   static const green = '#3BB143';
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     // Set HTTP content-type so SVG is viewable.
-    final response = request!.response;
-    response.headers.contentType = ContentType.parse('image/svg+xml');
-    final buildStatusResponse = await super.createResponse();
+    response!.headers.contentType = ContentType.parse('image/svg+xml');
+    final buildStatusResponse = await super.createResponse(request);
     return Body.forString(generateSVG(buildStatusResponse));
   }
 

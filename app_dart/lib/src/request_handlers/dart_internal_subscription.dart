@@ -33,7 +33,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
   final FirestoreService _firestore;
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(Request request) async {
     final bbv2.Build build;
     try {
       final decoded = json.decode(message.data!);

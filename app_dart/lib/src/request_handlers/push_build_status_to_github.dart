@@ -35,7 +35,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
   static const _fullNameRepoParam = 'repo';
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       log.debug('GitHub statuses are not pushed from local dev environments');
@@ -43,7 +43,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
     }
 
     final repository =
-        request!.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
+        request.uri.queryParameters[_fullNameRepoParam] ?? 'flutter/flutter';
     final slug = RepositorySlug.full(repository);
     final status = await _buildStatusService.calculateCumulativeStatus(slug);
     await _insertBigQuery(

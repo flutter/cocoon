@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/body.dart';
@@ -14,14 +15,14 @@ import 'request_handler_tester.dart';
 
 class ApiRequestHandlerTester extends RequestHandlerTester {
   ApiRequestHandlerTester({
-    super.request,
+    super.request, //
     FakeAuthenticatedContext? context,
-    Map<String, dynamic>? requestData,
-  }) : context = context ?? FakeAuthenticatedContext(),
-       requestData = requestData ?? <String, dynamic>{};
+  }) : context = context ?? FakeAuthenticatedContext();
 
   FakeAuthenticatedContext context;
-  Map<String, dynamic> requestData;
+  set requestData(Map<String, Object?> requestData) {
+    request.body = jsonEncode(requestData);
+  }
 
   @override
   @protected
@@ -31,10 +32,7 @@ class ApiRequestHandlerTester extends RequestHandlerTester {
         () {
           return callback();
         },
-        zoneValues: <RequestKey<dynamic>, Object>{
-          ApiKey.authContext: context,
-          ApiKey.requestData: requestData,
-        },
+        zoneValues: <RequestKey<dynamic>, Object>{ApiKey.authContext: context},
       );
     });
   }

@@ -14,6 +14,7 @@ import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -37,7 +38,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   final BigQueryService _bigQuery;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
@@ -58,12 +59,13 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
     final schedulerConfig = ciYaml.configFor(CiType.any);
     final targets = schedulerConfig.targets;
 
+    final threshold = double.parse(request.uri.queryParameters[kThresholdKey]!);
     final testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
     final nameToExistingIssue = await getExistingIssues(gitHub, slug);
     final nameToExistingPR = await getExistingPRs(gitHub, slug);
     var filedIssueAndPRCount = 0;
     for (final statistic in builderStatisticList) {
-      if (shouldSkip(statistic, ciYaml, targets)) {
+      if (shouldSkip(statistic, ciYaml, targets, threshold: threshold)) {
         continue;
       }
 
@@ -83,6 +85,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
             testOwnerContent,
           ),
         ),
+        threshold: threshold,
       );
       if (issueAndPRFiled) {
         filedIssueAndPRCount++;
@@ -100,8 +103,9 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   bool shouldSkip(
     BuilderStatistic statistic,
     CiYamlSet ciYaml,
-    List<pb.Target> targets,
-  ) {
+    List<pb.Target> targets, {
+    required double threshold,
+  }) {
     // Skips if the target has been removed from .ci.yaml.
     if (!targets.map((e) => e.name).toList().contains(statistic.name)) {
       return true;
@@ -111,22 +115,20 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       return true;
     }
     // Skips if the flaky percentage is below the threshold.
-    final threshold =
+    final computedThreshold =
         ciYaml.getFirstPostsubmitTarget(statistic.name)?.flakinessThreshold ??
-        _threshold;
-    if (statistic.flakyRate < threshold) {
+        threshold;
+    if (statistic.flakyRate < computedThreshold) {
       return true;
     }
     return false;
   }
 
-  double get _threshold =>
-      double.parse(request!.uri.queryParameters[kThresholdKey]!);
-
   Future<bool> _fileIssueAndPR(
     GithubService gitHub,
     RepositorySlug slug, {
     required BuilderDetail builderDetail,
+    required double threshold,
   }) async {
     var issue = builderDetail.existingIssue;
     if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
@@ -139,7 +141,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
       builderDetail: builderDetail,
       gitHub: gitHub,
       slug: slug,
-      threshold: _threshold,
+      threshold: threshold,
     );
 
     if (builderDetail.type == BuilderType.shard ||

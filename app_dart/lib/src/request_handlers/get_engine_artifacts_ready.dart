@@ -37,8 +37,8 @@ final class GetEngineArtifactsReady extends RequestHandler<Body> {
   static const _paramSha = 'sha';
 
   @override
-  Future<Body> get() async {
-    final commitSha = request!.uri.queryParameters[_paramSha];
+  Future<Body> get(Request request) async {
+    final commitSha = request.uri.queryParameters[_paramSha];
     if (commitSha == null) {
       throw const BadRequestException('Missing query parameter: "$_paramSha"');
     }

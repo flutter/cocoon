@@ -23,15 +23,15 @@ base class GetBuildStatus extends RequestHandler<Body> {
   static const _kBranchParam = 'branch';
 
   @override
-  Future<Body> get() async {
-    final response = await createResponse();
+  Future<Body> get(Request request) async {
+    final response = await createResponse(request);
     return Body.forJson(response);
   }
 
   @protected
-  Future<rpc_model.BuildStatusResponse> createResponse() async {
-    final repoName = request!.uri.queryParameters[_kRepoParam] ?? 'flutter';
-    final repoBranch = request!.uri.queryParameters[_kBranchParam];
+  Future<rpc_model.BuildStatusResponse> createResponse(Request request) async {
+    final repoName = request.uri.queryParameters[_kRepoParam] ?? 'flutter';
+    final repoBranch = request.uri.queryParameters[_kBranchParam];
 
     final slug = RepositorySlug('flutter', repoName);
     final status = await _buildStatusService.calculateCumulativeStatus(

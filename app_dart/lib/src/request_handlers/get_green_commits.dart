@@ -46,13 +46,12 @@ final class GetGreenCommits extends RequestHandler<Body> {
   static const kRepoParam = 'repo';
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     final repoName =
-        request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
+        request.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final slug = RepositorySlug('flutter', repoName);
     final branch =
-        request!.uri.queryParameters[kBranchParam] ??
-        Config.defaultBranch(slug);
+        request.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final commitNumber = config.commitNumber;
 
     final allCommits = await _buildStatusService.retrieveCommitStatusFirestore(

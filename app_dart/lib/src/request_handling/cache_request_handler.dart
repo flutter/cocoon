@@ -46,10 +46,10 @@ final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// response from the cache before getting it to set the cached response
   /// to the latest information.
   @override
-  Future<T> get() async {
-    final responseKey = '${request!.uri.path}:${request!.uri.query}';
+  Future<T> get(Request request) async {
+    final responseKey = '${request.uri.path}:${request.uri.query}';
 
-    if (request!.uri.queryParameters[flushCacheQueryParam] == 'true') {
+    if (request.uri.queryParameters[flushCacheQueryParam] == 'true') {
       await _cache.purge(responseSubcacheName, responseKey);
     }
 
@@ -58,7 +58,7 @@ final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
       responseKey,
       createFn: () async {
         // TODO(matanlurey): Evaluate if 5XX errors should not be cached.
-        final response = await _createCachedResponse(_delegate);
+        final response = await _createCachedResponse(request, _delegate);
         return response.toBytes();
       },
       ttl: _ttl,
@@ -78,9 +78,10 @@ final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
 
   /// Invokes [delegate.get], and returns the result as a [_CachedHttpResponse].
   Future<_CachedHttpResponse> _createCachedResponse(
+    Request request,
     RequestHandler<T> delegate,
   ) async {
-    final body = await delegate.get();
+    final body = await delegate.get(request);
     final response = this.response!;
     final builder = BytesBuilder();
     await body.serialize().forEach((d) {

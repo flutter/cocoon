@@ -39,14 +39,14 @@ class GithubWebhook extends RequestHandler<Body> {
   final Future<String> secret;
 
   @override
-  Future<Body> post() async {
-    final event = request!.headers.value('X-GitHub-Event');
+  Future<Body> post(Request request) async {
+    final event = request.header('X-GitHub-Event');
 
-    if (event == null || request!.headers.value('X-Hub-Signature') == null) {
+    if (event == null || request.header('X-Hub-Signature') == null) {
       throw const BadRequestException('Missing required headers.');
     }
-    final requestBytes = await request!.expand((i) => i).toList();
-    final hmacSignature = request!.headers.value('X-Hub-Signature');
+    final requestBytes = await request.readBodyAsBytes();
+    final hmacSignature = request.header('X-Hub-Signature');
     await _validateRequest(hmacSignature, requestBytes);
 
     final requestString = utf8.decode(requestBytes);

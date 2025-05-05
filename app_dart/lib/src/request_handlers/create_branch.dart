@@ -6,6 +6,7 @@ import 'dart:async';
 
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../service/branch_service.dart';
 
 /// Creates the flutter/recipes branch to match a flutter/flutter branch.
@@ -27,10 +28,13 @@ class CreateBranch extends ApiRequestHandler<Body> {
   static const String engineShaParam = 'engine';
 
   @override
-  Future<Body> get() async {
-    checkRequiredQueryParameters(<String>[branchParam, engineShaParam]);
-    final branch = request!.uri.queryParameters[branchParam]!;
-    final engineSha = request!.uri.queryParameters[engineShaParam]!;
+  Future<Body> get(Request request) async {
+    checkRequiredQueryParameters(request, <String>[
+      branchParam,
+      engineShaParam,
+    ]);
+    final branch = request.uri.queryParameters[branchParam]!;
+    final engineSha = request.uri.queryParameters[engineShaParam]!;
 
     await branchService.branchFlutterRecipes(branch, engineSha);
 

@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
 import '../service/config.dart';
 
@@ -32,9 +33,9 @@ class FlushCache extends ApiRequestHandler<Body> {
   static const String cacheKeyParam = 'key';
 
   @override
-  Future<Body> get() async {
-    checkRequiredQueryParameters(<String>[cacheKeyParam]);
-    final cacheKey = request!.uri.queryParameters[cacheKeyParam]!;
+  Future<Body> get(Request request) async {
+    checkRequiredQueryParameters(request, <String>[cacheKeyParam]);
+    final cacheKey = request.uri.queryParameters[cacheKeyParam]!;
 
     // To validate cache flushes, validate that the key exists.
     await cache.getOrCreate(
