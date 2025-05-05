@@ -6,6 +6,7 @@
 library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -232,27 +233,25 @@ final class Task extends AppDocument<Task> {
   }
 
   /// The task was cancelled.
-  static const String statusCancelled = 'Cancelled';
+  static const statusCancelled = TaskStatus.cancelled;
 
   /// The task is yet to be run.
-  static const String statusNew = 'New';
+  static const statusNew = TaskStatus.queuedForBackfill;
 
   /// The task failed to run due to an unexpected issue.
-  static const String statusInfraFailure = 'Infra Failure';
+  static const statusInfraFailure = TaskStatus.infraFailure;
 
   /// The task is currently running.
-  static const String statusInProgress = 'In Progress';
+  static const statusInProgress = TaskStatus.inProgress;
 
   /// The task was run successfully.
-  static const String statusSucceeded = 'Succeeded';
+  static const statusSucceeded = TaskStatus.succeeded;
 
   /// The task failed to run successfully.
-  static const String statusFailed = 'Failed';
+  static const statusFailed = TaskStatus.failed;
 
-  /// The task was skipped or canceled while running.
-  ///
-  /// This status is only used by LUCI tasks.
-  static const String statusSkipped = 'Skipped';
+  /// The task was skipped instead of being executed.
+  static const statusSkipped = TaskStatus.skipped;
 
   static const Set<String> taskFailStatusSet = <String>{
     Task.statusInfraFailure,
