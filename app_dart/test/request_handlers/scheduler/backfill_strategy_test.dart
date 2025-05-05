@@ -6,10 +6,10 @@ import 'dart:math';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
+import 'package:cocoon_service/src/model/task_ref.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
@@ -24,8 +24,7 @@ void main() {
     final strategy = DefaultBackfillStrategy(_FakeRandom());
 
     final commits = [
-      for (var i = 0; i < 10; i++)
-        CommitRef.fromFirestore(generateFirestoreCommit(i)),
+      for (var i = 0; i < 10; i++) generateFirestoreCommit(i).toRef(),
     ];
 
     final targets = [
@@ -33,47 +32,39 @@ void main() {
     ];
 
     TaskRef taskSucceeded(int commit, int index) {
-      return TaskRef.fromFirestore(
-        generateFirestoreTask(
-          index,
-          commitSha: commits[commit].sha,
-          status: fs.Task.statusSucceeded,
-          name: 'Linux TASK_$index',
-        ),
-      );
+      return generateFirestoreTask(
+        index,
+        commitSha: commits[commit].sha,
+        status: fs.Task.statusSucceeded,
+        name: 'Linux TASK_$index',
+      ).toRef();
     }
 
     TaskRef taskNew(int commit, int index) {
-      return TaskRef.fromFirestore(
-        generateFirestoreTask(
-          index,
-          commitSha: commits[commit].sha,
-          status: fs.Task.statusNew,
-          name: 'Linux TASK_$index',
-        ),
-      );
+      return generateFirestoreTask(
+        index,
+        commitSha: commits[commit].sha,
+        status: fs.Task.statusNew,
+        name: 'Linux TASK_$index',
+      ).toRef();
     }
 
     TaskRef taskFailed(int commit, int index) {
-      return TaskRef.fromFirestore(
-        generateFirestoreTask(
-          index,
-          commitSha: commits[commit].sha,
-          status: fs.Task.statusFailed,
-          name: 'Linux TASK_$index',
-        ),
-      );
+      return generateFirestoreTask(
+        index,
+        commitSha: commits[commit].sha,
+        status: fs.Task.statusFailed,
+        name: 'Linux TASK_$index',
+      ).toRef();
     }
 
     TaskRef taskInProgress(int commit, int index) {
-      return TaskRef.fromFirestore(
-        generateFirestoreTask(
-          index,
-          commitSha: commits[commit].sha,
-          status: fs.Task.statusInProgress,
-          name: 'Linux TASK_$index',
-        ),
-      );
+      return generateFirestoreTask(
+        index,
+        commitSha: commits[commit].sha,
+        status: fs.Task.statusInProgress,
+        name: 'Linux TASK_$index',
+      ).toRef();
     }
 
     late BackfillGrid grid;
@@ -231,13 +222,11 @@ void main() {
     });
 
     test('any commit to tip-of-tree has medium priority', () {
-      final commit = CommitRef.fromFirestore(
-        generateFirestoreCommit(1, sha: '123'),
-      );
+      final commit = generateFirestoreCommit(1, sha: '123').toRef();
       // dart format off
       grid = BackfillGrid.from([
         (commit, [
-          TaskRef.fromFirestore(generateFirestoreTask(1, commitSha: '123', name: targets[0].name))
+          generateFirestoreTask(1, commitSha: '123', name: targets[0].name).toRef()
         ])
       ], tipOfTreeTargets: [
         targets[0],

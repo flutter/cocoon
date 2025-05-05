@@ -17,6 +17,7 @@ import 'package:retry/retry.dart';
 import '../foundation/utils.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/commit_ref.dart';
 import '../model/firestore/ci_staging.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';
@@ -34,7 +35,6 @@ import 'firestore.dart';
 import 'get_files_changed.dart';
 import 'github_checks_service.dart';
 import 'luci_build_service.dart';
-import 'luci_build_service/commit_task_ref.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
@@ -230,7 +230,7 @@ class Scheduler {
       'Immediately scheduled tasks for $commit: '
       '${toBeScheduled.map((t) => '"${t.taskName}"').join(', ')}',
     );
-    await _batchScheduleBuilds(CommitRef.fromFirestore(commit), toBeScheduled);
+    await _batchScheduleBuilds(commit.toRef(), toBeScheduled);
     await _uploadToBigQuery(commit);
   }
 
@@ -1515,7 +1515,7 @@ $stacktrace
               await _luciBuildService
                   .reschedulePostsubmitBuildUsingCheckRunEvent(
                     checkRunEvent,
-                    commit: CommitRef.fromFirestore(fsCommit),
+                    commit: fsCommit.toRef(),
                     task: fsTask,
                     target: target,
                   );

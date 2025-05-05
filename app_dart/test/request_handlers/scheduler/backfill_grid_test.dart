@@ -5,7 +5,6 @@
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/test.dart';
 
 import '../../src/model/ci_yaml_matcher.dart';
@@ -16,10 +15,8 @@ void main() {
   useTestLoggerPerTest();
 
   test('createBackfillTask', () async {
-    final commit = CommitRef.fromFirestore(generateFirestoreCommit(1));
-    final task = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: commit.sha),
-    );
+    final commit = generateFirestoreCommit(1).toRef();
+    final task = generateFirestoreTask(2, commitSha: commit.sha).toRef();
     final target = generateTarget(1, name: task.name);
 
     final grid = BackfillGrid.from(
@@ -40,20 +37,12 @@ void main() {
   });
 
   test('targets', () {
-    final c1 = CommitRef.fromFirestore(generateFirestoreCommit(1));
-    final c2 = CommitRef.fromFirestore(generateFirestoreCommit(2));
-    final t1c1 = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: c1.sha),
-    );
-    final t1c2 = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: c2.sha),
-    );
-    final t2c1 = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: c1.sha),
-    );
-    final t2c2 = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: c2.sha),
-    );
+    final c1 = generateFirestoreCommit(1).toRef();
+    final c2 = generateFirestoreCommit(2).toRef();
+    final t1c1 = generateFirestoreTask(1, commitSha: c1.sha).toRef();
+    final t1c2 = generateFirestoreTask(1, commitSha: c2.sha).toRef();
+    final t2c1 = generateFirestoreTask(2, commitSha: c1.sha).toRef();
+    final t2c2 = generateFirestoreTask(2, commitSha: c2.sha).toRef();
     final tg1 = generateTarget(1, name: t1c1.name);
     final tg2 = generateTarget(2, name: t2c1.name);
     final grid = BackfillGrid.from(
@@ -80,20 +69,17 @@ void main() {
   });
 
   test('skipped', () {
-    final c1 = CommitRef.fromFirestore(generateFirestoreCommit(1));
-    final c2 = CommitRef.fromFirestore(generateFirestoreCommit(2));
-    final t1c1 = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: c1.sha, status: 'In Progress'),
-    );
-    final t1c2 = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: c2.sha),
-    );
-    final t2c1 = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: c1.sha),
-    );
-    final t2c2 = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: c2.sha),
-    );
+    final c1 = generateFirestoreCommit(1).toRef();
+    final c2 = generateFirestoreCommit(2).toRef();
+    final t1c1 =
+        generateFirestoreTask(
+          1,
+          commitSha: c1.sha,
+          status: 'In Progress',
+        ).toRef();
+    final t1c2 = generateFirestoreTask(1, commitSha: c2.sha).toRef();
+    final t2c1 = generateFirestoreTask(2, commitSha: c1.sha).toRef();
+    final t2c2 = generateFirestoreTask(2, commitSha: c2.sha).toRef();
     final tg1 = generateTarget(1, name: t1c1.name, backfill: false);
     final tg2 = generateTarget(2, name: t2c1.name);
     final grid = BackfillGrid.from(
@@ -123,13 +109,9 @@ void main() {
   });
 
   test('filters out tasks that are missing from ToT', () {
-    final commit = CommitRef.fromFirestore(generateFirestoreCommit(1));
-    final taskExists = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: commit.sha),
-    );
-    final taskMissing = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: commit.sha),
-    );
+    final commit = generateFirestoreCommit(1).toRef();
+    final taskExists = generateFirestoreTask(1, commitSha: commit.sha).toRef();
+    final taskMissing = generateFirestoreTask(2, commitSha: commit.sha).toRef();
     final targetExists = generateTarget(1, name: taskExists.name);
 
     final grid = BackfillGrid.from(
@@ -151,13 +133,10 @@ void main() {
   });
 
   test('filters out targets that are not batch policy', () {
-    final commit = CommitRef.fromFirestore(generateFirestoreCommit(1));
-    final taskBatch = TaskRef.fromFirestore(
-      generateFirestoreTask(1, commitSha: commit.sha),
-    );
-    final taskNonBatch = TaskRef.fromFirestore(
-      generateFirestoreTask(2, commitSha: commit.sha),
-    );
+    final commit = generateFirestoreCommit(1).toRef();
+    final taskBatch = generateFirestoreTask(1, commitSha: commit.sha).toRef();
+    final taskNonBatch =
+        generateFirestoreTask(2, commitSha: commit.sha).toRef();
     final targetBatch = generateTarget(1, name: taskBatch.name);
     final targetNonBatch = generateTarget(
       2,

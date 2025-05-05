@@ -14,6 +14,7 @@ import 'package:truncate/truncate.dart';
 
 import '../../../cocoon_service.dart';
 import '../../service/firestore.dart';
+import '../commit_ref.dart';
 import 'base.dart';
 
 /// Representation of each commit (row) on https://flutter-dashboard.appspot.com/#/build.
@@ -171,4 +172,11 @@ final class Commit extends AppDocument<Commit> {
 
   /// [RepositorySlug] of where this commit exists.
   RepositorySlug get slug => RepositorySlug.full(repositoryPath);
+
+  /// Returns an immutable reference to the commit modeled by `this`.
+  ///
+  /// Changes to `this` are not reflected on the result.
+  CommitRef toRef() {
+    return CommitRef(sha: sha, branch: branch, slug: slug);
+  }
 }

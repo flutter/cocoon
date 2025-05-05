@@ -9,7 +9,6 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -717,10 +716,7 @@ void main() {
 
       when(
         mockLuciBuildService.rerunDartInternalReleaseBuilder(
-          commit: argThat(
-            equals(CommitRef.fromFirestore(commit)),
-            named: 'commit',
-          ),
+          commit: argThat(equals(commit.toRef()), named: 'commit'),
           task: argThat(anything, named: 'task'),
         ),
       ).thenAnswer((i) async {

@@ -19,7 +19,6 @@ import '../service/firestore.dart';
 import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
-import '../service/luci_build_service/commit_task_ref.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
@@ -261,7 +260,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       }
 
       return await _luciBuildService.rerunDartInternalReleaseBuilder(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         task: task,
       );
     }
@@ -273,7 +272,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     return await _luciBuildService.rerunBuilder(
-      commit: CommitRef.fromFirestore(commit),
+      commit: commit.toRef(),
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
       task: task,
