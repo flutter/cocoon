@@ -295,11 +295,17 @@ interface class ContentAwareHashService {
 
     // Do some validation
     if (docs.isEmpty) {
-      throw 'no matching ContentAwareHashBuilds found for $commitSha';
+      // For now: this is an "info" because we'll have concurrent artifact
+      // builds finishing which fullfil the "every commit has artifacts"
+      // from the initial monorepo. Once we have a config for this and we switch
+      // to CAH - we should switch back to a throw / alert as this is
+      // unexpected.
+      log.info('CAHS(commitSha: $commitSha): no matching hash found');
+      return const [];
     }
     if (docs.length > 1) {
       log.warn(
-        'multiple matching ContentAwareHashBuilds found for $commitSha, using latest',
+        'CAHS(commitSha: $commitSha): multiple hashes found; using latest',
       );
     }
     final contentHash = ContentAwareHashBuilds.fromDocument(docs.first);
@@ -307,7 +313,7 @@ interface class ContentAwareHashService {
     // Don't complete an already completed document.
     if (contentHash.status != BuildStatus.inProgress) {
       log.warn(
-        'already completed ContentAwareHashBuilds for $commitSha with ${contentHash.status} - nothing to do',
+        'CAHS(commitSha: $commitSha): already completed ${contentHash.contentHash} with ${contentHash.status} - nothing to do',
       );
       await _firestore.rollback(transaction);
       return const [];
@@ -327,7 +333,7 @@ interface class ContentAwareHashService {
     ]);
 
     log.info(
-      'completed ContentAwareHashBuilds($commitSha): ${contentHash.status} - '
+      'CAHS(commitSha: $commitSha): completed hash ${contentHash.status} - '
       'should notify ${contentHash.waitingShas}',
     );
     return contentHash.waitingShas;

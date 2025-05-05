@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dart';
@@ -324,6 +326,37 @@ void main() {
               .hasContentHash('1' * 40)
               .hasStatus(BuildStatus.inProgress),
         ]),
+      );
+    });
+
+    test('TEMP: ignores unmatched shas (dual-builds)', () async {
+      final shas = await cahs.completeArtifacts(
+        commitSha: 'b' * 40,
+        successful: true,
+      );
+      expect(shas, isEmpty);
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.inProgress),
+        ]),
+      );
+
+      expect(
+        log,
+        bufferedLoggerOf(
+          contains(
+            logThat(
+              message: equals(
+                'CAHS(commitSha: ${'b' * 40}): no matching hash found',
+              ),
+              severity: atMostInfo,
+            ),
+          ),
+        ),
       );
     });
   });
