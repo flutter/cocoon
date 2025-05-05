@@ -1070,10 +1070,10 @@ class LuciBuildService {
   /// Returns `false` if a rerun was not scheduled.
   Future<bool> rerunDartInternalReleaseBuilder({
     required CommitRef commit,
-    required int buildNumber,
+    required fs.Task task,
   }) async {
     log.debug(
-      'rerunDartInternalReleaseBuilder(buildNumber=$buildNumber for $commit)',
+      'rerunDartInternalReleaseBuilder(buildNumber=${task.buildNumber} for $commit)',
     );
 
     final builderId = bbv2.BuilderID(
@@ -1086,12 +1086,12 @@ class LuciBuildService {
     final Int64 buildId;
     try {
       final build = await _buildBucketClient.getBuild(
-        bbv2.GetBuildRequest(buildNumber: buildNumber, builder: builderId),
+        bbv2.GetBuildRequest(buildNumber: task.buildNumber, builder: builderId),
       );
       buildId = build.id;
     } on BuildBucketException catch (e) {
       if (e.statusCode == 404) {
-        log.error('No build found for $buildNumber in $builderId');
+        log.error('No build found for ${task.buildNumber} in $builderId');
         return false;
       }
       rethrow;
@@ -1159,7 +1159,10 @@ class LuciBuildService {
         priority: kRerunPriority,
       ),
     );
-    log.info('Scheduled build: $result');
+
+    // Mark the task is in progress.
+    final attempt = await _updateTaskStatusInDatabaseForRetry(commit, task);
+    log.info('Scheduled build (attempt #$attempt): $result');
     return true;
   }
 }

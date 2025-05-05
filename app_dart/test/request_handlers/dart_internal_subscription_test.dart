@@ -24,7 +24,7 @@ void main() {
   useTestLoggerPerTest();
 
   // Omit the timestamps for expect purposes.
-  const buildJson = '''{
+  const buildJsonSuccess = '''{
     "id": "8766855135863637953",
     "builder": {
       "project": "dart-internal",
@@ -42,8 +42,30 @@ void main() {
     }
   }''';
 
-  const buildMessageJson = '''{
-    "build": $buildJson
+  const buildMessageJsonSuccess = '''{
+    "build": $buildJsonSuccess
+  }''';
+
+  const buildJsonInProgress = '''{
+    "id": "8766855135863637953",
+    "builder": {
+      "project": "dart-internal",
+      "bucket": "flutter",
+      "builder": "Linux packaging_release_builder"
+    },
+    "number": 123456,
+    "status": "STARTED",
+    "input": {
+      "gitilesCommit": {
+        "project": "flutter/flutter",
+        "id": "HASH12345",
+        "ref": "refs/heads/test-branch"
+      }
+    }
+  }''';
+
+  const buildMessageJsonInProgress = '''{
+    "build": $buildJsonInProgress
   }''';
 
   late DartInternalSubscription handler;
@@ -78,9 +100,14 @@ void main() {
     tester = SubscriptionTester(request: request);
 
     final build = bbv2.Build().createEmptyInstance();
-    build.mergeFromProto3Json(jsonDecode(buildJson) as Map<String, Object?>);
+    build.mergeFromProto3Json(
+      jsonDecode(buildJsonSuccess) as Map<String, Object?>,
+    );
 
-    const pushMessage = PushMessage(data: buildJson, messageId: '798274983');
+    const pushMessage = PushMessage(
+      data: buildJsonSuccess,
+      messageId: '798274983',
+    );
     tester.message = pushMessage;
 
     when(
@@ -96,7 +123,7 @@ void main() {
   });
 
   test('creates a new task', () async {
-    tester.message = const PushMessage(data: buildMessageJson);
+    tester.message = const PushMessage(data: buildMessageJsonSuccess);
     await tester.post(handler);
 
     // Check Firestore:
@@ -125,7 +152,7 @@ void main() {
       ),
     );
 
-    tester.message = const PushMessage(data: buildMessageJson);
+    tester.message = const PushMessage(data: buildMessageJsonSuccess);
     await tester.post(handler);
 
     // Check Firestore:
@@ -137,6 +164,35 @@ void main() {
             .hasCurrentAttempt(1)
             .hasBuildNumber(buildNumber)
             .hasStatus('Succeeded'),
+      ]),
+    );
+  });
+
+  test('updates an existing task waiting for a build number', () async {
+    // Insert into Firestore:
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        attempts: 1,
+        buildNumber: buildNumber,
+        name: builder,
+        status: 'In Progress',
+        commitSha: fsCommit.sha,
+      ),
+    );
+
+    tester.message = const PushMessage(data: buildMessageJsonInProgress);
+    await tester.post(handler);
+
+    // Check Firestore:
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName(builder)
+            .hasCurrentAttempt(1)
+            .hasBuildNumber(buildNumber)
+            .hasStatus('In Progress'),
       ]),
     );
   });
@@ -154,7 +210,7 @@ void main() {
       ),
     );
 
-    tester.message = const PushMessage(data: buildMessageJson);
+    tester.message = const PushMessage(data: buildMessageJsonSuccess);
     await tester.post(handler);
 
     // Check Firestore:

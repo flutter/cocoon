@@ -9,6 +9,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -638,11 +639,70 @@ void main() {
     );
   });
 
-  test(
-    'Rerun specific refuses flutter_release_builder',
-    () async {
-      final commit = generateFirestoreCommit(1);
+  group('Reruns of "flutter_release_builder"', () {
+    final commit = generateFirestoreCommit(
+      1,
+      branch: 'flutter-0.42-candidate.0',
+    );
 
+    setUp(() {
+      tester.requestData = {
+        'branch': commit.branch,
+        'repo': commit.slug.name,
+        'commit': commit.sha,
+        'task': 'Linux flutter_release_builder',
+      };
+    });
+
+    test('refuses to rerun an in-progress task', () async {
+      firestore.putDocuments([
+        commit,
+        generateFirestoreTask(
+          1,
+          name: 'Linux flutter_release_builder',
+          attempts: 1,
+          status: fs.Task.statusInProgress,
+          commitSha: '1',
+        ),
+      ]);
+
+      await expectLater(
+        tester.post(handler),
+        throwsA(
+          isA<BadRequestException>().having(
+            (e) => e.message,
+            'message',
+            contains('Cannot rerun a release builder that is not done running'),
+          ),
+        ),
+      );
+    });
+
+    test('refuses to rerun a task without a build number', () async {
+      firestore.putDocuments([
+        commit,
+        generateFirestoreTask(
+          1,
+          name: 'Linux flutter_release_builder',
+          attempts: 1,
+          status: fs.Task.statusSucceeded,
+          commitSha: '1',
+        ),
+      ]);
+
+      await expectLater(
+        tester.post(handler),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('Completed release builder does not have a build number'),
+          ),
+        ),
+      );
+    });
+
+    test('schedules a rerun using dart-internal', () async {
       firestore.putDocuments([
         commit,
         generateFirestoreTask(
@@ -651,23 +711,32 @@ void main() {
           attempts: 1,
           status: fs.Task.statusFailed,
           commitSha: '1',
+          buildNumber: 123,
         ),
       ]);
 
-      tester.requestData = {
-        'branch': commit.branch,
-        'repo': commit.slug.name,
-        'commit': commit.sha,
-        'task': 'Linux flutter_release_builder',
-      };
+      when(
+        mockLuciBuildService.rerunDartInternalReleaseBuilder(
+          commit: argThat(
+            equals(CommitRef.fromFirestore(commit)),
+            named: 'commit',
+          ),
+          task: argThat(anything, named: 'task'),
+        ),
+      ).thenAnswer((i) async {
+        final task = i.namedArguments[#task] as Task;
+        expect(
+          task,
+          isTask
+              .hasTaskName('Linux flutter_release_builder')
+              .hasBuildNumber(123),
+        );
+        return true;
+      });
 
-      await expectLater(
-        tester.post(handler),
-        throwsA(isA<BadRequestException>()),
-      );
-    },
-    skip: 'https://github.com/flutter/flutter/issues/168090',
-  );
+      await tester.post(handler);
+    });
+  });
 
   test('Rerun all ignores flutter_release_builder', () async {
     final commit = generateFirestoreCommit(1);
