@@ -14,6 +14,7 @@ import '../../../cocoon_service.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
 import '../ci_yaml/target.dart';
+import '../task_ref.dart';
 import 'base.dart';
 import 'commit.dart' as fs;
 
@@ -461,5 +462,17 @@ final class Task extends AppDocument<Task> {
       statusSucceeded,
     ];
     return completedStatuses.contains(status);
+  }
+
+  /// Returns an immutable reference to the commit modeled by `this`.
+  ///
+  /// Changes to `this` are not reflected on the result.
+  TaskRef toRef() {
+    return TaskRef(
+      name: taskName,
+      currentAttempt: currentAttempt,
+      status: status,
+      commitSha: commitSha,
+    );
   }
 }

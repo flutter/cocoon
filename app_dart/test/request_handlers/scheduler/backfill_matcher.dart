@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_service/src/model/commit_ref.dart';
+import 'package:cocoon_service/src/model/task_ref.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/expect.dart';
 
 import '../../src/model/ci_yaml_matcher.dart';

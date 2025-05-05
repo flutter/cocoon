@@ -18,7 +18,6 @@ import '../request_handling/subscription_handler.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
-import '../service/luci_build_service/commit_task_ref.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
@@ -120,7 +119,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (await _shouldAutomaticallyRerun(fsTask)) {
       log.debug('Trying to auto-retry...');
       final retried = await _luciBuildService.rerunBuilder(
-        commit: CommitRef.fromFirestore(fsCommit),
+        commit: fsCommit.toRef(),
         target: target,
         task: fsTask,
       );

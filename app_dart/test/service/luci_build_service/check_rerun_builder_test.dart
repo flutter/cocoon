@@ -6,7 +6,6 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:test/test.dart';
 
 import '../../src/fake_config.dart';
@@ -63,7 +62,7 @@ void main() {
 
     await expectLater(
       luci.rerunBuilder(
-        commit: CommitRef.fromFirestore(fsCommit),
+        commit: fsCommit.toRef(),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
@@ -120,7 +119,7 @@ void main() {
 
     await expectLater(
       luci.rerunBuilder(
-        commit: CommitRef.fromFirestore(fsCommit),
+        commit: fsCommit.toRef(),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],
@@ -179,7 +178,7 @@ void main() {
 
     await expectLater(
       luci.rerunBuilder(
-        commit: CommitRef.fromFirestore(fsCommit),
+        commit: fsCommit.toRef(),
         task: fsTask,
         target: generateTarget(1, name: 'Linux foo'),
         tags: [],

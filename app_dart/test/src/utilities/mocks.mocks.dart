@@ -13,6 +13,7 @@ import 'package:cocoon_common/rpc_model.dart' as _i19;
 import 'package:cocoon_service/cocoon_service.dart' as _i17;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i10;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i27;
+import 'package:cocoon_service/src/model/commit_ref.dart' as _i31;
 import 'package:cocoon_service/src/model/firestore/task.dart' as _i32;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i30;
 import 'package:cocoon_service/src/service/big_query.dart' as _i18;
@@ -24,8 +25,6 @@ import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart'
     as _i35;
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart'
     as _i23;
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart'
-    as _i31;
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart'
     as _i28;
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'

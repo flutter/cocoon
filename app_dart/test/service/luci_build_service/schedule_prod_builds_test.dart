@@ -13,7 +13,6 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
-import 'package:cocoon_service/src/service/luci_build_service/commit_task_ref.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -90,7 +89,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -172,7 +171,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -267,7 +266,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -362,7 +361,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -462,7 +461,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -561,7 +560,7 @@ void main() {
 
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [
           PendingTask(
             target: generateTarget(
@@ -613,7 +612,7 @@ void main() {
     );
     await expectLater(
       luci.schedulePostsubmitBuilds(
-        commit: CommitRef.fromFirestore(commit),
+        commit: commit.toRef(),
         toBeScheduled: [toBeScheduled],
       ),
       completion([toBeScheduled]),
@@ -667,7 +666,7 @@ void main() {
 
       await luci.reschedulePostsubmitBuildUsingCheckRunEvent(
         checkRunEvent,
-        commit: CommitRef.fromFirestore(fsCommit),
+        commit: fsCommit.toRef(),
         target: generateTarget(0),
         task: fsTask,
       );
@@ -703,7 +702,7 @@ void main() {
       await expectLater(
         luci.reschedulePostsubmitBuildUsingCheckRunEvent(
           checkRunEvent,
-          commit: CommitRef.fromFirestore(generateFirestoreCommit(0)),
+          commit: generateFirestoreCommit(0).toRef(),
           target: generateTarget(0),
           task: generateFirestoreTask(0),
         ),

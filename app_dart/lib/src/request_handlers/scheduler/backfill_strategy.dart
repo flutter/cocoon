@@ -8,8 +8,8 @@ import 'package:cocoon_common/is_release_branch.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/firestore/task.dart' as fs;
+import '../../model/task_ref.dart';
 import '../../service/luci_build_service.dart';
-import '../../service/luci_build_service/commit_task_ref.dart';
 import '../../service/scheduler/policy.dart';
 import 'backfill_grid.dart';
 
