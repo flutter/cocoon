@@ -296,8 +296,10 @@ interface class ContentAwareHashService {
     // Do some validation
     if (docs.isEmpty) {
       // For now: this is an "info" because we'll have concurrent artifact
-      // builds finishing. Once we have a config for this, we should switch to
-      // a louder message or a throw.
+      // builds finishing which fullfil the "every commit has artifacts"
+      // from the initial monorepo. Once we have a config for this and we switch
+      // to CAH - we should switch back to a throw / alert as this is
+      // unexpected.
       log.info('CAHS(commitSha: $commitSha): no matching hash found');
       return const [];
     }
