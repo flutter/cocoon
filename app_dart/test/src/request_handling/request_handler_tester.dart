@@ -45,7 +45,6 @@ class RequestHandlerTester {
       zoneValues: <RequestKey<dynamic>, Object?>{
         RequestKey.request: request,
         RequestKey.response: response,
-        RequestKey.httpClient: httpClient,
       },
     );
   }
