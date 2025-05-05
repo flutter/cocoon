@@ -4,10 +4,12 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -187,11 +189,12 @@ Matcher _isExpectedScheduleBuild({required String name}) {
         (r) => PresubmitUserData.fromBytes(r.notify.userData),
         'notify.userData',
         PresubmitUserData(
-          repoOwner: 'flutter',
-          repoName: 'flutter',
           checkRunId: 1,
-          commitSha: 'abc1234',
-          commitBranch: 'gh-readonly-queue/master/pr-1234-abcd',
+          commit: CommitRef(
+            slug: RepositorySlug('flutter', 'flutter'),
+            sha: 'abc1234',
+            branch: 'gh-readonly-queue/master/pr-1234-abcd',
+          ),
         ),
       )
       .having((r) => r.properties.fields, 'properties.fields', {

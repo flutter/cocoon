@@ -7,15 +7,14 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/commit_ref.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/config.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
@@ -96,19 +95,12 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     }
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
-    final slug = RepositorySlug(userData.repoOwner, userData.repoName);
     var rescheduled = false;
     if (githubChecksService.taskFailed(build.status)) {
       final currentAttempt = _nextAttempt(tagSet);
       final int maxAttempt;
       try {
-        maxAttempt = await _getMaxAttempt(
-          slug,
-          builderName,
-          tagSet,
-          commitBranch: userData.commitBranch,
-          commitSha: userData.commitSha,
-        );
+        maxAttempt = await _getMaxAttempt(userData.commit, builderName, tagSet);
       } on BranchNotEnabledForThisCiYamlException catch (e) {
         // TODO(matanlurey): Figure out why this is happening IRL.
         // Mitigates https://github.com/flutter/flutter/issues/166274 by
@@ -133,7 +125,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       checkRunId: userData.checkRunId,
       build: build,
       luciBuildService: luciBuildService,
-      slug: slug,
+      slug: userData.commit.slug,
       rescheduled: rescheduled,
     );
     return Body.empty;
@@ -151,20 +143,13 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   }
 
   Future<int> _getMaxAttempt(
-    RepositorySlug slug,
+    CommitRef commit,
     String builderName,
-    BuildTags tags, {
-    required String commitBranch,
-    required String commitSha,
-  }) async {
+    BuildTags tags,
+  ) async {
     final CiYamlSet ciYaml;
     try {
-      ciYaml = await ciYamlFetcher.getCiYaml(
-        commitSha: commitSha,
-        commitBranch: commitBranch,
-        slug: slug,
-        validate: commitSha == Config.defaultBranch(slug),
-      );
+      ciYaml = await ciYamlFetcher.getCiYamlByCommit(commit);
     } on FormatException {
       // If ci.yaml no longer passes validation (for example, because a builder
       // has been removed), ensure no retries.
@@ -180,7 +165,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     if (!targets.any((element) => element.name == builderName)) {
       // do not reschedule
       log.warn(
-        'Did not find builder with name: $builderName in ciYaml for $commitSha',
+        'Did not find builder with name: $builderName in ciYaml for $commit',
       );
       final availableBuilderList =
           ciYaml.presubmitTargets().map((Target e) => e..name).toList();

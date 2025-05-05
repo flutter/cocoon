@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -101,11 +102,12 @@ void main() {
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userData: PresubmitUserData(
-            repoOwner: 'flutter',
-            repoName: 'cocoon',
             checkRunId: checkRun.id!,
-            commitBranch: 'master',
-            commitSha: 'abc123',
+            commit: CommitRef(
+              sha: 'abc123',
+              branch: 'master',
+              slug: RepositorySlug('flutter', 'coccoon'),
+            ),
           ),
           nextAttempt: 1,
         ),
@@ -145,11 +147,12 @@ void main() {
           builderName: 'Linux Coverage',
           build: _fakeBuild,
           userData: PresubmitUserData(
-            repoOwner: 'flutter',
-            repoName: 'cocoon',
             checkRunId: checkRun.id!,
-            commitBranch: 'master',
-            commitSha: 'abc123',
+            commit: CommitRef(
+              sha: 'abc123',
+              branch: 'master',
+              slug: RepositorySlug('flutter', 'coccoon'),
+            ),
           ),
           nextAttempt: 1,
         ),

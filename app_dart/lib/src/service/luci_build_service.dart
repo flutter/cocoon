@@ -244,10 +244,11 @@ class LuciBuildService {
 
       final slug = pullRequest.base!.repo!.slug();
       final userData = PresubmitUserData(
-        repoOwner: slug.owner,
-        repoName: slug.name,
-        commitSha: commitSha,
-        commitBranch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        commit: CommitRef(
+          slug: slug,
+          sha: commitSha,
+          branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
+        ),
         checkRunId: checkRun.id!,
       );
 
@@ -912,11 +913,8 @@ class LuciBuildService {
 
     final checkRun = await createPostsubmitCheckRun(commit, target);
     final preUserData = PresubmitUserData(
+      commit: commit,
       checkRunId: checkRun.id!,
-      repoOwner: target.slug.owner,
-      repoName: target.slug.name,
-      commitBranch: commit.branch,
-      commitSha: commit.sha,
     );
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties['git_branch'] = commit.branch;

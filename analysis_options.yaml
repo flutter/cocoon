@@ -11,6 +11,7 @@ analyzer:
     # TODO(matanlurey): Ignore for now, we have a lot of pre-existing violations.
     avoid_dynamic_calls: ignore
     comment_references: ignore
+    deprecated_member_use_from_same_package: ignore
     lines_longer_than_80_chars: ignore
     only_throw_errors: ignore
   exclude:
@@ -28,4 +29,4 @@ linter:
   rules:
     # - avoid_private_typedef_functions
     # - avoid_unused_constructor_parameters
-    - prefer_final_locals
+    prefer_final_locals: true

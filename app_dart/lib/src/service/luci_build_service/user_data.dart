@@ -6,9 +6,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
+import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../../model/commit_ref.dart';
 import '../../model/firestore/task.dart';
 
 part 'user_data.g.dart';
@@ -56,15 +58,22 @@ sealed class BuildBucketUserData {
 }
 
 /// Represents the data passed to Buildbucket as part of a presubmit build.
-@JsonSerializable(checked: true)
-final class PresubmitUserData extends BuildBucketUserData {
-  PresubmitUserData({
-    required this.repoOwner,
-    required this.repoName,
-    required this.commitBranch,
-    required this.commitSha,
-    required this.checkRunId,
-  });
+abstract final class PresubmitUserData extends BuildBucketUserData {
+  const PresubmitUserData._();
+
+  /// Creates presubmit user data for the provided [commit] and [checkRunId].
+  factory PresubmitUserData({
+    required CommitRef commit,
+    required int checkRunId,
+  }) {
+    return _PresubmitUserData(
+      repoOwner: commit.slug.owner,
+      repoName: commit.slug.name,
+      commitBranch: commit.branch,
+      commitSha: commit.sha,
+      checkRunId: checkRunId,
+    );
+  }
 
   factory PresubmitUserData.fromJson(Map<String, Object?> object) {
     try {
@@ -86,6 +95,23 @@ final class PresubmitUserData extends BuildBucketUserData {
     );
   }
 
+  /// Commit being executed in the presubmit build.
+  CommitRef get commit;
+
+  /// Which GitHub check run this build reports status to.
+  int get checkRunId;
+}
+
+@JsonSerializable(checked: true)
+final class _PresubmitUserData extends PresubmitUserData {
+  const _PresubmitUserData({
+    required this.repoOwner,
+    required this.repoName,
+    required this.commitBranch,
+    required this.commitSha,
+    required this.checkRunId,
+  }) : super._();
+
   /// The owner of the GitHub repo, i.e. `flutter` or `matanlurey`.
   @JsonKey(name: 'repo_owner')
   final String repoOwner;
@@ -102,9 +128,18 @@ final class PresubmitUserData extends BuildBucketUserData {
   @JsonKey(name: 'commit_sha')
   final String commitSha;
 
-  /// Which GitHub check run this build reports status to.
   @JsonKey(name: 'check_run_id')
+  @override
   final int checkRunId;
+
+  @override
+  CommitRef get commit {
+    return CommitRef(
+      sha: commitSha,
+      branch: commitBranch,
+      slug: RepositorySlug(repoOwner, repoName),
+    );
+  }
 
   @override
   Map<String, Object?> toJson() => _$PresubmitUserDataToJson(this);

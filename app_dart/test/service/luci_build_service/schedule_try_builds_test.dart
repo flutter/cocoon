@@ -6,6 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -119,11 +120,12 @@ void main() {
     expect(
       PresubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PresubmitUserData(
-        repoOwner: 'flutter',
-        repoName: 'flutter',
-        commitSha: 'headsha123',
         checkRunId: 1,
-        commitBranch: 'master',
+        commit: CommitRef(
+          slug: RepositorySlug('flutter', 'flutter'),
+          sha: 'headsha123',
+          branch: 'master',
+        ),
       ),
     );
 
@@ -210,11 +212,12 @@ void main() {
     expect(
       PresubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PresubmitUserData(
-        repoOwner: 'flutter',
-        repoName: 'flutter',
-        commitSha: 'headsha123',
         checkRunId: 1,
-        commitBranch: 'master',
+        commit: CommitRef(
+          slug: RepositorySlug('flutter', 'flutter'),
+          sha: 'headsha123',
+          branch: 'master',
+        ),
       ),
     );
 
@@ -487,11 +490,12 @@ void main() {
           ),
           nextAttempt: 2,
           userData: PresubmitUserData(
-            repoOwner: 'flutter',
-            repoName: 'flutter',
-            commitBranch: 'master',
-            commitSha: 'abc123',
             checkRunId: 1234,
+            commit: CommitRef(
+              slug: RepositorySlug('flutter', 'flutter'),
+              sha: 'abc123',
+              branch: 'master',
+            ),
           ),
         ),
         completion(
@@ -520,11 +524,12 @@ void main() {
           builderName: 'mybuild',
           nextAttempt: 2,
           userData: PresubmitUserData(
-            repoOwner: 'flutter',
-            repoName: 'flutter',
-            commitBranch: 'master',
-            commitSha: 'abc123',
             checkRunId: 1234,
+            commit: CommitRef(
+              slug: RepositorySlug('flutter', 'flutter'),
+              sha: 'abc123',
+              branch: 'master',
+            ),
           ),
           build: generateBbv2Build(
             Int64(1),

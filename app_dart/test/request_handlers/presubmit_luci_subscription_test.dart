@@ -6,9 +6,11 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -92,10 +94,11 @@ void main() {
       status: bbv2.Status.SUCCESS,
       builder: 'Linux Host Engine',
       userData: PresubmitUserData(
-        repoOwner: 'flutter',
-        repoName: 'cocoon',
-        commitBranch: 'master',
-        commitSha: 'abc',
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'cocoon'),
+        ),
         checkRunId: 1,
       ),
     );
@@ -123,10 +126,11 @@ void main() {
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
     final userData = PresubmitUserData(
-      repoOwner: 'flutter',
-      repoName: 'flutter',
-      commitBranch: 'master',
-      commitSha: 'abc',
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'master',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
       checkRunId: 1,
     );
     tester.message = createPushMessage(
@@ -178,10 +182,11 @@ void main() {
       status: bbv2.Status.SUCCESS,
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
-        repoOwner: 'flutter',
-        repoName: 'flutter',
-        commitBranch: 'master',
-        commitSha: 'abc',
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
         checkRunId: 1,
       ),
     );
@@ -215,10 +220,11 @@ void main() {
       status: bbv2.Status.INFRA_FAILURE,
       builder: 'Linux A',
       userData: PresubmitUserData(
-        repoOwner: 'flutter',
-        repoName: 'flutter',
-        commitBranch: 'master',
-        commitSha: 'abc',
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
         checkRunId: 1,
       ),
       // Merge queue should get extra requeues by default, even without presubmit_max_attempts > 1.
@@ -287,10 +293,11 @@ void main() {
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
     final userData = PresubmitUserData(
-      repoOwner: 'flutter',
-      repoName: 'flutter',
-      commitSha: 'abc',
-      commitBranch: 'master',
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'master',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
       checkRunId: 1,
     );
 
@@ -340,11 +347,12 @@ void main() {
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
     final userData = PresubmitUserData(
-      repoOwner: 'flutter',
-      repoName: 'flutter',
       checkRunId: 1,
-      commitSha: 'abc',
-      commitBranch: Config.defaultBranch(Config.flutterSlug),
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'master',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
     );
     tester.message = createPushMessage(
       Int64(1),
@@ -396,11 +404,12 @@ void main() {
       status: bbv2.Status.SUCCESS,
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
-        repoOwner: 'flutter',
-        repoName: 'flutter',
         checkRunId: 1,
-        commitSha: 'abc',
-        commitBranch: 'master',
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
       ),
     );
 
