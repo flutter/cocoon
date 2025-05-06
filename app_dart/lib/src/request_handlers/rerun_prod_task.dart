@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/is_dart_internal.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
@@ -78,12 +79,22 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     }
 
     if (taskName == 'all') {
-      final statusesToRerun = {
-        ...fs.Task.taskFailStatusSet,
-        ...?(requestData[_paramInclude] as String?)?.split(','),
-      };
-      if (statusesToRerun.difference(fs.Task.legalStatusValues)
-          case final invalid when invalid.isNotEmpty) {
+      final statusesToRerun = {...TaskStatus.values.where((v) => v.isFailure)};
+      final statusesToInclude = (requestData[_paramInclude] as String?)?.split(
+        ',',
+      );
+      final invalid = <String>{};
+      if (statusesToInclude != null) {
+        for (final maybeStatus in statusesToInclude) {
+          final status = TaskStatus.tryFrom(maybeStatus);
+          if (status == null) {
+            invalid.add(maybeStatus);
+          } else {
+            statusesToRerun.add(status);
+          }
+        }
+      }
+      if (invalid.isNotEmpty) {
         throw BadRequestException(
           'Invalid "include" statuses: ${invalid.join(',')}.',
         );
@@ -163,7 +174,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     required RepositorySlug slug,
     required String branch,
     required String email,
-    required Set<String> statusesToRerun,
+    required Set<TaskStatus> statusesToRerun,
   }) async {
     // Find the latest task for each task for this commit.
     final transaction = await _firestore.beginTransaction();

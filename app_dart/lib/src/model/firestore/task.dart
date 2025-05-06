@@ -12,8 +12,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
-import '../../request_handling/exceptions.dart';
 import '../../service/firestore.dart';
+import '../bbv2_extension.dart';
 import '../ci_yaml/target.dart';
 import '../task_ref.dart';
 import 'base.dart';
@@ -260,17 +260,6 @@ final class Task extends AppDocument<Task> {
     Task.statusCancelled,
   };
 
-  /// The list of legal values for the [status] property.
-  static const legalStatusValues = {
-    statusCancelled,
-    statusFailed,
-    statusInfraFailure,
-    statusInProgress,
-    statusNew,
-    statusSkipped,
-    statusSucceeded,
-  };
-
   static const finishedStatusValues = {
     statusCancelled,
     statusFailed,
@@ -278,23 +267,6 @@ final class Task extends AppDocument<Task> {
     statusSkipped,
     statusSucceeded,
   };
-
-  static String convertBuildbucketStatusToString(bbv2.Status status) {
-    switch (status) {
-      case bbv2.Status.SUCCESS:
-        return statusSucceeded;
-      case bbv2.Status.CANCELED:
-        return statusCancelled;
-      case bbv2.Status.INFRA_FAILURE:
-        return statusInfraFailure;
-      case bbv2.Status.STARTED:
-        return statusInProgress;
-      case bbv2.Status.SCHEDULED:
-        return statusNew;
-      default:
-        return statusFailed;
-    }
-  }
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
@@ -363,22 +335,13 @@ final class Task extends AppDocument<Task> {
           : null;
 
   /// The status of the task.
-  ///
-  /// Legal values and their meanings are defined in [legalStatusValues].
-  String get status {
-    final taskStatus = fields[fieldStatus]!.stringValue!;
-    if (!legalStatusValues.contains(taskStatus)) {
-      throw ArgumentError('Invalid state: "$taskStatus"');
-    }
-    return taskStatus;
+  TaskStatus get status {
+    final rawValue = fields[fieldStatus]!.stringValue!;
+    return TaskStatus.from(rawValue);
   }
 
-  String setStatus(String value) {
-    if (!legalStatusValues.contains(value)) {
-      throw ArgumentError('Invalid state: "$value"');
-    }
-    fields[fieldStatus] = value.toValue();
-    return value;
+  void setStatus(TaskStatus status) {
+    fields[fieldStatus] = status.value.toValue();
   }
 
   void setEndTimestamp(int endTimestamp) {
@@ -432,35 +395,13 @@ final class Task extends AppDocument<Task> {
     fields[fieldBuildNumber] = buildNumber.toValue();
   }
 
-  String _setStatusFromLuciStatus(bbv2.Build build) {
+  void _setStatusFromLuciStatus(bbv2.Build build) {
     // Updates can come out of order. Ensure completed statuses are kept.
-    if (_isStatusCompleted()) {
-      return status;
+    if (status.isComplete) {
+      return;
     }
 
-    if (build.status == bbv2.Status.STARTED) {
-      return setStatus(statusInProgress);
-    } else if (build.status == bbv2.Status.SUCCESS) {
-      return setStatus(statusSucceeded);
-    } else if (build.status == bbv2.Status.CANCELED) {
-      return setStatus(statusCancelled);
-    } else if (build.status == bbv2.Status.FAILURE) {
-      return setStatus(statusFailed);
-    } else if (build.status == bbv2.Status.INFRA_FAILURE) {
-      return setStatus(statusInfraFailure);
-    } else {
-      throw BadRequestException('${build.status} is unknown');
-    }
-  }
-
-  bool _isStatusCompleted() {
-    const completedStatuses = <String>[
-      statusCancelled,
-      statusFailed,
-      statusInfraFailure,
-      statusSucceeded,
-    ];
-    return completedStatuses.contains(status);
+    setStatus(build.status.toTaskStatus());
   }
 
   /// Returns an immutable reference to the commit modeled by `this`.
