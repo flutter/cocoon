@@ -47,9 +47,7 @@ final class CommitTasksStatus {
         FullTask(
           tasks.first,
           [...tasks.reversed.map((t) => t.buildNumber).nonNulls],
-          didAtLeastOneFailureOccur: tasks.any(
-            (t) => Task.taskFailStatusSet.contains(t.status),
-          ),
+          didAtLeastOneFailureOccur: tasks.any((t) => t.status.isFailure),
           lastCompletedAttemptWasFailure: _lastCompletedAttemptWasFailure(
             tasks,
           ),
@@ -61,10 +59,10 @@ final class CommitTasksStatus {
     // Iterate through the tasks.
     // As soon as we find a PASSING or {FAILED, INFRA FAILURE, CANCELLED}, stop.
     for (final task in tasks) {
-      if (task.status == Task.statusSucceeded) {
+      if (task.status.isSuccess) {
         return false;
       }
-      if (Task.taskFailStatusSet.contains(task.status)) {
+      if (task.status.isFailure) {
         return true;
       }
     }

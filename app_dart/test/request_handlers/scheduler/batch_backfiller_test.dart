@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart' as rpc;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller.dart';
@@ -88,11 +88,11 @@ void main() {
     tester = RequestHandlerTester();
   });
 
-  const $N = fs.Task.statusNew;
-  const $I = fs.Task.statusInProgress;
-  const $S = fs.Task.statusSucceeded;
-  const $F = fs.Task.statusFailed;
-  const $K = fs.Task.statusSkipped;
+  const $N = TaskStatus.waitingForBackfill;
+  const $I = TaskStatus.inProgress;
+  const $S = TaskStatus.succeeded;
+  const $F = TaskStatus.failed;
+  const $K = TaskStatus.skipped;
 
   Future<List<String>> visualizeFirestoreGrid({
     int? commits,
@@ -117,7 +117,7 @@ void main() {
   }
 
   Future<void> fillStorageAndSetCiYaml(
-    List<List<String>> statuses, {
+    List<List<TaskStatus>> statuses, {
     String branch = 'master',
     List<bool> backfill = const [true, true, true, true],
   }) async {
@@ -374,7 +374,9 @@ final class _NaiveBackfillStrategy extends BackfillStrategy {
   List<BackfillTask> determineBackfill(BackfillGrid grid) {
     return [
       for (final (_, tasks) in grid.eligibleTasks)
-        if (tasks.firstWhereOrNull((t) => t.status == fs.Task.statusNew)
+        if (tasks.firstWhereOrNull(
+              (t) => t.status == TaskStatus.waitingForBackfill,
+            )
             case final task?)
           grid.createBackfillTask(
             task,

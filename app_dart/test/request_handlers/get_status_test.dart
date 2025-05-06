@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
@@ -125,14 +126,14 @@ void main() {
           generateFirestoreTask(
             2,
             bringup: true,
-            status: 'Failed',
+            status: TaskStatus.failed,
             attempts: 1,
             buildNumber: 123,
           ),
           generateFirestoreTask(
             2,
             bringup: true,
-            status: 'In Progress',
+            status: TaskStatus.inProgress,
             attempts: 2,
             buildNumber: 456,
           ),

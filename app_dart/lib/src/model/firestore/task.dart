@@ -158,7 +158,7 @@ final class Task extends AppDocument<Task> {
     required int createTimestamp,
     required int startTimestamp,
     required int endTimestamp,
-    required String status,
+    required TaskStatus status,
     required bool testFlaky,
     required int? buildNumber,
   }) {
@@ -199,7 +199,7 @@ final class Task extends AppDocument<Task> {
       currentAttempt: 1,
       createTimestamp: commit.createTimestamp,
       bringup: target.isBringup,
-      status: statusNew,
+      status: TaskStatus.waitingForBackfill,
       commitSha: commit.sha,
       builderName: target.name,
       buildNumber: null,
@@ -217,7 +217,7 @@ final class Task extends AppDocument<Task> {
 
   /// Returns a Firestore [Write] that patches the [status] field for [id].
   @useResult
-  static Write patchStatus(AppDocumentId<Task> id, String status) {
+  static Write patchStatus(AppDocumentId<Task> id, TaskStatus status) {
     return Write(
       currentDocument: Precondition(exists: true),
       update: Document(
@@ -233,40 +233,8 @@ final class Task extends AppDocument<Task> {
     );
   }
 
-  /// The task was cancelled.
-  static const statusCancelled = TaskStatus.cancelled;
-
-  /// The task is yet to be run.
-  static const statusNew = TaskStatus.queuedForBackfill;
-
-  /// The task failed to run due to an unexpected issue.
-  static const statusInfraFailure = TaskStatus.infraFailure;
-
-  /// The task is currently running.
-  static const statusInProgress = TaskStatus.inProgress;
-
   /// The task was run successfully.
   static const statusSucceeded = TaskStatus.succeeded;
-
-  /// The task failed to run successfully.
-  static const statusFailed = TaskStatus.failed;
-
-  /// The task was skipped instead of being executed.
-  static const statusSkipped = TaskStatus.skipped;
-
-  static const Set<String> taskFailStatusSet = <String>{
-    Task.statusInfraFailure,
-    Task.statusFailed,
-    Task.statusCancelled,
-  };
-
-  static const finishedStatusValues = {
-    statusCancelled,
-    statusFailed,
-    statusInfraFailure,
-    statusSkipped,
-    statusSucceeded,
-  };
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
@@ -384,7 +352,7 @@ final class Task extends AppDocument<Task> {
       fieldBringup: bringup.toValue(),
       fieldName: taskName.toValue(),
       fieldStartTimestamp: 0.toValue(),
-      fieldStatus: Task.statusNew.toValue(),
+      fieldStatus: TaskStatus.waitingForBackfill.toValue(),
       fieldTestFlaky: false.toValue(),
       fieldCommitSha: commitSha.toValue(),
       fieldAttempt: attempt.toValue(),

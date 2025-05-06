@@ -34,7 +34,7 @@ void main() {
     for (final MapEntry(key: value, value: expectation)
         in {
           TaskStatus.cancelled: 'Cancelled',
-          TaskStatus.queuedForBackfill: 'New',
+          TaskStatus.waitingForBackfill: 'New',
           TaskStatus.infraFailure: 'Infra Failure',
           TaskStatus.failed: 'Failed',
           TaskStatus.succeeded: 'Succeeded',

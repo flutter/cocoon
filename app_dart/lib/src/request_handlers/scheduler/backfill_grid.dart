@@ -8,11 +8,11 @@ library;
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/ci_yaml/target.dart';
 import '../../model/commit_ref.dart';
-import '../../model/firestore/task.dart';
 import '../../model/task_ref.dart';
 import '../../service/luci_build_service/pending_task.dart';
 import '../../service/scheduler/policy.dart';
@@ -155,7 +155,7 @@ final class BackfillGrid {
         continue;
       }
       for (final task in column) {
-        if (task.status != Task.statusNew) {
+        if (task.status != TaskStatus.waitingForBackfill) {
           continue;
         }
         final commit = _commitsBySha[task.commitSha];

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -28,20 +29,20 @@ void main() {
       generateFirestoreTask(4),
       generateFirestoreTask(3),
       generateFirestoreTask(2),
-      generateFirestoreTask(1, status: Task.statusSucceeded),
+      generateFirestoreTask(1, status: TaskStatus.succeeded),
     ];
 
     final latestAllPendingOrSkipped = <Task>[
       generateFirestoreTask(6),
-      generateFirestoreTask(5, status: Task.statusSkipped),
-      generateFirestoreTask(4, status: Task.statusSkipped),
-      generateFirestoreTask(3, status: Task.statusSkipped),
-      generateFirestoreTask(2, status: Task.statusSkipped),
-      generateFirestoreTask(1, status: Task.statusSucceeded),
+      generateFirestoreTask(5, status: TaskStatus.skipped),
+      generateFirestoreTask(4, status: TaskStatus.skipped),
+      generateFirestoreTask(3, status: TaskStatus.skipped),
+      generateFirestoreTask(2, status: TaskStatus.skipped),
+      generateFirestoreTask(1, status: TaskStatus.succeeded),
     ];
 
     final latestFinishedButRestPending = <Task>[
-      generateFirestoreTask(6, status: Task.statusSucceeded),
+      generateFirestoreTask(6, status: TaskStatus.succeeded),
       generateFirestoreTask(5),
       generateFirestoreTask(4),
       generateFirestoreTask(3),
@@ -50,7 +51,7 @@ void main() {
     ];
 
     final latestFailed = <Task>[
-      generateFirestoreTask(6, status: Task.statusFailed),
+      generateFirestoreTask(6, status: TaskStatus.failed),
       generateFirestoreTask(5),
       generateFirestoreTask(4),
       generateFirestoreTask(3),
@@ -63,16 +64,16 @@ void main() {
       generateFirestoreTask(5),
       generateFirestoreTask(4),
       generateFirestoreTask(3),
-      generateFirestoreTask(2, status: Task.statusSucceeded),
-      generateFirestoreTask(1, status: Task.statusSucceeded),
+      generateFirestoreTask(2, status: TaskStatus.succeeded),
+      generateFirestoreTask(1, status: TaskStatus.succeeded),
     ];
 
     final failedWithRunning = <Task>[
       generateFirestoreTask(6),
       generateFirestoreTask(5),
       generateFirestoreTask(4),
-      generateFirestoreTask(3, status: Task.statusFailed),
-      generateFirestoreTask(2, status: Task.statusInProgress),
+      generateFirestoreTask(3, status: TaskStatus.failed),
+      generateFirestoreTask(2, status: TaskStatus.inProgress),
       generateFirestoreTask(1),
     ];
 
@@ -169,7 +170,7 @@ void main() {
 
     final pending = <Task>[generateFirestoreTask(1)];
     final latestFailed = <Task>[
-      generateFirestoreTask(1, status: Task.statusFailed),
+      generateFirestoreTask(1, status: TaskStatus.failed),
     ];
 
     test('triggers every task', () async {

@@ -4,13 +4,13 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
-import '../model/firestore/task.dart';
 import 'build_status_provider/commit_tasks_status.dart';
 
 /// Class that calculates the current build status.
@@ -70,7 +70,7 @@ interface class BuildStatusService {
         }
         if (collatedTask.lastCompletedAttemptWasFailure) {
           failingTasks.add(collatedTask.task.taskName);
-        } else if (collatedTask.task.status == Task.statusSucceeded) {
+        } else if (collatedTask.task.status == TaskStatus.succeeded) {
           toBePassing.remove(collatedTask.task.taskName);
         }
       }

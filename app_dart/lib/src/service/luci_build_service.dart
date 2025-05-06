@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
@@ -1049,7 +1050,7 @@ class LuciBuildService {
   ) async {
     // Update task status in Firestore.
     task.resetAsRetry();
-    task.setStatus(fs.Task.statusInProgress);
+    task.setStatus(TaskStatus.inProgress);
 
     await _firestore.batchWriteDocuments(
       BatchWriteRequest(writes: documentsToWrites([task], exists: false)),

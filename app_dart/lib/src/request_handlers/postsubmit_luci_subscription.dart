@@ -162,14 +162,14 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     if (build.status == bbv2.Status.SCHEDULED) {
       return false;
     }
-    return !fs.Task.finishedStatusValues.contains(task.status);
+    return !task.status.isComplete;
   }
 
   /// Check if a builder should be rerun.
   ///
   /// A rerun happens when a build fails, the retry number hasn't reached the limit, and the build is on TOT.
   Future<bool> _shouldAutomaticallyRerun(fs.Task task) async {
-    if (!fs.Task.taskFailStatusSet.contains(task.status)) {
+    if (!task.status.isFailure) {
       log.debug('${task.taskName} is not failing. No rerun needed.');
       return false;
     }

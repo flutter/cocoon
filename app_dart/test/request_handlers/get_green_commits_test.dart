@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:test/test.dart';
 
@@ -41,19 +41,19 @@ void main() {
     branch: 'flutter-2.13-candidate.0',
   );
 
-  final task1Succeed = generateFirestoreTask(1, status: Task.statusSucceeded);
+  final task1Succeed = generateFirestoreTask(1, status: TaskStatus.succeeded);
   final task2Failed = generateFirestoreTask(
     2,
-    status: Task.statusFailed,
+    status: TaskStatus.failed,
   ); // should fail if included
   final task3FailedFlaky = generateFirestoreTask(
     3,
-    status: Task.statusFailed,
+    status: TaskStatus.failed,
     bringup: true,
   ); // should succeed if included because `bringup: true`
   final task4SucceedFlaky = generateFirestoreTask(
     4,
-    status: Task.statusSucceeded,
+    status: TaskStatus.succeeded,
     testFlaky: true,
   );
 

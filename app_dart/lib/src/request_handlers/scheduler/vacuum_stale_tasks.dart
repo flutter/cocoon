@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
 import 'package:googleapis/firestore/v1.dart';
@@ -69,7 +70,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
     final recentCommits = await _firestore.queryRecentCommitsAndTasks(
       slug,
       commitLimit: config.backfillerCommitLimit,
-      status: fs.Task.statusInProgress,
+      status: TaskStatus.inProgress,
       branch: branch,
     );
     for (final CommitAndTasks(:commit, :tasks) in recentCommits) {
@@ -130,7 +131,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       final task = fs.Task.fromDocument(intent.task);
       switch (intent) {
         case _ResetTaskStatusToNew():
-          task.setStatus(fs.Task.statusNew);
+          task.setStatus(TaskStatus.waitingForBackfill);
         case _UpdateTaskFromLuciBuild():
           task.updateFromBuild(intent.build);
       }

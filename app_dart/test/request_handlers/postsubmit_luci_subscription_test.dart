@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
@@ -108,7 +108,7 @@ void main() {
     );
 
     // Firestore checks before API call.
-    expect(fsTask.status, Task.statusNew);
+    expect(fsTask.status, TaskStatus.waitingForBackfill);
     expect(fsTask.buildNumber, null);
 
     await tester.post(handler);
@@ -118,7 +118,7 @@ void main() {
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName('Linux A')
-            .hasStatus(fs.Task.statusSucceeded)
+            .hasStatus(TaskStatus.succeeded)
             .hasBuildNumber(63405),
       ]),
     );
@@ -133,7 +133,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusInProgress,
+      status: TaskStatus.inProgress,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -159,7 +159,7 @@ void main() {
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName('Linux A')
-            .hasStatus(fs.Task.statusInProgress)
+            .hasStatus(TaskStatus.inProgress)
             .hasCurrentAttempt(1),
       ]),
     );
@@ -174,7 +174,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusSucceeded,
+      status: TaskStatus.succeeded,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -200,7 +200,7 @@ void main() {
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName('Linux A')
-            .hasStatus(fs.Task.statusSucceeded)
+            .hasStatus(TaskStatus.succeeded)
             .hasCurrentAttempt(1),
       ]),
     );
@@ -215,7 +215,7 @@ void main() {
       1,
       name: 'Linux B',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusSucceeded,
+      status: TaskStatus.succeeded,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -242,7 +242,7 @@ void main() {
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName('Linux B')
-            .hasStatus(fs.Task.statusSucceeded)
+            .hasStatus(TaskStatus.succeeded)
             .hasCurrentAttempt(1),
       ]),
     );
@@ -257,7 +257,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusFailed,
+      status: TaskStatus.failed,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -285,7 +285,7 @@ void main() {
         contains(
           isTask
               .hasTaskName('Linux A')
-              .hasStatus(fs.Task.statusInProgress)
+              .hasStatus(TaskStatus.inProgress)
               .hasCurrentAttempt(2),
         ),
       ),
@@ -301,7 +301,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusInfraFailure,
+      status: TaskStatus.infraFailure,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -329,7 +329,7 @@ void main() {
         contains(
           isTask
               .hasTaskName('Linux A')
-              .hasStatus(fs.Task.statusInProgress)
+              .hasStatus(TaskStatus.inProgress)
               .hasCurrentAttempt(2),
         ),
       ),
@@ -347,7 +347,7 @@ void main() {
         1,
         name: 'Linux A',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusInfraFailure,
+        status: TaskStatus.infraFailure,
       );
       firestore.putDocument(fsCommit);
       firestore.putDocument(fsTask);
@@ -375,7 +375,7 @@ void main() {
           contains(
             isTask
                 .hasTaskName('Linux A')
-                .hasStatus(fs.Task.statusInProgress)
+                .hasStatus(TaskStatus.inProgress)
                 .hasCurrentAttempt(2),
           ),
         ),
@@ -435,9 +435,7 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask
-            .hasTaskName('Linux nonbringup')
-            .hasStatus(fs.Task.statusSucceeded),
+        isTask.hasTaskName('Linux nonbringup').hasStatus(TaskStatus.succeeded),
       ]),
     );
   });
@@ -542,7 +540,7 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasTaskName('Linux flutter').hasStatus(fs.Task.statusSucceeded),
+        isTask.hasTaskName('Linux flutter').hasStatus(TaskStatus.succeeded),
       ]),
     );
   });
@@ -556,7 +554,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusInProgress,
+      status: TaskStatus.inProgress,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -589,7 +587,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusInProgress,
+      status: TaskStatus.inProgress,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -624,7 +622,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusInProgress,
+      status: TaskStatus.inProgress,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);

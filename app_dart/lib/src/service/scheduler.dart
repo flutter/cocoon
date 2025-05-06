@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
@@ -193,7 +194,7 @@ class Scheduler {
       //
       // See https://github.com/flutter/flutter/issues/163896.
       if (skipAllTasks) {
-        task.setStatus(fs.Task.statusSkipped);
+        task.setStatus(TaskStatus.skipped);
         continue;
       }
 
@@ -208,7 +209,7 @@ class Scheduler {
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
-        task.setStatus(fs.Task.statusInProgress);
+        task.setStatus(TaskStatus.inProgress);
         toBeScheduled.add(
           PendingTask(
             target: target,

@@ -7,8 +7,8 @@ import 'package:collection/collection.dart';
 /// Represents differerent states of a task, or an execution of a build target.
 ///
 /// TODO(matanlurey): Finish migrating (https://github.com/flutter/flutter/issues/167284):
-/// - [ ] All usages of `Task.status` should be of type `TaskStatus`
-/// - [ ] Stop implementing `String` and handle conversion elsewherer
+/// - [x] All usages of `Task.status` should be of type `TaskStatus`
+/// - [ ] Stop implementing `String` and handle conversion elsewhere
 /// - [ ] Replace extension type with an `enum`
 extension type const TaskStatus._(String _schemaValue) implements String {
   /// Returns the status represented by the provided [value].
@@ -29,7 +29,7 @@ extension type const TaskStatus._(String _schemaValue) implements String {
   static const cancelled = TaskStatus._('Cancelled');
 
   /// The task is waiting to be queued.
-  static const queuedForBackfill = TaskStatus._('New');
+  static const waitingForBackfill = TaskStatus._('New');
 
   /// The task is either queued or running.
   static const inProgress = TaskStatus._('In Progress');
@@ -51,7 +51,7 @@ extension type const TaskStatus._(String _schemaValue) implements String {
   /// This list is unmodifiable.
   static const values = [
     cancelled,
-    queuedForBackfill,
+    waitingForBackfill,
     inProgress,
     infraFailure,
     failed,

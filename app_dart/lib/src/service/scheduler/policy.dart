@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 
 import '../../model/firestore/task.dart';
@@ -66,7 +67,7 @@ final class BatchPolicy implements SchedulerPolicy {
     required List<Task> recentTasks,
   }) async {
     // Skip scheduling if there is already a running task.
-    if (recentTasks.any((Task task) => task.status == Task.statusInProgress)) {
+    if (recentTasks.any((Task task) => task.status == TaskStatus.inProgress)) {
       return null;
     }
 
@@ -87,7 +88,7 @@ final class BatchPolicy implements SchedulerPolicy {
       return LuciBuildService.kRerunPriority;
     }
 
-    if (_allNewOrSkipped(recentTasks.sublist(0, kBatchSize - 1))) {
+    if (_allWaitingOrSkipped(recentTasks.sublist(0, kBatchSize - 1))) {
       return LuciBuildService.kDefaultPriority;
     }
 
@@ -95,9 +96,9 @@ final class BatchPolicy implements SchedulerPolicy {
   }
 }
 
-/// Checks if all tasks are with [Task.statusNew].
-bool _allNewOrSkipped(List<Task> tasks) {
-  const newOrSkipped = {Task.statusNew, Task.statusSkipped};
+/// Checks if all tasks are with waiting for backfill or skipped.
+bool _allWaitingOrSkipped(List<Task> tasks) {
+  const newOrSkipped = {TaskStatus.waitingForBackfill, TaskStatus.skipped};
   return tasks.every((Task task) => newOrSkipped.contains(task.status));
 }
 
@@ -106,15 +107,13 @@ bool _shouldRerunPriority(List<Task> tasks, int pastTaskNumber) {
   // Prioritize tasks that recently failed.
   var hasRecentFailure = false;
   for (var i = 0; i < pastTaskNumber && i < tasks.length; i++) {
-    if (_isFailed(tasks[i])) {
+    if (tasks[i].status.isFailure) {
       hasRecentFailure = true;
       break;
     }
   }
   return hasRecentFailure;
 }
-
-bool _isFailed(Task task) => Task.taskFailStatusSet.contains(task.status);
 
 /// [Task] run outside of Cocoon are not triggered by the Cocoon scheduler.
 final class OmitPolicy implements SchedulerPolicy {
