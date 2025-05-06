@@ -983,7 +983,7 @@ $s
       // and let humans sort it out. If the group is left hanging in the queue, it
       // will hold up all other PRs that are trying to land.
       if (isMergeGroup) {
-        await _completeArtifacts(sha, true);
+        await _completeArtifacts(sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1012,7 +1012,7 @@ $s
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
       if (isMergeGroup) {
-        await _completeArtifacts(sha, true);
+        await _completeArtifacts(sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,

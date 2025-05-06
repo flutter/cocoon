@@ -1763,7 +1763,7 @@ targets:
           });
 
           test(
-            'does not fail the merge queue guard when a test check run fails',
+            'does not fail the merge queue guard when a test check run fails (presubmit)',
             () async {
               final githubService = config.githubService = MockGithubService();
               final githubClient = MockGitHub();
@@ -1849,6 +1849,174 @@ targets:
               );
             },
           );
+
+          test(
+            'fails the merge queue guard when a test check run fails (merge group)',
+            () async {
+              final githubService = config.githubService = MockGithubService();
+              final githubClient = MockGitHub();
+              final luci = MockLuciBuildService();
+              final gitHubChecksService = MockGithubChecksService();
+
+              when(githubService.github).thenReturn(githubClient);
+              when(
+                gitHubChecksService.githubChecksUtil,
+              ).thenReturn(mockGithubChecksUtil);
+
+              scheduler = Scheduler(
+                cache: cache,
+                config: config,
+                getFilesChanged: getFilesChanged,
+                githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
+                luciBuildService: luci,
+                contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
+              );
+
+              const headBranch =
+                  'gh-readonly-queue/master/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf';
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(
+                  name: 'GUARD TEST',
+                  headBranch: headBranch,
+                ),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompletion(
+                  cocoon_checks.CheckRunEvent.fromJson(
+                    json.decode(
+                          checkRunEventFor(
+                            test: 'Bar bar',
+                            sha: 'testSha',
+                            conclusion: 'failure',
+                            headBranch: headBranch,
+                          ),
+                        )
+                        as Map<String, Object?>,
+                  ),
+                ),
+                isTrue,
+              );
+
+              // The first invocation looks in the fusionEngineBuild stage, which
+              // returns "missing" result.
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.failure,
+                  }),
+                ]),
+              );
+
+              // The test stage completed, but with failures. The merge queue
+              // guard should stay open to prevent the pull request from landing.
+              verify(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: CheckRunConclusion.failure,
+                  output: anyNamed('output'),
+                ),
+              ).called(1);
+
+              expect(fakeContentAwareHash.completedShas, [
+                (commitSha: 'testSha', successful: false),
+              ]);
+            },
+          );
+
+          test('closes merge queue guard in merge group success', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            final luci = MockLuciBuildService();
+            final gitHubChecksService = MockGithubChecksService();
+
+            when(githubService.github).thenReturn(githubClient);
+            when(
+              gitHubChecksService.githubChecksUtil,
+            ).thenReturn(mockGithubChecksUtil);
+
+            scheduler = Scheduler(
+              cache: cache,
+              config: config,
+              getFilesChanged: getFilesChanged,
+              githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
+              luciBuildService: luci,
+              contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
+            );
+
+            const headBranch =
+                'gh-readonly-queue/master/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf';
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(
+                name: 'GUARD TEST',
+                headBranch: headBranch,
+              ),
+            );
+
+            expect(
+              await scheduler.processCheckRunCompletion(
+                cocoon_checks.CheckRunEvent.fromJson(
+                  json.decode(
+                        checkRunEventFor(
+                          test: 'Bar bar',
+                          sha: 'testSha',
+                          headBranch: headBranch,
+                        ),
+                      )
+                      as Map<String, Object?>,
+                ),
+              ),
+              isTrue,
+            );
+
+            // The first invocation looks in the fusionEngineBuild stage, which
+            // returns "missing" result.
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
+
+            // The test stage completed, but with failures. The merge queue
+            // guard should stay open to prevent the pull request from landing.
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: CheckRunConclusion.success,
+                output: anyNamed('output'),
+              ),
+            ).called(1);
+
+            expect(fakeContentAwareHash.completedShas, [
+              (commitSha: 'testSha', successful: true),
+            ]);
+          });
 
           test(
             'schedules tests after engine stage - with pr caching',
@@ -3327,9 +3495,10 @@ String checkRunEventFor({
   String conclusion = 'success',
   String owner = 'flutter',
   String repo = 'flutter',
+  String headBranch = 'master',
 }) => '''{
   "action": "$action",
-  "check_run": ${checkRunFor(name: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo)},
+  "check_run": ${checkRunFor(name: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo, headBranch: headBranch)},
   "repository": {
     "name": "$repo",
     "full_name": "$owner/$repo",
