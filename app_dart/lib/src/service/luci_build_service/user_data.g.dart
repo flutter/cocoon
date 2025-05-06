@@ -8,12 +8,12 @@ part of 'user_data.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
+_PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
     $checkedCreate(
-      'PresubmitUserData',
+      '_PresubmitUserData',
       json,
       ($checkedConvert) {
-        final val = PresubmitUserData(
+        final val = _PresubmitUserData(
           repoOwner: $checkedConvert('repo_owner', (v) => v as String),
           repoName: $checkedConvert('repo_name', (v) => v as String),
           commitBranch: $checkedConvert('commit_branch', (v) => v as String),
@@ -34,7 +34,7 @@ PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
       },
     );
 
-Map<String, dynamic> _$PresubmitUserDataToJson(PresubmitUserData instance) =>
+Map<String, dynamic> _$PresubmitUserDataToJson(_PresubmitUserData instance) =>
     <String, dynamic>{
       'repo_owner': instance.repoOwner,
       'repo_name': instance.repoName,

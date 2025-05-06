@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as firestore;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
+import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -14,10 +16,11 @@ void main() {
     test('should encode to JSON', () {
       final userData = PresubmitUserData(
         checkRunId: 1234,
-        commitSha: 'abc123',
-        commitBranch: 'main',
-        repoOwner: 'repo-owner',
-        repoName: 'repo-name',
+        commit: CommitRef(
+          slug: RepositorySlug('repo-owner', 'repo-name'),
+          sha: 'abc123',
+          branch: 'main',
+        ),
       );
       expect(userData.toJson(), {
         'check_run_id': 1234,
@@ -39,10 +42,11 @@ void main() {
         }),
         PresubmitUserData(
           checkRunId: 1234,
-          commitSha: 'abc123',
-          commitBranch: 'main',
-          repoOwner: 'repo-owner',
-          repoName: 'repo-name',
+          commit: CommitRef(
+            slug: RepositorySlug('repo-owner', 'repo-name'),
+            sha: 'abc123',
+            branch: 'main',
+          ),
         ),
       );
     });
@@ -62,10 +66,11 @@ void main() {
     test('should encode/decode to bytes', () {
       final userData = PresubmitUserData(
         checkRunId: 1234,
-        commitSha: 'abc123',
-        commitBranch: 'main',
-        repoOwner: 'repo-owner',
-        repoName: 'repo-name',
+        commit: CommitRef(
+          slug: RepositorySlug('repo-owner', 'repo-name'),
+          sha: 'abc123',
+          branch: 'main',
+        ),
       );
       expect(userData, PresubmitUserData.fromBytes(userData.toBytes()));
     });

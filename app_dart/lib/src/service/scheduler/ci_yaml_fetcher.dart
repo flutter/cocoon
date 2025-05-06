@@ -13,6 +13,7 @@ import '../../../protos.dart' as pb;
 import '../../foundation/providers.dart';
 import '../../foundation/typedefs.dart';
 import '../../foundation/utils.dart';
+import '../../model/commit_ref.dart';
 import '../../model/firestore/commit.dart' as firestore;
 import '../cache_service.dart';
 import '../config.dart';
@@ -37,6 +38,9 @@ abstract base class CiYamlFetcher {
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
   ///
   /// This is a helper method for [getCiYaml] for use with [firestore.Commit].
+  ///
+  /// **DEPRECATED**: Use [getCiYamlByCommit].
+  @Deprecated('Use getCiYamlByCommit')
   Future<CiYamlSet> getCiYamlByFirestoreCommit(
     firestore.Commit commit, {
     bool validate = false,
@@ -49,7 +53,27 @@ abstract base class CiYamlFetcher {
     );
   }
 
+  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a [commit].
+  ///
+  /// If [validate] is omitted, it defaults to whether [CommitRef.branch] is the
+  /// default branch for [CommitRef.slug].
+  Future<CiYamlSet> getCiYamlByCommit(
+    CommitRef commit, {
+    bool? validate,
+  }) async {
+    validate ??= commit.branch == Config.defaultBranch(commit.slug);
+    return await getCiYaml(
+      slug: commit.slug,
+      commitSha: commit.sha,
+      commitBranch: commit.branch,
+      validate: validate,
+    );
+  }
+
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a commit.
+  ///
+  /// **DEPRECATED**: Use [getCiYamlByCommit].
+  @Deprecated('Use getCiYamlByCommit')
   Future<CiYamlSet> getCiYaml({
     required RepositorySlug slug,
     required String commitSha,
