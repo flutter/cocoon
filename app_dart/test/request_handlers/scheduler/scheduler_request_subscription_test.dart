@@ -166,7 +166,7 @@ void main() {
       final body = await tester.post(handler);
 
       final bodyString =
-          await utf8.decoder.bind(body.serialize().asyncMap((b) => b!)).join();
+          await utf8.decoder.bind(body.serialize().asyncMap((b) => b)).join();
       expect(bodyString, 'Failed to schedule builds: (builder: Linux A\n).');
       expect(verify(buildBucketClient.batch(any)).callCount, 3);
       expect(githubService.checkRunUpdates, hasLength(1));

@@ -73,7 +73,7 @@ final class CacheRequestHandler extends RequestHandler {
       ..statusCode = cachedResponse.statusCode
       ..reasonPhrase = cachedResponse.reason;
 
-    return Body.forStream(Stream<Uint8List?>.value(cachedResponse.body));
+    return Body.forStream(Stream<Uint8List>.value(cachedResponse.body));
   }
 
   /// Invokes [delegate.get], and returns the result as a [_CachedHttpResponse].
@@ -84,9 +84,7 @@ final class CacheRequestHandler extends RequestHandler {
     final body = await delegate.get(request);
     final response = this.response!;
     final builder = BytesBuilder();
-    await body.serialize().forEach((d) {
-      if (d != null) builder.add(d);
-    });
+    await body.serialize().forEach(builder.add);
     return _CachedHttpResponse._(
       response.statusCode,
       response.reasonPhrase,
