@@ -61,7 +61,7 @@ Future<String> githubFileContent(
   RepositorySlug slug,
   String filePath, {
   required HttpClientProvider httpClientProvider,
-  String ref = 'master',
+  required String ref,
   Duration timeout = _githubTimeout,
   RetryOptions retryOptions = _githubRetryOptions,
   bool useGitOnBorgFallback = true,
