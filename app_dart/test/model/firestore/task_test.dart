@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
-import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
 
 import '../../src/service/fake_firestore_service.dart';
@@ -17,15 +16,6 @@ void main() {
   useTestLoggerPerTest();
 
   group('Task', () {
-    test('disallows illegal status', () {
-      final task = Task.fromDocument(
-        Document()
-          ..name = 'name'
-          ..fields = {},
-      );
-      expect(() => task.setStatus('unknown'), throwsArgumentError);
-    });
-
     group('updateFromBuild', () {
       test('update succeeds from buildbucket v2', () async {
         final pubSubCallBack = bbv2.BuildsV2PubSub().createEmptyInstance();

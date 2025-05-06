@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -96,10 +97,8 @@ void main() {
 
     mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
-    final ciYaml = await ciYamlFetcher.getCiYaml(
-      slug: Config.packagesSlug,
-      commitSha: currentSha,
-      commitBranch: 'main',
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
+      CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
       validate: true,
     );
 
@@ -134,17 +133,15 @@ void main() {
 
     mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
-    final ciYaml = await ciYamlFetcher.getCiYaml(
-      slug: Config.packagesSlug,
-      commitSha: currentSha,
-      commitBranch: 'main',
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
+      CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
       validate: true,
     );
 
     expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));
   });
 
-  test('fetches the root .ci.yaml for a firestore commit', () async {
+  test('fetches the root .ci.yaml for a commit ref', () async {
     httpClient = MockClient((request) async {
       if (request.url.host != 'raw.githubusercontent.com') {
         fail('Unexpected host: ${request.url}');
@@ -164,13 +161,13 @@ void main() {
 
     mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
-    final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
       generateFirestoreCommit(
         1,
         sha: currentSha,
         repo: 'packages',
         branch: 'main',
-      ),
+      ).toRef(),
       validate: true,
     );
 
@@ -204,10 +201,8 @@ void main() {
     mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
     await expectLater(
-      ciYamlFetcher.getCiYaml(
-        slug: Config.packagesSlug,
-        commitSha: currentSha,
-        commitBranch: 'main',
+      ciYamlFetcher.getCiYamlByCommit(
+        CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
         validate: true,
       ),
       throwsA(
@@ -246,13 +241,13 @@ void main() {
 
     mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
 
-    final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
       generateFirestoreCommit(
         1,
         sha: currentSha,
         repo: 'packages',
         branch: 'main',
-      ),
+      ).toRef(),
       validate: true,
     );
 
@@ -285,12 +280,12 @@ void main() {
       branch: Config.defaultBranch(Config.flutterSlug),
     );
 
-    final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
       generateFirestoreCommit(
         1,
         sha: currentSha,
         branch: 'flutter-0.42-candidate.0',
-      ),
+      ).toRef(),
       validate: true,
     );
 
@@ -321,8 +316,8 @@ void main() {
 
     mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
-    final ciYaml = await ciYamlFetcher.getCiYamlByFirestoreCommit(
-      generateFirestoreCommit(1, sha: currentSha),
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
+      generateFirestoreCommit(1, sha: currentSha).toRef(),
       validate: true,
     );
 
@@ -347,10 +342,8 @@ void main() {
     mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     await expectLater(
-      ciYamlFetcher.getCiYaml(
-        slug: Config.flutterSlug,
-        commitSha: currentSha,
-        commitBranch: 'master',
+      ciYamlFetcher.getCiYamlByCommit(
+        CommitRef(slug: Config.flutterSlug, sha: currentSha, branch: 'master'),
         validate: true,
       ),
       throwsA(
@@ -379,10 +372,8 @@ targets:
     mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
 
     await expectLater(
-      ciYamlFetcher.getCiYaml(
-        slug: Config.flutterSlug,
-        commitSha: currentSha,
-        commitBranch: 'master',
+      ciYamlFetcher.getCiYamlByCommit(
+        CommitRef(slug: Config.flutterSlug, sha: currentSha, branch: 'master'),
         validate: true,
       ),
       throwsA(

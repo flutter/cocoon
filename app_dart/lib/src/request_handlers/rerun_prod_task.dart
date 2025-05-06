@@ -3,13 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/is_dart_internal.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
+import '../model/commit_ref.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
@@ -66,7 +67,6 @@ final class RerunProdTask extends ApiRequestHandler {
     } = requestData.cast<String, String>();
 
     final email = authContext?.email ?? 'EMAIL-MISSING';
-    final slug = RepositorySlug('flutter', repo);
 
     // Ensure the commit exists in Firestore.
     final commit = await fs.Commit.tryFromFirestoreBySha(
@@ -78,20 +78,28 @@ final class RerunProdTask extends ApiRequestHandler {
     }
 
     if (taskName == 'all') {
-      final statusesToRerun = {
-        ...fs.Task.taskFailStatusSet,
-        ...?(requestData[_paramInclude] as String?)?.split(','),
-      };
-      if (statusesToRerun.difference(fs.Task.legalStatusValues)
-          case final invalid when invalid.isNotEmpty) {
+      final statusesToRerun = {...TaskStatus.values.where((v) => v.isFailure)};
+      final statusesToInclude = (requestData[_paramInclude] as String?)?.split(
+        ',',
+      );
+      final invalid = <String>{};
+      if (statusesToInclude != null) {
+        for (final maybeStatus in statusesToInclude) {
+          final status = TaskStatus.tryFrom(maybeStatus);
+          if (status == null) {
+            invalid.add(maybeStatus);
+          } else {
+            statusesToRerun.add(status);
+          }
+        }
+      }
+      if (invalid.isNotEmpty) {
         throw BadRequestException(
           'Invalid "include" statuses: ${invalid.join(',')}.',
         );
       }
       final ranTasks = await _markAllTestsForRerun(
-        commit: commit,
-        slug: slug,
-        branch: branch,
+        commit: commit.toRef(),
         email: email,
         statusesToRerun: statusesToRerun,
       );
@@ -116,10 +124,8 @@ final class RerunProdTask extends ApiRequestHandler {
     }
 
     final didRerun = await _rerunSpecificTask(
-      commit: commit,
+      commit: commit.toRef(),
       task: task,
-      slug: slug,
-      branch: branch,
       email: email,
     );
     if (!didRerun) {
@@ -130,8 +136,8 @@ final class RerunProdTask extends ApiRequestHandler {
   }
 
   @useResult
-  Future<Map<String, Target>> _getPostsubmitTargets(fs.Commit commit) async {
-    final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(commit);
+  Future<Map<String, Target>> _getPostsubmitTargets(CommitRef commit) async {
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(commit);
     final targets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)
@@ -159,11 +165,9 @@ final class RerunProdTask extends ApiRequestHandler {
 
   @useResult
   Future<List<String>> _markAllTestsForRerun({
-    required fs.Commit commit,
-    required RepositorySlug slug,
-    required String branch,
+    required CommitRef commit,
     required String email,
-    required Set<String> statusesToRerun,
+    required Set<TaskStatus> statusesToRerun,
   }) async {
     // Find the latest task for each task for this commit.
     final transaction = await _firestore.beginTransaction();
@@ -233,10 +237,8 @@ final class RerunProdTask extends ApiRequestHandler {
   }
 
   Future<bool> _rerunSpecificTask({
-    required fs.Commit commit,
+    required CommitRef commit,
     required fs.Task task,
-    required RepositorySlug slug,
-    required String branch,
     required String email,
   }) async {
     if (!_isTaskOwnedByCocoon(task)) {
@@ -262,7 +264,7 @@ final class RerunProdTask extends ApiRequestHandler {
       }
 
       return await _luciBuildService.rerunDartInternalReleaseBuilder(
-        commit: commit.toRef(),
+        commit: commit,
         task: task,
       );
     }
@@ -274,7 +276,7 @@ final class RerunProdTask extends ApiRequestHandler {
     }
 
     return await _luciBuildService.rerunBuilder(
-      commit: commit.toRef(),
+      commit: commit,
       target: taskTarget,
       tags: [TriggerdByBuildTag(email: email)],
       task: task,

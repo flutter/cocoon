@@ -12,7 +12,7 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
-import '../../model/firestore/commit.dart' as fs;
+import '../../model/commit_ref.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../service/firestore/commit_and_tasks.dart';
 
@@ -94,7 +94,7 @@ final class VacuumStaleTasks extends RequestHandler {
   }
 
   Future<_UpdateTaskIntent?> _considerTaskReset(
-    fs.Commit commit,
+    CommitRef commit,
     fs.Task task,
   ) async {
     // Check the timeout limit.
@@ -145,7 +145,7 @@ final class VacuumStaleTasks extends RequestHandler {
 
 sealed class _UpdateTaskIntent {
   _UpdateTaskIntent(this.commit, this.task);
-  final fs.Commit commit;
+  final CommitRef commit;
   final fs.Task task;
 
   @mustBeOverridden

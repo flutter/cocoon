@@ -164,7 +164,7 @@ class Scheduler {
       return;
     }
 
-    final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(commit);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(commit.toRef());
     final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
@@ -699,11 +699,8 @@ $s
     );
 
     final branch = baseRef.substring('refs/heads/'.length);
-    final ciYaml = await _ciYamlFetcher.getCiYaml(
-      slug: slug,
-      commitBranch: branch,
-      commitSha: headSha,
-      validate: branch == Config.defaultBranch(slug),
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+      CommitRef(sha: headSha, branch: branch, slug: slug),
     );
     log.info(
       'ci.yaml loaded successfully; collecting merge group targets for $headSha',
@@ -830,11 +827,8 @@ $s
 
     final branch = pullRequest.base!.ref!;
     final slug = pullRequest.base!.repo!.slug();
-    final ciYaml = await _ciYamlFetcher.getCiYaml(
-      commitBranch: branch,
-      commitSha: pullRequest.head!.sha!,
-      slug: slug,
-      validate: branch == Config.defaultBranch(slug),
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+      CommitRef(slug: slug, branch: branch, sha: pullRequest.head!.sha!),
     );
 
     log.info('ci.yaml loaded successfully.');
@@ -983,7 +977,7 @@ $s
       // and let humans sort it out. If the group is left hanging in the queue, it
       // will hold up all other PRs that are trying to land.
       if (isMergeGroup) {
-        await _completeArtifacts(sha, true);
+        await _completeArtifacts(sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1012,7 +1006,7 @@ $s
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
       if (isMergeGroup) {
-        await _completeArtifacts(sha, true);
+        await _completeArtifacts(sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
@@ -1506,8 +1500,8 @@ $stacktrace
                 fsTask = fsTasks.first;
               }
               log.debug('Latest firestore task is $fsTask');
-              final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(
-                fsCommit,
+              final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+                fsCommit.toRef(),
               );
               final target = ciYaml.postsubmitTargets().singleWhere(
                 (target) => target.name == fsTask.taskName,

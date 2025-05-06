@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:meta/meta.dart';
 
 /// Represents components of a backend task without specifying the backend.
 @immutable
 final class TaskRef {
-  const TaskRef({
+  TaskRef({
     required this.name,
     required this.currentAttempt,
     required this.status,
@@ -21,7 +22,7 @@ final class TaskRef {
   final int currentAttempt;
 
   /// Status of the task.
-  final String status;
+  final TaskStatus status;
 
   /// Commit the task belongs to.
   final String commitSha;

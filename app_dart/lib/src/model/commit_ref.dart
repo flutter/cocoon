@@ -8,11 +8,7 @@ import 'package:meta/meta.dart';
 /// Represents components of a GitHub commit without specifying the backend.
 @immutable
 final class CommitRef {
-  const CommitRef({
-    required this.sha,
-    required this.branch,
-    required this.slug,
-  });
+  CommitRef({required this.sha, required this.branch, required this.slug});
 
   /// The commit SHA.
   final String sha;

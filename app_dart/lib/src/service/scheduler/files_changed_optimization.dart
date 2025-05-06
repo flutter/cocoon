@@ -6,6 +6,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:path/path.dart' as p;
 
+import '../../model/commit_ref.dart';
 import '../config.dart';
 import '../get_files_changed.dart';
 import 'ci_yaml_fetcher.dart';
@@ -53,10 +54,9 @@ final class FilesChangedOptimizer {
       return FilesChangedOptimization.none;
     }
 
-    final ciYaml = await _ciYamlFetcher.getCiYaml(
-      slug: slug,
-      commitSha: commitSha,
-      commitBranch: commitBranch,
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+      CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
+      validate: false,
     );
 
     final refusePrefix = 'Not optimizing: ${slug.fullName}/pulls/${pr.number}';
