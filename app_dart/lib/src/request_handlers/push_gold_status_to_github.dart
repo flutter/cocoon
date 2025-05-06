@@ -10,7 +10,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:gql/language.dart' as lang;
-import 'package:graphql/client.dart' hide Request;
+import 'package:graphql/client.dart' hide Request, Response;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -20,7 +20,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 
 @immutable
-class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
+class PushGoldStatusToGithub extends ApiRequestHandler {
   PushGoldStatusToGithub({
     required super.config,
     required super.authenticationProvider,
@@ -36,15 +36,15 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
   final Duration _ingestionDelay;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push gold status from the local dev server.
-      return Body.empty;
+      return const Response.ok();
     }
 
     await _sendStatusUpdates(_firestore, Config.flutterSlug);
 
-    return Body.empty;
+    return const Response.ok();
   }
 
   Future<void> _sendStatusUpdates(
@@ -354,7 +354,6 @@ class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
       throw BadRequestException(
         'Formatting error detected requesting '
         'tryjob status for pr #${pr.number} from Flutter Gold.\n'
-        'response: $response\n'
         'error: $e',
       );
     } catch (e, s) {

@@ -60,41 +60,51 @@ const Set<String> knownCommentCodeExtensions = <String>{
 // for various activities (such as infra vs releases). This would mitigate
 // breakages across Cocoon.
 @immutable
-class GithubWebhookSubscription extends SubscriptionHandler {
+final class GithubWebhookSubscription extends SubscriptionHandler {
   static const _estimatedGitOnBorgMaximumSyncDuration = Duration(minutes: 15);
 
   /// Creates a subscription for processing GitHub webhooks.
   const GithubWebhookSubscription({
     required super.cache,
     required super.config,
-    required this.scheduler,
-    required this.gerritService,
-    required this.commitService,
+    required Scheduler scheduler,
+    required GerritService gerritService,
+    required CommitService commitService,
     super.authProvider,
-    this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
+    PullRequestLabelProcessor Function({
+          required Config config,
+          required GithubService githubService,
+          required PullRequest pullRequest,
+        })
+        pullRequestLabelProcessorProvider =
+        PullRequestLabelProcessor.new,
     @visibleForTesting DateTime Function() now = DateTime.now,
     // Gets the initial github events from this sub after the webhook uploads them.
-  }) : _now = now,
+  }) : _pullRequestLabelProcessorProvider = pullRequestLabelProcessorProvider,
+       _commitService = commitService,
+       _gerritService = gerritService,
+       _scheduler = scheduler,
+       _now = now,
        super(subscriptionName: 'github-webhooks-sub');
 
   final DateTime Function() _now;
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
-  final Scheduler scheduler;
+  final Scheduler _scheduler;
 
   /// To verify whether a commit was mirrored to GoB.
-  final GerritService gerritService;
+  final GerritService _gerritService;
 
   /// Used to handle push events and create commits based on those events.
-  final CommitService commitService;
+  final CommitService _commitService;
 
-  final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
+  final PullRequestLabelProcessorProvider _pullRequestLabelProcessorProvider;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     if (message.data == null || message.data!.isEmpty) {
       log.warn('GitHub webhook message was empty. No-oping');
-      return Body.empty;
+      return const Response.ok();
     }
 
     final webhook = pb.GithubWebhookMessage.fromJson(message.data!);
@@ -109,12 +119,12 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           webhook.payload,
           messagePublishedOn: DateTime.parse(message.publishTime!),
         );
-        result.writeResponse(response!);
+        return result.toResponse();
       case 'check_run':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-        final result = await scheduler.processCheckRun(checkRunEvent);
-        result.writeResponse(response!);
+        final result = await _scheduler.processCheckRun(checkRunEvent);
+        return result.toResponse();
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final branch =
@@ -126,7 +136,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         // meaning the commit needs to be added to the Firestore here instead.
         if (repository == 'flutter' &&
             (branch == 'stable' || branch == 'beta')) {
-          await commitService.handlePushGithubRequest(event);
+          await _commitService.handlePushGithubRequest(event);
         }
         break;
       case 'create':
@@ -141,7 +151,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             'Branch ${createEvent.ref} is a candidate branch, creating new '
             'commit in the Firestore',
           );
-          await commitService.handleCreateGithubRequest(createEvent);
+          await _commitService.handleCreateGithubRequest(createEvent);
         }
       case 'workflow_job':
         try {
@@ -149,7 +159,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
             json.decode(webhook.payload) as Map<String, Object?>,
           );
           log.debug('workflow_job: $job');
-          await scheduler.processWorkflowJob(job);
+          await _scheduler.processWorkflowJob(job);
         } catch (e, s) {
           log.warn(
             'Failed to parse workflow_job event: ${webhook.payload}',
@@ -159,7 +169,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         }
     }
 
-    return Body.empty;
+    return const Response.ok();
   }
 
   /// Handles a GitHub webhook with the event type "pull_request".
@@ -171,7 +181,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   /// retried with exponential backoff within that time period. The GoB mirror
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
-  Future<Body> _handlePullRequest(String rawRequest) async {
+  Future<Response> _handlePullRequest(String rawRequest) async {
     final pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
@@ -195,7 +205,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     switch (eventAction) {
       case 'closed':
         final result = await _processPullRequestClosed(pullRequestEvent);
-        result.writeResponse(response!);
+        return result.toResponse();
       case 'edited':
         await _checkForTests(pullRequestEvent);
         // In the event of the base ref changing we want to start new checks.
@@ -237,14 +247,14 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
-    return Body.empty;
+    return const Response.ok();
   }
 
   Future<void> _processLabels(PullRequest pullRequest) async {
     final slug = pullRequest.base!.repo!.slug();
     final githubService = await config.createGithubService(slug);
 
-    final labelProcessor = pullRequestLabelProcessorProvider(
+    final labelProcessor = _pullRequestLabelProcessorProvider(
       config: config,
       githubService: githubService,
       pullRequest: pullRequest,
@@ -324,7 +334,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
         log.info(
           '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
         );
-        await scheduler.triggerMergeGroupTargets(
+        await _scheduler.triggerMergeGroupTargets(
           mergeGroupEvent: mergeGroupEvent,
         );
 
@@ -337,7 +347,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
           'Merge group destroyed for $slug/$headSha because it was $reason.',
         );
         if (reason == 'invalidated' || reason == 'dequeued') {
-          await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
+          await _scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
         } else if (reason == 'merged') {
           log.info('Merge group for $slug/$headSha was merged successfully.');
         } else {
@@ -357,7 +367,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   }
 
   Future<bool> _shaExistsInGob(RepositorySlug slug, String sha) async {
-    final gobCommit = await gerritService.findMirroredCommit(slug, sha);
+    final gobCommit = await _gerritService.findMirroredCommit(slug, sha);
     return gobCommit != null;
   }
 
@@ -419,7 +429,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    await scheduler.triggerPresubmitTargets(pullRequest: pr);
+    await _scheduler.triggerPresubmitTargets(pullRequest: pr);
 
     // When presubmit targets are scheduled the PR acquires a new Merge Queue
     // Guard. This can happen when the PR is just created, a new commit is
@@ -469,7 +479,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
     // what needs to be done about this PR (maybe it lands, or maybe it will be
     // reverted). If the PR was just closed and abandoned, well, that means we
     // don't care about it any more.
-    await scheduler.cancelPreSubmitTargets(
+    await _scheduler.cancelPreSubmitTargets(
       pullRequest: pr,
       reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
     );
@@ -508,7 +518,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
       log.debug(
         'Merged commit was found on GoB mirror. Scheduling postsubmit tasks...',
       );
-      await scheduler.addPullRequest(pr);
+      await _scheduler.addPullRequest(pr);
       return const ProcessCheckRunResult.success();
     }
     final duration = _now().difference(pr.closedAt!);

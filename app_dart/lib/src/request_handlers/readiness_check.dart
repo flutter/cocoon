@@ -4,15 +4,14 @@
 
 import 'dart:async';
 import 'package:meta/meta.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
 @immutable
-class ReadinessCheck extends RequestHandler<Body> {
+class ReadinessCheck extends RequestHandler {
   const ReadinessCheck({required super.config});
 
   @override
-  Future<Body> get(Request request) async {
-    return Body.empty;
+  Future<Response> get(Request request) async {
+    return const Response.ok();
   }
 }

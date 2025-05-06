@@ -26,7 +26,7 @@ import '../request_handling/exceptions.dart';
 /// - `{status: "pending"}`; the engine artifacts are in the progress of being built
 /// - `{status: "failed"}`; the engine artifacts will not be uploaded as there was a failure building the engine
 @immutable
-final class GetEngineArtifactsReady extends RequestHandler<Body> {
+final class GetEngineArtifactsReady extends RequestHandler {
   const GetEngineArtifactsReady({
     required super.config,
     required FirestoreService firestore,
@@ -37,7 +37,7 @@ final class GetEngineArtifactsReady extends RequestHandler<Body> {
   static const _paramSha = 'sha';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final commitSha = request.uri.queryParameters[_paramSha];
     if (commitSha == null) {
       throw const BadRequestException('Missing query parameter: "$_paramSha"');
@@ -55,21 +55,20 @@ final class GetEngineArtifactsReady extends RequestHandler<Body> {
       );
     } on DetailedApiRequestError catch (e) {
       if (e.status == HttpStatus.notFound) {
-        response!.statusCode = HttpStatus.notFound;
-        return Body.empty;
+        return const Response.notFound(Body.empty());
       }
       rethrow;
     }
 
     if (ciStaging.failed > 0) {
-      return Body.forJson(_GetEngineArtifactsResponse.failed);
+      return const Response.ok(Body.json(_GetEngineArtifactsResponse.failed));
     }
 
     if (ciStaging.remaining > 0) {
-      return Body.forJson(_GetEngineArtifactsResponse.pending);
+      return const Response.ok(Body.json(_GetEngineArtifactsResponse.pending));
     }
 
-    return Body.forJson(_GetEngineArtifactsResponse.complete);
+    return const Response.ok(Body.json(_GetEngineArtifactsResponse.complete));
   }
 }
 

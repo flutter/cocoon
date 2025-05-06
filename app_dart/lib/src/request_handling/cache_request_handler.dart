@@ -6,12 +6,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_common/bytes_stream.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
-import 'body.dart';
 
 /// A [RequestHandler] for serving cached responses.
 ///
@@ -19,10 +19,10 @@ import 'body.dart';
 /// based on request are good for caching. Additionally, saves
 /// reading from Firestore which is expensive both timewise and monetarily.
 @immutable
-final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
+final class CacheRequestHandler extends RequestHandler {
   /// Creates a new [CacheRequestHandler].
   const CacheRequestHandler({
-    required RequestHandler<T> delegate,
+    required RequestHandler delegate,
     required super.config,
     required CacheService cache,
     Duration ttl = const Duration(minutes: 1),
@@ -30,7 +30,7 @@ final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
        _cache = cache,
        _delegate = delegate;
 
-  final RequestHandler<T> _delegate;
+  final RequestHandler _delegate;
   final CacheService _cache;
   final Duration _ttl;
 
@@ -46,7 +46,7 @@ final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
   /// response from the cache before getting it to set the cached response
   /// to the latest information.
   @override
-  Future<T> get(Request request) async {
+  Future<Response> get(Request request) async {
     final responseKey = '${request.uri.path}:${request.uri.query}';
 
     if (request.uri.queryParameters[flushCacheQueryParam] == 'true') {
@@ -69,28 +69,22 @@ final class CacheRequestHandler<T extends Body> extends RequestHandler<T> {
       debugName: responseKey,
     );
 
-    response!
-      ..statusCode = cachedResponse.statusCode
-      ..reasonPhrase = cachedResponse.reason;
-
-    return Body.forStream(Stream<Uint8List?>.value(cachedResponse.body)) as T;
+    return Response(
+      Body.bytes(cachedResponse.body),
+      statusCode: cachedResponse.statusCode,
+    );
   }
 
   /// Invokes [delegate.get], and returns the result as a [_CachedHttpResponse].
   Future<_CachedHttpResponse> _createCachedResponse(
     Request request,
-    RequestHandler<T> delegate,
+    RequestHandler delegate,
   ) async {
-    final body = await delegate.get(request);
-    final response = this.response!;
-    final builder = BytesBuilder();
-    await body.serialize().forEach((d) {
-      if (d != null) builder.add(d);
-    });
+    final response = await delegate.get(request);
     return _CachedHttpResponse._(
       response.statusCode,
-      response.reasonPhrase,
-      builder.toBytes(),
+      '',
+      await response.body.contents.collectBytes(),
     );
   }
 }

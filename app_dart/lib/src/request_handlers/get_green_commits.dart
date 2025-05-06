@@ -8,7 +8,6 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../model/firestore/task.dart' as fs;
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider/commit_tasks_status.dart';
 import '../service/build_status_service.dart';
@@ -31,7 +30,7 @@ import '../service/config.dart';
 /// GET: /api/public/get-green-commits?repo=$repo
 
 @immutable
-final class GetGreenCommits extends RequestHandler<Body> {
+final class GetGreenCommits extends RequestHandler {
   const GetGreenCommits({
     required super.config,
     required BuildStatusService buildStatusService,
@@ -46,7 +45,7 @@ final class GetGreenCommits extends RequestHandler<Body> {
   static const kRepoParam = 'repo';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final repoName =
         request.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final slug = RepositorySlug('flutter', repoName);
@@ -59,9 +58,12 @@ final class GetGreenCommits extends RequestHandler<Body> {
       branch: branch,
       slug: slug,
     );
-    return Body.forJson([
-      for (final commit in allCommits.where(_isGreenCommit)) commit.commit.sha,
-    ]);
+    return Response.ok(
+      Body.json([
+        for (final commit in allCommits.where(_isGreenCommit))
+          commit.commit.sha,
+      ]),
+    );
   }
 
   bool _isGreenCommit(CommitTasksStatus status) {

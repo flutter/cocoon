@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
@@ -57,16 +55,6 @@ void main() {
     testFlaky: true,
   );
 
-  Future<List<T?>?> decodeHandlerBody<T>() async {
-    final body = await tester.get(handler);
-    return (await utf8.decoder
-                .bind(body.serialize() as Stream<List<int>>)
-                .transform(json.decoder)
-                .single
-            as List<dynamic>)
-        .cast<T>();
-  }
-
   setUp(() {
     tester = RequestHandlerTester();
     config = FakeConfig();
@@ -80,7 +68,7 @@ void main() {
       config: config,
       buildStatusService: buildStatusService,
     );
-    final result = (await decodeHandlerBody<List<Object?>>())!;
+    final result = tester.getJson<Map<String, Object?>>(handler);
     expect(result, isEmpty);
   });
 
@@ -96,7 +84,7 @@ void main() {
       buildStatusService: buildStatusService,
     );
 
-    final result = (await decodeHandlerBody<String>())!;
+    final result = tester.getJson<Map<String, Object?>>(handler);
     expect(result, <String>[commit2.sha, commit1.sha]);
   });
 
@@ -114,7 +102,7 @@ void main() {
         buildStatusService: buildStatusService,
       );
 
-      final result = (await decodeHandlerBody<String>())!;
+      final result = tester.getJson<Map<String, Object?>>(handler);
       expect(result, <String>[commit2.sha]);
     },
   );
@@ -133,7 +121,7 @@ void main() {
         buildStatusService: buildStatusService,
       );
 
-      final result = (await decodeHandlerBody<String>())!;
+      final result = tester.getJson<Map<String, Object?>>(handler);
       expect(result, <String>[commit2.sha]);
     },
   );
@@ -150,7 +138,7 @@ void main() {
       buildStatusService: buildStatusService,
     );
 
-    final result = (await decodeHandlerBody<String>())!;
+    final result = tester.getJson<Map<String, Object?>>(handler);
     expect(result, <String>[commit2.sha, commit1.sha]);
   });
 
@@ -170,7 +158,7 @@ void main() {
       buildStatusService: buildStatusService,
     );
 
-    final result = (await decodeHandlerBody<String>())!;
+    final result = tester.getJson<Map<String, Object?>>(handler);
     expect(result, <String>[commitBranched.sha]);
   });
 }

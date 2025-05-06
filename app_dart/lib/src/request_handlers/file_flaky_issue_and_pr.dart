@@ -13,7 +13,6 @@ import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
@@ -26,7 +25,7 @@ import 'flaky_handler_utils.dart';
 /// The query parameter kThresholdKey is required for this handler to use it as
 /// the standard when compares the flaky ratios.
 @immutable
-class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
+class FileFlakyIssueAndPR extends ApiRequestHandler {
   const FileFlakyIssueAndPR({
     required super.config,
     required super.authenticationProvider,
@@ -38,7 +37,7 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
   final BigQueryService _bigQuery;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
@@ -94,10 +93,12 @@ class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
         break;
       }
     }
-    return Body.forJson(<String, dynamic>{
-      'Status': 'success',
-      'NumberOfCreatedIssuesAndPRs': filedIssueAndPRCount,
-    });
+    return Response.ok(
+      Body.json({
+        'Status': 'success',
+        'NumberOfCreatedIssuesAndPRs': filedIssueAndPRCount,
+      }),
+    );
   }
 
   bool shouldSkip(

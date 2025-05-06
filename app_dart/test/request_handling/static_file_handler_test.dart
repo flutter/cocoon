@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert' show utf8;
-
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -12,6 +10,7 @@ import 'package:file/memory.dart';
 import 'package:test/test.dart';
 
 import '../src/fake_config.dart';
+import '../src/request_handling/body_decoder_extension.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
@@ -39,10 +38,6 @@ void main() {
       fs.file('build/web/$dartMapFileName').writeAsStringSync('[{}]');
     });
 
-    Future<String> decodeHandlerBody(Body body) {
-      return utf8.decoder.bind(body.serialize() as Stream<List<int>>).first;
-    }
-
     test('returns 404 response when file does not exist', () async {
       final staticFileHandler = StaticFileHandler(
         'i do not exist as a file',
@@ -63,9 +58,8 @@ void main() {
         fs: fs,
       );
 
-      final body = await tester.get(staticFileHandler);
-      expect(body, isNotNull);
-      final response = await decodeHandlerBody(body);
+      final result = await tester.get(staticFileHandler);
+      final response = await result.body.readAsString();
       expect(response, indexFileContent);
     });
 
@@ -76,9 +70,8 @@ void main() {
         fs: fs,
       );
 
-      final body = await tester.get(staticFileHandler);
-      expect(body, isNotNull);
-      final response = await decodeHandlerBody(body);
+      final result = await tester.get(staticFileHandler);
+      final response = await result.body.readAsString();
       expect(response, '[{}]');
     });
 
@@ -89,9 +82,8 @@ void main() {
         fs: fs,
       );
 
-      final body = await tester.get(staticFileHandler);
-      expect(body, isNotNull);
-      final response = await decodeHandlerBody(body);
+      final result = await tester.get(staticFileHandler);
+      final response = await result.body.readAsString();
       expect(response, assetManifestSmcbin);
     });
 
@@ -103,9 +95,8 @@ void main() {
         fs: fs,
       );
 
-      final body = await tester.get(staticFileHandler);
-      expect(body, isNotNull);
-      final response = await decodeHandlerBody(body);
+      final result = await tester.get(staticFileHandler);
+      final response = await result.body.readAsString();
       expect(response, 'abc');
     });
   });

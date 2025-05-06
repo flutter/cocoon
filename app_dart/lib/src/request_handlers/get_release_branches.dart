@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/branch_service.dart';
 import '../service/config.dart';
@@ -29,7 +28,7 @@ import '../service/config.dart';
 ///    }
 ///]
 
-final class GetReleaseBranches extends RequestHandler<Body> {
+final class GetReleaseBranches extends RequestHandler {
   GetReleaseBranches({
     required super.config,
     required BranchService branchService,
@@ -38,9 +37,11 @@ final class GetReleaseBranches extends RequestHandler<Body> {
   final BranchService _branchService;
 
   @override
-  Future<Body> get(Request request) async {
-    return Body.forJson(
-      await _branchService.getReleaseBranches(slug: Config.flutterSlug),
+  Future<Response> get(Request request) async {
+    return Response.ok(
+      Body.json((
+        await _branchService.getReleaseBranches(slug: Config.flutterSlug),
+      )),
     );
   }
 }

@@ -16,6 +16,7 @@ import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../../src/fake_config.dart';
+import '../../src/request_handling/body_decoder_extension.dart';
 import '../../src/request_handling/fake_dashboard_authentication.dart';
 import '../../src/request_handling/fake_http.dart';
 import '../../src/request_handling/subscription_tester.dart';
@@ -163,10 +164,10 @@ void main() {
         messageId: '798274983',
       );
       tester.message = pushMessage;
-      final body = await tester.post(handler);
 
-      final bodyString =
-          await utf8.decoder.bind(body.serialize().asyncMap((b) => b!)).join();
+      final response = await tester.post(handler);
+      final bodyString = await response.body.readAsString();
+
       expect(bodyString, 'Failed to schedule builds: (builder: Linux A\n).');
       expect(verify(buildBucketClient.batch(any)).callCount, 3);
       expect(githubService.checkRunUpdates, hasLength(1));

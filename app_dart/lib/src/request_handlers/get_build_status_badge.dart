@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:meta/meta.dart';
 
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import 'get_build_status.dart';
 
@@ -44,13 +43,14 @@ final class GetBuildStatusBadge extends GetBuildStatus {
 
   static const red = '#e05d44';
   static const green = '#3BB143';
+  static final _imageSvgXml = ContentType.parse('image/svg+xml');
 
   @override
-  Future<Body> get(Request request) async {
-    // Set HTTP content-type so SVG is viewable.
-    response!.headers.contentType = ContentType.parse('image/svg+xml');
+  Future<Response> get(Request request) async {
     final buildStatusResponse = await super.createResponse(request);
-    return Body.forString(generateSVG(buildStatusResponse));
+    return Response.ok(
+      Body.string(generateSVG(buildStatusResponse), contentType: _imageSvgXml),
+    );
   }
 
   @visibleForTesting

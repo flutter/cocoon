@@ -17,10 +17,10 @@ import 'exceptions.dart';
 ///
 /// `T` is the type of object that is returned as the body of the HTTP response
 /// (before serialization). Subclasses whose HTTP responses don't include a
-/// body should extend `RequestHandler<Body>` and return null in their service
+/// body should extend `RequestHandler` and return null in their service
 /// handlers ([get] and [post]).
 
-abstract class RequestHandler<T extends Body> {
+abstract class RequestHandler {
   /// Creates a new [RequestHandler].
   const RequestHandler({required this.config});
 
@@ -35,67 +35,40 @@ abstract class RequestHandler<T extends Body> {
   Future<void> service(
     HttpRequest request, {
     Future<void> Function(HttpStatusException)? onError,
-  }) {
-    return runZoned<Future<void>>(
-      () async {
-        final response = request.response;
-        try {
-          try {
-            T body;
-            switch (request.method) {
-              case 'GET':
-                body = await get(Request.fromHttpRequest(request));
-                break;
-              case 'POST':
-                body = await post(Request.fromHttpRequest(request));
-                break;
-              default:
-                throw MethodNotAllowed(request.method);
-            }
-            await _respond(body: body);
-            return;
-          } on HttpStatusException {
-            rethrow;
-          } catch (e, s) {
-            log.error('Internal server error', e, s);
-            throw InternalServerError('$e\n$s');
-          }
-        } on HttpStatusException catch (error) {
-          if (onError != null) {
-            await onError(error);
-          }
-          response
-            ..statusCode = error.statusCode
-            ..write(error.message);
-          await response.flush();
-          await response.close();
-          return;
-        }
-      },
-      zoneValues: <RequestKey<dynamic>, Object>{
-        RequestKey.response: request.response,
-      },
-    );
+  }) async {
+    Response response;
+    try {
+      response = await switch (request.method) {
+        'GET' => get(Request.fromHttpRequest(request)),
+        'POST' => post(Request.fromHttpRequest(request)),
+        _ => throw MethodNotAllowed(request.method),
+      };
+    } on HttpStatusException catch (e) {
+      response = Response(
+        Body.json({'error': e.message}),
+        statusCode: e.statusCode,
+      );
+    } catch (e, s) {
+      log.error('Unhandled internal server error', e, s);
+      response = Response.internalServerError(Body.json({'error': '$e'}));
+    }
+    await _respond(request.response, response);
   }
 
   /// Responds (using [response]) with an optional [body].
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond({Body body = Body.empty}) async {
-    await response!.addStream(body.serialize().cast<List<int>>());
-    await response!.flush();
-    await response!.close();
+  Future<void> _respond(HttpResponse http, Response response) async {
+    http.statusCode = response.statusCode;
+    if (response.body.contentType case final contentType?) {
+      http.headers.contentType = contentType;
+    }
+    await http.addStream(response.body.contents);
+    await http.flush();
+    await http.close();
   }
 
-  /// Gets the value associated with the specified [key] in the request
-  /// context.
-  ///
-  /// Concrete subclasses should not call this directly. Instead, they should
-  /// access the getters that are tied to specific keys, such as [request]
-  /// and [response].
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
+  @Deprecated('Do not add more usages of getValue, use parameters instead')
   @protected
   U? getValue<U>(RequestKey<U> key, {bool allowNull = false}) {
     final value = Zone.current[key] as U?;
@@ -107,28 +80,23 @@ abstract class RequestHandler<T extends Body> {
     return value;
   }
 
-  /// Gets the current [HttpResponse].
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  HttpResponse? get response => getValue<HttpResponse>(RequestKey.response);
-
   /// Services an HTTP GET.
   ///
   /// Subclasses should override this method if they support GET requests.
+  ///
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> get(Request request) async {
+  Future<Response> get(Request request) async {
     throw const MethodNotAllowed('GET');
   }
 
   /// Services an HTTP POST.
   ///
   /// Subclasses should override this method if they support POST requests.
+  ///
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> post(Request request) async {
+  Future<Response> post(Request request) async {
     throw const MethodNotAllowed('POST');
   }
 }
@@ -207,6 +175,167 @@ final class _HttpRequest with Request {
   }
 
   Uint8List? _bodyAsBytes;
+}
+
+/// A response computed by a [RequestHandler].
+@immutable
+final class Response {
+  /// Create a response with the provided body and HTTP status code.
+  ///
+  /// Prefer one of the named constructors where able.
+  const Response(this.body, {required this.statusCode});
+
+  /// Create a response indicating `200 OK`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/200>
+  const Response.ok([Body body = const Body.empty()]) //
+    : this(body, statusCode: HttpStatus.ok);
+
+  /// Create a response indcating `400 Bad Request`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/400>.
+  const Response.badRequest([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.badRequest);
+
+  /// Create a response indcating `401 Unauthorized`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/401>.
+  const Response.unauthorized([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.unauthorized);
+
+  /// Create a response indcating `403 Forbidden`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/403>.
+  const Response.forbidden([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.forbidden);
+
+  /// Create a response indcating `404 Not Found`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/404>.
+  const Response.notFound([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.notFound);
+
+  /// Create a response indcating `405 Method Not Allowed`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/405>.
+  const Response.methodNotAllowed([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.methodNotAllowed);
+
+  /// Create a response indcating `409 Conflict`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/409>.
+  const Response.conflict([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.conflict);
+
+  /// Create a response indcating `500 Internal Server Error`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500>.
+  const Response.internalServerError([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.internalServerError);
+
+  /// Create a response indcating `503 Service Unavailable`.
+  ///
+  /// See <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500>.
+  const Response.serviceUnavailable([Body body = const Body.empty()])
+    : this(body, statusCode: HttpStatus.serviceUnavailable);
+
+  /// The [HttpStatus] of the response.
+  final int statusCode;
+
+  /// The body of the response.
+  final Body body;
+}
+
+abstract final class Body {
+  const Body({this.contentType});
+
+  const factory Body.empty() = _EmptyBody;
+
+  const factory Body.json(Object? encodable) = _JsonBody;
+
+  const factory Body.stream(
+    Stream<List<int>> stream, { //
+    ContentType? contentType,
+  }) = _StreamBody;
+
+  const factory Body.string(
+    String body, { //
+    ContentType? contentType,
+  }) = _TextBody;
+
+  const factory Body.bytes(
+    Uint8List bytes, { //
+    ContentType? contentType,
+  }) = _BytesBody;
+
+  /// The content type describing the body.
+  final ContentType? contentType;
+
+  /// Returns the contents of the body, if any.
+  Stream<List<int>> get contents;
+}
+
+final class _EmptyBody implements Body {
+  const _EmptyBody();
+
+  @override
+  ContentType? get contentType => ContentType.text;
+
+  @override
+  Stream<Uint8List> get contents => const Stream.empty();
+}
+
+final class _JsonBody implements Body {
+  const _JsonBody(this._encodable);
+
+  @override
+  ContentType? get contentType => ContentType.json;
+
+  @override
+  Stream<List<int>> get contents {
+    return Stream.fromIterable([_utf8JsonEncoder.convert(_encodable)]);
+  }
+
+  final Object? _encodable;
+  static final _utf8JsonEncoder = JsonUtf8Encoder();
+}
+
+final class _StreamBody implements Body {
+  const _StreamBody(this.contents, {this.contentType});
+
+  @override
+  final Stream<List<int>> contents;
+
+  @override
+  final ContentType? contentType;
+}
+
+final class _BytesBody implements Body {
+  const _BytesBody(this._contents, {this.contentType});
+
+  @override
+  Stream<List<int>> get contents {
+    return Stream.fromIterable([_contents]);
+  }
+
+  final Uint8List _contents;
+
+  @override
+  final ContentType? contentType;
+}
+
+final class _TextBody implements Body {
+  const _TextBody(this._contents, {this.contentType});
+
+  @override
+  Stream<List<int>> get contents {
+    return Stream.fromIterable([utf8.encode(_contents)]);
+  }
+
+  final String _contents;
+
+  @override
+  final ContentType? contentType;
 }
 
 /// A key that can be used to index a value within the request context.

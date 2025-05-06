@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
@@ -21,15 +19,6 @@ void main() {
   late RequestHandlerTester tester;
   late GetBuildStatus handler;
   late FakeFirestoreService firestore;
-
-  Future<T> decodeHandlerBody<T>() async {
-    final body = await tester.get(handler);
-    return await utf8.decoder
-            .bind(body.serialize() as Stream<List<int>>)
-            .transform(json.decoder)
-            .single
-        as T;
-  }
 
   setUp(() {
     firestore = FakeFirestoreService();
@@ -50,7 +39,7 @@ void main() {
     firestore.putDocument(commit);
     firestore.putDocument(task);
 
-    final response = await decodeHandlerBody<Map<String, Object?>>();
+    final response = await tester.getJson<Map<String, Object?>>(handler);
     expect(response, {'buildStatus': 'success', 'failingTasks': isEmpty});
   });
 
@@ -70,7 +59,7 @@ void main() {
     firestore.putDocument(taskPass);
     firestore.putDocument(taskFail);
 
-    final response = await decodeHandlerBody<Map<String, Object?>>();
+    final response = await tester.getJson<Map<String, Object?>>(handler);
     expect(response, {
       'buildStatus': 'failure',
       'failingTasks': [taskFail.taskName],
@@ -99,7 +88,7 @@ void main() {
     tester.request.uri = tester.request.uri.replace(
       queryParameters: {'branch': 'flutter-0.42-candidate.0'},
     );
-    final response = await decodeHandlerBody<Map<String, Object?>>();
+    final response = await tester.getJson<Map<String, Object?>>(handler);
     expect(response, {
       'buildStatus': 'failure',
       'failingTasks': [taskFail.taskName],

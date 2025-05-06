@@ -12,7 +12,7 @@ import '../../cocoon_service.dart';
 import '../service/build_status_service.dart';
 
 @immutable
-base class GetBuildStatus extends RequestHandler<Body> {
+base class GetBuildStatus extends RequestHandler {
   const GetBuildStatus({
     required super.config,
     required BuildStatusService buildStatusService,
@@ -23,9 +23,9 @@ base class GetBuildStatus extends RequestHandler<Body> {
   static const _kBranchParam = 'branch';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final response = await createResponse(request);
-    return Body.forJson(response);
+    return Response.ok(Body.json(response));
   }
 
   @protected

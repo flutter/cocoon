@@ -8,7 +8,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/utils.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 
@@ -24,7 +23,7 @@ import '../service/big_query.dart';
 ///   `limit`: Total API calls allowed on flutter-dashboard.
 ///   `remaining`: Total number of API calls remaining before flutter-dashboard is blocked from sending further requests.
 ///   `resets`: [DateTime] when [remaining] will reset back to [limit].
-class GithubRateLimitStatus extends RequestHandler<Body> {
+final class GithubRateLimitStatus extends RequestHandler {
   const GithubRateLimitStatus({
     required super.config,
     required BigQueryService bigQuery,
@@ -33,7 +32,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
   final BigQueryService _bigQuery;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final githubService = await config.createDefaultGitHubService();
     final quotaUsage = (await githubService.getRateLimit()).toJson();
     quotaUsage['timestamp'] = DateTime.now().toIso8601String();
@@ -52,6 +51,6 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
     /// Insert quota usage to BigQuery
     const githubQuotaTable = 'GithubQuotaUsage';
     await insertBigQuery(githubQuotaTable, quotaUsage, _bigQuery.tabledata);
-    return Body.forJson(quotaUsage);
+    return Response.ok(Body.json(quotaUsage));
   }
 }

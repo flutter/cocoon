@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 
 import '../model/firestore/commit.dart' as fs;
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -18,7 +17,7 @@ import '../service/scheduler.dart';
 
 /// Ensures Github commits from the past day exist in Firestore.
 @immutable
-final class VacuumGithubCommits extends ApiRequestHandler<Body> {
+final class VacuumGithubCommits extends ApiRequestHandler {
   const VacuumGithubCommits({
     required super.config,
     required super.authenticationProvider,
@@ -29,7 +28,7 @@ final class VacuumGithubCommits extends ApiRequestHandler<Body> {
   static const String branchParam = 'branch';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     for (var slug in config.supportedRepos) {
       final branch =
           request.uri.queryParameters[branchParam] ??
@@ -37,7 +36,7 @@ final class VacuumGithubCommits extends ApiRequestHandler<Body> {
       await _vacuumRepository(slug, branch: branch);
     }
 
-    return Body.empty;
+    return const Response.ok();
   }
 
   Future<void> _vacuumRepository(

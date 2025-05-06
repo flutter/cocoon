@@ -30,7 +30,6 @@ export 'src/request_handlers/scheduler/vacuum_stale_tasks.dart';
 export 'src/request_handlers/update_existing_flaky_issues.dart';
 export 'src/request_handlers/vacuum_github_commits.dart';
 export 'src/request_handling/authentication.dart';
-export 'src/request_handling/body.dart';
 export 'src/request_handling/cache_request_handler.dart';
 export 'src/request_handling/pubsub.dart';
 export 'src/request_handling/pubsub_authentication.dart';

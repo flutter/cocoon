@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/build_status_snapshot.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
@@ -29,16 +27,6 @@ void main() {
   late UpdateDiscordStatus handler;
   late FakeFirestoreService firestore;
   late MockDiscordService discord;
-
-  Future<T> decodeHandlerBody<T>() async {
-    tester.request.uri = tester.request.uri.replace(query: 'repo=flutter');
-    final body = await tester.get(handler);
-    return await utf8.decoder
-            .bind(body.serialize() as Stream<List<int>>)
-            .transform(json.decoder)
-            .single
-        as T;
-  }
 
   final alwaysTime = DateTime(2025, 4, 9, 12, 00);
 
@@ -66,7 +54,7 @@ void main() {
       generateFirestoreTask(1, status: Task.statusFailed, commitSha: '1'),
     );
 
-    await decodeHandlerBody<Map<String, Object?>>();
+    await tester.get(handler);
 
     expect(
       firestore,
@@ -96,7 +84,7 @@ void main() {
       collectionId: BuildStatusSnapshot.metadata.collectionId,
     );
 
-    await decodeHandlerBody<Map<String, Object?>>();
+    await tester.get(handler);
 
     // Verify we never wrote a document
     expect(
@@ -127,7 +115,7 @@ void main() {
       collectionId: BuildStatusSnapshot.metadata.collectionId,
     );
 
-    await decodeHandlerBody<Map<String, Object?>>();
+    await tester.get(handler);
 
     // Verify we wrote the status
     expect(
@@ -171,7 +159,7 @@ void main() {
       collectionId: BuildStatusSnapshot.metadata.collectionId,
     );
 
-    await decodeHandlerBody<Map<String, Object?>>();
+    await tester.get(handler);
 
     // Verify we wrote the status
     expect(
@@ -232,7 +220,7 @@ void main() {
       collectionId: BuildStatusSnapshot.metadata.collectionId,
     );
 
-    await decodeHandlerBody<Map<String, Object?>>();
+    await tester.get(handler);
 
     // Verify we wrote the status
     expect(
@@ -271,7 +259,7 @@ void main() {
       ),
     );
 
-    await decodeHandlerBody<Map<String, Object?>>();
+    await tester.get(handler);
 
     // Verify we actually posted it
     final [String message] =

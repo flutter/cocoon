@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/get_status.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
@@ -27,15 +25,6 @@ void main() {
   final commit1 = generateFirestoreCommit(1);
   final commit2 = generateFirestoreCommit(2);
 
-  Future<T?> decodeHandlerBody<T>() async {
-    final body = await tester.get(handler);
-    return await utf8.decoder
-            .bind(body.serialize() as Stream<List<int>>)
-            .transform(json.decoder)
-            .single
-        as T?;
-  }
-
   setUp(() {
     firestore = FakeFirestoreService();
 
@@ -56,7 +45,7 @@ void main() {
       queryParametersValue: {GetStatus.kLastCommitShaParam: commit1.sha},
     );
 
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(result, containsPair('Commits', isEmpty));
   });
 
@@ -74,7 +63,7 @@ void main() {
     );
 
     tester.request = FakeHttpRequest();
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(result, containsPair('Commits', hasLength(2)));
   });
 
@@ -95,7 +84,7 @@ void main() {
       queryParametersValue: {GetStatus.kLastCommitShaParam: commit2.sha},
     );
 
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(
       result,
       containsPair('Commits', [
@@ -148,7 +137,7 @@ void main() {
     tester.request = FakeHttpRequest(
       queryParametersValue: {GetStatus.kBranchParam: commit1.branch},
     );
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(
       result,
       containsPair('Commits', [

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io' show ContentType;
-import 'dart:typed_data';
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
@@ -17,7 +16,7 @@ import 'exceptions.dart';
 
 /// A class based on [RequestHandler] for serving static files.
 @immutable
-class StaticFileHandler extends RequestHandler<Body> {
+class StaticFileHandler extends RequestHandler {
   /// Creates a new [StaticFileHandler].
   const StaticFileHandler(
     this.filePath, {
@@ -33,9 +32,7 @@ class StaticFileHandler extends RequestHandler<Body> {
 
   /// Services an HTTP GET Request for static files.
   @override
-  Future<Body> get(Request request) async {
-    final response = this.response!;
-
+  Future<Response> get(Request request) async {
     /// The map of mimeTypes not found in [mime] package.
     final mimeTypeMap = <String, String>{
       '.map': 'application/json',
@@ -53,8 +50,9 @@ class StaticFileHandler extends RequestHandler<Body> {
           mimeTypeMap.containsKey(path.extension(file.path))
               ? mimeTypeMap[path.extension(file.path)]!
               : lookupMimeType(resultPath)!;
-      response.headers.contentType = ContentType.parse(mimeType);
-      return Body.forStream(file.openRead().cast<Uint8List>());
+      return Response.ok(
+        Body.stream(file.openRead(), contentType: ContentType.parse(mimeType)),
+      );
     } else {
       throw NotFoundException(resultPath);
     }

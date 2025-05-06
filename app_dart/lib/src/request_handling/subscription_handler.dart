@@ -14,7 +14,6 @@ import '../model/luci/pubsub_message.dart';
 import '../service/cache_service.dart';
 import 'api_request_handler.dart';
 import 'authentication.dart';
-import 'body.dart';
 import 'exceptions.dart';
 import 'pubsub_authentication.dart';
 import 'request_handler.dart';
@@ -26,7 +25,7 @@ import 'request_handler.dart';
 ///  * All requests must be authenticated per [AuthenticationProvider].
 ///  * Request body is passed following the format of [PubSubPushMessage].
 @immutable
-abstract class SubscriptionHandler extends RequestHandler<Body> {
+abstract class SubscriptionHandler extends RequestHandler {
   /// Creates a new [SubscriptionHandler].
   const SubscriptionHandler({
     required this.cache,

@@ -33,7 +33,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
   final FirestoreService _firestore;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     final bbv2.Build build;
     try {
       final decoded = json.decode(message.data!);
@@ -47,7 +47,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
 
     if (!isTaskFromDartInternalBuilder(builderName: build.builder.builder)) {
       log.info('Ignoring builder that is not a release builder');
-      return Body.empty;
+      return const Response.ok();
     }
 
     log.info('Checking for existing task in Firestore');
@@ -90,6 +90,6 @@ final class DartInternalSubscription extends SubscriptionHandler {
       kDatabase,
     );
 
-    return Body.forJson(fsTask.toString());
+    return const Response.ok();
   }
 }

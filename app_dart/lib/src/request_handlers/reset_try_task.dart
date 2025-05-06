@@ -14,7 +14,7 @@ import '../request_handling/exceptions.dart';
 /// Runs all the applicable tasks for a given PR and commit hash. This will be
 /// used to unblock rollers when creating a new commit is not possible.
 @immutable
-class ResetTryTask extends ApiRequestHandler<Body> {
+class ResetTryTask extends ApiRequestHandler {
   const ResetTryTask({
     required super.config,
     required super.authenticationProvider,
@@ -29,7 +29,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
   static const String kBuilderParam = 'builders';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredQueryParameters(request, <String>[
       kRepoParam,
       kPullRequestNumberParam,
@@ -53,7 +53,7 @@ class ResetTryTask extends ApiRequestHandler<Body> {
       pullRequest: pullRequest,
       builderTriggerList: builderList,
     );
-    return Body.empty;
+    return const Response.ok();
   }
 
   /// Parses [builders] to a String list.

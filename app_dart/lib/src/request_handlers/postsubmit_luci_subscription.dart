@@ -13,7 +13,6 @@ import 'package:meta/meta.dart';
 import '../../ci_yaml.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/firestore.dart';
@@ -51,10 +50,10 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
   final FirestoreService _firestore;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     if (message.data == null) {
-      log.info('no data in message');
-      return Body.empty;
+      log.info('No data in message');
+      return const Response.ok();
     }
 
     final pubSubCallBack = bbv2.PubSubCallBack();
@@ -68,7 +67,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
 
     if (!buildsPubSub.hasBuild()) {
       log.warn('No build was found in message.');
-      return Body.empty;
+      return const Response.ok();
     }
 
     final build = buildsPubSub.build;
@@ -112,7 +111,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
         'Target ${fsTask.taskName} has been deleted from TOT. Skip '
         'updating.',
       );
-      return Body.empty;
+      return const Response.ok();
     }
     final target = postsubmitTargets.singleWhere(
       (Target target) => target.name == fsTask.taskName,
@@ -139,7 +138,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       );
     }
 
-    return Body.empty;
+    return const Response.ok();
   }
 
   Future<void> _updateFirestore(fs.Task fsTask, bbv2.Build build) async {

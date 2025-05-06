@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/foundation/utils.dart';
+import 'package:cocoon_service/src/request_handlers/file_flaky_issue_and_pr.dart';
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
+import 'package:cocoon_service/src/request_handlers/update_existing_flaky_issues.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
@@ -153,15 +154,7 @@ void main() {
       ).thenAnswer((Invocation invocation) {
         return Future<Response>.value(Response('[]', 200));
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify comment is created correctly.
       var captured =
@@ -257,15 +250,7 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<Response>.value(Response('[]', 200));
         });
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify comment is created correctly.
         var captured =
@@ -364,15 +349,7 @@ void main() {
         ).thenAnswer((Invocation invocation) {
           return Future<Response>.value(Response('[]', 200));
         });
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify comment is created correctly.
         final captured =
@@ -461,15 +438,7 @@ void main() {
         return Future<Response>.value(Response('[]', 200));
       });
 
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify comment is created correctly.
       final captured =
@@ -542,15 +511,7 @@ void main() {
         return Future<Response>.value(Response('[]', 200));
       });
 
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify issue is created correctly.
       var captured =
@@ -634,15 +595,7 @@ void main() {
         ]);
       });
 
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       verifyNever(
         mockIssuesService.createComment(captureAny, captureAny, captureAny),

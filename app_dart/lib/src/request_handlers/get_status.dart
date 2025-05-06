@@ -13,7 +13,7 @@ import '../model/firestore/commit.dart';
 import '../service/build_status_service.dart';
 
 @immutable
-final class GetStatus extends RequestHandler<Body> {
+final class GetStatus extends RequestHandler {
   const GetStatus({
     required super.config,
     required BuildStatusService buildStatusService,
@@ -32,7 +32,7 @@ final class GetStatus extends RequestHandler<Body> {
   static const String kRepoParam = 'repo';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final lastCommitSha = request.uri.queryParameters[kLastCommitShaParam];
 
     final repoName =
@@ -56,41 +56,43 @@ final class GetStatus extends RequestHandler<Body> {
       slug: slug,
     );
 
-    return Body.forJson({
-      'Commits': [
-        ...commits.map((status) {
-          return rpc_model.CommitStatus(
-            commit: rpc_model.Commit(
-              author: rpc_model.CommitAuthor(
-                login: status.commit.author,
-                avatarUrl: status.commit.avatar,
+    return Response.ok(
+      Body.json({
+        'Commits': [
+          ...commits.map((status) {
+            return rpc_model.CommitStatus(
+              commit: rpc_model.Commit(
+                author: rpc_model.CommitAuthor(
+                  login: status.commit.author,
+                  avatarUrl: status.commit.avatar,
+                ),
+                branch: status.commit.branch,
+                timestamp: status.commit.createTimestamp,
+                sha: status.commit.sha,
+                message: status.commit.message,
+                repository: status.commit.repositoryPath,
               ),
-              branch: status.commit.branch,
-              timestamp: status.commit.createTimestamp,
-              sha: status.commit.sha,
-              message: status.commit.message,
-              repository: status.commit.repositoryPath,
-            ),
-            tasks: [
-              ...status.collateTasksByTaskName().map((fullTask) {
-                return rpc_model.Task(
-                  attempts: fullTask.task.currentAttempt,
-                  buildNumberList: fullTask.buildList,
-                  builderName: fullTask.task.taskName,
-                  createTimestamp: fullTask.task.createTimestamp,
-                  startTimestamp: fullTask.task.startTimestamp,
-                  endTimestamp: fullTask.task.endTimestamp,
-                  isBringup: fullTask.task.bringup,
-                  isFlaky: fullTask.didAtLeastOneFailureOccur,
-                  status: fullTask.task.status,
-                  lastAttemptFailed: fullTask.lastCompletedAttemptWasFailure,
-                  currentBuildNumber: fullTask.task.buildNumber,
-                );
-              }),
-            ],
-          );
-        }),
-      ],
-    });
+              tasks: [
+                ...status.collateTasksByTaskName().map((fullTask) {
+                  return rpc_model.Task(
+                    attempts: fullTask.task.currentAttempt,
+                    buildNumberList: fullTask.buildList,
+                    builderName: fullTask.task.taskName,
+                    createTimestamp: fullTask.task.createTimestamp,
+                    startTimestamp: fullTask.task.startTimestamp,
+                    endTimestamp: fullTask.task.endTimestamp,
+                    isBringup: fullTask.task.bringup,
+                    isFlaky: fullTask.didAtLeastOneFailureOccur,
+                    status: fullTask.task.status,
+                    lastAttemptFailed: fullTask.lastCompletedAttemptWasFailure,
+                    currentBuildNumber: fullTask.task.buildNumber,
+                  );
+                }),
+              ],
+            );
+          }),
+        ],
+      }),
+    );
   }
 }
