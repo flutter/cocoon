@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,7 +25,7 @@ void main() {
     expect(
       filter.matchesTask(
         QualifiedTask.fromTask(
-          generateTaskForTest(status: TaskBox.statusSucceeded),
+          generateTaskForTest(status: TaskStatus.succeeded),
         ),
       ),
       true,
@@ -33,10 +33,7 @@ void main() {
     expect(
       filter.matchesTask(
         QualifiedTask.fromTask(
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: 'foo',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: 'foo'),
         ),
       ),
       true,
@@ -149,7 +146,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'Good task',
             ),
           ),
@@ -160,7 +157,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'Bringup task',
               bringup: true,
             ),
@@ -178,7 +175,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'Good task',
             ),
           ),
@@ -189,7 +186,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'Bringup task',
               bringup: true,
             ),
@@ -211,7 +208,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'foo',
             ),
           ),
@@ -222,7 +219,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'Foo',
             ),
           ),
@@ -233,7 +230,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'blah foo blah',
             ),
           ),
@@ -244,7 +241,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'fo',
             ),
           ),
@@ -266,7 +263,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'foo',
             ),
           ),
@@ -277,7 +274,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'Foo',
             ),
           ),
@@ -288,7 +285,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'blah fOO blah',
             ),
           ),
@@ -299,7 +296,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'fo',
             ),
           ),
@@ -320,7 +317,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'z bc',
             ),
           ),
@@ -331,7 +328,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'z bc z',
             ),
           ),
@@ -342,7 +339,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'z b c',
             ),
           ),
@@ -353,7 +350,7 @@ void main() {
         filter.matchesTask(
           QualifiedTask.fromTask(
             generateTaskForTest(
-              status: TaskBox.statusSucceeded,
+              status: TaskStatus.succeeded,
               builderName: 'foo',
             ),
           ),
@@ -387,7 +384,7 @@ void main() {
       trueFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: taskName,
           ),
         ),
@@ -398,7 +395,7 @@ void main() {
       trueFilterMap.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: taskName,
           ),
         ),
@@ -410,7 +407,7 @@ void main() {
       falseFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: taskName,
           ),
         ),
@@ -421,7 +418,7 @@ void main() {
       falseFilterMap.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: taskName,
           ),
         ),
@@ -482,7 +479,7 @@ void main() {
       iosMacFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Mac_ios',
           ),
         ),
@@ -492,10 +489,7 @@ void main() {
     expect(
       iosMacFilter.matchesTask(
         QualifiedTask.fromTask(
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: 'Mac',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: 'Mac'),
         ),
       ),
       false,
@@ -504,7 +498,7 @@ void main() {
       macIosFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Mac_ios',
           ),
         ),
@@ -514,10 +508,7 @@ void main() {
     expect(
       macIosFilter.matchesTask(
         QualifiedTask.fromTask(
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: 'Mac',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: 'Mac'),
         ),
       ),
       true,
@@ -526,7 +517,7 @@ void main() {
       macIosBothTrueFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Mac_ios',
           ),
         ),
@@ -536,10 +527,7 @@ void main() {
     expect(
       macIosBothTrueFilter.matchesTask(
         QualifiedTask.fromTask(
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: 'Mac',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: 'Mac'),
         ),
       ),
       true,
@@ -548,7 +536,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_android',
           ),
         ),
@@ -559,7 +547,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_mokey',
           ),
         ),
@@ -570,7 +558,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_pixel_7pro',
           ),
         ),
@@ -581,7 +569,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux pixel_test',
           ),
         ),
@@ -592,7 +580,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux',
           ),
         ),
@@ -603,7 +591,7 @@ void main() {
       linuxAndroidFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_android',
           ),
         ),
@@ -614,7 +602,7 @@ void main() {
       linuxAndroidFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_mokey',
           ),
         ),
@@ -625,7 +613,7 @@ void main() {
       linuxAndroidFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_pixel_7pro',
           ),
         ),
@@ -636,7 +624,7 @@ void main() {
       linuxAndroidFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux',
           ),
         ),
@@ -647,7 +635,7 @@ void main() {
       linuxAndroidBothTrueFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_android',
           ),
         ),
@@ -658,7 +646,7 @@ void main() {
       linuxAndroidBothTrueFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_mokey',
           ),
         ),
@@ -669,7 +657,7 @@ void main() {
       linuxAndroidBothTrueFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Linux_pixel_7pro',
           ),
         ),
@@ -680,7 +668,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Windows_android',
           ),
         ),
@@ -691,7 +679,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Windows_mokey',
           ),
         ),
@@ -702,7 +690,7 @@ void main() {
       androidLinuxFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Windows_pixel_7pro',
           ),
         ),
@@ -713,7 +701,7 @@ void main() {
       androidFalseFilter.matchesTask(
         QualifiedTask.fromTask(
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Anything_android',
           ),
         ),

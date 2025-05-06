@@ -20,10 +20,6 @@ class TaskBox extends StatelessWidget {
   static const double _kDefaultCellSize = 20;
   static const double _kWebCellSize = 36;
 
-  static const statusCancelled = TaskStatus.cancelled;
-  static const statusFailed = TaskStatus.failed;
-  static const statusNew = TaskStatus.waitingForBackfill;
-  static const statusSkipped = TaskStatus.skipped;
   static const statusSucceeded = TaskStatus.succeeded;
   static const statusInfraFailure = TaskStatus.infraFailure;
   static const statusInProgress = TaskStatus.inProgress;
@@ -34,13 +30,13 @@ class TaskBox extends StatelessWidget {
   ///
   /// These colors should map to the MILO color scheme.
   static final statusColor = {
-    statusCancelled: Colors.lightBlue,
-    statusFailed: Colors.red,
-    statusNew: Colors.grey,
-    statusSkipped: Colors.grey.shade800,
-    statusSucceeded: Colors.green,
-    statusInfraFailure: Colors.purple,
-    statusInProgress: Colors.yellow,
+    TaskStatus.cancelled: Colors.lightBlue,
+    TaskStatus.failed: Colors.red,
+    TaskStatus.waitingForBackfill: Colors.grey,
+    TaskStatus.skipped: Colors.grey.shade800,
+    TaskStatus.succeeded: Colors.green,
+    TaskStatus.infraFailure: Colors.purple,
+    TaskStatus.inProgress: Colors.yellow,
   };
 
   static const statusColorFailedAndRerunning = Color(0xFF8A3324);

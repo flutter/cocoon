@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
 import 'package:flutter_dashboard/state/build.dart';
@@ -37,7 +38,7 @@ void main() {
     await precacheTaskIcons(tester);
 
     final expectedTask = generateTaskForTest(
-      status: TaskBox.statusFailed,
+      status: TaskStatus.failed,
       attempts: 3,
     );
 
@@ -100,7 +101,7 @@ void main() {
   ) async {
     await precacheTaskIcons(tester);
     final flakyTask = generateTaskForTest(
-      status: TaskBox.statusFailed,
+      status: TaskStatus.failed,
       attempts: 3,
       bringup: true,
     );
@@ -161,7 +162,7 @@ void main() {
     final finishTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 1));
 
     final timeTask = generateTaskForTest(
-      status: TaskBox.statusSucceeded,
+      status: TaskStatus.succeeded,
       createTime: createTime,
       startTime: startTime,
       finishTime: finishTime,
@@ -203,7 +204,7 @@ void main() {
     final startTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 9));
 
     final timeTask = generateTaskForTest(
-      status: TaskBox.statusInProgress,
+      status: TaskStatus.inProgress,
       createTime: createTime,
       startTime: startTime,
     );
@@ -243,7 +244,7 @@ void main() {
     final createTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 2));
 
     final timeTask = generateTaskForTest(
-      status: TaskBox.statusNew,
+      status: TaskStatus.waitingForBackfill,
       createTime: createTime,
     );
 
@@ -281,7 +282,7 @@ void main() {
     final createTime = utc$2020_9_1_12_30.subtract(const Duration(minutes: 11));
 
     final timeTask = generateTaskForTest(
-      status: TaskBox.statusInProgress,
+      status: TaskStatus.inProgress,
       createTime: createTime,
       buildNumberList: [],
     );
@@ -327,7 +328,7 @@ void main() {
             home: Scaffold(
               body: _TestGrid(
                 buildState: buildState,
-                task: generateTaskForTest(status: TaskBox.statusSucceeded),
+                task: generateTaskForTest(status: TaskStatus.succeeded),
               ),
             ),
           ),
@@ -363,7 +364,7 @@ void main() {
               body: _TestGrid(
                 buildState: buildState,
                 task: generateTaskForTest(
-                  status: TaskBox.statusSucceeded,
+                  status: TaskStatus.succeeded,
                   buildNumberList: [123],
                 ),
               ),
@@ -394,7 +395,7 @@ void main() {
               body: _TestGrid(
                 buildState: buildState,
                 task: generateTaskForTest(
-                  status: TaskBox.statusSucceeded,
+                  status: TaskStatus.succeeded,
                   buildNumberList: [123],
                   builderName: 'Linux flutter_release_builder',
                 ),
@@ -417,7 +418,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final expectedTask = generateTaskForTest(
-      status: TaskBox.statusSucceeded,
+      status: TaskStatus.succeeded,
       attempts: 3,
     );
 
@@ -459,7 +460,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final expectedTask = generateTaskForTest(
-      status: TaskBox.statusSucceeded,
+      status: TaskStatus.succeeded,
       attempts: 3,
     );
 
@@ -507,7 +508,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final expectedTask = generateTaskForTest(
-      status: TaskBox.statusNew,
+      status: TaskStatus.waitingForBackfill,
       attempts: 3,
     );
 

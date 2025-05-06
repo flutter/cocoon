@@ -7,7 +7,6 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' show Request, Response;
 import 'package:http/testing.dart';
@@ -50,7 +49,7 @@ void main() {
             attempts: 1,
             isBringup: false,
             isFlaky: false,
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             buildNumberList: [123],
             builderName: 'Linux',
             lastAttemptFailed: false,
@@ -144,7 +143,7 @@ void main() {
           return Response('', 200);
         }),
       );
-      task = generateTaskForTest(status: TaskBox.statusFailed);
+      task = generateTaskForTest(status: TaskStatus.failed);
     });
 
     test('should return true if request succeeds', () async {

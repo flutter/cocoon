@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter_dashboard/logic/qualified_task.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,7 +12,7 @@ import '../utils/generate_task_for_tests.dart';
 void main() {
   test('QualifiedTask.sourceConfigurationUrl for luci', () {
     final luciTask = generateTaskForTest(
-      status: TaskBox.statusSucceeded,
+      status: TaskStatus.succeeded,
       builderName: 'abc',
     );
 
@@ -26,7 +26,7 @@ void main() {
 
   test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
     final dartInternalTask = generateTaskForTest(
-      status: TaskBox.statusSucceeded,
+      status: TaskStatus.succeeded,
       builderName: 'Linux flutter_release_builder',
     );
 

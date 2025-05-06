@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons.dart';
@@ -525,7 +526,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       idToken: await buildState.authService.idToken,
       branch: buildState.currentBranch,
       repo: buildState.currentRepo,
-      include: {TaskBox.statusSkipped},
+      include: {TaskStatus.skipped},
     );
     if (!context.mounted) {
       return;

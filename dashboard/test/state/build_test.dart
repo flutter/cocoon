@@ -5,12 +5,12 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/firebase_auth.dart';
 import 'package:flutter_dashboard/state/build.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
@@ -592,7 +592,7 @@ void main() {
   group('rerunTask', () {
     late MockCocoonService cocoonService;
     late MockFirebaseAuthService authService;
-    final task = generateTaskForTest(status: TaskBox.statusFailed);
+    final task = generateTaskForTest(status: TaskStatus.failed);
     final commit = generateCommitForTest();
 
     setUp(() {
