@@ -52,6 +52,7 @@ class FakeConfig implements Config {
     this.backfillerCommitLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
+    DynamicConfig? dynamicConfig,
   });
 
   gh.GitHub? githubClient;
@@ -88,6 +89,16 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
+
+  final dynamicConfigs = <DynamicConfig>[];
+
+  @override
+  DynamicConfig get dynamicConfig => dynamicConfigs.last;
+
+  @override
+  set dynamicConfig(DynamicConfig dynamicConfig) {
+    dynamicConfigs.add(dynamicConfig);
+  }
 
   @override
   Future<gh.GitHub> createGitHubClient({

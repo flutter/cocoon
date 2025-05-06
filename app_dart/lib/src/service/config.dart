@@ -9,8 +9,9 @@ import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:github/github.dart' as gh;
-import 'package:graphql/client.dart';
+import 'package:graphql/client.dart' hide JsonSerializable;
 import 'package:http/http.dart' as http;
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
@@ -18,12 +19,15 @@ import '../../cocoon_service.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
 
+part 'config.g.dart';
+
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
 
 interface class Config {
   /// Creates and returns a [Config] instance.
-  Config(this._cache, this._secrets);
+  Config(this._cache, this._secrets, {DynamicConfig? dynamicConfig})
+    : dynamicConfig = dynamicConfig ?? DynamicConfig.fromJson({});
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -58,6 +62,8 @@ interface class Config {
 
   final CacheService _cache;
   final SecretManager _secrets;
+
+  DynamicConfig dynamicConfig;
 
   /// List of Github presubmit supported repos.
   ///
@@ -205,7 +211,7 @@ interface class Config {
   ///
   /// This limits the number of commits to be checked to backfill. When bots
   /// are idle, we hope to scan as many commit rows as possible.
-  int get backfillerCommitLimit => 50;
+  int get backfillerCommitLimit => dynamicConfig.backfillerCommitLimit;
 
   /// Upper limit of issue/PRs allowed each API call.
   ///
@@ -488,4 +494,28 @@ interface class Config {
     final github = createGitHubClientWithToken(token);
     return GithubService(github);
   }
+}
+
+/// Flags for the service that can be updated dynamically with out a restart.
+///
+/// Should be read from git/HEAD/app_dart/config.yaml and cached between
+/// services.
+@JsonSerializable()
+class DynamicConfig {
+  /// Upper limit of commit rows to be backfilled in API call.
+  ///
+  /// This limits the number of commits to be checked to backfill. When bots
+  /// are idle, we hope to scan as many commit rows as possible.
+  @JsonKey(defaultValue: 50)
+  final int backfillerCommitLimit;
+
+  DynamicConfig({required this.backfillerCommitLimit});
+
+  /// Connect the generated [_$DynamicConfigFromJson] function to the `fromJson`
+  /// factory.
+  factory DynamicConfig.fromJson(Map<String, dynamic> json) =>
+      _$DynamicConfigFromJson(json);
+
+  /// Connect the generated [_$DynamicConfigToJson] function to the `toJson` method.
+  Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);
 }

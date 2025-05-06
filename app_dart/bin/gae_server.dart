@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
+import 'package:cocoon_service/src/service/dynamic_config_updater.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
@@ -36,13 +37,23 @@ Future<void> main() async {
     final cache = CacheService(inMemory: false);
     final firestore = await FirestoreService.from(const GoogleAuthProvider());
     final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
+
+    // Start with a fresh copy of the DynamicConfig. If this throws, the server
+    // will not start - which is a good thing.
+    final configUpdater = DynamicConfigUpdater();
+    final dynamicConfig = await configUpdater.fetchDynamicConfig();
     final config = Config(
       cache,
       await SecretManager.create(
         const GoogleAuthProvider(),
         projectId: Config.flutterGcpProjectId,
       ),
+      dynamicConfig: dynamicConfig,
     );
+    // Start updating the config to loop forever. If this fails, it will log
+    // every ~1 minute.
+    configUpdater.startUpdateLoop(config);
+
     final authProvider = DashboardAuthentication(
       config: config,
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
