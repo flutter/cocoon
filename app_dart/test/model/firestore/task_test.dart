@@ -48,7 +48,7 @@ void main() {
         expect(task.startTimestamp, 0);
 
         task.updateFromBuild(build);
-        expect(task.status, 'Succeeded');
+        expect(task.status, TaskStatus.succeeded);
 
         expect(task.buildNumber, 561);
         expect(task.createTimestamp, createTimeDateTime.millisecondsSinceEpoch);
