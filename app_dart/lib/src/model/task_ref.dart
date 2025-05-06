@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 /// Represents components of a backend task without specifying the backend.
 @immutable
 final class TaskRef {
-  const TaskRef({
+  TaskRef({
     required this.name,
     required this.currentAttempt,
     required this.status,
