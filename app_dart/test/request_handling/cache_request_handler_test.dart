@@ -56,7 +56,7 @@ void main() {
     );
 
     final body = await tester.get(cacheRequestHandler);
-    final response = (await body.serialize().first)!;
+    final response = await body.serialize().first;
     final strResponse = utf8.decode(response);
     expect(strResponse, expectedResponse);
   });
@@ -87,7 +87,7 @@ void main() {
     );
 
     final body = await tester.get(cacheRequestHandler);
-    final response = (await body.serialize().first)!;
+    final response = await body.serialize().first;
     final strResponse = utf8.decode(response);
     expect(strResponse, expectedResponse);
     expect(tester.response.statusCode, 200);
@@ -166,7 +166,7 @@ void main() {
     expect(fallbackHandler.callCount, 0);
 
     final body = await tester.get(cacheRequestHandler);
-    final response = (await body.serialize().first)!;
+    final response = await body.serialize().first;
     final strResponse = utf8.decode(response);
 
     // the mock should update the cache to have null -> empty string
