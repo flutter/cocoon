@@ -17,7 +17,6 @@
 ///
 /// To regenerate the JSON serialization code after making model changes:
 /// ```sh
-/// cd dashboard
 /// dart run build_runner build
 /// ```
 ///
