@@ -20,10 +20,6 @@ class TaskBox extends StatelessWidget {
   static const double _kDefaultCellSize = 20;
   static const double _kWebCellSize = 36;
 
-  static const statusSucceeded = TaskStatus.succeeded;
-  static const statusInfraFailure = TaskStatus.infraFailure;
-  static const statusInProgress = TaskStatus.inProgress;
-
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
