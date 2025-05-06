@@ -135,7 +135,7 @@ void main() {
             .hasTaskName(builder)
             .hasCurrentAttempt(1)
             .hasBuildNumber(buildNumber)
-            .hasStatus('Succeeded'),
+            .hasStatus(TaskStatus.succeeded),
       ]),
     );
   });
@@ -164,7 +164,7 @@ void main() {
             .hasTaskName(builder)
             .hasCurrentAttempt(1)
             .hasBuildNumber(buildNumber)
-            .hasStatus('Succeeded'),
+            .hasStatus(TaskStatus.succeeded),
       ]),
     );
   });
@@ -193,7 +193,7 @@ void main() {
             .hasTaskName(builder)
             .hasCurrentAttempt(1)
             .hasBuildNumber(buildNumber)
-            .hasStatus('In Progress'),
+            .hasStatus(TaskStatus.inProgress),
       ]),
     );
   });
