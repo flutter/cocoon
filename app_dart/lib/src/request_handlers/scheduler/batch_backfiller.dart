@@ -104,6 +104,7 @@ final class BatchBackfiller extends RequestHandler {
           sha: fsGrid.first.commit.sha,
           branch: Config.defaultBranch(slug),
         ),
+        postsubmit: true,
       );
 
       final totTargets = [

@@ -43,6 +43,7 @@ final class FakeCiYamlFetcher implements CiYamlFetcher {
   Future<CiYamlSet> getCiYamlByCommit(
     CommitRef commit, {
     bool? validate,
+    bool postsubmit = false,
   }) async {
     validate ??= commit.branch == Config.defaultBranch(commit.slug);
     if (validate && failCiYamlValidation) {
