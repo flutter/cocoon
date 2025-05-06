@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_server_test/fake_secret_manager.dart';
@@ -9,6 +10,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -20,7 +22,11 @@ void main() {
   setUp(() async {
     cacheService = CacheService(inMemory: true);
     secrets = FakeSecretManager();
-    config = Config(cacheService, secrets);
+    config = Config(
+      cacheService,
+      secrets,
+      dynamicConfig: DynamicConfig.fromJson({}),
+    );
   });
 
   test('githubAppInstallations when builder config does not exist', () async {
@@ -58,5 +64,13 @@ void main() {
       config.flutterGoldAlertConstant(RepositorySlug.full('flutter/engine')),
       isNot(contains('package:flutter')),
     );
+  });
+
+  group('dynamic config', () {
+    test('current config.yaml is parsable', () async {
+      final yaml =
+          loadYaml(await File('config.yaml').readAsString()) as YamlMap;
+      DynamicConfig.fromJson(yaml.cast<String, dynamic>());
+    });
   });
 }

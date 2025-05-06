@@ -36,13 +36,23 @@ Future<void> main() async {
     final cache = CacheService(inMemory: false);
     final firestore = await FirestoreService.from(const GoogleAuthProvider());
     final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
+
+    // Start with a fresh copy of the DynamicConfig. If this throws, the server
+    // will not start - which is a good thing.
+    final configUpdater = DynamicConfigUpdater();
+    final dynamicConfig = await configUpdater.fetchDynamicConfig();
     final config = Config(
       cache,
       await SecretManager.create(
         const GoogleAuthProvider(),
         projectId: Config.flutterGcpProjectId,
       ),
+      dynamicConfig: dynamicConfig,
     );
+    // Start updating the config to loop forever. If this fails, it will log
+    // every ~1 minute.
+    configUpdater.startUpdateLoop(config);
+
     final authProvider = DashboardAuthentication(
       config: config,
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),

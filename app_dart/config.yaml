@@ -1,0 +1,6 @@
+# Defines the config options for Flutter CI (Cocoon)
+#
+# The schema for this file is defined in DynamicConfig of
+# app_dart/lib/src/service/config.dart
+
+backfillerCommitLimit: 50

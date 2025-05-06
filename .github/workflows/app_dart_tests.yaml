@@ -17,13 +17,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run app_dart tests
+      - name: Get packages
         run: |
           cd app_dart
           dart pub get
+
+      - name: dart analyze app_dart
+        run: |
+          cd app_dart
+          dart analyze --fatal-infos
+
+      - name: dart format app_dart
+        run: |
+          cd app_dart
+          dart format --set-exit-if-changed .
+
+      - name: dart test app_dart
+        run: |
+          cd app_dart
           dart test test
 
-      - name: Run dart analyze
+      - name: Run analyze
         run: |
           cd analyze
           dart pub get

@@ -52,6 +52,7 @@ class FakeConfig implements Config {
     this.backfillerCommitLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
+    DynamicConfig? dynamicConfig,
   });
 
   gh.GitHub? githubClient;
