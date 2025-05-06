@@ -61,6 +61,7 @@ void main() {
         final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
+          ref: 'master',
           httpClientProvider: () => branchHttpClient,
           retryOptions: noRetry,
         );
@@ -83,6 +84,7 @@ void main() {
         final branches = await githubFileContent(
           RepositorySlug('flutter', 'cocoon'),
           'branches.txt',
+          ref: 'master',
           httpClientProvider: () => branchHttpClient,
           retryOptions: const RetryOptions(
             maxAttempts: 3,
@@ -181,6 +183,7 @@ void main() {
           githubFileContent(
             RepositorySlug('flutter', 'cocoon'),
             'branches.txt',
+            ref: 'master',
             httpClientProvider: () => branchHttpClient,
             retryOptions: const RetryOptions(
               maxAttempts: 3,

@@ -23,14 +23,14 @@ void main() {
   String? mockHttpFile;
   late _FakeRandom random;
   late Config config;
-  var mockHttpCalled = 0;
+  late List<Uri> requestUris;
 
   setUp(() {
-    mockHttpCalled = 0;
+    requestUris = <Uri>[];
     mockHttpFile = goodConfigYaml;
     random = _FakeRandom();
     mockHttp = MockClient((req) async {
-      mockHttpCalled++;
+      requestUris.add(req.url);
       if (mockHttpFile != null) {
         return Response(mockHttpFile!, 200);
       }
@@ -110,7 +110,7 @@ void main() {
     updater.startUpdateLoop(config);
     await Future<void>.delayed(const Duration(milliseconds: 100));
     updater.stopUpdateLoop();
-    expect(mockHttpCalled, greaterThan(1));
+    expect(requestUris.length, greaterThan(1));
   });
 
   test('handles fetch errors', () async {
@@ -118,13 +118,17 @@ void main() {
     updater.startUpdateLoop(config);
     await Future<void>.delayed(const Duration(milliseconds: 100));
     updater.stopUpdateLoop();
-    expect(mockHttpCalled, greaterThan(1));
+    expect(requestUris.length, greaterThan(1));
   });
 
   test('works...', () async {
     updater.startUpdateLoop(config);
     await Future<void>.delayed(const Duration(milliseconds: 100));
     updater.stopUpdateLoop();
+    expect(
+      '${requestUris.last}',
+      'https://raw.githubusercontent.com/flutter/cocoon/main/app_dart/config.yaml',
+    );
     expect(config.backfillerCommitLimit, 100);
   });
 }

@@ -551,6 +551,7 @@ class DynamicConfigUpdater {
     final file = await githubFileContent(
       Config.cocoonSlug,
       'app_dart/config.yaml',
+      ref: 'main',
       httpClientProvider: () => _httpClient,
       retryOptions: _retryOptions,
     );
