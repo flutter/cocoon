@@ -131,19 +131,15 @@ interface class ContentAwareHashService {
   /// Finds the hash status for [job] and updates any tracking docs.
   Future<MergeQueueHashStatus> processWorkflowJob(
     WorkflowJobEvent job, {
-    @visibleForTesting int maxAttempts = 5,
+    @visibleForTesting RetryOptions retry = const RetryOptions(maxAttempts: 5),
   }) async {
     final hash = await hashFromWorkflowJobEvent(job);
     if (hash == null) return MergeQueueHashStatus.ignoreJob;
 
     final headSha = job.workflowJob!.headSha!;
 
-    final r = RetryOptions(
-      maxAttempts: maxAttempts, // number of entries in the merge group?
-    );
-
     try {
-      final result = await r.retry(() async {
+      final result = await retry.retry(() async {
         // Important to do this bit in a transaction.
         final transaction = await _firestore.beginTransaction();
 

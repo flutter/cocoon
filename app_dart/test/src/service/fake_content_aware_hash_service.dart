@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/model/github/workflow_job.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
+import 'package:retry/retry.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
 class FakeContentAwareHashService implements ContentAwareHashService {
@@ -41,7 +42,7 @@ class FakeContentAwareHashService implements ContentAwareHashService {
   @override
   Future<MergeQueueHashStatus> processWorkflowJob(
     WorkflowJobEvent job, {
-    int maxAttempts = 5,
+    RetryOptions? retry,
   }) {
     final status = nextStatusReturn ?? MergeQueueHashStatus.ignoreJob;
     nextStatusReturn = null;

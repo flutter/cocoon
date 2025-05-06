@@ -32,7 +32,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
-        retryDelay: const Duration(milliseconds: 1),
+        retryDelay: Duration.zero,
       );
 
       await expectLater(
@@ -52,6 +52,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final branches = await gerritService.branches(
         'myhost',
@@ -72,6 +73,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final branches = await gerritService.branches(
         'myhost',
@@ -90,6 +92,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final commits = await gerritService.commits(Config.recipesSlug, 'main');
       expect(commits.length, 1);
@@ -117,6 +120,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final commit = await gerritService.getCommit(
         RepositorySlug('flutter', 'flutter'),
@@ -139,6 +143,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final commit = await gerritService.getCommit(
         RepositorySlug('flutter', 'mirrors/flutter'),
@@ -154,6 +159,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final commit = await gerritService.getCommit(
         RepositorySlug('flutter', 'mirrors/flutter'),
@@ -172,6 +178,7 @@ void main() {
       gerritService = GerritService(
         config: FakeConfig(),
         authClient: mockHttpClient,
+        retryDelay: Duration.zero,
       );
       final commit = await gerritService.findMirroredCommit(
         RepositorySlug('flutter', 'packages'),

@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/github/workflow_job.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:http/http.dart';
 import 'package:mockito/mockito.dart';
+import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../model/github/workflow_job_data.dart';
@@ -244,10 +245,16 @@ void main() {
       });
 
       var job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
-      await cahs.processWorkflowJob(job, maxAttempts: 1);
+      await cahs.processWorkflowJob(
+        job,
+        retry: const RetryOptions(maxAttempts: 1, delayFactor: Duration.zero),
+      );
 
       job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
-      final result = await cahs.processWorkflowJob(job);
+      final result = await cahs.processWorkflowJob(
+        job,
+        retry: const RetryOptions(maxAttempts: 5, maxDelay: Duration.zero),
+      );
       expect(result, MergeQueueHashStatus.error);
     });
   });
