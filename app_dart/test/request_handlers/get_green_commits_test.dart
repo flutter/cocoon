@@ -68,7 +68,7 @@ void main() {
       config: config,
       buildStatusService: buildStatusService,
     );
-    final result = tester.getJson<Map<String, Object?>>(handler);
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(result, isEmpty);
   });
 
@@ -84,7 +84,7 @@ void main() {
       buildStatusService: buildStatusService,
     );
 
-    final result = tester.getJson<Map<String, Object?>>(handler);
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(result, <String>[commit2.sha, commit1.sha]);
   });
 
@@ -102,7 +102,7 @@ void main() {
         buildStatusService: buildStatusService,
       );
 
-      final result = tester.getJson<Map<String, Object?>>(handler);
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       expect(result, <String>[commit2.sha]);
     },
   );
@@ -121,7 +121,7 @@ void main() {
         buildStatusService: buildStatusService,
       );
 
-      final result = tester.getJson<Map<String, Object?>>(handler);
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       expect(result, <String>[commit2.sha]);
     },
   );
@@ -138,7 +138,7 @@ void main() {
       buildStatusService: buildStatusService,
     );
 
-    final result = tester.getJson<Map<String, Object?>>(handler);
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(result, <String>[commit2.sha, commit1.sha]);
   });
 
@@ -158,7 +158,7 @@ void main() {
       buildStatusService: buildStatusService,
     );
 
-    final result = tester.getJson<Map<String, Object?>>(handler);
+    final result = await tester.getJson<Map<String, Object?>>(handler);
     expect(result, <String>[commitBranched.sha]);
   });
 }
