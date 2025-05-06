@@ -319,7 +319,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       key.add(
         _getTaskKeyEntry(
           box: Container(color: TaskBox.statusColor[status]),
-          description: status,
+          description: status.value,
         ),
       );
       key.add(const PopupMenuDivider());

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter_dashboard/widgets/task_box.dart';
 
 /// A default [DateTime] used for [generateTaskForTest].
@@ -46,7 +47,7 @@ final utc$2020_9_1_12_30 = DateTime.utc(2020, 9, 1, 12, 30);
 /// generateTaskForTest(status: TaskBox.statusInProgress, buildNumberList: '1,2', attempts: 3)
 /// ```
 Task generateTaskForTest({
-  required String status,
+  required TaskStatus status,
   List<int>? buildNumberList,
   int attempts = 1,
   String builderName = 'Tasky McTaskFace',

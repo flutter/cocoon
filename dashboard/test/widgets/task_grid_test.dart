@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -786,18 +787,18 @@ void main() {
   });
 
   // Table Driven Approach to ensure every message does show the corresponding color
-  TaskBox.statusColor.forEach((String message, Color color) {
-    testWidgets('Is the color $color when given the message $message', (
+  TaskBox.statusColor.forEach((status, color) {
+    testWidgets('Is the color $color when given the status $status', (
       WidgetTester tester,
     ) async {
-      await expectTaskBoxColorWithMessage(tester, message, color);
+      await _expectTaskBoxColorWithStatus(tester, status, color);
     });
   });
 }
 
-Future<void> expectTaskBoxColorWithMessage(
+Future<void> _expectTaskBoxColorWithStatus(
   WidgetTester tester,
-  String message,
+  TaskStatus status,
   Color expectedColor,
 ) async {
   const double cellSize = 18;
@@ -819,7 +820,7 @@ Future<void> expectTaskBoxColorWithMessage(
                 commitStatuses: <CommitStatus>[
                   CommitStatus(
                     commit: generateCommitForTest(author: 'Mathilda'),
-                    tasks: [generateTaskForTest(status: message)],
+                    tasks: [generateTaskForTest(status: status)],
                   ),
                 ],
               ),

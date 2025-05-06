@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -204,12 +205,12 @@ void main() {
         repo: 'flutter',
         commitSha: 'abc123',
         branch: 'master',
-        include: ['Foolish', 'Dashing'],
+        include: [TaskStatus.cancelled, TaskStatus.skipped],
       );
       expect(
         response.error,
         endsWith(
-          'api/rerun-prod-task|{"branch":"master","repo":"flutter","commit":"abc123","task":"all","include":"Foolish,Dashing"}',
+          'api/rerun-prod-task|{"branch":"master","repo":"flutter","commit":"abc123","task":"all","include":"Cancelled,Skipped"}',
         ),
       );
     });

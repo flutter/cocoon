@@ -203,7 +203,7 @@ class TaskOverlayContents extends StatelessWidget {
 
   /// A lookup table to define the [Icon] for this task, based on
   /// the values returned by [TaskBox.effectiveTaskStatus].
-  static const Map<String, Icon> statusIcon = <String, Icon>{
+  static const statusIcon = {
     TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
     TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
     TaskBox.statusInProgress: Icon(
@@ -292,7 +292,7 @@ class TaskOverlayContents extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Tooltip(
-                      message: task.status,
+                      message: task.status.value,
                       child: Padding(
                         padding: const EdgeInsets.only(
                           left: 8.0,

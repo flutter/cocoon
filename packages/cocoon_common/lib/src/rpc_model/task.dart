@@ -5,6 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../../task_status.dart';
 import 'base.dart';
 
 part 'task.g.dart';
@@ -54,8 +55,8 @@ final class Task extends Model {
   @JsonKey(name: 'IsFlaky')
   final bool isFlaky;
 
-  @JsonKey(name: 'Status')
-  final String status;
+  @JsonKey(name: 'Status', fromJson: TaskStatus.from)
+  final TaskStatus status;
 
   @JsonKey(name: 'BuildNumberList')
   final List<int> buildNumberList;

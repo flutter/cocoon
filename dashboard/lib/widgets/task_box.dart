@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -19,22 +20,20 @@ class TaskBox extends StatelessWidget {
   static const double _kDefaultCellSize = 20;
   static const double _kWebCellSize = 36;
 
-  /// Status messages that map to [TaskStatus] enums.
-  // TODO(chillers): Remove these and use TaskStatus enum when available. https://github.com/flutter/cocoon/issues/441
-  static const String statusCancelled = 'Cancelled';
-  static const String statusFailed = 'Failed';
-  static const String statusNew = 'New';
-  static const String statusSkipped = 'Skipped';
-  static const String statusSucceeded = 'Succeeded';
-  static const String statusInfraFailure = 'Infra Failure';
-  static const String statusInProgress = 'In Progress';
+  static const statusCancelled = TaskStatus.cancelled;
+  static const statusFailed = TaskStatus.failed;
+  static const statusNew = TaskStatus.waitingForBackfill;
+  static const statusSkipped = TaskStatus.skipped;
+  static const statusSucceeded = TaskStatus.succeeded;
+  static const statusInfraFailure = TaskStatus.infraFailure;
+  static const statusInProgress = TaskStatus.inProgress;
 
   /// A lookup table to define the background color for this TaskBox.
   ///
   /// The status messages are based on the messages the backend sends.
   ///
   /// These colors should map to the MILO color scheme.
-  static final Map<String, Color> statusColor = <String, Color>{
+  static final statusColor = {
     statusCancelled: Colors.lightBlue,
     statusFailed: Colors.red,
     statusNew: Colors.grey,

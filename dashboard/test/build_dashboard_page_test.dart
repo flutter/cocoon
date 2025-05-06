@@ -192,7 +192,7 @@ void main() {
     await tester.pump();
 
     for (final status in TaskBox.statusColor.keys) {
-      expect(find.text(status), findsOneWidget);
+      expect(find.text(status.value), findsOneWidget);
     }
     expect(find.text('Flaky'), findsOneWidget);
     expect(find.text('Ran more than once'), findsOneWidget);

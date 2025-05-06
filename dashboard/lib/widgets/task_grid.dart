@@ -239,7 +239,7 @@ class _TaskGridState extends State<TaskGrid> {
         }
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
-          var weightStatus = task.status;
+          var weightStatus = task.status.value;
           if (isTaskFromDartInternalBuilder(builderName: task.builderName)) {
             weightStatus = 'Release Builder';
           } else if (task.lastAttemptFailed) {

@@ -23,7 +23,7 @@ Task _$TaskFromJson(Map<String, dynamic> json) => $checkedCreate(
       attempts: $checkedConvert('Attempts', (v) => (v as num).toInt()),
       isBringup: $checkedConvert('IsBringup', (v) => v as bool),
       isFlaky: $checkedConvert('IsFlaky', (v) => v as bool),
-      status: $checkedConvert('Status', (v) => v as String),
+      status: $checkedConvert('Status', (v) => TaskStatus.from(v as String)),
       buildNumberList: $checkedConvert(
         'BuildNumberList',
         (v) => (v as List<dynamic>).map((e) => (e as num).toInt()).toList(),

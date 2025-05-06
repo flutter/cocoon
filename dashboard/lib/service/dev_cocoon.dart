@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 
 import '../widgets/task_box.dart';
 import 'cocoon.dart';
@@ -153,7 +154,7 @@ class DevelopmentCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
-    Iterable<String>? include,
+    Iterable<TaskStatus>? include,
   }) async {
     return const CocoonResponse<void>.error(
       'Unable to schedule against fake data. Try building the app to use prod data.',
@@ -353,7 +354,7 @@ class DevelopmentCocoonService implements CocoonService {
     );
   }
 
-  static const List<String> _statuses = <String>[
+  static const _statuses = [
     TaskBox.statusNew,
     TaskBox.statusInProgress,
     TaskBox.statusSucceeded,
@@ -363,7 +364,7 @@ class DevelopmentCocoonService implements CocoonService {
     TaskBox.statusCancelled,
   ];
 
-  static const Map<String, int> _minAttempts = <String, int>{
+  static const _minAttempts = {
     TaskBox.statusNew: 0,
     TaskBox.statusInProgress: 1,
     TaskBox.statusSucceeded: 1,
@@ -373,7 +374,7 @@ class DevelopmentCocoonService implements CocoonService {
     TaskBox.statusCancelled: 1,
   };
 
-  static const Map<String, int> _maxAttempts = <String, int>{
+  static const _maxAttempts = {
     TaskBox.statusNew: 0,
     TaskBox.statusInProgress: 2,
     TaskBox.statusSucceeded: 1,
