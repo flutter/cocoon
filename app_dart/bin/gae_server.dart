@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
-import 'package:cocoon_service/src/service/dynamic_config_updater.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';

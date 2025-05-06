@@ -6,15 +6,14 @@ import 'dart:math' show Random;
 
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart' show log;
+import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/service/dynamic_config_updater.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:http/http.dart' show Response;
 import 'package:http/testing.dart' show MockClient;
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -23,7 +22,7 @@ void main() {
   late MockClient mockHttp;
   String? mockHttpFile;
   late _FakeRandom random;
-  late FakeConfig config;
+  late Config config;
   var mockHttpCalled = 0;
 
   setUp(() {
@@ -37,7 +36,13 @@ void main() {
       }
       return Response('Not found', 404);
     });
-    config = FakeConfig();
+    final cacheService = CacheService(inMemory: true);
+    final secrets = FakeSecretManager();
+    config = Config(
+      cacheService,
+      secrets,
+      dynamicConfig: DynamicConfig.fromJson({}),
+    );
     updater = DynamicConfigUpdater(
       random: random,
       httpClient: mockHttp,
@@ -120,8 +125,7 @@ void main() {
     updater.startUpdateLoop(config);
     await Future<void>.delayed(const Duration(milliseconds: 100));
     updater.stopUpdateLoop();
-    expect(config.dynamicConfigs, isNotEmpty);
-    expect(config.dynamicConfig.backfillerCommitLimit, 100);
+    expect(config.backfillerCommitLimit, 100);
   });
 }
 

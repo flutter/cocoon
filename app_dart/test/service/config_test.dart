@@ -22,7 +22,11 @@ void main() {
   setUp(() async {
     cacheService = CacheService(inMemory: true);
     secrets = FakeSecretManager();
-    config = Config(cacheService, secrets);
+    config = Config(
+      cacheService,
+      secrets,
+      dynamicConfig: DynamicConfig.fromJson({}),
+    );
   });
 
   test('githubAppInstallations when builder config does not exist', () async {

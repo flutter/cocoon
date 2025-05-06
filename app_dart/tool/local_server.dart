@@ -23,7 +23,11 @@ import '../test/src/service/fake_firestore_service.dart';
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
-  final config = Config(cache, FakeSecretManager());
+  final config = Config(
+    cache,
+    FakeSecretManager(),
+    dynamicConfig: DynamicConfig.fromJson({}),
+  );
   final firestore = FakeFirestoreService();
 
   // TODO(matanlurey): This will not work, but matches the behavior of what

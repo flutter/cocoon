@@ -90,16 +90,6 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
 
-  final dynamicConfigs = <DynamicConfig>[];
-
-  @override
-  DynamicConfig get dynamicConfig => dynamicConfigs.last;
-
-  @override
-  set dynamicConfig(DynamicConfig dynamicConfig) {
-    dynamicConfigs.add(dynamicConfig);
-  }
-
   @override
   Future<gh.GitHub> createGitHubClient({
     gh.PullRequest? pullRequest,

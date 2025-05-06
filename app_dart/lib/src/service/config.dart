@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math' show Random;
 import 'dart:typed_data';
 
 import 'package:cocoon_server/generate_github_jws.dart';
@@ -14,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
+import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 import '../../cocoon_service.dart';
 import 'github_service.dart';
@@ -26,8 +28,8 @@ const String kDefaultBranchName = 'master';
 
 interface class Config {
   /// Creates and returns a [Config] instance.
-  Config(this._cache, this._secrets, {DynamicConfig? dynamicConfig})
-    : dynamicConfig = dynamicConfig ?? DynamicConfig.fromJson({});
+  Config(this._cache, this._secrets, {required DynamicConfig dynamicConfig})
+    : _dynamicConfig = dynamicConfig;
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -63,7 +65,7 @@ interface class Config {
   final CacheService _cache;
   final SecretManager _secrets;
 
-  DynamicConfig dynamicConfig;
+  DynamicConfig _dynamicConfig;
 
   /// List of Github presubmit supported repos.
   ///
@@ -211,7 +213,7 @@ interface class Config {
   ///
   /// This limits the number of commits to be checked to backfill. When bots
   /// are idle, we hope to scan as many commit rows as possible.
-  int get backfillerCommitLimit => dynamicConfig.backfillerCommitLimit;
+  int get backfillerCommitLimit => _dynamicConfig.backfillerCommitLimit;
 
   /// Upper limit of issue/PRs allowed each API call.
   ///
@@ -501,7 +503,8 @@ interface class Config {
 /// Should be read from git/HEAD/app_dart/config.yaml and cached between
 /// services.
 @JsonSerializable()
-class DynamicConfig {
+@immutable
+final class DynamicConfig {
   /// Upper limit of commit rows to be backfilled in API call.
   ///
   /// This limits the number of commits to be checked to backfill. When bots
@@ -513,9 +516,84 @@ class DynamicConfig {
 
   /// Connect the generated [_$DynamicConfigFromJson] function to the `fromJson`
   /// factory.
-  factory DynamicConfig.fromJson(Map<String, dynamic> json) =>
+  factory DynamicConfig.fromJson(Map<String, Object?> json) =>
       _$DynamicConfigFromJson(json);
 
   /// Connect the generated [_$DynamicConfigToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);
 }
+
+/// Responsibly polls for configuration changes to our service config.
+///
+/// This works by fetching the latest checked in "config.yaml".
+class DynamicConfigUpdater {
+  DynamicConfigUpdater({
+    Duration delay = const Duration(minutes: 1),
+    @visibleForTesting Random? random,
+    @visibleForTesting http.Client? httpClient,
+    @visibleForTesting
+    RetryOptions retryOptions = const RetryOptions(
+      maxAttempts: 3,
+      delayFactor: Duration(seconds: 3),
+    ),
+  }) : _delay = delay,
+       _random = random ?? Random(),
+       _httpClient = httpClient ?? http.Client(),
+       _retryOptions = retryOptions;
+
+  final Duration _delay;
+  final Random _random;
+  final http.Client _httpClient;
+  final RetryOptions _retryOptions;
+
+  /// Fetches and parses the `config.yaml` from HEAD `flutter/cocoon/app_dart/`.
+  Future<DynamicConfig> fetchDynamicConfig() async {
+    final file = await githubFileContent(
+      Config.cocoonSlug,
+      'app_dart/config.yaml',
+      httpClientProvider: () => _httpClient,
+      retryOptions: _retryOptions,
+    );
+    final configYaml = loadYaml(file) as YamlMap;
+    return DynamicConfig.fromJson(configYaml.cast<String, dynamic>());
+  }
+
+  UpdaterStatus _status = UpdaterStatus.stopped;
+
+  void stopUpdateLoop() {
+    if (_status != UpdaterStatus.running) return;
+    log.info('Stopping config update loop...');
+    _status = UpdaterStatus.stopping;
+  }
+
+  void startUpdateLoop(Config config) async {
+    if (_status != UpdaterStatus.stopped) return;
+    _status = UpdaterStatus.running;
+
+    log.info('Starting config update loop...');
+
+    // What we've decided:
+    //   1. Each instance will **start** with a valid DynamicConfig
+    //   2. Each instance will update their own config on an interval that can
+    //      drift by as much as a minute.
+    //   3. If a fetch fails, we'll log an error, but keep using the last config
+    while (true) {
+      await Future<void>.delayed(
+        _delay + Duration(milliseconds: _random.nextInt(1000)),
+      );
+      if (_status != UpdaterStatus.running) {
+        log.info('Stopped config update loop');
+        _status = UpdaterStatus.stopped;
+        return;
+      }
+      try {
+        final dynamicConfig = await fetchDynamicConfig();
+        config._dynamicConfig = dynamicConfig;
+      } catch (e, s) {
+        log.error('Unable to fetch DynamicConfig!', e, s);
+      }
+    }
+  }
+}
+
+enum UpdaterStatus { stopped, running, stopping }
