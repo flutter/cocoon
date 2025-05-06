@@ -11,6 +11,7 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/bbv2_extension.dart';
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
@@ -75,7 +76,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
           startTimestamp: build.startTime.toDateTime().millisecondsSinceEpoch,
           endTimestamp: build.endTime.toDateTime().millisecondsSinceEpoch,
           commitSha: build.input.gitilesCommit.id,
-          status: fs.Task.convertBuildbucketStatusToString(build.status),
+          status: build.status.toTaskStatus(),
 
           // These are all assumed values.
           bringup: false,
