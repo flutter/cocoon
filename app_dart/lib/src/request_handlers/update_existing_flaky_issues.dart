@@ -12,7 +12,6 @@ import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
@@ -25,7 +24,7 @@ import 'flaky_handler_utils.dart';
 /// The query parameter kThresholdKey is required in order for the handler to
 /// properly adjusts the priority labels.
 @immutable
-final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
+final class UpdateExistingFlakyIssue extends ApiRequestHandler {
   const UpdateExistingFlakyIssue({
     required super.config,
     required super.authenticationProvider,
@@ -42,7 +41,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
   final CiYamlSet? ciYamlForTesting;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
@@ -84,7 +83,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler<Body> {
       nameToExistingIssue: nameToExistingIssue,
       threshold: threshold,
     );
-    return Body.forJson(const <String, dynamic>{'Status': 'success'});
+    return const Response.ok(Body.json({'Status': 'success'}));
   }
 
   /// Adds an update comment and adjusts the labels of the existing issue based

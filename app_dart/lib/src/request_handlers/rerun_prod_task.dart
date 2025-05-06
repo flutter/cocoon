@@ -13,7 +13,6 @@ import '../model/ci_yaml/target.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/firestore.dart';
@@ -24,7 +23,7 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
 @immutable
-final class RerunProdTask extends ApiRequestHandler<Body> {
+final class RerunProdTask extends ApiRequestHandler {
   const RerunProdTask({
     required super.config,
     required super.authenticationProvider,
@@ -49,7 +48,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   static const _paramInclude = 'include';
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     final requestData = await request.readBodyAsJson();
     checkRequiredParameters(requestData, [
       _paramBranch,
@@ -95,7 +94,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
         email: email,
         statusesToRerun: statusesToRerun,
       );
-      return Body.forJson(ranTasks);
+      return Response.ok(Body.json(ranTasks));
     }
 
     if (requestData.containsKey(_paramInclude)) {
@@ -126,7 +125,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       throw InternalServerError('Failed to rerun task "$taskName"');
     }
 
-    return Body.empty;
+    return const Response.ok();
   }
 
   @useResult

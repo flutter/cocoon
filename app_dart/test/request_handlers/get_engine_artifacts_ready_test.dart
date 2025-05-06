@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_server_test/test_logging.dart';
@@ -33,15 +32,6 @@ void main() {
       firestore: firestore,
     );
   });
-
-  Future<Map<String, Object?>> decodeHandlerBody() async {
-    final body = await tester.get(handler);
-    return await utf8.decoder
-            .bind(body.serialize() as Stream<List<int>>)
-            .transform(json.decoder)
-            .single
-        as Map<String, Object?>;
-  }
 
   test('returns a 400, "sha" is missing from query string', () async {
     await expectLater(
@@ -86,7 +76,10 @@ void main() {
     );
 
     await expectLater(tester.get(handler), completes);
-    await expectLater(decodeHandlerBody(), completion({'status': 'complete'}));
+    await expectLater(
+      tester.getJson<Map<String, Object?>>(handler),
+      completion({'status': 'complete'}),
+    );
   });
 
   test('returns "pending"', () async {
@@ -109,7 +102,10 @@ void main() {
     );
 
     await expectLater(tester.get(handler), completes);
-    await expectLater(decodeHandlerBody(), completion({'status': 'pending'}));
+    await expectLater(
+      tester.getJson<Map<String, Object?>>(handler),
+      completion({'status': 'pending'}),
+    );
   });
 
   test('returns "failed"', () async {
@@ -132,6 +128,9 @@ void main() {
     );
 
     await expectLater(tester.get(handler), completes);
-    await expectLater(decodeHandlerBody(), completion({'status': 'failed'}));
+    await expectLater(
+      tester.getJson<Map<String, Object?>>(handler),
+      completion({'status': 'failed'}),
+    );
   });
 }

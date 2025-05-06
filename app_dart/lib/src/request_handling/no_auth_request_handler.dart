@@ -9,7 +9,6 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import 'body.dart';
 import 'exceptions.dart';
 import 'request_handler.dart';
 
@@ -19,10 +18,10 @@ import 'request_handler.dart';
 ///
 /// `T` is the type of object that is returned as the body of the HTTP response
 /// (before serialization). Subclasses whose HTTP responses don't include a
-/// body should extend `RequestHandler<Body>` and return null in their service
+/// body should extend `RequestHandler` and return null in their service
 /// handlers ([get] and [post]).
 @immutable
-abstract class NoAuthRequestHandler<T extends Body> extends RequestHandler<T> {
+abstract class NoAuthRequestHandler extends RequestHandler {
   /// Creates a new [NoAuthRequestHandler].
   const NoAuthRequestHandler({required super.config});
 

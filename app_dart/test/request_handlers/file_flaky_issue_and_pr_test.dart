@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
@@ -217,15 +215,7 @@ void main() {
           PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify issue is created correctly.
       var captured =
@@ -386,15 +376,7 @@ void main() {
           PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       expect(result['Status'], 'success');
       expect(result['NumberOfCreatedIssuesAndPRs'], 2);
     });
@@ -475,15 +457,7 @@ void main() {
           PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       expect(result['Status'], 'success');
       expect(result['NumberOfCreatedIssuesAndPRs'], 1);
     });
@@ -540,15 +514,7 @@ void main() {
           PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify issue is created correctly.
       var captured =
@@ -640,15 +606,7 @@ void main() {
             );
           },
         );
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify issue is created correctly.
         final captured =
@@ -676,15 +634,7 @@ void main() {
           Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify issue is created correctly.
       final captured =
@@ -764,15 +714,7 @@ void main() {
           PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
       // Verify no pr is created.
@@ -841,15 +783,7 @@ void main() {
           PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
         );
       });
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
       // Verify no pr is created.
@@ -932,15 +866,7 @@ void main() {
             );
           },
         );
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
         // Verify issue is created correctly.
         final captured =
             verify(mockIssuesService.create(captureAny, captureAny)).captured;
@@ -989,15 +915,7 @@ void main() {
         );
       });
 
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
       // Verify no pr is created.
@@ -1028,15 +946,7 @@ void main() {
         ]);
       });
 
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
       // Verify no pr is created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
 

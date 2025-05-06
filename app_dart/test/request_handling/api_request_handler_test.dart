@@ -10,7 +10,6 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
@@ -23,7 +22,7 @@ void main() {
 
   group('ApiRequestHandler', () {
     late HttpServer server;
-    late ApiRequestHandler<dynamic> handler;
+    late ApiRequestHandler handler;
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -118,7 +117,7 @@ void main() {
   });
 }
 
-class Unauth extends ApiRequestHandler<Body> {
+class Unauth extends ApiRequestHandler {
   Unauth()
     : super(
         config: FakeConfig(),
@@ -128,10 +127,10 @@ class Unauth extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get(_) async => throw StateError('Unreachable');
+  Future<Response> get(_) async => throw StateError('Unreachable');
 }
 
-class ReadParams extends ApiRequestHandler<Body> {
+class ReadParams extends ApiRequestHandler {
   ReadParams()
     : super(
         config: FakeConfig(),
@@ -139,16 +138,19 @@ class ReadParams extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final requestBody = await request.readBodyAsBytes();
     final requestData = await request.readBodyAsJson();
-    response!.headers.add('X-Test-RequestBody', requestBody.toString());
-    response!.headers.add('X-Test-RequestData', requestData.toString());
-    return Body.empty;
+    return Response.ok(
+      Body.json({
+        'X-Test-RequestBody': requestBody.toString(),
+        'X-Test-RequestData': requestData.toString(),
+      }),
+    );
   }
 }
 
-class NeedsParams extends ApiRequestHandler<Body> {
+class NeedsParams extends ApiRequestHandler {
   NeedsParams()
     : super(
         config: FakeConfig(),
@@ -156,16 +158,16 @@ class NeedsParams extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredParameters(await request.readBodyAsJson(), <String>[
       'param1',
       'param2',
     ]);
-    return Body.empty;
+    return const Response.ok();
   }
 }
 
-class AccessAuth extends ApiRequestHandler<Body> {
+class AccessAuth extends ApiRequestHandler {
   AccessAuth()
     : super(
         config: FakeConfig(),
@@ -173,11 +175,11 @@ class AccessAuth extends ApiRequestHandler<Body> {
       );
 
   @override
-  Future<Body> get(_) async {
-    response!.headers.add(
-      'X-Test-IsDev',
-      authContext!.clientContext.isDevelopmentEnvironment,
+  Future<Response> get(_) async {
+    return Response.ok(
+      Body.json({
+        'X-Test-IsDev': authContext!.clientContext.isDevelopmentEnvironment,
+      }),
     );
-    return Body.empty;
   }
 }

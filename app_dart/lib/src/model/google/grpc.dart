@@ -4,8 +4,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../request_handling/body.dart';
-
 part 'grpc.g.dart';
 
 /// [Status] defines a logical error model that is suitable for
@@ -16,7 +14,7 @@ part 'grpc.g.dart';
 /// Resources:
 /// * https://cloud.google.com/apis/design/errors
 @JsonSerializable(includeIfNull: false)
-class GrpcStatus extends JsonBody {
+class GrpcStatus {
   const GrpcStatus({required this.code, this.message, this.details});
 
   /// Creates a [Status] from JSON.
@@ -38,6 +36,5 @@ class GrpcStatus extends JsonBody {
   @override
   String toString() => 'Response #$code: $message, $details';
 
-  @override
-  Map<String, dynamic> toJson() => _$GrpcStatusToJson(this);
+  Map<String, Object?> toJson() => _$GrpcStatusToJson(this);
 }

@@ -22,7 +22,7 @@ import '../../service/firestore/commit_and_tasks.dart';
 /// being stuck as "In Progress," this will return tasks to "New" if they have
 /// no updates after 3 hours.
 @immutable
-final class VacuumStaleTasks extends RequestHandler<Body> {
+final class VacuumStaleTasks extends RequestHandler {
   const VacuumStaleTasks({
     required super.config,
     required LuciBuildService luciBuildService,
@@ -43,7 +43,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
   final BranchService _branchService;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     // Default branches.
     await Future.forEach(config.supportedRepos, _vaccumRepository);
 
@@ -57,7 +57,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
       await _vaccumRepository(Config.flutterSlug, branch: branch.reference);
     }
 
-    return Body.empty;
+    return const Response.ok();
   }
 
   Future<void> _vaccumRepository(

@@ -5,10 +5,10 @@
 /// @docImport 'package:cocoon_service/src/service/scheduler.dart';
 library;
 
-import 'dart:io';
-
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
+
+import '../../request_handling/request_handler.dart';
 
 /// Possible results for [Scheduler.processCheckRun].
 ///
@@ -41,8 +41,8 @@ sealed class ProcessCheckRunResult {
     StackTrace? stackTrace,
   }) = UnexpectedErrorResult._;
 
-  /// Writes an HTTP response of this type.
-  void writeResponse(HttpResponse response);
+  /// Returns the response for this result.
+  Response toResponse();
 }
 
 /// Successful.
@@ -56,8 +56,8 @@ final class SuccessResult implements ProcessCheckRunResult {
   int get hashCode => (SuccessResult).hashCode;
 
   @override
-  void writeResponse(HttpResponse response) {
-    // Intentionally left blank to default to OK.
+  Response toResponse() {
+    return const Response.ok();
   }
 
   @override
@@ -84,9 +84,8 @@ final class UserErrorResult implements ProcessCheckRunResult {
   }
 
   @override
-  void writeResponse(HttpResponse response) {
-    response.statusCode = HttpStatus.badRequest;
-    response.reasonPhrase = message;
+  Response toResponse() {
+    return Response.badRequest(Body.json({'error': message}));
   }
 
   @override
@@ -113,9 +112,8 @@ final class MissingEntityErrorResult implements ProcessCheckRunResult {
   }
 
   @override
-  void writeResponse(HttpResponse response) {
-    response.statusCode = HttpStatus.notFound;
-    response.reasonPhrase = message;
+  Response toResponse() {
+    return Response.notFound(Body.json({'error': message}));
   }
 
   @override
@@ -142,10 +140,8 @@ final class RetrySoonErrorResult implements ProcessCheckRunResult {
   }
 
   @override
-  void writeResponse(HttpResponse response) {
-    log.info(message);
-    response.statusCode = HttpStatus.serviceUnavailable;
-    response.reasonPhrase = message;
+  Response toResponse() {
+    return Response.serviceUnavailable(Body.json({'error': message}));
   }
 
   @override
@@ -181,10 +177,9 @@ final class UnexpectedErrorResult implements ProcessCheckRunResult {
   }
 
   @override
-  void writeResponse(HttpResponse response) {
+  Response toResponse() {
     log.error(message, error, stackTrace);
-    response.statusCode = HttpStatus.internalServerError;
-    response.reasonPhrase = message;
+    return Response.internalServerError(Body.json({'error': message}));
   }
 
   @override

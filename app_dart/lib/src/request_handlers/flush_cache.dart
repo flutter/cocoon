@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
@@ -18,7 +17,7 @@ import '../service/config.dart';
 /// If [cacheKeyParam] is not passed, throws [BadRequestException].
 /// If the cache does not have the given key, throws [NotFoundException].
 @immutable
-class FlushCache extends ApiRequestHandler<Body> {
+class FlushCache extends ApiRequestHandler {
   const FlushCache({
     required super.config,
     required super.authenticationProvider,
@@ -33,7 +32,7 @@ class FlushCache extends ApiRequestHandler<Body> {
   static const String cacheKeyParam = 'key';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredQueryParameters(request, <String>[cacheKeyParam]);
     final cacheKey = request.uri.queryParameters[cacheKeyParam]!;
 
@@ -47,6 +46,6 @@ class FlushCache extends ApiRequestHandler<Body> {
 
     await cache.purge(Config.configCacheName, cacheKey);
 
-    return Body.empty;
+    return const Response.ok();
   }
 }

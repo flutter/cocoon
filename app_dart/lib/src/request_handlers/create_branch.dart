@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/branch_service.dart';
 
@@ -14,7 +13,7 @@ import '../service/branch_service.dart';
 /// This is used by Google Testing to create release infra whenever a good
 /// commit has been found, and is being considered as the branch point to
 /// be rolled into Google.
-class CreateBranch extends ApiRequestHandler<Body> {
+class CreateBranch extends ApiRequestHandler {
   const CreateBranch({
     required this.branchService,
     required super.config,
@@ -28,7 +27,7 @@ class CreateBranch extends ApiRequestHandler<Body> {
   static const String engineShaParam = 'engine';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredQueryParameters(request, <String>[
       branchParam,
       engineShaParam,
@@ -38,6 +37,6 @@ class CreateBranch extends ApiRequestHandler<Body> {
 
     await branchService.branchFlutterRecipes(branch, engineSha);
 
-    return Body.empty;
+    return const Response.ok();
   }
 }

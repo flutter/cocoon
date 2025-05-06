@@ -4,7 +4,6 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../../cocoon_service.dart';
 import '../common/json_converters.dart';
 
 part 'pubsub_message.g.dart';
@@ -13,7 +12,7 @@ part 'pubsub_message.g.dart';
 // the initial finding is that it may be an issue with how gcloud packages the
 // message.
 @JsonSerializable(includeIfNull: false)
-class PubSubPushMessage extends JsonBody {
+class PubSubPushMessage {
   const PubSubPushMessage({this.message, this.subscription});
 
   static PubSubPushMessage fromJson(Map<String, dynamic> json) =>
@@ -25,13 +24,12 @@ class PubSubPushMessage extends JsonBody {
   /// The name of the subscription associated with the delivery.
   final String? subscription;
 
-  @override
-  Map<String, dynamic> toJson() => _$PubSubPushMessageToJson(this);
+  Map<String, Object?> toJson() => _$PubSubPushMessageToJson(this);
 }
 
 // Rename this to PushMessage as it is basically that class.
 @JsonSerializable(includeIfNull: false)
-class PushMessage extends JsonBody {
+class PushMessage {
   const PushMessage({
     this.attributes,
     this.data,
@@ -60,6 +58,5 @@ class PushMessage extends JsonBody {
   static PushMessage fromJson(Map<String, dynamic> json) =>
       _$PushMessageFromJson(json);
 
-  @override
-  Map<String, dynamic> toJson() => _$PushMessageToJson(this);
+  Map<String, Object?> toJson() => _$PushMessageToJson(this);
 }

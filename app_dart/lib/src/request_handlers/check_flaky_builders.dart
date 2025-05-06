@@ -13,7 +13,6 @@ import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
@@ -34,7 +33,7 @@ import 'flaky_handler_utils.dart';
 /// If all the conditions are true, this handler will file a pull request to
 /// make the builder unflaky.
 @immutable
-class CheckFlakyBuilders extends ApiRequestHandler<Body> {
+class CheckFlakyBuilders extends ApiRequestHandler {
   const CheckFlakyBuilders({
     required super.config,
     required super.authenticationProvider,
@@ -57,7 +56,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
   };
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
@@ -127,7 +126,7 @@ class CheckFlakyBuilders extends ApiRequestHandler<Body> {
         log.info('${info.name}: Build data inconclusive. Keeping flaky status');
       }
     }
-    return Body.forJson(const <String, dynamic>{'Status': 'success'});
+    return const Response.ok(Body.json({'Status': 'success'}));
   }
 
   /// A builder should be deflaked if satisfying three conditions.

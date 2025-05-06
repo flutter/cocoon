@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../request_handling/body.dart';
 import '../common/json_converters.dart';
 
 part 'commit.g.dart';
@@ -16,7 +15,7 @@ part 'commit.g.dart';
 /// See more:
 ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#commit-info
 @JsonSerializable()
-class GerritCommit extends JsonBody {
+class GerritCommit {
   const GerritCommit({
     this.commit,
     this.tree,
@@ -34,8 +33,7 @@ class GerritCommit extends JsonBody {
   final GerritUser? committer;
   final String? message;
 
-  @override
-  Map<String, dynamic> toJson() => _$GerritCommitToJson(this);
+  Map<String, Object?> toJson() => _$GerritCommitToJson(this);
 
   @override
   String toString() => jsonEncode(toJson());
@@ -46,7 +44,7 @@ class GerritCommit extends JsonBody {
 /// See more:
 ///   * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#git-person-info
 @JsonSerializable()
-class GerritUser extends JsonBody {
+class GerritUser {
   const GerritUser({this.name, this.email, this.time});
 
   static GerritUser fromJson(Map<String, dynamic> json) =>
@@ -58,8 +56,7 @@ class GerritUser extends JsonBody {
   @GerritDateTimeConverter()
   final DateTime? time;
 
-  @override
-  Map<String, dynamic> toJson() => _$GerritUserToJson(this);
+  Map<String, Object?> toJson() => _$GerritUserToJson(this);
 
   @override
   String toString() => jsonEncode(toJson());

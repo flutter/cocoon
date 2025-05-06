@@ -13,7 +13,6 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/github_checks_service.dart';
@@ -54,10 +53,10 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   final CiYamlFetcher ciYamlFetcher;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     if (message.data == null) {
-      log.info('no data in message');
-      return Body.empty;
+      log.info('No data in message');
+      return const Response.ok();
     }
 
     final pubSubCallBack = bbv2.PubSubCallBack();
@@ -68,8 +67,8 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     final buildsPubSub = pubSubCallBack.buildPubsub;
 
     if (!buildsPubSub.hasBuild()) {
-      log.info('no build information in message');
-      return Body.empty;
+      log.info('No build information in message');
+      return const Response.ok();
     }
 
     final build = buildsPubSub.build;
@@ -85,14 +84,14 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
     // Skip status update if we can not get the sha tag.
     if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
       log.warn('Buildset tag not included, skipping Status Updates');
-      return Body.empty;
+      return const Response.ok();
     }
 
     log.info('Setting status (${build.status}) for $builderName');
 
     if (!pubSubCallBack.hasUserData()) {
       log.info('No user data was found in this request');
-      return Body.empty;
+      return const Response.ok();
     }
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
@@ -102,14 +101,13 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       final int maxAttempt;
       try {
         maxAttempt = await _getMaxAttempt(userData.commit, builderName, tagSet);
-      } on BranchNotEnabledForThisCiYamlException catch (e) {
+      } on BranchNotEnabledForThisCiYamlException catch (e, s) {
         // TODO(matanlurey): Figure out why this is happening IRL.
         // Mitigates https://github.com/flutter/flutter/issues/166274 by
         // marking the request as invalid, instead of failing (as a 500), which
         // in turn calls this Cloud PubSub message over and over.
-        response!.statusCode = HttpStatus.badRequest;
-        response!.reasonPhrase = '$e';
-        return Body.empty;
+        log.warn('Unexpected "branch not enabled" for $userData', e, s);
+        return Response.badRequest(Body.json({'error': '$e'}));
       }
       if (currentAttempt < maxAttempt) {
         rescheduled = true;
@@ -129,7 +127,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       slug: userData.commit.slug,
       rescheduled: rescheduled,
     );
-    return Body.empty;
+    return const Response.ok();
   }
 
   /// Returns the current reschedule attempt.

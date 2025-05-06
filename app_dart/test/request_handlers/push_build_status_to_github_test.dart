@@ -6,7 +6,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/config.dart' show Config;
@@ -79,8 +79,8 @@ void main() {
   test('development environment does nothing', () async {
     clientContext.isDevelopmentEnvironment = true;
     config.githubClient = ThrowingGitHub();
-    final body = await tester.get<Body>(handler);
-    expect(body, same(Body.empty));
+    final result = await tester.get(handler);
+    expect(result.body, same(const Body.empty()));
   });
 
   group('does not update anything', () {
@@ -89,13 +89,13 @@ void main() {
         pullRequestsService.list(any, base: anyNamed('base')),
       ).thenAnswer((_) => const Stream<PullRequest>.empty());
       buildStatusService.cumulativeStatus = BuildStatus.success();
-      final body = await tester.get<Body>(handler);
+      final result = await tester.get(handler);
       final tableDataList = await tabledataResourceApi.list(
         'test',
         'test',
         'test',
       );
-      expect(body, same(Body.empty));
+      expect(result.body, same(const Body.empty()));
 
       // Test for BigQuery insert
       expect(tableDataList.totalRows, '1');
@@ -108,7 +108,7 @@ void main() {
         ),
       );
       buildStatusService.cumulativeStatus = BuildStatus.success();
-      await tester.get<Body>(handler);
+      await tester.get(handler);
       verifyNever(repositoriesService.createStatus(any, any, any));
     });
 
@@ -127,8 +127,8 @@ void main() {
         ),
       );
 
-      final body = await tester.get<Body>(handler);
-      expect(body, same(Body.empty));
+      final result = await tester.get(handler);
+      expect(result.body, same(Body.empty));
 
       expect(
         firestore,
@@ -158,8 +158,8 @@ void main() {
         ),
       );
 
-      final body = await tester.get<Body>(handler);
-      expect(body, same(Body.empty));
+      final result = await tester.get(handler);
+      expect(result.body, same(Body.empty));
 
       expect(
         firestore,
@@ -189,9 +189,8 @@ void main() {
         ),
       );
 
-      final body = await tester.get<Body>(handler);
-
-      expect(body, same(Body.empty));
+      final result = await tester.get(handler);
+      expect(result.body, same(Body.empty));
 
       expect(
         firestore,
@@ -225,8 +224,8 @@ void main() {
       ),
     );
 
-    final body = await tester.get<Body>(handler);
-    expect(body, same(Body.empty));
+    final result = await tester.get(handler);
+    expect(result.body, same(Body.empty));
 
     expect(
       firestore,

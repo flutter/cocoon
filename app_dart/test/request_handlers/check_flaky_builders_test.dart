@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:cocoon_server_test/mocks.dart';
@@ -219,15 +218,7 @@ void main() {
 
         CheckFlakyBuilders.kRecordNumber =
             semanticsIntegrationTestRecordsAllPassed.length;
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify BigQuery is called correctly.
         var captured =
@@ -397,15 +388,7 @@ void main() {
 
         CheckFlakyBuilders.kRecordNumber =
             semanticsIntegrationTestRecordsAllPassed.length;
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify BigQuery is called correctly.
         var captured =
@@ -523,15 +506,7 @@ void main() {
       });
       CheckFlakyBuilders.kRecordNumber =
           semanticsIntegrationTestRecordsAllPassed.length;
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify pr is not called correctly.
       verifyNever(
@@ -573,15 +548,7 @@ void main() {
       });
       CheckFlakyBuilders.kRecordNumber =
           semanticsIntegrationTestRecordsAllPassed.length;
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify it gets the correct issue.
       final captured =
@@ -637,15 +604,7 @@ void main() {
 
         CheckFlakyBuilders.kRecordNumber =
             semanticsIntegrationTestRecordsAllPassed.length + 1;
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify pr is not created.
         verifyNever(mockPullRequestsService.create(captureAny, captureAny));
@@ -680,15 +639,7 @@ void main() {
 
         CheckFlakyBuilders.kRecordNumber =
             semanticsIntegrationTestRecordsAllPassed.length + 1;
-        final result =
-            await utf8.decoder
-                    .bind(
-                      (await tester.get<Body>(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
-                    .transform(json.decoder)
-                    .single
-                as Map<String, dynamic>;
+        final result = await tester.getJson<Map<String, Object?>>(handler);
 
         // Verify pr is not created.
         verifyNever(mockPullRequestsService.create(captureAny, captureAny));
@@ -737,15 +688,7 @@ void main() {
 
       CheckFlakyBuilders.kRecordNumber =
           semanticsIntegrationTestRecordsFailed.length;
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify BigQuery is called correctly.
       var captured =
@@ -817,15 +760,7 @@ void main() {
 
       CheckFlakyBuilders.kRecordNumber =
           semanticsIntegrationTestRecordsAllPassed.length;
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify pr is not created.
       verifyNever(mockPullRequestsService.create(captureAny, captureAny));
@@ -870,15 +805,7 @@ void main() {
 
       CheckFlakyBuilders.kRecordNumber =
           semanticsIntegrationTestRecordsAllPassed.length + 1;
-      final result =
-          await utf8.decoder
-                  .bind(
-                    (await tester.get<Body>(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
+      final result = await tester.getJson<Map<String, Object?>>(handler);
 
       // Verify BigQuery is called correctly.
       var captured =

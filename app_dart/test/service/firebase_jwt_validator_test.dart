@@ -5,8 +5,8 @@
 import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';

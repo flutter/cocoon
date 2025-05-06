@@ -7,51 +7,69 @@ import 'dart:io';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
+
+import '../../src/request_handling/body_decoder_extension.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  late _FakeHttpResponse response;
-
-  setUp(() {
-    response = _FakeHttpResponse();
-  });
-
   test('.success', () {
-    const ProcessCheckRunResult.success().writeResponse(response);
-
-    expect(response.statusCode, HttpStatus.ok);
-    expect(response.reasonPhrase, isEmpty);
+    expect(
+      const ProcessCheckRunResult.success().toResponse(),
+      isA<Response>()
+          .having((r) => r.statusCode, 'statusCode', HttpStatus.ok)
+          .having((r) => r.body, 'body', same(const Body.empty())),
+    );
   });
 
   test('.userError', () {
-    const ProcessCheckRunResult.userError('Do better').writeResponse(response);
-
-    expect(response.statusCode, HttpStatus.badRequest);
-    expect(response.reasonPhrase, 'Do better');
+    expect(
+      const ProcessCheckRunResult.userError('Do better').toResponse(),
+      isA<Response>()
+          .having((r) => r.statusCode, 'statusCode', HttpStatus.badRequest)
+          .having(
+            (r) => r.body.readAsJson(),
+            'body.readAsJson()',
+            completion({'error': 'Do better'}),
+          ),
+    );
   });
 
   test('.missingEntity', () {
-    const ProcessCheckRunResult.missingEntity(
-      'No hot dog',
-    ).writeResponse(response);
-
-    expect(response.statusCode, HttpStatus.notFound);
-    expect(response.reasonPhrase, 'No hot dog');
+    expect(
+      const ProcessCheckRunResult.missingEntity('No hot dog').toResponse(),
+      isA<Response>()
+          .having((r) => r.statusCode, 'statusCode', HttpStatus.notFound)
+          .having(
+            (r) => r.body.readAsJson(),
+            'body.readAsJson()',
+            completion({'error': 'No hot dog'}),
+          ),
+    );
   });
 
-  test('.internalError', () {
-    ProcessCheckRunResult.unexpectedError(
-      'Did a really bad thing',
-      error: StateError('Bad thing detected'),
-      stackTrace: StackTrace.current,
-    ).writeResponse(response);
-
-    expect(response.statusCode, HttpStatus.internalServerError);
-    expect(response.reasonPhrase, 'Did a really bad thing');
+  test('.unexpectedError', () {
+    expect(
+      ProcessCheckRunResult.unexpectedError(
+        'Did a really bad thing',
+        error: StateError('Bad thing detected'),
+        stackTrace: StackTrace.current,
+      ).toResponse(),
+      isA<Response>()
+          .having(
+            (r) => r.statusCode,
+            'statusCode',
+            HttpStatus.internalServerError,
+          )
+          .having(
+            (r) => r.body.readAsJson(),
+            'body.readAsJson()',
+            completion({'error': 'Did a really bad thing'}),
+          ),
+    );
 
     expect(
       log,
@@ -67,12 +85,4 @@ void main() {
       ),
     );
   });
-}
-
-final class _FakeHttpResponse extends Fake implements HttpResponse {
-  @override
-  int statusCode = HttpStatus.ok;
-
-  @override
-  String reasonPhrase = '';
 }
