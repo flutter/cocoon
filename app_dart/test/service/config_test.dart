@@ -9,7 +9,6 @@ import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
-import 'package:json_annotation/json_annotation.dart' show BadKeyException;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
