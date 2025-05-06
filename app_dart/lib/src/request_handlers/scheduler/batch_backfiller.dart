@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -161,7 +162,7 @@ final class BatchBackfiller extends RequestHandler {
             taskName: task.name,
             currentAttempt: task.currentAttempt,
           ),
-          fs.Task.statusInProgress,
+          TaskStatus.inProgress,
         );
       }),
       ...skip.map((toSkip) {
@@ -172,7 +173,7 @@ final class BatchBackfiller extends RequestHandler {
             taskName: task.name,
             currentAttempt: task.currentAttempt,
           ),
-          fs.Task.statusSkipped,
+          TaskStatus.skipped,
         );
       }),
     ]);

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -43,7 +44,7 @@ void main() {
     task = generateFirestoreTask(
       0,
       name: 'Linux flutter_release_builder',
-      status: fs.Task.statusFailed,
+      status: TaskStatus.failed,
       buildNumber: 123,
     );
     firestore.putDocument(task);
@@ -103,7 +104,7 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
+        isTask.hasStatus(TaskStatus.failed).hasCurrentAttempt(1),
       ]),
     );
   });
@@ -152,7 +153,7 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
+        isTask.hasStatus(TaskStatus.failed).hasCurrentAttempt(1),
       ]),
     );
   });
@@ -258,8 +259,8 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
-        isTask.hasStatus(fs.Task.statusInProgress).hasCurrentAttempt(2),
+        isTask.hasStatus(TaskStatus.failed).hasCurrentAttempt(1),
+        isTask.hasStatus(TaskStatus.inProgress).hasCurrentAttempt(2),
       ]),
     );
   });
@@ -332,8 +333,8 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasStatus(fs.Task.statusFailed).hasCurrentAttempt(1),
-        isTask.hasStatus(fs.Task.statusInProgress).hasCurrentAttempt(2),
+        isTask.hasStatus(TaskStatus.failed).hasCurrentAttempt(1),
+        isTask.hasStatus(TaskStatus.inProgress).hasCurrentAttempt(2),
       ]),
     );
   });

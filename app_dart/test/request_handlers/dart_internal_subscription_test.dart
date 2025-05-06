@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
@@ -147,7 +148,7 @@ void main() {
         attempts: 1,
         buildNumber: buildNumber,
         name: builder,
-        status: 'In Progress',
+        status: TaskStatus.inProgress,
         commitSha: fsCommit.sha,
       ),
     );
@@ -176,7 +177,7 @@ void main() {
         attempts: 1,
         buildNumber: buildNumber,
         name: builder,
-        status: 'In Progress',
+        status: TaskStatus.inProgress,
         commitSha: fsCommit.sha,
       ),
     );
@@ -205,7 +206,7 @@ void main() {
         attempts: 1,
         buildNumber: buildNumber - 1,
         name: builder,
-        status: fs.Task.statusFailed,
+        status: TaskStatus.failed,
         commitSha: fsCommit.sha,
       ),
     );
@@ -221,12 +222,12 @@ void main() {
             .hasTaskName(builder)
             .hasCurrentAttempt(1)
             .hasBuildNumber(buildNumber - 1)
-            .hasStatus(fs.Task.statusFailed),
+            .hasStatus(TaskStatus.failed),
         isTask
             .hasTaskName(builder)
             .hasCurrentAttempt(2)
             .hasBuildNumber(buildNumber)
-            .hasStatus(fs.Task.statusSucceeded),
+            .hasStatus(TaskStatus.succeeded),
       ]),
     );
   });

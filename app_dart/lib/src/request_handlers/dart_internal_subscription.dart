@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
@@ -61,7 +62,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
       if (existing != null) {
         fsTask = existing;
         // Don't increment the task attempt if it's waiting for a build numnber.
-        if (fsTask.status != fs.Task.statusInProgress ||
+        if (fsTask.status != TaskStatus.inProgress ||
             fsTask.buildNumber != build.number) {
           fsTask.resetAsRetry();
         }

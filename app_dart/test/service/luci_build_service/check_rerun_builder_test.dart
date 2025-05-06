@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
@@ -55,7 +56,7 @@ void main() {
       1,
       name: 'Linux foo',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusFailed,
+      status: TaskStatus.failed,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -99,8 +100,8 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasCurrentAttempt(1).hasStatus(fs.Task.statusFailed),
-        isTask.hasCurrentAttempt(2).hasStatus(fs.Task.statusInProgress),
+        isTask.hasCurrentAttempt(1).hasStatus(TaskStatus.failed),
+        isTask.hasCurrentAttempt(2).hasStatus(TaskStatus.inProgress),
       ]),
     );
   });
@@ -112,7 +113,7 @@ void main() {
       1,
       name: 'Linux foo',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusInfraFailure,
+      status: TaskStatus.infraFailure,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);
@@ -156,8 +157,8 @@ void main() {
     expect(
       firestore,
       existsInStorage(fs.Task.metadata, [
-        isTask.hasCurrentAttempt(1).hasStatus(fs.Task.statusInfraFailure),
-        isTask.hasCurrentAttempt(2).hasStatus(fs.Task.statusInProgress),
+        isTask.hasCurrentAttempt(1).hasStatus(TaskStatus.infraFailure),
+        isTask.hasCurrentAttempt(2).hasStatus(TaskStatus.inProgress),
       ]),
     );
   });
@@ -169,7 +170,7 @@ void main() {
       1,
       name: 'Linux foo',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusFailed,
+      status: TaskStatus.failed,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);

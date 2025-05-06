@@ -4,8 +4,8 @@
 
 import 'dart:math';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/task_ref.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
@@ -35,7 +35,7 @@ void main() {
       return generateFirestoreTask(
         index,
         commitSha: commits[commit].sha,
-        status: fs.Task.statusSucceeded,
+        status: TaskStatus.succeeded,
         name: 'Linux TASK_$index',
       ).toRef();
     }
@@ -44,7 +44,7 @@ void main() {
       return generateFirestoreTask(
         index,
         commitSha: commits[commit].sha,
-        status: fs.Task.statusNew,
+        status: TaskStatus.waitingForBackfill,
         name: 'Linux TASK_$index',
       ).toRef();
     }
@@ -53,7 +53,7 @@ void main() {
       return generateFirestoreTask(
         index,
         commitSha: commits[commit].sha,
-        status: fs.Task.statusFailed,
+        status: TaskStatus.failed,
         name: 'Linux TASK_$index',
       ).toRef();
     }
@@ -62,7 +62,7 @@ void main() {
       return generateFirestoreTask(
         index,
         commitSha: commits[commit].sha,
-        status: fs.Task.statusInProgress,
+        status: TaskStatus.inProgress,
         name: 'Linux TASK_$index',
       ).toRef();
     }

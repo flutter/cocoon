@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
@@ -18,7 +19,7 @@ import '../service/fake_scheduler.dart';
 Task generateFirestoreTask(
   int i, {
   String? name,
-  String status = Task.statusNew,
+  TaskStatus status = TaskStatus.waitingForBackfill,
   int attempts = 1,
   bool bringup = false,
   bool testFlaky = false,

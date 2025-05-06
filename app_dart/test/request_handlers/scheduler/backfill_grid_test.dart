@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
@@ -75,7 +76,7 @@ void main() {
         generateFirestoreTask(
           1,
           commitSha: c1.sha,
-          status: 'In Progress',
+          status: TaskStatus.inProgress,
         ).toRef();
     final t1c2 = generateFirestoreTask(1, commitSha: c2.sha).toRef();
     final t2c1 = generateFirestoreTask(2, commitSha: c1.sha).toRef();

@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:test/test.dart';
@@ -40,7 +41,7 @@ void main() {
           '2024-03-27T23:51:20.758986946Z',
         );
 
-        expect(task.status, Task.statusNew);
+        expect(task.status, TaskStatus.waitingForBackfill);
         expect(task.buildNumber, isNull);
         expect(task.endTimestamp, 0);
         expect(task.createTimestamp, 0);
@@ -85,13 +86,13 @@ void main() {
     test('success', () {
       final task = generateFirestoreTask(
         1,
-        status: Task.statusFailed,
+        status: TaskStatus.failed,
         testFlaky: true,
       );
       task.resetAsRetry();
 
       expect(int.parse(task.name!.split('_').last), 2);
-      expect(task.status, Task.statusNew);
+      expect(task.status, TaskStatus.waitingForBackfill);
       expect(task.testFlaky, false);
     });
   });

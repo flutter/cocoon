@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -46,12 +46,12 @@ void main() {
         newerCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
       ]);
@@ -67,27 +67,27 @@ void main() {
           olderCommit,
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: olderCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusFailed,
+            status: TaskStatus.failed,
             commitSha: olderCommit.sha,
           ),
         ]);
         firestore.putDocument(
-          generateFirestoreTask(1, status: Task.statusSucceeded),
+          generateFirestoreTask(1, status: TaskStatus.succeeded),
         );
         final status = await buildStatusService.calculateCumulativeStatus(slug);
         expect(status, BuildStatus.success());
@@ -99,12 +99,12 @@ void main() {
         newerCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusFailed,
+          status: TaskStatus.failed,
           commitSha: newerCommit.sha,
         ),
       ]);
@@ -120,22 +120,22 @@ void main() {
           olderCommit,
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusFailed,
+            status: TaskStatus.failed,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: olderCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusFailed,
+            status: TaskStatus.failed,
             commitSha: olderCommit.sha,
           ),
         ]);
@@ -153,12 +153,12 @@ void main() {
           olderCommit,
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: olderCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusFailed,
+            status: TaskStatus.failed,
             commitSha: newerCommit.sha,
           ),
         ]);
@@ -174,12 +174,12 @@ void main() {
         olderCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusFailed,
+          status: TaskStatus.failed,
           commitSha: newerCommit.sha,
           bringup: true,
         ),
@@ -197,22 +197,22 @@ void main() {
           olderCommit,
           generateFirestoreTask(
             1,
-            status: Task.statusInProgress,
+            status: TaskStatus.inProgress,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: olderCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: olderCommit.sha,
           ),
         ]);
@@ -230,22 +230,22 @@ void main() {
           olderCommit,
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusInProgress,
+            status: TaskStatus.inProgress,
             commitSha: newerCommit.sha,
           ),
           generateFirestoreTask(
             1,
-            status: Task.statusSucceeded,
+            status: TaskStatus.succeeded,
             commitSha: olderCommit.sha,
           ),
           generateFirestoreTask(
             2,
-            status: Task.statusFailed,
+            status: TaskStatus.failed,
             commitSha: olderCommit.sha,
           ),
         ]);
@@ -261,23 +261,23 @@ void main() {
         olderCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusInProgress,
+          status: TaskStatus.inProgress,
           attempts: 2,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: olderCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: olderCommit.sha,
         ),
       ]);
@@ -291,22 +291,22 @@ void main() {
         olderCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusInfraFailure,
+          status: TaskStatus.infraFailure,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: olderCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: olderCommit.sha,
         ),
       ]);
@@ -320,23 +320,23 @@ void main() {
         olderCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: newerCommit.sha,
           attempts: 2,
         ),
         generateFirestoreTask(
           1,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: olderCommit.sha,
         ),
         generateFirestoreTask(
           2,
-          status: Task.statusFailed,
+          status: TaskStatus.failed,
           commitSha: olderCommit.sha,
         ),
       ]);
@@ -347,7 +347,7 @@ void main() {
     test('supports a non-default branch', () async {
       firestore.putDocuments([
         generateFirestoreCommit(1, branch: 'flutter-0.42-candidate.0'),
-        generateFirestoreTask(1, commitSha: '1', status: Task.statusSucceeded),
+        generateFirestoreTask(1, commitSha: '1', status: TaskStatus.succeeded),
       ]);
       final status = await buildStatusService.calculateCumulativeStatus(
         slug,

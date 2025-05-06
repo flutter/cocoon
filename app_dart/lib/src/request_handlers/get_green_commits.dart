@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../model/firestore/task.dart' as fs;
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/build_status_provider/commit_tasks_status.dart';
@@ -75,8 +75,8 @@ final class GetGreenCommits extends RequestHandler {
         continue;
       }
       if (!const {
-        fs.Task.statusSkipped,
-        fs.Task.statusSucceeded,
+        TaskStatus.skipped,
+        TaskStatus.succeeded,
       }.contains(task.status)) {
         return false;
       }

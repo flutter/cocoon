@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:test/test.dart';
 
@@ -44,7 +44,7 @@ void main() {
     final commit = generateFirestoreCommit(1);
     final task = generateFirestoreTask(
       1,
-      status: Task.statusSucceeded,
+      status: TaskStatus.succeeded,
       commitSha: commit.sha,
     );
     firestore.putDocument(commit);
@@ -58,12 +58,12 @@ void main() {
     final commit = generateFirestoreCommit(1);
     final taskPass = generateFirestoreTask(
       1,
-      status: Task.statusSucceeded,
+      status: TaskStatus.succeeded,
       commitSha: commit.sha,
     );
     final taskFail = generateFirestoreTask(
       2,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
       commitSha: commit.sha,
     );
     firestore.putDocument(commit);
@@ -84,12 +84,12 @@ void main() {
     );
     final taskPass = generateFirestoreTask(
       1,
-      status: Task.statusSucceeded,
+      status: TaskStatus.succeeded,
       commitSha: commit.sha,
     );
     final taskFail = generateFirestoreTask(
       2,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
       commitSha: commit.sha,
     );
     firestore.putDocument(commit);

@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/firestore/task.dart' as fs;
@@ -64,7 +65,7 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     // Remove entire columns where any of the following is true.
     grid.removeColumnWhere((tasks) {
       // At least one task in progress;
-      if (tasks.any((t) => t.status == fs.Task.statusInProgress)) {
+      if (tasks.any((t) => t.status == TaskStatus.inProgress)) {
         return true;
       }
 
@@ -83,7 +84,7 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
     for (final (_, column) in grid.eligibleTasks) {
       for (var i = 0; i < column.length; i++) {
         final row = column[i];
-        if (row.status != fs.Task.statusNew) {
+        if (row.status != TaskStatus.waitingForBackfill) {
           continue;
         }
 
@@ -151,12 +152,12 @@ final class DefaultBackfillStrategy extends BackfillStrategy {
   static int? _indexOfTreeRedCause(Iterable<TaskRef> tasks) {
     for (final (i, task) in tasks.indexed) {
       // Only evaluate completed tasks.
-      if (!fs.Task.finishedStatusValues.contains(task.status)) {
+      if (!task.status.isComplete) {
         continue;
       }
 
       // Returns true for failed tasks, and false for successful.
-      if (fs.Task.taskFailStatusSet.contains(task.status)) {
+      if (task.status.isFailure) {
         return i;
       } else {
         return null;

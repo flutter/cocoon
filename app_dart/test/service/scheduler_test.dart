@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -15,7 +16,6 @@ import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
@@ -371,11 +371,11 @@ void main() {
         expect(
           firestore,
           existsInStorage(fs.Task.metadata, [
-            isTask.hasTaskName('Linux A').hasStatus(Task.statusInProgress),
-            isTask.hasTaskName('Linux runIf').hasStatus(Task.statusInProgress),
+            isTask.hasTaskName('Linux A').hasStatus(TaskStatus.inProgress),
+            isTask.hasTaskName('Linux runIf').hasStatus(TaskStatus.inProgress),
             isTask
                 .hasTaskName('Google Internal Roll')
-                .hasStatus(Task.statusNew),
+                .hasStatus(TaskStatus.waitingForBackfill),
           ]),
         );
       });
@@ -468,9 +468,9 @@ void main() {
         expect(
           firestore,
           existsInStorage(fs.Task.metadata, [
-            isTask.hasStatus(Task.statusInProgress),
-            isTask.hasStatus(Task.statusInProgress),
-            isTask.hasStatus(Task.statusNew),
+            isTask.hasStatus(TaskStatus.inProgress),
+            isTask.hasStatus(TaskStatus.inProgress),
+            isTask.hasStatus(TaskStatus.waitingForBackfill),
           ]),
         );
       });
@@ -500,7 +500,10 @@ void main() {
           firestore,
           existsInStorage(
             fs.Task.metadata,
-            allOf(hasLength(6), everyElement(isTask.hasStatus(Task.statusNew))),
+            allOf(
+              hasLength(6),
+              everyElement(isTask.hasStatus(TaskStatus.waitingForBackfill)),
+            ),
           ),
         );
       });
@@ -517,7 +520,7 @@ void main() {
           firestore,
           existsInStorage(
             fs.Task.metadata,
-            everyElement(isTask.hasStatus(Task.statusInProgress)),
+            everyElement(isTask.hasStatus(TaskStatus.inProgress)),
           ),
         );
       });
@@ -534,7 +537,7 @@ void main() {
           firestore,
           existsInStorage(
             fs.Task.metadata,
-            everyElement(isTask.hasStatus(Task.statusSkipped)),
+            everyElement(isTask.hasStatus(TaskStatus.skipped)),
           ),
         );
       });

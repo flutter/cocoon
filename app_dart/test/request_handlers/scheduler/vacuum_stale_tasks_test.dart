@@ -4,10 +4,10 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/rpc_model.dart' as rpc;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -56,7 +56,7 @@ void main() {
       // Insert Task into Firestore:
       final fsTask = generateFirestoreTask(
         1,
-        status: Task.statusInProgress,
+        status: TaskStatus.inProgress,
         name: 'Linux gosh_darnit',
         buildNumber: 123,
         commitSha: fsCommit.sha,
@@ -85,7 +85,7 @@ void main() {
       expect(
         firestore,
         existsInStorage(fs.Task.metadata, [
-          isTask.hasStatus(fs.Task.statusSucceeded).hasBuildNumber(123),
+          isTask.hasStatus(TaskStatus.succeeded).hasBuildNumber(123),
         ]),
       );
     });
@@ -96,7 +96,7 @@ void main() {
         firestore.putDocument(
           generateFirestoreTask(
             1,
-            status: Task.statusInProgress,
+            status: TaskStatus.inProgress,
             commitSha: fsCommit.sha,
             created: DateTime.now().subtract(const Duration(minutes: 5)),
           ),
@@ -107,7 +107,7 @@ void main() {
         expect(
           firestore,
           existsInStorage(fs.Task.metadata, [
-            isTask.hasStatus(fs.Task.statusInProgress),
+            isTask.hasStatus(TaskStatus.inProgress),
           ]),
         );
       },
@@ -118,21 +118,21 @@ void main() {
       firestore.putDocument(
         generateFirestoreTask(
           1,
-          status: Task.statusInProgress,
+          status: TaskStatus.inProgress,
           commitSha: fsCommit.sha,
         ),
       );
       firestore.putDocument(
         generateFirestoreTask(
           2,
-          status: Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: fsCommit.sha,
         ),
       );
       firestore.putDocument(
         generateFirestoreTask(
           3,
-          status: Task.statusInProgress,
+          status: TaskStatus.inProgress,
           created: DateTime.now().subtract(const Duration(hours: 4)),
           commitSha: fsCommit.sha,
         ),
@@ -144,9 +144,9 @@ void main() {
       expect(
         firestore,
         existsInStorage(fs.Task.metadata, [
-          isTask.hasStatus(fs.Task.statusNew),
-          isTask.hasStatus(fs.Task.statusSucceeded),
-          isTask.hasStatus(fs.Task.statusNew),
+          isTask.hasStatus(TaskStatus.waitingForBackfill),
+          isTask.hasStatus(TaskStatus.succeeded),
+          isTask.hasStatus(TaskStatus.waitingForBackfill),
         ]),
       );
     });
@@ -166,7 +166,7 @@ void main() {
         rcCommit,
         generateFirestoreTask(
           1,
-          status: Task.statusInProgress,
+          status: TaskStatus.inProgress,
           commitSha: 'abc123',
           created: DateTime.now().subtract(const Duration(hours: 4)),
         ),
@@ -178,7 +178,7 @@ void main() {
       expect(
         firestore,
         existsInStorage(fs.Task.metadata, [
-          isTask.hasStatus(fs.Task.statusNew),
+          isTask.hasStatus(TaskStatus.waitingForBackfill),
         ]),
       );
     });

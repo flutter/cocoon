@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -72,7 +73,7 @@ void main() {
     final fsCommit = generateFirestoreCommit(1);
     final fsTask = generateFirestoreTask(
       1,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
       name: 'Linux A',
       commitSha: fsCommit.sha,
     );
@@ -106,7 +107,7 @@ void main() {
     final fsCommit = generateFirestoreCommit(1);
     final fsTask = generateFirestoreTask(
       1,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
       name: 'Linux A',
       commitSha: fsCommit.sha,
     );
@@ -135,7 +136,7 @@ void main() {
     final fsCommit = generateFirestoreCommit(1);
     final fsTask = generateFirestoreTask(
       1,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
       name: 'Linux A',
       commitSha: fsCommit.sha,
     );
@@ -147,7 +148,7 @@ void main() {
       'repo': fsCommit.slug.name,
       'commit': fsCommit.sha,
       'task': fsTask.taskName,
-      'include': Task.statusSkipped,
+      'include': TaskStatus.skipped,
     };
 
     await expectLater(
@@ -168,13 +169,13 @@ void main() {
       2,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: fs.Task.statusFailed,
+      status: TaskStatus.failed,
     );
     final fsTaskB = generateFirestoreTask(
       3,
       name: 'Mac A',
       commitSha: fsCommit.sha,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTaskA);
@@ -205,19 +206,19 @@ void main() {
         unorderedEquals([
           isTask
               .hasTaskName('Linux A')
-              .hasStatus(fs.Task.statusFailed)
+              .hasStatus(TaskStatus.failed)
               .hasCurrentAttempt(1),
           isTask
               .hasTaskName('Linux A')
-              .hasStatus(fs.Task.statusNew)
+              .hasStatus(TaskStatus.waitingForBackfill)
               .hasCurrentAttempt(2),
           isTask
               .hasTaskName('Mac A')
-              .hasStatus(fs.Task.statusFailed)
+              .hasStatus(TaskStatus.failed)
               .hasCurrentAttempt(1),
           isTask
               .hasTaskName('Mac A')
-              .hasStatus(fs.Task.statusNew)
+              .hasStatus(TaskStatus.waitingForBackfill)
               .hasCurrentAttempt(2),
         ]),
       ),
@@ -232,7 +233,7 @@ void main() {
         2,
         name: 'Windows A',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusSucceeded,
+        status: TaskStatus.succeeded,
       ),
     );
 
@@ -262,7 +263,7 @@ void main() {
         2,
         name: 'Windows A',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusSkipped,
+        status: TaskStatus.skipped,
       ),
     );
 
@@ -292,7 +293,7 @@ void main() {
         2,
         name: 'Windows A',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusSkipped,
+        status: TaskStatus.skipped,
       ),
     );
 
@@ -301,7 +302,7 @@ void main() {
       'repo': fsCommit.slug.name,
       'commit': fsCommit.sha,
       'task': 'all',
-      'include': Task.statusSkipped,
+      'include': TaskStatus.skipped,
     };
     await tester.post(handler);
 
@@ -319,11 +320,11 @@ void main() {
       existsInStorage(fs.Task.metadata, [
         isTask
             .hasTaskName('Windows A')
-            .hasStatus(fs.Task.statusSkipped)
+            .hasStatus(TaskStatus.skipped)
             .hasCurrentAttempt(1),
         isTask
             .hasTaskName('Windows A')
-            .hasStatus(fs.Task.statusNew)
+            .hasStatus(TaskStatus.waitingForBackfill)
             .hasCurrentAttempt(2),
       ]),
     );
@@ -337,7 +338,7 @@ void main() {
         2,
         name: 'Windows A',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusInProgress,
+        status: TaskStatus.inProgress,
       ),
     );
 
@@ -346,7 +347,7 @@ void main() {
       'repo': fsCommit.slug.name,
       'commit': fsCommit.sha,
       'task': 'all',
-      'include': Task.statusInProgress,
+      'include': TaskStatus.inProgress,
     };
     await tester.post(handler);
 
@@ -366,11 +367,11 @@ void main() {
         unorderedEquals([
           isTask
               .hasTaskName('Windows A')
-              .hasStatus(fs.Task.statusCancelled)
+              .hasStatus(TaskStatus.cancelled)
               .hasCurrentAttempt(1),
           isTask
               .hasTaskName('Windows A')
-              .hasStatus(fs.Task.statusNew)
+              .hasStatus(TaskStatus.waitingForBackfill)
               .hasCurrentAttempt(2),
         ]),
       ),
@@ -395,7 +396,7 @@ void main() {
         2,
         name: 'Windows A',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusInProgress,
+        status: TaskStatus.inProgress,
       ),
     );
 
@@ -404,7 +405,7 @@ void main() {
       'repo': fsCommit.slug.name,
       'commit': fsCommit.sha,
       'task': 'all',
-      'include': Task.statusInProgress,
+      'include': TaskStatus.inProgress,
     };
     await tester.post(handler);
 
@@ -424,11 +425,11 @@ void main() {
         unorderedEquals([
           isTask
               .hasTaskName('Windows A')
-              .hasStatus(fs.Task.statusCancelled)
+              .hasStatus(TaskStatus.cancelled)
               .hasCurrentAttempt(1),
           isTask
               .hasTaskName('Windows A')
-              .hasStatus(fs.Task.statusNew)
+              .hasStatus(TaskStatus.waitingForBackfill)
               .hasCurrentAttempt(2),
         ]),
       ),
@@ -480,7 +481,7 @@ void main() {
         1,
         name: 'Linux flutter_release_builder',
         attempts: 1,
-        status: fs.Task.statusFailed,
+        status: TaskStatus.failed,
         commitSha: '1',
         created: date,
       ),
@@ -488,7 +489,7 @@ void main() {
         2,
         name: 'Linux flutter_release_builder',
         attempts: 2,
-        status: fs.Task.statusSucceeded,
+        status: TaskStatus.succeeded,
         commitSha: '1',
         created: date.add(const Duration(hours: 1)),
       ),
@@ -496,7 +497,7 @@ void main() {
         3,
         name: 'Linux depends_on_release_builder_passing_first',
         attempts: 1,
-        status: fs.Task.statusSkipped,
+        status: TaskStatus.skipped,
         commitSha: '1',
         created: date,
       ),
@@ -518,19 +519,19 @@ void main() {
         isTask
             .hasTaskName('Linux flutter_release_builder')
             .hasCurrentAttempt(1)
-            .hasStatus(fs.Task.statusFailed),
+            .hasStatus(TaskStatus.failed),
         isTask
             .hasTaskName('Linux flutter_release_builder')
             .hasCurrentAttempt(2)
-            .hasStatus(fs.Task.statusSucceeded),
+            .hasStatus(TaskStatus.succeeded),
         isTask
             .hasTaskName('Linux depends_on_release_builder_passing_first')
             .hasCurrentAttempt(1)
-            .hasStatus(fs.Task.statusSkipped),
+            .hasStatus(TaskStatus.skipped),
         isTask
             .hasTaskName('Linux depends_on_release_builder_passing_first')
             .hasCurrentAttempt(2)
-            .hasStatus(fs.Task.statusNew),
+            .hasStatus(TaskStatus.waitingForBackfill),
       ]),
     );
   });
@@ -546,7 +547,7 @@ void main() {
         1,
         name: 'Linux A',
         attempts: 1,
-        status: fs.Task.statusSkipped,
+        status: TaskStatus.skipped,
         commitSha: '1',
         created: date,
       ),
@@ -554,7 +555,7 @@ void main() {
         1,
         name: 'Linux B',
         attempts: 1,
-        status: fs.Task.statusSkipped,
+        status: TaskStatus.skipped,
         commitSha: '1',
         created: date,
       ),
@@ -576,19 +577,19 @@ void main() {
         isTask
             .hasTaskName('Linux A')
             .hasCurrentAttempt(1)
-            .hasStatus(fs.Task.statusSkipped),
+            .hasStatus(TaskStatus.skipped),
         isTask
             .hasTaskName('Linux B')
             .hasCurrentAttempt(1)
-            .hasStatus(fs.Task.statusSkipped),
+            .hasStatus(TaskStatus.skipped),
         isTask
             .hasTaskName('Linux A')
             .hasCurrentAttempt(2)
-            .hasStatus(fs.Task.statusNew),
+            .hasStatus(TaskStatus.waitingForBackfill),
         isTask
             .hasTaskName('Linux B')
             .hasCurrentAttempt(2)
-            .hasStatus(fs.Task.statusNew),
+            .hasStatus(TaskStatus.waitingForBackfill),
       ]),
     );
   });
@@ -604,7 +605,7 @@ void main() {
         1,
         name: 'Linux Old',
         attempts: 1,
-        status: fs.Task.statusSkipped,
+        status: TaskStatus.skipped,
         commitSha: '1',
         created: oldDate,
       ),
@@ -627,12 +628,12 @@ void main() {
         isTask
             .hasTaskName('Linux Old')
             .hasCurrentAttempt(1)
-            .hasStatus(fs.Task.statusSkipped)
+            .hasStatus(TaskStatus.skipped)
             .hasCreateTimestamp(oldDate.millisecondsSinceEpoch),
         isTask
             .hasTaskName('Linux Old')
             .hasCurrentAttempt(2)
-            .hasStatus(fs.Task.statusNew)
+            .hasStatus(TaskStatus.waitingForBackfill)
             .hasCreateTimestamp(newDate.millisecondsSinceEpoch),
       ]),
     );
@@ -660,7 +661,7 @@ void main() {
           1,
           name: 'Linux flutter_release_builder',
           attempts: 1,
-          status: fs.Task.statusInProgress,
+          status: TaskStatus.inProgress,
           commitSha: '1',
         ),
       ]);
@@ -684,7 +685,7 @@ void main() {
           1,
           name: 'Linux flutter_release_builder',
           attempts: 1,
-          status: fs.Task.statusSucceeded,
+          status: TaskStatus.succeeded,
           commitSha: '1',
         ),
       ]);
@@ -708,7 +709,7 @@ void main() {
           1,
           name: 'Linux flutter_release_builder',
           attempts: 1,
-          status: fs.Task.statusFailed,
+          status: TaskStatus.failed,
           commitSha: '1',
           buildNumber: 123,
         ),
@@ -743,7 +744,7 @@ void main() {
         1,
         name: 'Linux flutter_release_builder',
         attempts: 1,
-        status: fs.Task.statusFailed,
+        status: TaskStatus.failed,
         commitSha: '1',
       ),
     ]);
@@ -763,7 +764,7 @@ void main() {
         isTask
             .hasTaskName('Linux flutter_release_builder')
             .hasCurrentAttempt(1)
-            .hasStatus(fs.Task.statusFailed),
+            .hasStatus(TaskStatus.failed),
       ]),
     );
   });
@@ -776,7 +777,7 @@ void main() {
         2,
         name: 'Windows C',
         commitSha: fsCommit.sha,
-        status: fs.Task.statusSucceeded,
+        status: TaskStatus.succeeded,
       ),
     );
 
@@ -843,7 +844,7 @@ void main() {
       1,
       name: 'Linux A',
       commitSha: fsCommit.sha,
-      status: Task.statusFailed,
+      status: TaskStatus.failed,
     );
     firestore.putDocument(fsCommit);
     firestore.putDocument(fsTask);

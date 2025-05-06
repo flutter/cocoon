@@ -186,7 +186,7 @@ final class RerunProdTask extends ApiRequestHandler {
 
     // Wait for cancellations?
     final Future<void> cancelRunningTasks;
-    if (statusesToRerun.contains(fs.Task.statusInProgress)) {
+    if (statusesToRerun.contains(TaskStatus.inProgress)) {
       cancelRunningTasks = _luciBuildService.cancelBuildsBySha(
         sha: commit.sha,
         reason: '$email cancelled build to schedule a fresh rerun',
@@ -207,7 +207,7 @@ final class RerunProdTask extends ApiRequestHandler {
 
       // If it appears the task was in progress, cancel any running builders
       // and crease a _new_ task (to represent a new run).
-      if (task.status == fs.Task.statusInProgress) {
+      if (task.status == TaskStatus.inProgress) {
         // Mark cancelled.
         documentWrites.add(
           fs.Task.patchStatus(
@@ -216,7 +216,7 @@ final class RerunProdTask extends ApiRequestHandler {
               currentAttempt: task.currentAttempt,
               taskName: task.taskName,
             ),
-            fs.Task.statusCancelled,
+            TaskStatus.cancelled,
           ),
         );
       }
@@ -249,7 +249,7 @@ final class RerunProdTask extends ApiRequestHandler {
       // If we wanted to do better, that is, allow rerunning targets without
       // waiting for the task to be complete, we'd need a different strategy
       // (i.e. multiple tasks per release builder, versus one).
-      if (!fs.Task.finishedStatusValues.contains(task.status)) {
+      if (!task.status.isComplete) {
         throw const BadRequestException(
           'Cannot rerun a release builder that is not done running',
         );
