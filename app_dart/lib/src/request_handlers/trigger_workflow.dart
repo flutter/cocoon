@@ -12,7 +12,7 @@ import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
 @immutable
-class TriggerWorkflow extends ApiRequestHandler<Body> {
+class TriggerWorkflow extends ApiRequestHandler {
   const TriggerWorkflow({
     required super.config,
     required super.authenticationProvider,

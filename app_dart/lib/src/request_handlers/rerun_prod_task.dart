@@ -24,7 +24,7 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// Reruns a postsubmit LUCI build.
 @immutable
-final class RerunProdTask extends ApiRequestHandler<Body> {
+final class RerunProdTask extends ApiRequestHandler {
   const RerunProdTask({
     required super.config,
     required super.authenticationProvider,

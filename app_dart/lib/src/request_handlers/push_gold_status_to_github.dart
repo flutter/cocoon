@@ -20,7 +20,7 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 
 @immutable
-class PushGoldStatusToGithub extends ApiRequestHandler<Body> {
+class PushGoldStatusToGithub extends ApiRequestHandler {
   PushGoldStatusToGithub({
     required super.config,
     required super.authenticationProvider,

@@ -20,24 +20,24 @@ class RequestHandlerTester {
   FakeHttpResponse get response => request.response;
 
   /// Executes [RequestHandler.get] on the specified [handler].
-  Future<T> get<T extends Body>(RequestHandler<T> handler) {
-    return run<T>(() {
+  Future<Body> get(RequestHandler handler) {
+    return run(() {
       // ignore: invalid_use_of_protected_member
       return handler.get(Request.fromHttpRequest(request));
     });
   }
 
   /// Executes [RequestHandler.post] on the specified [handler].
-  Future<T> post<T extends Body>(RequestHandler<T> handler) {
-    return run<T>(() {
+  Future<Body> post(RequestHandler handler) {
+    return run(() {
       // ignore: invalid_use_of_protected_member
       return handler.post(Request.fromHttpRequest(request));
     });
   }
 
   @protected
-  Future<T> run<T extends Body>(Future<T> Function() callback) {
-    return runZoned<Future<T>>(
+  Future<Body> run(Future<Body> Function() callback) {
+    return runZoned(
       () {
         return callback();
       },

@@ -18,7 +18,7 @@ import '../service/config.dart';
 /// If [cacheKeyParam] is not passed, throws [BadRequestException].
 /// If the cache does not have the given key, throws [NotFoundException].
 @immutable
-class FlushCache extends ApiRequestHandler<Body> {
+class FlushCache extends ApiRequestHandler {
   const FlushCache({
     required super.config,
     required super.authenticationProvider,

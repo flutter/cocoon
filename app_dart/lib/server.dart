@@ -35,7 +35,7 @@ Server createServer({
   required CiYamlFetcher ciYamlFetcher,
   required BuildStatusService buildStatusService,
 }) {
-  final handlers = <String, RequestHandler<dynamic>>{
+  final handlers = <String, RequestHandler>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
       authenticationProvider: authProvider,
@@ -192,7 +192,7 @@ Server createServer({
     ///    1: 2,
     ///    2: [ "win_tool_tests_commands", "win_build_test", "win_module_test"]
     ///   }
-    '/api/public/build-status': CacheRequestHandler<Body>(
+    '/api/public/build-status': CacheRequestHandler(
       cache: cache,
       config: config,
       delegate: GetBuildStatus(
@@ -201,7 +201,7 @@ Server createServer({
       ),
       ttl: const Duration(seconds: 15),
     ),
-    '/api/public/build-status-badge': CacheRequestHandler<Body>(
+    '/api/public/build-status-badge': CacheRequestHandler(
       cache: cache,
       config: config,
       delegate: GetBuildStatusBadge(
@@ -210,7 +210,7 @@ Server createServer({
       ),
       ttl: const Duration(seconds: 15),
     ),
-    '/api/public/update-discord-status': CacheRequestHandler<Body>(
+    '/api/public/update-discord-status': CacheRequestHandler(
       cache: cache,
       config: config,
       delegate: UpdateDiscordStatus(
@@ -221,13 +221,13 @@ Server createServer({
       ),
       ttl: const Duration(seconds: 15),
     ),
-    '/api/public/engine-artifacts-ready': CacheRequestHandler<Body>(
+    '/api/public/engine-artifacts-ready': CacheRequestHandler(
       cache: cache,
       config: config,
       delegate: GetEngineArtifactsReady(config: config, firestore: firestore),
       ttl: const Duration(minutes: 5),
     ),
-    '/api/public/get-release-branches': CacheRequestHandler<Body>(
+    '/api/public/get-release-branches': CacheRequestHandler(
       cache: cache,
       config: config,
       delegate: GetReleaseBranches(
@@ -282,7 +282,7 @@ Server createServer({
     ///        ]},
     ///       },
     ///     }
-    '/api/public/get-status': CacheRequestHandler<Body>(
+    '/api/public/get-status': CacheRequestHandler(
       cache: cache,
       config: config,
       delegate: GetStatus(
@@ -307,7 +307,7 @@ Server createServer({
     /// GET: /api/public/github-rate-limit-status
     ///
     /// Response: Status 200 OK
-    '/api/public/github-rate-limit-status': CacheRequestHandler<Body>(
+    '/api/public/github-rate-limit-status': CacheRequestHandler(
       config: config,
       cache: cache,
       ttl: const Duration(minutes: 1),

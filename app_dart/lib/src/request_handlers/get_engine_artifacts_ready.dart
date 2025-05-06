@@ -26,7 +26,7 @@ import '../request_handling/exceptions.dart';
 /// - `{status: "pending"}`; the engine artifacts are in the progress of being built
 /// - `{status: "failed"}`; the engine artifacts will not be uploaded as there was a failure building the engine
 @immutable
-final class GetEngineArtifactsReady extends RequestHandler<Body> {
+final class GetEngineArtifactsReady extends RequestHandler {
   const GetEngineArtifactsReady({
     required super.config,
     required FirestoreService firestore,

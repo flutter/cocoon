@@ -13,7 +13,7 @@ import '../model/firestore/commit.dart';
 import '../service/build_status_service.dart';
 
 @immutable
-final class GetStatus extends RequestHandler<Body> {
+final class GetStatus extends RequestHandler {
   const GetStatus({
     required super.config,
     required BuildStatusService buildStatusService,

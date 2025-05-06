@@ -27,9 +27,9 @@ class SubscriptionTester extends RequestHandlerTester {
 
   @override
   @protected
-  Future<T> run<T extends Body>(Future<T> Function() callback) {
-    return super.run<T>(() {
-      return runZoned<Future<T>>(
+  Future<Body> run(Future<Body> Function() callback) {
+    return super.run(() {
+      return runZoned(
         () {
           return callback();
         },

@@ -12,7 +12,7 @@ import '../../cocoon_service.dart';
 import '../service/build_status_service.dart';
 
 @immutable
-base class GetBuildStatus extends RequestHandler<Body> {
+base class GetBuildStatus extends RequestHandler {
   const GetBuildStatus({
     required super.config,
     required BuildStatusService buildStatusService,

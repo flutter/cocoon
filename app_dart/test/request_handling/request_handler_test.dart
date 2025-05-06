@@ -22,7 +22,7 @@ void main() {
 
   group('RequestHandler', () {
     late HttpServer server;
-    late RequestHandler<dynamic> handler;
+    late RequestHandler handler;
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -160,46 +160,46 @@ class TestBody extends JsonBody {
   Map<String, dynamic> toJson() => const <String, dynamic>{'key': 'value'};
 }
 
-class MethodNotAllowed extends RequestHandler<Body> {
+class MethodNotAllowed extends RequestHandler {
   MethodNotAllowed() : super(config: FakeConfig());
 }
 
-class EmptyBodyHandler extends RequestHandler<Body> {
+class EmptyBodyHandler extends RequestHandler {
   EmptyBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => Body.empty;
 }
 
-class StringBodyHandler extends RequestHandler<Body> {
+class StringBodyHandler extends RequestHandler {
   StringBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => Body.forString('Hello world');
 }
 
-class JsonBodyHandler extends RequestHandler<TestBody> {
+class JsonBodyHandler extends RequestHandler {
   JsonBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<TestBody> get(_) async => const TestBody();
 }
 
-class ThrowsHttpException extends RequestHandler<Body> {
+class ThrowsHttpException extends RequestHandler {
   ThrowsHttpException() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => throw const BadRequestException();
 }
 
-class ThrowsStateError extends RequestHandler<Body> {
+class ThrowsStateError extends RequestHandler {
   ThrowsStateError() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => throw StateError('error message');
 }
 
-class AccessesRequestAndResponseDirectly extends RequestHandler<Body> {
+class AccessesRequestAndResponseDirectly extends RequestHandler {
   AccessesRequestAndResponseDirectly() : super(config: FakeConfig());
 
   @override
@@ -209,7 +209,7 @@ class AccessesRequestAndResponseDirectly extends RequestHandler<Body> {
   }
 }
 
-class ImplementsBothGetAndPost extends RequestHandler<Body> {
+class ImplementsBothGetAndPost extends RequestHandler {
   ImplementsBothGetAndPost() : super(config: FakeConfig());
 
   @override
@@ -225,7 +225,7 @@ class ImplementsBothGetAndPost extends RequestHandler<Body> {
   }
 }
 
-class ImplementsOnlyPost extends RequestHandler<Body> {
+class ImplementsOnlyPost extends RequestHandler {
   ImplementsOnlyPost() : super(config: FakeConfig());
 
   @override

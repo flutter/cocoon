@@ -95,7 +95,7 @@ void main() {
 
     test('Does nothing', () async {
       config.githubClient = ThrowingGitHub();
-      final body = await tester.get<Body>(handler);
+      final body = await tester.get(handler);
       expect(body, same(Body.empty));
     });
   });
@@ -174,7 +174,7 @@ void main() {
     group('does not update GitHub or Firestore', () {
       test('if there are no PRs', () async {
         prsFromGitHub = <PullRequest>[];
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
       });
@@ -201,7 +201,7 @@ void main() {
             newGithubGoldStatus(slug, flutterPr, '', '', ''),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -235,7 +235,7 @@ void main() {
           final pr = newPullRequest(123, 'abc', 'master');
           prsFromGitHub = <PullRequest>[pr];
           firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -285,7 +285,7 @@ void main() {
           },
         ];
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(
           firestore,
@@ -340,7 +340,7 @@ void main() {
           },
         ];
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(
           firestore,
@@ -420,7 +420,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(
             firestore,
@@ -465,7 +465,7 @@ void main() {
             },
           ];
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(
             firestore,
@@ -508,7 +508,7 @@ void main() {
           },
         ];
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(
           firestore,
@@ -558,7 +558,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(
             firestore,
@@ -613,7 +613,7 @@ void main() {
           ),
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(
           firestore,
@@ -661,7 +661,7 @@ void main() {
           ),
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(
           firestore,
@@ -704,7 +704,7 @@ void main() {
           },
         ];
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
 
@@ -763,7 +763,7 @@ void main() {
           firestore: firestore,
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
 
@@ -822,7 +822,7 @@ void main() {
           firestore: firestore,
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
 
@@ -901,7 +901,7 @@ void main() {
           firestore: firestore,
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
 
@@ -969,7 +969,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -1041,7 +1041,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -1118,7 +1118,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -1193,7 +1193,7 @@ void main() {
           ),
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
 
@@ -1282,7 +1282,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -1341,7 +1341,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
           expect(
@@ -1399,7 +1399,7 @@ void main() {
             ),
           );
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
           expect(
@@ -1444,7 +1444,7 @@ void main() {
             },
           ];
 
-          final body = await tester.get<Body>(handler);
+          final body = await tester.get(handler);
           expect(body, same(Body.empty));
           expect(log, hasNoWarningsOrHigher);
 
@@ -1531,7 +1531,7 @@ void main() {
           ),
         );
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
 
         expect(
@@ -1576,7 +1576,7 @@ void main() {
           },
         ];
 
-        final body = await tester.get<Body>(handler);
+        final body = await tester.get(handler);
         expect(body, same(Body.empty));
         expect(log, hasNoWarningsOrHigher);
         expect(
@@ -1654,7 +1654,7 @@ void main() {
         ),
       );
 
-      await tester.get<Body>(handler);
+      await tester.get(handler);
 
       expect(goldRequests, <String>[
         'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}',

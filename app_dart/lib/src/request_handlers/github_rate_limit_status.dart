@@ -24,7 +24,7 @@ import '../service/big_query.dart';
 ///   `limit`: Total API calls allowed on flutter-dashboard.
 ///   `remaining`: Total number of API calls remaining before flutter-dashboard is blocked from sending further requests.
 ///   `resets`: [DateTime] when [remaining] will reset back to [limit].
-class GithubRateLimitStatus extends RequestHandler<Body> {
+class GithubRateLimitStatus extends RequestHandler {
   const GithubRateLimitStatus({
     required super.config,
     required BigQueryService bigQuery,

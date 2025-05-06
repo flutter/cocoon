@@ -49,7 +49,7 @@ void main() {
       serializedBody,
     );
 
-    final cacheRequestHandler = CacheRequestHandler<Body>(
+    final cacheRequestHandler = CacheRequestHandler(
       delegate: fallbackHandler,
       cache: cache,
       config: config,
@@ -80,7 +80,7 @@ void main() {
       reasonPhrase: 'Will never be used due to cache',
     );
 
-    final cacheRequestHandler = CacheRequestHandler<Body>(
+    final cacheRequestHandler = CacheRequestHandler(
       delegate: fallbackHandler,
       cache: cache,
       config: config,
@@ -102,7 +102,7 @@ void main() {
       reasonPhrase: 'For some reason',
     );
 
-    final cacheRequestHandler = CacheRequestHandler<Body>(
+    final cacheRequestHandler = CacheRequestHandler(
       delegate: fallbackHandler,
       cache: cache,
       config: config,
@@ -119,7 +119,7 @@ void main() {
       config: FakeConfig(),
     );
 
-    final cacheRequestHandler = CacheRequestHandler<Body>(
+    final cacheRequestHandler = CacheRequestHandler(
       delegate: fallbackHandler,
       cache: cache,
       config: config,
@@ -157,7 +157,7 @@ void main() {
       serializedBody,
     );
 
-    final cacheRequestHandler = CacheRequestHandler<Body>(
+    final cacheRequestHandler = CacheRequestHandler(
       delegate: fallbackHandler,
       cache: cache,
       config: config,

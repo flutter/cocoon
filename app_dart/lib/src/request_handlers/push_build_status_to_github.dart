@@ -17,7 +17,7 @@ import '../service/big_query.dart';
 import '../service/build_status_service.dart';
 
 @immutable
-final class PushBuildStatusToGithub extends ApiRequestHandler<Body> {
+final class PushBuildStatusToGithub extends ApiRequestHandler {
   const PushBuildStatusToGithub({
     required super.config,
     required super.authenticationProvider,
