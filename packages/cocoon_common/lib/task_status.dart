@@ -5,12 +5,31 @@
 import 'package:collection/collection.dart';
 
 /// Represents differerent states of a task, or an execution of a build target.
-///
-/// TODO(matanlurey): Finish migrating (https://github.com/flutter/flutter/issues/167284):
-/// - [x] All usages of `Task.status` should be of type `TaskStatus`
-/// - [ ] Stop implementing `String` and handle conversion elsewhere
-/// - [ ] Replace extension type with an `enum`
-extension type const TaskStatus._(String _schemaValue) implements String {
+enum TaskStatus {
+  /// The task was cancelled.
+  cancelled('Cancelled'),
+
+  /// The task is waiting to be queued.
+  waitingForBackfill('New'),
+
+  /// The task is either queued or running.
+  inProgress('In Progress'),
+
+  /// The task has failed due to an infrastructure failure.
+  infraFailure('Infra Failure'),
+
+  /// The task has failed.
+  failed('Failed'),
+
+  /// The task ran successfully.
+  succeeded('Succeeded'),
+
+  /// The task was skipped instead of being executed.
+  skipped('Skipped');
+
+  const TaskStatus(this._schemaValue);
+  final String _schemaValue;
+
   /// Returns the status represented by the provided [value].
   ///
   /// [value] must be a valid [TaskStatus.value].
@@ -24,40 +43,6 @@ extension type const TaskStatus._(String _schemaValue) implements String {
   static TaskStatus? tryFrom(String value) {
     return values.firstWhereOrNull((v) => v.value == value);
   }
-
-  /// The task was cancelled.
-  static const cancelled = TaskStatus._('Cancelled');
-
-  /// The task is waiting to be queued.
-  static const waitingForBackfill = TaskStatus._('New');
-
-  /// The task is either queued or running.
-  static const inProgress = TaskStatus._('In Progress');
-
-  /// The task has failed due to an infrastructure failure.
-  static const infraFailure = TaskStatus._('Infra Failure');
-
-  /// The task has failed.
-  static const failed = TaskStatus._('Failed');
-
-  /// The task ran successfully.
-  static const succeeded = TaskStatus._('Succeeded');
-
-  /// The task was skipped instead of being executed.
-  static const skipped = TaskStatus._('Skipped');
-
-  /// Each valid possible task status.
-  ///
-  /// This list is unmodifiable.
-  static const values = [
-    cancelled,
-    waitingForBackfill,
-    inProgress,
-    infraFailure,
-    failed,
-    succeeded,
-    skipped,
-  ];
 
   /// The canonical string value representing `this`.
   ///
@@ -80,4 +65,10 @@ extension type const TaskStatus._(String _schemaValue) implements String {
 
   /// Whether the status represents a running state.
   bool get isRunning => this == inProgress;
+
+  /// Returns the JSON representation of `this`.
+  Object? toJson() => _schemaValue;
+
+  @override
+  String toString() => _schemaValue;
 }

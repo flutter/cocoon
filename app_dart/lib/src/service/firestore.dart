@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
@@ -99,13 +100,13 @@ mixin FirestoreQueries {
   Future<List<Task>> _queryTasks({
     required int? limit,
     String? name,
-    String? status,
+    TaskStatus? status,
     String? commitSha,
     Transaction? transaction,
   }) async {
     final filterMap = {
       if (name != null) '${Task.fieldName} =': name,
-      if (status != null) '${Task.fieldStatus} =': status,
+      if (status != null) '${Task.fieldStatus} =': status.value,
       if (commitSha != null) '${Task.fieldCommitSha} =': commitSha,
     };
 
@@ -136,7 +137,7 @@ mixin FirestoreQueries {
   Future<List<Task>> queryRecentTasks({
     int limit = 100,
     String? name,
-    String? status,
+    TaskStatus? status,
     String? commitSha,
   }) async {
     return await _queryTasks(
@@ -150,7 +151,7 @@ mixin FirestoreQueries {
   /// Returns _all_ tasks running against the speificed [commitSha].
   Future<List<Task>> queryAllTasksForCommit({
     required String commitSha,
-    String? status,
+    TaskStatus? status,
     String? name,
     Transaction? transaction,
   }) async {
@@ -171,7 +172,7 @@ mixin FirestoreQueries {
   Future<List<CommitAndTasks>> queryRecentCommitsAndTasks(
     RepositorySlug slug, {
     required int commitLimit,
-    String? status,
+    TaskStatus? status,
     String? branch,
   }) async {
     final commits = await queryRecentCommits(
