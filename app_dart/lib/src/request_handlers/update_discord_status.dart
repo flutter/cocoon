@@ -32,13 +32,13 @@ final class UpdateDiscordStatus extends GetBuildStatus {
   static const _kRepoParam = 'repo';
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     // For now, limit these to flutter/flutter only
-    if (request!.uri.queryParameters[_kRepoParam] != 'flutter') {
+    if (request.uri.queryParameters[_kRepoParam] != 'flutter') {
       throw const BadRequestException('Only ?repo=flutter is supported');
     }
 
-    final response = await super.createResponse();
+    final response = await super.createResponse(request);
 
     await recordStatus(response);
 

@@ -168,43 +168,43 @@ class EmptyBodyHandler extends RequestHandler<Body> {
   EmptyBodyHandler() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async => Body.empty;
+  Future<Body> get(_) async => Body.empty;
 }
 
 class StringBodyHandler extends RequestHandler<Body> {
   StringBodyHandler() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async => Body.forString('Hello world');
+  Future<Body> get(_) async => Body.forString('Hello world');
 }
 
 class JsonBodyHandler extends RequestHandler<TestBody> {
   JsonBodyHandler() : super(config: FakeConfig());
 
   @override
-  Future<TestBody> get() async => const TestBody();
+  Future<TestBody> get(_) async => const TestBody();
 }
 
 class ThrowsHttpException extends RequestHandler<Body> {
   ThrowsHttpException() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async => throw const BadRequestException();
+  Future<Body> get(_) async => throw const BadRequestException();
 }
 
 class ThrowsStateError extends RequestHandler<Body> {
   ThrowsStateError() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async => throw StateError('error message');
+  Future<Body> get(_) async => throw StateError('error message');
 }
 
 class AccessesRequestAndResponseDirectly extends RequestHandler<Body> {
   AccessesRequestAndResponseDirectly() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async {
-    response!.headers.add('X-Test-Path', request!.uri.path);
+  Future<Body> get(Request request) async {
+    response!.headers.add('X-Test-Path', request.uri.path);
     return Body.empty;
   }
 }
@@ -213,13 +213,13 @@ class ImplementsBothGetAndPost extends RequestHandler<Body> {
   ImplementsBothGetAndPost() : super(config: FakeConfig());
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(_) async {
     response!.headers.add('X-Test-Get', 'true');
     return Body.empty;
   }
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(_) async {
     response!.headers.add('X-Test-Post', 'true');
     return Body.empty;
   }
@@ -229,5 +229,5 @@ class ImplementsOnlyPost extends RequestHandler<Body> {
   ImplementsOnlyPost() : super(config: FakeConfig());
 
   @override
-  Future<Body> post() async => Body.empty;
+  Future<Body> post(_) async => Body.empty;
 }

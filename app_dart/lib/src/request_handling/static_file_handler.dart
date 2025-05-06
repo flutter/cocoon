@@ -33,8 +33,8 @@ class StaticFileHandler extends RequestHandler<Body> {
 
   /// Services an HTTP GET Request for static files.
   @override
-  Future<Body> get() async {
-    final response = request!.response;
+  Future<Body> get(Request request) async {
+    final response = this.response!;
 
     /// The map of mimeTypes not found in [mime] package.
     final mimeTypeMap = <String, String>{

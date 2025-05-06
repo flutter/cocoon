@@ -12,7 +12,7 @@ class ReadinessCheck extends RequestHandler<Body> {
   const ReadinessCheck({required super.config});
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     return Body.empty;
   }
 }

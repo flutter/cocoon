@@ -1063,7 +1063,10 @@ void main() {
         totalNumber: 6,
       );
       final targets = unCheckedSchedulerConfig.targets;
-      expect(handler.shouldSkip(builderStatistic, ciYaml, targets), true);
+      expect(
+        handler.shouldSkip(builderStatistic, ciYaml, targets, threshold: 0.02),
+        true,
+      );
     });
 
     test('skips if the flakiness_threshold is not met', () {
@@ -1087,7 +1090,7 @@ void main() {
       );
       final targets = unCheckedSchedulerConfig.targets;
       expect(
-        handler.shouldSkip(builderStatistic, ciYaml, targets),
+        handler.shouldSkip(builderStatistic, ciYaml, targets, threshold: 0.02),
         true,
         reason: 'test specific flakiness_threshold overrides global threshold',
       );
@@ -1114,7 +1117,7 @@ void main() {
       );
       final targets = unCheckedSchedulerConfig.targets;
       expect(
-        handler.shouldSkip(builderStatistic, ciYaml, targets),
+        handler.shouldSkip(builderStatistic, ciYaml, targets, threshold: 0.02),
         false,
         reason: 'falkiness greater than test specified should trigger',
       );

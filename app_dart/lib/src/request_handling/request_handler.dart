@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
@@ -42,10 +44,10 @@ abstract class RequestHandler<T extends Body> {
             T body;
             switch (request.method) {
               case 'GET':
-                body = await get();
+                body = await get(Request.fromHttpRequest(request));
                 break;
               case 'POST':
-                body = await post();
+                body = await post(Request.fromHttpRequest(request));
                 break;
               default:
                 throw MethodNotAllowed(request.method);
@@ -71,7 +73,6 @@ abstract class RequestHandler<T extends Body> {
         }
       },
       zoneValues: <RequestKey<dynamic>, Object>{
-        RequestKey.request: request,
         RequestKey.response: request.response,
       },
     );
@@ -106,13 +107,6 @@ abstract class RequestHandler<T extends Body> {
     return value;
   }
 
-  /// Gets the current [HttpRequest].
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  HttpRequest? get request => getValue<HttpRequest>(RequestKey.request);
-
   /// Gets the current [HttpResponse].
   ///
   /// If this is called outside the context of an HTTP request, this will
@@ -125,7 +119,7 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support GET requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> get() async {
+  Future<T> get(Request request) async {
     throw const MethodNotAllowed('GET');
   }
 
@@ -134,9 +128,85 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support POST requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> post() async {
+  Future<T> post(Request request) async {
     throw const MethodNotAllowed('POST');
   }
+}
+
+/// A request received on a [RequestHandler].
+abstract mixin class Request {
+  /// Creates a [Request] by wrapping an existing [HttpRequest].
+  factory Request.fromHttpRequest(HttpRequest request) = _HttpRequest;
+
+  /// URL the request was served to, including query parameters.
+  Uri get uri;
+
+  /// Returns the value for the header with the given [name].
+  ///
+  /// The value must not have more than one value.
+  ///
+  /// If the header is not set, returns `null`.
+  String? header(String name);
+
+  /// Reads the body as bytes.
+  ///
+  /// Can be invoked multiple times.
+  Future<Uint8List> readBodyAsBytes();
+
+  /// Reads the body as a UTF-8 string.
+  Future<String> readBodyAsString() async {
+    return utf8.decode(await readBodyAsBytes());
+  }
+
+  /// A special decoder that decodes UTF-8 bytes into JSON values.
+  ///
+  /// Backend implementations in the Dart SDK typically optimize this fused
+  /// decoder compared to the default [dart.JsonDecoder] which operates on
+  /// UTF-16 strings.
+  ///
+  /// See <https://github.com/dart-lang/sdk/issues/55996> for more information.
+  static final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
+
+  /// Reads the body as a JSON object.
+  Future<Map<String, Object?>> readBodyAsJson() async {
+    final bytes = await readBodyAsBytes();
+    if (bytes.isEmpty) {
+      return {};
+    }
+    final result = _utf8JsonDecoder.convert(await readBodyAsBytes());
+    return result as Map<String, Object?>;
+  }
+}
+
+/// A request that is backed by an [HttpRequest].
+final class _HttpRequest with Request {
+  _HttpRequest(this._request);
+  final HttpRequest _request;
+
+  @override
+  Uri get uri => _request.uri;
+
+  @override
+  String? header(String name) {
+    return _request.headers.value(name);
+  }
+
+  @override
+  Future<Uint8List> readBodyAsBytes() async {
+    if (_bodyAsBytes case final previousCall?) {
+      return previousCall;
+    }
+    final builder = await _request.fold(BytesBuilder(copy: false), (
+      builder,
+      data,
+    ) {
+      builder.add(data);
+      return builder;
+    });
+    return _bodyAsBytes = builder.takeBytes();
+  }
+
+  Uint8List? _bodyAsBytes;
 }
 
 /// A key that can be used to index a value within the request context.

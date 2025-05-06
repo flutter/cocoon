@@ -46,7 +46,7 @@ final class BatchBackfiller extends RequestHandler {
   final BranchService _branchService;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     await _backfillReleaseBranch(Config.flutterSlug);
     await Future.forEach(config.supportedRepos, _backfillDefaultBranch);
     return Body.empty;

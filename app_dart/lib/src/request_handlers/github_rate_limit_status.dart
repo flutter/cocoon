@@ -33,7 +33,7 @@ class GithubRateLimitStatus extends RequestHandler<Body> {
   final BigQueryService _bigQuery;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     final githubService = await config.createDefaultGitHubService();
     final quotaUsage = (await githubService.getRateLimit()).toJson();
     quotaUsage['timestamp'] = DateTime.now().toIso8601String();

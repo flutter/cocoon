@@ -14,6 +14,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../request_handling/authentication.dart';
 import '../request_handling/body.dart';
+import '../request_handling/request_handler.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/config.dart';
 import '../service/github_checks_service.dart';
@@ -54,7 +55,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   final CiYamlFetcher ciYamlFetcher;
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(Request request) async {
     if (message.data == null) {
       log.info('no data in message');
       return Body.empty;

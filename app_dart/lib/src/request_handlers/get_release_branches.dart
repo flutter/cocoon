@@ -38,7 +38,7 @@ final class GetReleaseBranches extends RequestHandler<Body> {
   final BranchService _branchService;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     return Body.forJson(
       await _branchService.getReleaseBranches(slug: Config.flutterSlug),
     );

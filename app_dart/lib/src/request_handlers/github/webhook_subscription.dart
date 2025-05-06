@@ -91,7 +91,7 @@ class GithubWebhookSubscription extends SubscriptionHandler {
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(Request request) async {
     if (message.data == null || message.data!.isEmpty) {
       log.warn('GitHub webhook message was empty. No-oping');
       return Body.empty;

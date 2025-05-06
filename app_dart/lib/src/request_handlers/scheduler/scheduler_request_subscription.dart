@@ -41,7 +41,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
   final RetryOptions retryOptions;
 
   @override
-  Future<Body> post() async {
+  Future<Body> post(Request request) async {
     if (message.data == null) {
       log.info('no data in message');
       throw const BadRequestException('no data in message');

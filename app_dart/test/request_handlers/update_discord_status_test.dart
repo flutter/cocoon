@@ -31,7 +31,7 @@ void main() {
   late MockDiscordService discord;
 
   Future<T> decodeHandlerBody<T>() async {
-    tester.request!.uri = tester.request!.uri.replace(query: 'repo=flutter');
+    tester.request.uri = tester.request.uri.replace(query: 'repo=flutter');
     final body = await tester.get(handler);
     return await utf8.decoder
             .bind(body.serialize() as Stream<List<int>>)

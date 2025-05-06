@@ -96,7 +96,7 @@ void main() {
     firestore.putDocument(taskPass);
     firestore.putDocument(taskFail);
 
-    tester.request!.uri = tester.request!.uri.replace(
+    tester.request.uri = tester.request.uri.replace(
       queryParameters: {'branch': 'flutter-0.42-candidate.0'},
     );
     final response = await decodeHandlerBody<Map<String, Object?>>();

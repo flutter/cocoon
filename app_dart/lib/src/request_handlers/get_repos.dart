@@ -17,7 +17,7 @@ final class GetRepos extends RequestHandler<Body> {
   const GetRepos({required super.config});
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     return Body.forJson([
       ...config.supportedRepos.map((RepositorySlug slug) => slug.name),
     ]);

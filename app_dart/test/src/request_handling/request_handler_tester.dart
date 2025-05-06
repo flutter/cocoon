@@ -6,33 +6,32 @@ import 'dart:async';
 
 import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
-import 'package:http/testing.dart' as http;
 import 'package:meta/meta.dart';
 
 import 'fake_http.dart';
 
 class RequestHandlerTester {
-  RequestHandlerTester({FakeHttpRequest? request, this.httpClient}) {
-    this.request = request ?? FakeHttpRequest();
-  }
+  RequestHandlerTester({FakeHttpRequest? request})
+    : request = request ?? FakeHttpRequest();
 
-  FakeHttpRequest? request;
-  http.MockClient? httpClient;
+  FakeHttpRequest request;
 
   /// This tester's [FakeHttpResponse], derived from [request].
-  FakeHttpResponse get response => request!.response;
+  FakeHttpResponse get response => request.response;
 
   /// Executes [RequestHandler.get] on the specified [handler].
   Future<T> get<T extends Body>(RequestHandler<T> handler) {
     return run<T>(() {
-      return handler.get(); // ignore: invalid_use_of_protected_member
+      // ignore: invalid_use_of_protected_member
+      return handler.get(Request.fromHttpRequest(request));
     });
   }
 
   /// Executes [RequestHandler.post] on the specified [handler].
   Future<T> post<T extends Body>(RequestHandler<T> handler) {
     return run<T>(() {
-      return handler.post(); // ignore: invalid_use_of_protected_member
+      // ignore: invalid_use_of_protected_member
+      return handler.post(Request.fromHttpRequest(request));
     });
   }
 
@@ -42,10 +41,7 @@ class RequestHandlerTester {
       () {
         return callback();
       },
-      zoneValues: <RequestKey<dynamic>, Object?>{
-        RequestKey.request: request,
-        RequestKey.response: response,
-      },
+      zoneValues: <RequestKey<dynamic>, Object?>{RequestKey.response: response},
     );
   }
 }

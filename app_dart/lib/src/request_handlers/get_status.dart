@@ -32,15 +32,14 @@ final class GetStatus extends RequestHandler<Body> {
   static const String kRepoParam = 'repo';
 
   @override
-  Future<Body> get() async {
-    final lastCommitSha = request!.uri.queryParameters[kLastCommitShaParam];
+  Future<Body> get(Request request) async {
+    final lastCommitSha = request.uri.queryParameters[kLastCommitShaParam];
 
     final repoName =
-        request!.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
+        request.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final slug = RepositorySlug('flutter', repoName);
     final branch =
-        request!.uri.queryParameters[kBranchParam] ??
-        Config.defaultBranch(slug);
+        request.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final commitNumber = config.commitNumber;
     final lastCommitTimestamp =
         lastCommitSha != null

@@ -15,6 +15,7 @@ import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
+import '../request_handling/request_handler.dart';
 import '../service/firestore.dart';
 import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
@@ -48,8 +49,9 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
   static const _paramInclude = 'include';
 
   @override
-  Future<Body> post() async {
-    checkRequiredParameters([
+  Future<Body> post(Request request) async {
+    final requestData = await request.readBodyAsJson();
+    checkRequiredParameters(requestData, [
       _paramBranch,
       _paramRepo,
       _paramCommitSha,
@@ -61,7 +63,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       _paramRepo: String repo,
       _paramCommitSha: String commitSha,
       _paramTaskName: String taskName,
-    } = requestData!;
+    } = requestData.cast<String, String>();
 
     final email = authContext?.email ?? 'EMAIL-MISSING';
     final slug = RepositorySlug('flutter', repo);
@@ -78,7 +80,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
     if (taskName == 'all') {
       final statusesToRerun = {
         ...fs.Task.taskFailStatusSet,
-        ...?(requestData![_paramInclude] as String?)?.split(','),
+        ...?(requestData[_paramInclude] as String?)?.split(','),
       };
       if (statusesToRerun.difference(fs.Task.legalStatusValues)
           case final invalid when invalid.isNotEmpty) {
@@ -96,7 +98,7 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
       return Body.forJson(ranTasks);
     }
 
-    if (requestData!.containsKey(_paramInclude)) {
+    if (requestData.containsKey(_paramInclude)) {
       throw const BadRequestException(
         'Cannot provide "$_paramInclude" when a task name is specified.',
       );

@@ -43,7 +43,7 @@ final class VacuumStaleTasks extends RequestHandler<Body> {
   final BranchService _branchService;
 
   @override
-  Future<Body> get() async {
+  Future<Body> get(Request request) async {
     // Default branches.
     await Future.forEach(config.supportedRepos, _vaccumRepository);
 

@@ -57,7 +57,7 @@ void main() {
   });
 
   test('returns a 404, "sha" is missing from database', () async {
-    tester.request!.uri = tester.request!.uri.replace(
+    tester.request.uri = tester.request.uri.replace(
       queryParameters: {'sha': 'abc123'},
     );
 
@@ -67,7 +67,7 @@ void main() {
   });
 
   test('returns "complete"', () async {
-    tester.request!.uri = tester.request!.uri.replace(
+    tester.request.uri = tester.request.uri.replace(
       queryParameters: {'sha': 'abc123'},
     );
 
@@ -90,7 +90,7 @@ void main() {
   });
 
   test('returns "pending"', () async {
-    tester.request!.uri = tester.request!.uri.replace(
+    tester.request.uri = tester.request.uri.replace(
       queryParameters: {'sha': 'abc123'},
     );
 
@@ -113,7 +113,7 @@ void main() {
   });
 
   test('returns "failed"', () async {
-    tester.request!.uri = tester.request!.uri.replace(
+    tester.request.uri = tester.request.uri.replace(
       queryParameters: {'sha': 'abc123'},
     );
 
