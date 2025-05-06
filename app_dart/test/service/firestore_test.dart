@@ -27,7 +27,7 @@ void main() {
 
   group('CommitAndTasks', () {
     test('withMostRecentTaskOnly returns the largest currentAttempt', () {
-      final commit = CommitAndTasks(generateFirestoreCommit(1), [
+      final commit = CommitAndTasks(generateFirestoreCommit(1).toRef(), [
         generateFirestoreTask(1, name: 'Linux A', attempts: 2),
         generateFirestoreTask(1, name: 'Linux A', attempts: 1),
         generateFirestoreTask(1, name: 'Linux A', attempts: 3),
