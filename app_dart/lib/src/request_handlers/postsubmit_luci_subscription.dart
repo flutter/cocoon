@@ -94,12 +94,13 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       );
     }
 
+    // TODO(matanlurey): Store the CommitRef in UserData and avoid this call!
     final fsCommit = await fs.Commit.fromFirestoreBySha(
       _firestore,
       sha: fsTask.commitSha,
     );
 
-    final ciYaml = await _ciYamlFetcher.getCiYamlByFirestoreCommit(fsCommit);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(fsCommit.toRef());
     final postsubmitTargets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)

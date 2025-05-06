@@ -182,7 +182,7 @@ mixin FirestoreQueries {
     return [
       for (final commit in commits)
         CommitAndTasks(
-          commit,
+          commit.toRef(),
           await queryAllTasksForCommit(commitSha: commit.sha, status: status),
         ).withMostRecentTaskOnly(),
     ];

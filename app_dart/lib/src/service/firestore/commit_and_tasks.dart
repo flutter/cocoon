@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:meta/meta.dart';
+import '../../model/commit_ref.dart';
 import '../../model/firestore/commit.dart';
 import '../../model/firestore/task.dart';
 
@@ -14,7 +15,7 @@ final class CommitAndTasks {
     : tasks = List.unmodifiable(tasks);
 
   /// Commit from Firestore.
-  final Commit commit;
+  final CommitRef commit;
 
   /// Tasks where [Task.commitSha] is the same as [Commit.sha].
   ///

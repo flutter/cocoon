@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart';
@@ -14,76 +13,14 @@ import '../../foundation/providers.dart';
 import '../../foundation/typedefs.dart';
 import '../../foundation/utils.dart';
 import '../../model/commit_ref.dart';
-import '../../model/firestore/commit.dart' as firestore;
 import '../cache_service.dart';
 import '../config.dart';
 import '../firestore.dart';
 
 /// Fetches a [CiYamlSet] given the current repository and commit context.
-abstract base class CiYamlFetcher {
+interface class CiYamlFetcher {
   /// Creates a [CiYamlFetcher] from the provided configuration.
-  factory CiYamlFetcher({
-    required CacheService cache,
-    required FirestoreService firestore,
-    HttpClientProvider httpClientProvider,
-    Duration cacheTtl,
-    String subcacheName,
-    RetryOptions retryOptions,
-  }) = _CiYamlFetcher;
-
-  /// Exists so that a fake implementation can re-use `getCiYamlBy*` methods.
-  @visibleForTesting
-  CiYamlFetcher.forTesting();
-
-  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for [commit].
-  ///
-  /// This is a helper method for [getCiYaml] for use with [firestore.Commit].
-  ///
-  /// **DEPRECATED**: Use [getCiYamlByCommit].
-  @Deprecated('Use getCiYamlByCommit')
-  Future<CiYamlSet> getCiYamlByFirestoreCommit(
-    firestore.Commit commit, {
-    bool validate = false,
-  }) async {
-    return getCiYaml(
-      slug: commit.slug,
-      commitSha: commit.sha,
-      commitBranch: commit.branch,
-      validate: validate,
-    );
-  }
-
-  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a [commit].
-  ///
-  /// If [validate] is omitted, it defaults to whether [CommitRef.branch] is the
-  /// default branch for [CommitRef.slug].
-  Future<CiYamlSet> getCiYamlByCommit(
-    CommitRef commit, {
-    bool? validate,
-  }) async {
-    validate ??= commit.branch == Config.defaultBranch(commit.slug);
-    return await getCiYaml(
-      slug: commit.slug,
-      commitSha: commit.sha,
-      commitBranch: commit.branch,
-      validate: validate,
-    );
-  }
-
-  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a commit.
-  ///
-  /// **DEPRECATED**: Use [getCiYamlByCommit].
-  @Deprecated('Use getCiYamlByCommit')
-  Future<CiYamlSet> getCiYaml({
-    required RepositorySlug slug,
-    required String commitSha,
-    required String commitBranch,
-    bool validate = false,
-  });
-}
-
-final class _CiYamlFetcher extends CiYamlFetcher {
-  _CiYamlFetcher({
+  CiYamlFetcher({
     required CacheService cache,
     required FirestoreService firestore,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
@@ -98,8 +35,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
        _subcacheName = subcacheName,
        _retryOptions = retryOptions,
        _httpClientProvider = httpClientProvider,
-       _firestore = firestore,
-       super.forTesting();
+       _firestore = firestore;
 
   final CacheService _cache;
   final String _subcacheName;
@@ -108,45 +44,40 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   final HttpClientProvider _httpClientProvider;
   final FirestoreService _firestore;
 
-  @override
-  Future<CiYamlSet> getCiYaml({
-    required RepositorySlug slug,
-    required String commitSha,
-    required String commitBranch,
-    bool validate = false,
+  /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a [commit].
+  ///
+  /// If [validate] is omitted, it defaults to whether [CommitRef.branch] is the
+  /// default branch for [CommitRef.slug].
+  Future<CiYamlSet> getCiYamlByCommit(
+    CommitRef commit, {
+    bool? validate,
   }) async {
-    final isFusion = slug == Config.flutterSlug;
-    final totCommit = await _fetchTipOfTreeCommit(slug: slug);
+    validate ??= commit.branch == Config.defaultBranch(commit.slug);
+    final isFusion = commit.slug == Config.flutterSlug;
+    final totCommit = await _fetchTipOfTreeCommit(slug: commit.slug);
     final totYaml = await _getCiYaml(
-      slug: totCommit.slug,
-      commitSha: totCommit.sha,
-      commitBranch: totCommit.branch,
+      commit: totCommit,
       validate: validate,
       isFusionCommit: isFusion,
     );
     return _getCiYaml(
-      totCiYaml: totYaml,
-      slug: slug,
-      commitSha: commitSha,
-      commitBranch: commitBranch,
-      isFusionCommit: isFusion,
+      commit: commit,
       validate: validate,
+      totCiYaml: totYaml,
+      isFusionCommit: isFusion,
     );
   }
 
   /// Creates and returns, using a cache, the `.ci.yaml` file for a commit.
   Future<CiYamlSet> _getCiYaml({
-    required RepositorySlug slug,
-    required String commitSha,
-    required String commitBranch,
+    required CommitRef commit,
     required bool validate,
     CiYamlSet? totCiYaml,
     bool isFusionCommit = false,
   }) async {
     // Fetch the root .ci.yaml.
     final rootConfig = await _getOrFetchCiYaml(
-      slug: slug,
-      commitSha: commitSha,
+      commit: commit,
       ciYamlPath: kCiYamlPath,
     );
 
@@ -154,8 +85,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
     final pb.SchedulerConfig? engineConfig;
     if (isFusionCommit) {
       engineConfig = await _getOrFetchCiYaml(
-        slug: slug,
-        commitSha: commitSha,
+        commit: commit,
         ciYamlPath: kCiYamlFusionEnginePath,
       );
     } else {
@@ -169,8 +99,8 @@ final class _CiYamlFetcher extends CiYamlFetcher {
         CiType.any: rootConfig,
         if (engineConfig != null) CiType.fusionEngine: engineConfig,
       },
-      slug: slug,
-      branch: commitBranch,
+      slug: commit.slug,
+      branch: commit.branch,
       totConfig: totCiYaml,
       validate: validate,
     );
@@ -178,17 +108,16 @@ final class _CiYamlFetcher extends CiYamlFetcher {
 
   /// Fetches a [ciYamlPath] from cache, or downloads it if missing.
   Future<pb.SchedulerConfig> _getOrFetchCiYaml({
-    required RepositorySlug slug,
-    required String commitSha,
+    required CommitRef commit,
     required String ciYamlPath,
   }) async {
     final ciYamlBytes = await _cache.getOrCreate(
       _subcacheName,
-      p.join(slug.fullName, commitSha, ciYamlPath),
+      p.join(commit.slug.fullName, commit.sha, ciYamlPath),
       createFn: () async {
         return (await _downloadCiYaml(
-          slug: slug,
-          commitSha: commitSha,
+          slug: commit.slug,
+          commitSha: commit.sha,
           ciYamlPath: ciYamlPath,
         )).writeToBuffer();
       },
@@ -220,7 +149,7 @@ final class _CiYamlFetcher extends CiYamlFetcher {
   /// (without `bringup: true`) are not added to the build, as well that targets
   /// that no longer exist at tip of tree do not run on older branches (such as
   /// release candidates).
-  Future<firestore.Commit> _fetchTipOfTreeCommit({
+  Future<CommitRef> _fetchTipOfTreeCommit({
     required RepositorySlug slug,
   }) async {
     final recentCommits = await _firestore.queryRecentCommits(
@@ -231,6 +160,6 @@ final class _CiYamlFetcher extends CiYamlFetcher {
     if (recentCommits.length != 1) {
       throw StateError('Expected a single commit, got ${recentCommits.length}');
     }
-    return recentCommits.first;
+    return recentCommits.first.toRef();
   }
 }

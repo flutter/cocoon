@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
+import '../../model/commit_ref.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore/commit_and_tasks.dart';
@@ -96,10 +97,12 @@ final class BatchBackfiller extends RequestHandler {
       );
 
       // Download the ToT .ci.yaml targets.
-      final ciYaml = await _ciYamlFetcher.getCiYaml(
-        slug: slug,
-        commitSha: fsGrid.first.commit.sha,
-        commitBranch: Config.defaultBranch(slug),
+      final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+        CommitRef(
+          slug: slug,
+          sha: fsGrid.first.commit.sha,
+          branch: Config.defaultBranch(slug),
+        ),
       );
 
       final totTargets = [
@@ -111,7 +114,7 @@ final class BatchBackfiller extends RequestHandler {
 
       grid = BackfillGrid.from([
         for (final CommitAndTasks(:commit, :tasks) in fsGrid)
-          (commit.toRef(), [...tasks.map((t) => t.toRef())]),
+          (commit, [...tasks.map((t) => t.toRef())]),
       ], tipOfTreeTargets: totTargets);
     }
     log.debug('Built a grid of ${grid.eligibleTasks.length} target columns');
