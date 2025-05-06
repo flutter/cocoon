@@ -100,7 +100,10 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       sha: fsTask.commitSha,
     );
 
-    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(fsCommit.toRef());
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+      fsCommit.toRef(),
+      postsubmit: true,
+    );
     final postsubmitTargets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)

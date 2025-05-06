@@ -210,8 +210,12 @@ void main() {
                 severity: equals(Severity.warning),
               ),
               logThat(
-                message: matches(RegExp('Failed to fetch.*falling back to')),
+                message: contains('Failed to fetch'),
                 severity: equals(Severity.warning),
+              ),
+              logThat(
+                message: contains('Falling back'),
+                severity: equals(Severity.info),
               ),
               logThat(
                 message: contains('HTTP 503'),

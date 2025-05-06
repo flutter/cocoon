@@ -48,9 +48,13 @@ interface class CiYamlFetcher {
   ///
   /// If [validate] is omitted, it defaults to whether [CommitRef.branch] is the
   /// default branch for [CommitRef.slug].
+  ///
+  /// If [postsubmit] is `true`, will fall back to trying to use Git-on-Borg
+  /// (the mirror of GitHub).
   Future<CiYamlSet> getCiYamlByCommit(
     CommitRef commit, {
     bool? validate,
+    bool postsubmit = false,
   }) async {
     validate ??= commit.branch == Config.defaultBranch(commit.slug);
     final isFusion = commit.slug == Config.flutterSlug;
@@ -59,12 +63,14 @@ interface class CiYamlFetcher {
       commit: totCommit,
       validate: validate,
       isFusionCommit: isFusion,
+      useGitOnBorgFallback: true,
     );
     return _getCiYaml(
       commit: commit,
       validate: validate,
       totCiYaml: totYaml,
       isFusionCommit: isFusion,
+      useGitOnBorgFallback: postsubmit,
     );
   }
 
@@ -72,6 +78,7 @@ interface class CiYamlFetcher {
   Future<CiYamlSet> _getCiYaml({
     required CommitRef commit,
     required bool validate,
+    required bool useGitOnBorgFallback,
     CiYamlSet? totCiYaml,
     bool isFusionCommit = false,
   }) async {
@@ -79,6 +86,7 @@ interface class CiYamlFetcher {
     final rootConfig = await _getOrFetchCiYaml(
       commit: commit,
       ciYamlPath: kCiYamlPath,
+      useGitOnBorgFallback: useGitOnBorgFallback,
     );
 
     // And, if in a Fusion repository, the engine .ci.yaml.
@@ -87,6 +95,7 @@ interface class CiYamlFetcher {
       engineConfig = await _getOrFetchCiYaml(
         commit: commit,
         ciYamlPath: kCiYamlFusionEnginePath,
+        useGitOnBorgFallback: useGitOnBorgFallback,
       );
     } else {
       engineConfig = null;
@@ -110,6 +119,7 @@ interface class CiYamlFetcher {
   Future<pb.SchedulerConfig> _getOrFetchCiYaml({
     required CommitRef commit,
     required String ciYamlPath,
+    required bool useGitOnBorgFallback,
   }) async {
     final ciYamlBytes = await _cache.getOrCreate(
       _subcacheName,
@@ -119,6 +129,7 @@ interface class CiYamlFetcher {
           slug: commit.slug,
           commitSha: commit.sha,
           ciYamlPath: ciYamlPath,
+          useGitOnBorgFallback: useGitOnBorgFallback,
         )).writeToBuffer();
       },
       ttl: _cacheTtl,
@@ -131,6 +142,7 @@ interface class CiYamlFetcher {
     required RepositorySlug slug,
     required String commitSha,
     required String ciYamlPath,
+    required bool useGitOnBorgFallback,
   }) async {
     final content = await githubFileContent(
       slug,
@@ -138,6 +150,7 @@ interface class CiYamlFetcher {
       ref: commitSha,
       httpClientProvider: _httpClientProvider,
       retryOptions: _retryOptions,
+      useGitOnBorgFallback: useGitOnBorgFallback,
     );
     return pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(content));
   }

@@ -136,6 +136,7 @@ void main() {
     final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
       CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
       validate: true,
+      postsubmit: true,
     );
 
     expect(ciYaml.targets().map((t) => t.name), unorderedEquals(['Linux A']));

@@ -137,7 +137,10 @@ final class RerunProdTask extends ApiRequestHandler<Body> {
 
   @useResult
   Future<Map<String, Target>> _getPostsubmitTargets(CommitRef commit) async {
-    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(commit);
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+      commit,
+      postsubmit: true,
+    );
     final targets = [
       ...ciYaml.postsubmitTargets(),
       if (ciYaml.isFusion)

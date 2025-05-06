@@ -64,6 +64,7 @@ Future<String> githubFileContent(
   String ref = 'master',
   Duration timeout = _githubTimeout,
   RetryOptions retryOptions = _githubRetryOptions,
+  bool useGitOnBorgFallback = true,
 }) async {
   final githubUrl = Uri.https(
     'raw.githubusercontent.com',
@@ -94,14 +95,19 @@ Future<String> githubFileContent(
     if (e is! HttpException && e is! NotFoundException) {
       rethrow;
     }
-    log.warn('Failed to fetch $githubUrl, falling back to $gobUrl', e);
-    await retryOptions.retry(() async {
-      content = String.fromCharCodes(
-        base64Decode(
-          await getUrl(gobUrl, httpClientProvider, timeout: timeout),
-        ),
-      );
-    }, retryIf: (e) => e is HttpException);
+    log.warn('Failed to fetch $githubUrl', e);
+    if (useGitOnBorgFallback) {
+      log.info('Falling back to $gobUrl');
+      await retryOptions.retry(() async {
+        content = String.fromCharCodes(
+          base64Decode(
+            await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+          ),
+        );
+      }, retryIf: (e) => e is HttpException);
+    } else {
+      rethrow;
+    }
   }
   return content;
 }

@@ -164,7 +164,10 @@ class Scheduler {
       return;
     }
 
-    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(commit.toRef());
+    final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+      commit.toRef(),
+      postsubmit: true,
+    );
     final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
@@ -1502,6 +1505,7 @@ $stacktrace
               log.debug('Latest firestore task is $fsTask');
               final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
                 fsCommit.toRef(),
+                postsubmit: true,
               );
               final target = ciYaml.postsubmitTargets().singleWhere(
                 (target) => target.name == fsTask.taskName,
