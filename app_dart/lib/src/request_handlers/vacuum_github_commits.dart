@@ -18,7 +18,7 @@ import '../service/scheduler.dart';
 
 /// Ensures Github commits from the past day exist in Firestore.
 @immutable
-final class VacuumGithubCommits extends ApiRequestHandler<Body> {
+final class VacuumGithubCommits extends ApiRequestHandler {
   const VacuumGithubCommits({
     required super.config,
     required super.authenticationProvider,

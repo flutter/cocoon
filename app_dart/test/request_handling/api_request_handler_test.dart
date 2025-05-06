@@ -23,7 +23,7 @@ void main() {
 
   group('ApiRequestHandler', () {
     late HttpServer server;
-    late ApiRequestHandler<dynamic> handler;
+    late ApiRequestHandler handler;
 
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -118,7 +118,7 @@ void main() {
   });
 }
 
-class Unauth extends ApiRequestHandler<Body> {
+class Unauth extends ApiRequestHandler {
   Unauth()
     : super(
         config: FakeConfig(),
@@ -131,7 +131,7 @@ class Unauth extends ApiRequestHandler<Body> {
   Future<Body> get(_) async => throw StateError('Unreachable');
 }
 
-class ReadParams extends ApiRequestHandler<Body> {
+class ReadParams extends ApiRequestHandler {
   ReadParams()
     : super(
         config: FakeConfig(),
@@ -148,7 +148,7 @@ class ReadParams extends ApiRequestHandler<Body> {
   }
 }
 
-class NeedsParams extends ApiRequestHandler<Body> {
+class NeedsParams extends ApiRequestHandler {
   NeedsParams()
     : super(
         config: FakeConfig(),
@@ -165,7 +165,7 @@ class NeedsParams extends ApiRequestHandler<Body> {
   }
 }
 
-class AccessAuth extends ApiRequestHandler<Body> {
+class AccessAuth extends ApiRequestHandler {
   AccessAuth()
     : super(
         config: FakeConfig(),

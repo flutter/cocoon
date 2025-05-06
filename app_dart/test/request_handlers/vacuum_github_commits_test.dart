@@ -6,7 +6,6 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/vacuum_github_commits.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
@@ -100,7 +99,7 @@ void main() {
   test('succeeds when GitHub returns no commits', () async {
     fakeGithubCommitShas = <String>[];
     config.supportedBranchesValue = <String>['master'];
-    final body = await tester.get<Body>(handler);
+    final body = await tester.get(handler);
 
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
     expect(await body.serialize().toList(), isEmpty);
@@ -109,7 +108,7 @@ void main() {
   test('does not fail on empty commit list', () async {
     fakeGithubCommitShas = <String>[];
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
-    await tester.get<Body>(handler);
+    await tester.get(handler);
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
   });
 
@@ -117,14 +116,14 @@ void main() {
     fakeGithubCommitShas = <String>['${DateTime.now().millisecondsSinceEpoch}'];
 
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
-    await tester.get<Body>(handler);
+    await tester.get(handler);
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
   });
 
   test('inserts all relevant fields of the commit', () async {
     fakeGithubCommitShas = <String>['1'];
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
-    await tester.get<Body>(handler);
+    await tester.get(handler);
     expect(
       firestore,
       existsInStorage(

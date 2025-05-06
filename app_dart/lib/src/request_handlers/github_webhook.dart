@@ -22,7 +22,7 @@ import '../request_handling/request_handler.dart';
 /// Requests are only published as a [GithubWebhookMessage] iff they contain:
 ///   1. Event type from the header `X-GitHub-Event`
 ///   2. Event payload that was HMAC authenticated
-class GithubWebhook extends RequestHandler<Body> {
+class GithubWebhook extends RequestHandler {
   GithubWebhook({
     required super.config,
     required this.pubsub,

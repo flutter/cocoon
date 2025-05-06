@@ -222,7 +222,7 @@ void main() {
         final result =
             await utf8.decoder
                     .bind(
-                      (await tester.get<Body>(handler)).serialize()
+                      (await tester.get(handler)).serialize()
                           as Stream<List<int>>,
                     )
                     .transform(json.decoder)
@@ -400,7 +400,7 @@ void main() {
         final result =
             await utf8.decoder
                     .bind(
-                      (await tester.get<Body>(handler)).serialize()
+                      (await tester.get(handler)).serialize()
                           as Stream<List<int>>,
                     )
                     .transform(json.decoder)
@@ -526,7 +526,7 @@ void main() {
       final result =
           await utf8.decoder
                   .bind(
-                    (await tester.get<Body>(handler)).serialize()
+                    (await tester.get(handler)).serialize()
                         as Stream<List<int>>,
                   )
                   .transform(json.decoder)
@@ -576,7 +576,7 @@ void main() {
       final result =
           await utf8.decoder
                   .bind(
-                    (await tester.get<Body>(handler)).serialize()
+                    (await tester.get(handler)).serialize()
                         as Stream<List<int>>,
                   )
                   .transform(json.decoder)
@@ -640,7 +640,7 @@ void main() {
         final result =
             await utf8.decoder
                     .bind(
-                      (await tester.get<Body>(handler)).serialize()
+                      (await tester.get(handler)).serialize()
                           as Stream<List<int>>,
                     )
                     .transform(json.decoder)
@@ -683,7 +683,7 @@ void main() {
         final result =
             await utf8.decoder
                     .bind(
-                      (await tester.get<Body>(handler)).serialize()
+                      (await tester.get(handler)).serialize()
                           as Stream<List<int>>,
                     )
                     .transform(json.decoder)
@@ -740,7 +740,7 @@ void main() {
       final result =
           await utf8.decoder
                   .bind(
-                    (await tester.get<Body>(handler)).serialize()
+                    (await tester.get(handler)).serialize()
                         as Stream<List<int>>,
                   )
                   .transform(json.decoder)
@@ -820,7 +820,7 @@ void main() {
       final result =
           await utf8.decoder
                   .bind(
-                    (await tester.get<Body>(handler)).serialize()
+                    (await tester.get(handler)).serialize()
                         as Stream<List<int>>,
                   )
                   .transform(json.decoder)
@@ -873,7 +873,7 @@ void main() {
       final result =
           await utf8.decoder
                   .bind(
-                    (await tester.get<Body>(handler)).serialize()
+                    (await tester.get(handler)).serialize()
                         as Stream<List<int>>,
                   )
                   .transform(json.decoder)

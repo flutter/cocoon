@@ -26,7 +26,7 @@ import 'flaky_handler_utils.dart';
 /// The query parameter kThresholdKey is required for this handler to use it as
 /// the standard when compares the flaky ratios.
 @immutable
-class FileFlakyIssueAndPR extends ApiRequestHandler<Body> {
+class FileFlakyIssueAndPR extends ApiRequestHandler {
   const FileFlakyIssueAndPR({
     required super.config,
     required super.authenticationProvider,

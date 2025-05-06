@@ -17,10 +17,10 @@ import 'exceptions.dart';
 ///
 /// `T` is the type of object that is returned as the body of the HTTP response
 /// (before serialization). Subclasses whose HTTP responses don't include a
-/// body should extend `RequestHandler<Body>` and return null in their service
+/// body should extend `RequestHandler` and return null in their service
 /// handlers ([get] and [post]).
 
-abstract class RequestHandler<T extends Body> {
+abstract class RequestHandler {
   /// Creates a new [RequestHandler].
   const RequestHandler({required this.config});
 
@@ -41,7 +41,7 @@ abstract class RequestHandler<T extends Body> {
         final response = request.response;
         try {
           try {
-            T body;
+            Body body;
             switch (request.method) {
               case 'GET':
                 body = await get(Request.fromHttpRequest(request));
@@ -119,7 +119,7 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support GET requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> get(Request request) async {
+  Future<Body> get(Request request) async {
     throw const MethodNotAllowed('GET');
   }
 
@@ -128,7 +128,7 @@ abstract class RequestHandler<T extends Body> {
   /// Subclasses should override this method if they support POST requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<T> post(Request request) async {
+  Future<Body> post(Request request) async {
     throw const MethodNotAllowed('POST');
   }
 }

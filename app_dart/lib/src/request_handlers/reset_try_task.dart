@@ -14,7 +14,7 @@ import '../request_handling/exceptions.dart';
 /// Runs all the applicable tasks for a given PR and commit hash. This will be
 /// used to unblock rollers when creating a new commit is not possible.
 @immutable
-class ResetTryTask extends ApiRequestHandler<Body> {
+class ResetTryTask extends ApiRequestHandler {
   const ResetTryTask({
     required super.config,
     required super.authenticationProvider,

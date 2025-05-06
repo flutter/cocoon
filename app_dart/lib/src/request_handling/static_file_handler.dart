@@ -17,7 +17,7 @@ import 'exceptions.dart';
 
 /// A class based on [RequestHandler] for serving static files.
 @immutable
-class StaticFileHandler extends RequestHandler<Body> {
+class StaticFileHandler extends RequestHandler {
   /// Creates a new [StaticFileHandler].
   const StaticFileHandler(
     this.filePath, {

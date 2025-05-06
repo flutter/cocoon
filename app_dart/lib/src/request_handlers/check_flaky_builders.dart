@@ -34,7 +34,7 @@ import 'flaky_handler_utils.dart';
 /// If all the conditions are true, this handler will file a pull request to
 /// make the builder unflaky.
 @immutable
-class CheckFlakyBuilders extends ApiRequestHandler<Body> {
+class CheckFlakyBuilders extends ApiRequestHandler {
   const CheckFlakyBuilders({
     required super.config,
     required super.authenticationProvider,

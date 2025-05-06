@@ -22,7 +22,7 @@ import '../../service/firestore/commit_and_tasks.dart';
 /// being stuck as "In Progress," this will return tasks to "New" if they have
 /// no updates after 3 hours.
 @immutable
-final class VacuumStaleTasks extends RequestHandler<Body> {
+final class VacuumStaleTasks extends RequestHandler {
   const VacuumStaleTasks({
     required super.config,
     required LuciBuildService luciBuildService,

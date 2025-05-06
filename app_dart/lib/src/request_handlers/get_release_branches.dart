@@ -29,7 +29,7 @@ import '../service/config.dart';
 ///    }
 ///]
 
-final class GetReleaseBranches extends RequestHandler<Body> {
+final class GetReleaseBranches extends RequestHandler {
   GetReleaseBranches({
     required super.config,
     required BranchService branchService,

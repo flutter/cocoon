@@ -79,7 +79,7 @@ void main() {
   test('development environment does nothing', () async {
     clientContext.isDevelopmentEnvironment = true;
     config.githubClient = ThrowingGitHub();
-    final body = await tester.get<Body>(handler);
+    final body = await tester.get(handler);
     expect(body, same(Body.empty));
   });
 
@@ -89,7 +89,7 @@ void main() {
         pullRequestsService.list(any, base: anyNamed('base')),
       ).thenAnswer((_) => const Stream<PullRequest>.empty());
       buildStatusService.cumulativeStatus = BuildStatus.success();
-      final body = await tester.get<Body>(handler);
+      final body = await tester.get(handler);
       final tableDataList = await tabledataResourceApi.list(
         'test',
         'test',
@@ -108,7 +108,7 @@ void main() {
         ),
       );
       buildStatusService.cumulativeStatus = BuildStatus.success();
-      await tester.get<Body>(handler);
+      await tester.get(handler);
       verifyNever(repositoriesService.createStatus(any, any, any));
     });
 
@@ -127,7 +127,7 @@ void main() {
         ),
       );
 
-      final body = await tester.get<Body>(handler);
+      final body = await tester.get(handler);
       expect(body, same(Body.empty));
 
       expect(
@@ -158,7 +158,7 @@ void main() {
         ),
       );
 
-      final body = await tester.get<Body>(handler);
+      final body = await tester.get(handler);
       expect(body, same(Body.empty));
 
       expect(
@@ -189,7 +189,7 @@ void main() {
         ),
       );
 
-      final body = await tester.get<Body>(handler);
+      final body = await tester.get(handler);
 
       expect(body, same(Body.empty));
 
@@ -225,7 +225,7 @@ void main() {
       ),
     );
 
-    final body = await tester.get<Body>(handler);
+    final body = await tester.get(handler);
     expect(body, same(Body.empty));
 
     expect(
