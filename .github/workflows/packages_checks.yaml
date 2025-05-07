@@ -1,0 +1,32 @@
+name: Package Checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test-common-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+
+      - name: test package
+        run: |
+          mapfile -d $'\0' -t pubs < <(find packages dev cipd_packages auto_submit licenses -type f -name 'pubspec.yaml' -print0)
+          echo "found: ${pubs[@]}"
+          for pubspec in "${pubs[@]}"; do
+            dir=$(dirname "$pubspec")
+            echo "cd dir: $dir"
+            pushd $dir
+            dart pub get
+            dart format --set-exit-if-changed .
+            dart analyze --fatal-infos
+            [ -d 'test' ] && dart test --test-randomize-ordering-seed=random --reporter expanded
+            [ -d 'integration_test' ] && dart test --test-randomize-ordering-seed=random --reporter expanded integration_test
+            popd
+          done

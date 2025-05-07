@@ -5,11 +5,12 @@ on:
     branches: [main]
     paths:
       - "app_dart/**"
-      - "packages/**"
       - ".github/workflows/app_dart_tests.yaml"
+  push:
+    branches: [main]
 
 jobs:
-  setup:
+  test-app-dart:
     runs-on: ubuntu-latest
     steps:
       - uses: dart-lang/setup-dart@v1
@@ -36,21 +37,3 @@ jobs:
         run: |
           cd app_dart
           dart test test
-
-      - name: Run analyze
-        run: |
-          cd analyze
-          dart pub get
-          dart --enable-asserts analyze.dart
-
-      - name: Run code_health
-        run: |
-          cd dev/cocoon_code_health
-          dart pub get
-          dart run bin/check.dart
-
-      - name: Run license check
-        run: |
-          cd licenses
-          dart pub get
-          dart run check_licenses.dart
