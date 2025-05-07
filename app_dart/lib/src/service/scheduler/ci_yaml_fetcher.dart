@@ -61,7 +61,7 @@ interface class CiYamlFetcher {
     //
     // That type of error is not useful or actionable once in postsubmit.
     if (validate == null) {
-      if (!postsubmit) {
+      if (postsubmit) {
         validate = false;
       } else {
         validate = commit.branch == Config.defaultBranch(commit.slug);
