@@ -216,6 +216,40 @@ void main() {
     );
   });
 
+  test('ignores an invalid target in postsubmit: false', () async {
+    httpClient = MockClient((request) async {
+      if (request.url.host != 'raw.githubusercontent.com') {
+        fail('Unexpected host: ${request.url}');
+      }
+
+      // Extract the URL request ($slug/$ref/$file);
+      final [owner, repository, ref, ...path] = request.url.pathSegments;
+      expect('$owner/$repository', Config.packagesSlug.fullName);
+      expect(p.joinAll(path), kCiYamlPath);
+
+      // ToT does not have "Linux B"
+      if (ref == totSha) {
+        return http.Response(singleCiYaml, HttpStatus.ok);
+      }
+
+      // But current does, and it's not marked bringup.
+      if (ref == currentSha) {
+        return http.Response(singleCiYamlWithTwoTargets, HttpStatus.ok);
+      }
+
+      fail('Should not occur. Unexpected request: ${request.url}');
+    });
+
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
+
+    await expectLater(
+      ciYamlFetcher.getCiYamlByCommit(
+        CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
+      ),
+      completes,
+    );
+  });
+
   test('allows an invalid target when bringup: true is set', () async {
     httpClient = MockClient((request) async {
       if (request.url.host != 'raw.githubusercontent.com') {
