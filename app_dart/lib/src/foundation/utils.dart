@@ -81,7 +81,7 @@ Future<String> githubFileContent(
   try {
     await retryOptions.retry(
       () async =>
-          content = await getUrl(
+          content = await _getUrl(
             githubUrl,
             httpClientProvider,
             timeout: timeout,
@@ -101,7 +101,7 @@ Future<String> githubFileContent(
       await retryOptions.retry(() async {
         content = String.fromCharCodes(
           base64Decode(
-            await getUrl(gobUrl, httpClientProvider, timeout: timeout),
+            await _getUrl(gobUrl, httpClientProvider, timeout: timeout),
           ),
         );
       }, retryIf: (e) => e is HttpException);
@@ -116,7 +116,7 @@ Future<String> githubFileContent(
 ///
 /// If [url] returns [HttpStatus.notFound] throw [NotFoundException].
 /// Otherwise, throws [HttpException].
-FutureOr<String> getUrl(
+FutureOr<String> _getUrl(
   Uri url,
   HttpClientProvider httpClientProvider, {
   Duration timeout = const Duration(seconds: 5),

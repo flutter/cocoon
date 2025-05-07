@@ -45,7 +45,7 @@ void main() {
     );
     updater = DynamicConfigUpdater(
       random: random,
-      httpClient: mockHttp,
+      httpClientProvider: () => mockHttp,
       delay: const Duration(milliseconds: 1),
       retryOptions: const RetryOptions(
         maxAttempts: 1,
