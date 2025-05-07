@@ -80,14 +80,6 @@ void main() {
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
-    test('JsonBody yields JSON HTTP response body', () async {
-      handler = JsonBodyHandler();
-      final response = await issueGet();
-      expect(response.statusCode, HttpStatus.ok);
-      expect(await utf8.decoder.bind(response).join(), '{"key":"value"}');
-      expect(log, bufferedLoggerOf(isEmpty));
-    });
-
     test('throwing HttpException yields corresponding HTTP status', () async {
       handler = ThrowsHttpException();
       final response = await issueGet();
@@ -153,13 +145,6 @@ void main() {
   });
 }
 
-class TestBody extends JsonBody {
-  const TestBody();
-
-  @override
-  Map<String, dynamic> toJson() => const <String, dynamic>{'key': 'value'};
-}
-
 class MethodNotAllowed extends RequestHandler {
   MethodNotAllowed() : super(config: FakeConfig());
 }
@@ -176,13 +161,6 @@ class StringBodyHandler extends RequestHandler {
 
   @override
   Future<Body> get(_) async => Body.forString('Hello world');
-}
-
-class JsonBodyHandler extends RequestHandler {
-  JsonBodyHandler() : super(config: FakeConfig());
-
-  @override
-  Future<TestBody> get(_) async => const TestBody();
 }
 
 class ThrowsHttpException extends RequestHandler {

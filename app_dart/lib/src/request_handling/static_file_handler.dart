@@ -34,10 +34,8 @@ class StaticFileHandler extends RequestHandler {
   /// Services an HTTP GET Request for static files.
   @override
   Future<Body> get(Request request) async {
-    final response = this.response!;
-
     /// The map of mimeTypes not found in [mime] package.
-    final mimeTypeMap = <String, String>{
+    const mimeTypeMap = {
       '.map': 'application/json',
       '': 'text/plain',
       '.smcbin': 'application/octet-stream',
@@ -53,8 +51,10 @@ class StaticFileHandler extends RequestHandler {
           mimeTypeMap.containsKey(path.extension(file.path))
               ? mimeTypeMap[path.extension(file.path)]!
               : lookupMimeType(resultPath)!;
-      response.headers.contentType = ContentType.parse(mimeType);
-      return Body.forStream(file.openRead().cast<Uint8List>());
+      return Body.forStream(
+        file.openRead().cast<Uint8List>(),
+        contentType: ContentType.parse(mimeType),
+      );
     } else {
       throw NotFoundException(resultPath);
     }

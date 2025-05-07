@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
-import '../../../cocoon_service.dart';
 import '../common/json_converters.dart';
 
 part 'pubsub_message.g.dart';
@@ -13,10 +13,11 @@ part 'pubsub_message.g.dart';
 // the initial finding is that it may be an issue with how gcloud packages the
 // message.
 @JsonSerializable(includeIfNull: false)
-class PubSubPushMessage extends JsonBody {
+@immutable
+final class PubSubPushMessage {
   const PubSubPushMessage({this.message, this.subscription});
 
-  static PubSubPushMessage fromJson(Map<String, dynamic> json) =>
+  factory PubSubPushMessage.fromJson(Map<String, Object?> json) =>
       _$PubSubPushMessageFromJson(json);
 
   /// The message contents.
@@ -25,13 +26,13 @@ class PubSubPushMessage extends JsonBody {
   /// The name of the subscription associated with the delivery.
   final String? subscription;
 
-  @override
-  Map<String, dynamic> toJson() => _$PubSubPushMessageToJson(this);
+  Map<String, Object?> toJson() => _$PubSubPushMessageToJson(this);
 }
 
 // Rename this to PushMessage as it is basically that class.
 @JsonSerializable(includeIfNull: false)
-class PushMessage extends JsonBody {
+@immutable
+final class PushMessage {
   const PushMessage({
     this.attributes,
     this.data,
@@ -57,9 +58,8 @@ class PushMessage extends JsonBody {
   /// "2014-10-02T15:01:23.045123456Z".
   final String? publishTime;
 
-  static PushMessage fromJson(Map<String, dynamic> json) =>
+  factory PushMessage.fromJson(Map<String, Object?> json) =>
       _$PushMessageFromJson(json);
 
-  @override
-  Map<String, dynamic> toJson() => _$PushMessageToJson(this);
+  Map<String, Object?> toJson() => _$PushMessageToJson(this);
 }
