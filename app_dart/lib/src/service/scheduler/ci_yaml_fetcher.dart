@@ -46,17 +46,28 @@ interface class CiYamlFetcher {
 
   /// Fetches and processes (as appropriate) the `.ci.yaml`(s) for a [commit].
   ///
-  /// If [validate] is omitted, it defaults to whether [CommitRef.branch] is the
-  /// default branch for [CommitRef.slug].
-  ///
   /// If [postsubmit] is `true`, will fall back to trying to use Git-on-Borg
   /// (the mirror of GitHub).
+  ///
+  /// If [validate] is omitted, and [postsubmit] is `false` it defaults to
+  /// whether [CommitRef.branch] is the default branch for [CommitRef.slug].
   Future<CiYamlSet> getCiYamlByCommit(
     CommitRef commit, {
     bool? validate,
     bool postsubmit = false,
   }) async {
-    validate ??= commit.branch == Config.defaultBranch(commit.slug);
+    // Validation will cause errors such as:
+    // "Linux_android_emu_34 android views is a new builder added. It needs to be marked bringup: true"
+    //
+    // That type of error is not useful or actionable once in postsubmit.
+    if (validate == null) {
+      if (!postsubmit) {
+        validate = false;
+      } else {
+        validate = commit.branch == Config.defaultBranch(commit.slug);
+      }
+    }
+
     final isFusion = commit.slug == Config.flutterSlug;
     final totCommit = await _fetchTipOfTreeCommit(slug: commit.slug);
     final totYaml = await _getCiYaml(

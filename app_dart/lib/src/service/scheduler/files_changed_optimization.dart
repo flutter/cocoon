@@ -56,7 +56,6 @@ final class FilesChangedOptimizer {
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
       CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
-      validate: false,
     );
 
     final refusePrefix = 'Not optimizing: ${slug.fullName}/pulls/${pr.number}';
