@@ -1,0 +1,38 @@
+name: Test dashboard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "packages/**"
+      - ".github/workflows/dashboard_tests.yaml"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: jtmcdole/setup-flutter@d868be1c3f142595f6aa55e471f615813a210793
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get packages
+        run: |
+          cd dashboard
+          flutter pub get
+
+      - name: flutter analyze dashboard
+        run: |
+          cd dashboard
+          flutter analyze --fatal-infos
+
+      - name: dart format dashboard
+        run: |
+          cd dashboard
+          dart format --set-exit-if-changed .
+
+      - name: flutter test dashboard
+        run: |
+          cd dashboard
+          flutter test test

@@ -1,0 +1,32 @@
+name: Common workflows
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run analyze.dart
+        run: |
+          cd analyze
+          dart pub get
+          dart --enable-asserts analyze.dart
+
+      - name: Run cocoon_code_health
+        run: |
+          cd dev/cocoon_code_health
+          dart pub get
+          dart run bin/check.dart
+
+      - name: Run license check
+        run: |
+          cd licenses
+          dart pub get
+          dart run check_licenses.dart
