@@ -47,11 +47,13 @@ final class GetBuildStatusBadge extends GetBuildStatus {
 
   @override
   Future<Body> get(Request request) async {
-    // Set HTTP content-type so SVG is viewable.
-    response!.headers.contentType = ContentType.parse('image/svg+xml');
-    final buildStatusResponse = await super.createResponse(request);
-    return Body.forString(generateSVG(buildStatusResponse));
+    return Body.forString(
+      generateSVG(await super.createResponse(request)),
+      contentType: _imageSvgXml,
+    );
   }
+
+  static final _imageSvgXml = ContentType.parse('image/svg+xml');
 
   @visibleForTesting
   String generateSVG(rpc_model.BuildStatusResponse response) {

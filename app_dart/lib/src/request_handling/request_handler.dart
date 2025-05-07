@@ -52,7 +52,7 @@ abstract class RequestHandler {
               default:
                 throw MethodNotAllowed(request.method);
             }
-            await _respond(body: body);
+            await _respond(response, body);
             return;
           } on HttpStatusException {
             rethrow;
@@ -78,13 +78,14 @@ abstract class RequestHandler {
     );
   }
 
-  /// Responds (using [response]) with an optional [body].
+  /// Responds (using [response]).
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond({Body body = Body.empty}) async {
-    await response!.addStream(body.serialize().cast<List<int>>());
-    await response!.flush();
-    await response!.close();
+  Future<void> _respond(HttpResponse response, Body body) async {
+    response.headers.contentType = body.contentType;
+    await response.addStream(body.serialize());
+    await response.flush();
+    await response.close();
   }
 
   /// Gets the value associated with the specified [key] in the request

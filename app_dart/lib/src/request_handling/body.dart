@@ -3,81 +3,111 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
 /// Class that represents an HTTP response body before it has been serialized.
 @immutable
-abstract class Body {
+abstract final class Body {
   /// Creates a new [Body].
   const Body();
 
   /// Creates a [Body] that serializes the specified String [content].
-  factory Body.forString(String content) => _StringBody(content);
+  factory Body.forString(
+    String content, { //
+    ContentType? contentType,
+  }) = _StringBody;
 
   /// Creates a [Body] that passes through the already-serialized [stream].
-  factory Body.forStream(Stream<Uint8List> stream) => _StreamBody(stream);
+  factory Body.forStream(
+    Stream<Uint8List> stream, { //
+    ContentType? contentType,
+  }) = _StreamBody;
 
   /// Creates a [Body] that serializes the specified JSON [value].
   ///
   /// The [value] argument may be any JSON tyope (any scalar value, any object
   /// that defines a `toJson()` method that returns a JSON type, or a [List] or
   /// [Map] of other JSON types).
-  factory Body.forJson(dynamic value) => Body.forString(json.encode(value));
+  factory Body.forJson(Object? value) = _JsonBody;
 
   /// Value indicating that the HTTP response body should be empty.
   static const Body empty = _EmptyBody();
+
+  /// The format of the body.
+  ContentType? get contentType;
 
   /// Serializes this response body to bytes.
   Stream<Uint8List> serialize();
 }
 
-abstract class JsonBody extends Body {
-  const JsonBody();
+final class _EmptyBody extends Body {
+  const _EmptyBody();
 
   @override
-  Stream<Uint8List> serialize() {
-    final raw = json.encoder.bind(
-      Stream<Object>.fromIterable(<Object>[toJson()]),
-    );
-    return utf8.encoder.bind(raw).cast<Uint8List>();
-  }
-
-  /// Serializes this response body to a JSON-primitive map.
-  Map<String, Object?> toJson();
-}
-
-class _EmptyBody extends Body {
-  const _EmptyBody();
+  ContentType? get contentType => null;
 
   @override
   Stream<Uint8List> serialize() => const Stream<Uint8List>.empty();
 }
 
-class _StringBody extends Body {
-  const _StringBody(this.content);
+final class _StringBody extends Body {
+  const _StringBody(
+    this._content, { //
+    ContentType? contentType,
+  }) : _contentType = contentType;
 
-  final String content;
+  final String _content;
+
+  @override
+  ContentType get contentType => _contentType ?? ContentType.text;
+  final ContentType? _contentType;
 
   @override
   Stream<Uint8List> serialize() {
-    return utf8.encoder
-        .bind(Stream<String>.fromIterable(<String>[content]))
-        .cast<Uint8List>();
+    return Stream.fromIterable([utf8.encode(_content)]);
   }
 
   @override
   String toString() {
-    return 'Body.forString($content)';
+    return 'Body.forString($_content)';
   }
 }
 
-class _StreamBody extends Body {
-  const _StreamBody(this.stream);
-
-  final Stream<Uint8List> stream;
+final class _JsonBody extends Body {
+  const _JsonBody(this._content);
+  final Object? _content;
 
   @override
-  Stream<Uint8List> serialize() => stream;
+  ContentType get contentType => ContentType.json;
+  static final _utf8JsonEncoder = JsonUtf8Encoder();
+
+  @override
+  Stream<Uint8List> serialize() {
+    return Stream.fromIterable([
+      _utf8JsonEncoder.convert(_content) as Uint8List,
+    ]);
+  }
+
+  @override
+  String toString() {
+    return 'Body.forString($_content)';
+  }
+}
+
+final class _StreamBody extends Body {
+  const _StreamBody(
+    this._stream, { //
+    this.contentType,
+  });
+
+  @override
+  final ContentType? contentType;
+
+  final Stream<Uint8List> _stream;
+
+  @override
+  Stream<Uint8List> serialize() => _stream;
 }

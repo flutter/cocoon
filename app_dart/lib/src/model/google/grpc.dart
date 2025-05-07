@@ -3,8 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:json_annotation/json_annotation.dart';
-
-import '../../request_handling/body.dart';
+import 'package:meta/meta.dart';
 
 part 'grpc.g.dart';
 
@@ -16,11 +15,12 @@ part 'grpc.g.dart';
 /// Resources:
 /// * https://cloud.google.com/apis/design/errors
 @JsonSerializable(includeIfNull: false)
-class GrpcStatus extends JsonBody {
+@immutable
+final class GrpcStatus {
   const GrpcStatus({required this.code, this.message, this.details});
 
   /// Creates a [Status] from JSON.
-  static GrpcStatus fromJson(Map<String, dynamic> json) =>
+  factory GrpcStatus.fromJson(Map<String, Object?> json) =>
       _$GrpcStatusFromJson(json);
 
   /// The status code, which should be an enum value of [google.rpc.Code][].
@@ -38,6 +38,5 @@ class GrpcStatus extends JsonBody {
   @override
   String toString() => 'Response #$code: $message, $details';
 
-  @override
-  Map<String, dynamic> toJson() => _$GrpcStatusToJson(this);
+  Map<String, Object?> toJson() => _$GrpcStatusToJson(this);
 }
