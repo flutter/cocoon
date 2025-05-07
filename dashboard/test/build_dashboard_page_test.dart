@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/build_dashboard_page.dart';
@@ -192,7 +193,7 @@ void main() {
     await tester.pump();
 
     for (final status in TaskBox.statusColor.keys) {
-      expect(find.text(status), findsOneWidget);
+      expect(find.text(status.value), findsOneWidget);
     }
     expect(find.text('Flaky'), findsOneWidget);
     expect(find.text('Ran more than once'), findsOneWidget);
@@ -798,7 +799,7 @@ void main() {
             commit: commit,
             tasks: [
               generateTaskForTest(
-                status: TaskBox.statusNew,
+                status: TaskStatus.waitingForBackfill,
                 builderName: 'Builder',
               ),
             ],
@@ -942,7 +943,7 @@ void main() {
           idToken: '1234567890',
           branch: 'flutter-release',
           repo: 'flutter',
-          include: {TaskBox.statusSkipped},
+          include: {TaskStatus.skipped},
         ),
       ).thenAnswer((_) async => const CocoonResponse.data(null));
       final tooltip = tester.firstWidget<Tooltip>(

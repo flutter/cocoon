@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
+import 'package:cocoon_common/task_status.dart';
 
 /// A default [DateTime] used for [generateTaskForTest].
 final utc$2020_9_1_12_30 = DateTime.utc(2020, 9, 1, 12, 30);
@@ -34,19 +34,19 @@ final utc$2020_9_1_12_30 = DateTime.utc(2020, 9, 1, 12, 30);
 /// the amount of attempts:
 /// ```dart
 /// // .buildNumberList automatically has 1 build
-/// generateTaskForTest(status: TaskBox.statusInProgress)
+/// generateTaskForTest(status: TaskStatus.inProgress)
 ///
 /// // .buildNumberList automatically has 3 builds
-/// generateTaskForTest(status: TaskBox.statusInProgress, attempts: 3);
+/// generateTaskForTest(status: TaskStatus.inProgress, attempts: 3);
 ///
 /// // .buildNumberList is explicitly empty, indicating a queued build.
-/// generateTaskForTest(status: TaskBox.statusInProgress, buildNumberList: '')
+/// generateTaskForTest(status: TaskStatus.inProgress, buildNumberList: '')
 ///
 /// // .buildNumberList has less builds than attempts.
-/// generateTaskForTest(status: TaskBox.statusInProgress, buildNumberList: '1,2', attempts: 3)
+/// generateTaskForTest(status: TaskStatus.inProgress, buildNumberList: '1,2', attempts: 3)
 /// ```
 Task generateTaskForTest({
-  required String status,
+  required TaskStatus status,
   List<int>? buildNumberList,
   int attempts = 1,
   String builderName = 'Tasky McTaskFace',
@@ -64,21 +64,19 @@ Task generateTaskForTest({
   final bool started;
   final bool completed;
   switch (status) {
-    case TaskBox.statusCancelled:
-    case TaskBox.statusFailed:
-    case TaskBox.statusInfraFailure:
-    case TaskBox.statusSucceeded:
+    case TaskStatus.cancelled:
+    case TaskStatus.failed:
+    case TaskStatus.infraFailure:
+    case TaskStatus.succeeded:
       started = true;
       completed = true;
-    case TaskBox.statusInProgress:
+    case TaskStatus.inProgress:
       started = true;
       completed = false;
-    case TaskBox.statusNew:
-    case TaskBox.statusSkipped:
+    case TaskStatus.waitingForBackfill:
+    case TaskStatus.skipped:
       started = false;
       completed = false;
-    default:
-      throw UnsupportedError('status = "$status"');
   }
 
   // Tasks sometimes have a start and finish time.

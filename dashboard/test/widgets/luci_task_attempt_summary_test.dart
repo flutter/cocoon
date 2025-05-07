@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
-import 'package:flutter_dashboard/widgets/task_box.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
@@ -21,7 +21,9 @@ void main() {
             home: Column(
               children: <Widget>[
                 LuciTaskAttemptSummary(
-                  task: generateTaskForTest(status: TaskBox.statusNew),
+                  task: generateTaskForTest(
+                    status: TaskStatus.waitingForBackfill,
+                  ),
                 ),
               ],
             ),
@@ -41,7 +43,7 @@ void main() {
             children: <Widget>[
               LuciTaskAttemptSummary(
                 task: generateTaskForTest(
-                  status: TaskBox.statusFailed,
+                  status: TaskStatus.failed,
                   buildNumberList: [123],
                 ),
               ),
@@ -63,7 +65,7 @@ void main() {
             children: <Widget>[
               LuciTaskAttemptSummary(
                 task: generateTaskForTest(
-                  status: TaskBox.statusSucceeded,
+                  status: TaskStatus.succeeded,
                   attempts: 2,
                   buildNumberList: [123, 456],
                 ),
@@ -88,7 +90,7 @@ void main() {
             children: <Widget>[
               LuciTaskAttemptSummary(
                 task: generateTaskForTest(
-                  status: TaskBox.statusFailed,
+                  status: TaskStatus.failed,
                   buildNumberList: [123],
                   builderName: 'Linux',
                 ),
@@ -120,7 +122,7 @@ void main() {
               children: <Widget>[
                 LuciTaskAttemptSummary(
                   task: generateTaskForTest(
-                    status: TaskBox.statusSucceeded,
+                    status: TaskStatus.succeeded,
                     attempts: 2,
                     buildNumberList: [123, 456],
                     builderName: 'Linux',
@@ -154,7 +156,7 @@ void main() {
             children: <Widget>[
               LuciTaskAttemptSummary(
                 task: generateTaskForTest(
-                  status: TaskBox.statusSucceeded,
+                  status: TaskStatus.succeeded,
                   attempts: 2,
                   buildNumberList: [123],
                   builderName: 'Linux flutter_release_builder',

@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 
-import '../widgets/task_box.dart';
 import 'cocoon.dart';
 
 class _PausedCommitStatus {
@@ -153,7 +153,7 @@ class DevelopmentCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
-    Iterable<String>? include,
+    Iterable<TaskStatus>? include,
   }) async {
     return const CocoonResponse<void>.error(
       'Unable to schedule against fake data. Try building the app to use prod data.',
@@ -353,34 +353,34 @@ class DevelopmentCocoonService implements CocoonService {
     );
   }
 
-  static const List<String> _statuses = <String>[
-    TaskBox.statusNew,
-    TaskBox.statusInProgress,
-    TaskBox.statusSucceeded,
-    TaskBox.statusFailed,
-    TaskBox.statusInfraFailure,
-    TaskBox.statusSkipped,
-    TaskBox.statusCancelled,
+  static const _statuses = [
+    TaskStatus.waitingForBackfill,
+    TaskStatus.inProgress,
+    TaskStatus.succeeded,
+    TaskStatus.failed,
+    TaskStatus.infraFailure,
+    TaskStatus.skipped,
+    TaskStatus.cancelled,
   ];
 
-  static const Map<String, int> _minAttempts = <String, int>{
-    TaskBox.statusNew: 0,
-    TaskBox.statusInProgress: 1,
-    TaskBox.statusSucceeded: 1,
-    TaskBox.statusFailed: 1,
-    TaskBox.statusInfraFailure: 1,
-    TaskBox.statusSkipped: 0,
-    TaskBox.statusCancelled: 1,
+  static const _minAttempts = {
+    TaskStatus.waitingForBackfill: 0,
+    TaskStatus.inProgress: 1,
+    TaskStatus.succeeded: 1,
+    TaskStatus.failed: 1,
+    TaskStatus.infraFailure: 1,
+    TaskStatus.skipped: 0,
+    TaskStatus.cancelled: 1,
   };
 
-  static const Map<String, int> _maxAttempts = <String, int>{
-    TaskBox.statusNew: 0,
-    TaskBox.statusInProgress: 2,
-    TaskBox.statusSucceeded: 1,
-    TaskBox.statusFailed: 2,
-    TaskBox.statusInfraFailure: 2,
-    TaskBox.statusSkipped: 0,
-    TaskBox.statusCancelled: 1,
+  static const _maxAttempts = {
+    TaskStatus.waitingForBackfill: 0,
+    TaskStatus.inProgress: 2,
+    TaskStatus.succeeded: 1,
+    TaskStatus.failed: 2,
+    TaskStatus.infraFailure: 2,
+    TaskStatus.skipped: 0,
+    TaskStatus.cancelled: 1,
   };
 
   Task _createFakeTask(int commitTimestamp, int index, math.Random random) {
@@ -393,18 +393,18 @@ class DevelopmentCocoonService implements CocoonService {
     // the second a 25% chance, and the rest a 0% chance.
     final statusesProbability = <int>[
       // bigger = more probable
-      math.max(index % 2, 20 - age * 2), // TaskBox.statusNew
-      math.max(0, 10 - age * 2), // TaskBox.statusInProgress
-      math.min(10 + age * 2, 100), // TaskBox.statusSucceeded
-      math.min(1 + age ~/ 3, 30), // TaskBox.statusFailed
-      if (index % 15 == 0) // TaskBox.statusInfraFailure
+      math.max(index % 2, 20 - age * 2), // TaskStatus.waitingForBackfill
+      math.max(0, 10 - age * 2), // TaskStatus.inProgress
+      math.min(10 + age * 2, 100), // TaskStatus.succeeded
+      math.min(1 + age ~/ 3, 30), // TaskStatus.failed
+      if (index % 15 == 0) // TaskStatus.infraFailure
         5
       else if (index % 25 == 0)
         15
       else
         1,
       if (index % 20 == 0) 30,
-      1, // TaskBox.statusCancelled
+      1, // TaskStatus.cancelled
     ];
     // max is the sum of all the values in statusesProbability.
     final max = statusesProbability.fold(0, (int c, int p) => c + p);

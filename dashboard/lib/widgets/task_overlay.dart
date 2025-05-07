@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 
 import '../logic/qualified_task.dart';
@@ -203,15 +204,15 @@ class TaskOverlayContents extends StatelessWidget {
 
   /// A lookup table to define the [Icon] for this task, based on
   /// the values returned by [TaskBox.effectiveTaskStatus].
-  static const Map<String, Icon> statusIcon = <String, Icon>{
-    TaskBox.statusFailed: Icon(Icons.clear, color: Colors.red, size: 32),
-    TaskBox.statusNew: Icon(Icons.new_releases, color: Colors.blue, size: 32),
-    TaskBox.statusInProgress: Icon(
-      Icons.autorenew,
+  static const statusIcon = {
+    TaskStatus.failed: Icon(Icons.clear, color: Colors.red, size: 32),
+    TaskStatus.waitingForBackfill: Icon(
+      Icons.new_releases,
       color: Colors.blue,
       size: 32,
     ),
-    TaskBox.statusSucceeded: Icon(
+    TaskStatus.inProgress: Icon(Icons.autorenew, color: Colors.blue, size: 32),
+    TaskStatus.succeeded: Icon(
       Icons.check_circle,
       color: Colors.green,
       size: 32,
@@ -232,15 +233,15 @@ class TaskOverlayContents extends StatelessWidget {
     // If yes, explain how long it is has been waiting
     // If no, explain how long it did wait
     var wasQueued = false;
-    if (task.status == TaskBox.statusNew) {
+    if (task.status == TaskStatus.waitingForBackfill) {
       final queuedFor = now.difference(createTime);
       buffer.writeln('Waiting for backfill for ${queuedFor.inMinutes} minutes');
-    } else if (task.status == TaskBox.statusInProgress &&
+    } else if (task.status == TaskStatus.inProgress &&
         (task.buildNumberList.isEmpty ||
             task.attempts > task.buildNumberList.length)) {
       final queuedFor = now.difference(createTime);
       buffer.writeln('Queuing for ${queuedFor.inMinutes} minutes');
-    } else if (task.status != TaskBox.statusSkipped) {
+    } else if (task.status != TaskStatus.skipped) {
       wasQueued = true;
       final queuedFor = startTime.difference(createTime);
       buffer.writeln('Queued for ${queuedFor.inMinutes} minutes');
@@ -251,18 +252,20 @@ class TaskOverlayContents extends StatelessWidget {
     );
 
     switch (task.status) {
-      case TaskBox.statusInProgress when wasQueued:
+      case TaskStatus.inProgress when wasQueued:
         final ranFor = now.difference(startTime);
         buffer.write('Running for ${ranFor.inMinutes} minutes');
-      case TaskBox.statusSkipped:
+      case TaskStatus.skipped:
         buffer.write('Skipped');
-      case TaskBox.statusCancelled:
+      case TaskStatus.cancelled:
         buffer.write('Cancelled');
-      case TaskBox.statusSucceeded:
-      case TaskBox.statusFailed:
-      case TaskBox.statusInfraFailure:
+      case TaskStatus.succeeded:
+      case TaskStatus.failed:
+      case TaskStatus.infraFailure:
         final ranFor = endTime.difference(startTime);
         buffer.write('Ran for ${ranFor.inMinutes} minutes');
+      case TaskStatus.waitingForBackfill:
+      case TaskStatus.inProgress:
     }
 
     return buffer.toString();
@@ -292,7 +295,7 @@ class TaskOverlayContents extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Tooltip(
-                      message: task.status,
+                      message: task.status.value,
                       child: Padding(
                         padding: const EdgeInsets.only(
                           left: 8.0,

@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
@@ -210,7 +211,7 @@ class AppEngineCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
-    Iterable<String>? include,
+    Iterable<TaskStatus>? include,
   }) async {
     if (idToken == null || idToken.isEmpty) {
       return const CocoonResponse<bool>.error(
@@ -249,7 +250,7 @@ class AppEngineCocoonService implements CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
-    Iterable<String>? include,
+    Iterable<TaskStatus>? include,
   }) async {
     return rerunTask(
       idToken: idToken,

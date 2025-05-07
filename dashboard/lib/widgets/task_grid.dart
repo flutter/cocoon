@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -239,7 +240,7 @@ class _TaskGridState extends State<TaskGrid> {
         }
         taskLookupMap[qualifiedTask] = task;
         if (commitCount <= 25) {
-          var weightStatus = task.status;
+          var weightStatus = task.status.value;
           if (isTaskFromDartInternalBuilder(builderName: task.builderName)) {
             weightStatus = 'Release Builder';
           } else if (task.lastAttemptFailed) {
@@ -332,7 +333,7 @@ class _TaskGridState extends State<TaskGrid> {
         TaskBox.statusColor.containsKey(task.status)
             ? TaskBox.statusColor[task.status]!
             : Colors.transparent;
-    if (task.status == TaskBox.statusInProgress) {
+    if (task.status == TaskStatus.inProgress) {
       if (task.lastAttemptFailed) {
         color = TaskBox.statusColorFailedAndRerunning;
       } else if (task.currentBuildNumber == null) {
@@ -369,7 +370,7 @@ class _TaskGridState extends State<TaskGrid> {
         );
       };
     }
-    if (task.status == TaskBox.statusSkipped) {
+    if (task.status == TaskStatus.skipped) {
       return (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(4.0),

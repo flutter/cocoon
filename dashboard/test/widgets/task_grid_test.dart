@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -396,28 +397,19 @@ void main() {
       CommitStatus(
         commit: generateCommitForTest(),
         tasks: [
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: '1',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: '1'),
         ],
       ),
       CommitStatus(
         commit: generateCommitForTest(),
         tasks: [
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: '2',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: '2'),
         ],
       ),
       CommitStatus(
         commit: generateCommitForTest(),
         tasks: [
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: '3',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: '3'),
         ],
       ),
     ];
@@ -456,19 +448,13 @@ void main() {
       CommitStatus(
         commit: generateCommitForTest(),
         tasks: [
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: '1',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: '1'),
         ],
       ),
       CommitStatus(
         commit: generateCommitForTest(),
         tasks: [
-          generateTaskForTest(
-            status: TaskBox.statusSucceeded,
-            builderName: '1',
-          ),
+          generateTaskForTest(status: TaskStatus.succeeded, builderName: '1'),
         ],
       ),
     ];
@@ -503,7 +489,7 @@ void main() {
         commit: generateCommitForTest(),
         tasks: [
           generateTaskForTest(
-            status: TaskBox.statusSucceeded,
+            status: TaskStatus.succeeded,
             builderName: 'Task Name',
           ),
         ],
@@ -561,7 +547,7 @@ void main() {
                 commit: generateCommitForTest(author: 'Cast'),
                 tasks: [
                   generateTaskForTest(
-                    status: TaskBox.statusSucceeded,
+                    status: TaskStatus.succeeded,
                     attempts: 2,
                   ),
                 ],
@@ -585,7 +571,7 @@ void main() {
                 commit: generateCommitForTest(author: 'Cast'),
                 tasks: [
                   generateTaskForTest(
-                    status: TaskBox.statusSucceeded,
+                    status: TaskStatus.succeeded,
                     attempts: 1,
                   ),
                 ],
@@ -614,7 +600,7 @@ void main() {
                 commit: generateCommitForTest(author: 'Cast'),
                 tasks: [
                   generateTaskForTest(
-                    status: TaskBox.statusSucceeded,
+                    status: TaskStatus.succeeded,
                     attempts: 2,
                   ),
                 ],
@@ -636,7 +622,7 @@ void main() {
             commitStatuses: [
               CommitStatus(
                 commit: generateCommitForTest(author: 'Cast'),
-                tasks: [generateTaskForTest(status: TaskBox.statusSucceeded)],
+                tasks: [generateTaskForTest(status: TaskStatus.succeeded)],
               ),
             ],
           ),
@@ -662,7 +648,7 @@ void main() {
                   commit: generateCommitForTest(author: 'Cast'),
                   tasks: [
                     generateTaskForTest(
-                      status: TaskBox.statusSucceeded,
+                      status: TaskStatus.succeeded,
                       builderName: '1',
                       attempts: 3,
                     ),
@@ -672,7 +658,7 @@ void main() {
                   commit: generateCommitForTest(author: 'Cast'),
                   tasks: [
                     generateTaskForTest(
-                      status: TaskBox.statusSucceeded,
+                      status: TaskStatus.succeeded,
                       builderName: '2',
                       attempts: 1,
                     ),
@@ -786,18 +772,18 @@ void main() {
   });
 
   // Table Driven Approach to ensure every message does show the corresponding color
-  TaskBox.statusColor.forEach((String message, Color color) {
-    testWidgets('Is the color $color when given the message $message', (
+  TaskBox.statusColor.forEach((status, color) {
+    testWidgets('Is the color $color when given the status $status', (
       WidgetTester tester,
     ) async {
-      await expectTaskBoxColorWithMessage(tester, message, color);
+      await _expectTaskBoxColorWithStatus(tester, status, color);
     });
   });
 }
 
-Future<void> expectTaskBoxColorWithMessage(
+Future<void> _expectTaskBoxColorWithStatus(
   WidgetTester tester,
-  String message,
+  TaskStatus status,
   Color expectedColor,
 ) async {
   const double cellSize = 18;
@@ -819,7 +805,7 @@ Future<void> expectTaskBoxColorWithMessage(
                 commitStatuses: <CommitStatus>[
                   CommitStatus(
                     commit: generateCommitForTest(author: 'Mathilda'),
-                    tasks: [generateTaskForTest(status: message)],
+                    tasks: [generateTaskForTest(status: status)],
                   ),
                 ],
               ),

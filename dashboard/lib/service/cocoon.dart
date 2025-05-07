@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart';
 
 import 'appengine_cocoon.dart';
@@ -65,7 +66,7 @@ abstract class CocoonService {
     required String commitSha,
     required String repo,
     required String branch,
-    Iterable<String>? include,
+    Iterable<TaskStatus>? include,
   });
 
   /// Force update Cocoon to get the latest commits.
