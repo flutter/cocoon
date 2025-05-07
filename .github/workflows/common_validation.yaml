@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  setup:
+  common-validations:
     runs-on: ubuntu-latest
     steps:
       - uses: dart-lang/setup-dart@v1

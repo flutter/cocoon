@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  test-common-packages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

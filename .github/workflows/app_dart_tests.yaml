@@ -10,7 +10,7 @@ on:
     branches: [main]
 
 jobs:
-  setup:
+  test-app-dart:
     runs-on: ubuntu-latest
     steps:
       - uses: dart-lang/setup-dart@v1
