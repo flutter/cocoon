@@ -216,7 +216,7 @@ void main() {
     );
   });
 
-  test('ignores an invalid target in postsubmit: false', () async {
+  test('ignores an invalid target in postsubmit: true', () async {
     httpClient = MockClient((request) async {
       if (request.url.host != 'raw.githubusercontent.com') {
         fail('Unexpected host: ${request.url}');
@@ -245,6 +245,7 @@ void main() {
     await expectLater(
       ciYamlFetcher.getCiYamlByCommit(
         CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
+        postsubmit: true,
       ),
       completes,
     );
