@@ -18,6 +18,8 @@ import 'package:retry/retry.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 import '../../cocoon_service.dart';
+import '../foundation/providers.dart' show Providers;
+import '../foundation/typedefs.dart' show HttpClientProvider;
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
 
@@ -530,7 +532,8 @@ class DynamicConfigUpdater {
   DynamicConfigUpdater({
     Duration delay = const Duration(minutes: 1),
     @visibleForTesting Random? random,
-    @visibleForTesting http.Client? httpClient,
+    @visibleForTesting
+    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
     @visibleForTesting
     RetryOptions retryOptions = const RetryOptions(
       maxAttempts: 3,
@@ -538,12 +541,12 @@ class DynamicConfigUpdater {
     ),
   }) : _delay = delay,
        _random = random ?? Random(),
-       _httpClient = httpClient ?? http.Client(),
+       _httpClientProvider = httpClientProvider,
        _retryOptions = retryOptions;
 
   final Duration _delay;
   final Random _random;
-  final http.Client _httpClient;
+  final HttpClientProvider _httpClientProvider;
   final RetryOptions _retryOptions;
 
   /// Fetches and parses the `config.yaml` from HEAD `flutter/cocoon/app_dart/`.
@@ -552,7 +555,7 @@ class DynamicConfigUpdater {
       Config.cocoonSlug,
       'app_dart/config.yaml',
       ref: 'main',
-      httpClientProvider: () => _httpClient,
+      httpClientProvider: _httpClientProvider,
       retryOptions: _retryOptions,
     );
     final configYaml = loadYaml(file) as YamlMap;
