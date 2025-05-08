@@ -32,47 +32,38 @@ abstract base class RequestHandler {
   Future<void> service(
     HttpRequest request, {
     Future<void> Function(HttpStatusException)? onError,
-  }) {
-    return runZoned<Future<void>>(
-      () async {
-        final response = request.response;
-        try {
-          try {
-            Response body;
-            switch (request.method) {
-              case 'GET':
-                body = await get(Request.fromHttpRequest(request));
-                break;
-              case 'POST':
-                body = await post(Request.fromHttpRequest(request));
-                break;
-              default:
-                throw MethodNotAllowed(request.method);
-            }
-            await _respond(response, body);
-            return;
-          } on HttpStatusException {
-            rethrow;
-          } catch (e, s) {
-            log.error('Internal server error', e, s);
-            throw InternalServerError('$e\n$s');
-          }
-        } on HttpStatusException catch (error) {
-          if (onError != null) {
-            await onError(error);
-          }
-          response
-            ..statusCode = error.statusCode
-            ..write(error.message);
-          await response.flush();
-          await response.close();
-          return;
+  }) async {
+    final response = request.response;
+    try {
+      try {
+        Response body;
+        switch (request.method) {
+          case 'GET':
+            body = await get(Request.fromHttpRequest(request));
+            break;
+          case 'POST':
+            body = await post(Request.fromHttpRequest(request));
+            break;
+          default:
+            throw MethodNotAllowed(request.method);
         }
-      },
-      zoneValues: <RequestKey<dynamic>, Object>{
-        RequestKey.response: request.response,
-      },
-    );
+        await _respond(response, body);
+        return;
+      } on HttpStatusException {
+        rethrow;
+      } catch (e, s) {
+        log.error('Internal server error', e, s);
+        throw InternalServerError('$e\n$s');
+      }
+    } on HttpStatusException catch (error) {
+      if (onError != null) {
+        await onError(error);
+      }
+      await _respond(
+        response,
+        Response.json({'error': error.message}, statusCode: error.statusCode),
+      );
+    }
   }
 
   /// Responds (using [response]).
@@ -80,6 +71,7 @@ abstract base class RequestHandler {
   /// Returns a future that completes when [response] has been closed.
   Future<void> _respond(HttpResponse response, Response body) async {
     response.headers.contentType = body.contentType;
+    response.statusCode = body.statusCode;
     await response.addStream(body.body);
     await response.flush();
     await response.close();

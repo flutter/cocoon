@@ -90,7 +90,10 @@ void main() {
       handler = ThrowsHttpException();
       final response = await issueGet();
       expect(response.statusCode, HttpStatus.badRequest);
-      expect(await utf8.decoder.bind(response).join(), 'Bad request');
+      expect(
+        await utf8.decoder.bind(response).join(),
+        '{"error":"Bad request"}',
+      );
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
