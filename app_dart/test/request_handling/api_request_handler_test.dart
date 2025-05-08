@@ -72,9 +72,7 @@ void main() {
       final response = await issueRequest();
       await expectLater(
         response.collectBytes(),
-        completion(
-          decodedAsJsonMatches({'requestBody': '[]', 'requestData': '{}'}),
-        ),
+        completion(decodedAsJson({'requestBody': '[]', 'requestData': '{}'})),
       );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
@@ -86,7 +84,7 @@ void main() {
       await expectLater(
         response.collectBytes(),
         completion(
-          decodedAsJsonMatches({
+          decodedAsJson({
             'requestBody': isNotEmpty,
             'requestData': '{param1: value1}',
           }),
@@ -101,7 +99,7 @@ void main() {
       final response = await issueRequest();
       await expectLater(
         response.collectBytes(),
-        completion(decodedAsJsonMatches({'isDevelopmentEnvironment': true})),
+        completion(decodedAsJson({'isDevelopmentEnvironment': true})),
       );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));

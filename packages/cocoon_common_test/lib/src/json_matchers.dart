@@ -12,7 +12,7 @@ import 'package:matcher/matcher.dart';
 /// The following types are supported as the _actual_ object:
 /// - `String`
 /// - `List<int>`
-Matcher decodedAsJsonMatches(Object? matcher) {
+Matcher decodedAsJson(Object? matcher) {
   return _SyncJsonMatcher(wrapMatcher(matcher));
 }
 

@@ -2496,7 +2496,7 @@ void foo() {
         await expectLater(
           response.body.collectBytes(),
           completion(
-            decodedAsJsonMatches(
+            decodedAsJson(
               containsPair(
                 'error',
                 contains('$mergedSha was not found on GoB'),
@@ -2529,7 +2529,7 @@ void foo() {
         await expectLater(
           response.body.collectBytes(),
           completion(
-            decodedAsJsonMatches(
+            decodedAsJson(
               containsPair(
                 'error',
                 contains('$mergedSha was not found on GoB'),
@@ -3278,7 +3278,7 @@ void foo() {
         await expectLater(
           response.body.collectBytes(),
           completion(
-            decodedAsJsonMatches(
+            decodedAsJson(
               containsPair('error', contains('was not found on GoB')),
             ),
           ),
@@ -3308,7 +3308,7 @@ void foo() {
         await expectLater(
           response.body.collectBytes(),
           completion(
-            decodedAsJsonMatches(
+            decodedAsJson(
               containsPair('error', contains('was not found on GoB')),
             ),
           ),
@@ -3344,7 +3344,7 @@ void foo() {
         await expectLater(
           response.body.collectBytes(),
           completion(
-            decodedAsJsonMatches(
+            decodedAsJson(
               containsPair('error', contains('was not found on GoB')),
             ),
           ),

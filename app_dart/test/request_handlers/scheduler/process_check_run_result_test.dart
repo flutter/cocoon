@@ -28,7 +28,7 @@ void main() {
     expect(response.statusCode, HttpStatus.badRequest);
     await expectLater(
       response.body.collectBytes(),
-      completion(decodedAsJsonMatches({'error': 'Do better'})),
+      completion(decodedAsJson({'error': 'Do better'})),
     );
   });
 
@@ -39,7 +39,7 @@ void main() {
     expect(response.statusCode, HttpStatus.notFound);
     await expectLater(
       response.body.collectBytes(),
-      completion(decodedAsJsonMatches({'error': 'No hot dog'})),
+      completion(decodedAsJson({'error': 'No hot dog'})),
     );
   });
 
@@ -54,7 +54,7 @@ void main() {
     expect(response.statusCode, HttpStatus.internalServerError);
     await expectLater(
       response.body.collectBytes(),
-      completion(decodedAsJsonMatches({'error': 'Did a really bad thing'})),
+      completion(decodedAsJson({'error': 'Did a really bad thing'})),
     );
 
     expect(
