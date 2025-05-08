@@ -7,26 +7,55 @@ on:
     branches: [main]
 
 jobs:
-  test-common-packages:
+  # Collect tests job is to find the subfolders with pubspec.yaml files that
+  # we want to test (other than app_dart and dashboard), and pass those to
+  # the test-common-packages for strategy testing
+  collect_tests:
     runs-on: ubuntu-latest
+    outputs:
+      tests: ${{ steps.tests.outputs.tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tests
+        run: |
+          echo "tests=$(find packages dev cipd_packages auto_submit licenses -type f -name 'pubspec.yaml' -print0 | xargs -0 dirname | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')" >> ${GITHUB_OUTPUT}
+
+  test-common-packages:
+    needs: collect_tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: ${{ fromJson(needs.collect_tests.outputs.tests) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - uses: dart-lang/setup-dart@v1
 
+      - name: pub get
+        run: dart pub get
+
+      - name: format check
+        run: dart format --set-exit-if-changed .
+
+      - name: dart analyze
+        run: dart analyze --fatal-infos
+
       - name: test package
         run: |
-          mapfile -d $'\0' -t pubs < <(find packages dev cipd_packages auto_submit licenses -type f -name 'pubspec.yaml' -print0)
-          echo "found: ${pubs[@]}"
-          for pubspec in "${pubs[@]}"; do
-            dir=$(dirname "$pubspec")
-            echo "cd dir: $dir"
-            pushd $dir
-            dart pub get
-            dart format --set-exit-if-changed .
-            dart analyze --fatal-infos
-            [ -d 'test' ] && dart test --test-randomize-ordering-seed=random --reporter expanded
-            [ -d 'integration_test' ] && dart test --test-randomize-ordering-seed=random --reporter expanded integration_test
-            popd
-          done
+          if [ -d 'test' ]; then
+            dart test --test-randomize-ordering-seed=random --reporter expanded
+          else
+            echo "no test to run (OK)"
+          fi
+
+      - name: integration_test
+        run: |
+          if [ -d 'integration_test' ]; then
+            dart test --test-randomize-ordering-seed=random --reporter expanded integration_test
+          else
+            echo "no integration_test to run (OK)"
+          fi
