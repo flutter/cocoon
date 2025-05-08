@@ -27,25 +27,6 @@ platform_properties:
       device_type: "none"
 
 targets:
-  - name: Linux Cocoon
-    recipe: cocoon/cocoon
-    properties:
-      add_recipes_cq: "true"
-    runIf:
-      - .ci.yaml
-      - analyze/**
-      - app_dart/**
-      - auto_submit/**
-      - cipd_packages/**
-      - cloud_build/**
-      - dashboard/**
-      - dev/**
-      - licenses/**
-      - packages/**
-      - test_utilities/**
-      - tooling/**
-      - CI_YAML.md
-
   - name: Linux device_doctor
     recipe: cocoon/cipd
     properties:
