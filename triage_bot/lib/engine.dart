@@ -815,7 +815,8 @@ class Engine {
   }
 
   Future<void> _updateDiscordFromWebhook(String event, dynamic payload) async {
-    if (GitHubSettings.knownBots.contains(payload.sender.login.toString())) {
+    if (GitHubSettings.knownBots.contains(payload.sender.login.toString())
+    || payload.repository.private.toBoolean()) {
       return;
     }
     switch (event) {
