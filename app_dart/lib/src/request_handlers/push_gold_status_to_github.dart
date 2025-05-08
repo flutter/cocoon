@@ -352,7 +352,6 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
       throw BadRequestException(
         'Formatting error detected requesting '
         'tryjob status for pr #${pr.number} from Flutter Gold.\n'
-        'response: $response\n'
         'error: $e',
       );
     } catch (e, s) {

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/common/firestore_extensions.dart';
@@ -61,9 +60,7 @@ void main() {
       queryParameters: {'sha': 'abc123'},
     );
 
-    await expectLater(tester.get(handler), completes);
-
-    expect(tester.response.statusCode, HttpStatus.notFound);
+    await expectLater(tester.get(handler), throwsA(isA<NotFoundException>()));
   });
 
   test('returns "complete"', () async {
