@@ -88,10 +88,6 @@ abstract base class RequestHandler {
   /// Gets the value associated with the specified [key] in the request
   /// context.
   ///
-  /// Concrete subclasses should not call this directly. Instead, they should
-  /// access the getters that are tied to specific keys, such as [request]
-  /// and [response].
-  ///
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
   @protected
@@ -104,13 +100,6 @@ abstract base class RequestHandler {
     }
     return value;
   }
-
-  /// Gets the current [HttpResponse].
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  HttpResponse? get response => getValue<HttpResponse>(RequestKey.response);
 
   /// Services an HTTP GET.
   ///

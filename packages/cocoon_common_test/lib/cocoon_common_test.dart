@@ -3,4 +3,5 @@
 // found in the LICENSE file.
 
 export 'src/buffered_logger_matchers.dart';
+export 'src/json_matchers.dart';
 export 'src/severity_matchers.dart';

@@ -16,9 +16,6 @@ class RequestHandlerTester {
 
   FakeHttpRequest request;
 
-  /// This tester's [FakeHttpResponse], derived from [request].
-  FakeHttpResponse get response => request.response;
-
   /// Executes [RequestHandler.get] on the specified [handler].
   Future<Response> get(RequestHandler handler) {
     return run(() {
@@ -37,11 +34,6 @@ class RequestHandlerTester {
 
   @protected
   Future<Response> run(Future<Response> Function() callback) {
-    return runZoned(
-      () {
-        return callback();
-      },
-      zoneValues: <RequestKey<dynamic>, Object?>{RequestKey.response: response},
-    );
+    return callback();
   }
 }

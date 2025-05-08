@@ -59,11 +59,6 @@ void main() {
       return request.close();
     }
 
-    Future<Map<String, Object?>> decodeBody(HttpClientResponse response) async {
-      final body = await response.collectBytes();
-      return body.parseAsJsonObject();
-    }
-
     test('failed authentication yields HTTP unauthorized', () async {
       handler = Unauth();
       final response = await issueRequest();
@@ -75,9 +70,12 @@ void main() {
     test('empty request body yields empty requestData', () async {
       handler = ReadParams();
       final response = await issueRequest();
-      final jsonBody = await decodeBody(response);
-      expect(jsonBody['requestBody'], '[]');
-      expect(jsonBody['requestData'], '{}');
+      await expectLater(
+        response.collectBytes(),
+        completion(
+          decodedAsJsonMatches({'requestBody': '[]', 'requestData': '{}'}),
+        ),
+      );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });
@@ -85,9 +83,15 @@ void main() {
     test('JSON request body yields valid requestData', () async {
       handler = ReadParams();
       final response = await issueRequest(body: '{"param1":"value1"}');
-      final jsonBody = await decodeBody(response);
-      expect(jsonBody['requestBody'], isNotEmpty);
-      expect(jsonBody['requestData'], '{param1: value1}');
+      await expectLater(
+        response.collectBytes(),
+        completion(
+          decodedAsJsonMatches({
+            'requestBody': isNotEmpty,
+            'requestData': '{param1: value1}',
+          }),
+        ),
+      );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });
@@ -95,8 +99,10 @@ void main() {
     test('can access authContext', () async {
       handler = AccessAuth();
       final response = await issueRequest();
-      final jsonBody = await decodeBody(response);
-      expect(jsonBody['isDevelopmentEnvironment'], isTrue);
+      await expectLater(
+        response.collectBytes(),
+        completion(decodedAsJsonMatches({'isDevelopmentEnvironment': true})),
+      );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });

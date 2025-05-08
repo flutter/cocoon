@@ -108,12 +108,12 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
           webhook.payload,
           messagePublishedOn: DateTime.parse(message.publishTime!),
         );
-        result.writeResponse(response!);
+        return result.toResponse();
       case 'check_run':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
         final result = await scheduler.processCheckRun(checkRunEvent);
-        result.writeResponse(response!);
+        return result.toResponse();
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final branch =
@@ -194,7 +194,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     switch (eventAction) {
       case 'closed':
         final result = await _processPullRequestClosed(pullRequestEvent);
-        result.writeResponse(response!);
+        return result.toResponse();
       case 'edited':
         await _checkForTests(pullRequestEvent);
         // In the event of the base ref changing we want to start new checks.
