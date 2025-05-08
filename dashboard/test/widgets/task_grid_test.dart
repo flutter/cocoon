@@ -70,16 +70,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: Material(
-              child: TaskGridContainer(
-                // TODO(matanlurey): Either find a Linux machine, or remove.
-                // To avoid making a golden-file breaking change as part of
-                // https://github.com/flutter/cocoon/pull/4141
-                //
-                // See https://github.com/flutter/flutter/issues/160931.
-                filter: TaskGridFilter()..showBringup = true,
-              ),
-            ),
+            child: const Material(child: TaskGridContainer()),
           ),
         ),
       ),
@@ -146,16 +137,7 @@ void main() {
           theme: ThemeData(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: Material(
-              child: TaskGridContainer(
-                // TODO(matanlurey): Either find a Linux machine, or remove.
-                // To avoid making a golden-file breaking change as part of
-                // https://github.com/flutter/cocoon/pull/4141
-                //
-                // See https://github.com/flutter/flutter/issues/160931.
-                filter: TaskGridFilter()..showBringup = true,
-              ),
-            ),
+            child: const Material(child: TaskGridContainer()),
           ),
         ),
       ),
@@ -245,16 +227,7 @@ void main() {
           theme: ThemeData.dark(useMaterial3: false),
           home: ValueProvider<BuildState>(
             value: buildState,
-            child: Material(
-              child: TaskGridContainer(
-                // TODO(matanlurey): Either find a Linux machine, or remove.
-                // To avoid making a golden-file breaking change as part of
-                // https://github.com/flutter/cocoon/pull/4141
-                //
-                // See https://github.com/flutter/flutter/issues/160931.
-                filter: TaskGridFilter()..showBringup = true,
-              ),
-            ),
+            child: const Material(child: TaskGridContainer()),
           ),
         ),
       ),

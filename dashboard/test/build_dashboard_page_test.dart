@@ -578,14 +578,7 @@ void main() {
           value: buildState,
           child: ValueProvider<FirebaseAuthService>(
             value: buildState.authService,
-            child: const BuildDashboardPage(
-              // TODO(matanlurey): Either find a Linux machine, or remove.
-              // To avoid making a golden-file breaking change as part of
-              // https://github.com/flutter/cocoon/pull/4141
-              //
-              // See https://github.com/flutter/flutter/issues/160931.
-              queryParameters: {'showBringup': 'true'},
-            ),
+            child: const BuildDashboardPage(),
           ),
         ),
       ),
@@ -623,14 +616,7 @@ void main() {
             value: buildState,
             child: ValueProvider<FirebaseAuthService>(
               value: buildState.authService,
-              child: const BuildDashboardPage(
-                // TODO(matanlurey): Either find a Linux machine, or remove.
-                // To avoid making a golden-file breaking change as part of
-                // https://github.com/flutter/cocoon/pull/4141
-                //
-                // See https://github.com/flutter/flutter/issues/160931.
-                queryParameters: {'showBringup': 'true'},
-              ),
+              child: const BuildDashboardPage(),
             ),
           ),
         ),
