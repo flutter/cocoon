@@ -7,7 +7,8 @@ import 'package:github/src/common/model/repos.dart';
 
 /// A fake implementation of [GetFilesChanged] that always returned [cannedFiles].
 final class FakeGetFilesChanged implements GetFilesChanged {
-  FakeGetFilesChanged({this.cannedFiles});
+  FakeGetFilesChanged({required this.cannedFiles});
+  FakeGetFilesChanged.inconclusive() : cannedFiles = null;
 
   /// Files to return on [get].
   ///

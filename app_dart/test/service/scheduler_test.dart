@@ -176,7 +176,7 @@ void main() {
       });
 
       cache = CacheService(inMemory: true);
-      getFilesChanged = FakeGetFilesChanged();
+      getFilesChanged = FakeGetFilesChanged.inconclusive();
       firestore = FakeFirestoreService();
 
       config = FakeConfig(
@@ -3259,9 +3259,6 @@ targets:
     });
 
     group('framework-only PR optimization', () {
-      // TODO(matanlurey): Inject this.
-      const allowListedUser = 'matanlurey';
-
       late MockGithubService mockGithubService;
       late _CapturingFakeLuciBuildService fakeLuciBuildService;
 
@@ -3347,7 +3344,7 @@ targets:
 
       test('skips engine builds', () async {
         getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
-        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
+        final pullRequest = generatePullRequest();
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
@@ -3362,15 +3359,25 @@ targets:
           ['Linux A', 'Linux analyze'],
           reason: 'Should skip Linux engine_build',
         );
-        // TODO(matanlurey): Refactoring should allow us to verify the first stage
-        // (the engine build) phase was written to Firestore, but as an emtpy tasks
-        // list.
+
+        expect(
+          firestore,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasStage(CiStage.fusionEngineBuild)
+                .hasCheckRuns(isEmpty),
+            isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+              'Linux A': TaskConclusion.scheduled,
+              'Linux analyze': TaskConclusion.scheduled,
+            }),
+          ]),
+        );
       });
 
       // Regression test for https://github.com/flutter/flutter/issues/167124.
       test('skips all tests except "Linux analyze"', () async {
         getFilesChanged.cannedFiles = ['CHANGELOG.md'];
-        final pullRequest = generatePullRequest(authorLogin: allowListedUser);
+        final pullRequest = generatePullRequest();
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
