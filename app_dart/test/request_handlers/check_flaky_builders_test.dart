@@ -221,10 +221,7 @@ void main() {
             semanticsIntegrationTestRecordsAllPassed.length;
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -399,10 +396,7 @@ void main() {
             semanticsIntegrationTestRecordsAllPassed.length;
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -525,10 +519,7 @@ void main() {
           semanticsIntegrationTestRecordsAllPassed.length;
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -575,10 +566,7 @@ void main() {
           semanticsIntegrationTestRecordsAllPassed.length;
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -639,10 +627,7 @@ void main() {
             semanticsIntegrationTestRecordsAllPassed.length + 1;
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -682,10 +667,7 @@ void main() {
             semanticsIntegrationTestRecordsAllPassed.length + 1;
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -739,10 +721,7 @@ void main() {
           semanticsIntegrationTestRecordsFailed.length;
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -819,10 +798,7 @@ void main() {
           semanticsIntegrationTestRecordsAllPassed.length;
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -872,10 +848,7 @@ void main() {
           semanticsIntegrationTestRecordsAllPassed.length + 1;
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;

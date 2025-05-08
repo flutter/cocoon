@@ -152,7 +152,7 @@ void main() {
       ),
     );
 
-    expect(await tester.post(handler), Body.empty);
+    expect(await tester.post(handler), Response.emptyOk);
 
     expect(
       firestore,
@@ -193,7 +193,7 @@ void main() {
       ),
     );
 
-    expect(await tester.post(handler), Body.empty);
+    expect(await tester.post(handler), Response.emptyOk);
 
     expect(
       firestore,
@@ -235,7 +235,7 @@ void main() {
       userData: userData,
     );
 
-    expect(await tester.post(handler), Body.empty);
+    expect(await tester.post(handler), Response.emptyOk);
 
     expect(
       firestore,

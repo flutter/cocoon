@@ -33,11 +33,11 @@ final class PushBuildStatusToGithub extends ApiRequestHandler {
   static const _fullNameRepoParam = 'repo';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push GitHub status from the local dev server.
       log.debug('GitHub statuses are not pushed from local dev environments');
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     final repository =
@@ -53,7 +53,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler {
     await _updatePRs(slug, status.githubStatus, _firestore);
     log.debug('All the PRs for $repository have been updated with $status');
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   Future<void> _updatePRs(

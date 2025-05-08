@@ -4,14 +4,15 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_server/logging.dart';
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:meta/meta.dart';
 
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
-import 'body.dart';
+import 'response.dart';
 
 /// A [RequestHandler] for serving cached responses.
 ///
@@ -45,7 +46,7 @@ final class CacheRequestHandler extends RequestHandler {
   /// response from the cache before getting it to set the cached response
   /// to the latest information.
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final responseKey = '${request.uri.path}:${request.uri.query}';
 
     if (request.uri.queryParameters[flushCacheQueryParam] == 'true') {
@@ -56,7 +57,10 @@ final class CacheRequestHandler extends RequestHandler {
       responseSubcacheName,
       responseKey,
       createFn: () async {
-        // TODO(matanlurey): Evaluate if 5XX errors should not be cached.
+        // This also caches 5XX errors, which, while unexpected, makes sense in
+        // the context of our server, where we have public APIs that can make
+        // expensive operations. If one was to fail, we'd prefer not making that
+        // expensive operation over and over in a short time window.
         final response = await _createCachedResponse(request, _delegate);
         return response.toBytes();
       },
@@ -68,11 +72,11 @@ final class CacheRequestHandler extends RequestHandler {
       debugName: responseKey,
     );
 
-    response!
-      ..statusCode = cachedResponse.statusCode
-      ..reasonPhrase = cachedResponse.reason;
-
-    return Body.forStream(Stream<Uint8List>.value(cachedResponse.body));
+    return Response.stream(
+      Stream<Uint8List>.value(cachedResponse.body),
+      statusCode: cachedResponse.statusCode,
+      contentType: cachedResponse.contentType,
+    );
   }
 
   /// Invokes [delegate.get], and returns the result as a [_CachedHttpResponse].
@@ -80,14 +84,11 @@ final class CacheRequestHandler extends RequestHandler {
     Request request,
     RequestHandler delegate,
   ) async {
-    final body = await delegate.get(request);
-    final response = this.response!;
-    final builder = BytesBuilder();
-    await body.serialize().forEach(builder.add);
+    final response = await delegate.get(request);
     return _CachedHttpResponse._(
       response.statusCode,
-      response.reasonPhrase,
-      builder.toBytes(),
+      await response.body.collectBytes(),
+      response.contentType,
     );
   }
 }
@@ -108,11 +109,9 @@ final class _CachedHttpResponse {
   }) {
     if (bytes.length < _magic4Uint8List.length ||
         bytes.buffer.asByteData().getUint32(0, Endian.big) != _magic4Bytes) {
-      log.warn(
-        '[CachedHttpResponse] Legacy cache for $debugName, falling back to '
-        'status=200 reason=""',
+      throw StateError(
+        'Unexpected cached HTTP response: "${base64.encode(bytes)}"',
       );
-      return _CachedHttpResponse._(200, '', bytes.buffer.asUint8List());
     }
 
     // The default implementation of .decodeMessage rejects trailing padding
@@ -122,26 +121,28 @@ final class _CachedHttpResponse {
       Uint8List.sublistView(bytes, _magic4Uint8List.length),
     );
     final decoded = json.decode(buffer) as Map<String, Object?>;
+    final contentType = decoded['contentType'] as String?;
     return _CachedHttpResponse._(
       decoded['statusCode'] as int,
-      decoded['reason'] as String,
       base64.decode(decoded['body'] as String),
+      contentType != null ? ContentType.parse(contentType) : null,
     );
   }
 
-  _CachedHttpResponse._(this.statusCode, this.reason, this.body);
+  _CachedHttpResponse._(this.statusCode, this.body, this.contentType);
 
   final int statusCode;
-  final String reason;
   final Uint8List body;
+  final ContentType? contentType;
 
   /// Returns a binary encoding of the HTTP response.
   Uint8List toBytes() {
     final encoded = utf8.encode(
       json.encode({
         'statusCode': statusCode,
-        'reason': reason,
         'body': base64.encode(body),
+        if (contentType case final contentType?)
+          'contentType': contentType.value,
       }),
     );
 

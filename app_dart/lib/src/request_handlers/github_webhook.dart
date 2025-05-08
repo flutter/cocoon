@@ -12,10 +12,10 @@ import 'package:cocoon_server/logging.dart';
 import 'package:crypto/crypto.dart';
 
 import '../model/proto/protos.dart' as pb;
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 
 /// Processes GitHub webhooks and publishes valid events to PubSub.
 ///
@@ -41,7 +41,7 @@ final class GithubWebhook extends RequestHandler {
   final Future<String> _secret;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     final event = request.header('X-GitHub-Event');
 
     if (event == null || request.header('X-Hub-Signature') == null) {
@@ -60,7 +60,7 @@ final class GithubWebhook extends RequestHandler {
     log.debug('$message');
     await _pubsub.publish(_topic, message.writeToJsonMap());
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   /// Ensures signature provided for the given payload matches what is expected.

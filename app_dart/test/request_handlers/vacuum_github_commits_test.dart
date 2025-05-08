@@ -102,7 +102,7 @@ void main() {
     final body = await tester.get(handler);
 
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
-    expect(await body.serialize().toList(), isEmpty);
+    expect(await body.body.toList(), isEmpty);
   });
 
   test('does not fail on empty commit list', () async {

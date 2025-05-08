@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/branch_service.dart';
 import '../service/config.dart';
 
@@ -38,8 +38,8 @@ final class GetReleaseBranches extends RequestHandler {
   final BranchService _branchService;
 
   @override
-  Future<Body> get(Request request) async {
-    return Body.forJson(
+  Future<Response> get(Request request) async {
+    return Response.json(
       await _branchService.getReleaseBranches(slug: Config.flutterSlug),
     );
   }

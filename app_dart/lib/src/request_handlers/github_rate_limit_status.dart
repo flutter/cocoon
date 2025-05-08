@@ -8,8 +8,8 @@ import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../foundation/utils.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/big_query.dart';
 
 @immutable
@@ -33,7 +33,7 @@ final class GithubRateLimitStatus extends RequestHandler {
   final BigQueryService _bigQuery;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final githubService = await config.createDefaultGitHubService();
     final quotaUsage = (await githubService.getRateLimit()).toJson();
     quotaUsage['timestamp'] = DateTime.now().toIso8601String();
@@ -52,6 +52,6 @@ final class GithubRateLimitStatus extends RequestHandler {
     /// Insert quota usage to BigQuery
     const githubQuotaTable = 'GithubQuotaUsage';
     await insertBigQuery(githubQuotaTable, quotaUsage, _bigQuery.tabledata);
-    return Body.forJson(quotaUsage);
+    return Response.json(quotaUsage);
   }
 }

@@ -39,8 +39,8 @@ void main() {
       fs.file('build/web/$dartMapFileName').writeAsStringSync('[{}]');
     });
 
-    Future<String> decodeHandlerBody(Body body) {
-      return utf8.decoder.bind(body.serialize() as Stream<List<int>>).first;
+    Future<String> decodeHandlerBody(Response body) {
+      return utf8.decoder.bind(body.body as Stream<List<int>>).first;
     }
 
     test('returns 404 response when file does not exist', () async {

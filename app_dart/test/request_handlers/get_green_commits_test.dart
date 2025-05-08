@@ -60,7 +60,7 @@ void main() {
   Future<List<T?>?> decodeHandlerBody<T>() async {
     final body = await tester.get(handler);
     return (await utf8.decoder
-                .bind(body.serialize() as Stream<List<int>>)
+                .bind(body.body as Stream<List<int>>)
                 .transform(json.decoder)
                 .single
             as List<dynamic>)

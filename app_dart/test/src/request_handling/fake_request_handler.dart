@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/request_handling/body.dart';
+import 'dart:io';
+
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 
 // ignore: must_be_immutable
 final class FakeRequestHandler extends RequestHandler {
@@ -11,24 +13,24 @@ final class FakeRequestHandler extends RequestHandler {
     required this.body,
     required super.config,
     this.statusCode,
-    this.reasonPhrase,
+    this.contentType,
   });
 
-  final Body body;
+  final Response body;
 
   int callCount = 0;
   int? statusCode;
-  String? reasonPhrase;
+  ContentType? contentType;
 
   @override
-  Future<Body> get(_) async {
+  Future<Response> get(_) async {
     callCount++;
     _updateResponseMetadata();
     return body;
   }
 
   @override
-  Future<Body> post(_) async {
+  Future<Response> post(_) async {
     callCount++;
     _updateResponseMetadata();
     return body;
@@ -38,8 +40,8 @@ final class FakeRequestHandler extends RequestHandler {
     if (statusCode case final statusCode?) {
       response!.statusCode = statusCode;
     }
-    if (reasonPhrase case final reasonPhrase?) {
-      response!.reasonPhrase = reasonPhrase;
+    if (contentType case final contentType?) {
+      response!.headers.contentType = contentType;
     }
   }
 }

@@ -8,7 +8,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:jose_plus/jose.dart';
 import 'package:test/test.dart';
@@ -128,14 +128,14 @@ void main() {
 
   group('service', () {
     late FirebaseJwtValidator validator;
-    late List<Response> pemKeyResponse;
+    late List<http.Response> pemKeyResponse;
     late CacheService cache;
     late DateTime now;
 
     setUp(() {
       cache = CacheService(inMemory: true);
       now = DateTime(2025, 04, 16, 12, 00);
-      pemKeyResponse = [Response(pemKeysString, 200)];
+      pemKeyResponse = [http.Response(pemKeysString, 200)];
 
       validator = FirebaseJwtValidator(
         cache: cache,
@@ -146,13 +146,13 @@ void main() {
               return pemKeyResponse.removeAt(0);
             }
           }
-          return Response('', 404);
+          return http.Response('', 404);
         }),
       );
     });
 
     test('caches calls for PEM keys', () async {
-      pemKeyResponse.add(Response(pemKeysString, 200));
+      pemKeyResponse.add(http.Response(pemKeysString, 200));
       await validator.maybeRefreshKeyStore();
       await validator.maybeRefreshKeyStore();
       expect(pemKeyResponse.length, 1, reason: 'keys fetched once');
@@ -198,7 +198,7 @@ void main() {
     });
 
     test('refreshes keystore', () async {
-      pemKeyResponse.add(Response(pemKeysSingleString, 200));
+      pemKeyResponse.add(http.Response(pemKeysSingleString, 200));
       final header = JoseHeader.fromBase64EncodedString(
         'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg1NzA4MWNhOWNiYjM3YzIzNDk4ZGQzOTQzYmYzNzFhMDU4ODNkMjgiLCJ0eXAiOiJKV1QifQ',
       );

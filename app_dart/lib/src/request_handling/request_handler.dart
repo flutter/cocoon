@@ -38,7 +38,7 @@ abstract base class RequestHandler {
         final response = request.response;
         try {
           try {
-            Body body;
+            Response body;
             switch (request.method) {
               case 'GET':
                 body = await get(Request.fromHttpRequest(request));
@@ -78,9 +78,9 @@ abstract base class RequestHandler {
   /// Responds (using [response]).
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond(HttpResponse response, Body body) async {
+  Future<void> _respond(HttpResponse response, Response body) async {
     response.headers.contentType = body.contentType;
-    await response.addStream(body.serialize());
+    await response.addStream(body.body);
     await response.flush();
     await response.close();
   }
@@ -117,7 +117,7 @@ abstract base class RequestHandler {
   /// Subclasses should override this method if they support GET requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     throw const MethodNotAllowed('GET');
   }
 
@@ -126,7 +126,7 @@ abstract base class RequestHandler {
   /// Subclasses should override this method if they support POST requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     throw const MethodNotAllowed('POST');
   }
 }

@@ -31,7 +31,7 @@ final class GetStatus extends RequestHandler {
   static const String kRepoParam = 'repo';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final lastCommitSha = request.uri.queryParameters[kLastCommitShaParam];
 
     final repoName =
@@ -55,7 +55,7 @@ final class GetStatus extends RequestHandler {
       slug: slug,
     );
 
-    return Body.forJson({
+    return Response.json({
       'Commits': [
         ...commits.map((status) {
           return rpc_model.CommitStatus(

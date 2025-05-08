@@ -87,7 +87,7 @@ void main() {
       'task': fsTask.taskName,
     };
 
-    expect(await tester.post(handler), Body.empty);
+    expect(await tester.post(handler), Response.emptyOk);
 
     expect(
       firestore,
@@ -121,7 +121,7 @@ void main() {
       'task': fsTask.taskName,
     };
 
-    expect(await tester.post(handler), Body.empty);
+    expect(await tester.post(handler), Response.emptyOk);
     verify(
       mockLuciBuildService.rerunBuilder(
         commit: anyNamed('commit'),

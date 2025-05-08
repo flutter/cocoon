@@ -11,7 +11,7 @@ import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -150,15 +150,12 @@ void main() {
           captureAny,
           body: captureAnyNamed('body'),
         ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response('[]', 200));
+      ).thenAnswer((_) async {
+        return http.Response('[]', 200);
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -254,15 +251,12 @@ void main() {
             captureAny,
             body: captureAnyNamed('body'),
           ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<Response>.value(Response('[]', 200));
+        ).thenAnswer((_) async {
+          return http.Response('[]', 200);
         });
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -361,15 +355,12 @@ void main() {
             captureAny,
             body: captureAnyNamed('body'),
           ),
-        ).thenAnswer((Invocation invocation) {
-          return Future<Response>.value(Response('[]', 200));
+        ).thenAnswer((_) async {
+          return http.Response('[]', 200);
         });
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -457,16 +448,13 @@ void main() {
           captureAny,
           body: captureAnyNamed('body'),
         ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response('[]', 200));
+      ).thenAnswer((_) async {
+        return http.Response('[]', 200);
       });
 
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -538,16 +526,13 @@ void main() {
           captureAny,
           body: captureAnyNamed('body'),
         ),
-      ).thenAnswer((Invocation invocation) {
-        return Future<Response>.value(Response('[]', 200));
+      ).thenAnswer((_) async {
+        return http.Response('[]', 200);
       });
 
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -636,10 +621,7 @@ void main() {
 
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;

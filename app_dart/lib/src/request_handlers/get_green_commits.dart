@@ -8,8 +8,8 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/build_status_provider/commit_tasks_status.dart';
 import '../service/build_status_service.dart';
 import '../service/config.dart';
@@ -45,7 +45,7 @@ final class GetGreenCommits extends RequestHandler {
   static const kRepoParam = 'repo';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final repoName =
         request.uri.queryParameters[kRepoParam] ?? Config.flutterSlug.name;
     final slug = RepositorySlug('flutter', repoName);
@@ -58,7 +58,7 @@ final class GetGreenCommits extends RequestHandler {
       branch: branch,
       slug: slug,
     );
-    return Body.forJson([
+    return Response.json([
       for (final commit in allCommits.where(_isGreenCommit)) commit.commit.sha,
     ]);
   }

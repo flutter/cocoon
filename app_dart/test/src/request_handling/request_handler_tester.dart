@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_http.dart';
@@ -20,7 +20,7 @@ class RequestHandlerTester {
   FakeHttpResponse get response => request.response;
 
   /// Executes [RequestHandler.get] on the specified [handler].
-  Future<Body> get(RequestHandler handler) {
+  Future<Response> get(RequestHandler handler) {
     return run(() {
       // ignore: invalid_use_of_protected_member
       return handler.get(Request.fromHttpRequest(request));
@@ -28,7 +28,7 @@ class RequestHandlerTester {
   }
 
   /// Executes [RequestHandler.post] on the specified [handler].
-  Future<Body> post(RequestHandler handler) {
+  Future<Response> post(RequestHandler handler) {
     return run(() {
       // ignore: invalid_use_of_protected_member
       return handler.post(Request.fromHttpRequest(request));
@@ -36,7 +36,7 @@ class RequestHandlerTester {
   }
 
   @protected
-  Future<Body> run(Future<Body> Function() callback) {
+  Future<Response> run(Future<Response> Function() callback) {
     return runZoned(
       () {
         return callback();

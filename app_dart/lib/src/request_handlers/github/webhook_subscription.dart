@@ -90,10 +90,10 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     if (message.data == null || message.data!.isEmpty) {
       log.warn('GitHub webhook message was empty. No-oping');
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     final webhook = pb.GithubWebhookMessage.fromJson(message.data!);
@@ -158,7 +158,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         }
     }
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   /// Handles a GitHub webhook with the event type "pull_request".
@@ -170,7 +170,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   /// retried with exponential backoff within that time period. The GoB mirror
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
-  Future<Body> _handlePullRequest(String rawRequest) async {
+  Future<Response> _handlePullRequest(String rawRequest) async {
     final pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
       throw const BadRequestException('Expected pull request event.');
@@ -236,7 +236,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       case 'unlocked':
         break;
     }
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   Future<void> _processLabels(PullRequest pullRequest) async {

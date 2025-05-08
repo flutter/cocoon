@@ -8,8 +8,8 @@ import 'dart:io';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:gcloud/service_scope.dart' as ss;
@@ -151,7 +151,7 @@ final class UnauthTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get(_) async => throw StateError('Unreachable');
+  Future<Response> get(_) async => throw StateError('Unreachable');
 }
 
 /// Test stub of [SubscriptionHandler] to validate authenticated requests.
@@ -165,7 +165,7 @@ final class AuthTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get(_) async => Body.empty;
+  Future<Response> get(_) async => Response.emptyOk;
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
@@ -179,7 +179,8 @@ final class ErrorTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get(_) async => throw const InternalServerError('Test error!');
+  Future<Response> get(_) async =>
+      throw const InternalServerError('Test error!');
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
@@ -193,7 +194,7 @@ final class ErrorCodeTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get(_) async {
+  Future<Response> get(_) async {
     throw const ServiceUnavailable('Intentional 404');
   }
 }
@@ -209,5 +210,5 @@ final class ReadMessageTest extends SubscriptionHandler {
       );
 
   @override
-  Future<Body> get(_) async => Body.forString(message.data!);
+  Future<Response> get(_) async => Response.string(message.data!);
 }
