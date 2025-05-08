@@ -59,8 +59,7 @@ const Set<String> knownCommentCodeExtensions = <String>{
 // TODO(chillers): There's potential now to split this into seprate subscriptions
 // for various activities (such as infra vs releases). This would mitigate
 // breakages across Cocoon.
-@immutable
-class GithubWebhookSubscription extends SubscriptionHandler {
+final class GithubWebhookSubscription extends SubscriptionHandler {
   static const _estimatedGitOnBorgMaximumSyncDuration = Duration(minutes: 15);
 
   /// Creates a subscription for processing GitHub webhooks.

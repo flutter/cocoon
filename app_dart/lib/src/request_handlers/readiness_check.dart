@@ -3,12 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'package:meta/meta.dart';
+
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
-@immutable
-class ReadinessCheck extends RequestHandler {
+final class ReadinessCheck extends RequestHandler {
   const ReadinessCheck({required super.config});
 
   @override

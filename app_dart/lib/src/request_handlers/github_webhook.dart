@@ -22,21 +22,23 @@ import '../request_handling/request_handler.dart';
 /// Requests are only published as a [GithubWebhookMessage] iff they contain:
 ///   1. Event type from the header `X-GitHub-Event`
 ///   2. Event payload that was HMAC authenticated
-class GithubWebhook extends RequestHandler {
+final class GithubWebhook extends RequestHandler {
   GithubWebhook({
     required super.config,
-    required this.pubsub,
-    required this.secret,
-    required this.topic,
-  });
+    required PubSub pubsub,
+    required Future<String> secret,
+    required String topic,
+  }) : _secret = secret,
+       _topic = topic,
+       _pubsub = pubsub;
 
-  final PubSub pubsub;
+  final PubSub _pubsub;
 
   /// PubSub topic to publish authenticated requests to.
-  final String topic;
+  final String _topic;
 
   /// Future that resolves to the GitHub apps webhook secret.
-  final Future<String> secret;
+  final Future<String> _secret;
 
   @override
   Future<Body> post(Request request) async {
@@ -56,7 +58,7 @@ class GithubWebhook extends RequestHandler {
           ..event = event
           ..payload = requestString;
     log.debug('$message');
-    await pubsub.publish(topic, message.writeToJsonMap());
+    await _pubsub.publish(_topic, message.writeToJsonMap());
 
     return Body.empty;
   }
@@ -69,7 +71,7 @@ class GithubWebhook extends RequestHandler {
     String? signature,
     List<int> requestBody,
   ) async {
-    final rawKey = await secret;
+    final rawKey = await _secret;
     final List<int> key = utf8.encode(rawKey);
     final hmac = Hmac(sha1, key);
     final digest = hmac.convert(requestBody);

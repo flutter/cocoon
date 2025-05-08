@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
-import 'package:meta/meta.dart';
 
 import '../../ci_yaml.dart';
 import '../model/firestore/commit.dart' as fs;
@@ -28,7 +27,6 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 /// https://console.cloud.google.com/cloudpubsub/subscription/detail/build-bucket-postsubmit-sub?project=flutter-dashboard
 ///
 /// This endpoint is responsible for updating Firestore with the result of builds from LUCI.
-@immutable
 final class PostsubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PostsubmitLuciSubscription({

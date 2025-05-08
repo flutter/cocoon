@@ -13,19 +13,25 @@ import '../request_handling/exceptions.dart';
 
 /// Runs all the applicable tasks for a given PR and commit hash. This will be
 /// used to unblock rollers when creating a new commit is not possible.
-@immutable
-class ResetTryTask extends ApiRequestHandler {
+final class ResetTryTask extends ApiRequestHandler {
   const ResetTryTask({
     required super.config,
     required super.authenticationProvider,
-    required this.scheduler,
-  });
+    required Scheduler scheduler,
+  }) : _scheduler = scheduler;
 
-  final Scheduler scheduler;
+  final Scheduler _scheduler;
 
+  @visibleForTesting
   static const String kOwnerParam = 'owner';
+
+  @visibleForTesting
   static const String kRepoParam = 'repo';
+
+  @visibleForTesting
   static const String kPullRequestNumberParam = 'pr';
+
+  @visibleForTesting
   static const String kBuilderParam = 'builders';
 
   @override
@@ -49,7 +55,7 @@ class ResetTryTask extends ApiRequestHandler {
     final slug = RepositorySlug(owner, repo);
     final github = await config.createGitHubClient(slug: slug);
     final pullRequest = await github.pullRequests.get(slug, prNumber);
-    await scheduler.triggerPresubmitTargets(
+    await _scheduler.triggerPresubmitTargets(
       pullRequest: pullRequest,
       builderTriggerList: builderList,
     );

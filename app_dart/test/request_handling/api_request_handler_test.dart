@@ -118,7 +118,7 @@ void main() {
   });
 }
 
-class Unauth extends ApiRequestHandler {
+final class Unauth extends ApiRequestHandler {
   Unauth()
     : super(
         config: FakeConfig(),
@@ -131,7 +131,7 @@ class Unauth extends ApiRequestHandler {
   Future<Body> get(_) async => throw StateError('Unreachable');
 }
 
-class ReadParams extends ApiRequestHandler {
+final class ReadParams extends ApiRequestHandler {
   ReadParams()
     : super(
         config: FakeConfig(),
@@ -148,7 +148,7 @@ class ReadParams extends ApiRequestHandler {
   }
 }
 
-class NeedsParams extends ApiRequestHandler {
+final class NeedsParams extends ApiRequestHandler {
   NeedsParams()
     : super(
         config: FakeConfig(),
@@ -165,7 +165,7 @@ class NeedsParams extends ApiRequestHandler {
   }
 }
 
-class AccessAuth extends ApiRequestHandler {
+final class AccessAuth extends ApiRequestHandler {
   AccessAuth()
     : super(
         config: FakeConfig(),

@@ -14,14 +14,14 @@ import '../service/branch_service.dart';
 /// This is used by Google Testing to create release infra whenever a good
 /// commit has been found, and is being considered as the branch point to
 /// be rolled into Google.
-class CreateBranch extends ApiRequestHandler {
+final class CreateBranch extends ApiRequestHandler {
   const CreateBranch({
-    required this.branchService,
+    required BranchService branchService,
     required super.config,
     required super.authenticationProvider,
-  });
+  }) : _branchService = branchService;
 
-  final BranchService branchService;
+  final BranchService _branchService;
 
   static const String branchParam = 'branch';
   // Intentionally kept at 'engine' as there may be scripts out there.
@@ -36,7 +36,7 @@ class CreateBranch extends ApiRequestHandler {
     final branch = request.uri.queryParameters[branchParam]!;
     final engineSha = request.uri.queryParameters[engineShaParam]!;
 
-    await branchService.branchFlutterRecipes(branch, engineSha);
+    await _branchService.branchFlutterRecipes(branch, engineSha);
 
     return Body.empty;
   }

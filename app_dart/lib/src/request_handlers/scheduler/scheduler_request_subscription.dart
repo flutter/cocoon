@@ -8,7 +8,6 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../../../cocoon_service.dart';
@@ -25,20 +24,21 @@ import '../../request_handling/subscription_handler.dart';
 ///
 /// This endpoint takes in a POST request with the JSON of a [bbv2.BatchRequest]. In practice, the
 /// [bbv2.BatchRequest] should contain a single request.
-@immutable
-class SchedulerRequestSubscription extends SubscriptionHandler {
+final class SchedulerRequestSubscription extends SubscriptionHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const SchedulerRequestSubscription({
     required super.cache,
     required super.config,
-    required this.buildBucketClient,
+    required BuildBucketClient buildBucketClient,
     super.authProvider,
-    this.retryOptions = Config.schedulerRetry,
-  }) : super(subscriptionName: 'cocoon-scheduler-requests-sub');
+    RetryOptions retryOptions = Config.schedulerRetry,
+  }) : _retryOptions = retryOptions,
+       _buildBucketClient = buildBucketClient,
+       super(subscriptionName: 'cocoon-scheduler-requests-sub');
 
-  final BuildBucketClient buildBucketClient;
+  final BuildBucketClient _buildBucketClient;
 
-  final RetryOptions retryOptions;
+  final RetryOptions _retryOptions;
 
   @override
   Future<Body> post(Request request) async {
@@ -70,7 +70,7 @@ class SchedulerRequestSubscription extends SubscriptionHandler {
     final errors = <String>[];
     var unscheduledWarning = '';
     try {
-      await retryOptions.retry(() async {
+      await _retryOptions.retry(() async {
         final requestsToRetry = await _sendBatchRequest(batchRequest);
 
         // Reset the batch requests to retry scheduling of failed entries.
@@ -157,7 +157,7 @@ ${errors.isEmpty ? 'unknown' : errors.map((t) => t.trim()).join('\n')}
   _sendBatchRequest(bbv2.BatchRequest request) async {
     log.info('Sending batch request for ${request.toProto3Json().toString()}');
 
-    final response = await buildBucketClient.batch(request);
+    final response = await _buildBucketClient.batch(request);
     final errors = <String>[];
 
     log.debug('Responses: ${response.responses}');

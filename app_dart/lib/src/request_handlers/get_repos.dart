@@ -5,14 +5,12 @@
 import 'dart:async';
 
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
 
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 import '../service/config.dart';
 
 /// Returns [Config.supportedRepos] as a list of repo names.
-@immutable
 final class GetRepos extends RequestHandler {
   const GetRepos({required super.config});
 

@@ -16,7 +16,6 @@ import 'get_build_status.dart';
 ///
 /// It reuses [GetBuildStatus] and translates it to the SVG. The primary caller for this is the
 /// README's from the larger Flutter repositories.
-@immutable
 final class GetBuildStatusBadge extends GetBuildStatus {
   const GetBuildStatusBadge({
     required super.config,

@@ -12,7 +12,6 @@ import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
 import '../service/build_status_service.dart';
 
-@immutable
 final class GetStatus extends RequestHandler {
   const GetStatus({
     required super.config,

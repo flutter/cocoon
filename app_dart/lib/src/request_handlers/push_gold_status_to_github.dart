@@ -12,15 +12,13 @@ import 'package:googleapis/firestore/v1.dart';
 import 'package:gql/language.dart' as lang;
 import 'package:graphql/client.dart' hide Request;
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_gold_status.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 
-@immutable
-class PushGoldStatusToGithub extends ApiRequestHandler {
+final class PushGoldStatusToGithub extends ApiRequestHandler {
   PushGoldStatusToGithub({
     required super.config,
     required super.authenticationProvider,
