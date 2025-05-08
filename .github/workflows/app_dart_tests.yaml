@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "app_dart/**"
+      - "packages/**"
       - ".github/workflows/app_dart_tests.yaml"
   push:
     branches: [main]

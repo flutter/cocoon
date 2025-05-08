@@ -1,0 +1,43 @@
+name: Test dashboard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "packages/cocoon_common/**"
+      - ".github/workflows/dashboard_tests.yaml"
+  push:
+    branches: [main]
+
+jobs:
+  test-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Flutter
+        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046
+        with:
+          channel: stable
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get packages
+        run: |
+          cd dashboard
+          flutter packages get
+
+      - name: Flutter Analyze
+        run: |
+          cd dashboard
+          flutter analyze --no-fatal-infos
+
+      - name: Dart Format
+        run: |
+          cd dashboard
+          dart format --set-exit-if-changed .
+
+      - name: Flutter Test
+        run: |
+          cd dashboard
+          flutter test --test-randomize-ordering-seed=random --reporter expanded
