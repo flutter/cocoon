@@ -8,7 +8,6 @@ import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
@@ -16,7 +15,6 @@ import '../request_handling/api_request_handler.dart';
 import '../service/big_query.dart';
 import '../service/build_status_service.dart';
 
-@immutable
 final class PushBuildStatusToGithub extends ApiRequestHandler {
   const PushBuildStatusToGithub({
     required super.config,

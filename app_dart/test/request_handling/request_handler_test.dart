@@ -145,39 +145,39 @@ void main() {
   });
 }
 
-class MethodNotAllowed extends RequestHandler {
+final class MethodNotAllowed extends RequestHandler {
   MethodNotAllowed() : super(config: FakeConfig());
 }
 
-class EmptyBodyHandler extends RequestHandler {
+final class EmptyBodyHandler extends RequestHandler {
   EmptyBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => Body.empty;
 }
 
-class StringBodyHandler extends RequestHandler {
+final class StringBodyHandler extends RequestHandler {
   StringBodyHandler() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => Body.forString('Hello world');
 }
 
-class ThrowsHttpException extends RequestHandler {
+final class ThrowsHttpException extends RequestHandler {
   ThrowsHttpException() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => throw const BadRequestException();
 }
 
-class ThrowsStateError extends RequestHandler {
+final class ThrowsStateError extends RequestHandler {
   ThrowsStateError() : super(config: FakeConfig());
 
   @override
   Future<Body> get(_) async => throw StateError('error message');
 }
 
-class AccessesRequestAndResponseDirectly extends RequestHandler {
+final class AccessesRequestAndResponseDirectly extends RequestHandler {
   AccessesRequestAndResponseDirectly() : super(config: FakeConfig());
 
   @override
@@ -187,7 +187,7 @@ class AccessesRequestAndResponseDirectly extends RequestHandler {
   }
 }
 
-class ImplementsBothGetAndPost extends RequestHandler {
+final class ImplementsBothGetAndPost extends RequestHandler {
   ImplementsBothGetAndPost() : super(config: FakeConfig());
 
   @override
@@ -203,7 +203,7 @@ class ImplementsBothGetAndPost extends RequestHandler {
   }
 }
 
-class ImplementsOnlyPost extends RequestHandler {
+final class ImplementsOnlyPost extends RequestHandler {
   ImplementsOnlyPost() : super(config: FakeConfig());
 
   @override

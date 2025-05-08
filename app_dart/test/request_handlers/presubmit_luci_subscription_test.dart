@@ -36,7 +36,6 @@ void main() {
   late MockRepositoriesService mockRepositoriesService;
   late MockGithubChecksService mockGithubChecksService;
   late MockLuciBuildService mockLuciBuildService;
-  late FakeScheduler scheduler;
   late FakeCiYamlFetcher ciYamlFetcher;
 
   setUp(() async {
@@ -45,12 +44,6 @@ void main() {
     config = FakeConfig();
     mockLuciBuildService = MockLuciBuildService();
     mockGithubChecksService = MockGithubChecksService();
-    scheduler = FakeScheduler(
-      config: config,
-      luciBuildService: mockLuciBuildService,
-      firestore: firestore,
-      bigQuery: MockBigQueryService(),
-    );
 
     ciYamlFetcher = FakeCiYamlFetcher(
       ciYaml: examplePresubmitRescheduleFusionConfig,
@@ -64,7 +57,6 @@ void main() {
       ),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
@@ -256,7 +248,6 @@ void main() {
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
 
@@ -438,7 +429,6 @@ void main() {
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
-      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
 

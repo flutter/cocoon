@@ -24,7 +24,6 @@ import 'flaky_handler_utils.dart';
 ///
 /// The query parameter kThresholdKey is required in order for the handler to
 /// properly adjusts the priority labels.
-@immutable
 final class UpdateExistingFlakyIssue extends ApiRequestHandler {
   const UpdateExistingFlakyIssue({
     required super.config,

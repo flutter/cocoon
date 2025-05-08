@@ -16,20 +16,21 @@ import '../service/config.dart';
 /// Trigger a cache flush on a config key and return empty response if successful.
 ///
 /// If [cacheKeyParam] is not passed, throws [BadRequestException].
+///
 /// If the cache does not have the given key, throws [NotFoundException].
-@immutable
-class FlushCache extends ApiRequestHandler {
+final class FlushCache extends ApiRequestHandler {
   const FlushCache({
     required super.config,
     required super.authenticationProvider,
-    required this.cache,
-  });
+    required CacheService cache,
+  }) : _cache = cache;
 
-  final CacheService cache;
+  final CacheService _cache;
 
   /// Name of the query parameter passed to the endpoint.
   ///
   /// The value is expected to be an existing value from [CocoonConfig].
+  @visibleForTesting
   static const String cacheKeyParam = 'key';
 
   @override
@@ -38,14 +39,14 @@ class FlushCache extends ApiRequestHandler {
     final cacheKey = request.uri.queryParameters[cacheKeyParam]!;
 
     // To validate cache flushes, validate that the key exists.
-    await cache.getOrCreate(
+    await _cache.getOrCreate(
       Config.configCacheName,
       cacheKey,
       createFn:
           () => throw NotFoundException('Failed to find cache key: $cacheKey'),
     );
 
-    await cache.purge(Config.configCacheName, cacheKey);
+    await _cache.purge(Config.configCacheName, cacheKey);
 
     return Body.empty;
   }

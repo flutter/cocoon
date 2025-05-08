@@ -14,13 +14,8 @@ import '../../cocoon_service.dart';
 import 'exceptions.dart';
 
 /// A class that services HTTP requests and returns HTTP responses.
-///
-/// `T` is the type of object that is returned as the body of the HTTP response
-/// (before serialization). Subclasses whose HTTP responses don't include a
-/// body should extend `RequestHandler` and return null in their service
-/// handlers ([get] and [post]).
-
-abstract class RequestHandler {
+@immutable
+abstract base class RequestHandler {
   /// Creates a new [RequestHandler].
   const RequestHandler({required this.config});
 

@@ -11,7 +11,6 @@ import 'package:meta/meta.dart';
 import '../../cocoon_service.dart';
 import '../service/build_status_service.dart';
 
-@immutable
 base class GetBuildStatus extends RequestHandler {
   const GetBuildStatus({
     required super.config,

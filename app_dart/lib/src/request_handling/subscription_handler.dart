@@ -24,8 +24,7 @@ import 'request_handler.dart';
 ///
 ///  * All requests must be authenticated per [AuthenticationProvider].
 ///  * Request body is passed following the format of [PubSubPushMessage].
-@immutable
-abstract class SubscriptionHandler extends RequestHandler {
+abstract base class SubscriptionHandler extends RequestHandler {
   /// Creates a new [SubscriptionHandler].
   const SubscriptionHandler({
     required this.cache,

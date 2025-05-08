@@ -141,7 +141,7 @@ void main() {
 }
 
 /// Test stub of [SubscriptionHandler] to validate unauthenticated requests.
-class UnauthTest extends SubscriptionHandler {
+final class UnauthTest extends SubscriptionHandler {
   UnauthTest()
     : super(
         cache: CacheService(inMemory: true),
@@ -155,7 +155,7 @@ class UnauthTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate authenticated requests.
-class AuthTest extends SubscriptionHandler {
+final class AuthTest extends SubscriptionHandler {
   AuthTest()
     : super(
         cache: CacheService(inMemory: true),
@@ -169,7 +169,7 @@ class AuthTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
-class ErrorTest extends SubscriptionHandler {
+final class ErrorTest extends SubscriptionHandler {
   ErrorTest([CacheService? cache])
     : super(
         cache: cache ?? CacheService(inMemory: true),
@@ -183,7 +183,7 @@ class ErrorTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
-class ErrorCodeTest extends SubscriptionHandler {
+final class ErrorCodeTest extends SubscriptionHandler {
   ErrorCodeTest([CacheService? cache])
     : super(
         cache: cache ?? CacheService(inMemory: true),
@@ -200,7 +200,7 @@ class ErrorCodeTest extends SubscriptionHandler {
 }
 
 /// Test stub of [SubscriptionHandler] to validate push messages can be read.
-class ReadMessageTest extends SubscriptionHandler {
+final class ReadMessageTest extends SubscriptionHandler {
   ReadMessageTest([CacheService? cache])
     : super(
         cache: cache ?? CacheService(inMemory: true),

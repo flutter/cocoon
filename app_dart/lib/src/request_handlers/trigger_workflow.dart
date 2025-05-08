@@ -11,15 +11,17 @@ import '../request_handling/api_request_handler.dart';
 import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
 
-@immutable
-class TriggerWorkflow extends ApiRequestHandler {
+final class TriggerWorkflow extends ApiRequestHandler {
   const TriggerWorkflow({
     required super.config,
     required super.authenticationProvider,
   });
 
+  @visibleForTesting
   static const String refParam = 'ref';
+
   // Intentionally kept at 'engine' as there may be scripts out there.
+  @visibleForTesting
   static const String workflowParam = 'workflow';
 
   @override

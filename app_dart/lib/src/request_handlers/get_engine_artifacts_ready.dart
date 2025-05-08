@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:googleapis/firestore/v1.dart';
-import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/ci_staging.dart';
@@ -25,7 +24,6 @@ import '../request_handling/exceptions.dart';
 /// - `{status: "complete"}`; the engine artifacts were built and uploaded
 /// - `{status: "pending"}`; the engine artifacts are in the progress of being built
 /// - `{status: "failed"}`; the engine artifacts will not be uploaded as there was a failure building the engine
-@immutable
 final class GetEngineArtifactsReady extends RequestHandler {
   const GetEngineArtifactsReady({
     required super.config,

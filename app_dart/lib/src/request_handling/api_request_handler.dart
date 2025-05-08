@@ -17,13 +17,7 @@ import 'request_handler.dart';
 /// API requests adhere to a specific contract, as follows:
 ///
 ///  * All requests must be authenticated per [AuthenticationProvider].
-///
-/// `T` is the type of object that is returned as the body of the HTTP response
-/// (before serialization). Subclasses whose HTTP responses don't include a
-/// body should extend `RequestHandler` and return null in their service
-/// handlers ([get] and [post]).
-@immutable
-abstract class ApiRequestHandler extends RequestHandler {
+abstract base class ApiRequestHandler extends RequestHandler {
   /// Creates a new [ApiRequestHandler].
   const ApiRequestHandler({
     required super.config,
@@ -31,6 +25,7 @@ abstract class ApiRequestHandler extends RequestHandler {
   });
 
   /// Service responsible for authenticating this [HttpRequest].
+  @protected
   final AuthenticationProvider authenticationProvider;
 
   /// Throws a [BadRequestException] if any of [requiredParameters] is missing

@@ -9,7 +9,6 @@ import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart';
-import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/bbv2_extension.dart';
@@ -20,7 +19,6 @@ import '../request_handling/subscription_handler.dart';
 /// Listens for and saves build updates for `dart-internal` builds.
 ///
 /// See [`dart-internal-build-results`](https://console.cloud.google.com/cloudpubsub/topic/detail/dart-internal-build-results?e=-13802955&invt=Abtx1A&mods=logs_tg_prod&project=flutter-dashboard).
-@immutable
 final class DartInternalSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening for dart-internal build results.
   /// The message should contain a single buildbucket id

@@ -30,7 +30,6 @@ import '../service/config.dart';
 ///
 /// GET: /api/public/get-green-commits?repo=$repo
 
-@immutable
 final class GetGreenCommits extends RequestHandler {
   const GetGreenCommits({
     required super.config,

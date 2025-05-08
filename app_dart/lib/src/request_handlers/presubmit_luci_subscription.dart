@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:meta/meta.dart';
 
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
@@ -20,7 +19,6 @@ import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/user_data.dart';
-import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
@@ -35,23 +33,23 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 ///
 /// This endpoint is responsible for updating GitHub with the status of
 /// completed builds from LUCI.
-@immutable
-class PresubmitLuciSubscription extends SubscriptionHandler {
+final class PresubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PresubmitLuciSubscription({
     required super.cache,
     required super.config,
-    required this.scheduler,
-    required this.luciBuildService,
-    required this.githubChecksService,
-    required this.ciYamlFetcher,
+    required LuciBuildService luciBuildService,
+    required GithubChecksService githubChecksService,
+    required CiYamlFetcher ciYamlFetcher,
     AuthenticationProvider? authProvider,
-  }) : super(subscriptionName: 'build-bucket-presubmit-sub');
+  }) : _ciYamlFetcher = ciYamlFetcher,
+       _githubChecksService = githubChecksService,
+       _luciBuildService = luciBuildService,
+       super(subscriptionName: 'build-bucket-presubmit-sub');
 
-  final LuciBuildService luciBuildService;
-  final GithubChecksService githubChecksService;
-  final Scheduler scheduler;
-  final CiYamlFetcher ciYamlFetcher;
+  final LuciBuildService _luciBuildService;
+  final GithubChecksService _githubChecksService;
+  final CiYamlFetcher _ciYamlFetcher;
 
   @override
   Future<Body> post(Request request) async {
@@ -97,7 +95,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
     var rescheduled = false;
-    if (githubChecksService.taskFailed(build.status)) {
+    if (_githubChecksService.taskFailed(build.status)) {
       final currentAttempt = _nextAttempt(tagSet);
       final int maxAttempt;
       try {
@@ -114,7 +112,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
       if (currentAttempt < maxAttempt) {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
-        await luciBuildService.reschedulePresubmitBuild(
+        await _luciBuildService.reschedulePresubmitBuild(
           builderName: builderName,
           build: build,
           nextAttempt: currentAttempt + 1,
@@ -122,10 +120,10 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
         );
       }
     }
-    await githubChecksService.updateCheckStatus(
+    await _githubChecksService.updateCheckStatus(
       checkRunId: userData.checkRunId,
       build: build,
-      luciBuildService: luciBuildService,
+      luciBuildService: _luciBuildService,
       slug: userData.commit.slug,
       rescheduled: rescheduled,
     );
@@ -150,7 +148,7 @@ class PresubmitLuciSubscription extends SubscriptionHandler {
   ) async {
     final CiYamlSet ciYaml;
     try {
-      ciYaml = await ciYamlFetcher.getCiYamlByCommit(commit);
+      ciYaml = await _ciYamlFetcher.getCiYamlByCommit(commit);
     } on FormatException {
       // If ci.yaml no longer passes validation (for example, because a builder
       // has been removed), ensure no retries.

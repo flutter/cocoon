@@ -8,7 +8,6 @@ import 'dart:typed_data';
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:meta/meta.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 
@@ -16,8 +15,7 @@ import '../../cocoon_service.dart';
 import 'exceptions.dart';
 
 /// A class based on [RequestHandler] for serving static files.
-@immutable
-class StaticFileHandler extends RequestHandler {
+final class StaticFileHandler extends RequestHandler {
   /// Creates a new [StaticFileHandler].
   const StaticFileHandler(
     this.filePath, {
