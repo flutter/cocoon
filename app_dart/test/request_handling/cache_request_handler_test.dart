@@ -29,7 +29,6 @@ void main() {
   setUp(() async {
     config = FakeConfig();
     tester = RequestHandlerTester(request: FakeHttpRequest(path: testHttpPath));
-
     cache = CacheService(inMemory: true);
   });
 
@@ -61,10 +60,12 @@ void main() {
 
   test('stores HTTP status and contentType in cache', () async {
     final fallbackHandler = FakeRequestHandler(
-      body: Response.string('hello!'),
+      body: Response.string(
+        'hello!',
+        statusCode: 400,
+        contentType: ContentType.json,
+      ),
       config: FakeConfig(),
-      statusCode: 400,
-      contentType: ContentType.json,
     );
 
     final cacheRequestHandler = CacheRequestHandler(
@@ -73,10 +74,10 @@ void main() {
       config: config,
     );
 
-    await tester.get(cacheRequestHandler);
-    expect(tester.response.statusCode, 400);
+    final response = await tester.get(cacheRequestHandler);
+    expect(response.statusCode, 400);
     expect(
-      tester.response.headers.contentType,
+      response.contentType,
       isA<ContentType>().having(
         (c) => c.value,
         'value',

@@ -73,7 +73,7 @@ final class CacheRequestHandler extends RequestHandler {
     );
 
     return Response.stream(
-      Stream<Uint8List>.value(cachedResponse.body),
+      Stream.value(cachedResponse.body),
       statusCode: cachedResponse.statusCode,
       contentType: cachedResponse.contentType,
     );
