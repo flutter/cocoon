@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -58,6 +59,11 @@ void main() {
       return request.close();
     }
 
+    Future<Map<String, Object?>> decodeBody(HttpClientResponse response) async {
+      final body = await response.collectBytes();
+      return body.parseAsJsonObject();
+    }
+
     test('failed authentication yields HTTP unauthorized', () async {
       handler = Unauth();
       final response = await issueRequest();
@@ -69,27 +75,28 @@ void main() {
     test('empty request body yields empty requestData', () async {
       handler = ReadParams();
       final response = await issueRequest();
-      expect(response.headers.value('X-Test-RequestBody'), '[]');
-      expect(response.headers.value('X-Test-RequestData'), '{}');
+      final jsonBody = await decodeBody(response);
+      expect(jsonBody['requestBody'], '[]');
+      expect(jsonBody['requestData'], '{}');
       expect(response.statusCode, HttpStatus.ok);
-      expect(await response.toList(), isEmpty);
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('JSON request body yields valid requestData', () async {
       handler = ReadParams();
       final response = await issueRequest(body: '{"param1":"value1"}');
-      expect(response.headers.value('X-Test-RequestBody'), isNotEmpty);
-      expect(response.headers.value('X-Test-RequestData'), '{param1: value1}');
+      final jsonBody = await decodeBody(response);
+      expect(jsonBody['requestBody'], isNotEmpty);
+      expect(jsonBody['requestData'], '{param1: value1}');
       expect(response.statusCode, HttpStatus.ok);
-      expect(await response.toList(), isEmpty);
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('can access authContext', () async {
       handler = AccessAuth();
       final response = await issueRequest();
-      expect(response.headers.value('X-Test-IsDev'), 'true');
+      final jsonBody = await decodeBody(response);
+      expect(jsonBody['isDevelopmentEnvironment'], isTrue);
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });
@@ -142,9 +149,10 @@ final class ReadParams extends ApiRequestHandler {
   Future<Body> get(Request request) async {
     final requestBody = await request.readBodyAsBytes();
     final requestData = await request.readBodyAsJson();
-    response!.headers.add('X-Test-RequestBody', requestBody.toString());
-    response!.headers.add('X-Test-RequestData', requestData.toString());
-    return Body.empty;
+    return Body.forJson({
+      'requestBody': '$requestBody',
+      'requestData': '$requestData',
+    });
   }
 }
 
@@ -174,10 +182,9 @@ final class AccessAuth extends ApiRequestHandler {
 
   @override
   Future<Body> get(_) async {
-    response!.headers.add(
-      'X-Test-IsDev',
-      authContext!.clientContext.isDevelopmentEnvironment,
-    );
-    return Body.empty;
+    return Body.forJson({
+      'isDevelopmentEnvironment':
+          authContext!.clientContext.isDevelopmentEnvironment,
+    });
   }
 }

@@ -7,19 +7,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import 'exceptions.dart';
 
-/// A class that services HTTP requests and returns HTTP responses.
+/// Handles HTTP requests and responses.
 @immutable
 abstract base class RequestHandler {
   /// Creates a new [RequestHandler].
   const RequestHandler({required this.config});
 
-  /// The global configuration of this AppEngine server.
+  /// Global configuration of the server.
+  @protected
   final Config config;
 
   /// Services an HTTP request.
@@ -154,23 +156,10 @@ abstract mixin class Request {
     return utf8.decode(await readBodyAsBytes());
   }
 
-  /// A special decoder that decodes UTF-8 bytes into JSON values.
-  ///
-  /// Backend implementations in the Dart SDK typically optimize this fused
-  /// decoder compared to the default [dart.JsonDecoder] which operates on
-  /// UTF-16 strings.
-  ///
-  /// See <https://github.com/dart-lang/sdk/issues/55996> for more information.
-  static final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
-
   /// Reads the body as a JSON object.
   Future<Map<String, Object?>> readBodyAsJson() async {
     final bytes = await readBodyAsBytes();
-    if (bytes.isEmpty) {
-      return {};
-    }
-    final result = _utf8JsonDecoder.convert(await readBodyAsBytes());
-    return result as Map<String, Object?>;
+    return bytes.isEmpty ? {} : bytes.parseAsJsonObject();
   }
 }
 

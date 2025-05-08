@@ -53,8 +53,7 @@ final class GetEngineArtifactsReady extends RequestHandler {
       );
     } on DetailedApiRequestError catch (e) {
       if (e.status == HttpStatus.notFound) {
-        response!.statusCode = HttpStatus.notFound;
-        return Body.empty;
+        throw NotFoundException('No engine SHA found for "$commitSha"');
       }
       rethrow;
     }

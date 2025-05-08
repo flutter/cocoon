@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -54,6 +55,11 @@ void main() {
     Future<HttpClientResponse> issueGet() async => issueRequest('get');
 
     Future<HttpClientResponse> issuePost() async => issueRequest('post');
+
+    Future<Map<String, Object?>> decodeBody(HttpClientResponse response) async {
+      final body = await response.collectBytes();
+      return body.parseAsJsonObject();
+    }
 
     test('Unimplemented methods yield HTTP method not allowed', () async {
       handler = MethodNotAllowed();
@@ -119,18 +125,19 @@ void main() {
     test('may access the request and response directly', () async {
       handler = AccessesRequestAndResponseDirectly();
       final response = await issueGet();
-      expect(response.headers.value('X-Test-Path'), '/path');
+      final jsonBody = await decodeBody(response);
+      expect(jsonBody, {'request.uri.path': '/path'});
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
     test('may implement both GET and POST', () async {
       handler = ImplementsBothGetAndPost();
       var response = await issueGet();
-      expect(response.headers.value('X-Test-Get'), 'true');
-      expect(response.headers.value('X-Test-Post'), isNull);
+      var jsonBody = await decodeBody(response);
+      expect(jsonBody, {'method': 'GET'});
       response = await issuePost();
-      expect(response.headers.value('X-Test-Get'), isNull);
-      expect(response.headers.value('X-Test-Post'), 'true');
+      jsonBody = await decodeBody(response);
+      expect(jsonBody, {'method': 'POST'});
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
@@ -182,8 +189,7 @@ final class AccessesRequestAndResponseDirectly extends RequestHandler {
 
   @override
   Future<Body> get(Request request) async {
-    response!.headers.add('X-Test-Path', request.uri.path);
-    return Body.empty;
+    return Body.forJson({'request.uri.path': request.uri.path});
   }
 }
 
@@ -192,14 +198,12 @@ final class ImplementsBothGetAndPost extends RequestHandler {
 
   @override
   Future<Body> get(_) async {
-    response!.headers.add('X-Test-Get', 'true');
-    return Body.empty;
+    return Body.forJson({'method': 'GET'});
   }
 
   @override
   Future<Body> post(_) async {
-    response!.headers.add('X-Test-Post', 'true');
-    return Body.empty;
+    return Body.forJson({'method': 'POST'});
   }
 }
 

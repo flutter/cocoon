@@ -194,8 +194,7 @@ final class ErrorCodeTest extends SubscriptionHandler {
 
   @override
   Future<Body> get(_) async {
-    response!.statusCode = HttpStatus.serviceUnavailable;
-    return Body.empty;
+    throw const ServiceUnavailable('Intentional 404');
   }
 }
 

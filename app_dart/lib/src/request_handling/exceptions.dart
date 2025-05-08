@@ -51,6 +51,11 @@ class InternalServerError extends HttpStatusException {
     : super(HttpStatus.internalServerError, message);
 }
 
+class ServiceUnavailable extends HttpStatusException {
+  const ServiceUnavailable([String message = 'Service unavailable'])
+    : super(HttpStatus.serviceUnavailable, message);
+}
+
 /// Exception that will trigger an HTTP 401 not authorized.
 class Unauthorized extends HttpStatusException {
   const Unauthorized([String message = 'Unauthorized'])
