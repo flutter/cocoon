@@ -93,9 +93,7 @@ void main() {
 
   test('skips PRs where getFilesChanged errors', () async {
     final optimizer = FilesChangedOptimizer(
-      // TODO(matanlurey): Would be better to make this explicit with a named
-      // constructor, i.e. FakeGetFilesChanged.alwaysInconclusive().
-      getFilesChanged: FakeGetFilesChanged(),
+      getFilesChanged: FakeGetFilesChanged.inconclusive(),
       ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
       config: config(maxFilesChangedForSkippingEnginePhase: 100),
     );

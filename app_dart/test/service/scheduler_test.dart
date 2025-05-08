@@ -176,7 +176,7 @@ void main() {
       });
 
       cache = CacheService(inMemory: true);
-      getFilesChanged = FakeGetFilesChanged();
+      getFilesChanged = FakeGetFilesChanged.inconclusive();
       firestore = FakeFirestoreService();
 
       config = FakeConfig(

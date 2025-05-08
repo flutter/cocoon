@@ -39,7 +39,7 @@ class FakeScheduler extends Scheduler {
            config,
            githubChecksUtil: githubChecksUtil,
          ),
-         getFilesChanged: getFilesChanged ?? FakeGetFilesChanged(),
+         getFilesChanged: getFilesChanged ?? FakeGetFilesChanged.inconclusive(),
          luciBuildService:
              luciBuildService ??
              FakeLuciBuildService(
