@@ -41,7 +41,7 @@ final class SchedulerRequestSubscription extends SubscriptionHandler {
   final RetryOptions _retryOptions;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     if (message.data == null) {
       log.info('no data in message');
       throw const BadRequestException('no data in message');
@@ -96,10 +96,10 @@ final class SchedulerRequestSubscription extends SubscriptionHandler {
 
       await _failUnscheduledCheckRuns(batchRequest, errors);
 
-      return Body.forString('Failed to schedule builds: $unscheduledWarning.');
+      return Response.string('Failed to schedule builds: $unscheduledWarning.');
     }
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   Future<void> _failUnscheduledCheckRuns(

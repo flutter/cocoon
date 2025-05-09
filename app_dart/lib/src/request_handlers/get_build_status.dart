@@ -22,9 +22,9 @@ base class GetBuildStatus extends RequestHandler {
   static const _kBranchParam = 'branch';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final response = await createResponse(request);
-    return Body.forJson(response);
+    return Response.json(response);
   }
 
   @protected

@@ -12,8 +12,8 @@ import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
@@ -41,7 +41,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
   final CiYamlSet? ciYamlForTesting;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final slug = Config.flutterSlug;
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
@@ -83,7 +83,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
       nameToExistingIssue: nameToExistingIssue,
       threshold: threshold,
     );
-    return Body.forJson(const <String, dynamic>{'Status': 'success'});
+    return Response.json(const <String, dynamic>{'Status': 'success'});
   }
 
   /// Adds an update comment and adjusts the labels of the existing issue based

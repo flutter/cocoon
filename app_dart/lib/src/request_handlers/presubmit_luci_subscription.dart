@@ -12,8 +12,8 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../request_handling/authentication.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
@@ -52,10 +52,10 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
   final CiYamlFetcher _ciYamlFetcher;
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     if (message.data == null) {
       log.info('no data in message');
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     final pubSubCallBack = bbv2.PubSubCallBack();
@@ -67,7 +67,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
 
     if (!buildsPubSub.hasBuild()) {
       log.info('no build information in message');
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     final build = buildsPubSub.build;
@@ -83,14 +83,14 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     // Skip status update if we can not get the sha tag.
     if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
       log.warn('Buildset tag not included, skipping Status Updates');
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     log.info('Setting status (${build.status}) for $builderName');
 
     if (!pubSubCallBack.hasUserData()) {
       log.info('No user data was found in this request');
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
@@ -120,7 +120,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       slug: userData.commit.slug,
       rescheduled: rescheduled,
     );
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   /// Returns the current reschedule attempt.

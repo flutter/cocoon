@@ -10,8 +10,8 @@ import 'package:meta/meta.dart';
 
 import '../model/firestore/commit.dart' as fs;
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
 import '../service/scheduler.dart';
@@ -29,7 +29,7 @@ final class VacuumGithubCommits extends ApiRequestHandler {
   static const String branchParam = 'branch';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     for (var slug in config.supportedRepos) {
       final branch =
           request.uri.queryParameters[branchParam] ??
@@ -37,7 +37,7 @@ final class VacuumGithubCommits extends ApiRequestHandler {
       await _vacuumRepository(slug, branch: branch);
     }
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   Future<void> _vacuumRepository(

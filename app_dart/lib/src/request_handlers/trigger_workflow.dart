@@ -8,8 +8,8 @@ import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 
 final class TriggerWorkflow extends ApiRequestHandler {
   const TriggerWorkflow({
@@ -25,13 +25,13 @@ final class TriggerWorkflow extends ApiRequestHandler {
   static const String workflowParam = 'workflow';
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     // auth already happened; grab the query parameters.
     checkRequiredQueryParameters(request, [refParam, workflowParam]);
     final ref = request.uri.queryParameters[refParam]!;
     final workflow = request.uri.queryParameters[workflowParam]!;
     await triggerWorkflow(ref, workflow);
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   Future triggerWorkflow(String ref, String workflow) async {

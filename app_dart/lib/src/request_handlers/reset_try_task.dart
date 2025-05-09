@@ -35,7 +35,7 @@ final class ResetTryTask extends ApiRequestHandler {
   static const String kBuilderParam = 'builders';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredQueryParameters(request, <String>[
       kRepoParam,
       kPullRequestNumberParam,
@@ -59,7 +59,7 @@ final class ResetTryTask extends ApiRequestHandler {
       pullRequest: pullRequest,
       builderTriggerList: builderList,
     );
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   /// Parses [builders] to a String list.

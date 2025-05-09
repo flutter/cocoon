@@ -546,7 +546,13 @@ class FakeHttpHeaders implements HttpHeaders {
   set contentLength(int value) => throw UnsupportedError('Unsupported');
 
   @override
-  ContentType get contentType => throw UnimplementedError();
+  ContentType? get contentType {
+    final rawContentType = value(HttpHeaders.contentTypeHeader);
+    if (rawContentType == null) {
+      return null;
+    }
+    return ContentType.parse(rawContentType);
+  }
 
   @override
   set contentType(ContentType? value) {

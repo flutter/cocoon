@@ -219,10 +219,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -388,10 +385,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -477,10 +471,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -542,10 +533,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -642,10 +630,7 @@ void main() {
         );
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -678,10 +663,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -766,10 +748,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -843,10 +822,7 @@ void main() {
       });
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -934,10 +910,7 @@ void main() {
         );
         final result =
             await utf8.decoder
-                    .bind(
-                      (await tester.get(handler)).serialize()
-                          as Stream<List<int>>,
-                    )
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
                     .transform(json.decoder)
                     .single
                 as Map<String, dynamic>;
@@ -991,10 +964,7 @@ void main() {
 
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
@@ -1030,10 +1000,7 @@ void main() {
 
       final result =
           await utf8.decoder
-                  .bind(
-                    (await tester.get(handler)).serialize()
-                        as Stream<List<int>>,
-                  )
+                  .bind((await tester.get(handler)).body as Stream<List<int>>)
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;

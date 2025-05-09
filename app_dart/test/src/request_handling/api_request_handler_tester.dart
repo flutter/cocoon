@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:meta/meta.dart';
 
 import 'fake_dashboard_authentication.dart';
@@ -26,7 +26,7 @@ class ApiRequestHandlerTester extends RequestHandlerTester {
 
   @override
   @protected
-  Future<Body> run(Future<Body> Function() callback) {
+  Future<Response> run(Future<Response> Function() callback) {
     return super.run(() {
       return runZoned(
         () {

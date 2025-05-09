@@ -5,8 +5,8 @@
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/reset_try_task.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -100,7 +100,7 @@ void main() {
           ResetTryTask.kPullRequestNumberParam: '123',
         },
       );
-      expect(await tester.get(handler), Body.empty);
+      expect(await tester.get(handler), Response.emptyOk);
     });
 
     test('Parses empty builder correctly', () {

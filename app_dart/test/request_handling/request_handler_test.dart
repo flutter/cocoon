@@ -10,9 +10,9 @@ import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
@@ -90,7 +90,10 @@ void main() {
       handler = ThrowsHttpException();
       final response = await issueGet();
       expect(response.statusCode, HttpStatus.badRequest);
-      expect(await utf8.decoder.bind(response).join(), 'Bad request');
+      expect(
+        await utf8.decoder.bind(response).join(),
+        '{"error":"Bad request"}',
+      );
       expect(log, bufferedLoggerOf(isEmpty));
     });
 
@@ -160,36 +163,36 @@ final class EmptyBodyHandler extends RequestHandler {
   EmptyBodyHandler() : super(config: FakeConfig());
 
   @override
-  Future<Body> get(_) async => Body.empty;
+  Future<Response> get(_) async => Response.emptyOk;
 }
 
 final class StringBodyHandler extends RequestHandler {
   StringBodyHandler() : super(config: FakeConfig());
 
   @override
-  Future<Body> get(_) async => Body.forString('Hello world');
+  Future<Response> get(_) async => Response.string('Hello world');
 }
 
 final class ThrowsHttpException extends RequestHandler {
   ThrowsHttpException() : super(config: FakeConfig());
 
   @override
-  Future<Body> get(_) async => throw const BadRequestException();
+  Future<Response> get(_) async => throw const BadRequestException();
 }
 
 final class ThrowsStateError extends RequestHandler {
   ThrowsStateError() : super(config: FakeConfig());
 
   @override
-  Future<Body> get(_) async => throw StateError('error message');
+  Future<Response> get(_) async => throw StateError('error message');
 }
 
 final class AccessesRequestAndResponseDirectly extends RequestHandler {
   AccessesRequestAndResponseDirectly() : super(config: FakeConfig());
 
   @override
-  Future<Body> get(Request request) async {
-    return Body.forJson({'request.uri.path': request.uri.path});
+  Future<Response> get(Request request) async {
+    return Response.json({'request.uri.path': request.uri.path});
   }
 }
 
@@ -197,13 +200,13 @@ final class ImplementsBothGetAndPost extends RequestHandler {
   ImplementsBothGetAndPost() : super(config: FakeConfig());
 
   @override
-  Future<Body> get(_) async {
-    return Body.forJson({'method': 'GET'});
+  Future<Response> get(_) async {
+    return Response.json({'method': 'GET'});
   }
 
   @override
-  Future<Body> post(_) async {
-    return Body.forJson({'method': 'POST'});
+  Future<Response> post(_) async {
+    return Response.json({'method': 'POST'});
   }
 }
 
@@ -211,5 +214,5 @@ final class ImplementsOnlyPost extends RequestHandler {
   ImplementsOnlyPost() : super(config: FakeConfig());
 
   @override
-  Future<Body> post(_) async => Body.empty;
+  Future<Response> post(_) async => Response.emptyOk;
 }

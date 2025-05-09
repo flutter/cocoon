@@ -6,7 +6,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/config.dart' show Config;
@@ -80,7 +80,7 @@ void main() {
     clientContext.isDevelopmentEnvironment = true;
     config.githubClient = ThrowingGitHub();
     final body = await tester.get(handler);
-    expect(body, same(Body.empty));
+    expect(body, same(Response.emptyOk));
   });
 
   group('does not update anything', () {
@@ -95,7 +95,7 @@ void main() {
         'test',
         'test',
       );
-      expect(body, same(Body.empty));
+      expect(body, same(Response.emptyOk));
 
       // Test for BigQuery insert
       expect(tableDataList.totalRows, '1');
@@ -128,7 +128,7 @@ void main() {
       );
 
       final body = await tester.get(handler);
-      expect(body, same(Body.empty));
+      expect(body, same(Response.emptyOk));
 
       expect(
         firestore,
@@ -159,7 +159,7 @@ void main() {
       );
 
       final body = await tester.get(handler);
-      expect(body, same(Body.empty));
+      expect(body, same(Response.emptyOk));
 
       expect(
         firestore,
@@ -191,7 +191,7 @@ void main() {
 
       final body = await tester.get(handler);
 
-      expect(body, same(Body.empty));
+      expect(body, same(Response.emptyOk));
 
       expect(
         firestore,
@@ -226,7 +226,7 @@ void main() {
     );
 
     final body = await tester.get(handler);
-    expect(body, same(Body.empty));
+    expect(body, same(Response.emptyOk));
 
     expect(
       firestore,

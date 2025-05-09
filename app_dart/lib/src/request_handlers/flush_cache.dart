@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/cache_service.dart';
 import '../service/config.dart';
 
@@ -34,7 +34,7 @@ final class FlushCache extends ApiRequestHandler {
   static const String cacheKeyParam = 'key';
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredQueryParameters(request, <String>[cacheKeyParam]);
     final cacheKey = request.uri.queryParameters[cacheKeyParam]!;
 
@@ -48,6 +48,6 @@ final class FlushCache extends ApiRequestHandler {
 
     await _cache.purge(Config.configCacheName, cacheKey);
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 }

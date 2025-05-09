@@ -9,7 +9,7 @@ import 'package:cocoon_server/logging.dart' show log;
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:http/http.dart' show Response;
+import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' show MockClient;
 import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
@@ -32,9 +32,9 @@ void main() {
     mockHttp = MockClient((req) async {
       requestUris.add(req.url);
       if (mockHttpFile != null) {
-        return Response(mockHttpFile!, 200);
+        return http.Response(mockHttpFile!, 200);
       }
-      return Response('Not found', 404);
+      return http.Response('Not found', 404);
     });
     final cacheService = CacheService(inMemory: true);
     final secrets = FakeSecretManager();

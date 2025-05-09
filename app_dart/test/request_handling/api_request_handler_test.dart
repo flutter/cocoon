@@ -11,8 +11,8 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
-import 'package:cocoon_service/src/request_handling/body.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
+import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
 
@@ -59,11 +59,6 @@ void main() {
       return request.close();
     }
 
-    Future<Map<String, Object?>> decodeBody(HttpClientResponse response) async {
-      final body = await response.collectBytes();
-      return body.parseAsJsonObject();
-    }
-
     test('failed authentication yields HTTP unauthorized', () async {
       handler = Unauth();
       final response = await issueRequest();
@@ -75,9 +70,10 @@ void main() {
     test('empty request body yields empty requestData', () async {
       handler = ReadParams();
       final response = await issueRequest();
-      final jsonBody = await decodeBody(response);
-      expect(jsonBody['requestBody'], '[]');
-      expect(jsonBody['requestData'], '{}');
+      await expectLater(
+        response.collectBytes(),
+        completion(decodedAsJson({'requestBody': '[]', 'requestData': '{}'})),
+      );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });
@@ -85,9 +81,15 @@ void main() {
     test('JSON request body yields valid requestData', () async {
       handler = ReadParams();
       final response = await issueRequest(body: '{"param1":"value1"}');
-      final jsonBody = await decodeBody(response);
-      expect(jsonBody['requestBody'], isNotEmpty);
-      expect(jsonBody['requestData'], '{param1: value1}');
+      await expectLater(
+        response.collectBytes(),
+        completion(
+          decodedAsJson({
+            'requestBody': isNotEmpty,
+            'requestData': '{param1: value1}',
+          }),
+        ),
+      );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });
@@ -95,8 +97,10 @@ void main() {
     test('can access authContext', () async {
       handler = AccessAuth();
       final response = await issueRequest();
-      final jsonBody = await decodeBody(response);
-      expect(jsonBody['isDevelopmentEnvironment'], isTrue);
+      await expectLater(
+        response.collectBytes(),
+        completion(decodedAsJson({'isDevelopmentEnvironment': true})),
+      );
       expect(response.statusCode, HttpStatus.ok);
       expect(log, bufferedLoggerOf(isEmpty));
     });
@@ -135,7 +139,7 @@ final class Unauth extends ApiRequestHandler {
       );
 
   @override
-  Future<Body> get(_) async => throw StateError('Unreachable');
+  Future<Response> get(_) async => throw StateError('Unreachable');
 }
 
 final class ReadParams extends ApiRequestHandler {
@@ -146,10 +150,10 @@ final class ReadParams extends ApiRequestHandler {
       );
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     final requestBody = await request.readBodyAsBytes();
     final requestData = await request.readBodyAsJson();
-    return Body.forJson({
+    return Response.json({
       'requestBody': '$requestBody',
       'requestData': '$requestData',
     });
@@ -164,12 +168,12 @@ final class NeedsParams extends ApiRequestHandler {
       );
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     checkRequiredParameters(await request.readBodyAsJson(), <String>[
       'param1',
       'param2',
     ]);
-    return Body.empty;
+    return Response.emptyOk;
   }
 }
 
@@ -181,8 +185,8 @@ final class AccessAuth extends ApiRequestHandler {
       );
 
   @override
-  Future<Body> get(_) async {
-    return Body.forJson({
+  Future<Response> get(_) async {
+    return Response.json({
       'isDevelopmentEnvironment':
           authContext!.clientContext.isDevelopmentEnvironment,
     });

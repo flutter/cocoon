@@ -14,9 +14,9 @@ import '../model/commit_ref.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../request_handling/api_request_handler.dart';
-import '../request_handling/body.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
+import '../request_handling/response.dart';
 import '../service/firestore.dart';
 import '../service/firestore/commit_and_tasks.dart';
 import '../service/luci_build_service.dart';
@@ -49,7 +49,7 @@ final class RerunProdTask extends ApiRequestHandler {
   static const _paramInclude = 'include';
 
   @override
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     final requestData = await request.readBodyAsJson();
     checkRequiredParameters(requestData, [
       _paramBranch,
@@ -102,7 +102,7 @@ final class RerunProdTask extends ApiRequestHandler {
         email: email,
         statusesToRerun: statusesToRerun,
       );
-      return Body.forJson(ranTasks);
+      return Response.json(ranTasks);
     }
 
     if (requestData.containsKey(_paramInclude)) {
@@ -131,7 +131,7 @@ final class RerunProdTask extends ApiRequestHandler {
       throw InternalServerError('Failed to rerun task "$taskName"');
     }
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   @useResult

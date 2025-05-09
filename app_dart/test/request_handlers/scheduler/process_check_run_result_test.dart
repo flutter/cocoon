@@ -4,54 +4,58 @@
 
 import 'dart:io';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
 void main() {
   useTestLoggerPerTest();
 
-  late _FakeHttpResponse response;
-
-  setUp(() {
-    response = _FakeHttpResponse();
-  });
-
-  test('.success', () {
-    const ProcessCheckRunResult.success().writeResponse(response);
+  test('.success', () async {
+    final response = const ProcessCheckRunResult.success().toResponse();
 
     expect(response.statusCode, HttpStatus.ok);
-    expect(response.reasonPhrase, isEmpty);
+    await expectLater(response.body.collectBytes(), completion(isEmpty));
   });
 
-  test('.userError', () {
-    const ProcessCheckRunResult.userError('Do better').writeResponse(response);
+  test('.userError', () async {
+    final response =
+        const ProcessCheckRunResult.userError('Do better').toResponse();
 
     expect(response.statusCode, HttpStatus.badRequest);
-    expect(response.reasonPhrase, 'Do better');
+    await expectLater(
+      response.body.collectBytes(),
+      completion(decodedAsJson({'error': 'Do better'})),
+    );
   });
 
-  test('.missingEntity', () {
-    const ProcessCheckRunResult.missingEntity(
-      'No hot dog',
-    ).writeResponse(response);
+  test('.missingEntity', () async {
+    final response =
+        const ProcessCheckRunResult.missingEntity('No hot dog').toResponse();
 
     expect(response.statusCode, HttpStatus.notFound);
-    expect(response.reasonPhrase, 'No hot dog');
+    await expectLater(
+      response.body.collectBytes(),
+      completion(decodedAsJson({'error': 'No hot dog'})),
+    );
   });
 
-  test('.internalError', () {
-    ProcessCheckRunResult.unexpectedError(
-      'Did a really bad thing',
-      error: StateError('Bad thing detected'),
-      stackTrace: StackTrace.current,
-    ).writeResponse(response);
+  test('.internalError', () async {
+    final response =
+        ProcessCheckRunResult.unexpectedError(
+          'Did a really bad thing',
+          error: StateError('Bad thing detected'),
+          stackTrace: StackTrace.current,
+        ).toResponse();
 
     expect(response.statusCode, HttpStatus.internalServerError);
-    expect(response.reasonPhrase, 'Did a really bad thing');
+    await expectLater(
+      response.body.collectBytes(),
+      completion(decodedAsJson({'error': 'Did a really bad thing'})),
+    );
 
     expect(
       log,
@@ -67,12 +71,4 @@ void main() {
       ),
     );
   });
-}
-
-final class _FakeHttpResponse extends Fake implements HttpResponse {
-  @override
-  int statusCode = HttpStatus.ok;
-
-  @override
-  String reasonPhrase = '';
 }

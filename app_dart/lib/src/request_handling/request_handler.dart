@@ -32,65 +32,53 @@ abstract base class RequestHandler {
   Future<void> service(
     HttpRequest request, {
     Future<void> Function(HttpStatusException)? onError,
-  }) {
-    return runZoned<Future<void>>(
-      () async {
-        final response = request.response;
-        try {
-          try {
-            Body body;
-            switch (request.method) {
-              case 'GET':
-                body = await get(Request.fromHttpRequest(request));
-                break;
-              case 'POST':
-                body = await post(Request.fromHttpRequest(request));
-                break;
-              default:
-                throw MethodNotAllowed(request.method);
-            }
-            await _respond(response, body);
-            return;
-          } on HttpStatusException {
-            rethrow;
-          } catch (e, s) {
-            log.error('Internal server error', e, s);
-            throw InternalServerError('$e\n$s');
-          }
-        } on HttpStatusException catch (error) {
-          if (onError != null) {
-            await onError(error);
-          }
-          response
-            ..statusCode = error.statusCode
-            ..write(error.message);
-          await response.flush();
-          await response.close();
-          return;
+  }) async {
+    final response = request.response;
+    try {
+      try {
+        Response body;
+        switch (request.method) {
+          case 'GET':
+            body = await get(Request.fromHttpRequest(request));
+            break;
+          case 'POST':
+            body = await post(Request.fromHttpRequest(request));
+            break;
+          default:
+            throw MethodNotAllowed(request.method);
         }
-      },
-      zoneValues: <RequestKey<dynamic>, Object>{
-        RequestKey.response: request.response,
-      },
-    );
+        await _respond(response, body);
+        return;
+      } on HttpStatusException {
+        rethrow;
+      } catch (e, s) {
+        log.error('Internal server error', e, s);
+        throw InternalServerError('$e\n$s');
+      }
+    } on HttpStatusException catch (error) {
+      if (onError != null) {
+        await onError(error);
+      }
+      await _respond(
+        response,
+        Response.json({'error': error.message}, statusCode: error.statusCode),
+      );
+    }
   }
 
   /// Responds (using [response]).
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond(HttpResponse response, Body body) async {
+  Future<void> _respond(HttpResponse response, Response body) async {
     response.headers.contentType = body.contentType;
-    await response.addStream(body.serialize());
+    response.statusCode = body.statusCode;
+    await response.addStream(body.body);
     await response.flush();
     await response.close();
   }
 
   /// Gets the value associated with the specified [key] in the request
   /// context.
-  ///
-  /// Concrete subclasses should not call this directly. Instead, they should
-  /// access the getters that are tied to specific keys, such as [request]
-  /// and [response].
   ///
   /// If this is called outside the context of an HTTP request, this will
   /// throw a [StateError].
@@ -105,19 +93,12 @@ abstract base class RequestHandler {
     return value;
   }
 
-  /// Gets the current [HttpResponse].
-  ///
-  /// If this is called outside the context of an HTTP request, this will
-  /// throw a [StateError].
-  @protected
-  HttpResponse? get response => getValue<HttpResponse>(RequestKey.response);
-
   /// Services an HTTP GET.
   ///
   /// Subclasses should override this method if they support GET requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     throw const MethodNotAllowed('GET');
   }
 
@@ -126,7 +107,7 @@ abstract base class RequestHandler {
   /// Subclasses should override this method if they support POST requests.
   /// The default implementation will respond with HTTP 405 method not allowed.
   @protected
-  Future<Body> post(Request request) async {
+  Future<Response> post(Request request) async {
     throw const MethodNotAllowed('POST');
   }
 }

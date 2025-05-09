@@ -36,7 +36,7 @@ void main() {
   Future<Map<String, Object?>> decodeHandlerBody() async {
     final body = await tester.get(handler);
     return await utf8.decoder
-            .bind(body.serialize() as Stream<List<int>>)
+            .bind(body.body as Stream<List<int>>)
             .transform(json.decoder)
             .single
         as Map<String, Object?>;

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
@@ -2486,14 +2487,22 @@ void foo() {
 
         expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
 
-        await tester.post(webhook);
+        final response = await tester.post(webhook);
 
         expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
 
-        expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
-        expect(
-          tester.response.reasonPhrase,
-          contains('$mergedSha was not found on GoB'),
+        expect(response.statusCode, HttpStatus.serviceUnavailable);
+
+        await expectLater(
+          response.body.collectBytes(),
+          completion(
+            decodedAsJson(
+              containsPair(
+                'error',
+                contains('$mergedSha was not found on GoB'),
+              ),
+            ),
+          ),
         );
       },
     );
@@ -2514,12 +2523,19 @@ void foo() {
         );
 
         expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
-        await tester.post(webhook);
+        final response = await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.notFound);
-        expect(
-          tester.response.reasonPhrase,
-          contains('$mergedSha was not found on GoB'),
+        expect(response.statusCode, HttpStatus.notFound);
+        await expectLater(
+          response.body.collectBytes(),
+          completion(
+            decodedAsJson(
+              containsPair(
+                'error',
+                contains('$mergedSha was not found on GoB'),
+              ),
+            ),
+          ),
         );
         expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
       },
@@ -3255,10 +3271,18 @@ void foo() {
           headRef: 'refs/heads/gh-readonly-queue/main/some-pr',
         );
 
-        await tester.post(webhook);
+        final response = await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
-        expect(tester.response.reasonPhrase, contains('was not found on GoB'));
+        expect(response.statusCode, HttpStatus.serviceUnavailable);
+
+        await expectLater(
+          response.body.collectBytes(),
+          completion(
+            decodedAsJson(
+              containsPair('error', contains('was not found on GoB')),
+            ),
+          ),
+        );
       },
     );
 
@@ -3278,10 +3302,17 @@ void foo() {
           headRef: 'refs/heads/gh-readonly-queue/main/some-pr',
         );
 
-        await tester.post(webhook);
+        final response = await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.serviceUnavailable);
-        expect(tester.response.reasonPhrase, contains('was not found on GoB'));
+        expect(response.statusCode, HttpStatus.serviceUnavailable);
+        await expectLater(
+          response.body.collectBytes(),
+          completion(
+            decodedAsJson(
+              containsPair('error', contains('was not found on GoB')),
+            ),
+          ),
+        );
         expect(
           log,
           bufferedLoggerOf(
@@ -3307,10 +3338,17 @@ void foo() {
           headRef: 'refs/heads/gh-readonly-queue/main/some-pr',
         );
 
-        await tester.post(webhook);
+        final response = await tester.post(webhook);
 
-        expect(tester.response.statusCode, HttpStatus.notFound);
-        expect(tester.response.reasonPhrase, contains('was not found on GoB'));
+        expect(response.statusCode, HttpStatus.notFound);
+        await expectLater(
+          response.body.collectBytes(),
+          completion(
+            decodedAsJson(
+              containsPair('error', contains('was not found on GoB')),
+            ),
+          ),
+        );
         expect(
           log,
           bufferedLoggerOf(

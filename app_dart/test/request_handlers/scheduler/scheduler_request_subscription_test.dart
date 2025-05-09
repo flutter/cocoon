@@ -84,7 +84,7 @@ void main() {
     const pushMessage = PushMessage(data: messageData, messageId: '798274983');
     tester.message = pushMessage;
     final body = await tester.post(handler);
-    expect(body, Body.empty);
+    expect(body, Response.emptyOk);
   });
 
   test('retries schedule build if no response comes back', () async {
@@ -132,7 +132,7 @@ void main() {
     tester.message = pushMessage;
     final body = await tester.post(handler);
 
-    expect(body, Body.empty);
+    expect(body, Response.emptyOk);
     expect(verify(buildBucketClient.batch(any)).callCount, 2);
     expect(githubService.checkRunUpdates, isEmpty);
   });
@@ -166,7 +166,7 @@ void main() {
       final body = await tester.post(handler);
 
       final bodyString =
-          await utf8.decoder.bind(body.serialize().asyncMap((b) => b)).join();
+          await utf8.decoder.bind(body.body.asyncMap((b) => b)).join();
       expect(bodyString, 'Failed to schedule builds: (builder: Linux A\n).');
       expect(verify(buildBucketClient.batch(any)).callCount, 3);
       expect(githubService.checkRunUpdates, hasLength(1));

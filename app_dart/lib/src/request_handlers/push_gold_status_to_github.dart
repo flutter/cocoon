@@ -10,7 +10,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:gql/language.dart' as lang;
-import 'package:graphql/client.dart' hide Request;
+import 'package:graphql/client.dart' hide Request, Response;
 import 'package:http/http.dart' as http;
 
 import '../../cocoon_service.dart';
@@ -34,15 +34,15 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
   final Duration _ingestionDelay;
 
   @override
-  Future<Body> get(Request request) async {
+  Future<Response> get(Request request) async {
     if (authContext!.clientContext.isDevelopmentEnvironment) {
       // Don't push gold status from the local dev server.
-      return Body.empty;
+      return Response.emptyOk;
     }
 
     await _sendStatusUpdates(_firestore, Config.flutterSlug);
 
-    return Body.empty;
+    return Response.emptyOk;
   }
 
   Future<void> _sendStatusUpdates(
