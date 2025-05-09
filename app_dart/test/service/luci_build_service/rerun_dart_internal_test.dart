@@ -109,7 +109,7 @@ void main() {
     );
   });
 
-  test('must find associated sub-builds or fails', () async {
+  test('on missing associated sub-builds warns+does a full build', () async {
     when(mockBuildBucketClient.getBuild(any)).thenAnswer((_) async {
       return bbv2.Build(id: Int64(1001));
     });
@@ -127,6 +127,38 @@ void main() {
       return bbv2.SearchBuildsResponse(builds: []);
     });
 
+    when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((i) async {
+      final [bbv2.ScheduleBuildRequest request] = i.positionalArguments;
+      expect(
+        request.builder,
+        isA<bbv2.BuilderID>()
+            .having((b) => b.project, 'project', 'dart-internal')
+            .having((b) => b.bucket, 'bucket', 'flutter')
+            .having(
+              (b) => b.builder,
+              'builder',
+              'Linux flutter_release_builder',
+            ),
+      );
+      expect(
+        request.exe,
+        bbv2.Executable(cipdVersion: 'refs/heads/flutter-0.42-candidate.0'),
+      );
+      expect(
+        request.gitilesCommit,
+        bbv2.GitilesCommit(
+          project: 'mirrors/flutter',
+          host: 'flutter.googlesource.com',
+          ref: 'refs/heads/flutter-0.42-candidate.0',
+          id: 'abcdef',
+        ),
+      );
+      expect(request.hasNotify(), isFalse);
+      expect(request.properties, bbv2.Struct(fields: {}));
+      expect(request.priority, LuciBuildService.kRerunPriority);
+      return bbv2.Build();
+    });
+
     await expectLater(
       luci.rerunDartInternalReleaseBuilder(
         commit: CommitRef(
@@ -136,7 +168,7 @@ void main() {
         ),
         task: task,
       ),
-      completion(isFalse),
+      completion(isTrue),
     );
 
     expect(
@@ -144,8 +176,11 @@ void main() {
       bufferedLoggerOf(
         contains(
           logThat(
-            message: contains('No builds found for'),
-            severity: atLeastError,
+            message: stringContainsInOrder([
+              'No builds found for',
+              'A full rebuild will be triggered',
+            ]),
+            severity: atMostWarning,
           ),
         ),
       ),
@@ -154,6 +189,7 @@ void main() {
       firestore,
       existsInStorage(fs.Task.metadata, [
         isTask.hasStatus(TaskStatus.failed).hasCurrentAttempt(1),
+        isTask.hasStatus(TaskStatus.inProgress).hasCurrentAttempt(2),
       ]),
     );
   });
