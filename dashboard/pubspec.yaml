@@ -23,7 +23,7 @@ dependencies:
   google_sign_in: ^6.3.0
   google_sign_in_platform_interface: ^2.5.0
   google_sign_in_web: ^0.12.4+4
-  http: 1.3.0 # Rolled by dependabot
+  http: 1.4.0 # Rolled by dependabot
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
   provider: 6.1.5 # Rolled by dependabot
