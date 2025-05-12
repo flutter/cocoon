@@ -1113,8 +1113,11 @@ class LuciBuildService {
       ),
     );
     if (search.builds.isEmpty) {
-      log.error('No builds found for $buildId');
-      return false;
+      log.warn(
+        'No builds found for $buildId. This can occur when the previous build '
+        'completely failed, i.e. no builds were successfully spawned. A full '
+        'rebuild will be triggered',
+      );
     }
     final failedBuilds = [
       for (final build in search.builds)
