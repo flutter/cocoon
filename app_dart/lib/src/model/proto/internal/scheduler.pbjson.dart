@@ -200,6 +200,14 @@ const Target$json = {
     },
     {'1': 'drone_dimensions', '3': 17, '4': 3, '5': 9, '10': 'droneDimensions'},
     {'1': 'backfill', '3': 19, '4': 1, '5': 8, '7': 'true', '10': 'backfill'},
+    {
+      '1': 'schedule_during_release_override',
+      '3': 20,
+      '4': 1,
+      '5': 8,
+      '7': 'false',
+      '10': 'scheduleDuringReleaseOverride'
+    },
   ],
   '3': [
     Target_PropertiesEntry$json,
@@ -257,8 +265,9 @@ final $typed_data.Uint8List targetDescriptor = $convert.base64Decode(
     'ZXJ0aWVzRW50cnlSFHBvc3RzdWJtaXRQcm9wZXJ0aWVzEkEKCmRpbWVuc2lvbnMYECADKAsyIS'
     '5zY2hlZHVsZXIuVGFyZ2V0LkRpbWVuc2lvbnNFbnRyeVIKZGltZW5zaW9ucxIpChBkcm9uZV9k'
     'aW1lbnNpb25zGBEgAygJUg9kcm9uZURpbWVuc2lvbnMSIAoIYmFja2ZpbGwYEyABKAg6BHRydW'
-    'VSCGJhY2tmaWxsGj0KD1Byb3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1'
-    'ZRgCIAEoCVIFdmFsdWU6AjgBGkcKGVBvc3RzdWJtaXRQcm9wZXJ0aWVzRW50cnkSEAoDa2V5GA'
-    'EgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4ARo9Cg9EaW1lbnNpb25zRW50cnkS'
-    'EAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4AUoECA4QD0oECBIQEw'
-    '==');
+    'VSCGJhY2tmaWxsEk4KIHNjaGVkdWxlX2R1cmluZ19yZWxlYXNlX292ZXJyaWRlGBQgASgIOgVm'
+    'YWxzZVIdc2NoZWR1bGVEdXJpbmdSZWxlYXNlT3ZlcnJpZGUaPQoPUHJvcGVydGllc0VudHJ5Eh'
+    'AKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAEaRwoZUG9zdHN1Ym1p'
+    'dFByb3BlcnRpZXNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdW'
+    'U6AjgBGj0KD0RpbWVuc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEo'
+    'CVIFdmFsdWU6AjgBSgQIDhAPSgQIEhAT');
