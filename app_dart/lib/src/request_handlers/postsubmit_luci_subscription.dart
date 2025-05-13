@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 
@@ -15,6 +16,7 @@ import '../model/firestore/task.dart' as fs;
 import '../request_handling/request_handler.dart';
 import '../request_handling/response.dart';
 import '../request_handling/subscription_handler.dart';
+import '../service/config.dart';
 import '../service/firestore.dart';
 import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
@@ -185,6 +187,14 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
       _firestore,
       sha: task.commitSha,
     );
+    if (currentCommit.branch != Config.defaultBranch(currentCommit.slug) &&
+        !isReleaseCandidateBranch(branchName: currentCommit.branch)) {
+      log.info(
+        'Skip automatic reruns for experimental branch ${currentCommit.branch}',
+      );
+      return false;
+    }
+
     final commitList = await _firestore.queryRecentCommits(
       limit: 1,
       slug: currentCommit.slug,
