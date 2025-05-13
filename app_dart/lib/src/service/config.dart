@@ -569,7 +569,7 @@ class DynamicConfigUpdater {
 
   void stopUpdateLoop() {
     if (_status != UpdaterStatus.running) return;
-    log.info('Stopping config update loop...');
+    log.info('ConfigUpdater: Stopping config update loop...');
     _status = UpdaterStatus.stopping;
   }
 
@@ -577,7 +577,7 @@ class DynamicConfigUpdater {
     if (_status != UpdaterStatus.stopped) return;
     _status = UpdaterStatus.running;
 
-    log.info('Starting config update loop...');
+    log.info('ConfigUpdater: Starting config update loop...');
 
     // What we've decided:
     //   1. Each instance will **start** with a valid DynamicConfig
@@ -589,17 +589,50 @@ class DynamicConfigUpdater {
         _delay + Duration(milliseconds: _random.nextInt(1000)),
       );
       if (_status != UpdaterStatus.running) {
-        log.info('Stopped config update loop');
+        log.info('ConfigUpdater: Stopped config update loop');
         _status = UpdaterStatus.stopped;
         return;
       }
       try {
         final dynamicConfig = await fetchDynamicConfig();
-        config._dynamicConfig = dynamicConfig;
+        final diffs = diffConfigChanges(
+          config._dynamicConfig.toJson(),
+          dynamicConfig.toJson(),
+        );
+        if (diffs.isNotEmpty) {
+          log.info('ConfigUpdater: ${diffs.join(',')}');
+          config._dynamicConfig = dynamicConfig;
+        }
       } catch (e, s) {
-        log.error('Unable to fetch DynamicConfig!', e, s);
+        log.error('ConfigUpdater: Unable to fetch DynamicConfig!', e, s);
       }
     }
+  }
+
+  /// Produce a simple diff of the changing flags.
+  List<String> diffConfigChanges(
+    Map<String, Object?> oldFlags,
+    Map<String, Object?> newFlags, {
+    List<String>? diffs,
+    String chain = 'flags',
+  }) {
+    diffs ??= <String>[];
+
+    for (final MapEntry(:key, :value) in oldFlags.entries) {
+      if (value is Map) {
+        diffConfigChanges(
+          value as Map<String, Object?>,
+          newFlags[key] as Map<String, Object?>,
+          diffs: diffs,
+          chain: '$chain.$key',
+        );
+        continue;
+      }
+      if (value != newFlags[key]) {
+        diffs.add('$chain.$key $value -> ${newFlags[key]}');
+      }
+    }
+    return diffs;
   }
 }
 

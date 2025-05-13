@@ -75,7 +75,7 @@ void main() {
       bufferedLoggerOf(
         containsOnce(
           logThat(
-            message: equals('Starting config update loop...'),
+            message: equals('ConfigUpdater: Starting config update loop...'),
             severity: atMostInfo,
           ),
         ),
@@ -86,7 +86,7 @@ void main() {
       bufferedLoggerOf(
         containsOnce(
           logThat(
-            message: equals('Stopping config update loop...'),
+            message: equals('ConfigUpdater: Stopping config update loop...'),
             severity: atMostInfo,
           ),
         ),
@@ -97,7 +97,7 @@ void main() {
       bufferedLoggerOf(
         containsOnce(
           logThat(
-            message: equals('Stopped config update loop'),
+            message: equals('ConfigUpdater: Stopped config update loop'),
             severity: atMostInfo,
           ),
         ),
@@ -131,6 +131,29 @@ void main() {
     );
     expect(config.flags.backfillerCommitLimit, 100);
   });
+
+  test('handles updating values', () async {
+    updater.startUpdateLoop(config);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    mockHttpFile = updatedConfigYaml;
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    updater.stopUpdateLoop();
+
+    expect(config.flags.backfillerCommitLimit, 200);
+    expect(
+      log,
+      bufferedLoggerOf(
+        containsOnce(
+          logThat(
+            message: equals(
+              'ConfigUpdater: flags.backfillerCommitLimit 100 -> 200',
+            ),
+            severity: atMostInfo,
+          ),
+        ),
+      ),
+    );
+  });
 }
 
 final class _FakeRandom extends Fake implements Random {
@@ -148,4 +171,13 @@ const goodConfigYaml = '''
 # app_dart/lib/src/service/config.dart
 
 backfillerCommitLimit: 100
+''';
+
+const updatedConfigYaml = '''
+# Defines the config options for Flutter CI (Cocoon)
+#
+# The schema for this file is defined in DynamicConfig of
+# app_dart/lib/src/service/config.dart
+
+backfillerCommitLimit: 200
 ''';
