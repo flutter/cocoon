@@ -188,6 +188,37 @@ class LuciBuildService {
     return builds;
   }
 
+  /// Checks if [proposedVersion] exists as a recipe branch.
+  ///
+  /// If it does not, logs and falls back to [CipdVersion.defaultRecipe].
+  Future<CipdVersion> _getAndCheckRecipeVersion({
+    required RepositorySlug slug,
+    required String branch,
+  }) async {
+    if (slug != Config.flutterSlug) {
+      log.debug('Using default recipe: $slug is not flutter/flutter');
+      return _config.defaultRecipeBundleRef;
+    }
+    if (branch == Config.defaultBranch(Config.flutterSlug)) {
+      log.debug('Using default recipe: $branch is the default branch');
+      return _config.defaultRecipeBundleRef;
+    }
+    final proposed = CipdVersion(branch: branch);
+    final branches = await _gerritService.branches(
+      'flutter-review.googlesource.com',
+      'recipes',
+      filterRegex: 'flutter-.*|fuchsia.*',
+    );
+    if (branches.contains(proposed.version)) {
+      return proposed;
+    }
+    log.warn(
+      'Falling back to default recipe, could not find "${proposed.version}" '
+      'in $branches.',
+    );
+    return _config.defaultRecipeBundleRef;
+  }
+
   /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
   ///
   /// [engineArtifacts] determines how framework tests download and use the Flutter engine by
@@ -205,33 +236,10 @@ class LuciBuildService {
     final batchRequestList = <bbv2.BatchRequest_Request>[];
     final commitSha = pullRequest.head!.sha!;
     final isFusion = pullRequest.base!.repo!.slug() == Config.flutterSlug;
-    final CipdVersion cipdVersion;
-    {
-      final baseRef = pullRequest.base!.ref!;
-
-      // If this isn't flutter/flutter *OR* it's flutter/flutter master, use the default CIPD recipe.
-      // We don't create CIPD recipes for other repositories (see https://github.com/flutter/flutter/issues/164592).
-      if (!isFusion ||
-          Config.defaultBranch(pullRequest.base!.repo!.slug()) == baseRef) {
-        cipdVersion = CipdVersion.defaultRecipe;
-      } else {
-        final proposedVersion = CipdVersion(branch: pullRequest.base!.ref!);
-        final branches = await _gerritService.branches(
-          'flutter-review.googlesource.com',
-          'recipes',
-          filterRegex: 'flutter-.*|fuchsia.*',
-        );
-        if (branches.contains(proposedVersion.version)) {
-          cipdVersion = proposedVersion;
-        } else {
-          log.warn(
-            'Falling back to default recipe, could not find '
-            '"${proposedVersion.version}" in $branches.',
-          );
-          cipdVersion = _config.defaultRecipeBundleRef;
-        }
-      }
-    }
+    final cipdVersion = await _getAndCheckRecipeVersion(
+      slug: pullRequest.base!.repo!.slug(),
+      branch: pullRequest.base!.ref!,
+    );
 
     final checkRuns = <github.CheckRun>[];
     for (var target in targets) {
@@ -844,8 +852,11 @@ class LuciBuildService {
     processedProperties['git_branch'] = commit.branch;
     processedProperties['git_repo'] = commit.slug.name;
 
-    final cipdExe = 'refs/heads/${commit.branch}';
-    processedProperties['exe_cipd_version'] = cipdExe;
+    final cipdVersion = await _getAndCheckRecipeVersion(
+      slug: commit.slug,
+      branch: commit.branch,
+    );
+    processedProperties['exe_cipd_version'] = cipdVersion.version;
 
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
@@ -862,15 +873,20 @@ class LuciBuildService {
           // Prod build bucket, built during the merge queue.
           'flutter_realm': '',
         });
+      } else if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
+        // Experimental branches do not have:
+        // - A merge queue that prebuilds binaries for the current SHA
+        // - A flutter_release_builder pre-step
+        //
+        // ... so, just re-use the binaries that were built in presubmit.
+        processedProperties['flutter_realm'] = 'flutter_archives_v2';
       }
     }
     final propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);
 
     final requestedDimensions = target.getDimensions();
-
-    final executable = bbv2.Executable(cipdVersion: cipdExe);
-
+    final executable = bbv2.Executable(cipdVersion: cipdVersion.version);
     log.info(
       'Constructing the postsubmit schedule build request for ${target.name} on commit ${commit.sha}.',
     );

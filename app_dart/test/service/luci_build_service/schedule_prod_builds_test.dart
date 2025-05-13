@@ -43,17 +43,19 @@ void main() {
   late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeFirestoreService firestore;
   late FakePubSub pubSub;
+  late FakeGerritService gerrit;
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestore = FakeFirestoreService();
     pubSub = FakePubSub();
+    gerrit = FakeGerritService();
 
     luci = LuciBuildService(
       cache: CacheService(inMemory: true),
       config: FakeConfig(),
-      gerritService: FakeGerritService(),
+      gerritService: gerrit,
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
@@ -248,200 +250,9 @@ void main() {
   });
 
   test('schedules a post-submit build inside of flutter/flutter', () async {
-    final commit = generateFirestoreCommit(1, branch: 'main', repo: 'flutter');
-
-    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-      return bbv2.ListBuildersResponse(
-        builders: [
-          bbv2.BuilderItem(
-            id: bbv2.BuilderID(
-              bucket: 'prod',
-              project: 'flutter',
-              builder: 'Linux 1',
-            ),
-          ),
-        ],
-      );
-    });
-
-    await expectLater(
-      luci.schedulePostsubmitBuilds(
-        commit: commit.toRef(),
-        toBeScheduled: [
-          PendingTask(
-            target: generateTarget(
-              1,
-              properties: {
-                'recipe': 'devicelab/devicelab',
-                'os': 'debian-10.12',
-              },
-              slug: Config.flutterSlug,
-            ),
-            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
-            priority: LuciBuildService.kDefaultPriority,
-            currentAttempt: 1,
-          ),
-        ],
-      ),
-      completion(isEmpty),
-    );
-
-    final bbv2.ScheduleBuildRequest scheduleBuild;
-    {
-      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
-      batchRequest.mergeFromProto3Json(pubSub.messages.single);
-
-      expect(batchRequest.requests, hasLength(1));
-      scheduleBuild = batchRequest.requests.single.scheduleBuild;
-    }
-
-    expect(
-      scheduleBuild.builder,
-      isA<bbv2.BuilderID>()
-          .having((b) => b.bucket, 'bucket', 'prod')
-          .having((b) => b.builder, 'builder', 'Linux 1'),
-    );
-
-    expect(
-      scheduleBuild.notify.pubsubTopic,
-      'projects/flutter-dashboard/topics/build-bucket-postsubmit',
-    );
-
-    expect(
-      PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
-      PostsubmitUserData(
-        taskId: fs.TaskId.parse('1_task1_1'),
-        checkRunId: null /* Uses batch backfiller */,
-      ),
-    );
-
-    expect(scheduleBuild.properties.fields, {
-      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
-      'bringup': bbv2.Value(boolValue: false),
-      'git_branch': bbv2.Value(stringValue: 'main'),
-      'git_repo': bbv2.Value(stringValue: 'flutter'),
-      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
-      'os': bbv2.Value(stringValue: 'debian-10.12'),
-      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
-    });
-
-    expect(scheduleBuild.dimensions, [
-      isA<bbv2.RequestedDimension>()
-          .having((d) => d.key, 'key', 'os')
-          .having((d) => d.value, 'value', 'debian-10.12'),
-    ]);
-
-    verifyNever(
-      mockGithubChecksUtil.createCheckRun(
-        any,
-        Config.packagesSlug,
-        any,
-        'Linux 1',
-      ),
-    );
-  });
-
-  test('schedules a post-submit build that is a > attempt #1', () async {
-    final commit = generateFirestoreCommit(1, branch: 'main', repo: 'flutter');
-
-    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
-      return bbv2.ListBuildersResponse(
-        builders: [
-          bbv2.BuilderItem(
-            id: bbv2.BuilderID(
-              bucket: 'prod',
-              project: 'flutter',
-              builder: 'Linux 1',
-            ),
-          ),
-        ],
-      );
-    });
-
-    await expectLater(
-      luci.schedulePostsubmitBuilds(
-        commit: commit.toRef(),
-        toBeScheduled: [
-          PendingTask(
-            target: generateTarget(
-              1,
-              properties: {
-                'recipe': 'devicelab/devicelab',
-                'os': 'debian-10.12',
-              },
-              slug: Config.flutterSlug,
-            ),
-            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
-            priority: LuciBuildService.kDefaultPriority,
-            currentAttempt: 2,
-          ),
-        ],
-      ),
-      completion(isEmpty),
-    );
-
-    final bbv2.ScheduleBuildRequest scheduleBuild;
-    {
-      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
-      batchRequest.mergeFromProto3Json(pubSub.messages.single);
-
-      expect(batchRequest.requests, hasLength(1));
-      scheduleBuild = batchRequest.requests.single.scheduleBuild;
-    }
-
-    expect(
-      scheduleBuild.builder,
-      isA<bbv2.BuilderID>()
-          .having((b) => b.bucket, 'bucket', 'prod')
-          .having((b) => b.builder, 'builder', 'Linux 1'),
-    );
-
-    expect(
-      scheduleBuild.notify.pubsubTopic,
-      'projects/flutter-dashboard/topics/build-bucket-postsubmit',
-    );
-
-    expect(
-      PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
-      PostsubmitUserData(
-        taskId: fs.TaskId.parse('1_task1_2'),
-        checkRunId: null /* Uses batch backfiller */,
-      ),
-    );
-
-    expect(scheduleBuild.properties.fields, {
-      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
-      'bringup': bbv2.Value(boolValue: false),
-      'git_branch': bbv2.Value(stringValue: 'main'),
-      'git_repo': bbv2.Value(stringValue: 'flutter'),
-      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
-      'os': bbv2.Value(stringValue: 'debian-10.12'),
-      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
-    });
-
-    expect(scheduleBuild.dimensions, [
-      isA<bbv2.RequestedDimension>()
-          .having((d) => d.key, 'key', 'os')
-          .having((d) => d.value, 'value', 'debian-10.12'),
-    ]);
-
-    verifyNever(
-      mockGithubChecksUtil.createCheckRun(
-        any,
-        Config.packagesSlug,
-        any,
-        'Linux 1',
-      ),
-    );
-  });
-
-  // Regression test for https://github.com/flutter/flutter/issues/167010.
-  test('schedules a post-submit release candidate build', () async {
     final commit = generateFirestoreCommit(
       1,
-      branch: 'flutter-0.42-candidate.0',
+      branch: 'master',
       repo: 'flutter',
     );
 
@@ -513,6 +324,207 @@ void main() {
     expect(scheduleBuild.properties.fields, {
       'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
       'bringup': bbv2.Value(boolValue: false),
+      'git_branch': bbv2.Value(stringValue: 'master'),
+      'git_repo': bbv2.Value(stringValue: 'flutter'),
+      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+      'os': bbv2.Value(stringValue: 'debian-10.12'),
+      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+    });
+
+    expect(scheduleBuild.dimensions, [
+      isA<bbv2.RequestedDimension>()
+          .having((d) => d.key, 'key', 'os')
+          .having((d) => d.value, 'value', 'debian-10.12'),
+    ]);
+
+    verifyNever(
+      mockGithubChecksUtil.createCheckRun(
+        any,
+        Config.packagesSlug,
+        any,
+        'Linux 1',
+      ),
+    );
+  });
+
+  test('schedules a post-submit build that is a > attempt #1', () async {
+    final commit = generateFirestoreCommit(
+      1,
+      branch: 'master',
+      repo: 'flutter',
+    );
+
+    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+      return bbv2.ListBuildersResponse(
+        builders: [
+          bbv2.BuilderItem(
+            id: bbv2.BuilderID(
+              bucket: 'prod',
+              project: 'flutter',
+              builder: 'Linux 1',
+            ),
+          ),
+        ],
+      );
+    });
+
+    await expectLater(
+      luci.schedulePostsubmitBuilds(
+        commit: commit.toRef(),
+        toBeScheduled: [
+          PendingTask(
+            target: generateTarget(
+              1,
+              properties: {
+                'recipe': 'devicelab/devicelab',
+                'os': 'debian-10.12',
+              },
+              slug: Config.flutterSlug,
+            ),
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
+            priority: LuciBuildService.kDefaultPriority,
+            currentAttempt: 2,
+          ),
+        ],
+      ),
+      completion(isEmpty),
+    );
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(
+      scheduleBuild.builder,
+      isA<bbv2.BuilderID>()
+          .having((b) => b.bucket, 'bucket', 'prod')
+          .having((b) => b.builder, 'builder', 'Linux 1'),
+    );
+
+    expect(
+      scheduleBuild.notify.pubsubTopic,
+      'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+    );
+
+    expect(
+      PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
+      PostsubmitUserData(
+        taskId: fs.TaskId.parse('1_task1_2'),
+        checkRunId: null /* Uses batch backfiller */,
+      ),
+    );
+
+    expect(scheduleBuild.properties.fields, {
+      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+      'bringup': bbv2.Value(boolValue: false),
+      'git_branch': bbv2.Value(stringValue: 'master'),
+      'git_repo': bbv2.Value(stringValue: 'flutter'),
+      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+      'os': bbv2.Value(stringValue: 'debian-10.12'),
+      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+    });
+
+    expect(scheduleBuild.dimensions, [
+      isA<bbv2.RequestedDimension>()
+          .having((d) => d.key, 'key', 'os')
+          .having((d) => d.value, 'value', 'debian-10.12'),
+    ]);
+
+    verifyNever(
+      mockGithubChecksUtil.createCheckRun(
+        any,
+        Config.packagesSlug,
+        any,
+        'Linux 1',
+      ),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/167010.
+  test('schedules a post-submit release candidate build', () async {
+    final commit = generateFirestoreCommit(
+      1,
+      branch: 'flutter-0.42-candidate.0',
+      repo: 'flutter',
+    );
+
+    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+      return bbv2.ListBuildersResponse(
+        builders: [
+          bbv2.BuilderItem(
+            id: bbv2.BuilderID(
+              bucket: 'prod',
+              project: 'flutter',
+              builder: 'Linux 1',
+            ),
+          ),
+        ],
+      );
+    });
+
+    gerrit.branchesValue = ['refs/heads/flutter-0.42-candidate.0'];
+
+    await expectLater(
+      luci.schedulePostsubmitBuilds(
+        commit: commit.toRef(),
+        toBeScheduled: [
+          PendingTask(
+            target: generateTarget(
+              1,
+              properties: {
+                'recipe': 'devicelab/devicelab',
+                'os': 'debian-10.12',
+              },
+              slug: Config.flutterSlug,
+            ),
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
+            priority: LuciBuildService.kDefaultPriority,
+            currentAttempt: 1,
+          ),
+        ],
+      ),
+      completion(isEmpty),
+    );
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(
+      scheduleBuild.builder,
+      isA<bbv2.BuilderID>()
+          .having((b) => b.bucket, 'bucket', 'prod')
+          .having((b) => b.builder, 'builder', 'Linux 1'),
+    );
+
+    expect(
+      scheduleBuild.notify.pubsubTopic,
+      'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+    );
+
+    expect(
+      PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
+      PostsubmitUserData(
+        taskId: fs.TaskId.parse('1_task1_1'),
+        checkRunId: null /* Uses batch backfiller */,
+      ),
+    );
+
+    expect(scheduleBuild.properties.fields, {
+      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+      'bringup': bbv2.Value(boolValue: false),
       'git_branch': bbv2.Value(stringValue: 'flutter-0.42-candidate.0'),
       'git_repo': bbv2.Value(stringValue: 'flutter'),
       'exe_cipd_version': bbv2.Value(
@@ -523,6 +535,119 @@ void main() {
       'is_fusion': bbv2.Value(stringValue: 'true'),
       'flutter_prebuilt_engine_version': bbv2.Value(stringValue: commit.sha),
       'flutter_realm': bbv2.Value(stringValue: ''),
+    });
+
+    expect(scheduleBuild.dimensions, [
+      isA<bbv2.RequestedDimension>()
+          .having((d) => d.key, 'key', 'os')
+          .having((d) => d.value, 'value', 'debian-10.12'),
+    ]);
+
+    verifyNever(
+      mockGithubChecksUtil.createCheckRun(
+        any,
+        Config.packagesSlug,
+        any,
+        'Linux 1',
+      ),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/168738.
+  test('schedules a post-submit experimental branch build', () async {
+    final commit = generateFirestoreCommit(
+      1,
+      // Notably not a release-candidate branch and not "master".
+      branch: 'ios-experimental',
+      repo: 'flutter',
+    );
+
+    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+      return bbv2.ListBuildersResponse(
+        builders: [
+          bbv2.BuilderItem(
+            id: bbv2.BuilderID(
+              bucket: 'prod',
+              project: 'flutter',
+              builder: 'Linux 1',
+            ),
+          ),
+        ],
+      );
+    });
+
+    // Notably we don't require a recipe branch, and fallback to main.
+    gerrit.branchesValue = [];
+
+    await expectLater(
+      luci.schedulePostsubmitBuilds(
+        commit: commit.toRef(),
+        toBeScheduled: [
+          PendingTask(
+            target: generateTarget(
+              1,
+              properties: {
+                'recipe': 'devicelab/devicelab',
+                'os': 'debian-10.12',
+              },
+              slug: Config.flutterSlug,
+            ),
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
+            priority: LuciBuildService.kDefaultPriority,
+            currentAttempt: 1,
+          ),
+        ],
+      ),
+      completion(isEmpty),
+    );
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(
+      scheduleBuild.builder,
+      isA<bbv2.BuilderID>()
+          .having((b) => b.bucket, 'bucket', 'prod')
+          .having((b) => b.builder, 'builder', 'Linux 1'),
+    );
+
+    expect(
+      scheduleBuild.notify.pubsubTopic,
+      'projects/flutter-dashboard/topics/build-bucket-postsubmit',
+    );
+
+    expect(
+      PostsubmitUserData.fromBytes(scheduleBuild.notify.userData),
+      PostsubmitUserData(
+        taskId: fs.TaskId.parse('1_task1_1'),
+        checkRunId: null /* Uses batch backfiller */,
+      ),
+    );
+
+    expect(
+      scheduleBuild.properties.fields,
+      isNot(contains('flutter_prebuilt_engine_version')),
+      reason: 'Experimental branches use default engine SHA resolution',
+    );
+
+    expect(scheduleBuild.properties.fields, {
+      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+      'bringup': bbv2.Value(boolValue: false),
+      'git_branch': bbv2.Value(stringValue: 'ios-experimental'),
+      'git_repo': bbv2.Value(stringValue: 'flutter'),
+      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+      'os': bbv2.Value(stringValue: 'debian-10.12'),
+      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+
+      // Experimental branches use the presubmit bucket for engine builds.
+      'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
     });
 
     expect(scheduleBuild.dimensions, [

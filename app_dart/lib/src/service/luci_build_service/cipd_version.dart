@@ -14,7 +14,7 @@ final class CipdVersion {
   /// The default recipe to use
   static const defaultRecipe = CipdVersion(branch: 'main');
 
-  /// The version string, in the format, `refs/head/{{branch}}`.
+  /// The version string, in the format, `refs/heads/{{branch}}`.
   final String version;
 
   @override
