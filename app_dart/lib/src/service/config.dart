@@ -512,7 +512,7 @@ final class DynamicConfig {
   @JsonKey(defaultValue: 50)
   final int backfillerCommitLimit;
 
-  final ContentAwareHasingJson contentAwareHashing;
+  final ContentAwareHashingJson contentAwareHashing;
 
   DynamicConfig({
     required this.backfillerCommitLimit,

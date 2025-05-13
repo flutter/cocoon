@@ -9,18 +9,18 @@ part 'content_aware_hashing_flags.g.dart';
 
 @JsonSerializable()
 @immutable
-final class ContentAwareHasingJson {
-  ContentAwareHasingJson({required this.waitOnContentHash});
+final class ContentAwareHashingJson {
+  ContentAwareHashingJson({required this.waitOnContentHash});
 
   /// Merge Groups should wait for the content hash before scheduling.
   @JsonKey(defaultValue: false)
   final bool waitOnContentHash;
 
-  /// Connect the generated [_$ContentAwareHasingJsonFromJson] function to the `fromJson`
+  /// Connect the generated [_$ContentAwareHashingJsonFromJson] function to the `fromJson`
   /// factory.
-  factory ContentAwareHasingJson.fromJson(Map<String, Object?>? json) =>
-      _$ContentAwareHasingJsonFromJson(json ?? {});
+  factory ContentAwareHashingJson.fromJson(Map<String, Object?>? json) =>
+      _$ContentAwareHashingJsonFromJson(json ?? {});
 
-  /// Connect the generated [_$ContentAwareHasingJsonToJson] function to the `toJson` method.
-  Map<String, dynamic> toJson() => _$ContentAwareHasingJsonToJson(this);
+  /// Connect the generated [_$ContentAwareHashingJsonToJson] function to the `toJson` method.
+  Map<String, dynamic> toJson() => _$ContentAwareHashingJsonToJson(this);
 }

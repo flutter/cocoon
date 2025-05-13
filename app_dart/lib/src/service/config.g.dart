@@ -12,7 +12,7 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
     DynamicConfig(
       backfillerCommitLimit:
           (json['backfillerCommitLimit'] as num?)?.toInt() ?? 50,
-      contentAwareHashing: ContentAwareHasingJson.fromJson(
+      contentAwareHashing: ContentAwareHashingJson.fromJson(
         json['contentAwareHashing'] as Map<String, dynamic>?,
       ),
     );
