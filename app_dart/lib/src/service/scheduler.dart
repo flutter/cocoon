@@ -134,35 +134,35 @@ class Scheduler {
       return;
     }
 
-    final branch = pr.base!.ref!;
     final sha = pr.mergeCommitSha!;
-
-    // TODO(matanlurey): Remove carvout for legacy branch after 3.29 is archived.
-    // https://github.com/flutter/flutter/issues/167821
-    var markAllTasksSkipped = false;
-    if (isReleaseCandidateBranch(branchName: branch) &&
-        branch != 'flutter-3.29-candidate.0') {
-      markAllTasksSkipped = true;
-      log.info(
-        '[release-candidate-postsubmit-skip] For merged PR ${pr.number}, SHA=$sha, skipping all post-submit tasks',
-      );
-    }
-
-    final mergedCommit = fs.Commit.fromGithubPullRequest(pr);
-    if (await _commitExistsInFirestore(sha: mergedCommit.sha)) {
+    if (await _commitExistsInFirestore(sha: sha)) {
       log.debug('$sha already exists in Firestore. Scheduling skipped.');
       return;
     }
 
     log.debug('Scheduling $sha via GitHub webhook');
-    await _addCommit(mergedCommit, skipAllTasks: markAllTasksSkipped);
+    final mergedCommit = fs.Commit.fromGithubPullRequest(pr);
+    await _addCommit(mergedCommit);
   }
 
   /// Processes postsubmit tasks.
-  Future<void> _addCommit(fs.Commit commit, {bool skipAllTasks = false}) async {
+  Future<void> _addCommit(fs.Commit commit) async {
     if (!_config.supportedRepos.contains(commit.slug)) {
       log.debug('Skipping ${commit.sha} as repo is not supported');
       return;
+    }
+
+    final _TaskCommitScheduling scheduling;
+    if (isReleaseCandidateBranch(branchName: commit.branch)) {
+      // TODO(matanlurey): Remove carvout for legacy branch after 3.29 is archived.
+      // https://github.com/flutter/flutter/issues/167821
+      if (commit.branch == 'flutter-3.29-candidate.0') {
+        scheduling = _TaskCommitScheduling.legacyImmediatelyRunGuaranteedPolicy;
+      } else {
+        scheduling = _TaskCommitScheduling.releaseCandidateSkipTasksByDefault;
+      }
+    } else {
+      scheduling = _TaskCommitScheduling.defaultUseTargetSchedulingPolicy;
     }
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
@@ -189,21 +189,15 @@ class Scheduler {
     final toBeScheduled = <PendingTask>[];
     for (var target in targets) {
       final task = tasks.singleWhere((task) => task.taskName == target.name);
-      var policy = target.schedulerPolicy;
-
-      // TODO(matanlurey): Clean up the logic below, we actually do *not* want
-      // release branches to run every task automatically, and instead defer to
-      // manual scheduling.
-      //
-      // See https://github.com/flutter/flutter/issues/163896.
-      if (skipAllTasks) {
+      if (scheduling.skipPostsubmitTasks) {
         task.setStatus(TaskStatus.skipped);
         continue;
       }
-
-      // Release branches should run every task
-      if (Config.defaultBranch(commit.slug) != commit.branch) {
+      final SchedulerPolicy policy;
+      if (scheduling.forceGuaranteedPolicy) {
         policy = const GuaranteedPolicy();
+      } else {
+        policy = target.schedulerPolicy;
       }
       final priority = await policy.triggerPriority(
         taskName: task.taskName,
@@ -1610,4 +1604,27 @@ enum _FlutterRepoTestsToRun {
 
   /// No tests.
   frameworkFlutterAnalyzeOnly,
+}
+
+enum _TaskCommitScheduling {
+  /// Schedule according to how [Target.schedulerPolicy] is computed.
+  defaultUseTargetSchedulingPolicy,
+
+  /// Release candidate where tasks are skipped to be manually run either.
+  releaseCandidateSkipTasksByDefault,
+
+  /// Legacy handling for `3.29-candidate.0`.
+  ///
+  /// Remove after https://github.com/flutter/flutter/issues/167821.
+  legacyImmediatelyRunGuaranteedPolicy;
+
+  /// Whether postsubmit tasks should be initially skipped.
+  bool get skipPostsubmitTasks {
+    return this == releaseCandidateSkipTasksByDefault;
+  }
+
+  /// Whether to default to [GuaranteedPolicy] regardless of target settings.
+  bool get forceGuaranteedPolicy {
+    return this == legacyImmediatelyRunGuaranteedPolicy;
+  }
 }

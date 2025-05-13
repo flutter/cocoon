@@ -43,6 +43,13 @@ import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
+const String otherBranchCiYaml = r'''
+enabled_branches:
+  - ios-experimental
+targets:
+  - name: Linux A
+''';
+
 const String singleCiYaml = r'''
 enabled_branches:
   - master
@@ -504,6 +511,39 @@ void main() {
               hasLength(6),
               everyElement(isTask.hasStatus(TaskStatus.waitingForBackfill)),
             ),
+          ),
+        );
+      });
+
+      // Regression test for https://github.com/flutter/flutter/issues/168738.
+      test('marks all tasks as new for non-release/non-master', () async {
+        ciYamlFetcher.setCiYamlFrom(otherBranchCiYaml, engine: fusionCiYaml);
+
+        final mergedPr = generatePullRequest(
+          repo: 'flutter',
+          branch: 'ios-experimental',
+        );
+        await scheduler.addPullRequest(mergedPr);
+
+        expect(
+          firestore,
+          existsInStorage(fs.Commit.metadata, [
+            isCommit
+                .hasRepositoryPath('flutter/flutter')
+                .hasSha('abc')
+                .hasBranch('ios-experimental')
+                .hasCreateTimestamp(1)
+                .hasAuthor('dash')
+                .hasAvatar('dashatar')
+                .hasMessage('example message'),
+          ]),
+        );
+
+        expect(
+          firestore,
+          existsInStorage(
+            fs.Task.metadata,
+            everyElement(isTask.hasStatus(TaskStatus.waitingForBackfill)),
           ),
         );
       });
