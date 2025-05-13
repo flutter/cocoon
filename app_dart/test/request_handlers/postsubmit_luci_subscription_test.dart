@@ -4,6 +4,8 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
@@ -611,6 +613,13 @@ void main() {
     await tester.post(handler);
 
     expect(firestore, existsInStorage(fs.Task.metadata, hasLength(1)));
+
+    expect(
+      log,
+      bufferedLoggerOf(
+        contains(logThat(message: contains('Max retries reached'))),
+      ),
+    );
   });
 
   test('skips rerunning when builder is not in tip-of-tree', () async {
@@ -647,5 +656,60 @@ void main() {
     await tester.post(handler);
 
     expect(firestore, existsInStorage(fs.Task.metadata, hasLength(1)));
+
+    expect(
+      log,
+      bufferedLoggerOf(contains(logThat(message: contains('Not tip of tree')))),
+    );
+  });
+
+  // Regression test for https://github.com/flutter/flutter/issues/168738.
+  test('skips rerunning when builder is an experimental branch', () async {
+    final fsCommit = generateFirestoreCommit(
+      1,
+      sha: '87f88734747805589f2131753620d61b22922822',
+      // Notably not "master" or "flutter-X.XX-candidate.0".
+      branch: 'ios-experimental',
+    );
+    final fsTask = generateFirestoreTask(
+      1,
+      name: 'Linux A',
+      commitSha: fsCommit.sha,
+      status: TaskStatus.inProgress,
+    );
+    firestore.putDocument(fsCommit);
+    firestore.putDocument(fsTask);
+
+    // Add another commit to ToT.
+    firestore.putDocument(generateFirestoreCommit(2));
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      userData: PostsubmitUserData(
+        checkRunId: null,
+        taskId: fs.TaskId(
+          commitSha: fsCommit.sha,
+          taskName: fsTask.taskName,
+          currentAttempt: fsTask.currentAttempt,
+        ),
+      ),
+    );
+
+    await tester.post(handler);
+
+    expect(firestore, existsInStorage(fs.Task.metadata, hasLength(1)));
+
+    expect(
+      log,
+      bufferedLoggerOf(
+        contains(
+          logThat(
+            message: contains('Skip automatic reruns for experimental branch'),
+          ),
+        ),
+      ),
+    );
   });
 }
