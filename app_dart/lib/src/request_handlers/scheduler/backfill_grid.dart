@@ -200,6 +200,17 @@ final class BackfillTask {
   /// The LUCI scheduling priority of backfilling this task.
   final int priority;
 
+  /// Creates a copy of `this` with the provided properties replaced.
+  @useResult
+  BackfillTask copyWith({int? priority}) {
+    return BackfillTask._from(
+      task,
+      target: target,
+      commit: commit,
+      priority: priority ?? this.priority,
+    );
+  }
+
   @override
   String toString() {
     return 'BackfillTask ${const JsonEncoder.withIndent('  ').convert({

@@ -162,4 +162,26 @@ void main() {
       ]),
     );
   });
+
+  test('can override BackfillTask priority after creation', () {
+    final commit = generateFirestoreCommit(1).toRef();
+    final task = generateFirestoreTask(2, commitSha: commit.sha).toRef();
+    final target = generateTarget(1, name: task.name);
+
+    final grid = BackfillGrid.from(
+      [
+        (commit, [task]),
+      ],
+      tipOfTreeTargets: [target],
+    );
+
+    expect(
+      grid.createBackfillTask(task, priority: 1001).copyWith(priority: 1002),
+      isBackfillTask
+          .hasTask(task)
+          .hasTarget(target)
+          .hasCommit(commit)
+          .hasPriority(1002),
+    );
+  });
 }
