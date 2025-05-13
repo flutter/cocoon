@@ -51,7 +51,24 @@ final class BatchBackfiller extends RequestHandler {
   Future<Response> get(Request request) async {
     await _backfillReleaseBranch(Config.flutterSlug);
     await Future.forEach(config.supportedRepos, _backfillDefaultBranch);
+    await _backfillExperimentalBranch(Config.flutterSlug);
     return Response.emptyOk;
+  }
+
+  // TODO(matanlurey): Remove or make a formal supported feature.
+  //
+  // Hardcodes running a branch named `ios-experimental`, which is being tried
+  // by the iOS team to do MacOS 15.5 validation. It will appear similar to
+  // any other branch, but use lower-priority scheduling.
+  //
+  // See https://github.com/flutter/flutter/issues/168738.
+  Future<void> _backfillExperimentalBranch(RepositorySlug slug) async {
+    final fsGrid = await _firestore.queryRecentCommitsAndTasks(
+      slug,
+      commitLimit: config.backfillerCommitLimit,
+      branch: 'ios-experimental',
+    );
+    await _doBackfillFrom(slug, fsGrid, forceLowPriority: true);
   }
 
   Future<void> _backfillReleaseBranch(RepositorySlug slug) async {
@@ -82,8 +99,9 @@ final class BatchBackfiller extends RequestHandler {
 
   Future<void> _doBackfillFrom(
     RepositorySlug slug,
-    List<CommitAndTasks> fsGrid,
-  ) async {
+    List<CommitAndTasks> fsGrid, {
+    bool forceLowPriority = false,
+  }) async {
     if (fsGrid.isEmpty) {
       log.warn('No commits to backfill');
       return;
@@ -140,6 +158,15 @@ final class BatchBackfiller extends RequestHandler {
     log.debug(
       'Backfilling ${toBackfillTasks.length} tasks (pruned from $beforePruning)',
     );
+
+    if (forceLowPriority) {
+      log.debug('Overriding ${toBackfillTasks.length} tasks to low priority');
+      for (var i = 0; i < toBackfillTasks.length; i++) {
+        toBackfillTasks[i] = toBackfillTasks[i].copyWith(
+          priority: LuciBuildService.kBackfillPriority,
+        );
+      }
+    }
 
     // Update the database first before we schedule builds.
     await _updateFirestore(toBackfillTasks, grid.skippableTasks);

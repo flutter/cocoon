@@ -5,22 +5,22 @@
 import 'package:cocoon_common/rpc_model.dart' as rpc;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../src/fake_config.dart';
-import '../../src/request_handling/fake_pubsub.dart';
 import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/service/fake_ci_yaml_fetcher.dart';
 import '../../src/service/fake_firestore_service.dart';
-import '../../src/service/fake_luci_build_service.dart';
 import '../../src/utilities/entity_generators.dart';
 import '../../src/utilities/mocks.mocks.dart';
 
@@ -31,11 +31,10 @@ void main() {
   late BatchBackfiller handler;
 
   // Dependencies.
-  late FakePubSub pubSub;
-  late MockGithubChecksUtil mockGithubChecksUtil;
   late FakeConfig config;
   late FakeFirestoreService firestore;
   late FakeCiYamlFetcher ciYamlFetcher;
+  late _FakeLuciBuildService fakeLuciBuildService;
 
   // Used to implement BranchService.getBranches.
   late List<rpc.Branch>? branchesForRepository;
@@ -44,8 +43,6 @@ void main() {
   late RequestHandlerTester tester;
 
   setUp(() {
-    pubSub = FakePubSub();
-    mockGithubChecksUtil = MockGithubChecksUtil();
     firestore = FakeFirestoreService();
     config = FakeConfig(
       backfillerCommitLimitValue: 10,
@@ -53,13 +50,7 @@ void main() {
       supportedReposValue: {Config.flutterSlug},
     );
     ciYamlFetcher = FakeCiYamlFetcher();
-
-    final luciBuildService = FakeLuciBuildService(
-      config: config,
-      pubsub: pubSub,
-      githubChecksUtil: mockGithubChecksUtil,
-      firestore: firestore,
-    );
+    fakeLuciBuildService = _FakeLuciBuildService();
 
     final branchService = MockBranchService();
     branchesForRepository = [];
@@ -79,7 +70,7 @@ void main() {
     handler = BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
-      luciBuildService: luciBuildService,
+      luciBuildService: fakeLuciBuildService,
       backfillerStrategy: const _NaiveBackfillStrategy(),
       firestore: firestore,
       branchService: branchService,
@@ -362,6 +353,59 @@ void main() {
     ]);
     // dart format on
   });
+
+  // https://github.com/flutter/flutter/issues/168738
+  test('schedules low-priority targets for "ios-experimental"', () async {
+    branchesForRepository = [
+      // Intentionally left blank.
+    ];
+
+    // dart format off
+    await fillStorageAndSetCiYaml([
+      [$N, $I, $F, $S],
+      [$N, $N, $N, $N],
+    ], branch: 'ios-experimental');
+    // dart format on
+
+    // BEFORE:
+    expect(
+      await visualizeFirestoreGrid(commits: 2, branch: 'ios-experimental'),
+      // dart format off
+      [
+      '🧑‍💼 ⬜ 🟨 🟥 🟩',
+      '🧑‍💼 ⬜ ⬜ ⬜ ⬜',
+      ],
+      // dart format on
+    );
+
+    await tester.get(handler);
+
+    // AFTER:
+    expect(
+      await visualizeFirestoreGrid(commits: 2, branch: 'ios-experimental'),
+      // dart format off
+      [
+      '🧑‍💼 🟨 🟨 🟥 🟩',
+      '🧑‍💼 ⬜ 🟨 🟨 🟨',
+      ],
+      // dart format on
+    );
+
+    expect(
+      fakeLuciBuildService.scheduledPostsubmitBuilds,
+      allOf(
+        hasLength(4),
+        everyElement(
+          isA<PendingTask>().having(
+            (t) => t.priority,
+            'priority',
+            LuciBuildService.kBackfillPriority,
+          ),
+        ),
+      ),
+      reason: 'Should use a low priority for all executions',
+    );
+  });
 }
 
 /// A very hermetic but dumb backfilling algorithm.
@@ -383,5 +427,18 @@ final class _NaiveBackfillStrategy extends BackfillStrategy {
             priority: LuciBuildService.kBackfillPriority,
           ),
     ];
+  }
+}
+
+final class _FakeLuciBuildService extends Fake implements LuciBuildService {
+  final scheduledPostsubmitBuilds = <PendingTask>[];
+
+  @override
+  Future<List<PendingTask>> schedulePostsubmitBuilds({
+    required CommitRef commit,
+    required List<PendingTask> toBeScheduled,
+  }) async {
+    scheduledPostsubmitBuilds.addAll(toBeScheduled);
+    return [];
   }
 }
