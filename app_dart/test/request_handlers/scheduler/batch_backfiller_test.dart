@@ -48,9 +48,9 @@ void main() {
     mockGithubChecksUtil = MockGithubChecksUtil();
     firestore = FakeFirestoreService();
     config = FakeConfig(
-      backfillerCommitLimitValue: 10,
       backfillerTargetLimitValue: 100,
       supportedReposValue: {Config.flutterSlug},
+      dynamicConfig: DynamicConfig.fromJson({'backfillerCommitLimit': 10}),
     );
     ciYamlFetcher = FakeCiYamlFetcher();
 
@@ -100,7 +100,7 @@ void main() {
   }) async {
     final grid = await firestore.queryRecentCommitsAndTasks(
       Config.flutterSlug,
-      commitLimit: commits ?? config.backfillerCommitLimit,
+      commitLimit: commits ?? config.flags.backfillerCommitLimit,
       branch: branch,
     );
 
@@ -270,7 +270,7 @@ void main() {
   });
 
   test('only considers the top X commits', () async {
-    config.backfillerCommitLimitValue = 1;
+    config.dynamicConfig = DynamicConfig.fromJson({'backfillerCommitLimit': 1});
 
     // dart format off
     await fillStorageAndSetCiYaml([

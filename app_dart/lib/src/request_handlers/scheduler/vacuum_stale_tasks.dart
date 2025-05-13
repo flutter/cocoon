@@ -69,7 +69,7 @@ final class VacuumStaleTasks extends RequestHandler {
 
     final recentCommits = await _firestore.queryRecentCommitsAndTasks(
       slug,
-      commitLimit: config.backfillerCommitLimit,
+      commitLimit: config.flags.backfillerCommitLimit,
       status: TaskStatus.inProgress,
       branch: branch,
     );

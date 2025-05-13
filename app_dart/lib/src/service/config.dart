@@ -20,6 +20,7 @@ import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart' show Providers;
 import '../foundation/typedefs.dart' show HttpClientProvider;
+import 'flags/content_aware_hashing_flags.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
 
@@ -32,6 +33,9 @@ interface class Config {
   /// Creates and returns a [Config] instance.
   Config(this._cache, this._secrets, {required DynamicConfig dynamicConfig})
     : _dynamicConfig = dynamicConfig;
+
+  /// Access dynamically configured flags.
+  DynamicConfig get flags => _dynamicConfig;
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -210,12 +214,6 @@ interface class Config {
   /// only `backfillerTargetLimit` will be scheduled whereas others wait for
   /// the next API call.
   int get backfillerTargetLimit => 75;
-
-  /// Upper limit of commit rows to be backfilled in API call.
-  ///
-  /// This limits the number of commits to be checked to backfill. When bots
-  /// are idle, we hope to scan as many commit rows as possible.
-  int get backfillerCommitLimit => _dynamicConfig.backfillerCommitLimit;
 
   /// Upper limit of issue/PRs allowed each API call.
   ///
@@ -504,7 +502,7 @@ interface class Config {
 ///
 /// Should be read from git/HEAD/app_dart/config.yaml and cached between
 /// services.
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 @immutable
 final class DynamicConfig {
   /// Upper limit of commit rows to be backfilled in API call.
@@ -514,12 +512,17 @@ final class DynamicConfig {
   @JsonKey(defaultValue: 50)
   final int backfillerCommitLimit;
 
-  DynamicConfig({required this.backfillerCommitLimit});
+  final ContentAwareHashingJson contentAwareHashing;
+
+  DynamicConfig({
+    required this.backfillerCommitLimit,
+    required this.contentAwareHashing,
+  });
 
   /// Connect the generated [_$DynamicConfigFromJson] function to the `fromJson`
   /// factory.
-  factory DynamicConfig.fromJson(Map<String, Object?> json) =>
-      _$DynamicConfigFromJson(json);
+  factory DynamicConfig.fromJson(Map<String, Object?>? json) =>
+      _$DynamicConfigFromJson(json ?? {});
 
   /// Connect the generated [_$DynamicConfigToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);

@@ -63,7 +63,7 @@ final class BatchBackfiller extends RequestHandler {
       }
       final fsGrid = await _firestore.queryRecentCommitsAndTasks(
         slug,
-        commitLimit: config.backfillerCommitLimit,
+        commitLimit: config.flags.backfillerCommitLimit,
         branch: branch.reference,
       );
       await _doBackfillFrom(slug, fsGrid);
@@ -74,7 +74,7 @@ final class BatchBackfiller extends RequestHandler {
     log.debug('Running default branch backfiller for "$slug"');
     final fsGrid = await _firestore.queryRecentCommitsAndTasks(
       slug,
-      commitLimit: config.backfillerCommitLimit,
+      commitLimit: config.flags.backfillerCommitLimit,
       branch: Config.defaultBranch(slug),
     );
     return await _doBackfillFrom(slug, fsGrid);
