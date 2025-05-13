@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
 import 'package:github/hooks.dart' as gh;
 import 'package:googleapis/firestore/v1.dart' as fs;
@@ -44,23 +45,38 @@ interface class CommitService {
     );
 
     // Convert into the format the rest of the service uses.
-    await _insertFirestore(
+    await _insertFirestoreIfNewSha(
       _Commit.fromBranchEvent(
         repository: slug,
         branch: branch,
         commit: ghCommit,
         now: _now(),
       ),
+      debugOrigin: 'GitHub Branch Event',
     );
   }
 
   /// Add a commit based on a Push event to the Firestore.
   /// https://docs.github.com/en/webhooks/webhook-events-and-payloads#push
   Future<void> handlePushGithubRequest(Map<String, Object?> pushEvent) async {
-    await _insertFirestore(_Commit.fromPushEventJson(pushEvent));
+    await _insertFirestoreIfNewSha(
+      _Commit.fromPushEventJson(pushEvent),
+      debugOrigin: 'GitHub Push Event',
+    );
   }
 
-  Future<void> _insertFirestore(_Commit commit) async {
+  Future<void> _insertFirestoreIfNewSha(
+    _Commit commit, {
+    required String debugOrigin,
+  }) async {
+    if (await fs.Commit.tryFromFirestoreBySha(_firestore, sha: commit.sha) !=
+        null) {
+      log.info(
+        'Skipping commit ${commit.sha} (from $debugOrigin): already exists in '
+        'Firestore',
+      );
+      return;
+    }
     final fsCommit = fs.Commit(
       createTimestamp: commit.createdOn.millisecondsSinceEpoch,
       repositoryPath: commit.repository.fullName,

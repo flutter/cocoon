@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 
 import '../src/fake_config.dart';
 import '../src/service/fake_firestore_service.dart';
+import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.mocks.dart';
 import '../src/utilities/webhook_generators.dart';
 
@@ -90,15 +91,23 @@ void main() {
       );
     });
 
-    test('does not add commit to db if it exists in Firestore', () async {
+    // Regression test for https://github.com/flutter/flutter/issues/168684.
+    test('does not update commit in db if SHA exists in Firestore', () async {
+      firestore.putDocument(
+        generateFirestoreCommit(1, branch: branch, sha: sha),
+      );
+
       when(
         githubService.getReference(
           RepositorySlug(owner, repository),
-          'heads/$branch',
+          'heads/$branch-different',
         ),
       ).thenAnswer((Invocation invocation) {
         return Future<GitReference>.value(
-          GitReference(ref: 'refs/$branch', object: GitObject('', sha, '')),
+          GitReference(
+            ref: 'refs/$branch-different',
+            object: GitObject('', sha, ''),
+          ),
         );
       });
 
@@ -119,12 +128,15 @@ void main() {
       });
 
       final createEvent = generateCreateBranchEvent(
-        branch,
+        '$branch-different',
         '$owner/$repository',
       );
       await commitService.handleCreateGithubRequest(createEvent);
 
-      expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
+      expect(
+        firestore,
+        existsInStorage(fs.Commit.metadata, [isCommit.hasBranch(branch)]),
+      );
     });
   });
 
@@ -155,9 +167,14 @@ void main() {
       );
     });
 
-    test('does not add commit to db if it exists in Firestore', () async {
+    // Regression test for https://github.com/flutter/flutter/issues/168684.
+    test('does not update commit in db if SHA exists in Firestore', () async {
+      firestore.putDocument(
+        generateFirestoreCommit(1, branch: branch, sha: sha),
+      );
+
       final pushEvent = generatePushEvent(
-        branch,
+        '$branch-different',
         owner,
         repository,
         message: message,
@@ -167,7 +184,10 @@ void main() {
       );
       await commitService.handlePushGithubRequest(pushEvent);
 
-      expect(firestore, existsInStorage(fs.Commit.metadata, hasLength(1)));
+      expect(
+        firestore,
+        existsInStorage(fs.Commit.metadata, [isCommit.hasBranch(branch)]),
+      );
     });
   });
 }
