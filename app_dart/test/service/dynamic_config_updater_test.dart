@@ -129,7 +129,7 @@ void main() {
       '${requestUris.last}',
       'https://raw.githubusercontent.com/flutter/cocoon/main/app_dart/config.yaml',
     );
-    expect(config.backfillerCommitLimit, 100);
+    expect(config.flags.backfillerCommitLimit, 100);
   });
 }
 

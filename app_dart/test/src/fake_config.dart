@@ -49,11 +49,11 @@ class FakeConfig implements Config {
     this.supportedReposValue,
     this.batchSizeValue,
     this.backfillerTargetLimitValue,
-    this.backfillerCommitLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
     DynamicConfig? dynamicConfig,
-  });
+  }) : dynamicConfig =
+           dynamicConfig ?? DynamicConfig.fromJson(<String, Object?>{});
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
@@ -75,7 +75,6 @@ class FakeConfig implements Config {
   String? releaseCandidateBranchPathValue;
   Set<String>? rollerAccountsValue;
   int? backfillerTargetLimitValue;
-  int? backfillerCommitLimitValue;
   int? issueAndPRLimitValue;
   String? flutterGoldPendingValue;
   String? flutterGoldSuccessValue;
@@ -89,6 +88,7 @@ class FakeConfig implements Config {
   Set<gh.RepositorySlug>? supportedReposValue;
   Set<gh.RepositorySlug>? postsubmitSupportedReposValue;
   Duration? githubRequestDelayValue;
+  DynamicConfig dynamicConfig;
 
   @override
   Future<gh.GitHub> createGitHubClient({
@@ -119,9 +119,6 @@ class FakeConfig implements Config {
 
   @override
   int get backfillerTargetLimit => backfillerTargetLimitValue ?? 50;
-
-  @override
-  int get backfillerCommitLimit => backfillerCommitLimitValue ?? 50;
 
   @override
   int get issueAndPRLimit => issueAndPRLimitValue ?? 2;
@@ -268,4 +265,8 @@ class FakeConfig implements Config {
   @override
   Future<String> get discordTreeStatusWebhookUrl async =>
       'https://discord.com/api/webhooks/1234/abcd';
+
+  @override
+  // TODO: implement flags
+  DynamicConfig get flags => dynamicConfig;
 }

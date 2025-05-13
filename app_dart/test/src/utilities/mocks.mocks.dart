@@ -737,6 +737,17 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as Set<_i7.RepositorySlug>);
 
   @override
+  _i2.DynamicConfig get flags =>
+      (super.noSuchMethod(
+            Invocation.getter(#flags),
+            returnValue: _i20.dummyValue<_i2.DynamicConfig>(
+              this,
+              Invocation.getter(#flags),
+            ),
+          )
+          as _i2.DynamicConfig);
+
+  @override
   Set<_i7.RepositorySlug> get supportedRepos =>
       (super.noSuchMethod(
             Invocation.getter(#supportedRepos),
@@ -848,14 +859,6 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   int get backfillerTargetLimit =>
       (super.noSuchMethod(
             Invocation.getter(#backfillerTargetLimit),
-            returnValue: 0,
-          )
-          as int);
-
-  @override
-  int get backfillerCommitLimit =>
-      (super.noSuchMethod(
-            Invocation.getter(#backfillerCommitLimit),
             returnValue: 0,
           )
           as int);
