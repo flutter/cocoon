@@ -65,7 +65,7 @@ final class BatchBackfiller extends RequestHandler {
   Future<void> _backfillExperimentalBranch(RepositorySlug slug) async {
     final fsGrid = await _firestore.queryRecentCommitsAndTasks(
       slug,
-      commitLimit: config.backfillerCommitLimit,
+      commitLimit: config.flags.backfillerCommitLimit,
       branch: 'ios-experimental',
     );
     await _doBackfillFrom(slug, fsGrid, forceLowPriority: true);
