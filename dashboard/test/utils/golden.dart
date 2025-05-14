@@ -50,8 +50,14 @@ class CocoonFileComparator extends LocalFileComparator {
     return super.getGoldenBytes(golden);
   }
 
-  static bool get _isLuciCi {
-    return !kIsWeb && Platform.environment.containsKey('LUCI_CONTEXT');
+  static bool get _isRunningOnCi {
+    if (kIsWeb) {
+      return false;
+    }
+    return const [
+      'LUCI_CONTEXT',
+      'GITHUB_ACTIONS',
+    ].any(Platform.environment.containsKey);
   }
 
   void _registerTestFailure(Uint8List imageBytes, Uri golden) {
@@ -73,7 +79,7 @@ class CocoonFileComparator extends LocalFileComparator {
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
     final goldenBytes = await _tryGetGoldenBytes(golden);
-    if (goldenBytes == null && _isLuciCi) {
+    if (goldenBytes == null && _isRunningOnCi) {
       _registerTestFailure(imageBytes, golden);
       return true;
     }
@@ -85,7 +91,7 @@ class CocoonFileComparator extends LocalFileComparator {
 
     if (!result.passed && result.diffPercent > _kGoldenDiffTolerance) {
       final error = await generateFailureOutput(result, golden, basedir);
-      if (_isLuciCi) {
+      if (_isRunningOnCi) {
         _registerTestFailure(imageBytes, golden);
         return true;
       }
