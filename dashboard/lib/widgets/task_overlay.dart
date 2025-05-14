@@ -278,7 +278,7 @@ class TaskOverlayContents extends StatelessWidget {
     final summaryText = [
       'Attempts: ${task.attempts}',
       _describeTaskRunning(task, now: now!),
-      if (task.isBringup) 'Flaky: ${task.isBringup}',
+      if (task.isBringup) 'Bringup',
     ].join('\n');
 
     return Card(

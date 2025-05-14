@@ -110,7 +110,7 @@ void main() {
         'Attempts: 3\n'
         'Queued for 2 minutes\n'
         'Ran for 48 minutes\n'
-        'Flaky: true';
+        'Bringup';
 
     await tester.pumpWidget(
       Now.fixed(
