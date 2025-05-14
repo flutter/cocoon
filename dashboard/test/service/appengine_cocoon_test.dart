@@ -254,7 +254,11 @@ void main() {
 
     test('should return true if request succeeds', () async {
       await expectLater(
-        service.vacuumGitHubCommits('fakeIdToken'),
+        service.vacuumGitHubCommits(
+          'fakeIdToken',
+          repo: 'flutter',
+          branch: 'master',
+        ),
         completion(
           isA<CocoonResponse<bool>>().having((r) => r.data, 'data', isTrue),
         ),
@@ -268,7 +272,11 @@ void main() {
         }),
       );
       await expectLater(
-        service.vacuumGitHubCommits('fakeIdToken'),
+        service.vacuumGitHubCommits(
+          'fakeIdToken',
+          repo: 'flutter',
+          branch: 'master',
+        ),
         completion(
           isA<CocoonResponse<bool>>().having((r) => r.error, 'data', isNotNull),
         ),
