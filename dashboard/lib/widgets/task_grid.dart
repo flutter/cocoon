@@ -59,9 +59,12 @@ class TaskGridContainer extends StatelessWidget {
       builder: (BuildContext context, Widget? child) {
         final commitStatuses = buildState.statuses;
 
-        // Assume if there is no data that it is loading.
         if (commitStatuses.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          if (buildState.moreStatusesExist) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            return const Center(child: Text('No commits found.'));
+          }
         }
 
         return TaskGrid(
