@@ -325,27 +325,40 @@ class Scheduler {
     await cancelPreSubmitTargets(pullRequest: pullRequest, reason: reason);
 
     final slug = pullRequest.base!.repo!.slug();
+    final isFusion = slug == Config.flutterSlug;
 
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
     // the PR and to the merge group, and so it must be completed in both cases.
-    final lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
+    final CheckRun? lock;
+    {
+      if (!isFusion) {
+        log.debug('Skipping merge queue guard: $slug is not flutter/flutter');
+        lock = null;
+      } else if (Config.defaultBranch(slug) != pullRequest.head!.ref) {
+        log.debug(
+          'Skipping merge queue guard: ${pullRequest.head!.ref} is not the '
+          'default flutter/flutter branch',
+        );
+        lock = null;
+      } else {
+        lock = await _lockMergeGroupChecks(slug, pullRequest.head!.sha!);
+      }
+    }
 
-    // Track if we should unlock the merge group lock in case of non-fusion or
-    // revert bots.
+    // Track if we should unlock the merge group lock in case of rever bots.
+    // This is different than simply not having a lock - because flutter/flutter
+    // master requires to see the lock existing and have been passed (versus
+    // non-existence).
     var unlockMergeGroup = false;
 
     final ciValidationCheckRun = await _createCiYamlCheckRun(pullRequest, slug);
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
-    final isFusion = slug == Config.flutterSlug;
     do {
       try {
         final sha = pullRequest.head!.sha!;
-        if (!isFusion) {
-          unlockMergeGroup = true;
-        }
 
         // Both the author and label should be checked to make sure that no one is
         // attempting to get a pull request without check through.
@@ -381,7 +394,7 @@ class Scheduler {
 
           await _runCiTestingStage(
             pullRequest: pullRequest,
-            checkRunGuard: '$lock',
+            checkRunGuard: lock?.toString() ?? '',
             logCrumb: logCrumb,
 
             // The if-branch already skips the engine build phase.
@@ -470,8 +483,8 @@ class Scheduler {
     // Normally the lock stays pending until the PR is ready to be enqueued, but
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
-    if (unlockMergeGroup) {
-      await unlockMergeQueueGuard(slug, pullRequest.head!.sha!, lock);
+    if (lock != null && unlockMergeGroup) {
+      await _unlockMergeQueueGuard(slug, pullRequest.head!.sha!, lock);
     }
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
@@ -561,12 +574,12 @@ class Scheduler {
     }
     log.info('$logCrumb: scheduling merge group checks');
 
-    final lock = await lockMergeGroupChecks(slug, headSha);
+    final lock = await _lockMergeGroupChecks(slug, headSha);
 
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
     // close the merge group guard.
     if (!isFusion) {
-      await unlockMergeQueueGuard(slug, headSha, lock);
+      await _unlockMergeQueueGuard(slug, headSha, lock);
       return;
     }
 
@@ -730,7 +743,7 @@ $s
   /// While this check is still in progress, the merge queue will not merge the
   /// respective PR onto the target branch (e.g. main or master), because this
   /// check is "required".
-  Future<CheckRun> lockMergeGroupChecks(
+  Future<CheckRun> _lockMergeGroupChecks(
     RepositorySlug slug,
     String headSha,
   ) async {
@@ -754,7 +767,7 @@ $s
   ///
   /// If the guard is guarding a pull request, this immediately makes the pull
   /// request eligible for enqueuing into the merge queue.
-  Future<void> unlockMergeQueueGuard(
+  Future<void> _unlockMergeQueueGuard(
     RepositorySlug slug,
     String headSha,
     CheckRun lock,
@@ -1113,7 +1126,11 @@ $s
     required String logCrumb,
   }) async {
     log.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
-    await unlockMergeQueueGuard(slug, sha, checkRunFromString(mergeQueueGuard));
+    await _unlockMergeQueueGuard(
+      slug,
+      sha,
+      checkRunFromString(mergeQueueGuard),
+    );
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
@@ -1146,7 +1163,7 @@ $s
 
     // Unlock the guarding check_run.
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
-    await unlockMergeQueueGuard(slug, sha, checkRunGuard);
+    await _unlockMergeQueueGuard(slug, sha, checkRunGuard);
   }
 
   /// Schedules post-engine build tests (i.e. engine tests, and framework tests).

@@ -2392,11 +2392,6 @@ targets:
             ),
           ).captured,
           <Object?>[
-            Config.kMergeQueueLockName,
-            const CheckRunOutput(
-              title: Config.kMergeQueueLockName,
-              summary: Scheduler.kMergeQueueLockDescription,
-            ),
             Config.kCiYamlCheckName,
             const CheckRunOutput(
               title: Config.kCiYamlCheckName,
@@ -2578,11 +2573,6 @@ targets:
               ),
             ).captured,
             <Object?>[
-              Config.kMergeQueueLockName,
-              const CheckRunOutput(
-                title: Config.kMergeQueueLockName,
-                summary: Scheduler.kMergeQueueLockDescription,
-              ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
                 title: Config.kCiYamlCheckName,
@@ -2619,11 +2609,6 @@ targets:
               ),
             ).captured,
             <Object?>[
-              Config.kMergeQueueLockName,
-              const CheckRunOutput(
-                title: Config.kMergeQueueLockName,
-                summary: Scheduler.kMergeQueueLockDescription,
-              ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
                 title: Config.kCiYamlCheckName,
@@ -2654,12 +2639,7 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <Object?>[
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
-          ],
+          <Object?>[CheckRunStatus.completed, CheckRunConclusion.success],
         );
       });
 
