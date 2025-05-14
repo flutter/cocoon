@@ -417,13 +417,25 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
           as _i8.Future<_i3.CocoonResponse<void>>);
 
   @override
-  _i8.Future<_i3.CocoonResponse<bool>> vacuumGitHubCommits(String? idToken) =>
+  _i8.Future<_i3.CocoonResponse<bool>> vacuumGitHubCommits(
+    String? idToken, {
+    required String? repo,
+    required String? branch,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#vacuumGitHubCommits, [idToken]),
+            Invocation.method(
+              #vacuumGitHubCommits,
+              [idToken],
+              {#repo: repo, #branch: branch},
+            ),
             returnValue: _i8.Future<_i3.CocoonResponse<bool>>.value(
               _FakeCocoonResponse_2<bool>(
                 this,
-                Invocation.method(#vacuumGitHubCommits, [idToken]),
+                Invocation.method(
+                  #vacuumGitHubCommits,
+                  [idToken],
+                  {#repo: repo, #branch: branch},
+                ),
               ),
             ),
           )

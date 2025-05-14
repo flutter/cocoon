@@ -360,6 +360,8 @@ class BuildState extends ChangeNotifier {
     }
     final response = await cocoonService.vacuumGitHubCommits(
       await authService.idToken,
+      repo: currentRepo,
+      branch: currentBranch,
     );
     if (response.error != null) {
       _errors.send('$errorMessageRefreshGitHubCommits: ${response.error}');

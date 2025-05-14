@@ -70,7 +70,11 @@ abstract class CocoonService {
   });
 
   /// Force update Cocoon to get the latest commits.
-  Future<CocoonResponse<bool>> vacuumGitHubCommits(String idToken);
+  Future<CocoonResponse<bool>> vacuumGitHubCommits(
+    String idToken, {
+    required String repo,
+    required String branch,
+  });
 }
 
 /// Wrapper class for data this state serves.

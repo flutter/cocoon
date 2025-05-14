@@ -544,7 +544,13 @@ void main() {
       final result = await buildState.refreshGitHubCommits();
 
       expect(result, isFalse);
-      verifyNever(cocoonService.vacuumGitHubCommits(any));
+      verifyNever(
+        cocoonService.vacuumGitHubCommits(
+          any,
+          branch: anyNamed('branch'),
+          repo: anyNamed('repo'),
+        ),
+      );
     });
 
     testWidgets(
@@ -553,7 +559,13 @@ void main() {
         const idToken = 'id_token';
         when(authService.isAuthenticated).thenReturn(true);
         when(authService.idToken).thenAnswer((_) async => idToken);
-        when(cocoonService.vacuumGitHubCommits(idToken)).thenAnswer(
+        when(
+          cocoonService.vacuumGitHubCommits(
+            idToken,
+            branch: anyNamed('branch'),
+            repo: anyNamed('repo'),
+          ),
+        ).thenAnswer(
           (_) async => const CocoonResponse.error('Bad user', statusCode: 401),
         );
 
@@ -574,7 +586,11 @@ void main() {
       when(authService.isAuthenticated).thenReturn(true);
       when(authService.idToken).thenAnswer((_) async => idToken);
       when(
-        cocoonService.vacuumGitHubCommits(idToken),
+        cocoonService.vacuumGitHubCommits(
+          idToken,
+          branch: anyNamed('branch'),
+          repo: anyNamed('repo'),
+        ),
       ).thenAnswer((_) async => const CocoonResponse.data(true));
 
       final buildState = BuildState(

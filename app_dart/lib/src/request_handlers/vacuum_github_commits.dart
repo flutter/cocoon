@@ -26,15 +26,31 @@ final class VacuumGithubCommits extends ApiRequestHandler {
   }) : _scheduler = scheduler;
 
   final Scheduler _scheduler;
-  static const String branchParam = 'branch';
+
+  static const _paramRepo = 'repo';
+  static const _paramBranch = 'branch';
 
   @override
   Future<Response> get(Request request) async {
-    for (var slug in config.supportedRepos) {
-      final branch =
-          request.uri.queryParameters[branchParam] ??
-          Config.defaultBranch(slug);
-      await _vacuumRepository(slug, branch: branch);
+    final Iterable<gh.RepositorySlug> repos;
+    if (request.uri.queryParameters[_paramRepo] case final specific?) {
+      repos = [gh.RepositorySlug.full(specific)];
+    } else {
+      repos = config.supportedRepos;
+    }
+
+    final String? branch;
+    if (request.uri.queryParameters[_paramBranch] case final specific?) {
+      branch = specific;
+    } else {
+      branch = null;
+    }
+
+    for (final slug in repos) {
+      await _vacuumRepository(
+        slug,
+        branch: branch ?? Config.defaultBranch(slug),
+      );
     }
 
     return Response.emptyOk;

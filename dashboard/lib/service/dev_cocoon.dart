@@ -126,7 +126,11 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> vacuumGitHubCommits(String idToken) async {
+  Future<CocoonResponse<bool>> vacuumGitHubCommits(
+    String idToken, {
+    required String repo,
+    required String branch,
+  }) async {
     return const CocoonResponse<bool>.error(
       'Unable to vacuum against fake data. Try building the app to use prod data.',
       statusCode: 501 /* Not implemented */,

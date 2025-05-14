@@ -189,8 +189,15 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<bool>> vacuumGitHubCommits(String idToken) async {
-    final refreshGitHubCommitsUrl = apiEndpoint('/api/vacuum-github-commits');
+  Future<CocoonResponse<bool>> vacuumGitHubCommits(
+    String idToken, {
+    required String repo,
+    required String branch,
+  }) async {
+    final refreshGitHubCommitsUrl = apiEndpoint(
+      '/api/vacuum-github-commits',
+      queryParameters: {'repo': repo, 'branch': branch},
+    );
     final response = await _client.get(
       refreshGitHubCommitsUrl,
       headers: <String, String>{'X-Flutter-IdToken': idToken},

@@ -97,23 +97,43 @@ void main() {
   });
 
   test('succeeds when GitHub returns no commits', () async {
-    fakeGithubCommitShas = <String>[];
-    config.supportedBranchesValue = <String>['master'];
+    fakeGithubCommitShas = [];
+    config.supportedBranchesValue = ['master'];
     final body = await tester.get(handler);
 
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
     expect(await body.body.toList(), isEmpty);
   });
 
+  test('succeeds on specific repo and branch set', () async {
+    fakeGithubCommitShas = ['123'];
+    config.supportedReposValue = {RepositorySlug('flutter', 'cocoon')};
+
+    tester.request.uri = tester.request.uri.replace(
+      queryParameters: {'repo': 'flutter/cocoon', 'branch': 'a-new-branch'},
+    );
+
+    await tester.get(handler);
+    expect(
+      firestore,
+      existsInStorage(fs.Commit.metadata, [
+        isCommit
+            .hasSha('123')
+            .hasRepositoryPath('flutter/cocoon')
+            .hasBranch('a-new-branch'),
+      ]),
+    );
+  });
+
   test('does not fail on empty commit list', () async {
-    fakeGithubCommitShas = <String>[];
+    fakeGithubCommitShas = [];
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
     await tester.get(handler);
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
   });
 
   test('does not add recent commits', () async {
-    fakeGithubCommitShas = <String>['${DateTime.now().millisecondsSinceEpoch}'];
+    fakeGithubCommitShas = ['${DateTime.now().millisecondsSinceEpoch}'];
 
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
     await tester.get(handler);
@@ -121,7 +141,7 @@ void main() {
   });
 
   test('inserts all relevant fields of the commit', () async {
-    fakeGithubCommitShas = <String>['1'];
+    fakeGithubCommitShas = ['1'];
     expect(firestore, existsInStorage(fs.Commit.metadata, isEmpty));
     await tester.get(handler);
     expect(
