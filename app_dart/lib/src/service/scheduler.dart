@@ -336,6 +336,7 @@ class Scheduler {
       if (isFusion && Config.defaultBranch(slug) == prBranch) {
         lock = await _lockMergeGroupChecks(slug, pullRequest.head!.sha!);
       } else {
+        lock = null;
         log.debug('Skipping merge queue guard: $slug/$prBranch');
       }
     }
