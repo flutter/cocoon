@@ -332,17 +332,11 @@ class Scheduler {
     // the PR and to the merge group, and so it must be completed in both cases.
     final CheckRun? lock;
     {
-      if (!isFusion) {
-        log.debug('Skipping merge queue guard: $slug is not flutter/flutter');
-        lock = null;
-      } else if (Config.defaultBranch(slug) != pullRequest.head!.ref) {
-        log.debug(
-          'Skipping merge queue guard: ${pullRequest.head!.ref} is not the '
-          'default flutter/flutter branch',
-        );
-        lock = null;
-      } else {
+      final prBranch = pullRequest.head!.ref;
+      if (isFusion && Config.defaultBranch(slug) == prBranch) {
         lock = await _lockMergeGroupChecks(slug, pullRequest.head!.sha!);
+      } else {
+        log.debug('Skipping merge queue guard: $slug/$prBranch');
       }
     }
 
