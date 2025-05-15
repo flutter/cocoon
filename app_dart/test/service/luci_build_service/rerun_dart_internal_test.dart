@@ -141,8 +141,9 @@ void main() {
             ),
       );
       expect(
-        request.exe,
-        bbv2.Executable(cipdVersion: 'refs/heads/flutter-0.42-candidate.0'),
+        request.hasExe(),
+        isFalse,
+        reason: 'Release recipes always run from ToT',
       );
       expect(
         request.gitilesCommit,
@@ -252,8 +253,9 @@ void main() {
             ),
       );
       expect(
-        request.exe,
-        bbv2.Executable(cipdVersion: 'refs/heads/flutter-0.42-candidate.0'),
+        request.hasExe(),
+        isFalse,
+        reason: 'Release recipes always run from ToT',
       );
       expect(
         request.gitilesCommit,
@@ -335,8 +337,9 @@ void main() {
             ),
       );
       expect(
-        request.exe,
-        bbv2.Executable(cipdVersion: 'refs/heads/flutter-0.42-candidate.0'),
+        request.hasExe(),
+        isFalse,
+        reason: 'Release recipes always run from ToT',
       );
       expect(
         request.gitilesCommit,
