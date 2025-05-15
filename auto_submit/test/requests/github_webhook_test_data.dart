@@ -94,6 +94,7 @@ PullRequest generatePullRequest({
   bool? mergeable = true,
   String baseRef = 'main',
   DateTime? mergedAt,
+  String mergeCommitSha = 'abc123',
 }) {
   return PullRequest.fromJson(
     json.decode('''{
@@ -119,6 +120,7 @@ PullRequest generatePullRequest({
       ],
       "created_at": "2011-01-26T19:01:12Z",
       "merged_at": "${mergedAt ?? DateTime.now().subtract(const Duration(hours: 12))}",
+      "merge_commit_sha": "$mergeCommitSha",
       "closed_at": "2011-01-26T19:10:12Z",
       "head": {
         "label": "octocat:new-topic",

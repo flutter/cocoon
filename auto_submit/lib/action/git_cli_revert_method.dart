@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
+import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../git/cli_command.dart';
@@ -19,6 +20,11 @@ import '../service/github_service.dart';
 import 'revert_method.dart';
 
 class GitCliRevertMethod implements RevertMethod {
+  GitCliRevertMethod({
+    @visibleForTesting GitCli? gitCli, //
+  }) : _gitCli = gitCli ?? GitCli(GitAccessMethod.HTTP, CliCommand());
+  final GitCli _gitCli;
+
   @override
   Future<github.PullRequest?> createRevert(
     Config config,
@@ -30,17 +36,14 @@ class GitCliRevertMethod implements RevertMethod {
     final commitSha = pullRequestToRevert.mergeCommitSha!;
     // we will need to collect the pr number after the revert request is generated.
 
-    final repositoryConfiguration = await config.getRepositoryConfiguration(
-      slug,
-    );
-    final baseBranch = repositoryConfiguration.defaultBranch;
+    final baseBranch = pullRequestToRevert.base!.ref!;
 
     final cloneToDirectory = '${slug.name}_$commitSha';
     final gitRepositoryManager = GitRepositoryManager(
       slug: slug,
       workingDirectory: Directory.current.path,
       cloneToDirectory: cloneToDirectory,
-      gitCli: GitCli(GitAccessMethod.HTTP, CliCommand()),
+      gitCli: _gitCli,
     );
 
     // The exception is caught by the thrower.
