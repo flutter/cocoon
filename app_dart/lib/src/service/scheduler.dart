@@ -543,8 +543,45 @@ class Scheduler {
 
   static Duration debugCheckPretendDelay = const Duration(minutes: 1);
 
-  Future<void> triggerMergeGroupTargets({
+  Future<void> handleMergeGroupEvent({
     required cocoon_checks.MergeGroupEvent mergeGroupEvent,
+  }) async {
+    final MergeGroup(:headSha, :headRef, :baseRef) = mergeGroupEvent.mergeGroup;
+    final slug = mergeGroupEvent.repository!.slug();
+    final isFusion = slug == Config.flutterSlug;
+
+    final logCrumb =
+        'triggerTargetsForMergeGroup($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
+
+    if (isFusion) {
+      // Temporarily trigger content-aware-hash for merge groups.
+      // We will not actually wait for the results yet.
+      try {
+        await _contentAwareHash.triggerWorkflow(headRef);
+      } catch (e, s) {
+        log.warn('contentAwareHash unexpectedly threw', e, s);
+      }
+      if (_config.flags.contentAwareHashing.waitOnContentHash) {
+        log.info(
+          '$logCrumb: content hashing requested; waiting on job to complete',
+        );
+        return;
+      }
+    }
+    log.info('$logCrumb: scheduling merge group checks');
+    return triggerTargetsForMergeGroup(
+      baseRef: baseRef,
+      headSha: headSha,
+      headRef: headRef,
+      slug: slug,
+    );
+  }
+
+  Future<void> triggerTargetsForMergeGroup({
+    required String headSha,
+    required String headRef,
+    required String baseRef,
+    required RepositorySlug slug,
   }) async {
     // Behave similar to addPullRequest, except we're not yet merged into master.
     //   - We are mirrored in to GoB
@@ -553,20 +590,10 @@ class Scheduler {
     //   - We want updates on check_runs to the presubmit pubsub.
     // We do not want "Task" objects because these are for flutter-dashboard tracking (post submit)
     // final mergeGroup = mergeGroupEvent.mergeGroup;
-    final MergeGroup(:headSha, :headRef, :baseRef) = mergeGroupEvent.mergeGroup;
-    final slug = mergeGroupEvent.repository!.slug();
     final isFusion = slug == Config.flutterSlug;
 
     final logCrumb =
-        'triggerMergeGroupTargets($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
-
-    // Temporarily trigger content-aware-hash for merge groups.
-    // We will not actually wait for the results yet.
-    try {
-      await _contentAwareHash.triggerWorkflow(headRef);
-    } catch (e, s) {
-      log.warn('contentAwareHash unexpectedly threw', e, s);
-    }
+        'triggerTargetsForMergeGroup($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
     log.info('$logCrumb: scheduling merge group checks');
 
     final lock = await _lockMergeGroupChecks(slug, headSha);
@@ -654,16 +681,45 @@ $s
   }
 
   // Work in progress - Content Aware hash retrieval.
-  Future<void> processWorkflowJob(WorkflowJobEvent job) async {
+  Future<void> processWorkflowJob(WorkflowJobEvent event) async {
     try {
-      final artifactStatus = await _contentAwareHash.processWorkflowJob(job);
+      final artifactStatus = await _contentAwareHash.processWorkflowJob(event);
       log.info(
         'scheduler.processWorkflowJob(): artifacts status: $artifactStatus '
-        'for ${job.workflowJob?.checkRunUrl}',
+        'for ${event.workflowJob?.checkRunUrl}',
       );
+
+      // TODO: MergeQueueHashStatus
+      //   - .build: trigger targets!
+      //   - .wait: something is building.
+      //   - .*: do nothing
+      // FOR NOW: trigger builds for build/wait
+      switch (artifactStatus) {
+        case MergeQueueHashStatus.build || MergeQueueHashStatus.wait
+            when _config.flags.contentAwareHashing.waitOnContentHash:
+          // Note from codefu: We do not have the merge queue lock yet.
+          // It was short-circuited if the waitOnContentHash is set. The
+          // CAH document _has_ been created. In the future, "wait" will need
+          // to create the lock - and auto complete it - to let the merge
+          // group complete.
+          final job = event.workflowJob!;
+          log.info(
+            'triggering merge group targets for $artifactStatus / ${job.headSha}',
+          );
+          await triggerTargetsForMergeGroup(
+            headSha: job.headSha!,
+            headRef: 'refs/heads/${job.headBranch!}',
+            baseRef:
+                'refs/heads/${tryParseGitHubMergeQueueBranch(job.headBranch!).branch}',
+            slug: event.repository!.slug(),
+          );
+
+        default:
+          break;
+      }
     } catch (e, s) {
       log.debug(
-        'scheduler.processWorkflowJob(${job.workflowJob?.checkRunUrl}) failed (no-op)',
+        'scheduler.processWorkflowJob(${event.workflowJob?.checkRunUrl}) failed (no-op)',
         e,
         s,
       );
