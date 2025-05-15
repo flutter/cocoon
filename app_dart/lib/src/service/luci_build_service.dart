@@ -1153,7 +1153,8 @@ class LuciBuildService {
     final result = await _buildBucketClient.scheduleBuild(
       bbv2.ScheduleBuildRequest(
         builder: builderId,
-        exe: bbv2.Executable(cipdVersion: 'refs/heads/${commit.branch}'),
+        // Release builds intentionally use ToT for recipe branches.
+        exe: null,
         gitilesCommit: bbv2.GitilesCommit(
           project: 'mirrors/${commit.slug.name}',
           host: 'flutter.googlesource.com',
