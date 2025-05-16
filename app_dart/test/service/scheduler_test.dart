@@ -441,23 +441,6 @@ void main() {
         );
       });
 
-      test('run all tasks if legacy release candidate branch', () async {
-        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-
-        final mergedPr = generatePullRequest(
-          branch: 'flutter-3.29-candidate.0',
-        );
-        await scheduler.addPullRequest(mergedPr);
-
-        expect(
-          firestore,
-          existsInStorage(
-            fs.Task.metadata,
-            everyElement(isTask.hasStatus(TaskStatus.inProgress)),
-          ),
-        );
-      });
-
       test('skips all tasks if release candidate branch', () async {
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
@@ -3446,28 +3429,6 @@ targets:
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
           ['Linux analyze'],
           reason: 'Only scheduled a special-cased build',
-        );
-      });
-
-      // Regression test for https://github.com/flutter/flutter/issues/162403.
-      test('engine builds still run for flutter-3.29-candidate.0', () async {
-        getFilesChanged.cannedFiles = ['packages/flutter/lib/material.dart'];
-        final pullRequest = generatePullRequest(
-          branch: 'flutter-3.29-candidate.0',
-        );
-
-        await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-          fakeLuciBuildService.engineArtifacts,
-          EngineArtifacts.usingExistingEngine(
-            commitSha: pullRequest.head!.sha!,
-          ),
-          reason: 'Release candidates use an "existing" dart-internal build',
-        );
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux engine_build'],
-          reason: 'Should run the engine_build',
         );
       });
     });

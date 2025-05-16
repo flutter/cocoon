@@ -40,7 +40,6 @@ import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
 import 'scheduler/files_changed_optimization.dart';
-import 'scheduler/policy.dart';
 import 'scheduler/process_check_run_result.dart';
 
 /// Scheduler service to validate all commits to supported Flutter repositories.
@@ -154,13 +153,7 @@ class Scheduler {
 
     final _TaskCommitScheduling scheduling;
     if (isReleaseCandidateBranch(branchName: commit.branch)) {
-      // TODO(matanlurey): Remove carvout for legacy branch after 3.29 is archived.
-      // https://github.com/flutter/flutter/issues/167821
-      if (commit.branch == 'flutter-3.29-candidate.0') {
-        scheduling = _TaskCommitScheduling.legacyImmediatelyRunGuaranteedPolicy;
-      } else {
-        scheduling = _TaskCommitScheduling.releaseCandidateSkipTasksByDefault;
-      }
+      scheduling = _TaskCommitScheduling.releaseCandidateSkipTasksByDefault;
     } else {
       scheduling = _TaskCommitScheduling.defaultUseTargetSchedulingPolicy;
     }
@@ -193,13 +186,7 @@ class Scheduler {
         task.setStatus(TaskStatus.skipped);
         continue;
       }
-      final SchedulerPolicy policy;
-      if (scheduling.forceGuaranteedPolicy) {
-        policy = const GuaranteedPolicy();
-      } else {
-        policy = target.schedulerPolicy;
-      }
-      final priority = await policy.triggerPriority(
+      final priority = await target.schedulerPolicy.triggerPriority(
         taskName: task.taskName,
         commitSha: commit.sha,
         recentTasks: await _firestore.queryRecentTasks(name: task.taskName),
@@ -1667,20 +1654,10 @@ enum _TaskCommitScheduling {
   defaultUseTargetSchedulingPolicy,
 
   /// Release candidate where tasks are skipped to be manually run either.
-  releaseCandidateSkipTasksByDefault,
-
-  /// Legacy handling for `3.29-candidate.0`.
-  ///
-  /// Remove after https://github.com/flutter/flutter/issues/167821.
-  legacyImmediatelyRunGuaranteedPolicy;
+  releaseCandidateSkipTasksByDefault;
 
   /// Whether postsubmit tasks should be initially skipped.
   bool get skipPostsubmitTasks {
     return this == releaseCandidateSkipTasksByDefault;
-  }
-
-  /// Whether to default to [GuaranteedPolicy] regardless of target settings.
-  bool get forceGuaranteedPolicy {
-    return this == legacyImmediatelyRunGuaranteedPolicy;
   }
 }
