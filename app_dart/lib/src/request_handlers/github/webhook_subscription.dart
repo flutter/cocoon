@@ -323,9 +323,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         log.info(
           '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
         );
-        await scheduler.triggerMergeGroupTargets(
-          mergeGroupEvent: mergeGroupEvent,
-        );
+        await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
 
       // A merge group was deleted. This can happen when a PR is pulled from the
       // merge queue. All CI jobs pertaining to this merge group should be

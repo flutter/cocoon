@@ -42,115 +42,8 @@ import '../src/service/fake_luci_build_service.dart';
 import '../src/utilities/entity_generators.dart';
 import '../src/utilities/mocks.dart';
 import '../src/utilities/webhook_generators.dart';
-
-const String otherBranchCiYaml = r'''
-enabled_branches:
-  - ios-experimental
-targets:
-  - name: Linux A
-''';
-
-const String singleCiYaml = r'''
-enabled_branches:
-  - master
-  - main
-  - flutter-\d+\.\d+-candidate\.\d+
-targets:
-  - name: Linux A
-    properties:
-      custom: abc
-  - name: Linux B
-    enabled_branches:
-      - stable
-    scheduler: luci
-  - name: Linux runIf
-    runIf:
-      - .ci.yaml
-      - DEPS
-      - dev/**
-      - engine/**
-  - name: Google Internal Roll
-    postsubmit: true
-    presubmit: false
-    scheduler: google_internal
-''';
-
-const String singleCiYamlWithLinuxAnalyze = r'''
-enabled_branches:
-  - master
-  - main
-  - flutter-\d+\.\d+-candidate\.\d+
-targets:
-  - name: Linux A
-    properties:
-      custom: abc
-  - name: Linux B
-    enabled_branches:
-      - stable
-    scheduler: luci
-  - name: Linux runIf
-    runIf:
-      - .ci.yaml
-      - DEPS
-      - dev/**
-      - engine/**
-  - name: Linux analyze
-''';
-
-const String fusionCiYaml = r'''
-enabled_branches:
-  - master
-  - main
-  - codefu
-  - flutter-\d+\.\d+-candidate\.\d+
-targets:
-  - name: Linux Z
-    properties:
-      custom: abc
-  - name: Linux Y
-    enabled_branches:
-      - stable
-    scheduler: luci
-  - name: Linux engine_presubmit
-  - name: Linux engine_build
-    scheduler: luci
-    properties:
-      release_build: "true"
-  - name: Linux runIf engine
-    runIf:
-      - DEPS
-      - engine/src/flutter/.ci.yaml
-      - engine/src/flutter/dev/**
-''';
-
-const String fusionDualCiYaml = r'''
-enabled_branches:
-  - master
-  - main
-  - codefu
-  - flutter-\d+\.\d+-candidate\.\d+
-targets:
-  - name: Linux Z
-    properties:
-      custom: abc
-  - name: Linux Y
-    enabled_branches:
-      - stable
-    scheduler: luci
-  - name: Linux engine_build
-    scheduler: luci
-    properties:
-      release_build: "true"
-  - name: Mac engine_build
-    scheduler: luci
-    properties:
-      release_build: "true"
-  - name: Linux runIf engine
-    runIf:
-      - DEPS
-      - engine/src/flutter/.ci.yaml
-      - engine/src/flutter/dev/**
-''';
+import 'scheduler/ci_yaml_strings.dart';
+import 'scheduler/create_check_run.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -2951,9 +2844,7 @@ targets:
               as Map<String, Object?>,
         );
 
-        await scheduler.triggerMergeGroupTargets(
-          mergeGroupEvent: mergeGroupEvent,
-        );
+        await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
 
         expect(fakeContentAwareHash.triggered, [
           'refs/heads/gh-readonly-queue/main/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
@@ -3010,6 +2901,134 @@ targets:
             output: anyNamed('output'),
           ),
         );
+      });
+
+      test('does not schedule work if waitOnContentHash', () async {
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionDualCiYaml);
+        final luci = MockLuciBuildService();
+        when(
+          luci.getAvailableBuilderSet(
+            project: anyNamed('project'),
+            bucket: anyNamed('bucket'),
+          ),
+        ).thenAnswer((inv) async {
+          return {'Mac engine_build', 'Linux engine_build'};
+        });
+        when(
+          luci.scheduleTryBuilds(
+            targets: anyNamed('targets'),
+            pullRequest: anyNamed('pullRequest'),
+            engineArtifacts: anyNamed('engineArtifacts'),
+          ),
+        ).thenAnswer((inv) async {
+          return [];
+        });
+        final mockGithubService = MockGithubService();
+        final checkRuns = <CheckRun>[];
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((inv) async {
+          final slug = inv.positionalArguments[1] as RepositorySlug;
+          final sha = inv.positionalArguments[2] as String;
+          final name = inv.positionalArguments[3] as String?;
+          checkRuns.add(
+            createCheckRun(
+              id: 1,
+              owner: slug.owner,
+              repo: slug.name,
+              sha: sha,
+              name: name,
+            ),
+          );
+          return checkRuns.last;
+        });
+        getFilesChanged.cannedFiles = ['abc/def'];
+
+        final config = FakeConfig(
+          // tabledataResource: tabledataResource,
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          dynamicConfig: DynamicConfig.fromJson({
+            'contentAwareHashing': {'waitOnContentHash': true},
+          }),
+        );
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: luci,
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+
+        final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(
+          json.decode(
+                generateMergeGroupEventString(
+                  repository: 'flutter/flutter',
+                  action: 'checks_requested',
+                  message: 'Implement an amazing feature',
+                ),
+              )
+              as Map<String, Object?>,
+        );
+
+        await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
+
+        expect(fakeContentAwareHash.triggered, [
+          'refs/heads/gh-readonly-queue/main/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+        ]);
+
+        expect(
+          firestore,
+          isNot(
+            existsInStorage(CiStaging.metadata, [
+              isCiStaging
+                  .hasSha('c9affbbb12aa40cb3afbe94b9ea6b119a256bebf')
+                  .hasCheckRuns({
+                    'Linux engine_build': TaskConclusion.scheduled,
+                    'Mac engine_build': TaskConclusion.scheduled,
+                  }),
+            ]),
+          ),
+        );
+
+        verifyNever(
+          luci.getAvailableBuilderSet(
+            project: argThat(equals('flutter'), named: 'project'),
+            bucket: argThat(equals('prod'), named: 'bucket'),
+          ),
+        );
+
+        verifyNever(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            captureAny,
+            output: captureAnyNamed('output'),
+          ),
+        );
+        verifyNever(
+          luci.scheduleMergeGroupBuilds(
+            targets: captureAnyNamed('targets'),
+            commit: anyNamed('commit'),
+          ),
+        );
+
+        expect(checkRuns, isEmpty);
       });
 
       test('handles missing builders', () async {
@@ -3089,9 +3108,7 @@ targets:
               as Map<String, Object?>,
         );
 
-        await scheduler.triggerMergeGroupTargets(
-          mergeGroupEvent: mergeGroupEvent,
-        );
+        await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
 
         expect(
           firestore,
@@ -3211,9 +3228,7 @@ targets:
               as Map<String, Object?>,
         );
 
-        await scheduler.triggerMergeGroupTargets(
-          mergeGroupEvent: mergeGroupEvent,
-        );
+        await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
 
         expect(
           firestore,
@@ -3462,81 +3477,3 @@ final class _CapturingFakeLuciBuildService extends Fake
     required String reason,
   }) async {}
 }
-
-CheckRun createCheckRun({
-  int id = 1,
-  String sha = '1234',
-  String? name = 'Linux unit_test',
-  String conclusion = 'success',
-  String owner = 'flutter',
-  String repo = 'flutter',
-  String headBranch = 'master',
-  CheckRunStatus status = CheckRunStatus.completed,
-  int checkSuiteId = 668083231,
-}) {
-  final checkRunJson = checkRunFor(
-    id: id,
-    sha: sha,
-    name: name,
-    conclusion: conclusion,
-    owner: owner,
-    repo: repo,
-    headBranch: headBranch,
-    status: status,
-    checkSuiteId: checkSuiteId,
-  );
-  return CheckRun.fromJson(jsonDecode(checkRunJson) as Map<String, dynamic>);
-}
-
-String checkRunFor({
-  int id = 1,
-  String sha = '1234',
-  String? name = 'Linux unit_test',
-  String conclusion = 'success',
-  String owner = 'flutter',
-  String repo = 'flutter',
-  String headBranch = 'master',
-  CheckRunStatus status = CheckRunStatus.completed,
-  int checkSuiteId = 668083231,
-}) {
-  final externalId = id * 2;
-  return '''{
-  "id": $id,
-  "external_id": "{$externalId}",
-  "head_sha": "$sha",
-  "name": "$name",
-  "conclusion": "$conclusion",
-  "started_at": "2020-05-10T02:49:31Z",
-  "completed_at": "2020-05-10T03:11:08Z",
-  "status": "$status",
-  "check_suite": {
-    "id": $checkSuiteId,
-    "pull_requests": [],
-    "conclusion": "$conclusion",
-    "head_branch": "$headBranch"
-  }
-}''';
-}
-
-String checkRunEventFor({
-  String action = 'completed',
-  String sha = '1234',
-  String test = 'Linux unit_test',
-  String conclusion = 'success',
-  String owner = 'flutter',
-  String repo = 'flutter',
-  String headBranch = 'master',
-}) => '''{
-  "action": "$action",
-  "check_run": ${checkRunFor(name: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo, headBranch: headBranch)},
-  "repository": {
-    "name": "$repo",
-    "full_name": "$owner/$repo",
-    "owner": {
-      "avatar_url": "",
-      "html_url": "",
-      "login": "$owner",
-      "id": 54371434
-    }
-  }
-}''';

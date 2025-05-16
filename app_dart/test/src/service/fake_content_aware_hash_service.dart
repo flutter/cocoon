@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_service/src/model/github/workflow_job.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
@@ -25,25 +27,31 @@ class FakeContentAwareHashService implements ContentAwareHashService {
     return status;
   }
 
-  final calledForJob = <WorkflowJobEvent>[];
+  final hashFromWorkflowJobs = <WorkflowJobEvent>[];
   String? nextHashReturn;
 
   @override
   Future<String?> hashFromWorkflowJobEvent(WorkflowJobEvent workflow) {
     // make a copy
-    calledForJob.add(WorkflowJobEvent.fromJson(workflow.toJson()));
+    hashFromWorkflowJobs.add(
+      WorkflowJobEvent.fromJson(
+        json.decode(json.encode(workflow.toJson())) as Map<String, Object?>,
+      ),
+    );
     final hash = nextHashReturn;
     nextHashReturn = null;
     return Future.value(hash);
   }
 
+  final processWorkflowJobs = <WorkflowJobEvent>[];
   MergeQueueHashStatus? nextStatusReturn;
 
   @override
   Future<MergeQueueHashStatus> processWorkflowJob(
-    WorkflowJobEvent job, {
+    WorkflowJobEvent workflow, {
     RetryOptions? retry,
   }) {
+    processWorkflowJobs.add(workflow);
     final status = nextStatusReturn ?? MergeQueueHashStatus.ignoreJob;
     nextStatusReturn = null;
     return Future.value(status);

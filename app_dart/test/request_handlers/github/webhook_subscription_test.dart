@@ -3245,7 +3245,7 @@ void foo() {
             ),
             logThat(
               message: equals(
-                'triggerMergeGroupTargets(flutter/packages, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
+                'triggerTargetsForMergeGroup(flutter/packages, c9affbbb12aa40cb3afbe94b9ea6b119a256bebf, simulated): scheduling merge group checks',
               ),
             ),
             logThat(
