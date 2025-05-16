@@ -252,6 +252,10 @@ final class RerunProdTask extends ApiRequestHandler {
       // waiting for the task to be complete, we'd need a different strategy
       // (i.e. multiple tasks per release builder, versus one).
       if (!task.status.isComplete) {
+        log.info(
+          'Refused to re-run "${task.taskName}" (status: ${task.status}) - '
+          'attempt ${task.currentAttempt} already in progress',
+        );
         throw const BadRequestException(
           'Cannot rerun a release builder that is not done running',
         );
