@@ -861,10 +861,7 @@ class LuciBuildService {
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
-      if (isReleaseCandidateBranch(branchName: commit.branch) &&
-          // TODO(matanlurey): Remove carvout for legacy branch after 3.29 is archived.
-          // https://github.com/flutter/flutter/issues/167821
-          commit.branch != 'flutter.3.29-candidate.0') {
+      if (isReleaseCandidateBranch(branchName: commit.branch)) {
         processedProperties.addAll({
           // Always provide an engine version, just like we do in presubmit.
           // See https://github.com/flutter/flutter/issues/167010.

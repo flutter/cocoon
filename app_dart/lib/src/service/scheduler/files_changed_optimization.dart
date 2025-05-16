@@ -38,9 +38,6 @@ final class FilesChangedOptimizer {
   // ```
   final CiYamlFetcher _ciYamlFetcher;
 
-  // TODO(matanlurey): https://github.com/flutter/flutter/issues/167821.
-  static const _doNotSkipFrameworkTestsForBranch = {'flutter-3.29-candidate.0'};
-
   final Config _config;
 
   /// Returns an optimization type possible given the pull request.
@@ -48,11 +45,6 @@ final class FilesChangedOptimizer {
     final slug = pr.base!.repo!.slug();
     final commitSha = pr.head!.sha!;
     final commitBranch = pr.base!.ref!;
-
-    if (_doNotSkipFrameworkTestsForBranch.contains(commitBranch)) {
-      log.info('$commitBranch does not support the framework-only optimizer');
-      return FilesChangedOptimization.none;
-    }
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
       CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
