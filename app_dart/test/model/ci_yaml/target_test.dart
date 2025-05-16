@@ -292,13 +292,6 @@ void main() {
       expect(generateTarget(1, backfill: false), isTarget.hasBackfill(false));
     });
 
-    test('can be explicitly set to false (legacy via properties)', () {
-      expect(
-        generateTarget(1, properties: {'backfill': 'false'}),
-        isTarget.hasBackfill(false),
-      );
-    });
-
     test('is false if the scheduling system is not Cocoon', () {
       expect(
         generateTarget(1, schedulerSystem: SchedulerSystem.release),

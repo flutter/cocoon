@@ -131,20 +131,9 @@ final class Target {
 
   /// Whether the target should be considered for backfill.
   bool get backfill {
-    if (schedulerPolicy is! BatchPolicy) {
-      return false;
-    }
-    // TODO(matanlurey): Stop reading this property:
-    // https://github.com/flutter/flutter/issues/167755
-    //
-    // For practical sake, since it's used to guard Linux Docs Publish, we'll
-    // want to wait until 100+ commits have landed before changing this,
-    // otherwise we run the risk of backfilling (and overriding) the published
-    // Flutter API docs.
-    if (_value.properties['backfill'] == 'false') {
-      return false;
-    }
-    return _value.backfill;
+    return _value.hasBackfill()
+        ? _value.backfill
+        : schedulerPolicy is BatchPolicy;
   }
 
   /// The target's enabled branches.

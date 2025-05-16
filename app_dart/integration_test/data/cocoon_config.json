@@ -160,9 +160,7 @@
     },
     {
       "name": "Linux ci_yaml roller",
-      "properties": {
-        "backfill": "false"
-      },
+      "backfill": false,
       "runIf": [
         ".ci.yaml"
       ],
