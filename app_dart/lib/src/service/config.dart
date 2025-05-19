@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
-import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
+import 'package:yaml/yaml.dart' show YamlList, YamlMap, loadYaml;
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart' show Providers;
@@ -524,6 +524,35 @@ final class DynamicConfig {
   factory DynamicConfig.fromJson(Map<String, Object?>? json) =>
       _$DynamicConfigFromJson(json ?? {});
 
+  factory DynamicConfig.fromYaml(YamlMap yaml) =>
+      DynamicConfig.fromJson(_convertYamlMap(yaml));
+
+  static List<Object?> _convertYamlList(YamlList yaml) {
+    final list = <Object?>[
+      for (final value in yaml.nodes)
+        if (value is YamlMap)
+          _convertYamlMap(value)
+        else if (value is YamlList)
+          _convertYamlList(value)
+        else
+          value,
+    ];
+    return list;
+  }
+
+  static Map<String, Object?> _convertYamlMap(YamlMap yaml) {
+    final map = <String, Object?>{
+      for (final MapEntry(:key, :value) in yaml.entries)
+        if (value is YamlMap)
+          '$key': _convertYamlMap(value)
+        else if (value is YamlList)
+          '$key': _convertYamlList(value)
+        else
+          '$key': value,
+    };
+    return map;
+  }
+
   /// Connect the generated [_$DynamicConfigToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);
 }
@@ -562,7 +591,7 @@ class DynamicConfigUpdater {
       retryOptions: _retryOptions,
     );
     final configYaml = loadYaml(file) as YamlMap;
-    return DynamicConfig.fromJson(configYaml.cast<String, dynamic>());
+    return DynamicConfig.fromYaml(configYaml);
   }
 
   UpdaterStatus _status = UpdaterStatus.stopped;
