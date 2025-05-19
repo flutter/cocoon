@@ -309,11 +309,9 @@ final class Target {
     return null;
   }
 
-  /// Whether this target was marked with `release_build: true` in `.ci.yaml`.
+  /// Whether this target was marked with `properties: release_build: "true"`.
   bool get isReleaseBuild {
-    final properties = getProperties();
-    return properties.containsKey('release_build') &&
-        (properties['release_build'] as bool);
+    return getProperties()['release_build'] == true;
   }
 
   /// Whether this target was marked with `bringup: true` in `.ci.yaml`.
