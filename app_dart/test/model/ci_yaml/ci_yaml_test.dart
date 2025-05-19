@@ -84,28 +84,15 @@ void main() {
     );
   });
 
-  group('initialTargets', () {
-    test('targets without deps', () {
-      final ciYaml = multiTargetFusionConfig;
-      final initialTargets = ciYaml.getInitialTargets(
-        ciYaml.postsubmitTargets(),
-      );
-      final initialTargetNames =
-          initialTargets.map((Target target) => target.name).toList();
-      expect(
-        initialTargetNames,
-        containsAll(<String>['Linux A', 'Mac A', 'Windows A']),
-      );
-    });
-
+  group('compute targets', () {
     test('filter bringup targets on release branches', () {
       final ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
         yamls: {
           CiType.any: pb.SchedulerConfig(
-            enabledBranches: <String>[Config.defaultBranch(Config.flutterSlug)],
-            targets: <pb.Target>[
+            enabledBranches: [Config.defaultBranch(Config.flutterSlug)],
+            targets: [
               pb.Target(name: 'Linux A'),
               pb.Target(
                 name: 'Mac A', // Should be ignored on release branches
@@ -115,12 +102,8 @@ void main() {
           ),
         },
       );
-      final initialTargets = ciYaml.getInitialTargets(
-        ciYaml.postsubmitTargets(),
-      );
-      final initialTargetNames =
-          initialTargets.map((Target target) => target.name).toList();
-      expect(initialTargetNames, containsAll(<String>['Linux A']));
+      final targets = ciYaml.postsubmitTargets();
+      expect(targets.map((target) => target.name), containsAll(['Linux A']));
     });
 
     group('validations and filters.', () {

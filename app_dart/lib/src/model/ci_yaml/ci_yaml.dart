@@ -100,16 +100,6 @@ final class CiYamlSet {
   List<String>? totPostsubmitTargetNames({CiType type = CiType.any}) =>
       configs[type]!.totPostsubmitTargetNames;
 
-  /// Filters [targets] to those that should be started immediately.
-  ///
-  /// Targets with a dependency are triggered when there dependency pushes a notification that it has finished.
-  /// This shouldn't be confused for targets that have the property named dependency, which is used by the
-  /// flutter_deps recipe module on LUCI.
-  List<Target> getInitialTargets(
-    List<Target> targets, {
-    CiType type = CiType.any,
-  }) => configs[type]!.getInitialTargets(targets);
-
   /// Get an unfiltered list of all [targets] that are found in the ci.yaml file.
   List<Target> targets({CiType type = CiType.any}) => configs[type]!.targets;
 }
@@ -284,24 +274,6 @@ class CiYaml {
     }).toList();
   }
 
-  /// Filters [targets] to those that should be started immediately.
-  ///
-  /// Targets with a dependency are triggered when there dependency pushes a notification that it has finished.
-  /// This shouldn't be confused for targets that have the property named dependency, which is used by the
-  /// flutter_deps recipe module on LUCI.
-  List<Target> getInitialTargets(List<Target> targets) {
-    Iterable<Target> initialTargets =
-        targets.where((Target target) => target.dependencies.isEmpty).toList();
-    if (branch != Config.defaultBranch(slug)) {
-      // Filter out bringup targets for release branches
-      initialTargets = initialTargets.where(
-        (Target target) => !target.isBringup,
-      );
-    }
-
-    return initialTargets.toList();
-  }
-
   Iterable<Target> get _targets => config.targets.map(
     (pb.Target target) =>
         Target(schedulerConfig: config, value: target, slug: slug),
@@ -420,24 +392,6 @@ class CiYaml {
           continue;
         }
         targetGraph[target.name] = <pb.Target>[];
-        // Add edges
-        if (target.dependencies.isNotEmpty) {
-          if (target.dependencies.length != 1) {
-            exceptions.add(
-              'ERROR: ${target.name} has multiple dependencies which is not supported. Use only one dependency',
-            );
-          } else {
-            if (target.dependencies.first == target.name) {
-              exceptions.add('ERROR: ${target.name} cannot depend on itself');
-            } else if (targetGraph.containsKey(target.dependencies.first)) {
-              targetGraph[target.dependencies.first]!.add(target);
-            } else {
-              exceptions.add(
-                'ERROR: ${target.name} depends on ${target.dependencies.first} which does not exist',
-              );
-            }
-          }
-        }
 
         // To add or change validations that are specific to a repository, such as flutter/flutter,
         // see https://github.com/flutter/flutter/blob/master/dev/bots/test/ci_yaml_validation_test.dart.

@@ -162,17 +162,13 @@ class Scheduler {
       commit.toRef(),
       postsubmit: true,
     );
-    final targets = ciYaml.getInitialTargets(ciYaml.postsubmitTargets());
+    final targets = ciYaml.postsubmitTargets();
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       final fusionPostTargets = ciYaml.postsubmitTargets(
         type: CiType.fusionEngine,
       );
-      final fusionInitialTargets = ciYaml.getInitialTargets(
-        fusionPostTargets,
-        type: CiType.fusionEngine,
-      );
-      targets.addAll(fusionInitialTargets);
+      targets.addAll(fusionPostTargets);
       // Note on post submit targets: CiYaml filters out release_true for release branches and fusion trees
     }
 

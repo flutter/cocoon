@@ -391,36 +391,6 @@ void main() {
       ),
     );
   });
-
-  test('fails with unknown dependencies', () async {
-    httpClient = MockClient((_) async {
-      return http.Response('''
-enabled_branches:
-  - master
-targets:
-  - name: A
-    builder: Linux A
-    dependencies:
-      - B
-          ''', HttpStatus.ok);
-    });
-
-    mockFillFirestore(slug: Config.flutterSlug, branch: 'master');
-
-    await expectLater(
-      ciYamlFetcher.getCiYamlByCommit(
-        CommitRef(slug: Config.flutterSlug, sha: currentSha, branch: 'master'),
-        validate: true,
-      ),
-      throwsA(
-        isA<FormatException>().having(
-          (e) => e.message,
-          'message',
-          contains('A depends on B which does not exist'),
-        ),
-      ),
-    );
-  });
 }
 
 const String singleCiYaml = r'''

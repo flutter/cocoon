@@ -32,7 +32,7 @@ message Target {
     // Unique, human readable identifier.
     optional string name = 1;
     // Names of other targets required to succeed before triggering this target.
-    repeated string dependencies = 2;
+    reserved 2; // dependencies
     // Whether this target is stable and can be used to gate commits.
     // Defaults to false which blocks builds and does not run in presubmit.
     optional bool bringup = 3 [default = false];

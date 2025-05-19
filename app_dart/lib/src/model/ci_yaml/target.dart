@@ -143,11 +143,6 @@ final class Target {
     _value.enabledBranches,
   );
 
-  /// The target's dependencies.
-  ///
-  /// This list is unmodifiable.
-  late final List<String> dependencies = List.unmodifiable(_value.dependencies);
-
   /// The target's `runIf` configuration.
   ///
   /// This list is unmodifiable.
