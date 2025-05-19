@@ -7,7 +7,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
@@ -861,7 +860,7 @@ class LuciBuildService {
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
       processedProperties['is_fusion'] = 'true';
-      if (isReleaseCandidateBranch(branchName: commit.branch)) {
+      if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
         processedProperties.addAll({
           // Always provide an engine version, just like we do in presubmit.
           // See https://github.com/flutter/flutter/issues/167010.
@@ -870,13 +869,6 @@ class LuciBuildService {
           // Prod build bucket, built during the merge queue.
           'flutter_realm': '',
         });
-      } else if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
-        // Experimental branches do not have:
-        // - A merge queue that prebuilds binaries for the current SHA
-        // - A flutter_release_builder pre-step
-        //
-        // ... so, just re-use the binaries that were built in presubmit.
-        processedProperties['flutter_realm'] = 'flutter_archives_v2';
       }
     }
     final propertiesStruct = bbv2.Struct.create();

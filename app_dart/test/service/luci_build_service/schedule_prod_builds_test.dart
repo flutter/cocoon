@@ -630,12 +630,6 @@ void main() {
       ),
     );
 
-    expect(
-      scheduleBuild.properties.fields,
-      isNot(contains('flutter_prebuilt_engine_version')),
-      reason: 'Experimental branches use default engine SHA resolution',
-    );
-
     expect(scheduleBuild.properties.fields, {
       'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
       'bringup': bbv2.Value(boolValue: false),
@@ -646,8 +640,9 @@ void main() {
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'is_fusion': bbv2.Value(stringValue: 'true'),
 
-      // Experimental branches use the presubmit bucket for engine builds.
-      'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
+      // Experimental branches work similar to release branches.
+      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: '1'),
+      'flutter_realm': bbv2.Value(stringValue: ''),
     });
 
     expect(scheduleBuild.dimensions, [
