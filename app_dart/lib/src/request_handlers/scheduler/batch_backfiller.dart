@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
-import '../../model/commit_ref.dart';
 import '../../model/firestore/task.dart' as fs;
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore/commit_and_tasks.dart';
@@ -63,6 +62,7 @@ final class BatchBackfiller extends RequestHandler {
   //
   // See https://github.com/flutter/flutter/issues/168738.
   Future<void> _backfillExperimentalBranch(RepositorySlug slug) async {
+    log.debug('Running experimental branch backfiller for "$slug"');
     final fsGrid = await _firestore.queryRecentCommitsAndTasks(
       slug,
       commitLimit: config.flags.backfillerCommitLimit,
@@ -116,21 +116,20 @@ final class BatchBackfiller extends RequestHandler {
       );
 
       // Download the ToT .ci.yaml targets.
-      final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
-        CommitRef(
-          slug: slug,
-          sha: fsGrid.first.commit.sha,
-          branch: Config.defaultBranch(slug),
-        ),
-        postsubmit: true,
-      );
+      final totCiYaml = await _ciYamlFetcher.getTipOfTreeCiYaml(slug: slug);
 
       final totTargets = [
-        ...ciYaml.postsubmitTargets(),
-        if (ciYaml.isFusion)
-          ...ciYaml.postsubmitTargets(type: CiType.fusionEngine),
+        ...totCiYaml.postsubmitTargets(),
+        if (totCiYaml.isFusion)
+          ...totCiYaml.postsubmitTargets(type: CiType.fusionEngine),
       ];
-      log.debug('Fetched ${totTargets.length} tip-of-tree targets');
+      if (totTargets.isEmpty) {
+        log.warn(
+          'Did not fetch any tip-of-tree targets. Backfill will do nothing!',
+        );
+      } else {
+        log.debug('Fetched ${totTargets.length} tip-of-tree targets');
+      }
 
       grid = BackfillGrid.from([
         for (final CommitAndTasks(:commit, :tasks) in fsGrid)

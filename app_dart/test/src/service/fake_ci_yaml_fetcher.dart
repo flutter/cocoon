@@ -11,12 +11,21 @@ import 'package:github/src/common/model/repos.dart';
 import 'package:yaml/yaml.dart';
 
 final class FakeCiYamlFetcher implements CiYamlFetcher {
-  FakeCiYamlFetcher({this.ciYaml, this.failCiYamlValidation = false});
+  FakeCiYamlFetcher({
+    this.ciYaml,
+    this.totCiYaml,
+    this.failCiYamlValidation = false,
+  });
 
   /// The value that should be returned as a canned response for [getCiYamlByCommit].
   ///
   /// If omitted (`null`) defaults to a configuration with a single target.
   CiYamlSet? ciYaml;
+
+  /// The value that should be returned as a canned response for [getTipOfTreeCiYaml].
+  ///
+  /// If omitted (`null`), defaults to the same response as [ciYaml].
+  CiYamlSet? totCiYaml;
 
   /// Sets [ciYaml] by loading a YAML document.
   ///
@@ -55,6 +64,19 @@ final class FakeCiYamlFetcher implements CiYamlFetcher {
     return CiYamlSet(
       slug: commit.slug,
       branch: commit.branch,
+      yamls: ci.configs.map((k, v) => MapEntry(k, v.config)),
+    );
+  }
+
+  @override
+  Future<CiYamlSet> getTipOfTreeCiYaml({required RepositorySlug slug}) async {
+    final ci =
+        totCiYaml ??
+        ciYaml ??
+        _createDefault(slug: slug, commitBranch: Config.defaultBranch(slug));
+    return CiYamlSet(
+      slug: slug,
+      branch: Config.defaultBranch(slug),
       yamls: ci.configs.map((k, v) => MapEntry(k, v.config)),
     );
   }

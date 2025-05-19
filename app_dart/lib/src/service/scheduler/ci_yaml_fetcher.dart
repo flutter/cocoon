@@ -69,19 +69,23 @@ interface class CiYamlFetcher {
     }
 
     final isFusion = commit.slug == Config.flutterSlug;
-    final totCommit = await _fetchTipOfTreeCommit(slug: commit.slug);
-    final totYaml = await _getCiYaml(
-      commit: totCommit,
-      validate: validate,
-      isFusionCommit: isFusion,
-      useGitOnBorgFallback: true,
-    );
+    final totYaml = await getTipOfTreeCiYaml(slug: commit.slug);
     return _getCiYaml(
       commit: commit,
       validate: validate,
       totCiYaml: totYaml,
       isFusionCommit: isFusion,
       useGitOnBorgFallback: postsubmit,
+    );
+  }
+
+  /// Returns the latest `ci.yaml`(s) for the default branch of [slug].
+  Future<CiYamlSet> getTipOfTreeCiYaml({required RepositorySlug slug}) async {
+    return await _getCiYaml(
+      commit: await _fetchTipOfTreeCommit(slug: slug),
+      validate: false,
+      isFusionCommit: slug == Config.flutterSlug,
+      useGitOnBorgFallback: true,
     );
   }
 
