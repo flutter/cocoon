@@ -70,7 +70,7 @@ void main() {
     test('current config.yaml is parsable', () async {
       final yaml =
           loadYaml(await File('config.yaml').readAsString()) as YamlMap;
-      DynamicConfig.fromYaml(yaml);
+      DynamicConfig.fromJson(yaml.asMap);
     });
   });
 }

@@ -524,37 +524,32 @@ final class DynamicConfig {
   factory DynamicConfig.fromJson(Map<String, Object?>? json) =>
       _$DynamicConfigFromJson(json ?? {});
 
-  factory DynamicConfig.fromYaml(YamlMap yaml) =>
-      DynamicConfig.fromJson(_convertYamlMap(yaml));
-
-  static List<Object?> _convertYamlList(YamlList yaml) {
-    final list = <Object?>[
-      for (final value in yaml.nodes)
-        if (value is YamlMap)
-          _convertYamlMap(value)
-        else if (value is YamlList)
-          _convertYamlList(value)
-        else
-          value,
-    ];
-    return list;
-  }
-
-  static Map<String, Object?> _convertYamlMap(YamlMap yaml) {
-    final map = <String, Object?>{
-      for (final MapEntry(:key, :value) in yaml.entries)
-        if (value is YamlMap)
-          '$key': _convertYamlMap(value)
-        else if (value is YamlList)
-          '$key': _convertYamlList(value)
-        else
-          '$key': value,
-    };
-    return map;
-  }
-
   /// Connect the generated [_$DynamicConfigToJson] function to the `toJson` method.
   Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);
+}
+
+extension YamlMapToMap on YamlMap {
+  Map<String, Object?> get asMap => <String, Object?>{
+    for (final MapEntry(:key, :value) in entries)
+      if (value is YamlMap)
+        '$key': value.asMap
+      else if (value is YamlList)
+        '$key': value.asList
+      else
+        '$key': value,
+  };
+}
+
+extension YamlListToList on YamlList {
+  List<Object?> get asList => <Object?>[
+    for (final value in nodes)
+      if (value is YamlMap)
+        value.asMap
+      else if (value is YamlList)
+        value.asList
+      else
+        value,
+  ];
 }
 
 /// Responsibly polls for configuration changes to our service config.
@@ -591,7 +586,7 @@ class DynamicConfigUpdater {
       retryOptions: _retryOptions,
     );
     final configYaml = loadYaml(file) as YamlMap;
-    return DynamicConfig.fromYaml(configYaml);
+    return DynamicConfig.fromJson(configYaml.asMap);
   }
 
   UpdaterStatus _status = UpdaterStatus.stopped;
