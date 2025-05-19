@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
-import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
+import 'package:yaml/yaml.dart' show YamlList, YamlMap, loadYaml;
 
 import '../../cocoon_service.dart';
 import '../foundation/providers.dart' show Providers;
@@ -528,6 +528,30 @@ final class DynamicConfig {
   Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);
 }
 
+extension YamlMapToMap on YamlMap {
+  Map<String, Object?> get asMap => <String, Object?>{
+    for (final MapEntry(:key, :value) in entries)
+      if (value is YamlMap)
+        '$key': value.asMap
+      else if (value is YamlList)
+        '$key': value.asList
+      else
+        '$key': value,
+  };
+}
+
+extension YamlListToList on YamlList {
+  List<Object?> get asList => <Object?>[
+    for (final value in nodes)
+      if (value is YamlMap)
+        value.asMap
+      else if (value is YamlList)
+        value.asList
+      else
+        value,
+  ];
+}
+
 /// Responsibly polls for configuration changes to our service config.
 ///
 /// This works by fetching the latest checked in "config.yaml".
@@ -562,7 +586,7 @@ class DynamicConfigUpdater {
       retryOptions: _retryOptions,
     );
     final configYaml = loadYaml(file) as YamlMap;
-    return DynamicConfig.fromJson(configYaml.cast<String, dynamic>());
+    return DynamicConfig.fromJson(configYaml.asMap);
   }
 
   UpdaterStatus _status = UpdaterStatus.stopped;
