@@ -183,7 +183,6 @@ class SchedulerConfig extends $pb.GeneratedMessage {
 class Target extends $pb.GeneratedMessage {
   factory Target({
     $core.String? name,
-    $core.Iterable<$core.String>? dependencies,
     $core.bool? bringup,
     $core.int? timeout,
     $core.String? testbed,
@@ -204,9 +203,6 @@ class Target extends $pb.GeneratedMessage {
     final $result = create();
     if (name != null) {
       $result.name = name;
-    }
-    if (dependencies != null) {
-      $result.dependencies.addAll(dependencies);
     }
     if (bringup != null) {
       $result.bringup = bringup;
@@ -272,7 +268,6 @@ class Target extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'scheduler'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..pPS(2, _omitFieldNames ? '' : 'dependencies')
     ..aOB(3, _omitFieldNames ? '' : 'bringup')
     ..a<$core.int>(4, _omitFieldNames ? '' : 'timeout', $pb.PbFieldType.O3,
         defaultOrMaker: 30)
@@ -347,68 +342,64 @@ class Target extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearName() => clearField(1);
 
-  /// Names of other targets required to succeed before triggering this target.
-  @$pb.TagNumber(2)
-  $core.List<$core.String> get dependencies => $_getList(1);
-
   /// Whether this target is stable and can be used to gate commits.
   /// Defaults to false which blocks builds and does not run in presubmit.
   @$pb.TagNumber(3)
-  $core.bool get bringup => $_getBF(2);
+  $core.bool get bringup => $_getBF(1);
   @$pb.TagNumber(3)
   set bringup($core.bool v) {
-    $_setBool(2, v);
+    $_setBool(1, v);
   }
 
   @$pb.TagNumber(3)
-  $core.bool hasBringup() => $_has(2);
+  $core.bool hasBringup() => $_has(1);
   @$pb.TagNumber(3)
   void clearBringup() => clearField(3);
 
   /// Number of minutes this target is allowed to run before being marked as failed.
   @$pb.TagNumber(4)
-  $core.int get timeout => $_getI(3, 30);
+  $core.int get timeout => $_getI(2, 30);
   @$pb.TagNumber(4)
   set timeout($core.int v) {
-    $_setSignedInt32(3, v);
+    $_setSignedInt32(2, v);
   }
 
   @$pb.TagNumber(4)
-  $core.bool hasTimeout() => $_has(3);
+  $core.bool hasTimeout() => $_has(2);
   @$pb.TagNumber(4)
   void clearTimeout() => clearField(4);
 
   /// Name of the testbed this target will run on.
   /// Defaults to a linux vm.
   @$pb.TagNumber(5)
-  $core.String get testbed => $_getS(4, 'linux-vm');
+  $core.String get testbed => $_getS(3, 'linux-vm');
   @$pb.TagNumber(5)
   set testbed($core.String v) {
-    $_setString(4, v);
+    $_setString(3, v);
   }
 
   @$pb.TagNumber(5)
-  $core.bool hasTestbed() => $_has(4);
+  $core.bool hasTestbed() => $_has(3);
   @$pb.TagNumber(5)
   void clearTestbed() => clearField(5);
 
   /// Properties to configure infrastructure tooling.
   @$pb.TagNumber(6)
-  $core.Map<$core.String, $core.String> get properties => $_getMap(5);
+  $core.Map<$core.String, $core.String> get properties => $_getMap(4);
 
   /// Name of the LUCI builder to trigger.
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
-  $core.String get builder => $_getSZ(6);
+  $core.String get builder => $_getSZ(5);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   set builder($core.String v) {
-    $_setString(6, v);
+    $_setString(5, v);
   }
 
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
-  $core.bool hasBuilder() => $_has(6);
+  $core.bool hasBuilder() => $_has(5);
   @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   void clearBuilder() => clearField(7);
@@ -416,88 +407,88 @@ class Target extends $pb.GeneratedMessage {
   /// Name of the scheduler to trigger this target.
   /// Defaults to being triggered by cocoon.
   @$pb.TagNumber(8)
-  SchedulerSystem get scheduler => $_getN(7);
+  SchedulerSystem get scheduler => $_getN(6);
   @$pb.TagNumber(8)
   set scheduler(SchedulerSystem v) {
     setField(8, v);
   }
 
   @$pb.TagNumber(8)
-  $core.bool hasScheduler() => $_has(7);
+  $core.bool hasScheduler() => $_has(6);
   @$pb.TagNumber(8)
   void clearScheduler() => clearField(8);
 
   /// Whether target should run pre-submit. Defaults to true, will run in presubmit.
   @$pb.TagNumber(9)
-  $core.bool get presubmit => $_getB(8, true);
+  $core.bool get presubmit => $_getB(7, true);
   @$pb.TagNumber(9)
   set presubmit($core.bool v) {
-    $_setBool(8, v);
+    $_setBool(7, v);
   }
 
   @$pb.TagNumber(9)
-  $core.bool hasPresubmit() => $_has(8);
+  $core.bool hasPresubmit() => $_has(7);
   @$pb.TagNumber(9)
   void clearPresubmit() => clearField(9);
 
   /// Whether target should run post-submit. Defaults to true, will run in postsubmit.
   @$pb.TagNumber(10)
-  $core.bool get postsubmit => $_getB(9, true);
+  $core.bool get postsubmit => $_getB(8, true);
   @$pb.TagNumber(10)
   set postsubmit($core.bool v) {
-    $_setBool(9, v);
+    $_setBool(8, v);
   }
 
   @$pb.TagNumber(10)
-  $core.bool hasPostsubmit() => $_has(9);
+  $core.bool hasPostsubmit() => $_has(8);
   @$pb.TagNumber(10)
   void clearPostsubmit() => clearField(10);
 
   /// List of paths that trigger this target in presubmit when there is a diff.
   /// If no paths are given, it will always run.
   @$pb.TagNumber(11)
-  $core.List<$core.String> get runIf => $_getList(10);
+  $core.List<$core.String> get runIf => $_getList(9);
 
   /// Override of enabled_branches for this target (for release targets).
   @$pb.TagNumber(12)
-  $core.List<$core.String> get enabledBranches => $_getList(11);
+  $core.List<$core.String> get enabledBranches => $_getList(10);
 
   /// Name of the LUCI recipe to use for the builder.
   @$pb.TagNumber(13)
-  $core.String get recipe => $_getSZ(12);
+  $core.String get recipe => $_getSZ(11);
   @$pb.TagNumber(13)
   set recipe($core.String v) {
-    $_setString(12, v);
+    $_setString(11, v);
   }
 
   @$pb.TagNumber(13)
-  $core.bool hasRecipe() => $_has(12);
+  $core.bool hasRecipe() => $_has(11);
   @$pb.TagNumber(13)
   void clearRecipe() => clearField(13);
 
   /// Properties to configure infrastructure tooling for only postsubmit runs.
   @$pb.TagNumber(15)
   $core.Map<$core.String, $core.String> get postsubmitProperties =>
-      $_getMap(13);
+      $_getMap(12);
 
   /// Dimensions to configure swarming dimensions of LUCI builds.
   @$pb.TagNumber(16)
-  $core.Map<$core.String, $core.String> get dimensions => $_getMap(14);
+  $core.Map<$core.String, $core.String> get dimensions => $_getMap(13);
 
   /// Dimensions used when this build runs within a drone.
   @$pb.TagNumber(17)
-  $core.List<$core.String> get droneDimensions => $_getList(15);
+  $core.List<$core.String> get droneDimensions => $_getList(14);
 
   /// Whether the target should be considered for backfill.
   @$pb.TagNumber(19)
-  $core.bool get backfill => $_getB(16, true);
+  $core.bool get backfill => $_getB(15, true);
   @$pb.TagNumber(19)
   set backfill($core.bool v) {
-    $_setBool(16, v);
+    $_setBool(15, v);
   }
 
   @$pb.TagNumber(19)
-  $core.bool hasBackfill() => $_has(16);
+  $core.bool hasBackfill() => $_has(15);
   @$pb.TagNumber(19)
   void clearBackfill() => clearField(19);
 
@@ -507,14 +498,14 @@ class Target extends $pb.GeneratedMessage {
   ///  presubmit, postsubmit, and other attributes are still respected in other
   ///  parts of Cocoon.
   @$pb.TagNumber(20)
-  $core.bool get scheduleDuringReleaseOverride => $_getBF(17);
+  $core.bool get scheduleDuringReleaseOverride => $_getBF(16);
   @$pb.TagNumber(20)
   set scheduleDuringReleaseOverride($core.bool v) {
-    $_setBool(17, v);
+    $_setBool(16, v);
   }
 
   @$pb.TagNumber(20)
-  $core.bool hasScheduleDuringReleaseOverride() => $_has(17);
+  $core.bool hasScheduleDuringReleaseOverride() => $_has(16);
   @$pb.TagNumber(20)
   void clearScheduleDuringReleaseOverride() => clearField(20);
 }
