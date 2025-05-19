@@ -4,8 +4,3 @@
 # app_dart/lib/src/service/config.dart
 
 backfillerCommitLimit: 50
-
-contentAwareHashing:
-  # This will cause PRs that enter the merge queue to wait on CAH hashing
-  # to happen before scheduling builds.
-  waitOnContentHash: true
