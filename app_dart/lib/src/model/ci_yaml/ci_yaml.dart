@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
@@ -220,29 +221,26 @@ class CiYaml {
   /// Pick targets out of the given [targets] list that should be run for the
   /// branch that's being tested.
   List<Target> _selectTargetsForBranch(List<Target> targets) {
-    final isReleaseBranch = branch.contains(RegExp('^flutter-'));
-
-    if (isReleaseBranch) {
-      // For release branches we don't want to run release targets or bringup
-      // targets because they are built outside of Cocoon. This applies in both
-      // fusion and non-fusion repos.
+    if (!isFusion) {
+      // Non-flutter/flutter repos run all targets in post-submit.
+      return targets;
+    } else if (isReleaseCandidateBranch(branchName: branch)) {
+      // For release branches:
+      // bringup: true         --> Always omitted.
+      // release_build: "true" --> Built by Linux flutter_release_builder.
       return [
         ...targets.where(
           (target) => !target.isReleaseBuild && !target.isBringup,
         ),
       ];
+    } else if (branch.contains('experimental')) {
+      // For experimental branches:
+      // Run all targets in post-submit.
+      // TODO(matanlurey): Codify this elsewhere once its proven.
+      return targets;
     } else {
-      // For non-release branches we also want to include bringup targets.
-      // However, there's a difference between fusion and non-fusion repos.
-      if (isFusion) {
-        // Fusion repos run release targets in the MQ, so we only need to
-        // schedule non-release targets in post-submit.
-        return [...targets.where((target) => !target.isReleaseBuild)];
-      } else {
-        // Non-fusion repos run all targets in post-submit. There's no MQ to run
-        // release builds prior to post-submit.
-        return targets;
-      }
+      // For flutter/flutter branches include "master".
+      return [...targets.where((target) => !target.isReleaseBuild)];
     }
   }
 
