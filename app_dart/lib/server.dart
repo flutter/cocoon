@@ -156,6 +156,7 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       bigQuery: bigQuery,
+      ciYamlFetcher: ciYamlFetcher,
     ),
 
     '/api/vacuum-github-commits': VacuumGithubCommits(

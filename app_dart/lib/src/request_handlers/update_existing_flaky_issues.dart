@@ -5,11 +5,8 @@
 import 'dart:async';
 
 import 'package:github/github.dart';
-import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart';
 
 import '../../ci_yaml.dart';
-import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/request_handler.dart';
@@ -17,6 +14,7 @@ import '../request_handling/response.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
+import '../service/scheduler/ci_yaml_fetcher.dart';
 import 'flaky_handler_utils.dart';
 
 /// This handler updates existing open flaky issues with the latest build
@@ -28,17 +26,16 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
   const UpdateExistingFlakyIssue({
     required super.config,
     required super.authenticationProvider,
+    required CiYamlFetcher ciYamlFetcher,
     required BigQueryService bigQuery,
-    @visibleForTesting this.ciYamlForTesting,
-  }) : _bigQuery = bigQuery;
+  }) : _bigQuery = bigQuery,
+       _ciYamlFetcher = ciYamlFetcher;
 
   static const String kThresholdKey = 'threshold';
   static const int kFreshPeriodForOpenFlake = 7; // days
 
   final BigQueryService _bigQuery;
-
-  // TODO(matanlurey): Use `CiYamlFetcher` instead.
-  final CiYamlSet? ciYamlForTesting;
+  final CiYamlFetcher _ciYamlFetcher;
 
   @override
   Future<Response> get(Request request) async {
@@ -46,19 +43,9 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
     final gitHub = config.createGithubServiceWithToken(
       await config.githubOAuthToken,
     );
-
-    var localCiYaml = ciYamlForTesting;
-    if (localCiYaml == null) {
-      final ci =
-          loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-      final unCheckedSchedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(ci);
-      localCiYaml = CiYamlSet(
-        slug: slug,
-        branch: Config.defaultBranch(slug),
-        yamls: {CiType.any: unCheckedSchedulerConfig},
-      );
-    }
+    final ciYaml = await _ciYamlFetcher.getTipOfTreeCiYaml(
+      slug: Config.flutterSlug,
+    );
 
     final prodBuilderStatisticList = await _bigQuery.listBuilderStatistic(
       kBigQueryProjectId,
@@ -77,7 +64,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
     await _updateExistingFlakyIssue(
       gitHub,
       slug,
-      localCiYaml,
+      ciYaml,
       prodBuilderStatisticList: prodBuilderStatisticList,
       stagingBuilderStatisticList: stagingBuilderStatisticList,
       nameToExistingIssue: nameToExistingIssue,
