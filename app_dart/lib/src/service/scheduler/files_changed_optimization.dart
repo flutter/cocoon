@@ -66,7 +66,7 @@ final class FilesChangedOptimizer {
         log.warn('$refusePrefix: $reason');
         return FilesChangedOptimization.none;
       case SuccessfulFilesChanged(:final filesChanged):
-        var markdownOnly = true;
+        var noSourceImpact = true;
         for (final file in filesChanged) {
           if (file == 'DEPS' || file.startsWith('engine/')) {
             log.info(
@@ -74,17 +74,25 @@ final class FilesChangedOptimizer {
             );
             return FilesChangedOptimization.none;
           }
-          if (markdownOnly && p.posix.extension(file) != '.md') {
-            markdownOnly = false;
+          if (noSourceImpact &&
+              p.posix.extension(file) != '.md' &&
+              file != _binInternalEngineVersion) {
+            noSourceImpact = false;
           }
         }
-        if (!markdownOnly) {
+        if (!noSourceImpact) {
           return FilesChangedOptimization.skipPresubmitEngine;
         } else {
           return FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze;
         }
     }
   }
+
+  static final _binInternalEngineVersion = p.posix.join(
+    'bin',
+    'internal',
+    'engine.version',
+  );
 }
 
 /// Given a [FilesChanged], a determined safe optimization that can be made.
