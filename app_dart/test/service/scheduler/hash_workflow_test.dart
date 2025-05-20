@@ -191,6 +191,40 @@ void main() async {
       ),
     ).called(1);
   });
+
+  test(
+    'triggers tests on waitOnContentHash + completed artifacts (PRE-CAH flip over)',
+    () async {
+      config.dynamicConfig = DynamicConfig.fromJson({
+        'contentAwareHashing': {'waitOnContentHash': true},
+      });
+
+      final job = workflowJobTemplate().toWorkflowJob();
+
+      firestore.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime(2025, 05, 20),
+          contentHash: '65038ef4984b927fd1762ef01d35c5ecc34ff5f7',
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.success,
+          waitingShas: [],
+        ),
+      );
+
+      await scheduler.processWorkflowJob(job);
+
+      verify(
+        mockGithubChecksUtil.createCheckRun(
+          any,
+          RepositorySlug.full('flutter/flutter'),
+          '27bfdee25949bc48044c4e16678f3449dd213b6e',
+          'Merge Queue Guard',
+          output: anyNamed('output'),
+          conclusion: anyNamed('conclusion'),
+        ),
+      ).called(1);
+    },
+  );
 }
 
 extension on String {
