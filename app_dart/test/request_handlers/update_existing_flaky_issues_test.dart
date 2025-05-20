@@ -19,6 +19,7 @@ import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
+import '../src/service/fake_ci_yaml_fetcher.dart';
 import '../src/utilities/mocks.dart';
 import 'update_existing_flaky_issues_test_data.dart';
 
@@ -34,6 +35,7 @@ void main() {
     late MockBigQueryService mockBigQueryService;
     late MockGitHub mockGitHubClient;
     late MockIssuesService mockIssuesService;
+    late FakeCiYamlFetcher ciYamlFetcher;
 
     setUp(() {
       final request = FakeHttpRequest(
@@ -88,10 +90,11 @@ void main() {
       );
       tester = ApiRequestHandlerTester(request: request);
 
+      ciYamlFetcher = FakeCiYamlFetcher(ciYaml: testCiYaml);
       handler = UpdateExistingFlakyIssue(
         config: config,
         authenticationProvider: auth,
-        ciYamlForTesting: testCiYaml,
+        ciYamlFetcher: ciYamlFetcher,
         bigQuery: mockBigQueryService,
       );
     });
