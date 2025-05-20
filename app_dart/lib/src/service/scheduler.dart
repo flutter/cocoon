@@ -672,10 +672,14 @@ $s
       // TODO: MergeQueueHashStatus
       //   - .build: trigger targets!
       //   - .wait: something is building.
+      //   - .completed: hash already built, complete!
       //   - .*: do nothing
-      // FOR NOW: trigger builds for build/wait
+      // FOR NOW: trigger builds for build/wait/completed because they are also
+      //          building for SHA.
       switch (artifactStatus) {
-        case MergeQueueHashStatus.build || MergeQueueHashStatus.wait
+        case MergeQueueHashStatus.build ||
+                MergeQueueHashStatus.wait ||
+                MergeQueueHashStatus.complete
             when _config.flags.contentAwareHashing.waitOnContentHash:
           // Note from codefu: We do not have the merge queue lock yet.
           // It was short-circuited if the waitOnContentHash is set. The
