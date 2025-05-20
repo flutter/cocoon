@@ -409,7 +409,7 @@ void main() {
       });
 
       // Regression test for https://github.com/flutter/flutter/issues/168738.
-      test('marks all tasks as new for non-release/non-master', () async {
+      test('experimental branches build the engine, skip tests', () async {
         ciYamlFetcher.setCiYamlFrom(otherBranchCiYaml, engine: fusionCiYaml);
 
         final mergedPr = generatePullRequest(
@@ -436,7 +436,24 @@ void main() {
           firestore,
           existsInStorage(
             fs.Task.metadata,
-            everyElement(isTask.hasStatus(TaskStatus.waitingForBackfill)),
+            unorderedEquals([
+              // release_build: "true"
+              isTask
+                  .hasTaskName('Linux engine_build')
+                  .hasStatus(TaskStatus.waitingForBackfill),
+
+              // engine tests based on engine build
+              isTask
+                  .hasTaskName('Linux engine_presubmit')
+                  .hasStatus(TaskStatus.skipped),
+              isTask
+                  .hasTaskName('Linux runIf engine')
+                  .hasStatus(TaskStatus.skipped),
+              isTask.hasTaskName('Linux Z').hasStatus(TaskStatus.skipped),
+
+              // framework tests based on engine build
+              isTask.hasTaskName('Linux A').hasStatus(TaskStatus.skipped),
+            ]),
           ),
         );
       });

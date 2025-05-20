@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
@@ -152,10 +151,10 @@ class Scheduler {
     }
 
     final _TaskCommitScheduling scheduling;
-    if (isReleaseCandidateBranch(branchName: commit.branch)) {
-      scheduling = _TaskCommitScheduling.releaseCandidateSkipTasksByDefault;
-    } else {
+    if (Config.defaultBranch(commit.slug) == commit.branch) {
       scheduling = _TaskCommitScheduling.defaultUseTargetSchedulingPolicy;
+    } else {
+      scheduling = _TaskCommitScheduling.nonDefaultBranchSkipTestsByDefault;
     }
 
     final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
@@ -178,7 +177,13 @@ class Scheduler {
     final toBeScheduled = <PendingTask>[];
     for (var target in targets) {
       final task = tasks.singleWhere((task) => task.taskName == target.name);
-      if (scheduling.skipPostsubmitTasks) {
+      // For flutter/flutter builds (non-master branch), we mark all builds that
+      // do not build the engine as "skipped" for later manual scheduling. Most
+      // branches won't have any release builds at this stage, but experimental
+      // branches *will*, which is why "!target.isReleaseBuild" is used.
+      //
+      // See https://github.com/flutter/flutter/issues/169088.
+      if (scheduling.skipPostsubmitTasks && !target.isReleaseBuild) {
         task.setStatus(TaskStatus.skipped);
         continue;
       }
@@ -1649,11 +1654,11 @@ enum _TaskCommitScheduling {
   /// Schedule according to how [Target.schedulerPolicy] is computed.
   defaultUseTargetSchedulingPolicy,
 
-  /// Release candidate where tasks are skipped to be manually run either.
-  releaseCandidateSkipTasksByDefault;
+  /// Non-default branches skip tests by default for later (manual) scheduling.
+  nonDefaultBranchSkipTestsByDefault;
 
   /// Whether postsubmit tasks should be initially skipped.
   bool get skipPostsubmitTasks {
-    return this == releaseCandidateSkipTasksByDefault;
+    return this == nonDefaultBranchSkipTestsByDefault;
   }
 }

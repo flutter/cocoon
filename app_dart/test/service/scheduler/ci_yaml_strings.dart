@@ -62,6 +62,7 @@ enabled_branches:
   - main
   - codefu
   - flutter-\d+\.\d+-candidate\.\d+
+  - ios-experimental
 targets:
   - name: Linux Z
     properties:
