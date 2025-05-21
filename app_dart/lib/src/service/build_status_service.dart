@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -88,14 +89,14 @@ interface class BuildStatusService {
   /// The returned stream will be ordered by most recent commit first, then
   /// the next newest, and so on.
   Future<List<CommitTasksStatus>> retrieveCommitStatusFirestore({
-    required int limit,
-    int? timestamp,
-    String? branch,
     required RepositorySlug slug,
+    required int limit,
+    TimeRange? created,
+    String? branch,
   }) async {
     final commits = await _firestore.queryRecentCommits(
       limit: limit,
-      timestamp: timestamp,
+      created: created,
       branch: branch,
       slug: slug,
     );
