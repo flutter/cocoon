@@ -68,7 +68,7 @@ mixin FirestoreQueries {
     Transaction? transaction,
   });
 
-  static Map<String, String> _filterByTimeRAnge(
+  static Map<String, Object> _filterByTimeRAnge(
     String fieldName,
     TimeRange range,
   ) {
@@ -76,31 +76,29 @@ mixin FirestoreQueries {
       IndefiniteTimeRange() => const {},
       SpecificTimeRange(:final start, :final end, :final exclusive) => {
         if (start != null)
-          '$fieldName ${exclusive ? '>' : '>='}':
-              '${start.millisecondsSinceEpoch}',
+          '$fieldName ${exclusive ? '>' : '>='}': start.millisecondsSinceEpoch,
         if (end != null)
-          '$fieldName ${exclusive ? '<' : '<='}':
-              '${end.millisecondsSinceEpoch}',
+          '$fieldName ${exclusive ? '<' : '<='}': end.millisecondsSinceEpoch,
       },
     };
   }
 
   /// Queries for recent commits.
   ///
-  /// The [limit] argument specifies the maximum number of commits to retrieve.
+  /// If [limit] is `null`, all commits are returned.
   ///
-  /// The returned commits will be ordered by most recent [Commit.timestamp].
+  /// The returned commits will be ordered by most recent
+  /// [Commit.createTimestamp].
   Future<List<Commit>> queryRecentCommits({
-    int limit = 100,
+    required int? limit,
+    required RepositorySlug slug,
     TimeRange? created,
     String? branch,
-    required RepositorySlug slug,
   }) async {
-    branch ??= Config.defaultBranch(slug);
     created ??= TimeRange.indefinite;
     final filterMap = <String, Object>{
-      '${Commit.fieldBranch} =': branch,
       '${Commit.fieldRepositoryPath} =': slug.fullName,
+      if (branch != null) '${Commit.fieldBranch} =': branch,
       ..._filterByTimeRAnge(Commit.fieldCreateTimestamp, created),
     };
     final orderMap = <String, String>{
