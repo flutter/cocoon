@@ -61,7 +61,7 @@ void main() {
     expect(result, containsPair('Commits', isEmpty));
   });
 
-  test('reports statuses without input commit key', () async {
+  test('reports statuses without input commit SHA', () async {
     buildStatusService = FakeBuildStatusService(
       commitTasksStatuses: [
         CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
@@ -79,11 +79,20 @@ void main() {
     expect(result, containsPair('Commits', hasLength(2)));
   });
 
-  test('reports statuses with input commit key', () async {
+  test('reports statuses with input commit SHA', () async {
     buildStatusService = FakeBuildStatusService(
       commitTasksStatuses: [
-        CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), []),
-        CommitTasksStatus(generateFirestoreCommit(2, sha: commit2.sha), []),
+        // Newer
+        CommitTasksStatus(
+          generateFirestoreCommit(2, sha: commit2.sha, createTimestamp: 2),
+          [],
+        ),
+
+        // Older
+        CommitTasksStatus(
+          generateFirestoreCommit(1, sha: commit1.sha, createTimestamp: 1),
+          [],
+        ),
       ],
     );
     handler = GetStatus(

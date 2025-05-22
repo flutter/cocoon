@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -40,17 +41,23 @@ final class GetStatus extends RequestHandler {
     final branch =
         request.uri.queryParameters[kBranchParam] ?? Config.defaultBranch(slug);
     final commitNumber = config.commitNumber;
-    final lastCommitTimestamp =
-        lastCommitSha != null
-            ? (await Commit.fromFirestoreBySha(
-              _firestore,
-              sha: lastCommitSha,
-            )).createTimestamp
-            : _now().millisecondsSinceEpoch;
+
+    final DateTime lastCommitCreated;
+    if (lastCommitSha != null) {
+      final commit = await Commit.fromFirestoreBySha(
+        _firestore,
+        sha: lastCommitSha,
+      );
+      lastCommitCreated = DateTime.fromMillisecondsSinceEpoch(
+        commit.createTimestamp,
+      );
+    } else {
+      lastCommitCreated = _now();
+    }
 
     final commits = await _buildStatusService.retrieveCommitStatusFirestore(
       limit: commitNumber,
-      timestamp: lastCommitTimestamp,
+      created: TimeRange.before(lastCommitCreated, exclusive: true),
       branch: branch,
       slug: slug,
     );

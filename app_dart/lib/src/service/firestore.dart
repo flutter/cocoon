@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/access_client_provider.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
@@ -67,6 +68,23 @@ mixin FirestoreQueries {
     Transaction? transaction,
   });
 
+  static Map<String, String> _filterByTimeRAnge(
+    String fieldName,
+    TimeRange range,
+  ) {
+    return switch (range) {
+      IndefiniteTimeRange() => const {},
+      SpecificTimeRange(:final start, :final end, :final exclusive) => {
+        if (start != null)
+          '$fieldName ${exclusive ? '>' : '>='}':
+              '${start.millisecondsSinceEpoch}',
+        if (end != null)
+          '$fieldName ${exclusive ? '<' : '<='}':
+              '${end.millisecondsSinceEpoch}',
+      },
+    };
+  }
+
   /// Queries for recent commits.
   ///
   /// The [limit] argument specifies the maximum number of commits to retrieve.
@@ -74,16 +92,16 @@ mixin FirestoreQueries {
   /// The returned commits will be ordered by most recent [Commit.timestamp].
   Future<List<Commit>> queryRecentCommits({
     int limit = 100,
-    int? timestamp,
+    TimeRange? created,
     String? branch,
     required RepositorySlug slug,
   }) async {
-    timestamp ??= DateTime.now().millisecondsSinceEpoch;
     branch ??= Config.defaultBranch(slug);
+    created ??= TimeRange.indefinite;
     final filterMap = <String, Object>{
       '${Commit.fieldBranch} =': branch,
       '${Commit.fieldRepositoryPath} =': slug.fullName,
-      '${Commit.fieldCreateTimestamp} <': timestamp,
+      ..._filterByTimeRAnge(Commit.fieldCreateTimestamp, created),
     };
     final orderMap = <String, String>{
       Commit.fieldCreateTimestamp: kQueryOrderDescending,
