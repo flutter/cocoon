@@ -4,7 +4,7 @@
 
 import 'dart:math';
 
-import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -32,69 +32,60 @@ final class BatchBackfiller extends RequestHandler {
     required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
     required FirestoreService firestore,
-    required BranchService branchService,
     BackfillStrategy backfillerStrategy = const DefaultBackfillStrategy(),
+    @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _luciBuildService = luciBuildService,
        _backfillerStrategy = backfillerStrategy,
        _firestore = firestore,
-       _branchService = branchService;
+       _now = now;
 
   final LuciBuildService _luciBuildService;
   final CiYamlFetcher _ciYamlFetcher;
   final BackfillStrategy _backfillerStrategy;
   final FirestoreService _firestore;
-  final BranchService _branchService;
+  final DateTime Function() _now;
 
   @override
   Future<Response> get(Request request) async {
-    await _backfillReleaseBranch(Config.flutterSlug);
-    await Future.forEach(config.supportedRepos, _backfillDefaultBranch);
-    await _backfillExperimentalBranch(Config.flutterSlug);
-    return Response.emptyOk;
-  }
+    log.debug('Finding all branches eligible for backfilling');
+    final branches = <(RepositorySlug, String)>{};
+    for (final repo in config.supportedRepos) {
+      // Always include the default branch.
+      final defaultBranch = Config.defaultBranch(repo);
+      branches.add((repo, defaultBranch));
 
-  // TODO(matanlurey): Remove or make a formal supported feature.
-  //
-  // Hardcodes running a branch named `ios-experimental`, which is being tried
-  // by the iOS team to do MacOS 15.5 validation. It will appear similar to
-  // any other branch, but use lower-priority scheduling.
-  //
-  // See https://github.com/flutter/flutter/issues/168738.
-  Future<void> _backfillExperimentalBranch(RepositorySlug slug) async {
-    log.debug('Running experimental branch backfiller for "$slug"');
-    final fsGrid = await _firestore.queryRecentCommitsAndTasks(
-      slug,
-      commitLimit: config.flags.backfillerCommitLimit,
-      branch: 'ios-experimental',
-    );
-    await _doBackfillFrom(slug, fsGrid, forceLowPriority: true);
-  }
-
-  Future<void> _backfillReleaseBranch(RepositorySlug slug) async {
-    log.debug('Running release branch backfiller for "$slug"');
-    final branches = await _branchService.getReleaseBranches(slug: slug);
-    for (final branch in branches) {
-      if (!isReleaseCandidateBranch(branchName: branch.reference)) {
-        continue;
-      }
-      final fsGrid = await _firestore.queryRecentCommitsAndTasks(
-        slug,
-        commitLimit: config.flags.backfillerCommitLimit,
-        branch: branch.reference,
+      // Look for any branch that has received a commit in the last 7 days.
+      final commits = await _firestore.queryRecentCommits(
+        slug: repo,
+        limit: null,
+        created: TimeRange.after(_now().subtract(const Duration(days: 7))),
       );
-      await _doBackfillFrom(slug, fsGrid);
+      for (final commit in commits) {
+        branches.add((repo, commit.branch));
+      }
     }
-  }
 
-  Future<void> _backfillDefaultBranch(RepositorySlug slug) async {
-    log.debug('Running default branch backfiller for "$slug"');
-    final fsGrid = await _firestore.queryRecentCommitsAndTasks(
-      slug,
-      commitLimit: config.flags.backfillerCommitLimit,
-      branch: Config.defaultBranch(slug),
+    log.debug(
+      'Found ${branches.length} branches eligible for backfilling:\n'
+      '${branches.join('\n')}',
     );
-    return await _doBackfillFrom(slug, fsGrid);
+
+    await Future.forEach(branches, (branch) async {
+      final (slug, branchName) = branch;
+      log.debug('Backfilling ${slug.fullName} -> $branchName');
+      await _doBackfillFrom(
+        slug,
+        await _firestore.queryRecentCommitsAndTasks(
+          slug,
+          commitLimit: config.flags.backfillerCommitLimit,
+          branch: branchName,
+        ),
+      );
+    });
+    return Response.json({
+      'branches': [...branches.map((e) => '$e')],
+    });
   }
 
   Future<void> _doBackfillFrom(
@@ -103,7 +94,7 @@ final class BatchBackfiller extends RequestHandler {
     bool forceLowPriority = false,
   }) async {
     if (fsGrid.isEmpty) {
-      log.warn('No commits to backfill');
+      log.info('No commits to backfill');
       return;
     }
 

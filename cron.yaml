@@ -12,7 +12,7 @@ cron:
   schedule: every 1 hours
 
 - description: backfills builds
-  url: /api/v2/scheduler/batch-backfiller
+  url: /api/scheduler/batch-backfiller
   schedule: every 5 minutes
 
 - description: sends build status to GitHub to annotate flutter PRs and commits

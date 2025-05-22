@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_common/rpc_model.dart' as rpc;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
@@ -13,7 +12,6 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:collection/collection.dart';
-import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -22,7 +20,6 @@ import '../../src/request_handling/request_handler_tester.dart';
 import '../../src/service/fake_ci_yaml_fetcher.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.mocks.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -31,13 +28,11 @@ void main() {
   late BatchBackfiller handler;
 
   // Dependencies.
+  final fakeNow = DateTime(2025, 1, 1);
   late FakeConfig config;
   late FakeFirestoreService firestore;
   late FakeCiYamlFetcher ciYamlFetcher;
   late _FakeLuciBuildService fakeLuciBuildService;
-
-  // Used to implement BranchService.getBranches.
-  late List<rpc.Branch>? branchesForRepository;
 
   // Fixture.
   late RequestHandlerTester tester;
@@ -52,28 +47,13 @@ void main() {
     ciYamlFetcher = FakeCiYamlFetcher();
     fakeLuciBuildService = _FakeLuciBuildService();
 
-    final branchService = MockBranchService();
-    branchesForRepository = [];
-    when(branchService.getReleaseBranches(slug: anyNamed('slug'))).thenAnswer((
-      i,
-    ) async {
-      final slug = i.namedArguments[#slug] as RepositorySlug;
-      return branchesForRepository ??
-          [
-            rpc.Branch(
-              channel: Config.defaultBranch(slug),
-              reference: Config.defaultBranch(slug),
-            ),
-          ];
-    });
-
     handler = BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: fakeLuciBuildService,
       backfillerStrategy: const _NaiveBackfillStrategy(),
       firestore: firestore,
-      branchService: branchService,
+      now: () => fakeNow,
     );
 
     tester = RequestHandlerTester();
@@ -119,6 +99,7 @@ void main() {
       '''
     enabled_branches:
       - master
+      - $branch
 
     targets:
       - name: Linux 0
@@ -133,13 +114,14 @@ void main() {
       engine: '''
     enabled_branches:
       - master
+      - $branch
 
     targets:
       - name: Engine 0
     ''',
     );
 
-    var date = DateTime(2025, 1, 1);
+    var date = fakeNow;
     for (final (i, row) in statuses.indexed) {
       final fsCommit = generateFirestoreCommit(
         i,
@@ -286,11 +268,6 @@ void main() {
   });
 
   test('backfills release candidate branches', () async {
-    branchesForRepository = [
-      rpc.Branch(channel: 'master', reference: 'master'),
-      rpc.Branch(channel: 'beta', reference: 'flutter-3.32-candidate.0'),
-    ];
-
     // dart format off
     await fillStorageAndSetCiYaml([
       [$N, $I, $F, $S],
@@ -356,10 +333,6 @@ void main() {
 
   // https://github.com/flutter/flutter/issues/168738
   test('schedules low-priority targets for "ios-experimental"', () async {
-    branchesForRepository = [
-      // Intentionally left blank.
-    ];
-
     // dart format off
     await fillStorageAndSetCiYaml([
       [$N, $I, $F, $S],
