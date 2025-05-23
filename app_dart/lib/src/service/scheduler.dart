@@ -892,38 +892,12 @@ $s
             )
             .toList();
 
-    // See https://github.com/flutter/flutter/issues/138430.
-    final includePostsubmitAsPresubmit = _includePostsubmitAsPresubmit(
-      inner,
-      pullRequest,
-    );
-    if (includePostsubmitAsPresubmit) {
-      log.info(
-        'Including postsubmit targets as presubmit for ${pullRequest.number}',
-      );
-
-      for (var target in inner.postsubmitTargets) {
-        // We don't want to include a presubmit twice
-        // We don't want to run the builder_cache target as a presubmit
-        if (!target.presubmit &&
-            !target.getProperties().containsKey('cache_name')) {
-          presubmitTargets.add(target);
-        }
-      }
-    }
-
     log.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.
     if (pullRequest.base!.ref !=
         Config.defaultBranch(pullRequest.base!.repo!.slug())) {
       log.info(
         'Release branch found, scheduling all targets for ${pullRequest.number}',
-      );
-      return presubmitTargets;
-    }
-    if (includePostsubmitAsPresubmit) {
-      log.info(
-        'Postsubmit targets included as presubmit, scheduling all targets for ${pullRequest.number}',
       );
       return presubmitTargets;
     }
@@ -934,23 +908,6 @@ $s
       pullRequest.number!,
     );
     return getTargetsToRun(presubmitTargets, filesChanged);
-  }
-
-  static final _allowTestAll = {Config.flutterSlug};
-
-  /// Returns `true` if [ciYaml.postsubmitTargets] should be ran during presubmit.
-  static bool _includePostsubmitAsPresubmit(
-    CiYaml ciYaml,
-    PullRequest pullRequest,
-  ) {
-    if (!_allowTestAll.contains(ciYaml.slug)) {
-      return false;
-    }
-    if (pullRequest.labels?.any((label) => label.name.contains('test: all')) ??
-        false) {
-      return true;
-    }
-    return false;
   }
 
   /// Process a completed GitHub `check_run`.
