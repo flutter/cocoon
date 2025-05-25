@@ -17,30 +17,47 @@ final class FakeCiYamlFetcher implements CiYamlFetcher {
     this.failCiYamlValidation = false,
   });
 
-  /// The value that should be returned as a canned response for [getCiYamlByCommit].
-  ///
-  /// If omitted (`null`) defaults to a configuration with a single target.
-  CiYamlSet? ciYaml;
-
-  /// The value that should be returned as a canned response for [getTipOfTreeCiYaml].
-  ///
-  /// If omitted (`null`), defaults to the same response as [ciYaml].
-  CiYamlSet? totCiYaml;
-
-  /// Sets [ciYaml] by loading a YAML document.
-  ///
-  /// Optionally may also specify [engine] for a fusion [CiYamlSet].
-  void setCiYamlFrom(String root, {String? engine}) {
-    ciYaml = CiYamlSet(
+  static CiYamlSet _from(
+    String root, {
+    String? branch,
+    String? engine,
+    CiYamlSet? totCiYaml,
+  }) {
+    return CiYamlSet(
       slug: Config.flutterSlug,
-      branch: 'will-be-replaced',
+      branch: branch ?? Config.defaultBranch(Config.flutterSlug),
       yamls: {
         CiType.any: pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(root)),
         if (engine != null)
           CiType.fusionEngine:
               pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(engine)),
       },
+      totConfig: totCiYaml,
     );
+  }
+
+  /// The value that should be returned as a canned response for [getCiYamlByCommit].
+  ///
+  /// If omitted (`null`) defaults to a configuration with a single target.
+  CiYamlSet? ciYaml;
+
+  /// Sets [ciYaml] by loading a YAML document.
+  ///
+  /// Optionally may also specify [engine] for a fusion [CiYamlSet].
+  void setCiYamlFrom(String root, {String? engine}) {
+    ciYaml = _from(root, engine: engine, totCiYaml: totCiYaml);
+  }
+
+  /// The value that should be returned as a canned response for [getTipOfTreeCiYaml].
+  ///
+  /// If omitted (`null`), defaults to the same response as [ciYaml].
+  CiYamlSet? totCiYaml;
+
+  /// Sets [totCiYaml] by loading a YAML document.
+  ///
+  /// Optionally may also specify [engine] for a fusion [CiYamlSet].
+  void setTotCiYamlFrom(String root, {String? engine}) {
+    totCiYaml = _from(root, engine: engine);
   }
 
   /// If `true`, [getCiYamlByCommit] will throw a [FormatException].
@@ -65,6 +82,7 @@ final class FakeCiYamlFetcher implements CiYamlFetcher {
       slug: commit.slug,
       branch: commit.branch,
       yamls: ci.configs.map((k, v) => MapEntry(k, v.config)),
+      totConfig: totCiYaml,
     );
   }
 

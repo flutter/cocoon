@@ -212,8 +212,8 @@ void main() {
 
     // AFTER:
     expect(await visualizeFirestoreGrid(), [
-      '🧑‍💼 ⬜ 🟨 🟥 🟩',
-      '🧑‍💼 ⬜ 🟨 🟨 🟨',
+      '🧑‍💼 ⬛️ 🟨 🟥 🟩',
+      '🧑‍💼 ⬛️ 🟨 🟨 🟨',
     ]);
   });
 
@@ -378,6 +378,115 @@ void main() {
       ),
       reason: 'Should use a low priority for all executions',
     );
+  });
+
+  test('skips targets that do not exist in ToT', () async {
+    ciYamlFetcher.setTotCiYamlFrom('''
+      enabled_branches:
+        - master
+
+      targets:
+        - name: Linux Will_Run
+    ''', engine: '');
+    ciYamlFetcher.setCiYamlFrom('''
+      enabled_branches:
+        - master
+
+      targets:
+        - name: Linux Will_Run
+        - name: Linux Will_Not_Run
+    ''', engine: '');
+    // Add a commit and two tasks.
+    // The second task will be skipped because it doesn't exist in ToT.
+    firestore.putDocument(
+      generateFirestoreCommit(
+        0,
+        branch: 'master',
+        createTimestamp: fakeNow.millisecondsSinceEpoch,
+      ),
+    );
+    firestore.putDocument(
+      generateFirestoreTask(0, name: 'Linux Will_Run', commitSha: '0'),
+    );
+    firestore.putDocument(
+      generateFirestoreTask(1, name: 'Linux Will_Not_Run', commitSha: '0'),
+    );
+
+    // BEFORE:
+    expect(
+      await visualizeFirestoreGrid(),
+      // dart format off
+      [
+      '🧑‍💼 ⬜ ⬜',
+      ],
+      // dart format on
+    );
+
+    await tester.get(handler);
+
+    // AFTER:
+    expect(
+      await visualizeFirestoreGrid(),
+      // dart format off
+      [
+      '🧑‍💼 🟨 ⬛️',
+      ],
+      // dart format on
+    );
+  });
+
+  test('uses target definition from the current commit', () async {
+    ciYamlFetcher.setTotCiYamlFrom('''
+      enabled_branches:
+        - master
+
+      targets:
+        - name: Linux Will_Run
+          properties:
+            is-tot: "true"
+    ''', engine: '');
+    ciYamlFetcher.setCiYamlFrom('''
+      enabled_branches:
+        - master
+
+      targets:
+        - name: Linux Will_Run
+          properties:
+            is-tot: "false"
+        - name: Linux Will_Not_Run
+    ''', engine: '');
+
+    // Add a commit and two tasks.
+    // The first task will have updated properties.
+    // The second task will be skipped because it doesn't exist in ToT.
+    firestore.putDocument(
+      generateFirestoreCommit(
+        0,
+        branch: 'master',
+        createTimestamp: fakeNow.millisecondsSinceEpoch,
+      ),
+    );
+    firestore.putDocument(
+      generateFirestoreTask(0, name: 'Linux Will_Run', commitSha: '0'),
+    );
+    firestore.putDocument(
+      generateFirestoreTask(1, name: 'Linux Will_Not_Run', commitSha: '0'),
+    );
+
+    // Run the backfiller.
+    await tester.get(handler);
+
+    // Lookup the scheduled tasks.
+    final tasks = fakeLuciBuildService.scheduledPostsubmitBuilds;
+    expect(tasks, [
+      isA<PendingTask>()
+          .having((t) => t.taskName, 'name', 'Linux Will_Run')
+          .having(
+            (t) => t.target.getProperties(),
+            'target.getProperties()',
+            containsPair('is-tot', isFalse),
+          ),
+    ]);
   });
 }
 
