@@ -106,26 +106,26 @@ final class BatchBackfiller extends RequestHandler {
         '${fsGrid.map((i) => i.tasks).expand((i) => i).length} tasks',
       );
 
-      // Download the ToT .ci.yaml targets.
-      final totCiYaml = await _ciYamlFetcher.getTipOfTreeCiYaml(slug: slug);
-
-      final totTargets = [
-        ...totCiYaml.postsubmitTargets(),
-        if (totCiYaml.isFusion)
-          ...totCiYaml.postsubmitTargets(type: CiType.fusionEngine),
+      // Download the current commits targets.
+      final currentCiYaml = await _ciYamlFetcher.getCiYamlByCommit(
+        fsGrid.first.commit,
+        postsubmit: true,
+      );
+      final currentTargets = [
+        ...currentCiYaml.postsubmitTargets(),
+        if (currentCiYaml.isFusion)
+          ...currentCiYaml.postsubmitTargets(type: CiType.fusionEngine),
       ];
-      if (totTargets.isEmpty) {
-        log.warn(
-          'Did not fetch any tip-of-tree targets. Backfill will do nothing!',
-        );
+      if (currentTargets.isEmpty) {
+        log.warn('Did not fetch any targets. Backfill will do nothing!');
       } else {
-        log.debug('Fetched ${totTargets.length} tip-of-tree targets');
+        log.debug('Fetched ${currentTargets.length} targets');
       }
 
       grid = BackfillGrid.from([
         for (final CommitAndTasks(:commit, :tasks) in fsGrid)
           (commit, [...tasks.map((t) => t.toRef())]),
-      ], tipOfTreeTargets: totTargets);
+      ], postsubmitTargets: currentTargets);
     }
     log.debug('Built a grid of ${grid.eligibleTasks.length} target columns');
 

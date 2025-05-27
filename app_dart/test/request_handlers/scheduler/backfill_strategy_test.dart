@@ -88,7 +88,7 @@ void main() {
         //           Linux TASK_0           Linux TASK_1
         (commits[0], [taskNew       (0, 0),        taskNew (0, 1)]),
         (commits[1], [taskSucceeded (1, 0), taskInProgress (1, 1)]),
-      ], tipOfTreeTargets: [
+      ], postsubmitTargets: [
         targets[0],
         targets[1],
       ]);
@@ -112,7 +112,7 @@ void main() {
         //           Linux TASK_0            Linux TASK_1
         (commits[0], [taskNew       (0, 0),  taskNew (0, 1)]),
         (commits[1], [taskNew       (1, 0),  taskNew (1, 1)]),
-      ], tipOfTreeTargets: [
+      ], postsubmitTargets: [
         targets[0],
         targets[1],
       ]);
@@ -146,7 +146,7 @@ void main() {
         //           Linux TASK_0            Linux TASK_1
         (commits[0], [taskNew       (0, 0),  taskSucceeded (0, 1)]),
         (commits[1], [taskNew       (1, 0),  taskNew       (1, 1)]),
-      ], tipOfTreeTargets: [
+      ], postsubmitTargets: [
         targets[0],
         targets[1],
       ]);
@@ -195,7 +195,7 @@ void main() {
         (commits[1], [taskNew       (5, 0),  taskNew    (5, 1),    taskFailed (5, 2)]), // < 5
         (commits[1], [taskNew       (6, 0),  taskFailed (6, 1),    taskNew    (6, 2)]), // < 6
         (commits[1], [taskFailed    (7, 0),  taskNew    (7, 1),    taskNew    (7, 2)]), // < 7
-      ], tipOfTreeTargets: [
+      ], postsubmitTargets: [
         targets[0],
         targets[1],
         targets[2],
@@ -228,7 +228,7 @@ void main() {
         (commit, [
           generateFirestoreTask(1, commitSha: '123', name: targets[0].name).toRef()
         ])
-      ], tipOfTreeTargets: [
+      ], postsubmitTargets: [
         targets[0],
       ]);
       // dart format on

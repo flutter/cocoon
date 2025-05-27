@@ -30,19 +30,20 @@ final class BackfillGrid {
   /// Creates an indexed data structure from the provided `(commit, [tasks])`.
   ///
   /// Some automatic filtering is applied, removing targets/tasks where:
-  /// - [tipOfTreeTargets] that does not use [BatchPolicy];
-  /// - [tipOfTreeTargets] without a task;
-  /// - task that does have a matching [tipOfTreeTargets].
+  /// - [postsubmitTargets] that does not use [BatchPolicy];
+  /// - [postsubmitTargets] without a task;
+  /// - task that does have a matching [postsubmitTargets].
   factory BackfillGrid.from(
     Iterable<(CommitRef, List<TaskRef>)> grid, {
-    required Iterable<Target> tipOfTreeTargets,
+    required Iterable<Target> postsubmitTargets,
   }) {
-    final totTargetsByName = {for (final t in tipOfTreeTargets) t.name: t};
+    final totTargetsByName = {for (final t in postsubmitTargets) t.name: t};
     final commitsByName = <String, CommitRef>{};
     final tasksByName = <String, List<TaskRef>>{};
     for (final (commit, tasks) in grid) {
       commitsByName[commit.sha] = commit;
       for (final task in tasks) {
+        (tasksByName[task.name] ??= []).add(task);
         // Must exist at ToT (in this Map) and must be BatchPolicy.
         if (totTargetsByName[task.name]?.schedulerPolicy is! BatchPolicy) {
           // Even if it existed, let's remove it at this point because it is no
@@ -51,7 +52,6 @@ final class BackfillGrid {
           totTargetsByName.remove(task.name);
           continue;
         }
-        (tasksByName[task.name] ??= []).add(task);
       }
     }
 
@@ -122,15 +122,11 @@ final class BackfillGrid {
   }
 
   @useResult
-  Target _validateColumnAndTarget(String name, List<TaskRef> column) {
+  Target? _validateColumnAndTarget(String name, List<TaskRef> column) {
     if (column.isEmpty) {
       throw StateError('A target ("$name") should never have 0 tasks');
     }
-    final target = _targetsByName[name];
-    if (target == null) {
-      throw StateError('A target ("$name") should have existed in the grid');
-    }
-    return target;
+    return _targetsByName[name];
   }
 
   /// Each task, ordered by column (task by task).
@@ -139,7 +135,7 @@ final class BackfillGrid {
   Iterable<(Target, List<TaskRef>)> get eligibleTasks sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
       final target = _validateColumnAndTarget(name, column);
-      if (target.backfill) {
+      if (target != null && target.backfill) {
         yield (target, column);
       }
     }
@@ -151,7 +147,7 @@ final class BackfillGrid {
   Iterable<SkippableTask> get skippableTasks sync* {
     for (final MapEntry(key: name, value: column) in _tasksByName.entries) {
       final target = _validateColumnAndTarget(name, column);
-      if (target.backfill) {
+      if (target?.backfill == true) {
         continue;
       }
       for (final task in column) {
@@ -164,7 +160,7 @@ final class BackfillGrid {
             'A commit ("${task.commitSha}") should have existed in the grid',
           );
         }
-        yield SkippableTask._from(task, target: target, commit: commit);
+        yield SkippableTask._from(task, commit: commit);
       }
     }
   }
@@ -235,17 +231,10 @@ final class BackfillTask {
 /// A proposed task to be skipped as part of the backfill process.
 @immutable
 final class SkippableTask {
-  const SkippableTask._from(
-    this.task, {
-    required this.target,
-    required this.commit,
-  });
+  const SkippableTask._from(this.task, {required this.commit});
 
   /// The task itself.
   final TaskRef task;
-
-  /// Which [Target] (originating from `.ci.yaml`) defined this task.
-  final Target target;
 
   /// The commit this task is associated with.
   final CommitRef commit;
@@ -254,7 +243,6 @@ final class SkippableTask {
   String toString() {
     return 'SkippableTask ${const JsonEncoder.withIndent('  ').convert({
       'task': '$task', //
-      'target': '$target',
       'commit': '$commit',
     })}';
   }

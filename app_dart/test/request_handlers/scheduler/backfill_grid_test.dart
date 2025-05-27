@@ -24,7 +24,7 @@ void main() {
       [
         (commit, [task]),
       ],
-      tipOfTreeTargets: [target],
+      postsubmitTargets: [target],
     );
 
     expect(
@@ -51,7 +51,7 @@ void main() {
         (c1, [t1c1, t2c1]),
         (c2, [t1c2, t2c2]),
       ],
-      tipOfTreeTargets: [tg1, tg2],
+      postsubmitTargets: [tg1, tg2],
     );
 
     expect(
@@ -88,7 +88,7 @@ void main() {
         (c1, [t1c1, t2c1]),
         (c2, [t1c2, t2c2]),
       ],
-      tipOfTreeTargets: [tg1, tg2],
+      postsubmitTargets: [tg1, tg2],
     );
 
     expect(
@@ -119,7 +119,7 @@ void main() {
       [
         (commit, [taskExists, taskMissing]),
       ],
-      tipOfTreeTargets: [targetExists],
+      postsubmitTargets: [targetExists],
     );
 
     expect(
@@ -149,7 +149,7 @@ void main() {
       [
         (commit, [taskBatch, taskNonBatch]),
       ],
-      tipOfTreeTargets: [targetBatch, targetNonBatch],
+      postsubmitTargets: [targetBatch, targetNonBatch],
     );
 
     expect(
@@ -172,7 +172,7 @@ void main() {
       [
         (commit, [task]),
       ],
-      tipOfTreeTargets: [target],
+      postsubmitTargets: [target],
     );
 
     expect(
