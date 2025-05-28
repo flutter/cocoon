@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:math' show Random;
 import 'dart:typed_data';
 
 import 'package:cocoon_server/generate_github_jws.dart';
@@ -12,30 +11,20 @@ import 'package:cocoon_server/secret_manager.dart';
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart' hide JsonSerializable;
 import 'package:http/http.dart' as http;
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
-import 'package:yaml/yaml.dart' show YamlList, YamlMap, loadYaml;
 
 import '../../cocoon_service.dart';
-import '../foundation/providers.dart' show Providers;
-import '../foundation/typedefs.dart' show HttpClientProvider;
-import 'flags/content_aware_hashing_flags.dart';
+import 'flags/dynamic_config_updater.dart';
 import 'github_service.dart';
 import 'luci_build_service/cipd_version.dart';
-
-part 'config.g.dart';
 
 /// Name of the default git branch.
 const String kDefaultBranchName = 'master';
 
-interface class Config {
+interface class Config extends DynamicallyUpdatedConfig {
   /// Creates and returns a [Config] instance.
-  Config(this._cache, this._secrets, {required DynamicConfig dynamicConfig})
-    : _dynamicConfig = dynamicConfig;
-
-  /// Access dynamically configured flags.
-  DynamicConfig get flags => _dynamicConfig;
+  Config(this._cache, this._secrets, {required super.initialConfig});
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -70,8 +59,6 @@ interface class Config {
 
   final CacheService _cache;
   final SecretManager _secrets;
-
-  DynamicConfig _dynamicConfig;
 
   /// List of Github presubmit supported repos.
   ///
@@ -497,167 +484,3 @@ interface class Config {
     return GithubService(github);
   }
 }
-
-/// Flags for the service that can be updated dynamically with out a restart.
-///
-/// Should be read from git/HEAD/app_dart/config.yaml and cached between
-/// services.
-@JsonSerializable(explicitToJson: true)
-@immutable
-final class DynamicConfig {
-  /// Upper limit of commit rows to be backfilled in API call.
-  ///
-  /// This limits the number of commits to be checked to backfill. When bots
-  /// are idle, we hope to scan as many commit rows as possible.
-  @JsonKey(defaultValue: 50)
-  final int backfillerCommitLimit;
-
-  final ContentAwareHashingJson contentAwareHashing;
-
-  DynamicConfig({
-    required this.backfillerCommitLimit,
-    required this.contentAwareHashing,
-  });
-
-  /// Connect the generated [_$DynamicConfigFromJson] function to the `fromJson`
-  /// factory.
-  factory DynamicConfig.fromJson(Map<String, Object?>? json) =>
-      _$DynamicConfigFromJson(json ?? {});
-
-  /// Connect the generated [_$DynamicConfigToJson] function to the `toJson` method.
-  Map<String, dynamic> toJson() => _$DynamicConfigToJson(this);
-}
-
-extension YamlMapToMap on YamlMap {
-  Map<String, Object?> get asMap => <String, Object?>{
-    for (final MapEntry(:key, :value) in entries)
-      if (value is YamlMap)
-        '$key': value.asMap
-      else if (value is YamlList)
-        '$key': value.asList
-      else
-        '$key': value,
-  };
-}
-
-extension YamlListToList on YamlList {
-  List<Object?> get asList => <Object?>[
-    for (final value in nodes)
-      if (value is YamlMap)
-        value.asMap
-      else if (value is YamlList)
-        value.asList
-      else
-        value,
-  ];
-}
-
-/// Responsibly polls for configuration changes to our service config.
-///
-/// This works by fetching the latest checked in "config.yaml".
-class DynamicConfigUpdater {
-  DynamicConfigUpdater({
-    Duration delay = const Duration(minutes: 1),
-    @visibleForTesting Random? random,
-    @visibleForTesting
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-    @visibleForTesting
-    RetryOptions retryOptions = const RetryOptions(
-      maxAttempts: 3,
-      delayFactor: Duration(seconds: 3),
-    ),
-  }) : _delay = delay,
-       _random = random ?? Random(),
-       _httpClientProvider = httpClientProvider,
-       _retryOptions = retryOptions;
-
-  final Duration _delay;
-  final Random _random;
-  final HttpClientProvider _httpClientProvider;
-  final RetryOptions _retryOptions;
-
-  /// Fetches and parses the `config.yaml` from HEAD `flutter/cocoon/app_dart/`.
-  Future<DynamicConfig> fetchDynamicConfig() async {
-    final file = await githubFileContent(
-      Config.cocoonSlug,
-      'app_dart/config.yaml',
-      ref: 'main',
-      httpClientProvider: _httpClientProvider,
-      retryOptions: _retryOptions,
-    );
-    final configYaml = loadYaml(file) as YamlMap;
-    return DynamicConfig.fromJson(configYaml.asMap);
-  }
-
-  UpdaterStatus _status = UpdaterStatus.stopped;
-
-  void stopUpdateLoop() {
-    if (_status != UpdaterStatus.running) return;
-    log.info('ConfigUpdater: Stopping config update loop...');
-    _status = UpdaterStatus.stopping;
-  }
-
-  void startUpdateLoop(Config config) async {
-    if (_status != UpdaterStatus.stopped) return;
-    _status = UpdaterStatus.running;
-
-    log.info('ConfigUpdater: Starting config update loop...');
-
-    // What we've decided:
-    //   1. Each instance will **start** with a valid DynamicConfig
-    //   2. Each instance will update their own config on an interval that can
-    //      drift by as much as a minute.
-    //   3. If a fetch fails, we'll log an error, but keep using the last config
-    while (true) {
-      await Future<void>.delayed(
-        _delay + Duration(milliseconds: _random.nextInt(1000)),
-      );
-      if (_status != UpdaterStatus.running) {
-        log.info('ConfigUpdater: Stopped config update loop');
-        _status = UpdaterStatus.stopped;
-        return;
-      }
-      try {
-        final dynamicConfig = await fetchDynamicConfig();
-        final diffs = diffConfigChanges(
-          config._dynamicConfig.toJson(),
-          dynamicConfig.toJson(),
-        );
-        if (diffs.isNotEmpty) {
-          log.info('ConfigUpdater: ${diffs.join(',')}');
-          config._dynamicConfig = dynamicConfig;
-        }
-      } catch (e, s) {
-        log.error('ConfigUpdater: Unable to fetch DynamicConfig!', e, s);
-      }
-    }
-  }
-
-  /// Produce a simple diff of the changing flags.
-  List<String> diffConfigChanges(
-    Map<String, Object?> oldFlags,
-    Map<String, Object?> newFlags, {
-    List<String>? diffs,
-    String chain = 'flags',
-  }) {
-    diffs ??= <String>[];
-
-    for (final MapEntry(:key, :value) in oldFlags.entries) {
-      if (value is Map) {
-        diffConfigChanges(
-          value as Map<String, Object?>,
-          newFlags[key] as Map<String, Object?>,
-          diffs: diffs,
-          chain: '$chain.$key',
-        );
-        continue;
-      }
-      if (value != newFlags[key]) {
-        diffs.add('$chain.$key $value -> ${newFlags[key]}');
-      }
-    }
-    return diffs;
-  }
-}
-
-enum UpdaterStatus { stopped, running, stopping }

@@ -15,6 +15,7 @@ import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 
@@ -26,7 +27,7 @@ Future<void> main() async {
   final config = Config(
     cache,
     FakeSecretManager(),
-    dynamicConfig: DynamicConfig.fromJson({}),
+    initialConfig: DynamicConfig.fromJson({}),
   );
   final firestore = FakeFirestoreService();
 

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
@@ -25,7 +26,7 @@ void main() {
     config = Config(
       cacheService,
       secrets,
-      dynamicConfig: DynamicConfig.fromJson({}),
+      initialConfig: DynamicConfig.fromJson({}),
     );
   });
 
@@ -70,7 +71,7 @@ void main() {
     test('current config.yaml is parsable', () async {
       final yaml =
           loadYaml(await File('config.yaml').readAsString()) as YamlMap;
-      DynamicConfig.fromJson(yaml.asMap);
+      DynamicConfig.fromYaml(yaml);
     });
   });
 }
