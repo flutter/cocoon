@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:test/test.dart';
 
+import '../../src/model/ci_yaml_matcher.dart';
 import '../../src/service/fake_scheduler.dart';
 
 void main() {
@@ -104,6 +105,72 @@ void main() {
       );
       final targets = ciYaml.postsubmitTargets();
       expect(targets.map((target) => target.name), containsAll(['Linux A']));
+    });
+
+    // TODO(matanlurey): Remove after legacy behavior removed.
+    // See https://github.com/flutter/flutter/issues/169370.
+    test('filters targets not enabled at ToT for the current branch', () {
+      final ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: 'ios-experimental',
+        config: pb.SchedulerConfig(
+          enabledBranches: ['ios-experimental'],
+          targets: [pb.Target(name: 'Linux host_engine')],
+        ),
+        totConfig: CiYaml(
+          slug: Config.flutterSlug,
+          branch: 'master',
+          config: pb.SchedulerConfig(
+            enabledBranches: ['master'],
+            targets: [
+              pb.Target(
+                name: 'Linux host_engine',
+                properties: {'release_build': 'true'},
+              ),
+              // By adding a postsubmit test, it triggers this weird edge case.
+              pb.Target(name: 'Linux host_engine_tests'),
+            ],
+          ),
+          type: CiType.any,
+        ),
+        type: CiType.any,
+      );
+      expect(
+        ciYaml.postsubmitTargets,
+        isEmpty,
+        reason: 'At ToT, Linux host_engine does not run in postsubmit.',
+      );
+    });
+
+    // Regression test for https://github.com/flutter/flutter/issues/169370.
+    test('targets not enabled at ToT does not impact current branch', () {
+      final ciYaml = CiYaml(
+        slug: Config.flutterSlug,
+        branch: 'ios-experimental',
+        onlyUseTipOfTreeTargetsExistenceToFilterTargets: true,
+        config: pb.SchedulerConfig(
+          enabledBranches: ['ios-experimental'],
+          targets: [pb.Target(name: 'Linux host_engine')],
+        ),
+        totConfig: CiYaml(
+          slug: Config.flutterSlug,
+          branch: 'master',
+          config: pb.SchedulerConfig(
+            enabledBranches: ['master'],
+            targets: [
+              pb.Target(
+                name: 'Linux host_engine',
+                properties: {'release_build': 'true'},
+              ),
+              // By adding a postsubmit test, it triggers this weird edge case.
+              pb.Target(name: 'Linux host_engine_tests'),
+            ],
+          ),
+          type: CiType.any,
+        ),
+        type: CiType.any,
+      );
+      expect(ciYaml.postsubmitTargets, [isTarget.hasName('Linux host_engine')]);
     });
 
     group('validations and filters.', () {

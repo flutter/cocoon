@@ -94,12 +94,12 @@ final class CiYamlSet {
   /// List of target names used to filter target from release candidate branches
   /// that were already removed from main.
   List<String>? totTargetNames({CiType type = CiType.any}) =>
-      configs[type]!.totTargetNames;
+      configs[type]!._totTargetNames;
 
   /// List of postsubmit target names used to filter target from release candidate branches
   /// that were already removed from main.
   List<String>? totPostsubmitTargetNames({CiType type = CiType.any}) =>
-      configs[type]!.totPostsubmitTargetNames;
+      configs[type]!._totPostsubmitTargetNames;
 
   /// Get an unfiltered list of all [targets] that are found in the ci.yaml file.
   List<Target> targets({CiType type = CiType.any}) => configs[type]!.targets;
@@ -117,6 +117,7 @@ class CiYaml {
     required this.branch,
     required this.config,
     required this.type,
+    this.onlyUseTipOfTreeTargetsExistenceToFilterTargets = false,
     CiYaml? totConfig,
     bool validate = false,
   }) {
@@ -125,16 +126,71 @@ class CiYaml {
     }
     // Do not filter bringup targets. They are required for backward compatibility
     // with release candidate branches.
-    final totTargets = totConfig?._targets ?? <Target>[];
-    final totEnabledTargets = _filterEnabledTargets(totTargets);
-    totTargetNames =
-        totEnabledTargets.map((Target target) => target.name).toList();
-    totPostsubmitTargetNames =
-        totConfig?.postsubmitTargets
-            .map((Target target) => target.name)
-            .toList() ??
-        <String>[];
+    final totTargets = totConfig?._targets ?? const [];
+    _totTargetNames = List.unmodifiable(totTargets.map((t) => t.name));
+    if (onlyUseTipOfTreeTargetsExistenceToFilterTargets) {
+      _totPostsubmitTargetNames = _totTargetNames;
+    } else if (totConfig != null) {
+      _totPostsubmitTargetNames = List.unmodifiable(
+        totConfig.postsubmitTargets.map((t) => t.name),
+      );
+    } else {
+      _totPostsubmitTargetNames = const [];
+    }
   }
+
+  /// Whether to _only_ use the existence of a target at tip-of-tree to filter
+  /// out targets on other branches.
+  ///
+  /// By setting this flag to `true`, a tip-of-tree (default) branch's enabled
+  /// branches cannot impact how a different branch's targets are enabled (or
+  /// not), only the _existence_ of a tip-of-tree target is considered.
+  ///
+  /// ## Details
+  ///
+  /// As discovered in https://github.com/flutter/flutter/issues/169370, the
+  /// default (or `master`/`main`) branch of a repository was required to have
+  /// knowledge about all other possible branches, and if a new branch was
+  /// created (but not defined in `enabledBranches: [ ...]`), the targets would
+  /// automatically be filtered out.
+  ///
+  /// Consider the following tip-of-tree definition of a `.ci.yaml`:
+  /// ```yaml
+  /// # flutter/flutter/master
+  /// # //engine/src/flutter/.ci.yaml
+  /// enabled_branches:
+  ///   - master
+  ///   - flutter-\d+\.\d+-candidate\.\d+
+  ///
+  /// targets:
+  ///   - name: Mac host_engine
+  ///     properties:
+  ///       release_build: "true"
+  ///   - name: Mac host_engine_test
+  /// ```
+  ///
+  /// And the same file, tweaked for execution in branch `ios-experimental`:
+  /// ```yaml
+  /// # flutter/flutter/ios-experimental
+  /// # //engine/src/flutter/.ci.yaml
+  /// enabled_branches:
+  ///   - ios-experimental
+  ///
+  /// targets:
+  ///   - name: Mac host_engine
+  ///     properties:
+  ///       release_build: "true"
+  ///   - name: Mac host_engine_test
+  /// ```
+  ///
+  /// If this flag is `false`, `Mac host_engine` does _not_ run on the
+  /// `ios-experimental` branch's postsubmit, because it is configured to not
+  /// run on `master`'s postsubmit (it is a `release_build`).
+  ///
+  /// This is confusing behavior, where experimental branches would need to
+  /// modify the tip-of-tree `.ci.yaml` in order to allow targets to be executed
+  /// on their branch, so this flag exists to change that behavior.
+  final bool onlyUseTipOfTreeTargetsExistenceToFilterTargets;
 
   final CiType type;
 
@@ -143,13 +199,15 @@ class CiYaml {
   /// If `true`, multiple `.ci.yaml` files are available. See [CiType].
   bool get isFusion => slug == Config.flutterSlug;
 
-  /// List of target names used to filter target from release candidate branches
-  /// that were already removed from main.
-  List<String>? totTargetNames;
+  /// Target names that exist at tip-of-tree.
+  ///
+  /// This list is unmodifiable.
+  late final List<String> _totTargetNames;
 
-  /// List of postsubmit target names used to filter target from release candidate branches
-  /// that were already removed from main.
-  List<String>? totPostsubmitTargetNames;
+  /// Target names that execute on postsubmit at tip-of-tree.
+  ///
+  /// This list is unmodifiable.
+  late final List<String> _totPostsubmitTargetNames;
 
   /// The underlying protobuf that contains the raw data from .ci.yaml.
   pb.SchedulerConfig config;
@@ -171,11 +229,11 @@ class CiYaml {
       throw BranchNotEnabledForThisCiYamlException(branch: branch);
     }
     // Filter targets removed from main.
-    if (totTargetNames!.isNotEmpty) {
+    if (_totTargetNames.isNotEmpty) {
       enabledTargets = _filterOutdatedTargets(
         slug,
         enabledTargets,
-        totTargetNames!,
+        _totTargetNames,
       );
     }
     return enabledTargets;
@@ -189,11 +247,11 @@ class CiYaml {
 
     var enabledTargets = _filterEnabledTargets(postsubmitTargets);
     // Filter targets removed from main.
-    if (totPostsubmitTargetNames!.isNotEmpty) {
+    if (_totPostsubmitTargetNames.isNotEmpty) {
       enabledTargets = _filterOutdatedTargets(
         slug,
         enabledTargets,
-        totPostsubmitTargetNames!,
+        _totPostsubmitTargetNames,
       );
     }
     // filter if release_build true if current branch is a release candidate branch, or a fusion tree.
