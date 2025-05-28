@@ -5,6 +5,8 @@
 
 backfillerCommitLimit: 50
 
+onlyUseTipOfTreeTargetsExistenceToFilterTargets: true
+
 contentAwareHashing:
   # This will cause PRs that enter the merge queue to wait on CAH hashing
   # to happen before scheduling builds.

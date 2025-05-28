@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport '../model/ci_yaml/ci_yaml.dart';
+library;
+
 import 'dart:convert';
 import 'dart:math' show Random;
 import 'dart:typed_data';
@@ -31,11 +34,17 @@ const String kDefaultBranchName = 'master';
 
 interface class Config {
   /// Creates and returns a [Config] instance.
-  Config(this._cache, this._secrets, {required DynamicConfig dynamicConfig})
-    : _dynamicConfig = dynamicConfig;
+  Config(
+    this._cache, //
+    this._secrets, {
+    required DynamicConfig dynamicConfig,
+  }) : _dynamicConfig = dynamicConfig;
 
   /// Access dynamically configured flags.
   DynamicConfig get flags => _dynamicConfig;
+
+  /// See [CiYaml.onlyUseTipOfTreeTargetsExistenceToFilterTargets].
+  static const bool kOnlyUseTipOfTreeTargetsExistenceToFilterTargets = false;
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -514,9 +523,19 @@ final class DynamicConfig {
 
   final ContentAwareHashingJson contentAwareHashing;
 
+  /// Whether to _only_ use the existence of a target at tip-of-tree to filter
+  /// out targets on other branches.
+  ///
+  /// See [CiYaml.onlyUseTipOfTreeTargetsExistenceToFilterTargets].
+  @JsonKey(
+    defaultValue: Config.kOnlyUseTipOfTreeTargetsExistenceToFilterTargets,
+  )
+  final bool onlyUseTipOfTreeTargetsExistenceToFilterTargets;
+
   DynamicConfig({
     required this.backfillerCommitLimit,
     required this.contentAwareHashing,
+    required this.onlyUseTipOfTreeTargetsExistenceToFilterTargets,
   });
 
   /// Connect the generated [_$DynamicConfigFromJson] function to the `fromJson`

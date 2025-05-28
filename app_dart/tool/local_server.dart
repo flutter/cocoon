@@ -65,7 +65,11 @@ Future<void> main() async {
   /// Github checks api service used to provide luci test execution status on the Github UI.
   final githubChecksService = GithubChecksService(config);
 
-  final ciYamlFetcher = CiYamlFetcher(cache: cache, firestore: firestore);
+  final ciYamlFetcher = CiYamlFetcher(
+    config: config,
+    cache: cache,
+    firestore: firestore,
+  );
 
   /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
   final scheduler = Scheduler(

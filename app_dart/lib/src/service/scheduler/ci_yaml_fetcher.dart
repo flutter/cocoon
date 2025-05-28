@@ -21,6 +21,7 @@ import '../firestore.dart';
 interface class CiYamlFetcher {
   /// Creates a [CiYamlFetcher] from the provided configuration.
   CiYamlFetcher({
+    required Config config,
     required CacheService cache,
     required FirestoreService firestore,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
@@ -30,13 +31,15 @@ interface class CiYamlFetcher {
       delayFactor: Duration(seconds: 2),
       maxAttempts: 4,
     ),
-  }) : _cache = cache,
+  }) : _config = config,
+       _cache = cache,
        _cacheTtl = cacheTtl,
        _subcacheName = subcacheName,
        _retryOptions = retryOptions,
        _httpClientProvider = httpClientProvider,
        _firestore = firestore;
 
+  final Config _config;
   final CacheService _cache;
   final String _subcacheName;
   final Duration _cacheTtl;
@@ -127,6 +130,8 @@ interface class CiYamlFetcher {
       branch: commit.branch,
       totConfig: totCiYaml,
       validate: validate,
+      onlyUseTipOfTreeTargetsExistenceToFilterTargets:
+          _config.flags.onlyUseTipOfTreeTargetsExistenceToFilterTargets,
     );
   }
 

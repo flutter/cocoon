@@ -39,6 +39,8 @@ final class CiYamlSet {
     required this.slug,
     required this.branch,
     required Map<CiType, pb.SchedulerConfig> yamls,
+    bool onlyUseTipOfTreeTargetsExistenceToFilterTargets =
+        Config.kOnlyUseTipOfTreeTargetsExistenceToFilterTargets,
     CiYamlSet? totConfig,
     bool validate = false,
   }) {
@@ -50,6 +52,8 @@ final class CiYamlSet {
         type: type,
         validate: validate,
         totConfig: totConfig?.configs[type],
+        onlyUseTipOfTreeTargetsExistenceToFilterTargets:
+            onlyUseTipOfTreeTargetsExistenceToFilterTargets,
       );
     }
   }
@@ -117,7 +121,8 @@ class CiYaml {
     required this.branch,
     required this.config,
     required this.type,
-    this.onlyUseTipOfTreeTargetsExistenceToFilterTargets = false,
+    this.onlyUseTipOfTreeTargetsExistenceToFilterTargets =
+        Config.kOnlyUseTipOfTreeTargetsExistenceToFilterTargets,
     CiYaml? totConfig,
     bool validate = false,
   }) {

@@ -17,6 +17,7 @@ import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
+import '../../src/fake_config.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
 
@@ -34,6 +35,7 @@ void main() {
   late CacheService cache;
   late MockClient httpClient;
   late FakeFirestoreService firestore;
+  late FakeConfig config;
 
   late CiYamlFetcher ciYamlFetcher;
 
@@ -46,6 +48,7 @@ void main() {
     firestore = FakeFirestoreService();
 
     ciYamlFetcher = CiYamlFetcher(
+      config: config = FakeConfig(),
       cache: cache,
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),
@@ -76,6 +79,27 @@ void main() {
       ),
     );
   }
+
+  // TODO(matanlurey): Remove after https://github.com/flutter/flutter/issues/169625.
+  test('passes flag onlyUseTipOfTreeTargetsExistenceToFilterTargets', () async {
+    config.dynamicConfig = DynamicConfig.fromJson({
+      'onlyUseTipOfTreeTargetsExistenceToFilterTargets': true,
+    });
+    mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
+    httpClient = MockClient((request) async {
+      return http.Response(singleCiYaml, HttpStatus.ok);
+    });
+
+    final ciYaml = await ciYamlFetcher.getCiYamlByCommit(
+      CommitRef(slug: Config.packagesSlug, sha: currentSha, branch: 'main'),
+    );
+    expect(
+      ciYaml
+          .configs[CiType.any]
+          ?.onlyUseTipOfTreeTargetsExistenceToFilterTargets,
+      isTrue,
+    );
+  });
 
   test('fetches the root .ci.yaml for a repository (GitHub)', () async {
     httpClient = MockClient((request) async {
