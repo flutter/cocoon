@@ -83,7 +83,7 @@ void main() {
   // TODO(matanlurey): Remove after https://github.com/flutter/flutter/issues/169625.
   test('passes flag onlyUseTipOfTreeTargetsExistenceToFilterTargets', () async {
     config.dynamicConfig = DynamicConfig.fromJson({
-      'onlyUseTipOfTreeTargetsExistenceToFilterTargets': true,
+      'onlyUseTipOfTreeTargetsExistenceToFilterTargets': false,
     });
     mockFillFirestore(slug: Config.packagesSlug, branch: 'main');
     httpClient = MockClient((request) async {
@@ -97,7 +97,7 @@ void main() {
       ciYaml
           .configs[CiType.any]
           ?.onlyUseTipOfTreeTargetsExistenceToFilterTargets,
-      isTrue,
+      isFalse,
     );
   });
 
