@@ -8,12 +8,9 @@ part of 'content_aware_hashing_flags.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ContentAwareHashingJson _$ContentAwareHashingJsonFromJson(
-  Map<String, dynamic> json,
-) => ContentAwareHashingJson(
-  waitOnContentHash: json['waitOnContentHash'] as bool? ?? false,
-);
+ContentAwareHashing _$ContentAwareHashingFromJson(Map<String, dynamic> json) =>
+    ContentAwareHashing(waitOnContentHash: json['waitOnContentHash'] as bool?);
 
-Map<String, dynamic> _$ContentAwareHashingJsonToJson(
-  ContentAwareHashingJson instance,
+Map<String, dynamic> _$ContentAwareHashingToJson(
+  ContentAwareHashing instance,
 ) => <String, dynamic>{'waitOnContentHash': instance.waitOnContentHash};

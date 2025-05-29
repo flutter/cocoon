@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;

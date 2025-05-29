@@ -7,20 +7,39 @@ import 'package:meta/meta.dart';
 
 part 'content_aware_hashing_flags.g.dart';
 
+/// Flags related to content-aware hashing.
 @JsonSerializable()
 @immutable
-final class ContentAwareHashingJson {
-  ContentAwareHashingJson({required this.waitOnContentHash});
+final class ContentAwareHashing {
+  /// Default configuration for [ContentAwareHashing] flags.
+  static const defaultInstance = ContentAwareHashing._(
+    waitOnContentHash: false,
+  );
 
-  /// Merge Groups should wait for the content hash before scheduling.
-  @JsonKey(defaultValue: false)
+  /// Whether merge groups should wait for the content hash before scheduling.
+  @JsonKey()
   final bool waitOnContentHash;
 
-  /// Connect the generated [_$ContentAwareHashingJsonFromJson] function to the `fromJson`
-  /// factory.
-  factory ContentAwareHashingJson.fromJson(Map<String, Object?>? json) =>
-      _$ContentAwareHashingJsonFromJson(json ?? {});
+  const ContentAwareHashing._({
+    required this.waitOnContentHash, //
+  });
 
-  /// Connect the generated [_$ContentAwareHashingJsonToJson] function to the `toJson` method.
-  Map<String, dynamic> toJson() => _$ContentAwareHashingJsonToJson(this);
+  /// Creates [ContentAwareHashing] flags from the provided fields.
+  ///
+  /// Any omitted fields default to the values in [defaultInstance].
+  factory ContentAwareHashing({bool? waitOnContentHash}) {
+    return ContentAwareHashing._(
+      waitOnContentHash: waitOnContentHash ?? defaultInstance.waitOnContentHash,
+    );
+  }
+
+  /// Creates [ContentAwareHashing] flags from a [json] object.
+  ///
+  /// Any omitted fields default to the values in [defaultInstance].
+  factory ContentAwareHashing.fromJson(Map<String, Object?>? json) {
+    return _$ContentAwareHashingFromJson(json ?? {});
+  }
+
+  /// The inverse operation of [ContentAwareHashing.fromJson].
+  Map<String, Object?> toJson() => _$ContentAwareHashingToJson(this);
 }

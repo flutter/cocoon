@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_strategy.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/batch_backfiller.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:collection/collection.dart';

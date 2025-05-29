@@ -18,6 +18,7 @@ import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';

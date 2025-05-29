@@ -15,6 +15,7 @@ import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config_updater.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:logging/logging.dart';
@@ -47,7 +48,7 @@ Future<void> main() async {
         const GoogleAuthProvider(),
         projectId: Config.flutterGcpProjectId,
       ),
-      dynamicConfig: dynamicConfig,
+      initialConfig: dynamicConfig,
     );
     // Start updating the config to loop forever. If this fails, it will log
     // every ~1 minute.
