@@ -257,24 +257,9 @@ class CiYaml {
   ) {
     final defaultBranch = Config.defaultBranch(slug);
     return targets.where((target) {
-      // An individual target can declare "I work on a specific branch".
-      //
-      // For example:
-      //   - name: Mac_arm64 verify_binaries_codesigned
-      //     enabled_branches:
-      //       - flutter-\d+\.\d+-candidate\.\d+
-      //
-      // If this set is non-empty, and does not contain the default branch
-      // for the current slug (i.e. "main" or "master"), we assume the target
-      // should not be filtered out, even if its missing from ToT.
-      //
-      // I am not sure why. If you figure it out, please update this comment,
-      // and if this feature was unnecessary, remove it entirely; at first
-      // glance if it would be filtered out by not being present in ToT, it's
-      // not clear why forcing it to exist here is a safe operation; for example
-      // see https://github.com/flutter/flutter/issues/167288.
       final forcedEnabledBranches = target.enabledBranches;
-      if (forcedEnabledBranches.isNotEmpty &&
+      if (_flags.targetEnabledBranchesOverridesTipOfTreeTargetExistence &&
+          forcedEnabledBranches.isNotEmpty &&
           !forcedEnabledBranches.contains(defaultBranch)) {
         return true;
       }

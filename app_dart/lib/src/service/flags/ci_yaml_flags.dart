@@ -14,6 +14,7 @@ final class CiYamlFlags {
   /// Default configuration for [CiYamlFlags] flags.
   static const defaultInstance = CiYamlFlags._(
     onlyUseTipOfTreeTargetsExistenceToFilterTargets: false,
+    targetEnabledBranchesOverridesTipOfTreeTargetExistence: true,
   );
 
   /// Whether to _only_ use the existence of a target at tip-of-tree to filter
@@ -70,18 +71,70 @@ final class CiYamlFlags {
   @JsonKey()
   final bool onlyUseTipOfTreeTargetsExistenceToFilterTargets;
 
+  /// Whether a target-specific `enabled_branches: [...]` overrides existence of
+  /// the target at tip-of-tree.
+  ///
+  /// By setting this flag to `false`, the use of `enabled_branches: [ ... ]`
+  /// does _not_ take precedence on the target itself not existing at
+  /// tip-of-tree.
+  ///
+  /// ## Details
+  ///
+  /// Consider the following tip-of-tree definition of a `.ci.yaml`:
+  /// ```yaml
+  /// # flutter/flutter/master
+  /// # //engine/src/flutter/.ci.yaml
+  /// enabled_branches:
+  ///   - master
+  ///
+  /// targets:
+  ///   - name: Mac foo
+  /// ```
+  ///
+  /// And the same file, i.e. in a release branch:
+  /// ```yaml
+  /// # flutter/flutter/flutter-1.23-candidate.0
+  /// # //engine/src/flutter/.ci.yaml
+  /// enabled_branches:
+  ///   - flutter-1.23-candidate.0
+  ///
+  /// targets:
+  ///   - name: Mac foo
+  ///   - name: Mac bar
+  ///     enabled_branches:
+  ///       - flutter-1.23-candidate.0
+  /// ```
+  ///
+  /// If this flag is `true`, `Mac bar` is considered to be runnable, even
+  /// though the target no longer exists at tip-of-tree (`master`).
+  ///
+  /// It's not clear this feature ever even worked, because if it doesn't exist
+  /// at tip-of-tree, how could it even be executing? It's possible it's an
+  /// artifact of an older CI system that did not need targets to exist at
+  /// tip-of-tree (i.e. Cirrus).
+  @JsonKey()
+  final bool targetEnabledBranchesOverridesTipOfTreeTargetExistence;
+
   const CiYamlFlags._({
     required this.onlyUseTipOfTreeTargetsExistenceToFilterTargets, //
+    required this.targetEnabledBranchesOverridesTipOfTreeTargetExistence,
   });
 
   /// Creates [CiYamlFlags] flags from the provided fields.
   ///
   /// Any omitted fields default to the values in [defaultInstance].
-  factory CiYamlFlags({bool? onlyUseTipOfTreeTargetsExistenceToFilterTargets}) {
+  factory CiYamlFlags({
+    bool? onlyUseTipOfTreeTargetsExistenceToFilterTargets, //
+    bool? targetEnabledBranchesOverridesTipOfTreeTargetExistence,
+  }) {
     return CiYamlFlags._(
       onlyUseTipOfTreeTargetsExistenceToFilterTargets:
           onlyUseTipOfTreeTargetsExistenceToFilterTargets ??
           defaultInstance.onlyUseTipOfTreeTargetsExistenceToFilterTargets,
+      targetEnabledBranchesOverridesTipOfTreeTargetExistence:
+          targetEnabledBranchesOverridesTipOfTreeTargetExistence ??
+          defaultInstance
+              .targetEnabledBranchesOverridesTipOfTreeTargetExistence,
     );
   }
 
