@@ -27,7 +27,7 @@ part 'dynamic_config.g.dart';
 /// To get a one-time copy of the file, see also:
 ///
 /// - [DynamicConfig.fromRemoteLatest]
-/// - [DynamicConfig.fromLocalRepo]
+/// - [DynamicConfig.fromLocalFileSystem]
 @JsonSerializable(explicitToJson: true)
 @immutable
 final class DynamicConfig {
@@ -83,12 +83,12 @@ final class DynamicConfig {
   /// Returns the latest copy of [DynamicConfig] fetched from tip-of-tree.
   ///
   /// Equivalent to a single call to [DynamicConfigUpdater.fetchDynamicConfig].
-  static Future<DynamicConfig> fromRemoteLatest() async {
+  static Future<DynamicConfig> fromRemoteLatest() {
     return DynamicConfigUpdater().fetchDynamicConfig();
   }
 
   /// Returns the latest copy of [DynamicConfig] fetched from the repository.
-  static Future<DynamicConfig> fromLocalRepo() async {
+  static Future<DynamicConfig> fromLocalFileSystem() async {
     final execPath = io.Platform.resolvedExecutable;
 
     // Walk backwards until the root of the Cocoon repository is found.
@@ -107,7 +107,7 @@ final class DynamicConfig {
     }
 
     final yaml = loadYaml(await configPath.readAsString()) as YamlMap;
-    return DynamicConfig.fromJson(yaml.cast());
+    return DynamicConfig.fromYaml(yaml);
   }
 
   /// The inverse operation of [DynamicConfig.fromJson].
