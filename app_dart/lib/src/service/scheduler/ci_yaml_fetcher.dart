@@ -23,6 +23,7 @@ interface class CiYamlFetcher {
   CiYamlFetcher({
     required CacheService cache,
     required FirestoreService firestore,
+    required Config config,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
     Duration cacheTtl = const Duration(hours: 1),
     String subcacheName = 'scheduler',
@@ -30,13 +31,15 @@ interface class CiYamlFetcher {
       delayFactor: Duration(seconds: 2),
       maxAttempts: 4,
     ),
-  }) : _cache = cache,
+  }) : _config = config,
+       _cache = cache,
        _cacheTtl = cacheTtl,
        _subcacheName = subcacheName,
        _retryOptions = retryOptions,
        _httpClientProvider = httpClientProvider,
        _firestore = firestore;
 
+  final Config _config;
   final CacheService _cache;
   final String _subcacheName;
   final Duration _cacheTtl;
@@ -127,6 +130,7 @@ interface class CiYamlFetcher {
       branch: commit.branch,
       totConfig: totCiYaml,
       validate: validate,
+      flags: _config.flags.ciYaml,
     );
   }
 

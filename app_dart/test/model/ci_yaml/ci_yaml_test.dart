@@ -7,6 +7,7 @@ import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/flags/ci_yaml_flags.dart';
 import 'package:test/test.dart';
 
 import '../../src/model/ci_yaml_matcher.dart';
@@ -147,7 +148,9 @@ void main() {
       final ciYaml = CiYaml(
         slug: Config.flutterSlug,
         branch: 'ios-experimental',
-        onlyUseTipOfTreeTargetsExistenceToFilterTargets: true,
+        flags: CiYamlFlags(
+          onlyUseTipOfTreeTargetsExistenceToFilterTargets: true,
+        ),
         config: pb.SchedulerConfig(
           enabledBranches: ['ios-experimental'],
           targets: [pb.Target(name: 'Linux host_engine')],
