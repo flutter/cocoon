@@ -6,7 +6,7 @@
 backfillerCommitLimit: 50
 
 ciYaml:
-  onlyUseTipOfTreeTargetsExistenceToFilterTargets: false
+  onlyUseTipOfTreeTargetsExistenceToFilterTargets: true
 
 contentAwareHashing:
   # This will cause PRs that enter the merge queue to wait on CAH hashing
