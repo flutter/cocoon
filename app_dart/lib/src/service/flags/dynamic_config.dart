@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import 'ci_yaml_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
 
@@ -34,6 +35,7 @@ final class DynamicConfig {
   /// Default configuration for flags.
   static const defaultInstance = DynamicConfig._(
     backfillerCommitLimit: 50,
+    ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
   );
 
@@ -48,8 +50,13 @@ final class DynamicConfig {
   @JsonKey()
   final ContentAwareHashing contentAwareHashing;
 
+  /// Flags related to resolving `.ci.yaml`.
+  @JsonKey()
+  final CiYamlFlags ciYaml;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
+    required this.ciYaml,
     required this.contentAwareHashing,
   });
 
@@ -58,11 +65,13 @@ final class DynamicConfig {
   /// Any omitted fields default to the values in [defaultInstance].
   factory DynamicConfig({
     int? backfillerCommitLimit,
+    CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
           backfillerCommitLimit ?? defaultInstance.backfillerCommitLimit,
+      ciYaml: ciYaml ?? defaultInstance.ciYaml,
       contentAwareHashing:
           contentAwareHashing ?? defaultInstance.contentAwareHashing,
     );

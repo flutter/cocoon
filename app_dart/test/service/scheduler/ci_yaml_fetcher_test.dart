@@ -17,6 +17,7 @@ import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
+import '../../src/fake_config.dart';
 import '../../src/service/fake_firestore_service.dart';
 import '../../src/utilities/entity_generators.dart';
 
@@ -31,6 +32,7 @@ void main() {
   assert(currentSha.length >= 40);
   assert(totSha.length >= 40);
 
+  late FakeConfig config;
   late CacheService cache;
   late MockClient httpClient;
   late FakeFirestoreService firestore;
@@ -44,8 +46,10 @@ void main() {
     });
 
     firestore = FakeFirestoreService();
+    config = FakeConfig();
 
     ciYamlFetcher = CiYamlFetcher(
+      config: config,
       cache: cache,
       httpClientProvider: () => httpClient,
       retryOptions: const RetryOptions(maxAttempts: 1),

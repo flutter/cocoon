@@ -9,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
 import '../../../cocoon_service.dart';
+import '../../service/flags/ci_yaml_flags.dart';
 import '../proto/internal/scheduler.pb.dart' as pb;
 import 'target.dart';
 
@@ -39,6 +40,7 @@ final class CiYamlSet {
     required this.slug,
     required this.branch,
     required Map<CiType, pb.SchedulerConfig> yamls,
+    CiYamlFlags flags = CiYamlFlags.defaultInstance,
     CiYamlSet? totConfig,
     bool validate = false,
   }) {
@@ -50,6 +52,7 @@ final class CiYamlSet {
         type: type,
         validate: validate,
         totConfig: totConfig?.configs[type],
+        flags: flags,
       );
     }
   }
@@ -117,10 +120,10 @@ class CiYaml {
     required this.branch,
     required this.config,
     required this.type,
-    this.onlyUseTipOfTreeTargetsExistenceToFilterTargets = false,
+    CiYamlFlags flags = CiYamlFlags.defaultInstance,
     CiYaml? totConfig,
     bool validate = false,
-  }) {
+  }) : _flags = flags {
     if (validate) {
       _validate(config, branch, totSchedulerConfig: totConfig?.config);
     }
@@ -128,7 +131,7 @@ class CiYaml {
     // with release candidate branches.
     final totTargets = totConfig?._targets ?? const [];
     _totTargetNames = List.unmodifiable(totTargets.map((t) => t.name));
-    if (onlyUseTipOfTreeTargetsExistenceToFilterTargets) {
+    if (_flags.onlyUseTipOfTreeTargetsExistenceToFilterTargets) {
       _totPostsubmitTargetNames = _totTargetNames;
     } else if (totConfig != null) {
       _totPostsubmitTargetNames = List.unmodifiable(
@@ -139,59 +142,10 @@ class CiYaml {
     }
   }
 
-  /// Whether to _only_ use the existence of a target at tip-of-tree to filter
-  /// out targets on other branches.
-  ///
-  /// By setting this flag to `true`, a tip-of-tree (default) branch's enabled
-  /// branches cannot impact how a different branch's targets are enabled (or
-  /// not), only the _existence_ of a tip-of-tree target is considered.
-  ///
-  /// ## Details
-  ///
-  /// As discovered in https://github.com/flutter/flutter/issues/169370, the
-  /// default (or `master`/`main`) branch of a repository was required to have
-  /// knowledge about all other possible branches, and if a new branch was
-  /// created (but not defined in `enabledBranches: [ ...]`), the targets would
-  /// automatically be filtered out.
-  ///
-  /// Consider the following tip-of-tree definition of a `.ci.yaml`:
-  /// ```yaml
-  /// # flutter/flutter/master
-  /// # //engine/src/flutter/.ci.yaml
-  /// enabled_branches:
-  ///   - master
-  ///   - flutter-\d+\.\d+-candidate\.\d+
-  ///
-  /// targets:
-  ///   - name: Mac host_engine
-  ///     properties:
-  ///       release_build: "true"
-  ///   - name: Mac host_engine_test
-  /// ```
-  ///
-  /// And the same file, tweaked for execution in branch `ios-experimental`:
-  /// ```yaml
-  /// # flutter/flutter/ios-experimental
-  /// # //engine/src/flutter/.ci.yaml
-  /// enabled_branches:
-  ///   - ios-experimental
-  ///
-  /// targets:
-  ///   - name: Mac host_engine
-  ///     properties:
-  ///       release_build: "true"
-  ///   - name: Mac host_engine_test
-  /// ```
-  ///
-  /// If this flag is `false`, `Mac host_engine` does _not_ run on the
-  /// `ios-experimental` branch's postsubmit, because it is configured to not
-  /// run on `master`'s postsubmit (it is a `release_build`).
-  ///
-  /// This is confusing behavior, where experimental branches would need to
-  /// modify the tip-of-tree `.ci.yaml` in order to allow targets to be executed
-  /// on their branch, so this flag exists to change that behavior.
-  final bool onlyUseTipOfTreeTargetsExistenceToFilterTargets;
+  /// Flags related to resolving `.ci.yaml`.
+  final CiYamlFlags _flags;
 
+  /// The type of `.ci.yaml` `this` represents.
   final CiType type;
 
   /// Whether [slug] is [Config.flutterSlug], the fusion `flutter/flutter` repo.
