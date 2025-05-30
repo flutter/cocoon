@@ -7,6 +7,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -376,6 +377,45 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
+  });
+
+  test('Pubsub rejected if branch is not enabled.', () async {
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: false,
+      ),
+    ).thenAnswer((_) async => true);
+    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
+    final userData = PresubmitUserData(
+      checkRunId: 1,
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'main',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
+    );
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux C',
+      userData: userData,
+    );
+
+    await expectLater(
+      tester.post(handler),
+      throwsA(
+        isA<BadRequestException>().having(
+          (e) => e.message,
+          'message',
+          contains('main is not enabled for this .ci.yaml'),
+        ),
+      ),
+    );
   });
 
   test('Build contains data from build_large_fields', () async {
