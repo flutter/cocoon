@@ -12,6 +12,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../request_handling/authentication.dart';
+import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
 import '../request_handling/response.dart';
 import '../request_handling/subscription_handler.dart';
@@ -148,11 +149,16 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       return 0;
     }
 
-    final targets = [
-      ...ciYaml.presubmitTargets(),
-      if (ciYaml.isFusion)
-        ...ciYaml.presubmitTargets(type: CiType.fusionEngine),
-    ];
+    final List<Target> targets;
+    try {
+      targets = [
+        ...ciYaml.presubmitTargets(),
+        if (ciYaml.isFusion)
+          ...ciYaml.presubmitTargets(type: CiType.fusionEngine),
+      ];
+    } on BranchNotEnabledForThisCiYamlException catch (e) {
+      throw BadRequestException('Cannot handle request: $e');
+    }
     // Do not block on the target not found.
     if (!targets.any((element) => element.name == builderName)) {
       // do not reschedule
