@@ -676,11 +676,12 @@ $s
       //   - .*: do nothing
       // FOR NOW: trigger builds for build/wait/completed because they are also
       //          building for SHA.
-      switch (artifactStatus) {
+      switch (artifactStatus.status) {
         case MergeQueueHashStatus.build ||
                 MergeQueueHashStatus.wait ||
                 MergeQueueHashStatus.complete
-            when _config.flags.contentAwareHashing.waitOnContentHash:
+            when _config.flags.contentAwareHashing.waitOnContentHash &&
+                artifactStatus.contentHash.isNotEmpty:
           // Note from codefu: We do not have the merge queue lock yet.
           // It was short-circuited if the waitOnContentHash is set. The
           // CAH document _has_ been created. In the future, "wait" will need

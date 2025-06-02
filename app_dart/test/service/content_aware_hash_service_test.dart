@@ -156,7 +156,10 @@ void main() {
 
       final job = workflowJobTemplate(headSha: 'a' * 40).toWorkflowJob();
       final result = await cahs.processWorkflowJob(job);
-      expect(result, MergeQueueHashStatus.build);
+      expect(result, (
+        status: MergeQueueHashStatus.build,
+        contentHash: '1111111111111111111111111111111111111111',
+      ));
       expect(
         firestoreService,
         existsInStorage(ContentAwareHashBuilds.metadata, [
@@ -186,7 +189,10 @@ void main() {
 
       final job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
       final result = await cahs.processWorkflowJob(job);
-      expect(result, MergeQueueHashStatus.complete);
+      expect(result, (
+        contentHash: '1111111111111111111111111111111111111111',
+        status: MergeQueueHashStatus.complete,
+      ));
     });
 
     test('stacks multiple builds in one doc', () async {
@@ -199,7 +205,10 @@ void main() {
 
       job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
       final result = await cahs.processWorkflowJob(job);
-      expect(result, MergeQueueHashStatus.wait);
+      expect(result, (
+        contentHash: '1111111111111111111111111111111111111111',
+        status: MergeQueueHashStatus.wait,
+      ));
 
       expect(
         firestoreService,
@@ -224,7 +233,10 @@ void main() {
 
       job = workflowJobTemplate(headSha: 'b' * 40).toWorkflowJob();
       final result = await cahs.processWorkflowJob(job);
-      expect(result, MergeQueueHashStatus.wait);
+      expect(result, (
+        contentHash: '1111111111111111111111111111111111111111',
+        status: MergeQueueHashStatus.wait,
+      ));
 
       expect(
         firestoreService,
@@ -255,7 +267,7 @@ void main() {
         job,
         retry: const RetryOptions(maxAttempts: 5, maxDelay: Duration.zero),
       );
-      expect(result, MergeQueueHashStatus.error);
+      expect(result, (contentHash: '', status: MergeQueueHashStatus.error));
     });
   });
 
