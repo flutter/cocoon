@@ -129,12 +129,14 @@ interface class ContentAwareHashService {
   }
 
   /// Finds the hash status for [job] and updates any tracking docs.
-  Future<MergeQueueHashStatus> processWorkflowJob(
+  Future<ContentAwareHashStatus> processWorkflowJob(
     WorkflowJobEvent job, {
     @visibleForTesting RetryOptions retry = const RetryOptions(maxAttempts: 5),
   }) async {
     final hash = await hashFromWorkflowJobEvent(job);
-    if (hash == null) return MergeQueueHashStatus.ignoreJob;
+    if (hash == null) {
+      return (status: MergeQueueHashStatus.ignoreJob, contentHash: '');
+    }
 
     final headSha = job.workflowJob!.headSha!;
 
@@ -155,14 +157,14 @@ interface class ContentAwareHashService {
           rethrow;
         }
       });
-      return result;
+      return (status: result, contentHash: hash);
     } catch (e, s) {
       log.warn(
         'CAHS(headSha: $headSha, hash: $hash): multiple failures calling _updateFirestore',
         e,
         s,
       );
-      return MergeQueueHashStatus.error;
+      return (status: MergeQueueHashStatus.error, contentHash: '');
     }
   }
 
@@ -337,3 +339,6 @@ interface class ContentAwareHashService {
 }
 
 enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }
+
+typedef ContentAwareHashStatus =
+    ({String contentHash, MergeQueueHashStatus status});
