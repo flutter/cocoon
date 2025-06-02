@@ -2,6 +2,8 @@ name: cocoon_server_test
 description: Testing specific functionality for package:cocoon_server
 publish_to: none
 
+resolution: workspace
+
 environment:
   sdk: ^3.7.0
 

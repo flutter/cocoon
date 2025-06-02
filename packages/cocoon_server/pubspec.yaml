@@ -2,6 +2,8 @@ name: cocoon_server
 description: server-side functionality shared between `app_dart` and `auto_submit`.
 publish_to: none
 
+resolution: workspace
+
 environment:
   sdk: ^3.7.0
 

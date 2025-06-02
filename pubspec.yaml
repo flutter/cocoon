@@ -9,6 +9,7 @@ environment:
   sdk: ^3.7.0
 
 workspace:
+  - packages/buildbucket-dart
   - packages/cocoon_common
   - packages/cocoon_common_test
   - dev/cocoon_code_health
