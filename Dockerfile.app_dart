@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
-FROM dart:3.7.1
+FROM dart:stable
 
 # Packages are PATH dependencies of app_dart, and need to be copied/accessible.
 WORKDIR /packages
