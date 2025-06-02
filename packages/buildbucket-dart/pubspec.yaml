@@ -1,7 +1,8 @@
 name: buildbucket
 description: LUCI Buildbucket library. Protos and utilities to communicate with LUCI buildbucket service.
-version: 1.0.13
-repository: https://github.com/flutter/cocoon/tree/main/packages/buildbucket-dart
+publish_to: none
+
+resolution: workspace
 
 environment:
   sdk: ^3.7.0
