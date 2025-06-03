@@ -7,6 +7,7 @@ import 'dart:io' as io;
 import 'package:args/args.dart';
 import 'package:cocoon_code_health/src/checks.dart';
 import 'package:cocoon_code_health/src/checks/do_not_submit_fixme.dart';
+import 'package:cocoon_code_health/src/checks/no_trailing_spaces.dart';
 import 'package:cocoon_code_health/src/checks/use_test_logging.dart';
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:file/local.dart';
@@ -19,7 +20,34 @@ final _parser =
         help: 'The root of the flutter/cocoon repository.',
         defaultsTo: _findRepositoryRoot(),
       )
+      ..addFlag('quiet', abbr: 'q', help: 'Quiet output')
       ..addFlag('verbose', abbr: 'v', help: 'Show additional output');
+
+const _anyPackageChecks = [DoNotSubmitFixme(), NoTrailingWhitespace()];
+const _serverPackageChecks = [..._anyPackageChecks, UseTestLogging()];
+
+final _checks = {
+  p.join('analyze'): _anyPackageChecks,
+  p.join('app_dart'): _serverPackageChecks,
+  p.join('cipd_packages', 'codesign'): _anyPackageChecks,
+  p.join('cipd_packages', 'device_doctor'): _anyPackageChecks,
+  p.join('cipd_packages', 'doxygen'): _anyPackageChecks,
+  p.join('cipd_packages', 'ktlint'): _anyPackageChecks,
+  p.join('cipd_packages', 'ruby'): _anyPackageChecks,
+  p.join('cloud_build'): _anyPackageChecks,
+  p.join('dashboard'): _anyPackageChecks,
+  p.join('dev', 'githubanalysis'): _anyPackageChecks,
+  p.join('gh_actions'): _anyPackageChecks,
+  p.join('licenses'): _anyPackageChecks,
+  p.join('licenses'): _anyPackageChecks,
+  p.join('packages', 'buildbucket-dart'): _anyPackageChecks,
+  p.join('packages', 'cocoon_common'): _anyPackageChecks,
+  p.join('packages', 'cocoon_common_test'): _anyPackageChecks,
+  p.join('packages', 'cocoon_server'): _anyPackageChecks,
+  p.join('packages', 'cocoon_server_test'): _anyPackageChecks,
+  p.join('test_utilities'): _anyPackageChecks,
+  p.join('tooling'): _anyPackageChecks,
+};
 
 void main(List<String> args) async {
   final parsed = _parser.parse(args);
@@ -31,12 +59,14 @@ void main(List<String> args) async {
   }
 
   final verbose = parsed.flag('verbose');
+  final quiet = parsed.flag('quiet') && !verbose;
   const fs = LocalFileSystem();
 
-  for (final server in const ['app_dart', 'auto_submit']) {
-    final package = p.join(cocoon, server);
-    for (final check in const [UseTestLogging(), DoNotSubmitFixme()]) {
-      io.stderr.writeln('Running ${check.runtimeType} on $package...');
+  for (final MapEntry(key: package, value: checks) in _checks.entries) {
+    for (final check in checks) {
+      if (!quiet) {
+        io.stderr.writeln('Running ${check.runtimeType} on $package...');
+      }
 
       // Look at tracked files using git ls-files.
       final gitLsFiles = io.Process.runSync('git', ['-C', package, 'ls-files']);
@@ -50,6 +80,10 @@ void main(List<String> args) async {
           .map((p) => fs.file(fs.path.join(package, p)));
       for (final file in trackedFiles) {
         if (!check.include.any((g) => g.matches(file.path))) {
+          continue;
+        }
+        // Exclude the directory (package) itself.
+        if (file.path == package) {
           continue;
         }
         final relative = p.relative(file.path, from: cocoon);

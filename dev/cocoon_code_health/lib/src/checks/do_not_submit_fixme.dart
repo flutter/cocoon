@@ -22,6 +22,11 @@ final class DoNotSubmitFixme extends Check {
   ];
 
   @override
+  Iterable<Glob> get exclude => [
+    Glob('dev/cocoon_code_health/lib/src/checks/do_not_submit_fixme.dart'),
+  ];
+
+  @override
   Future<CheckResult> check(LogSink logger, File file) async {
     final badLines = [
       for (final (line, contents) in file.readAsLinesSync().indexed)
