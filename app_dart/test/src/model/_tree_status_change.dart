@@ -35,4 +35,10 @@ final class TreeStatusChangeMatcher extends ModelMatcher<TreeStatusChange> {
       _delegate.having((t) => t.repository, 'repository', matcherOr),
     );
   }
+
+  TreeStatusChangeMatcher hasReason(Object? matcherOr) {
+    return TreeStatusChangeMatcher._(
+      _delegate.having((t) => t.reason, 'reason', matcherOr),
+    );
+  }
 }

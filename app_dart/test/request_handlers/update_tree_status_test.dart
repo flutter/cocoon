@@ -84,6 +84,20 @@ void main() {
     expect(firestore, existsInStorage(TreeStatusChange.metadata, isEmpty));
   });
 
+  test('a "reason" field must be a string', () async {
+    tester.request.body = jsonEncode({
+      'passing': false,
+      'repo': 'flutter/flutter',
+      'reason': 123,
+    });
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<BadRequestException>()),
+    );
+
+    expect(firestore, existsInStorage(TreeStatusChange.metadata, isEmpty));
+  });
+
   test('updates Firestore', () async {
     await tester.post(handler);
 
@@ -94,7 +108,45 @@ void main() {
             .hasCreatedOn(fakeNow)
             .hasStatus(TreeStatus.failure)
             .hasAuthoredBy('fake@example.com')
-            .hasRepository(Config.flutterSlug),
+            .hasRepository(Config.flutterSlug)
+            .hasReason(isNull),
+      ]),
+    );
+  });
+
+  test('updates Firestore', () async {
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(TreeStatusChange.metadata, [
+        isTreeStatusChange
+            .hasCreatedOn(fakeNow)
+            .hasStatus(TreeStatus.failure)
+            .hasAuthoredBy('fake@example.com')
+            .hasRepository(Config.flutterSlug)
+            .hasReason(isNull),
+      ]),
+    );
+  });
+
+  test('includes an optional reason', () async {
+    tester.request.body = jsonEncode({
+      'passing': false,
+      'repo': 'flutter/flutter',
+      'reason': 'I said so',
+    });
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(TreeStatusChange.metadata, [
+        isTreeStatusChange
+            .hasCreatedOn(fakeNow)
+            .hasStatus(TreeStatus.failure)
+            .hasAuthoredBy('fake@example.com')
+            .hasRepository(Config.flutterSlug)
+            .hasReason('I said so'),
       ]),
     );
   });

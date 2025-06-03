@@ -25,25 +25,33 @@ final class UpdateTreeStatus extends ApiRequestHandler {
   final FirestoreService _firestore;
   final DateTime Function() _now;
 
-  static const _passingParam = 'passing';
-  static const _repoParam = 'repo';
+  static const _paramPassing = 'passing';
+  static const _paramRepo = 'repo';
+  static const _paramReason = 'reason';
 
   @override
   Future<Response> post(Request request) async {
     final body = await request.readBodyAsJson();
-    checkRequiredParameters(body, [_passingParam, _repoParam]);
+    checkRequiredParameters(body, [_paramPassing, _paramRepo]);
 
-    final passing = body[_passingParam];
+    final passing = body[_paramPassing];
     if (passing is! bool) {
       throw const BadRequestException(
-        'Parameter "$_passingParam" must be a boolean',
+        'Parameter "$_paramPassing" must be a boolean',
       );
     }
 
-    final repository = body[_repoParam];
+    final repository = body[_paramRepo];
     if (repository is! String) {
       throw const BadRequestException(
-        'Parameter "$_repoParam" must be a string',
+        'Parameter "$_paramRepo" must be a string',
+      );
+    }
+
+    final reason = body[_paramReason];
+    if (reason is! String?) {
+      throw const BadRequestException(
+        'Parameter "$_paramReason" must be a string',
       );
     }
 
@@ -53,6 +61,7 @@ final class UpdateTreeStatus extends ApiRequestHandler {
       status: passing ? TreeStatus.success : TreeStatus.failure,
       authoredBy: authContext!.email,
       repository: RepositorySlug.full(repository),
+      reason: reason,
     );
     return Response.emptyOk;
   }

@@ -42,6 +42,7 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
     required TreeStatus status,
     required String authoredBy,
     required RepositorySlug repository,
+    String? reason,
   }) async {
     final document = TreeStatusChange.fromDocument(
       g.Document(
@@ -50,6 +51,7 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
           _fieldStatus: status.name.toValue(),
           _fieldAuthoredBy: authoredBy.toValue(),
           _fieldRepository: repository.fullName.toValue(),
+          if (reason != null) _fieldReason: reason.toValue(),
         },
       ),
     );
@@ -67,6 +69,7 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
   static const _fieldStatus = 'status';
   static const _fieldAuthoredBy = 'author';
   static const _fieldRepository = 'repository';
+  static const _fieldReason = 'reason';
 
   DateTime get createdOn {
     return DateTime.parse(fields[_fieldCreateTimestamp]!.timestampValue!);
@@ -82,6 +85,10 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
 
   RepositorySlug get repository {
     return RepositorySlug.full(fields[_fieldRepository]!.stringValue!);
+  }
+
+  String? get reason {
+    return fields[_fieldReason]?.stringValue;
   }
 }
 
