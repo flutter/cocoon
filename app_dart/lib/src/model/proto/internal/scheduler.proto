@@ -69,12 +69,7 @@ message Target {
     reserved 18; // run_if_not
     // Whether the target should be considered for backfill.
     optional bool backfill = 19 [default = true];
-    // Whether the target should be scheduld by the release_builder process.
-    //
-    // This plays a similar role to "scheduler: release", except that backfill,
-    // presubmit, postsubmit, and other attributes are still respected in other
-    // parts of Cocoon.
-    optional bool schedule_during_release_override = 20 [default = false];
+    reserved 20; // schedule_during_release_override
 }
 
 // Schedulers supported in SchedulerConfig.
