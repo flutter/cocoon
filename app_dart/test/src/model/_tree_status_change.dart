@@ -29,4 +29,10 @@ final class TreeStatusChangeMatcher extends ModelMatcher<TreeStatusChange> {
       _delegate.having((t) => t.authoredBy, 'authoredBy', matcherOr),
     );
   }
+
+  TreeStatusChangeMatcher hasRepository(Object? matcherOr) {
+    return TreeStatusChangeMatcher._(
+      _delegate.having((t) => t.repository, 'repository', matcherOr),
+    );
+  }
 }

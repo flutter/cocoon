@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 
 import '../../service/firestore.dart';
@@ -12,10 +13,13 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
   /// Returns the latest [TreeStatusChange].
   ///
   /// If no changes exist, returns `null`.
-  static Future<TreeStatusChange?> getLatest(FirestoreService firestore) async {
+  static Future<TreeStatusChange?> getLatest(
+    FirestoreService firestore, {
+    required RepositorySlug repository,
+  }) async {
     final docs = await firestore.query(
       metadata.collectionId,
-      {},
+      {'$_fieldRepository =': repository.fullName},
       limit: 1,
       orderMap: {_fieldCreateTimestamp: kQueryOrderDescending},
     );
@@ -37,6 +41,7 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
     required DateTime createdOn,
     required TreeStatus status,
     required String authoredBy,
+    required RepositorySlug repository,
   }) async {
     final document = TreeStatusChange.fromDocument(
       g.Document(
@@ -44,6 +49,7 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
           _fieldCreateTimestamp: createdOn.toValue(),
           _fieldStatus: status.name.toValue(),
           _fieldAuthoredBy: authoredBy.toValue(),
+          _fieldRepository: repository.fullName.toValue(),
         },
       ),
     );
@@ -60,6 +66,7 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
   static const _fieldCreateTimestamp = 'createTimestamp';
   static const _fieldStatus = 'status';
   static const _fieldAuthoredBy = 'author';
+  static const _fieldRepository = 'repository';
 
   DateTime get createdOn {
     return DateTime.parse(fields[_fieldCreateTimestamp]!.timestampValue!);
@@ -71,6 +78,10 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
 
   String get authoredBy {
     return fields[_fieldAuthoredBy]!.stringValue!;
+  }
+
+  RepositorySlug get repository {
+    return RepositorySlug.full(fields[_fieldRepository]!.stringValue!);
   }
 }
 

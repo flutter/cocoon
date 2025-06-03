@@ -8,6 +8,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/tree_status_change.dart';
 import 'package:cocoon_service/src/request_handlers/update_tree_status.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:test/test.dart';
 
 import '../src/fake_config.dart';
@@ -33,9 +34,15 @@ void main() {
       firestore: firestore,
       now: () => fakeNow,
     );
+
+    tester.request.body = jsonEncode({
+      'passing': false,
+      'repo': 'flutter/flutter',
+    });
   });
 
   test('requires a "passing" status', () async {
+    tester.request.body = jsonEncode({'repo': 'flutter/flutter'});
     await expectLater(
       tester.post(handler),
       throwsA(isA<BadRequestException>()),
@@ -45,7 +52,30 @@ void main() {
   });
 
   test('a "passing" status must be a boolean', () async {
-    tester.request.body = jsonEncode({'passing': 'not-a-boolean'});
+    tester.request.body = jsonEncode({
+      'passing': 'not-a-boolean',
+      'repo': 'flutter/flutter',
+    });
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<BadRequestException>()),
+    );
+
+    expect(firestore, existsInStorage(TreeStatusChange.metadata, isEmpty));
+  });
+
+  test('requires a "repo" field', () async {
+    tester.request.body = jsonEncode({'passing': false});
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<BadRequestException>()),
+    );
+
+    expect(firestore, existsInStorage(TreeStatusChange.metadata, isEmpty));
+  });
+
+  test('a "repo" field must be a string', () async {
+    tester.request.body = jsonEncode({'passing': false, 'repo': 12});
     await expectLater(
       tester.post(handler),
       throwsA(isA<BadRequestException>()),
@@ -55,7 +85,6 @@ void main() {
   });
 
   test('updates Firestore', () async {
-    tester.request.body = jsonEncode({'passing': false});
     await tester.post(handler);
 
     expect(
@@ -64,7 +93,8 @@ void main() {
         isTreeStatusChange
             .hasCreatedOn(fakeNow)
             .hasStatus(TreeStatus.failure)
-            .hasAuthoredBy('fake@example.com'),
+            .hasAuthoredBy('fake@example.com')
+            .hasRepository(Config.flutterSlug),
       ]),
     );
   });
