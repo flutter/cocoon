@@ -198,7 +198,6 @@ class Target extends $pb.GeneratedMessage {
     $core.Map<$core.String, $core.String>? dimensions,
     $core.Iterable<$core.String>? droneDimensions,
     $core.bool? backfill,
-    $core.bool? scheduleDuringReleaseOverride,
   }) {
     final $result = create();
     if (name != null) {
@@ -249,9 +248,6 @@ class Target extends $pb.GeneratedMessage {
     }
     if (backfill != null) {
       $result.backfill = backfill;
-    }
-    if (scheduleDuringReleaseOverride != null) {
-      $result.scheduleDuringReleaseOverride = scheduleDuringReleaseOverride;
     }
     return $result;
   }
@@ -305,7 +301,6 @@ class Target extends $pb.GeneratedMessage {
     ..pPS(17, _omitFieldNames ? '' : 'droneDimensions')
     ..a<$core.bool>(19, _omitFieldNames ? '' : 'backfill', $pb.PbFieldType.OB,
         defaultOrMaker: true)
-    ..aOB(20, _omitFieldNames ? '' : 'scheduleDuringReleaseOverride')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -491,23 +486,6 @@ class Target extends $pb.GeneratedMessage {
   $core.bool hasBackfill() => $_has(15);
   @$pb.TagNumber(19)
   void clearBackfill() => clearField(19);
-
-  ///  Whether the target should be scheduld by the release_builder process.
-  ///
-  ///  This plays a similar role to "scheduler: release", except that backfill,
-  ///  presubmit, postsubmit, and other attributes are still respected in other
-  ///  parts of Cocoon.
-  @$pb.TagNumber(20)
-  $core.bool get scheduleDuringReleaseOverride => $_getBF(16);
-  @$pb.TagNumber(20)
-  set scheduleDuringReleaseOverride($core.bool v) {
-    $_setBool(16, v);
-  }
-
-  @$pb.TagNumber(20)
-  $core.bool hasScheduleDuringReleaseOverride() => $_has(16);
-  @$pb.TagNumber(20)
-  void clearScheduleDuringReleaseOverride() => clearField(20);
 }
 
 const _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');
