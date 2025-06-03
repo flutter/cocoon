@@ -4,10 +4,13 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/bbv2_extension.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   const expectedMapping = {
     bbv2.Status.CANCELED: TaskStatus.cancelled,
     bbv2.Status.FAILURE: TaskStatus.failed,

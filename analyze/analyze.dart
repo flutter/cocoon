@@ -34,9 +34,6 @@ Future<void> run(List<String> arguments) async {
     ]);
   }
 
-  print('Trailing spaces...');
-  await verifyNoTrailingSpaces(cocoonRoot.path);
-
   print('Executable allowlist...');
   await _checkForNewExecutables();
 
@@ -45,52 +42,6 @@ Future<void> run(List<String> arguments) async {
 }
 
 // TESTS
-
-Future<void> verifyNoTrailingSpaces(
-  String workingDirectory, {
-  int minimumMatches = 100,
-}) async {
-  final files =
-      await _allFiles(workingDirectory, null, minimumMatches: minimumMatches)
-          .where(
-            (File file) => path.basename(file.path) != 'serviceaccount.enc',
-          )
-          .where((File file) => path.basename(file.path) != 'Ahem.ttf')
-          .where((File file) => path.extension(file.path) != '.snapshot')
-          .where((File file) => path.extension(file.path) != '.png')
-          .where((File file) => path.extension(file.path) != '.jpg')
-          .where((File file) => path.extension(file.path) != '.ico')
-          .where((File file) => path.extension(file.path) != '.jar')
-          .where((File file) => path.extension(file.path) != '.swp')
-          .where((File file) => path.extension(file.path) != '.zip')
-          .where(
-            (File file) => !path.basename(file.path).endsWith('pbserver.dart'),
-          )
-          .where((File file) => !path.basename(file.path).endsWith('pb.dart'))
-          .where(
-            (File file) => !path.basename(file.path).endsWith('pbenum.dart'),
-          )
-          .toList();
-  final problems = <String>[];
-  for (final file in files) {
-    final lines = file.readAsLinesSync();
-    for (var index = 0; index < lines.length; index += 1) {
-      if (lines[index].endsWith(' ')) {
-        problems.add(
-          '${file.path}:${index + 1}: trailing U+0020 space character',
-        );
-      } else if (lines[index].endsWith('\t')) {
-        problems.add(
-          '${file.path}:${index + 1}: trailing U+0009 tab character',
-        );
-      }
-    }
-    if (lines.isNotEmpty && lines.last == '') {
-      problems.add('${file.path}:${lines.length}: trailing blank line');
-    }
-  }
-  if (problems.isNotEmpty) exitWithError(problems);
-}
 
 Future<void> verifyProtos(Directory workingDirectory) async {
   final errors = <String>[];

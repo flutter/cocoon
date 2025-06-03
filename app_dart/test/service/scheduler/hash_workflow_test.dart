@@ -28,7 +28,7 @@ import '../content_aware_hash_service_test.dart' show goodAnnotation;
 import 'ci_yaml_strings.dart';
 import 'create_check_run.dart';
 
-void main() async {
+void main() {
   useTestLoggerPerTest();
 
   late CacheService cache;
