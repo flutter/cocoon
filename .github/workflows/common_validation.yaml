@@ -18,14 +18,16 @@ jobs:
       - name: Run analyze.dart
         working-directory: analyze
         run: |
-          dart pub get && dart --enable-asserts analyze.dart
+          dart pub get 
+          dart --enable-asserts analyze.dart
 
       - name: Run cocoon_code_health
-        working-directory: dev/cocoon_code_health
         run: |
-          dart pub get && dart run bin/check.dart
+          dart pub get
+          dart run dev/cocoon_code_health/bin/check.dart
 
       - name: Run license check
         working-directory: licenses
         run: |
-          dart pub get && dart run check_licenses.dart
+          dart pub get
+          dart run check_licenses.dart
