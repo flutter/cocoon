@@ -9,7 +9,7 @@ dependencies:
   args: 2.7.0
   file: any
   logging: 1.2.0
-  meta: 1.16.0
+  meta: 1.17.0
   path: 1.9.1
   platform: any
   process: 5.0.4
