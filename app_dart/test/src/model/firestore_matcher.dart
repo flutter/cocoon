@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
+import 'package:cocoon_service/src/model/firestore/tree_status_change.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -24,6 +25,7 @@ part '_github_build_status.dart';
 part '_github_gold_status.dart';
 part '_pr_check_run.dart';
 part '_task.dart';
+part '_tree_status_change.dart';
 
 /// Matches a Firestore model, or raw document, of type [Commit].
 const isCommit = CommitMatcher._(TypeMatcher());
@@ -46,8 +48,11 @@ const isPrCheckRun = PrCheckRunsMatcher._(TypeMatcher());
 /// Matches a Firestore model, or raw document, of type [BuildStatusSnapshot].
 const isBuildStatusSnapshot = BuildStatusSnapshotMatcher._(TypeMatcher());
 
-/// Matches a Firestore model, or raw document, of type [Content].
+/// Matches a Firestore model, or raw document, of type [ContentAwareHashBuilds].
 const isContentAwareHashBuilds = ContentAwareHashBuildsMatcher._(TypeMatcher());
+
+/// Matches a Firestore model, or raw document, of type [TreeStatusChange].
+const isTreeStatusChange = TreeStatusChangeMatcher._(TypeMatcher());
 
 /// Returns whether the document is a path to the collection [metadata].
 bool isDocumentA(g.Document document, AppDocumentMetadata<void> metadata) {

@@ -9,6 +9,7 @@ import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
+import 'src/request_handlers/update_tree_status.dart';
 import 'src/service/big_query.dart';
 import 'src/service/build_status_service.dart';
 import 'src/service/commit_service.dart';
@@ -126,6 +127,11 @@ Server createServer({
       authenticationProvider: authProvider,
       scheduler: scheduler,
     ),
+    '/api/update-tree-status': UpdateTreeStatus(
+      config: config,
+      authenticationProvider: authProvider,
+      firestore: firestore,
+    ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
       ciYamlFetcher: ciYamlFetcher,
@@ -150,7 +156,6 @@ Server createServer({
       bigQuery: bigQuery,
       ciYamlFetcher: ciYamlFetcher,
     ),
-
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
       authenticationProvider: authProvider,
