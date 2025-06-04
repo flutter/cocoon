@@ -9,8 +9,8 @@ part of 'tree_status_change.dart';
 TreeStatusChange _$TreeStatusChangeFromJson(Map<String, dynamic> json) =>
     $checkedCreate('TreeStatusChange', json, ($checkedConvert) {
       final val = TreeStatusChange(
-        createdAt: $checkedConvert(
-          'createdAt',
+        createdOn: $checkedConvert(
+          'createdOn',
           (v) => DateTime.parse(v as String),
         ),
         status: $checkedConvert(
@@ -25,7 +25,7 @@ TreeStatusChange _$TreeStatusChangeFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TreeStatusChangeToJson(TreeStatusChange instance) =>
     <String, dynamic>{
-      'createdAt': instance.createdAt.toIso8601String(),
+      'createdOn': instance.createdOn.toIso8601String(),
       'status': _$TreeStatusEnumMap[instance.status]!,
       'author': instance.authoredBy,
       'reason': instance.reason,

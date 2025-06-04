@@ -588,6 +588,11 @@ abstract base class _FakeInMemoryFirestoreService
     if (a.integerValue case final integer?) {
       return int.parse(integer).compareTo(int.parse(b.integerValue!));
     }
+    if (a.timestampValue case final timestamp?) {
+      return DateTime.parse(
+        timestamp,
+      ).compareTo(DateTime.parse(b.timestampValue!));
+    }
     throw UnimplementedError('${a.toJson()}');
   }
 }
