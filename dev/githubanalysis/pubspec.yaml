@@ -5,7 +5,7 @@ environment:
 
 dependencies:
   github: ^9.9.0
-  http: ^0.13.5
+  http: ^1.0.0
 
 dev_dependencies:
   dart_flutter_team_lints: 3.5.0

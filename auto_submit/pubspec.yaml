@@ -11,7 +11,7 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
-  appengine: 0.13.10
+  appengine: 0.13.11
   cocoon_common:
     path: ../packages/cocoon_common
   cocoon_server:
@@ -19,8 +19,8 @@ dependencies:
   corsac_jwt: 1.0.1
   crypto: 3.0.6
   github: 9.25.0
-  googleapis: 13.2.0
-  googleapis_auth: 1.6.0
+  googleapis: 14.0.0
+  googleapis_auth: 2.0.0
   gql: 1.0.1-alpha+1709845491443
   graphql: 5.2.0-beta.10
   http: 1.4.0
