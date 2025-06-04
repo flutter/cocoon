@@ -131,9 +131,7 @@ class CiYaml {
     // with release candidate branches.
     final totTargets = totConfig?._targets ?? const [];
     _totTargetNames = List.unmodifiable(totTargets.map((t) => t.name));
-    if (_flags.onlyUseTipOfTreeTargetsExistenceToFilterTargets) {
-      _totPostsubmitTargetNames = _totTargetNames;
-    } else if (totConfig != null) {
+    if (totConfig != null) {
       _totPostsubmitTargetNames = List.unmodifiable(
         totConfig.postsubmitTargets.map((t) => t.name),
       );
@@ -143,6 +141,7 @@ class CiYaml {
   }
 
   /// Flags related to resolving `.ci.yaml`.
+  // ignore: unused_field
   final CiYamlFlags _flags;
 
   /// The type of `.ci.yaml` `this` represents.
@@ -255,16 +254,7 @@ class CiYaml {
     Iterable<Target> targets,
     Iterable<String> totTargetNames,
   ) {
-    final defaultBranch = Config.defaultBranch(slug);
     return targets.where((target) {
-      final forcedEnabledBranches = target.enabledBranches;
-      if (_flags.targetEnabledBranchesOverridesTipOfTreeTargetExistence &&
-          forcedEnabledBranches.isNotEmpty &&
-          !forcedEnabledBranches.contains(defaultBranch)) {
-        return true;
-      }
-
-      // Otherwise, the target must exist in Tip-of-Tree.
       return totTargetNames.contains(target.name);
     }).toList();
   }

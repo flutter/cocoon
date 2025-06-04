@@ -8,17 +8,7 @@ part of 'ci_yaml_flags.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CiYamlFlags _$CiYamlFlagsFromJson(Map<String, dynamic> json) => CiYamlFlags(
-  onlyUseTipOfTreeTargetsExistenceToFilterTargets:
-      json['onlyUseTipOfTreeTargetsExistenceToFilterTargets'] as bool?,
-  targetEnabledBranchesOverridesTipOfTreeTargetExistence:
-      json['targetEnabledBranchesOverridesTipOfTreeTargetExistence'] as bool?,
-);
+CiYamlFlags _$CiYamlFlagsFromJson(Map<String, dynamic> json) => CiYamlFlags();
 
 Map<String, dynamic> _$CiYamlFlagsToJson(CiYamlFlags instance) =>
-    <String, dynamic>{
-      'onlyUseTipOfTreeTargetsExistenceToFilterTargets':
-          instance.onlyUseTipOfTreeTargetsExistenceToFilterTargets,
-      'targetEnabledBranchesOverridesTipOfTreeTargetExistence':
-          instance.targetEnabledBranchesOverridesTipOfTreeTargetExistence,
-    };
+    <String, dynamic>{};
