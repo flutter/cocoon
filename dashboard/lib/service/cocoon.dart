@@ -48,8 +48,20 @@ abstract class CocoonService {
   /// Get the current list of version branches in flutter/flutter.
   Future<CocoonResponse<List<Branch>>> fetchFlutterBranches();
 
-  /// Get the current list of version branches in flutter/flutter.
+  /// Get the current list of repositories supported by Cocoon.
   Future<CocoonResponse<List<String>>> fetchRepos();
+
+  /// Get the current list of manual tree status changes in a particular repo.
+  Future<CocoonResponse<List<TreeStatusChange>>> fetchTreeStatusChanges({
+    required String repo,
+  });
+
+  /// Adds a tree status change with an optional [reason].
+  Future<CocoonResponse<void>> updateTreeStatus({
+    required String repo,
+    required TreeStatus status,
+    String? reason,
+  });
 
   /// Schedule the provided [task] to be re-run.
   Future<CocoonResponse<bool>> rerunTask({

@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../build_dashboard_page.dart';
+import '../views/build_dashboard_page.dart';
 
 /// List of links that are shown in the [DashboardNavigationDrawer].
 List<CocoonLink> createCocoonLinks(BuildContext context) {

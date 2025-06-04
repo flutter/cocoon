@@ -13,15 +13,15 @@ import 'package:provider/provider.dart';
 import 'package:truncate/truncate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'dashboard_navigation_drawer.dart';
-import 'logic/task_grid_filter.dart';
-import 'service/cocoon.dart';
-import 'state/build.dart';
-import 'widgets/app_bar.dart';
-import 'widgets/error_brook_watcher.dart';
-import 'widgets/filter_property_sheet.dart';
-import 'widgets/task_box.dart';
-import 'widgets/task_grid.dart';
+import '../dashboard_navigation_drawer.dart';
+import '../logic/task_grid_filter.dart';
+import '../service/cocoon.dart';
+import '../state/build.dart';
+import '../widgets/app_bar.dart';
+import '../widgets/error_brook_watcher.dart';
+import '../widgets/filter_property_sheet.dart';
+import '../widgets/task_box.dart';
+import '../widgets/task_grid.dart';
 
 /// Shows information about the current build status of flutter/flutter.
 ///
@@ -408,7 +408,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     };
 
     final flutterIssueUrl = Uri.parse(
-      'https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml',
+      'https://github.com/flutter/flutter/issues/new?labels=team-infra',
     );
     final flutterInfraTicketQueue = Uri.parse(
       'https://github.com/orgs/flutter/projects/81',
@@ -429,7 +429,7 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         child: AnimatedBuilder(
           animation: buildState,
           builder:
-              (BuildContext context, Widget? child) => Scaffold(
+              (BuildContext context, Widget? _) => Scaffold(
                 appBar: CocoonAppBar(
                   title: Tooltip(
                     message: _getStatusTitle(buildState),

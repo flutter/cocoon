@@ -189,6 +189,63 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<TreeStatusChange>>> fetchTreeStatusChanges({
+    required String repo,
+  }) async {
+    final getTreeStatusChangesUrl = apiEndpoint(
+      '/api/public/get-tree-status-changes',
+      queryParameters: {'repo': repo},
+    );
+
+    final response = await _client.get(getTreeStatusChangesUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/public/get-tree-status-changes returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
+      final changes = <TreeStatusChange>[];
+      for (final jsonChange in jsonResponse.cast<Map<String, Object?>>()) {
+        changes.add(TreeStatusChange.fromJson(jsonChange));
+      }
+      return CocoonResponse.data(changes);
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<CocoonResponse<void>> updateTreeStatus({
+    required String repo,
+    required TreeStatus status,
+    String? reason,
+  }) async {
+    final updateTreeStatusUrl = apiEndpoint('/api/public/update-tree-status');
+    final response = await _client.post(
+      updateTreeStatusUrl,
+      body: jsonEncode({
+        'repo': repo,
+        'status': status.name,
+        if (reason != null) 'reason': reason,
+      }),
+    );
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
+  @override
   Future<CocoonResponse<bool>> vacuumGitHubCommits(
     String idToken, {
     required String repo,
