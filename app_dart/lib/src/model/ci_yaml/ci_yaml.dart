@@ -131,13 +131,7 @@ class CiYaml {
     // with release candidate branches.
     final totTargets = totConfig?._targets ?? const [];
     _totTargetNames = List.unmodifiable(totTargets.map((t) => t.name));
-    if (totConfig != null) {
-      _totPostsubmitTargetNames = List.unmodifiable(
-        totConfig.postsubmitTargets.map((t) => t.name),
-      );
-    } else {
-      _totPostsubmitTargetNames = const [];
-    }
+    _totPostsubmitTargetNames = _totTargetNames;
   }
 
   /// Flags related to resolving `.ci.yaml`.
