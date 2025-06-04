@@ -263,8 +263,12 @@ List<String> validateOwnership(
 
     final owner =
         getTestOwnership(target, builderType, testOwnersContent).owner;
-    print('$builder: $owner');
     if (owner == null) {
+      print(
+        '$builder: No owner found. This task was classified as ${builderType.name}.\n'
+        'If that was not what you expected, check the "tags" property provided to the '
+        'target.',
+      );
       noOwnerBuilders.add(builder);
     }
   }
