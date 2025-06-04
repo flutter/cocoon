@@ -34,10 +34,15 @@ part 'dynamic_config.g.dart';
 final class DynamicConfig {
   /// Default configuration for flags.
   static const defaultInstance = DynamicConfig._(
+    allowManualTreeClosures: false,
     backfillerCommitLimit: 50,
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
   );
+
+  /// Whether manual tree statuses can be used to turn the tree red.
+  @JsonKey()
+  final bool allowManualTreeClosures;
 
   /// Upper limit of commit rows to be backfilled in API call.
   ///
@@ -55,6 +60,7 @@ final class DynamicConfig {
   final CiYamlFlags ciYaml;
 
   const DynamicConfig._({
+    required this.allowManualTreeClosures,
     required this.backfillerCommitLimit,
     required this.ciYaml,
     required this.contentAwareHashing,
@@ -64,11 +70,14 @@ final class DynamicConfig {
   ///
   /// Any omitted fields default to the values in [defaultInstance].
   factory DynamicConfig({
+    bool? allowManualTreeClosures,
     int? backfillerCommitLimit,
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
   }) {
     return DynamicConfig._(
+      allowManualTreeClosures:
+          allowManualTreeClosures ?? defaultInstance.allowManualTreeClosures,
       backfillerCommitLimit:
           backfillerCommitLimit ?? defaultInstance.backfillerCommitLimit,
       ciYaml: ciYaml ?? defaultInstance.ciYaml,

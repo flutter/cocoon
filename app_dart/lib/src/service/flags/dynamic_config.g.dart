@@ -10,6 +10,7 @@ part of 'dynamic_config.dart';
 
 DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
     DynamicConfig(
+      allowManualTreeClosures: json['allowManualTreeClosures'] as bool?,
       backfillerCommitLimit: (json['backfillerCommitLimit'] as num?)?.toInt(),
       ciYaml:
           json['ciYaml'] == null
@@ -25,6 +26,7 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
     <String, dynamic>{
+      'allowManualTreeClosures': instance.allowManualTreeClosures,
       'backfillerCommitLimit': instance.backfillerCommitLimit,
       'contentAwareHashing': instance.contentAwareHashing.toJson(),
       'ciYaml': instance.ciYaml.toJson(),

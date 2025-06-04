@@ -14,9 +14,13 @@ import '../src/service/fake_firestore_service.dart';
 void main() {
   useTestLoggerPerTest();
 
+  final config = FakeConfig();
   final handler = GetBuildStatusBadge(
-    config: FakeConfig(),
-    buildStatusService: BuildStatusService(firestore: FakeFirestoreService()),
+    config: config,
+    buildStatusService: BuildStatusService(
+      config: config,
+      firestore: FakeFirestoreService(),
+    ),
   );
 
   test('passing status', () async {
