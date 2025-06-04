@@ -6,8 +6,12 @@
 backfillerCommitLimit: 50
 
 ciYaml:
+  # ----------------------------------------------------------------------------
+  # TODO(matanlurey): These are inert in the latest builds and can be removed
+  # a few days after https://github.com/flutter/cocoon/pull/4762 is merged.
   onlyUseTipOfTreeTargetsExistenceToFilterTargets: true
   targetEnabledBranchesOverridesTipOfTreeTargetExistence: false
+  # ----------------------------------------------------------------------------
 
 contentAwareHashing:
   # This will cause PRs that enter the merge queue to wait on CAH hashing
