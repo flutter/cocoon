@@ -10,12 +10,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'build_dashboard_page.dart';
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
 import 'service/firebase_auth.dart';
-import 'src/v2/router.dart';
 import 'state/build.dart';
+import 'views/build_dashboard_page.dart';
+import 'views/tree_status_page.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
 import 'widgets/task_box.dart';
@@ -117,40 +117,27 @@ class MyApp extends StatelessWidget {
 
           switch (uriData.pathSegments.first) {
             case BuildDashboardPage.routeSegment:
-              return MaterialPageRoute<void>(
+              return MaterialPageRoute(
                 settings: settings,
-                builder: (BuildContext context) {
+                builder: (_) {
                   return BuildDashboardPage(
                     queryParameters: uriData.queryParameters,
                   );
                 },
               );
-            case 'v2':
-              if (_findV2Route(context, uriData, settings) case (
-                final WidgetBuilder builder,
-                final RouteSettings settings,
-              )) {
-                return MaterialPageRoute<void>(
-                  builder: builder,
-                  settings: settings,
-                );
-              }
+            case TreeStatusPage.routeSegment:
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (_) {
+                  return TreeStatusPage(
+                    queryParameters: uriData.queryParameters,
+                  );
+                },
+              );
           }
           return null;
         },
       ),
     );
-  }
-
-  (WidgetBuilder, RouteSettings)? _findV2Route(
-    BuildContext context,
-    Uri route,
-    RouteSettings settings,
-  ) {
-    if (route.pathSegments.isEmpty || route.pathSegments.first != 'v2') {
-      throw ArgumentError.value(route, 'route', 'not a v2 route');
-    }
-
-    return v2PreviewRoute(context, route, settings);
   }
 }

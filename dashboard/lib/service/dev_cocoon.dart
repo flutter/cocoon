@@ -93,6 +93,57 @@ class DevelopmentCocoonService implements CocoonService {
     return _pausedStatus!.future;
   }
 
+  final _treeStatusChanges = <String, List<TreeStatusChange>>{};
+  static final _defaultChanges = [
+    TreeStatusChange(
+      createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+      status: TreeStatus.success,
+      authoredBy: 'Joe Admin',
+      reason: 'Test',
+    ),
+    TreeStatusChange(
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+      status: TreeStatus.failure,
+      authoredBy: 'Joe Admin',
+      reason: 'Test',
+    ),
+  ];
+
+  @override
+  Future<CocoonResponse<List<TreeStatusChange>>> fetchTreeStatusChanges({
+    required String repo,
+  }) async {
+    return CocoonResponse<List<TreeStatusChange>>.data(
+      _treeStatusChanges.putIfAbsent(repo, () => [..._defaultChanges]),
+    );
+  }
+
+  @override
+  Future<CocoonResponse<void>> updateTreeStatus({
+    required String repo,
+    required TreeStatus status,
+    String? reason,
+  }) async {
+    // At most 10 per.
+    final list = _treeStatusChanges.putIfAbsent(
+      repo,
+      () => [..._defaultChanges],
+    );
+    list.insert(
+      0,
+      TreeStatusChange(
+        createdAt: DateTime.now(),
+        status: status,
+        authoredBy: 'Joe Widget',
+        reason: reason,
+      ),
+    );
+    if (list.length > 10) {
+      list.removeLast();
+    }
+    return const CocoonResponse<void>.data(null);
+  }
+
   static const List<String> _repos = <String>['flutter', 'cocoon'];
 
   @override

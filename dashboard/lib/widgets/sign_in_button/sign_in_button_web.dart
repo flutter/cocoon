@@ -17,7 +17,8 @@ class SignInButton extends StatefulWidget {
 }
 
 class _SignInButtonState extends State<SignInButton> {
-  late GoogleSignInPlugin _googleSignInPlugin;
+  // TODO(matanlurey): This should be initialized outside of the widget scope.
+  static late GoogleSignInPlugin _googleSignInPlugin;
 
   static Future<void>? _initializing;
 
