@@ -11,7 +11,7 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
-  appengine: 0.13.10
+  appengine: 0.13.11
   args: ^2.6.0
   buildbucket:
     path: ../packages/buildbucket-dart
@@ -25,10 +25,10 @@ dependencies:
   dbcrypt: 2.0.0
   file: ^7.0.1
   fixnum: 1.1.1
-  gcloud: 0.8.18
+  gcloud: 0.8.19
   github: 9.25.0
-  googleapis: 13.2.0
-  googleapis_auth: 1.6.0
+  googleapis: 14.0.0
+  googleapis_auth: 2.0.0
   gql: ^1.0.1-alpha+1730759315362
   graphql: ^5.2.1
   grpc: ^4.0.1

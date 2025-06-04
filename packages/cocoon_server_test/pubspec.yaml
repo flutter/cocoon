@@ -13,7 +13,7 @@ dependencies:
   cocoon_server:
     path: ../cocoon_server
   github: ^9.24.0
-  googleapis: ^13.2.0
+  googleapis: 14.0.0
   http: ^1.3.0
   matcher: ^0.12.17
   mockito: ^5.4.6

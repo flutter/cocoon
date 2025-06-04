@@ -14,8 +14,8 @@ dependencies:
   cocoon_common:
     path: ../cocoon_common
   github: ^9.24.0
-  googleapis: ^13.2.0
-  googleapis_auth: ^1.6.0
+  googleapis: 14.0.0
+  googleapis_auth: 2.0.0
   gql: ^1.0.1-alpha+1709845491443
   graphql: ^5.2.0-beta.9
   http: ^1.2.2
