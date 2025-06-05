@@ -76,7 +76,8 @@ final class FilesChangedOptimizer {
           }
           if (noSourceImpact &&
               p.posix.extension(file) != '.md' &&
-              file != _binInternalEngineVersion) {
+              file != _binInternalEngineVersion &&
+              file != _binInternalReleaseCandidateBranchVersion) {
             noSourceImpact = false;
           }
         }
@@ -92,6 +93,12 @@ final class FilesChangedOptimizer {
     'bin',
     'internal',
     'engine.version',
+  );
+
+  static final _binInternalReleaseCandidateBranchVersion = p.posix.join(
+    'bin',
+    'internal',
+    'release-candidate-branch.version',
   );
 }
 

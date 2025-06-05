@@ -172,6 +172,35 @@ void main() {
     );
   });
 
+  test(
+    'include bin/internal/release-candidate-version.version as ignored',
+    () async {
+      final optimizer = FilesChangedOptimizer(
+        getFilesChanged: filesChanged([
+          'README.md',
+          'CONTRIBUTING.md',
+          'bin/internal/release-candidate-version.version',
+          'packages/flutter_tools/lib/src/engine/NOT_THE_ENGINE.md',
+        ]),
+        ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
+        config: config(maxFilesChangedForSkippingEnginePhase: 100),
+      );
+
+      await expectLater(
+        optimizer.checkPullRequest(
+          generatePullRequest(
+            repo: 'flutter',
+            changedFilesCount: 4,
+            number: 123,
+          ),
+        ),
+        completion(
+          FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze,
+        ),
+      );
+    },
+  );
+
   test('only non-engine files', () async {
     final optimizer = FilesChangedOptimizer(
       getFilesChanged: filesChanged(['packages/flutter/lib/flutter.dart']),
