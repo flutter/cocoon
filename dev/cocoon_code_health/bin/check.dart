@@ -37,7 +37,6 @@ final _checks = {
   p.join('cloud_build'): _anyPackageChecks,
   p.join('dashboard'): _anyPackageChecks,
   p.join('dev', 'githubanalysis'): _anyPackageChecks,
-  p.join('gh_actions'): _anyPackageChecks,
   p.join('licenses'): _anyPackageChecks,
   p.join('licenses'): _anyPackageChecks,
   p.join('packages', 'buildbucket-dart'): _anyPackageChecks,
