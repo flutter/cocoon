@@ -53,11 +53,13 @@ abstract class CocoonService {
 
   /// Get the current list of manual tree status changes in a particular repo.
   Future<CocoonResponse<List<TreeStatusChange>>> fetchTreeStatusChanges({
+    required String idToken,
     required String repo,
   });
 
   /// Adds a tree status change with an optional [reason].
   Future<CocoonResponse<void>> updateTreeStatus({
+    required String idToken,
     required String repo,
     required TreeStatus status,
     String? reason,

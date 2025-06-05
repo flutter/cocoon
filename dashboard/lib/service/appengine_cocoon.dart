@@ -190,6 +190,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<List<TreeStatusChange>>> fetchTreeStatusChanges({
+    required String idToken,
     required String repo,
   }) async {
     final getTreeStatusChangesUrl = apiEndpoint(
@@ -223,6 +224,7 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<void>> updateTreeStatus({
+    required String idToken,
     required String repo,
     required TreeStatus status,
     String? reason,

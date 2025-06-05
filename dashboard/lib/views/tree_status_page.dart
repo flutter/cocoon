@@ -42,6 +42,7 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
   Future<void> _fetchTreeStatusChanges() async {
     final buildState = Provider.of<BuildState>(context, listen: false);
     final response = await buildState.cocoonService.fetchTreeStatusChanges(
+      idToken: await buildState.authService.idToken,
       repo: buildState.currentRepo,
     );
     if (response.data case final data?) {
@@ -93,6 +94,7 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
                     listen: false,
                   );
                   await buildState.cocoonService.updateTreeStatus(
+                    idToken: await buildState.authService.idToken,
                     repo: buildState.currentRepo,
                     status:
                         markedFailing ? TreeStatus.success : TreeStatus.failure,
