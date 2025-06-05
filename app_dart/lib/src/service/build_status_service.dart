@@ -65,7 +65,19 @@ interface class BuildStatusService {
       for (final t in commits.first.tasks)
         if (!t.bringup) t.taskName,
     };
+
     final failingTasks = <String>{};
+    if (_config.flags.allowManualTreeClosures) {
+      final latestManualChange = await TreeStatusChange.getLatest(
+        _firestore,
+        repository: slug,
+      );
+      if (latestManualChange?.status == TreeStatus.failure) {
+        failingTasks.add(
+          'Manual Closure: ${latestManualChange?.reason ?? 'Unspecified'}',
+        );
+      }
+    }
 
     // Then, iterate through commit by commit.
     // If we see a task fail, mark as failing.
@@ -80,18 +92,6 @@ interface class BuildStatusService {
         } else if (collatedTask.task.status == TaskStatus.succeeded) {
           toBePassing.remove(collatedTask.task.taskName);
         }
-      }
-    }
-
-    if (failingTasks.isEmpty && _config.flags.allowManualTreeClosures) {
-      final latestManualChange = await TreeStatusChange.getLatest(
-        _firestore,
-        repository: slug,
-      );
-      if (latestManualChange?.status == TreeStatus.failure) {
-        failingTasks.add(
-          'Manual Closure: ${latestManualChange?.reason ?? 'Unspecified'}',
-        );
       }
     }
 
