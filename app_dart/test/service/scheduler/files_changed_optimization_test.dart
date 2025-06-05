@@ -173,13 +173,13 @@ void main() {
   });
 
   test(
-    'include bin/internal/release-candidate-version.version as ignored',
+    'include bin/internal/release-candidate-branch.version as ignored',
     () async {
       final optimizer = FilesChangedOptimizer(
         getFilesChanged: filesChanged([
           'README.md',
           'CONTRIBUTING.md',
-          'bin/internal/release-candidate-version.version',
+          'bin/internal/release-candidate-branch.version',
           'packages/flutter_tools/lib/src/engine/NOT_THE_ENGINE.md',
         ]),
         ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
