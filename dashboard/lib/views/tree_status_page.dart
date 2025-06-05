@@ -72,56 +72,62 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
   Widget build(BuildContext context) {
     final markedFailing = changes.firstOrNull?.status == TreeStatus.failure;
     return CocoonScaffold(
-      title: Row(
-        children: [
-          const Text('Tree Status'),
-          const Spacer(),
-          ElevatedButton.icon(
-            onPressed: () async {
-              // Launch a dialog that takes an optional reason.
-              final reason = await showDialog<String>(
-                context: context,
-                builder: (_) => const _ConfirmChangeDialog(),
+      title: const Text('Tree Status'),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            actions: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  // Launch a dialog that takes an optional reason.
+                  final reason = await showDialog<String>(
+                    context: context,
+                    builder: (_) => const _ConfirmChangeDialog(),
+                  );
+                  if (reason == null) {
+                    return;
+                  }
+                  final buildState = Provider.of<BuildState>(
+                    context,
+                    listen: false,
+                  );
+                  await buildState.cocoonService.updateTreeStatus(
+                    repo: buildState.currentRepo,
+                    status:
+                        markedFailing ? TreeStatus.success : TreeStatus.failure,
+                    reason: reason,
+                  );
+                  await _fetchTreeStatusChanges();
+                },
+                label:
+                    markedFailing
+                        ? const Text('Enable Tree')
+                        : const Text('Disable Tree'),
+                icon:
+                    markedFailing
+                        ? const Icon(Icons.check, color: Colors.green)
+                        : const Icon(Icons.close, color: Colors.red),
+              ),
+            ],
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate((_, i) {
+              final item = changes[i];
+              return ListTile(
+                leading:
+                    item.status == TreeStatus.success
+                        ? const Icon(Icons.check, color: Colors.green)
+                        : const Icon(Icons.error, color: Colors.red),
+                title: Text(item.authoredBy),
+                subtitle: Text(
+                  item.reason != null ? 'Reason: ${item.reason}' : '',
+                ),
+                trailing: Text(item.createdOn.toString()),
               );
-              if (reason == null) {
-                return;
-              }
-              final buildState = Provider.of<BuildState>(
-                context,
-                listen: false,
-              );
-              await buildState.cocoonService.updateTreeStatus(
-                repo: buildState.currentRepo,
-                status: markedFailing ? TreeStatus.success : TreeStatus.failure,
-                reason: reason,
-              );
-              await _fetchTreeStatusChanges();
-            },
-            label:
-                markedFailing
-                    ? const Text('Enable Tree')
-                    : const Text('Disable Tree'),
-            icon:
-                markedFailing
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : const Icon(Icons.close, color: Colors.red),
+            }, childCount: changes.length),
           ),
         ],
-      ),
-      body: ListView.builder(
-        itemBuilder: (context, i) {
-          final item = changes[i];
-          return ListTile(
-            leading:
-                item.status == TreeStatus.success
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : const Icon(Icons.error, color: Colors.red),
-            title: Text(item.authoredBy),
-            subtitle: Text(item.reason != null ? 'Reason: ${item.reason}' : ''),
-            trailing: Text(item.createdAt.toString()),
-          );
-        },
-        itemCount: changes.length,
       ),
       onUpdateNavigation: ({required branch, required repo}) {
         _updateNavigation(context, repo: repo, branch: branch);

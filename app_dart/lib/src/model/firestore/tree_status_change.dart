@@ -17,13 +17,34 @@ final class TreeStatusChange extends AppDocument<TreeStatusChange> {
     FirestoreService firestore, {
     required RepositorySlug repository,
   }) async {
+    final changes = await _getLatestN(
+      firestore,
+      repository: repository,
+      limit: 1,
+    );
+    return changes.singleOrNull;
+  }
+
+  /// Returns the latest 10 [TreeStatusChange]s for the given repository.
+  static Future<List<TreeStatusChange>> getLatest10(
+    FirestoreService firestore, {
+    required RepositorySlug repository,
+  }) async {
+    return _getLatestN(firestore, repository: repository, limit: 10);
+  }
+
+  static Future<List<TreeStatusChange>> _getLatestN(
+    FirestoreService firestore, {
+    required RepositorySlug repository,
+    required int limit,
+  }) async {
     final docs = await firestore.query(
       metadata.collectionId,
       {'$_fieldRepository =': repository.fullName},
-      limit: 1,
+      limit: limit,
       orderMap: {_fieldCreateTimestamp: kQueryOrderDescending},
     );
-    return docs.isEmpty ? null : TreeStatusChange.fromDocument(docs.first);
+    return [...docs.map(TreeStatusChange.fromDocument)];
   }
 
   @override

@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
+import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
 import 'src/request_handlers/update_tree_status.dart';
@@ -128,6 +129,11 @@ Server createServer({
       scheduler: scheduler,
     ),
     '/api/update-tree-status': UpdateTreeStatus(
+      config: config,
+      authenticationProvider: authProvider,
+      firestore: firestore,
+    ),
+    '/api/get-tree-status': GetTreeStatus(
       config: config,
       authenticationProvider: authProvider,
       firestore: firestore,

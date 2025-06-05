@@ -13,7 +13,7 @@ part 'tree_status_change.g.dart';
 @immutable
 final class TreeStatusChange extends Model {
   TreeStatusChange({
-    required this.createdAt,
+    required this.createdOn,
     required this.status,
     required this.authoredBy,
     required this.reason,
@@ -23,8 +23,8 @@ final class TreeStatusChange extends Model {
     return _$TreeStatusChangeFromJson(json);
   }
 
-  @JsonKey(name: 'createdAt')
-  final DateTime createdAt;
+  @JsonKey(name: 'createdOn')
+  final DateTime createdOn;
 
   @JsonKey(name: 'status')
   final TreeStatus status;
