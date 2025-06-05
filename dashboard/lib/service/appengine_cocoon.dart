@@ -198,7 +198,10 @@ class AppEngineCocoonService implements CocoonService {
       queryParameters: {'repo': repo},
     );
 
-    final response = await _client.get(getTreeStatusChangesUrl);
+    final response = await _client.get(
+      getTreeStatusChangesUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+    );
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse.error(
@@ -232,6 +235,7 @@ class AppEngineCocoonService implements CocoonService {
     final updateTreeStatusUrl = apiEndpoint('/api/update-tree-status');
     final response = await _client.post(
       updateTreeStatusUrl,
+      headers: {'X-Flutter-IdToken': idToken},
       body: jsonEncode({
         'repo': repo,
         'status': status.name,
