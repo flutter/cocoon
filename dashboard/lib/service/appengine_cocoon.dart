@@ -193,7 +193,7 @@ class AppEngineCocoonService implements CocoonService {
     required String repo,
   }) async {
     final getTreeStatusChangesUrl = apiEndpoint(
-      '/api/public/get-tree-status',
+      '/api/get-tree-status',
       queryParameters: {'repo': repo},
     );
 
@@ -201,7 +201,7 @@ class AppEngineCocoonService implements CocoonService {
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse.error(
-        '/api/public/get-tree-status returned ${response.statusCode}',
+        '/api/get-tree-status returned ${response.statusCode}',
         statusCode: response.statusCode,
       );
     }
@@ -227,7 +227,7 @@ class AppEngineCocoonService implements CocoonService {
     required TreeStatus status,
     String? reason,
   }) async {
-    final updateTreeStatusUrl = apiEndpoint('/api/public/update-tree-status');
+    final updateTreeStatusUrl = apiEndpoint('/api/update-tree-status');
     final response = await _client.post(
       updateTreeStatusUrl,
       body: jsonEncode({
