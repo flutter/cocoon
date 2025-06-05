@@ -238,7 +238,7 @@ class AppEngineCocoonService implements CocoonService {
       headers: {'X-Flutter-IdToken': idToken},
       body: jsonEncode({
         'repo': repo,
-        'status': status.name,
+        'passing': status == TreeStatus.success,
         if (reason != null) 'reason': reason,
       }),
     );
