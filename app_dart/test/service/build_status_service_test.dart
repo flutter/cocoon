@@ -4,10 +4,13 @@
 
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/firestore/tree_status_change.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
+import '../src/fake_config.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
 
@@ -27,12 +30,17 @@ void main() {
 
   late BuildStatusService buildStatusService;
   late FakeFirestoreService firestore;
+  late FakeConfig config;
 
   final slug = RepositorySlug('flutter', 'flutter');
 
   setUp(() {
+    config = FakeConfig();
     firestore = FakeFirestoreService();
-    buildStatusService = BuildStatusService(firestore: firestore);
+    buildStatusService = BuildStatusService(
+      config: config,
+      firestore: firestore,
+    );
   });
 
   group('calculateStatus', () {
@@ -354,6 +362,27 @@ void main() {
         branch: 'flutter-0.42-candidate.0',
       );
       expect(status, BuildStatus.success());
+    });
+
+    test('returns failure if manually closed', () async {
+      config.dynamicConfig = DynamicConfig(allowManualTreeClosures: true);
+
+      firestore.putDocuments([
+        generateFirestoreCommit(1),
+        generateFirestoreTask(1, commitSha: '1', status: TaskStatus.succeeded),
+      ]);
+
+      await TreeStatusChange.create(
+        firestore,
+        createdOn: DateTime.now(),
+        status: TreeStatus.failure,
+        authoredBy: 'user@google.com',
+        repository: slug,
+        reason: 'I said so',
+      );
+
+      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      expect(status, BuildStatus.failure(['Manual Closure: I said so']));
     });
   });
 }

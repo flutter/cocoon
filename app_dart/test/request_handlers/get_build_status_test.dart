@@ -32,11 +32,16 @@ void main() {
   }
 
   setUp(() {
+    final config = FakeConfig();
+
     firestore = FakeFirestoreService();
     tester = RequestHandlerTester();
     handler = GetBuildStatus(
-      config: FakeConfig(),
-      buildStatusService: BuildStatusService(firestore: firestore),
+      config: config,
+      buildStatusService: BuildStatusService(
+        config: config,
+        firestore: firestore,
+      ),
     );
   });
 

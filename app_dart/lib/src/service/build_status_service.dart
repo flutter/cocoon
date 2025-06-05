@@ -12,12 +12,18 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
+import '../model/firestore/tree_status_change.dart';
 import 'build_status_provider/commit_tasks_status.dart';
 
 /// Class that calculates the current build status.
 interface class BuildStatusService {
-  const BuildStatusService({required FirestoreService firestore})
-    : _firestore = firestore;
+  const BuildStatusService({
+    required Config config,
+    required FirestoreService firestore,
+  }) : _config = config,
+       _firestore = firestore;
+
+  final Config _config;
   final FirestoreService _firestore;
 
   @visibleForTesting
@@ -59,7 +65,19 @@ interface class BuildStatusService {
       for (final t in commits.first.tasks)
         if (!t.bringup) t.taskName,
     };
+
     final failingTasks = <String>{};
+    if (_config.flags.allowManualTreeClosures) {
+      final latestManualChange = await TreeStatusChange.getLatest(
+        _firestore,
+        repository: slug,
+      );
+      if (latestManualChange?.status == TreeStatus.failure) {
+        failingTasks.add(
+          'Manual Closure: ${latestManualChange?.reason ?? 'Unspecified'}',
+        );
+      }
+    }
 
     // Then, iterate through commit by commit.
     // If we see a task fail, mark as failing.
