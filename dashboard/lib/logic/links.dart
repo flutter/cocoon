@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../views/build_dashboard_page.dart';
+import '../views/tree_status_page.dart';
 
 /// List of links that are shown in the [DashboardNavigationDrawer].
 List<CocoonLink> createCocoonLinks(BuildContext context) {
@@ -19,6 +20,14 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
           context,
           BuildDashboardPage.routeName,
         );
+      },
+    ),
+    CocoonLink(
+      name: 'Manual Tree Status',
+      route: BuildDashboardPage.routeName,
+      icon: const Icon(Icons.admin_panel_settings),
+      action: () async {
+        await Navigator.pushReplacementNamed(context, TreeStatusPage.routeName);
       },
     ),
     CocoonLink(
