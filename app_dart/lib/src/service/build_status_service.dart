@@ -36,7 +36,7 @@ interface class BuildStatusService {
   ///
   /// Take the example build dashboard below:
   /// ```txt
-  ///    A   B   C   D
+  ///    A   B  C   D
   /// 🧑‍💼 🟩  ⬜  🟨
   /// 🧑‍💼 🟩  🟨  🟩  🟥
   /// 🧑‍💼 🟩  🟥  🟩  🟩
@@ -72,6 +72,7 @@ interface class BuildStatusService {
         _firestore,
         repository: slug,
       );
+      log.debug('Latest manual closure on $slug: $latestManualChange');
       if (latestManualChange?.status == TreeStatus.failure) {
         failingTasks.add(
           'Manual Closure: ${latestManualChange?.reason ?? 'Unspecified'}',
