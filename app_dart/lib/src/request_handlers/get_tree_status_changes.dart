@@ -29,7 +29,10 @@ final class GetTreeStatus extends ApiRequestHandler {
 
     final changes = await TreeStatusChange.getLatest10(
       _firestore,
-      repository: RepositorySlug.full(request.uri.queryParameters[_paramRepo]!),
+      repository: RepositorySlug(
+        'flutter',
+        request.uri.queryParameters[_paramRepo]!,
+      ),
     );
 
     return Response.json([

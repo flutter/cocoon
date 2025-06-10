@@ -33,7 +33,7 @@ void main() {
     );
 
     tester.request.uri = tester.request.uri.replace(
-      queryParameters: {'repo': 'flutter/flutter'},
+      queryParameters: {'repo': 'flutter'},
     );
   });
 
