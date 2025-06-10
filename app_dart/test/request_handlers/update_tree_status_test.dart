@@ -35,14 +35,11 @@ void main() {
       now: () => fakeNow,
     );
 
-    tester.request.body = jsonEncode({
-      'passing': false,
-      'repo': 'flutter/flutter',
-    });
+    tester.request.body = jsonEncode({'passing': false, 'repo': 'flutter'});
   });
 
   test('requires a "passing" status', () async {
-    tester.request.body = jsonEncode({'repo': 'flutter/flutter'});
+    tester.request.body = jsonEncode({'repo': 'flutter'});
     await expectLater(
       tester.post(handler),
       throwsA(isA<BadRequestException>()),
@@ -87,7 +84,7 @@ void main() {
   test('a "reason" field must be a string', () async {
     tester.request.body = jsonEncode({
       'passing': false,
-      'repo': 'flutter/flutter',
+      'repo': 'flutter',
       'reason': 123,
     });
     await expectLater(
@@ -133,7 +130,7 @@ void main() {
   test('includes an optional reason', () async {
     tester.request.body = jsonEncode({
       'passing': false,
-      'repo': 'flutter/flutter',
+      'repo': 'flutter',
       'reason': 'I said so',
     });
     await tester.post(handler);

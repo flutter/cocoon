@@ -41,11 +41,15 @@ final class UpdateTreeStatus extends ApiRequestHandler {
       );
     }
 
-    final repository = body[_paramRepo];
-    if (repository is! String) {
-      throw const BadRequestException(
-        'Parameter "$_paramRepo" must be a string',
-      );
+    final RepositorySlug repository;
+    {
+      final repositoryString = body[_paramRepo];
+      if (repositoryString is! String) {
+        throw const BadRequestException(
+          'Parameter "$_paramRepo" must be a string',
+        );
+      }
+      repository = RepositorySlug('flutter', repositoryString);
     }
 
     final reason = body[_paramReason];
@@ -60,7 +64,7 @@ final class UpdateTreeStatus extends ApiRequestHandler {
       createdOn: _now(),
       status: passing ? TreeStatus.success : TreeStatus.failure,
       authoredBy: authContext!.email,
-      repository: RepositorySlug.full(repository),
+      repository: repository,
       reason: reason,
     );
     return Response.emptyOk;

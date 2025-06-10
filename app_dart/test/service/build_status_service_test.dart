@@ -374,6 +374,24 @@ void main() {
 
       await TreeStatusChange.create(
         firestore,
+        createdOn: DateTime.now().subtract(const Duration(minutes: 2)),
+        status: TreeStatus.failure,
+        authoredBy: 'user@google.com',
+        repository: slug,
+        reason: 'Break it',
+      );
+
+      await TreeStatusChange.create(
+        firestore,
+        createdOn: DateTime.now().subtract(const Duration(minutes: 1)),
+        status: TreeStatus.success,
+        authoredBy: 'user@google.com',
+        repository: slug,
+        reason: 'Fix it',
+      );
+
+      await TreeStatusChange.create(
+        firestore,
         createdOn: DateTime.now(),
         status: TreeStatus.failure,
         authoredBy: 'user@google.com',
