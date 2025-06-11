@@ -58,10 +58,12 @@ final class DartInternalSubscription extends SubscriptionHandler {
         builderName: build.builder.builder,
       );
       if (existing != null) {
+        log.debug('Existing task found in Firestore: $existing');
         fsTask = existing;
         // Don't increment the task attempt if it's waiting for a build numnber.
         if (fsTask.status != TaskStatus.inProgress ||
             fsTask.buildNumber != build.number) {
+          log.debug('Marking as retry and incrementing the task number');
           fsTask.resetAsRetry();
         }
         fsTask.setBuildNumber(build.number);
@@ -81,6 +83,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
           bringup: false,
           testFlaky: false,
         );
+        log.debug('Creating a new task: $fsTask');
       }
     }
 
