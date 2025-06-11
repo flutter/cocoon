@@ -104,6 +104,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
       path: BuildDashboardPage.routeName,
       queryParameters: queryParameters,
     );
+
+    final buildState = Provider.of<BuildState>(context, listen: false);
+    buildState.updateCurrentRepoBranch(repo!, branch!);
     unawaited(Navigator.pushNamed(context, uri.toString()));
   }
 
