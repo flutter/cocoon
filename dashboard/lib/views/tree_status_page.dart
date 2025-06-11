@@ -26,10 +26,14 @@ final class TreeStatusPage extends StatefulWidget {
 
 class _TreeStatusPageState extends State<TreeStatusPage> {
   late List<TreeStatusChange> changes;
+  late String? currentRepo;
 
   @override
   void initState() {
     changes = [];
+    if (widget.queryParameters case final queryParameters?) {
+      currentRepo = queryParameters['repo'];
+    }
     super.initState();
   }
 
@@ -43,7 +47,7 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
     final buildState = Provider.of<BuildState>(context, listen: false);
     final response = await buildState.cocoonService.fetchTreeStatusChanges(
       idToken: await buildState.authService.idToken,
-      repo: buildState.currentRepo,
+      repo: currentRepo ?? buildState.currentRepo,
     );
     if (response.data case final data?) {
       setState(() {
@@ -66,6 +70,8 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
       path: TreeStatusPage.routeName,
       queryParameters: queryParameters,
     );
+    final buildState = Provider.of<BuildState>(context, listen: false);
+    buildState.updateCurrentRepoBranch(repo, branch);
     unawaited(Navigator.pushNamed(context, uri.toString()));
   }
 
