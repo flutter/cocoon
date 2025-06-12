@@ -675,6 +675,7 @@ class LuciBuildService {
   Future<void> scheduleMergeGroupBuilds({
     required CommitRef commit,
     required List<Target> targets,
+    String? contentHash,
   }) async {
     final buildRequests = <bbv2.BatchRequest_Request>[];
 
@@ -704,6 +705,7 @@ class LuciBuildService {
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
         commit: commit,
         target: target,
+        extraProperties: {if (contentHash != null) 'content_hash': contentHash},
       );
       buildRequests.add(
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
@@ -911,6 +913,7 @@ class LuciBuildService {
     required CommitRef commit,
     required Target target,
     int priority = kDefaultPriority,
+    Map<String, String> extraProperties = const {},
   }) async {
     log.info(
       'Creating merge group schedule builder for ${target.name} on commit ${commit.sha}',
@@ -933,6 +936,7 @@ class LuciBuildService {
     processedProperties['is_fusion'] = 'true';
     processedProperties[kMergeQueueKey] = true;
     processedProperties['git_repo'] = commit.slug.name;
+    processedProperties.addAll(extraProperties);
 
     final propertiesStruct =
         bbv2.Struct()..mergeFromProto3Json(processedProperties);

@@ -562,6 +562,7 @@ class Scheduler {
     required String headRef,
     required String baseRef,
     required RepositorySlug slug,
+    String? contentHash,
   }) async {
     // Behave similar to addPullRequest, except we're not yet merged into master.
     //   - We are mirrored in to GoB
@@ -573,7 +574,8 @@ class Scheduler {
     final isFusion = slug == Config.flutterSlug;
 
     final logCrumb =
-        'triggerTargetsForMergeGroup($slug, $headSha, ${isFusion ? 'real' : 'simulated'})';
+        'triggerTargetsForMergeGroup($slug, $headSha, ${isFusion ? 'real' : 'simulated'}'
+        '${contentHash != null ? ', contentHash: $contentHash' : ''})';
     log.info('$logCrumb: scheduling merge group checks');
 
     final lock = await lockMergeGroupChecks(slug, headSha);
@@ -632,6 +634,7 @@ class Scheduler {
           slug: slug,
           sha: headSha,
         ),
+        contentHash: contentHash,
       );
 
       // Do not unlock the merge group guard in successful case - that will be done by staging checks.
@@ -697,6 +700,10 @@ $s
             baseRef:
                 'refs/heads/${tryParseGitHubMergeQueueBranch(job.headBranch!).branch}',
             slug: event.repository!.slug(),
+            contentHash:
+                artifactStatus.status == MergeQueueHashStatus.build
+                    ? artifactStatus.contentHash
+                    : null,
           );
 
         default:

@@ -4180,11 +4180,13 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
   _i13.Future<void> scheduleMergeGroupBuilds({
     required _i32.CommitRef? commit,
     required List<_i28.Target>? targets,
+    String? contentHash,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleMergeGroupBuilds, [], {
               #commit: commit,
               #targets: targets,
+              #contentHash: contentHash,
             }),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),
