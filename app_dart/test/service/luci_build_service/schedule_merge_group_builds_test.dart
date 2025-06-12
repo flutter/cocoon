@@ -164,6 +164,60 @@ void main() {
     }
     expect(scheduledBuilds, [_isExpectedScheduleBuild(name: 'Linux 2')]);
   });
+
+  test('sets content_hash', () async {
+    when(
+      mockGithubChecksUtil.createCheckRun(
+        any,
+        any,
+        any,
+        any,
+        output: anyNamed('output'),
+      ),
+    ).thenAnswer((realInvocation) async => generateCheckRun(1));
+
+    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+      return bbv2.ListBuildersResponse(
+        builders: [
+          bbv2.BuilderItem(
+            id: bbv2.BuilderID(
+              bucket: 'prod',
+              project: 'flutter',
+              builder: 'Linux 2',
+            ),
+          ),
+        ],
+      );
+    });
+
+    final commit = generateFirestoreCommit(
+      1,
+      sha: 'abc1234',
+      repo: 'flutter',
+      branch: 'gh-readonly-queue/master/pr-1234-abcd',
+    );
+    await luci.scheduleMergeGroupBuilds(
+      commit: commit.toRef(),
+      targets: [
+        generateTarget(1, slug: Config.flutterSlug, properties: {'os': 'abc'}),
+        generateTarget(2, slug: Config.flutterSlug, properties: {'os': 'abc'}),
+      ],
+      contentHash: 'one-two-three',
+    );
+
+    expect(pubSub.messages, hasLength(1));
+
+    final List<bbv2.ScheduleBuildRequest> scheduledBuilds;
+    {
+      final batchRequest = bbv2.BatchRequest();
+      batchRequest.mergeFromProto3Json(pubSub.messages.first);
+      scheduledBuilds = [...batchRequest.requests.map((r) => r.scheduleBuild)];
+    }
+    expect(
+      scheduledBuilds.first.properties.fields['content_hash'],
+      bbv2.Value(stringValue: 'one-two-three'),
+    );
+  });
 }
 
 Matcher _isExpectedScheduleBuild({required String name}) {

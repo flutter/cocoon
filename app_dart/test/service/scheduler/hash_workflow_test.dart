@@ -40,12 +40,13 @@ void main() {
   late FakeGetFilesChanged getFilesChanged;
   late BigQueryService bigQuery;
   late ContentAwareHashService cahs;
+  late MockLuciBuildService luci;
 
   setUp(() {
     ciYamlFetcher = FakeCiYamlFetcher();
 
     ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionDualCiYaml);
-    final luci = MockLuciBuildService();
+    luci = MockLuciBuildService();
     when(
       luci.getAvailableBuilderSet(
         project: anyNamed('project'),
@@ -165,11 +166,8 @@ void main() {
     });
 
     final job = workflowJobTemplate().toWorkflowJob();
-    // fakeContentAwareHash.nextStatusReturn = MergeQueueHashStatus.build;
-
     await scheduler.processWorkflowJob(job);
 
-    // expect(fakeContentAwareHash.processWorkflowJobs, [job]);
     expect(firestore.documents, isNotEmpty);
     expect(
       firestore,
@@ -189,6 +187,14 @@ void main() {
         'Merge Queue Guard',
         output: anyNamed('output'),
         conclusion: anyNamed('conclusion'),
+      ),
+    ).called(1);
+
+    verify(
+      luci.scheduleMergeGroupBuilds(
+        commit: anyNamed('commit'),
+        targets: anyNamed('targets'),
+        contentHash: '65038ef4984b927fd1762ef01d35c5ecc34ff5f7',
       ),
     ).called(1);
   });
