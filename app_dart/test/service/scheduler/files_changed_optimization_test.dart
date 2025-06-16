@@ -201,6 +201,36 @@ void main() {
     },
   );
 
+  test('include .github/** as ignored', () async {
+    final optimizer = FilesChangedOptimizer(
+      getFilesChanged: filesChanged(['.github/workflow.yml']),
+      ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
+      config: config(maxFilesChangedForSkippingEnginePhase: 100),
+    );
+
+    await expectLater(
+      optimizer.checkPullRequest(
+        generatePullRequest(repo: 'flutter', changedFilesCount: 1, number: 123),
+      ),
+      completion(FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze),
+    );
+  });
+
+  test('include .vscode/** as ignored', () async {
+    final optimizer = FilesChangedOptimizer(
+      getFilesChanged: filesChanged(['.vscode/project.json']),
+      ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
+      config: config(maxFilesChangedForSkippingEnginePhase: 100),
+    );
+
+    await expectLater(
+      optimizer.checkPullRequest(
+        generatePullRequest(repo: 'flutter', changedFilesCount: 1, number: 123),
+      ),
+      completion(FilesChangedOptimization.skipPresubmitAllExceptFlutterAnalyze),
+    );
+  });
+
   test('only non-engine files', () async {
     final optimizer = FilesChangedOptimizer(
       getFilesChanged: filesChanged(['packages/flutter/lib/flutter.dart']),
