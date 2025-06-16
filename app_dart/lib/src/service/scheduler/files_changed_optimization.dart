@@ -77,7 +77,8 @@ final class FilesChangedOptimizer {
           if (noSourceImpact &&
               p.posix.extension(file) != '.md' &&
               file != _binInternalEngineVersion &&
-              file != _binInternalReleaseCandidateBranchVersion) {
+              file != _binInternalReleaseCandidateBranchVersion &&
+              !_isWithinConfigDirectory(file)) {
             noSourceImpact = false;
           }
         }
@@ -100,6 +101,12 @@ final class FilesChangedOptimizer {
     'internal',
     'release-candidate-branch.version',
   );
+
+  static final _configPaths = RegExp(p.posix.join(r'.(github|vscode)', r'.*'));
+
+  static bool _isWithinConfigDirectory(String path) {
+    return path.startsWith(_configPaths);
+  }
 }
 
 /// Given a [FilesChanged], a determined safe optimization that can be made.
