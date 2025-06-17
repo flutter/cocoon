@@ -100,6 +100,7 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
       threshold: computedThreshold,
       existingIssue: existingIssue,
       bucket: bucket,
+      bringup: bringup,
     );
     await gitHub.createComment(
       slug,

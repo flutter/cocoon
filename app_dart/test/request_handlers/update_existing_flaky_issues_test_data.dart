@@ -32,7 +32,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20r
 https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/101
 
 Recent test runs:
-https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutter%20roller
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutter%20roller&showBringup=true
 ''';
 
 const String expectedStagingCiyamlTestIssueComment = '''
@@ -45,7 +45,7 @@ https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%
 https://ci.chromium.org/ui/p/flutter/builders/staging/Linux%20ci_yaml%20flutter%20roller/101
 
 Recent test runs:
-https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutter%20roller
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml%20flutter%20roller&showBringup=true
 ''';
 
 const String expectedSemanticsIntegrationTestZeroFlakeIssueComment = '''
@@ -250,7 +250,7 @@ https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20r
 https://ci.chromium.org/ui/p/flutter/builders/prod/Linux%20ci_yaml%20flutter%20roller/101
 
 Recent test runs:
-https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml_flutter%20roller
+https://flutter-dashboard.appspot.com/#/build?taskFilter=Linux%20ci_yaml_flutter%20roller&showBringup=true
 
 Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
