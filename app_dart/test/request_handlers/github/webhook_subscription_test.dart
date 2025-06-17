@@ -12,6 +12,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -163,6 +164,7 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      firestore: firestore,
       pullRequestLabelProcessorProvider:
           ({
             required Config config,
@@ -2878,6 +2880,57 @@ void foo() {
         verify(mockPullRequestLabelProcessor.processLabels()).called(1);
       },
     );
+
+    // Regression test for https://github.com/flutter/flutter/issues/170300.
+    test('on "labeled" updates the stored PR in Firestore', () async {
+      // Store an "older" version of a PR without `override: ...` labels.
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: generatePullRequest(
+          number: 123,
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+          repo: 'packages',
+          labels: [/*Intentionally left empty*/],
+        ),
+        checks: [generateCheckRun(1, name: 'Linux repo_checks')],
+      );
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'labeled',
+        number: 123,
+        baseRef: 'main',
+        headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        slug: Config.packagesSlug,
+        additionalLabels: ['override: do-things'],
+      );
+
+      await tester.post(webhook);
+
+      verify(mockPullRequestLabelProcessor.processLabels()).called(1);
+
+      expect(
+        firestore,
+        existsInStorage(PrCheckRuns.metadata, [
+          isPrCheckRun
+              .hasSha('66d6bd9a3f79a36fe4f5178ccefbc781488a596c')
+              .hasPullRequest(
+                isA<PullRequest>()
+                    .having((r) => r.number, 'number', 123)
+                    .having(
+                      (r) => r.labels,
+                      'labels',
+                      contains(
+                        isA<IssueLabel>().having(
+                          (r) => r.name,
+                          'name',
+                          'override: do-things',
+                        ),
+                      ),
+                    ),
+              ),
+        ]),
+      );
+    });
 
     group('PullRequestLabelProcessor.processLabels', () {
       test('applies emergency label on approved PRs', () async {

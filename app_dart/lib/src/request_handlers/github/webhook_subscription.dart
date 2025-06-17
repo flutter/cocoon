@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
 import '../../../protos.dart' as pb;
+import '../../model/firestore/pr_check_runs.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../model/github/workflow_job.dart' as workflow_job;
 import '../../request_handling/exceptions.dart';
@@ -69,6 +70,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     required this.scheduler,
     required this.gerritService,
     required this.commitService,
+    required this.firestore,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     @visibleForTesting DateTime Function() now = DateTime.now,
@@ -87,6 +89,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   /// Used to handle push events and create commits based on those events.
   final CommitService commitService;
 
+  final FirestoreService firestore;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
   @override
@@ -216,6 +219,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
           '$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]',
         );
         await _processLabels(pr);
+        await _updatePullRequest(pr);
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -423,6 +427,12 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
     // for example, the "emergency" label is present.
     await _processLabels(pr);
+  }
+
+  /// Update the PR stored in [PrCheckRuns] so that subsequent checks are fresh.
+  Future<void> _updatePullRequest(PullRequest pr) async {
+    final sha = pr.head!.sha!;
+    await PrCheckRuns.updatePullRequestForSha(firestore, sha, pr);
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
@@ -1036,6 +1046,8 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
     } else {
       logInfo('no emergency label; moving on.');
     }
+
+    // Store the pull request.
   }
 
   Future<void> _unlockMergeQueueGuardForEmergency() async {

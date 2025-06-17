@@ -82,6 +82,7 @@ Server createServer({
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      firestore: firestore,
     ),
     '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,

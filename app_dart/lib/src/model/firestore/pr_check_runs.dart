@@ -72,6 +72,10 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     return result;
   }
 
+  set pullRequest(PullRequest value) {
+    fields[kPullRequestField] = json.encode(value.toJson()).toValue();
+  }
+
   /// The head sha at the time this document was created for testing.
   String get sha => fields[kShaField]!.stringValue!;
 
@@ -144,16 +148,49 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     return PrCheckRuns.fromDocument(docs.first).pullRequest;
   }
 
+  static Future<PrCheckRuns?> _findPrCheckRunsForSha(
+    FirestoreService firestore,
+    String sha, {
+    Transaction? transaction,
+  }) async {
+    final filterMap = <String, Object>{'sha =': sha};
+    log.info('findPullRequestForSha($filterMap): finding prCheckRuns document');
+    final docs = await firestore.query(
+      kCollectionId,
+      filterMap,
+      transaction: transaction,
+    );
+    log.info('findPullRequestForSha($filterMap): found: $docs');
+    if (docs.isEmpty) {
+      if (transaction != null) {
+        await firestore.rollback(transaction);
+      }
+      return null;
+    }
+    return PrCheckRuns.fromDocument(docs.first);
+  }
+
+  /// Updates the [PullRequest] for the given [sha] or throw an error.
+  static Future<void> updatePullRequestForSha(
+    FirestoreService firestore,
+    String sha,
+    PullRequest pr,
+  ) async {
+    final tx = await firestore.beginTransaction();
+    final prcr = await _findPrCheckRunsForSha(firestore, sha, transaction: tx);
+    if (prcr == null) {
+      throw StateError('Expected to find a stored PR for SHA $sha; not found');
+    }
+    prcr.pullRequest = pr;
+    await firestore.commit(tx, documentsToWrites([prcr]));
+  }
+
   /// Retrieve the [PullRequest] for a given [sha] or throw an error.
   static Future<PullRequest?> findPullRequestForSha(
     FirestoreService firestoreService,
     String sha,
   ) async {
-    final filterMap = <String, Object>{'sha =': sha};
-    log.info('findPullRequestForSha($filterMap): finding prCheckRuns document');
-    final docs = await firestoreService.query(kCollectionId, filterMap);
-    log.info('findPullRequestForSha($filterMap): found: $docs');
-    if (docs.isEmpty) return null;
-    return PrCheckRuns.fromDocument(docs.first).pullRequest;
+    final prcr = await _findPrCheckRunsForSha(firestoreService, sha);
+    return prcr?.pullRequest;
   }
 }
