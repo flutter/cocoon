@@ -812,7 +812,7 @@ class _RenderLatticeBody extends RenderBox {
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
     final childParentData = child.parentData as _LatticeParentData;
     final offset = _coordinateToOffset(childParentData.coordinate!)!;
-    transform.translate(offset.dx, offset.dy);
+    transform.translateByDouble(offset.dx, offset.dy, 0, 0);
   }
 
   @override
