@@ -447,7 +447,7 @@ void main() {
     );
   });
 
-  // Regression test for https://github.com/flutter/flutter/issues/167010.
+  // Regression test for https://github.com/flutter/flutter/issues/170568.
   test('schedules a post-submit release candidate build', () async {
     final commit = generateFirestoreCommit(
       1,
@@ -533,7 +533,7 @@ void main() {
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'is_fusion': bbv2.Value(stringValue: 'true'),
-      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: commit.sha),
+      // Intentionally omitted: flutter_prebuilt_engine_version
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
 
