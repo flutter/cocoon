@@ -1046,8 +1046,6 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
     } else {
       logInfo('no emergency label; moving on.');
     }
-
-    // Store the pull request.
   }
 
   Future<void> _unlockMergeQueueGuardForEmergency() async {
