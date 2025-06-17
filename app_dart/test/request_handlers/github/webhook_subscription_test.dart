@@ -12,6 +12,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -163,6 +164,7 @@ void main() {
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
+      firestore: firestore,
       pullRequestLabelProcessorProvider:
           ({
             required Config config,
@@ -837,8 +839,18 @@ void main() {
     test('logs pull_request/labeled events', () async {
       const prNumber = 123;
 
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: generatePullRequest(
+          number: prNumber,
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        ),
+        checks: [generateCheckRun(1, name: 'Linux repo_checks')],
+      );
+
       tester.message = generateGithubWebhookMessage(
         action: 'labeled',
+        headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
         number: prNumber,
       );
 
@@ -856,7 +868,7 @@ void main() {
             ),
             logThat(
               message: equals(
-                'GithubWebhookSubscription._handlePullRequest(123): PR labels = ["cla: yes", "framework", "tool"]',
+                'GithubWebhookSubscription._handlePullRequest(123): PR labels = ["framework", "tool"]',
               ),
             ),
           ]),
@@ -2737,7 +2749,10 @@ void foo() {
     group('BuildBucket', () {
       const issueNumber = 123;
 
-      Future<void> testActions(String action) async {
+      Future<void> testActions(
+        String action, {
+        String headSha = 'be6ff099a4ee56e152a5fa2f37edd10f79d1269a',
+      }) async {
         when(issuesService.listLabelsByIssue(any, issueNumber)).thenAnswer((_) {
           return Stream<IssueLabel>.fromIterable(<IssueLabel>[
             IssueLabel()..name = 'Random Label',
@@ -2765,6 +2780,7 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: action,
           number: 1,
+          headSha: headSha,
         );
 
         await tester.post(webhook);
@@ -2787,7 +2803,18 @@ void foo() {
       });
 
       test('Labeled Action works properly', () async {
-        await testActions('labeled');
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestore,
+          pullRequest: generatePullRequest(
+            number: 1,
+            headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+          ),
+          checks: [],
+        );
+        await testActions(
+          'labeled',
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        );
       });
 
       test('Synchronize Action works properly', () async {
@@ -2865,10 +2892,22 @@ void foo() {
     test(
       'on "pull_request/labeled" refreshes pull request info and calls PullRequestLabelProcessor',
       () async {
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestore,
+          pullRequest: generatePullRequest(
+            number: 123,
+            headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+            repo: 'packages',
+            labels: [/*Intentionally left empty*/],
+          ),
+          checks: [generateCheckRun(1, name: 'Linux repo_checks')],
+        );
+
         tester.message = generateGithubWebhookMessage(
           action: 'labeled',
           number: 123,
           baseRef: 'master',
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           slug: Config.flutterSlug,
           includeChanges: true,
         );
@@ -2878,6 +2917,57 @@ void foo() {
         verify(mockPullRequestLabelProcessor.processLabels()).called(1);
       },
     );
+
+    // Regression test for https://github.com/flutter/flutter/issues/170300.
+    test('on "labeled" updates the stored PR in Firestore', () async {
+      // Store an "older" version of a PR without `override: ...` labels.
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: generatePullRequest(
+          number: 123,
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+          repo: 'packages',
+          labels: [/*Intentionally left empty*/],
+        ),
+        checks: [generateCheckRun(1, name: 'Linux repo_checks')],
+      );
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'labeled',
+        number: 123,
+        baseRef: 'main',
+        headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        slug: Config.packagesSlug,
+        additionalLabels: ['override: do-things'],
+      );
+
+      await tester.post(webhook);
+
+      verify(mockPullRequestLabelProcessor.processLabels()).called(1);
+
+      expect(
+        firestore,
+        existsInStorage(PrCheckRuns.metadata, [
+          isPrCheckRun
+              .hasSha('66d6bd9a3f79a36fe4f5178ccefbc781488a596c')
+              .hasPullRequest(
+                isA<PullRequest>()
+                    .having((r) => r.number, 'number', 123)
+                    .having(
+                      (r) => r.labels,
+                      'labels',
+                      contains(
+                        isA<IssueLabel>().having(
+                          (r) => r.name,
+                          'name',
+                          'override: do-things',
+                        ),
+                      ),
+                    ),
+              ),
+        ]),
+      );
+    });
 
     group('PullRequestLabelProcessor.processLabels', () {
       test('applies emergency label on approved PRs', () async {

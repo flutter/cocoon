@@ -18,6 +18,7 @@ PushMessage generateGithubWebhookMessage({
   int number = 123,
   String? baseRef,
   String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
+  String headSha = 'be6ff099a4ee56e152a5fa2f37edd10f79d1269a',
   String login = 'dash',
   String headRef = 'abc',
   bool isDraft = false,
@@ -29,6 +30,7 @@ PushMessage generateGithubWebhookMessage({
   bool withAutosubmit = false,
   bool withRevertOf = false,
   DateTime? closedAt,
+  Iterable<String> additionalLabels = const [],
 }) {
   final data =
       (pb.GithubWebhookMessage.create()
@@ -38,6 +40,7 @@ PushMessage generateGithubWebhookMessage({
               number,
               baseRef,
               baseSha: baseSha,
+              headSha: headSha,
               login: login,
               headRef: headRef,
               isDraft: isDraft,
@@ -49,6 +52,7 @@ PushMessage generateGithubWebhookMessage({
               withAutosubmit: withAutosubmit,
               withRevertOf: withRevertOf,
               closedAt: closedAt,
+              additionalLabels: additionalLabels,
             ))
           .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -62,6 +66,7 @@ String _generatePullRequestEvent(
   String login = 'flutter',
   String baseSha = '4cd12fc8b7d4cc2d8609182e1c4dea5cddc86890',
   String headRef = 'wait_for_reassemble',
+  required String headSha,
   bool includeCqLabel = false,
   bool isDraft = false,
   bool merged = false,
@@ -71,9 +76,36 @@ String _generatePullRequestEvent(
   DateTime? closedAt,
   required bool withAutosubmit,
   required bool withRevertOf,
+  Iterable<String> additionalLabels = const [],
 }) {
   slug ??= Config.flutterSlug;
   baseRef ??= Config.defaultBranch(slug);
+
+  var labelId = 1000;
+  Map<String, Object?> generateLabel(String name) {
+    labelId++;
+    return {
+      'id': labelId,
+      'node_id': base64Encode('$labelId'.codeUnits),
+      'url': 'https://api.github.com/repos/${slug!.fullName}/labels/$name',
+      'name': name,
+      'color': '207de5',
+      'default': false,
+    };
+  }
+
+  final labels = [
+    if (includeCqLabel) generateLabel('cla: yes'),
+    if (withAutosubmit) generateLabel('autosubmit'),
+    if (withRevertOf) generateLabel('revert of'),
+
+    // This matches the behavior of this function before refactoring to have a
+    // more structured way to add test labels. It would be nice to refactor
+    // these out.
+    generateLabel('framework'),
+    generateLabel('tool'),
+    ...additionalLabels.map(generateLabel),
+  ];
 
   return '''{
   "action": "$action",
@@ -121,60 +153,7 @@ String _generatePullRequestEvent(
     "assignees": [],
     "requested_reviewers": [],
     "requested_teams": [],
-    "labels": [
-      {
-        "id": 487496476,
-        "node_id": "MDU6TGFiZWw0ODc0OTY0NzY=",
-        "url": "https://api.github.com/repos/${slug.fullName}/labels/cla:%20yes",
-        "name": "cla: yes",
-        "color": "ffffff",
-        "default": false
-      },
-      {
-        "id": 284437560,
-        "node_id": "MDU6TGFiZWwyODQ0Mzc1NjA=",
-        "url": "https://api.github.com/repos/${slug.fullName}/labels/framework",
-        "name": "framework",
-        "color": "207de5",
-        "default": false
-      },
-      ${includeCqLabel ? '''
-      {
-        "id": 283480100,
-        "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
-        "url": "https://api.github.com/repos/${slug.fullName}/labels/tool",
-        "color": "5319e7",
-        "default": false
-      },''' : ''}
-      ${withAutosubmit ? '''
-      {
-        "id": 4232992339,
-        "node_id": "LA_kwDOAeUeuM78TlZT",
-        "url": "https://api.github.com/repos/${slug.fullName}/labels/autosubmit",
-        "name": "autosubmit",
-        "color": "008820",
-        "default": false,
-        "description": "Merge PR when tree becomes green via auto submit App"
-      },''' : ''}
-      ${withRevertOf ? '''
-      {
-        "id": 4232992339,
-        "node_id": "LA_kwDOAeUeuM8AAAABZOz6vw",
-        "url": "https://api.github.com/repos/${slug.fullName}/labels/revert%20of",
-        "name": "revert of",
-        "color": "008820",
-        "default": false,
-        "description": "Bot Only: Tracking label for bot. Tracks new revert of pull requests."
-      },''' : ''}
-      {
-        "id": 283480100,
-        "node_id": "MDU6TGFiZWwyODM0ODAxMDA=",
-        "url": "https://api.github.com/repos/${slug.fullName}/labels/tool",
-        "name": "tool",
-        "color": "5319e7",
-        "default": false
-      }
-    ],
+    "labels": ${const JsonEncoder.withIndent('  ').convert(labels)},
     "milestone": null,
     "commits_url": "https://api.github.com/repos/${slug.fullName}/pulls/$number/commits",
     "review_comments_url": "https://api.github.com/repos/${slug.fullName}/pulls/$number/comments",
@@ -184,7 +163,7 @@ String _generatePullRequestEvent(
     "head": {
       "label": "$login:$headRef",
       "ref": "$headRef",
-      "sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "sha": "$headSha",
       "user": {
         "login": "$login",
         "id": 8620741,
