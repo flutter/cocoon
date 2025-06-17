@@ -108,7 +108,7 @@ Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!, bucket: buildBucket)}
 
 Recent test runs:
-${_issueBuilderLink(statistic.name)}
+${_issueBuilderLink(statistic.name, bringup: bringup)}
 
 Please follow https://github.com/flutter/flutter/blob/master/docs/infra/Reducing-Test-Flakiness.md#fixing-flaky-tests to fix the flakiness and enable the test back after validating the fix (internal dashboard to validate: go/flutter_test_flakiness).
 ''';
@@ -132,12 +132,14 @@ class IssueUpdateBuilder {
     required this.threshold,
     required this.existingIssue,
     required this.bucket,
+    required this.bringup,
   });
 
   final BuilderStatistic statistic;
   final double threshold;
   final Issue existingIssue;
   final Bucket bucket;
+  final bool bringup;
 
   bool get isBelow => statistic.flakyRate < threshold;
 
@@ -169,7 +171,7 @@ Flaky builds:
 ${_issueBuildLinks(builder: statistic.name, builds: statistic.flakyBuilds!, bucket: bucket)}
 
 Recent test runs:
-${_issueBuilderLink(statistic.name)}
+${_issueBuilderLink(statistic.name, bringup: bringup)}
 ''';
     }
     return result;
@@ -475,8 +477,11 @@ String _issueBuildLink({
   return Uri.encodeFull('$buildPrefix$builder/$build');
 }
 
-String _issueBuilderLink(String? builder) {
-  return Uri.encodeFull('$_buildDashboardPrefix?taskFilter=$builder');
+String _issueBuilderLink(String builder, {required bool bringup}) {
+  final showBringup = bringup ? '&showBringup=true' : '';
+  return Uri.encodeFull(
+    '$_buildDashboardPrefix?taskFilter=$builder$showBringup',
+  );
 }
 
 String? getTeamLabelFromTeam(Team? team) {
