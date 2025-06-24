@@ -113,7 +113,6 @@ interface class BuildStatusService {
     required String branch,
     TimeRange? created,
   }) async {
-    // branch ??= Config.defaultBranch(slug);
     final commits = await _firestore.queryRecentCommits(
       limit: limit,
       created: created,
