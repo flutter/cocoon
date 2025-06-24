@@ -2969,6 +2969,33 @@ void foo() {
       );
     });
 
+    // Regression test for https://github.com/flutter/flutter/issues/171092.
+    test('on "labeled" for a new SHA, does not crash', () async {
+      // Intentionally do not store a PrCheckRun.
+      expect(firestore, existsInStorage(PrCheckRuns.metadata, isEmpty));
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'labeled',
+        number: 123,
+        baseRef: 'main',
+        headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        slug: Config.packagesSlug,
+        additionalLabels: ['override: do-things'],
+      );
+
+      await tester.post(webhook);
+
+      verify(mockPullRequestLabelProcessor.processLabels()).called(1);
+
+      expect(firestore, existsInStorage(PrCheckRuns.metadata, isEmpty));
+      expect(
+        log,
+        bufferedLoggerOf(
+          contains(logThat(message: contains('No PR found for SHA'))),
+        ),
+      );
+    });
+
     group('PullRequestLabelProcessor.processLabels', () {
       test('applies emergency label on approved PRs', () async {
         final pullRequest = generatePullRequest(
