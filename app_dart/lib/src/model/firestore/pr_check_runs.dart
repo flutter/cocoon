@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:meta/meta.dart';
 
 import '../../service/firestore.dart';
 import 'base.dart';
@@ -170,8 +171,11 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     return PrCheckRuns.fromDocument(docs.first);
   }
 
-  /// Updates the [PullRequest] for the given [sha] or throw an error.
-  static Future<void> updatePullRequestForSha(
+  /// Updates the [PullRequest] for the given [sha].
+  ///
+  /// If no pull request is found, returns `false`.
+  @useResult
+  static Future<bool> updatePullRequestForSha(
     FirestoreService firestore,
     String sha,
     PullRequest pr,
@@ -179,10 +183,11 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     final tx = await firestore.beginTransaction();
     final prcr = await _findPrCheckRunsForSha(firestore, sha, transaction: tx);
     if (prcr == null) {
-      throw StateError('Expected to find a stored PR for SHA $sha; not found');
+      return false;
     }
     prcr.pullRequest = pr;
     await firestore.commit(tx, documentsToWrites([prcr]));
+    return true;
   }
 
   /// Retrieve the [PullRequest] for a given [sha] or throw an error.

@@ -432,7 +432,16 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   /// Update the PR stored in [PrCheckRuns] so that subsequent checks are fresh.
   Future<void> _updatePullRequest(PullRequest pr) async {
     final sha = pr.head!.sha!;
-    await PrCheckRuns.updatePullRequestForSha(firestore, sha, pr);
+    final didUpdate = await PrCheckRuns.updatePullRequestForSha(
+      firestore,
+      sha,
+      pr,
+    );
+    if (!didUpdate) {
+      log.debug('No PR found for SHA: $sha, did not update');
+    } else {
+      log.debug('Updated PR for SHA: $sha');
+    }
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
