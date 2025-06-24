@@ -68,7 +68,7 @@ mixin FirestoreQueries {
     Transaction? transaction,
   });
 
-  static Map<String, Object> _filterByTimeRAnge(
+  static Map<String, Object> _filterByTimeRange(
     String fieldName,
     TimeRange range,
   ) {
@@ -99,7 +99,7 @@ mixin FirestoreQueries {
     final filterMap = <String, Object>{
       '${Commit.fieldRepositoryPath} =': slug.fullName,
       if (branch != null) '${Commit.fieldBranch} =': branch,
-      ..._filterByTimeRAnge(Commit.fieldCreateTimestamp, created),
+      ..._filterByTimeRange(Commit.fieldCreateTimestamp, created),
     };
     final orderMap = <String, String>{
       Commit.fieldCreateTimestamp: kQueryOrderDescending,
