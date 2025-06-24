@@ -135,65 +135,59 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
         child: Material(
           color: Colors.transparent,
           child: FocusTraversalGroup(
-            child: SizedBox(
-              width: 500,
-              height: 360,
-              child: ListView(
-                children: <Widget>[
-                  if (_smallScreen)
-                    ..._buildRepositorySelectionWidgets(context, buildState),
-                  AnimatedBuilder(
-                    animation: buildState,
-                    builder: (context, child) {
-                      final isAuthenticated =
-                          buildState.authService.isAuthenticated;
-                      return TextButton(
-                        onPressed:
-                            isAuthenticated
-                                ? buildState.refreshGitHubCommits
-                                : null,
-                        child: child!,
-                      );
-                    },
-                    child: const Text('Refresh GitHub Commits'),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Center(child: FilterPropertySheet(_filter)),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      TextButton(
-                        onPressed:
-                            _filter!.isDefault ? null : () => _filter!.reset(),
-                        child: const Text('Defaults'),
-                      ),
-                      TextButton(
-                        onPressed:
-                            _filter == _settingsBasis
-                                ? null
-                                : () => _updateNavigation(context),
-                        child: const Text('Apply'),
-                      ),
-                      TextButton(
-                        child: const Text('Cancel'),
-                        onPressed: () {
-                          if (_filter != _settingsBasis) {
-                            _filter!.reset();
-                            _filter!.applyMap(_settingsBasis!.toMap());
-                          }
-                          _removeSettingsDialog();
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (_smallScreen)
+                  ..._buildRepositorySelectionWidgets(context, buildState),
+                AnimatedBuilder(
+                  animation: buildState,
+                  builder: (context, child) {
+                    final isAuthenticated =
+                        buildState.authService.isAuthenticated;
+                    return TextButton(
+                      onPressed:
+                          isAuthenticated
+                              ? buildState.refreshGitHubCommits
+                              : null,
+                      child: child!,
+                    );
+                  },
+                  child: const Text('Refresh GitHub Commits'),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [Center(child: FilterPropertySheet(_filter))],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    TextButton(
+                      onPressed:
+                          _filter!.isDefault ? null : () => _filter!.reset(),
+                      child: const Text('Defaults'),
+                    ),
+                    TextButton(
+                      onPressed:
+                          _filter == _settingsBasis
+                              ? null
+                              : () => _updateNavigation(context),
+                      child: const Text('Apply'),
+                    ),
+                    TextButton(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        if (_filter != _settingsBasis) {
+                          _filter!.reset();
+                          _filter!.applyMap(_settingsBasis!.toMap());
+                        }
+                        _removeSettingsDialog();
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
