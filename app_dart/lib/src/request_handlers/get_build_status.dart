@@ -35,8 +35,7 @@ base class GetBuildStatus extends RequestHandler {
     final slug = RepositorySlug('flutter', repoName);
     final status = await _buildStatusService.calculateCumulativeStatus(
       slug,
-      // Uses default branch if omitted (null)
-      branch: repoBranch,
+      branch: repoBranch ?? Config.defaultBranch(slug),
     );
     return rpc_model.BuildStatusResponse(
       buildStatus:

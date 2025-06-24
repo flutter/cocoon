@@ -48,7 +48,7 @@ interface class BuildStatusService {
   /// - Task `B` fails becuse its last known _completed_ status was failing
   Future<BuildStatus> calculateCumulativeStatus(
     RepositorySlug slug, {
-    String? branch,
+    required String branch,
   }) async {
     final commits = await retrieveCommitStatusFirestore(
       limit: numberOfCommitsToReferenceForTreeStatus,
@@ -110,9 +110,10 @@ interface class BuildStatusService {
   Future<List<CommitTasksStatus>> retrieveCommitStatusFirestore({
     required RepositorySlug slug,
     required int limit,
+    required String branch,
     TimeRange? created,
-    String? branch,
   }) async {
+    // branch ??= Config.defaultBranch(slug);
     final commits = await _firestore.queryRecentCommits(
       limit: limit,
       created: created,

@@ -45,7 +45,10 @@ void main() {
 
   group('calculateStatus', () {
     test('returns failure if there are no commits', () async {
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.failure(const []));
     });
 
@@ -63,7 +66,10 @@ void main() {
           commitSha: newerCommit.sha,
         ),
       ]);
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.success());
     });
 
@@ -97,7 +103,10 @@ void main() {
         firestore.putDocument(
           generateFirestoreTask(1, status: TaskStatus.succeeded),
         );
-        final status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(
+          slug,
+          branch: 'master',
+        );
         expect(status, BuildStatus.success());
       },
     );
@@ -116,7 +125,10 @@ void main() {
           commitSha: newerCommit.sha,
         ),
       ]);
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.failure(const ['task2']));
     });
 
@@ -148,7 +160,10 @@ void main() {
           ),
         ]);
 
-        final status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(
+          slug,
+          branch: 'master',
+        );
         expect(status, BuildStatus.failure(const ['task2']));
       },
     );
@@ -171,7 +186,10 @@ void main() {
           ),
         ]);
 
-        final status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(
+          slug,
+          branch: 'master',
+        );
         expect(status, BuildStatus.failure(const ['task2']));
       },
     );
@@ -193,7 +211,10 @@ void main() {
         ),
       ]);
 
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.success());
     });
 
@@ -225,7 +246,10 @@ void main() {
           ),
         ]);
 
-        final status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(
+          slug,
+          branch: 'master',
+        );
         expect(status, BuildStatus.success());
       },
     );
@@ -258,7 +282,10 @@ void main() {
           ),
         ]);
 
-        final status = await buildStatusService.calculateCumulativeStatus(slug);
+        final status = await buildStatusService.calculateCumulativeStatus(
+          slug,
+          branch: 'master',
+        );
         expect(status, BuildStatus.failure(const ['task2']));
       },
     );
@@ -289,7 +316,10 @@ void main() {
           commitSha: olderCommit.sha,
         ),
       ]);
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.success());
     });
 
@@ -318,7 +348,10 @@ void main() {
           commitSha: olderCommit.sha,
         ),
       ]);
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.failure(const ['task2']));
     });
 
@@ -348,7 +381,10 @@ void main() {
           commitSha: olderCommit.sha,
         ),
       ]);
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.success());
     });
 
@@ -399,8 +435,26 @@ void main() {
         reason: 'I said so',
       );
 
-      final status = await buildStatusService.calculateCumulativeStatus(slug);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
       expect(status, BuildStatus.failure(['Manual Closure: I said so']));
+    });
+
+    // Regression test for https://github.com/flutter/flutter/issues/171104.
+    test('ignores a breakage on another branch', () async {
+      firestore.putDocuments([
+        generateFirestoreCommit(1, branch: 'master'),
+        generateFirestoreTask(1, commitSha: '1', status: TaskStatus.succeeded),
+        generateFirestoreCommit(2, branch: 'flutter-0.42-candidate.0'),
+        generateFirestoreTask(2, commitSha: '2', status: TaskStatus.failed),
+      ]);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
+      expect(status, BuildStatus.success());
     });
   });
 }
