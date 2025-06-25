@@ -47,6 +47,7 @@ final class CommitTasksStatus {
         FullTask(
           tasks.first,
           [...tasks.reversed.map((t) => t.buildNumber).nonNulls],
+          totalSubTasks: tasksByBuilder.length,
           didAtLeastOneFailureOccur: tasks.any((t) => t.status.isFailure),
           lastCompletedAttemptWasFailure: _lastCompletedAttemptWasFailure(
             tasks,
@@ -76,6 +77,7 @@ final class FullTask {
   const FullTask(
     this.task,
     this.buildList, {
+    required this.totalSubTasks,
     required this.didAtLeastOneFailureOccur,
     required this.lastCompletedAttemptWasFailure,
   });
@@ -85,6 +87,9 @@ final class FullTask {
 
   /// Every [Task.buildNumber] associated with [Task.taskName].
   final List<int> buildList;
+
+  /// Total number of executions.
+  final int totalSubTasks;
 
   /// Whether at least one run was considered a failure.
   final bool didAtLeastOneFailureOccur;
