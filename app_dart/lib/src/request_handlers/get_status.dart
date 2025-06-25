@@ -87,7 +87,9 @@ final class GetStatus extends RequestHandler {
                   startTimestamp: fullTask.task.startTimestamp,
                   endTimestamp: fullTask.task.endTimestamp,
                   isBringup: fullTask.task.bringup,
-                  isFlaky: fullTask.didAtLeastOneFailureOccur,
+                  isFlaky:
+                      fullTask.didAtLeastOneFailureOccur &&
+                      fullTask.totalSubTasks > 1,
                   status: fullTask.task.status,
                   lastAttemptFailed: fullTask.lastCompletedAttemptWasFailure,
                   currentBuildNumber: fullTask.task.buildNumber,

@@ -228,4 +228,55 @@ void main() {
       ]),
     );
   });
+
+  // Regression test for https://github.com/flutter/flutter/issues/171186.
+  test('reports statuses with input branch', () async {
+    buildStatusService = FakeBuildStatusService(
+      commitTasksStatuses: [
+        CommitTasksStatus(generateFirestoreCommit(1, sha: commit1.sha), [
+          generateFirestoreTask(1, status: TaskStatus.failed),
+        ]),
+      ],
+    );
+    handler = GetStatus(
+      config: FakeConfig(),
+      buildStatusService: buildStatusService,
+      firestore: firestore,
+    );
+
+    tester.request = FakeHttpRequest(
+      queryParametersValue: {GetStatus.kBranchParam: commit1.branch},
+    );
+    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+    expect(
+      result,
+      containsPair('Commits', [
+        {
+          'Commit': {
+            'FlutterRepositoryPath': 'flutter/flutter',
+            'CreateTimestamp': 1,
+            'Sha': '1',
+            'Message': 'test message',
+            'Author': {'Login': 'author', 'avatar_url': 'avatar'},
+            'Branch': 'master',
+          },
+          'Tasks': [
+            {
+              'CreateTimestamp': 0,
+              'StartTimestamp': 0,
+              'EndTimestamp': 0,
+              'Attempts': 1,
+              'IsBringup': false,
+              'IsFlaky': false,
+              'Status': 'Failed',
+              'BuildNumberList': <Object?>[],
+              'BuilderName': 'task1',
+              'LastAttemptFailed': true,
+              'CurrentBuildNumber': null,
+            },
+          ],
+        },
+      ]),
+    );
+  });
 }
