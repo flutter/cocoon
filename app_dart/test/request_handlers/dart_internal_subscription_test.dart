@@ -231,4 +231,35 @@ void main() {
       ]),
     );
   });
+
+  // Regression test for https://github.com/flutter/flutter/issues/170370.
+  test('reuses an existing task waiting for a build number', () async {
+    // Insert into Firestore:
+    firestore.putDocument(
+      generateFirestoreTask(
+        1,
+        attempts: 1,
+        // Intentionally omitted.
+        buildNumber: null,
+        name: builder,
+        status: TaskStatus.inProgress,
+        commitSha: fsCommit.sha,
+      ),
+    );
+
+    tester.message = const PushMessage(data: buildMessageJsonSuccess);
+    await tester.post(handler);
+
+    // Check Firestore:
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask
+            .hasTaskName(builder)
+            .hasCurrentAttempt(1)
+            .hasBuildNumber(buildNumber)
+            .hasStatus(TaskStatus.succeeded),
+      ]),
+    );
+  });
 }
