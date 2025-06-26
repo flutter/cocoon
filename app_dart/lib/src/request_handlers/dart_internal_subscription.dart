@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
-import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/firestore/v1.dart';
 
@@ -60,9 +59,11 @@ final class DartInternalSubscription extends SubscriptionHandler {
       if (existing != null) {
         log.debug('Existing task found in Firestore: $existing');
         fsTask = existing;
-        // Don't increment the task attempt if it's waiting for a build numnber.
-        if (fsTask.status != TaskStatus.inProgress ||
-            fsTask.buildNumber != build.number) {
+        // Only increment the task attempt if
+        // - The existing task is terminated (complete);
+        // - Or, the existing (incomplete task) represents a different build
+        if (fsTask.status.isComplete ||
+            fsTask.buildNumber != null && fsTask.buildNumber != build.number) {
           log.debug('Marking as retry and incrementing the task number');
           fsTask.resetAsRetry();
         }
