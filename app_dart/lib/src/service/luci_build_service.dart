@@ -607,6 +607,7 @@ class LuciBuildService {
   Future<List<PendingTask>> schedulePostsubmitBuilds({
     required CommitRef commit,
     required List<PendingTask> toBeScheduled,
+    String? contentHash,
   }) async {
     if (toBeScheduled.isEmpty) {
       log.debug(
@@ -639,12 +640,16 @@ class LuciBuildService {
       log.info(
         'create postsubmit schedule request for target: ${pending.target} in commit ${commit.sha}',
       );
+      final properties = <String, Object>{
+        if (contentHash != null) 'content_hash': contentHash,
+      };
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: pending.target,
         taskName: pending.taskName,
         priority: pending.priority,
         currentAttempt: pending.currentAttempt,
+        properties: properties,
       );
       buildRequests.add(
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
@@ -703,10 +708,13 @@ class LuciBuildService {
         'create postsubmit schedule request for target: $target in commit ${commit.sha}',
       );
 
+      final properties = <String, Object>{
+        if (contentHash != null) 'content_hash': contentHash,
+      };
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
         commit: commit,
         target: target,
-        extraProperties: {if (contentHash != null) 'content_hash': contentHash},
+        properties: properties,
       );
       buildRequests.add(
         bbv2.BatchRequest_Request(scheduleBuild: scheduleBuildRequest),
@@ -850,7 +858,7 @@ class LuciBuildService {
     );
 
     final processedProperties = target.getProperties().cast<String, Object?>();
-    processedProperties.addAll(properties ?? <String, Object?>{});
+    if (properties != null) processedProperties.addAll(properties);
     processedProperties['git_branch'] = commit.branch;
     processedProperties['git_repo'] = commit.slug.name;
 
@@ -915,7 +923,7 @@ class LuciBuildService {
     required CommitRef commit,
     required Target target,
     int priority = kDefaultPriority,
-    Map<String, String> extraProperties = const {},
+    Map<String, Object?>? properties,
   }) async {
     log.info(
       'Creating merge group schedule builder for ${target.name} on commit ${commit.sha}',
@@ -938,7 +946,7 @@ class LuciBuildService {
     processedProperties['is_fusion'] = 'true';
     processedProperties[kMergeQueueKey] = true;
     processedProperties['git_repo'] = commit.slug.name;
-    processedProperties.addAll(extraProperties);
+    if (properties != null) processedProperties.addAll(properties);
 
     final propertiesStruct =
         bbv2.Struct()..mergeFromProto3Json(processedProperties);

@@ -73,4 +73,10 @@ class FakeContentAwareHashService implements ContentAwareHashService {
     nextCompletedShas = null;
     return shas;
   }
+
+  final hashByCommit = <String, String>{};
+  @override
+  Future<String?> getHashByCommitSha(String commitSha) async {
+    return hashByCommit[commitSha];
+  }
 }
