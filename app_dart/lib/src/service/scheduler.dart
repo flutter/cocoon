@@ -149,6 +149,7 @@ class Scheduler {
       log.debug('Skipping ${commit.sha} as repo is not supported');
       return;
     }
+    final contentHash = await _contentAwareHash.getHashByCommitSha(commit.sha);
 
     final _TaskCommitScheduling scheduling;
     if (Config.defaultBranch(commit.slug) == commit.branch) {
@@ -216,7 +217,11 @@ class Scheduler {
       'Immediately scheduled tasks for $commit: '
       '${toBeScheduled.map((t) => '"${t.taskName}"').join(', ')}',
     );
-    await _batchScheduleBuilds(commit.toRef(), toBeScheduled);
+    await _batchScheduleBuilds(
+      commit.toRef(),
+      toBeScheduled,
+      contentHash: contentHash,
+    );
     await _uploadToBigQuery(commit);
   }
 
@@ -234,8 +239,9 @@ class Scheduler {
   /// Each batch request contains [Config.batchSize] builds to be scheduled.
   Future<void> _batchScheduleBuilds(
     CommitRef commit,
-    List<PendingTask> toBeScheduled,
-  ) async {
+    List<PendingTask> toBeScheduled, {
+    String? contentHash,
+  }) async {
     final batchLog = StringBuffer(
       'Scheduling ${toBeScheduled.length} tasks in batches for ${commit.sha} as follows:\n',
     );
@@ -250,6 +256,7 @@ class Scheduler {
         _luciBuildService.schedulePostsubmitBuilds(
           commit: commit,
           toBeScheduled: batch,
+          contentHash: contentHash,
         ),
       );
     }

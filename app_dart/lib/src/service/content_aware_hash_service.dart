@@ -336,6 +336,31 @@ interface class ContentAwareHashService {
     );
     return contentHash.waitingShas;
   }
+
+  /// Looks up a content hash via its [commitSha] and returns the hash if
+  /// the document is found.
+  ///
+  /// Note: This only returns the content hash if the commitSha was used to
+  /// build the engine artifacts. It is not a generic "what is the hash" of
+  /// this git commitSha.
+  Future<String?> getHashByCommitSha(String commitSha) async {
+    final docs = await _firestore.query(
+      ContentAwareHashBuilds.metadata.collectionId,
+      {'${ContentAwareHashBuilds.fieldCommitSha} =': commitSha},
+      orderMap: {
+        ContentAwareHashBuilds.fieldCreateTimestamp: kQueryOrderDescending,
+      },
+    );
+    if (docs.isEmpty) {
+      return null;
+    }
+    if (docs.length > 1) {
+      log.warn(
+        'CAHS(commitSha: $commitSha): getHashByCommitSha - multiple hashes found; using latest',
+      );
+    }
+    return ContentAwareHashBuilds.fromDocument(docs.first).contentHash;
+  }
 }
 
 enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }

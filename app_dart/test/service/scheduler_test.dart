@@ -281,6 +281,45 @@ void main() {
         );
       });
 
+      test('schedules cocoon based targets with content hash', () async {
+        final luciBuildService = MockLuciBuildService();
+        const contentHash = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        fakeContentAwareHash.hashByCommit['1'] = contentHash;
+        when(
+          luciBuildService.schedulePostsubmitBuilds(
+            commit: anyNamed('commit'),
+            toBeScheduled: anyNamed('toBeScheduled'),
+            contentHash: contentHash,
+          ),
+        ).thenAnswer((_) async => []);
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: luciBuildService,
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+
+        // This test is testing `GuaranteedPolicy` get scheduled - there's only one now.
+        await scheduler.addCommits(
+          createCommitList(<String>['1'], branch: 'main', repo: 'packages'),
+        );
+        verify(
+          luciBuildService.schedulePostsubmitBuilds(
+            commit: anyNamed('commit'),
+            toBeScheduled: anyNamed('toBeScheduled'),
+            contentHash: contentHash,
+          ),
+        ).called(1);
+      });
+
       test(
         'schedules cocoon based targets - multiple batch requests',
         () async {

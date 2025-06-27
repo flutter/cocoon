@@ -661,6 +661,65 @@ void main() {
     );
   });
 
+  test('schedules a post-submit build with content hash', () async {
+    final commit = generateFirestoreCommit(
+      1,
+      branch: 'master',
+      repo: 'flutter',
+    );
+
+    when(mockBuildBucketClient.listBuilders(any)).thenAnswer((_) async {
+      return bbv2.ListBuildersResponse(
+        builders: [
+          bbv2.BuilderItem(
+            id: bbv2.BuilderID(
+              bucket: 'prod',
+              project: 'flutter',
+              builder: 'Linux 1',
+            ),
+          ),
+        ],
+      );
+    });
+
+    await expectLater(
+      luci.schedulePostsubmitBuilds(
+        commit: commit.toRef(),
+        toBeScheduled: [
+          PendingTask(
+            target: generateTarget(
+              1,
+              properties: {
+                'recipe': 'devicelab/devicelab',
+                'os': 'debian-10.12',
+              },
+              slug: Config.flutterSlug,
+            ),
+            taskName: generateFirestoreTask(1, commitSha: commit.sha).taskName,
+            priority: LuciBuildService.kDefaultPriority,
+            currentAttempt: 1,
+          ),
+        ],
+        contentHash: 'abc',
+      ),
+      completion(isEmpty),
+    );
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(
+      scheduleBuild.properties.fields,
+      containsPair('content_hash', bbv2.Value(stringValue: 'abc')),
+    );
+  });
+
   test('does not run a non-existent builder', () async {
     final commit = generateFirestoreCommit(1, branch: 'main', repo: 'flutter');
 

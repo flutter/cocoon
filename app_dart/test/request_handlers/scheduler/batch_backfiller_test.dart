@@ -520,6 +520,7 @@ final class _FakeLuciBuildService extends Fake implements LuciBuildService {
   Future<List<PendingTask>> schedulePostsubmitBuilds({
     required CommitRef commit,
     required List<PendingTask> toBeScheduled,
+    String? contentHash,
   }) async {
     scheduledPostsubmitBuilds.addAll(toBeScheduled);
     return [];

@@ -4164,11 +4164,13 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
   _i13.Future<List<_i35.PendingTask>> schedulePostsubmitBuilds({
     required _i32.CommitRef? commit,
     required List<_i35.PendingTask>? toBeScheduled,
+    String? contentHash,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#schedulePostsubmitBuilds, [], {
               #commit: commit,
               #toBeScheduled: toBeScheduled,
+              #contentHash: contentHash,
             }),
             returnValue: _i13.Future<List<_i35.PendingTask>>.value(
               <_i35.PendingTask>[],

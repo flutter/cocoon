@@ -379,6 +379,27 @@ void main() {
       );
     });
   });
+
+  group('getHashByCommitSha', () {
+    test('returns the hash when the document is found', () async {
+      firestoreService.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime.now(),
+          contentHash: '1' * 40,
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.inProgress,
+          waitingShas: [],
+        ),
+      );
+      final hash = await cahs.getHashByCommitSha('a' * 40);
+      expect(hash, '1' * 40);
+    });
+
+    test('returns null when the document is not found', () async {
+      final hash = await cahs.getHashByCommitSha('a' * 40);
+      expect(hash, isNull);
+    });
+  });
 }
 
 extension on String {
