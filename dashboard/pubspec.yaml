@@ -20,9 +20,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_app_icons: 0.1.1 # Rolled by dependabot
-  google_sign_in: ^6.3.0
-  google_sign_in_platform_interface: ^2.5.0
-  google_sign_in_web: ^0.12.4+4
+  google_sign_in: ^7.0.0
+  google_sign_in_platform_interface: ^3.0.0
+  google_sign_in_web: ^1.0.0
   http: 1.4.0 # Rolled by dependabot
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
