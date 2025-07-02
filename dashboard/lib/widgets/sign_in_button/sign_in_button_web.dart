@@ -36,11 +36,13 @@ class _SignInButtonState extends State<SignInButton> {
           GoogleSignInAuthenticationEventSignIn() => data.user,
           GoogleSignInAuthenticationEventSignOut() => null,
         };
+        final fireAuth = FirebaseAuth.instance;
+
         if (user == null) {
+          await fireAuth.signOut();
           print('signed out');
           return;
         }
-        final fireAuth = FirebaseAuth.instance;
         final credential = GoogleAuthProvider.credential(
           idToken: user.authentication.idToken,
         );
