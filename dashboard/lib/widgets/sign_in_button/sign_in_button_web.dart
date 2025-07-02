@@ -5,8 +5,14 @@
 // import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
-import 'package:google_sign_in_web/google_sign_in_web.dart';
+
+import 'package:google_sign_in/google_sign_in.dart'
+    show
+        GoogleSignIn,
+        GoogleSignInAuthenticationEventSignIn,
+        GoogleSignInAuthenticationEventSignOut;
+
+import 'package:google_sign_in_web/web_only.dart' as gsw;
 
 /// Widget that users can click to initiate the Sign In process.
 class SignInButton extends StatefulWidget {
@@ -17,29 +23,31 @@ class SignInButton extends StatefulWidget {
 }
 
 class _SignInButtonState extends State<SignInButton> {
-  // TODO(matanlurey): This should be initialized outside of the widget scope.
-  static late GoogleSignInPlugin _googleSignInPlugin;
-
   static Future<void>? _initializing;
 
   Future<void> _initGoogleSignIn() async {
     if (_initializing != null) return _initializing;
-    _initializing = GoogleSignInPlatform.instance.initWithParams(
-      const SignInInitParameters(scopes: []),
-    );
-    // This appears to be the only way to get the userDataEvents stream -
-    // which is needed to convert users to Firebase Auth
-    _googleSignInPlugin = GoogleSignInPlatform.instance as GoogleSignInPlugin;
-    _googleSignInPlugin.userDataEvents!.listen((data) async {
-      if (data != null) {
-        final auth = FirebaseAuth.instance;
-        final credential = GoogleAuthProvider.credential(idToken: data.idToken);
-        try {
-          final cred = await auth.signInWithCredential(credential);
-          print('${cred.user?.email} signed in');
-        } catch (e) {
-          print('error signing into firebase');
+
+    _initializing = GoogleSignIn.instance.initialize();
+
+    GoogleSignIn.instance.authenticationEvents.listen((data) async {
+      try {
+        final user = switch (data) {
+          GoogleSignInAuthenticationEventSignIn() => data.user,
+          GoogleSignInAuthenticationEventSignOut() => null,
+        };
+        if (user == null) {
+          print('signed out');
+          return;
         }
+        final fireAuth = FirebaseAuth.instance;
+        final credential = GoogleAuthProvider.credential(
+          idToken: user.authentication.idToken,
+        );
+        final cred = await fireAuth.signInWithCredential(credential);
+        print('${cred.user!.email} signed in');
+      } catch (e) {
+        print('error signing into firebase');
       }
     });
   }
@@ -50,7 +58,7 @@ class _SignInButtonState extends State<SignInButton> {
       future: _initGoogleSignIn(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          return _googleSignInPlugin.renderButton();
+          return gsw.renderButton();
         }
         return const CircularProgressIndicator();
       },
