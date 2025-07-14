@@ -28,7 +28,7 @@ dependencies:
   meta: any # Match Flutter SDK
   provider: 6.1.5 # Rolled by dependabot
   truncate: 3.0.1 # Rolled by dependabot
-  url_launcher: 6.3.1 # Rolled by dependabot
+  url_launcher: 6.3.2 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
   url_launcher_web: 2.4.1 # Rolled by dependabot
 
