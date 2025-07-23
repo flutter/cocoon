@@ -1971,7 +1971,7 @@ void foo() {
         <String>[
           // Java tests.
           'engine/src/flutter/shell/platform/android/io/flutter/Blah.java',
-          'engine/src/flutter/shell/platform/android/test/io/flutter/BlahTest.java',
+          'engine/src/flutter/shell/platform/android/test/io/flutter/BlahTesting.java',
         ],
         <String>[
           // Script tests.
@@ -2005,6 +2005,7 @@ void foo() {
         issueNumber < pullRequestFileList.length;
         issueNumber++
       ) {
+        clearInteractions(issuesService);
         tester.message = generateGithubWebhookMessage(
           action: 'opened',
           number: issueNumber,
