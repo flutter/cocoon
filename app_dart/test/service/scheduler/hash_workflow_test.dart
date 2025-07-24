@@ -232,6 +232,31 @@ void main() {
       ).called(1);
     },
   );
+
+  test('cancelDestroyedMergeGroupTargets failes the hash document', () async {
+    firestore.putDocument(
+      ContentAwareHashBuilds(
+        createdOn: DateTime(2025, 05, 20),
+        contentHash: '65038ef4984b927fd1762ef01d35c5ecc34ff5f7',
+        commitSha: 'a' * 40,
+        buildStatus: BuildStatus.inProgress,
+        waitingShas: [],
+      ),
+    );
+
+    await scheduler.cancelDestroyedMergeGroupTargets(headSha: 'a' * 40);
+
+    expect(
+      firestore,
+      existsInStorage(ContentAwareHashBuilds.metadata, [
+        isContentAwareHashBuilds
+            .hasCommitSha('a' * 40)
+            .hasContentHash('65038ef4984b927fd1762ef01d35c5ecc34ff5f7')
+            .hasStatus(BuildStatus.failure)
+            .hasWaitingShas([]),
+      ]),
+    );
+  });
 }
 
 extension on String {

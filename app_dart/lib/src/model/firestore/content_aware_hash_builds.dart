@@ -49,6 +49,7 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
     required String commitSha,
     required BuildStatus buildStatus,
     required List<String> waitingShas,
+    List<String> failedCommitShas = const [],
   }) {
     return ContentAwareHashBuilds.fromDocument(
       g.Document(
@@ -63,6 +64,12 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
               values: [...waitingShas.map((t) => t.toValue())],
             ),
           ),
+          if (failedCommitShas.isNotEmpty)
+            fieldFailedCommitShas: g.Value(
+              arrayValue: g.ArrayValue(
+                values: [...failedCommitShas.map((t) => t.toValue())],
+              ),
+            ),
         },
       ),
     );
@@ -76,6 +83,7 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
   static const fieldCommitSha = 'commit_sha';
   static const fieldStatus = 'status';
   static const fieldWaitingShas = 'waiting_shas';
+  static const fieldFailedCommitShas = 'failed_commit_sha';
 
   DateTime get createdOn =>
       DateTime.parse(fields[fieldCreateTimestamp]!.timestampValue!);
@@ -91,6 +99,14 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
     return [
       for (final t
           in fields[fieldWaitingShas]?.arrayValue?.values ?? <g.Value>[])
+        t.stringValue!,
+    ];
+  }
+
+  List<String> get failedCommitShas {
+    return [
+      for (final t
+          in fields[fieldFailedCommitShas]?.arrayValue?.values ?? <g.Value>[])
         t.stringValue!,
     ];
   }

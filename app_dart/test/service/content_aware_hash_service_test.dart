@@ -222,6 +222,42 @@ void main() {
       );
     });
 
+    test('replaces failed attempts with new ones', () async {
+      when(github.request('GET', any)).thenAnswer(
+        (_) async => Response(goodAnnotation(contentHash: '1' * 40), 200),
+      );
+
+      firestoreService.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime.now(),
+          contentHash: '1' * 40,
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.failure,
+          waitingShas: ['b' * 40],
+        ),
+      );
+
+      /// A new job is created
+      final job = workflowJobTemplate(headSha: 'c' * 40).toWorkflowJob();
+      final result = await cahs.processWorkflowJob(job);
+      expect(result, (
+        contentHash: '1111111111111111111111111111111111111111',
+        status: MergeQueueHashStatus.build,
+      ));
+
+      expect(
+        firestoreService,
+        existsInStorage(ContentAwareHashBuilds.metadata, [
+          isContentAwareHashBuilds
+              .hasCommitSha('c' * 40)
+              .hasContentHash('1' * 40)
+              .hasStatus(BuildStatus.inProgress)
+              .hasWaitingShas(['b' * 40])
+              .hasFailedCommitShas(['a' * 40]),
+        ]),
+      );
+    });
+
     test('handles rollbacks', () async {
       firestoreService.failOnTransactionCommit(clearAfter: true);
       when(github.request('GET', any)).thenAnswer((_) async {

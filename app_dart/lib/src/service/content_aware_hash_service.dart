@@ -202,7 +202,9 @@ interface class ContentAwareHashService {
       return MergeQueueHashStatus.build;
     }
 
-    // A doc exists; check to see if the artifacts are ready.
+    // A doc exists!
+
+    // Check to see if the artifacts are ready.
     if (doc.status == BuildStatus.success) {
       log.info(
         'CAHS(headSha: $headSha, hash: $hash): artifacts already built - would auto-complete merge group here',
@@ -210,7 +212,48 @@ interface class ContentAwareHashService {
       return MergeQueueHashStatus.complete;
     }
 
-    // A doc exists, but its not built yet - add ourselves to the waiting list
+    // Check to see if the artifacts were failed - this can happen if the merge
+    // queue is destroyed because someone jumped the queue or something happned
+    // to a PR in front of us.  In this world - we're taking over this.
+    if (doc.status == BuildStatus.failure) {
+      log.info(
+        'CAHS(headSha: $headSha, hash: $hash): artifacts failed - we will take over',
+      );
+
+      final commitResult = await _firestore.commit(transaction, [
+        Write(
+          update: Document(
+            name: doc.name,
+            fields: {
+              ContentAwareHashBuilds.fieldCommitSha: headSha.toValue(),
+              ContentAwareHashBuilds.fieldStatus:
+                  BuildStatus.inProgress.name.toValue(),
+            },
+          ),
+          updateMask: DocumentMask(
+            fieldPaths: [
+              ContentAwareHashBuilds.fieldCommitSha,
+              ContentAwareHashBuilds.fieldStatus,
+            ],
+          ),
+          updateTransforms: [
+            FieldTransform(
+              fieldPath: ContentAwareHashBuilds.fieldFailedCommitShas,
+              appendMissingElements: ArrayValue(
+                values: [doc.commitSha.toValue()],
+              ),
+            ),
+          ],
+        ),
+      ]);
+
+      log.debug(
+        'CAHS(headSha: $headSha, hash: $hash): results: ${commitResult.writeResults?.map((e) => e.toJson())}',
+      );
+      return MergeQueueHashStatus.build;
+    }
+
+    // Artifacts are currently building, add ourselves to the waiting list
     // to be notified later.
     log.info(
       'CAHS(headSha: $headSha, hash: $hash): still building; adding to waiting list',

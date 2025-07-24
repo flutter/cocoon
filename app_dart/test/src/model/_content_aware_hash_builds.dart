@@ -46,4 +46,14 @@ final class ContentAwareHashBuildsMatcher
       ),
     );
   }
+
+  ContentAwareHashBuildsMatcher hasFailedCommitShas(Object? matcherOr) {
+    return ContentAwareHashBuildsMatcher._(
+      _delegate.having(
+        (status) => status.failedCommitShas,
+        'failedCommitShas',
+        matcherOr,
+      ),
+    );
+  }
 }
