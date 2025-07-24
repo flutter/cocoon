@@ -289,6 +289,14 @@ interface class Config extends DynamicallyUpdatedConfig {
       'empowered to ask for tests, without delegating that responsibility '
       'entirely to the test exemption group.';
 
+  static String newCommitIsNeeded({required String sha}) =>
+      'An existing Git SHA, `$sha`, was detected, and no actions were taken.\n'
+      '\n'
+      'To re-trigger presubmits after closing or re-opeing a PR, or pushing a '
+      'HEAD commit (i.e. with `--force`) that already was pushed before, push '
+      'a blank commit (`git commit --allow-empty -m "Trigger Build"`) or '
+      'rebase to continue.';
+
   String get flutterGoldPending =>
       'Waiting for all other checks to be successful before querying Gold.';
 
