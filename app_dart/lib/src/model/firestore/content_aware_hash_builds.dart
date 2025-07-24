@@ -65,11 +65,7 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
             ),
           ),
           if (failedCommitShas.isNotEmpty)
-            fieldFailedCommitShas: g.Value(
-              arrayValue: g.ArrayValue(
-                values: [...failedCommitShas.map((t) => t.toValue())],
-              ),
-            ),
+            fieldFailedCommitShas: failedCommitShas.toValue(),
         },
       ),
     );

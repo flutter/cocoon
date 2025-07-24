@@ -239,9 +239,7 @@ interface class ContentAwareHashService {
           updateTransforms: [
             FieldTransform(
               fieldPath: ContentAwareHashBuilds.fieldFailedCommitShas,
-              appendMissingElements: ArrayValue(
-                values: [doc.commitSha.toValue()],
-              ),
+              appendMissingElements: [doc.commitSha].toArrayValue(),
             ),
           ],
         ),

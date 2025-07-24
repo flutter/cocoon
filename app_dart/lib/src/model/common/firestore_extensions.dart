@@ -20,19 +20,19 @@ extension DateTimeToValue on DateTime {
   Value toValue() => Value(timestampValue: toUtc().toIso8601String());
 }
 
-extension ArrayToValue on List {
-  Value toValue() => Value(
-    arrayValue: ArrayValue(
-      values: [
-        for (final t in this)
-          switch (t) {
-            String() => t.toValue(),
-            int() => t.toValue(),
-            bool() => t.toValue(),
-            DateTime() => t.toValue(),
-            _ => throw UnimplementedError(),
-          },
-      ],
-    ),
+extension ListToValue on List {
+  Value toValue() => Value(arrayValue: toArrayValue());
+
+  ArrayValue toArrayValue() => ArrayValue(
+    values: [
+      for (final t in this)
+        switch (t) {
+          String() => t.toValue(),
+          int() => t.toValue(),
+          bool() => t.toValue(),
+          DateTime() => t.toValue(),
+          _ => throw UnimplementedError(),
+        },
+    ],
   );
 }
