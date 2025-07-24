@@ -20,6 +20,7 @@ It is not designed to help developers build Flutter apps.
 
 Cocoon is not a Google product.
 
+DO NOT SUBMIT.
 
 # Using Cocoon
 
