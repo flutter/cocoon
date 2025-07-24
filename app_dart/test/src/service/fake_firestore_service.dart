@@ -174,10 +174,21 @@ abstract base class _FakeInMemoryFirestoreService
 
     for (final transform in updateTransforms ?? const <FieldTransform>[]) {
       final field = fields[transform.fieldPath];
-      // this is most certainly wrong as the real firestore probably(?) updates
-      // the field. We're not using it that way in the tests, so if you find
-      // yourself getting this error - congrats and welcome to the team.
       if (field == null) {
+        if (transform.appendMissingElements != null) {
+          // firestore: Append the given elements in order if they are not
+          // already present in the current field value. If the field is not an
+          // array, or if the field does not yet exist, it is first set to the
+          // empty array.
+          // https://firebase.google.com/docs/firestore/reference/rest/v1beta1/Write#FieldTransform
+          fields[transform.fieldPath!] = Value(
+            arrayValue: transform.appendMissingElements!,
+          );
+          continue;
+        }
+        // this is most certainly wrong as the real firestore probably(?) updates
+        // the field. We're not using it that way in the tests, so if you find
+        // yourself getting this error - congrats and welcome to the team.
         throw ArgumentError.value(
           transform.fieldPath,
           'field',

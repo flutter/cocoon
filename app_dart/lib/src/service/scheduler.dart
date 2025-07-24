@@ -785,6 +785,8 @@ $s
       sha: headSha,
       reason: 'Merge group was destroyed',
     );
+    // Mark content hash as invalid (if it exists)
+    await _completeArtifacts(headSha, false);
   }
 
   /// Pushes the required "Merge Queue Guard" check to the merge queue, which
