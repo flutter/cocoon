@@ -11,6 +11,7 @@ import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
@@ -2798,8 +2799,15 @@ void foo() {
         await testActions('ready_for_review');
       });
 
-      test('Reopened Action works properly', () async {
+      test('Reopened Action works properly and issues a warning', () async {
         await testActions('reopened');
+        verify(
+          issuesService.createComment(
+            any,
+            any,
+            argThat(contains('push a blank commit')),
+          ),
+        );
       });
 
       test('Labeled Action works properly', () async {
@@ -2819,6 +2827,29 @@ void foo() {
 
       test('Synchronize Action works properly', () async {
         await testActions('synchronize');
+      });
+
+      test('Tries to schedule tests for a duplicate SHA warns', () async {
+        await CiStaging.initializeDocument(
+          firestoreService: firestore,
+          slug: Config.flutterSlug,
+          sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+          stage: CiStage.fusionEngineBuild,
+          tasks: [],
+          checkRunGuard: '',
+        );
+        config.maxFilesChangedForSkippingEnginePhaseValue = 1;
+        await testActions(
+          'synchronize',
+          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
+        );
+        verify(
+          issuesService.createComment(
+            any,
+            any,
+            argThat(contains('push a blank commit')),
+          ),
+        );
       });
 
       test(

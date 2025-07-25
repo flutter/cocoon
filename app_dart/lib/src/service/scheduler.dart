@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_common/task_status.dart';
@@ -11,6 +12,7 @@ import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
@@ -444,6 +446,9 @@ class Scheduler {
         );
         exception = e;
       } catch (e, s) {
+        if (e is g.DetailedApiRequestError && e.status == HttpStatus.conflict) {
+          rethrow;
+        }
         log.warn(
           'Exception encountered when scheduling presubmit targets for '
           '${pullRequest.number}',

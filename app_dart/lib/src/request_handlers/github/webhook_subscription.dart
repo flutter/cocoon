@@ -3,12 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
+import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
@@ -207,13 +209,16 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         }
         break;
       case 'opened':
-      case 'reopened':
         // These cases should trigger LUCI jobs. The closed event should happen
         // before these which should cancel all in progress checks.
         await _checkForTests(pullRequestEvent);
         await _scheduleIfMergeable(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
+      case 'reopened':
+        // TODO(matanlurey): Handle more elegantly than just failing.
+        // https://github.com/flutter/flutter/issues/162656
+        await _warnThatANewCommitIsNeeded(pullRequestEvent);
       case 'labeled':
         log.info(
           '$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]',
@@ -420,13 +425,20 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       return;
     }
 
-    await scheduler.triggerPresubmitTargets(pullRequest: pr);
+    try {
+      await scheduler.triggerPresubmitTargets(pullRequest: pr);
 
-    // When presubmit targets are scheduled the PR acquires a new Merge Queue
-    // Guard. This can happen when the PR is just created, a new commit is
-    // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
-    // for example, the "emergency" label is present.
-    await _processLabels(pr);
+      // When presubmit targets are scheduled the PR acquires a new Merge Queue
+      // Guard. This can happen when the PR is just created, a new commit is
+      // pushed, reopened, etc. In all cases the guard may need to be unlocked if,
+      // for example, the "emergency" label is present.
+      await _processLabels(pr);
+    } on g.DetailedApiRequestError catch (e) {
+      if (e.status != HttpStatus.conflict) {
+        rethrow;
+      }
+      await _warnThatANewCommitIsNeeded(pullRequestEvent);
+    }
   }
 
   /// Update the PR stored in [PrCheckRuns] so that subsequent checks are fresh.
@@ -442,6 +454,26 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     } else {
       log.debug('Updated PR for SHA: $sha');
     }
+  }
+
+  /// Warns that [pr] is out of date, and a new commit is needed.
+  ///
+  /// See <https://github.com/flutter/flutter/issues/162656>.
+  Future<void> _warnThatANewCommitIsNeeded(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final pr = pullRequestEvent.pullRequest!;
+    final slug = pullRequestEvent.repository!.slug();
+    final sha = pr.head!.sha!;
+
+    final gitHubClient = config.createGitHubClientWithToken(
+      await config.githubOAuthToken,
+    );
+    await gitHubClient.issues.createComment(
+      slug,
+      pr.number!,
+      Config.newCommitIsNeeded(sha: sha),
+    );
   }
 
   /// Release tooling generates cherrypick pull requests that should be granted an approval.
