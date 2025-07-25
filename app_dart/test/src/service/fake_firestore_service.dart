@@ -32,17 +32,26 @@ abstract base class _FakeInMemoryFirestoreService
   @protected
   String get expectedDatabaseId => Config.flutterGcpFirestoreDatabase;
 
-  void _assertExpectedDatabase(String database) {
+  void _checkDatabaseName(String database) {
     final parts = p.posix.split(database);
-    if (parts.length != 4) {
-      throw StateError('Unexpected database: "$database"');
+    if (parts.length < 4) {
+      throw StateError(
+        'Unexpected database: "$database" '
+        '(missing components)',
+      );
     }
-    final [pLiteral, pName, dLiteral, dName] = parts;
+    final [pLiteral, pName, dLiteral, dName, ...] = parts;
     if (pLiteral != 'projects' || dLiteral != 'databases') {
-      throw StateError('Unexpected database: "$database"');
+      throw StateError(
+        'Unexpected database: "$database" '
+        '(expected projects/.../databases/...)',
+      );
     }
     if (pName != expectedProjectId || dName != expectedDatabaseId) {
-      throw StateError('Unexpected database: "$database"');
+      throw StateError(
+        'Unexpected database: "$database" '
+        '(expected projects/$expectedProjectId/databases/$expectedDatabaseId)',
+      );
     }
   }
 
@@ -90,6 +99,7 @@ abstract base class _FakeInMemoryFirestoreService
   ///
   /// If the document does not exist, returns `null`.
   Document? tryPeekDocumentByName(String documentName) {
+    _checkDatabaseName(documentName);
     final document = _documents[documentName];
     return document == null ? null : _clone(document);
   }
@@ -99,6 +109,7 @@ abstract base class _FakeInMemoryFirestoreService
   /// If the document does not exist, returns `null`.
   Document? tryPeekDocumentByPath(String collectionId, String documentId) {
     final documentName = resolveDocumentName(collectionId, documentId);
+    _checkDatabaseName(documentName);
     return tryPeekDocumentByName(documentName);
   }
 
@@ -106,6 +117,7 @@ abstract base class _FakeInMemoryFirestoreService
   ///
   /// The document must exist.
   Document peekDocumentByName(String documentName) {
+    _checkDatabaseName(documentName);
     final document = _documents[documentName];
     if (document == null) {
       throw StateError('No document "$documentName" found');
@@ -206,6 +218,7 @@ abstract base class _FakeInMemoryFirestoreService
       }
     }
 
+    _checkDatabaseName(name);
     _documents[name] = Document(
       name: name,
       fields: fields,
@@ -285,7 +298,11 @@ abstract base class _FakeInMemoryFirestoreService
     BatchWriteRequest request,
     String database,
   ) async {
-    _assertExpectedDatabase(database);
+    _checkDatabaseName(database);
+    // Stricter check than other calls to _checkDatabaseName
+    if (p.split(database).length != 4) {
+      throw StateError('Unexpected database: $database');
+    }
     return BatchWriteResponse(
       status: _batchWriteSync(request.writes ?? const []),
     );
@@ -357,11 +374,19 @@ abstract base class _FakeInMemoryFirestoreService
     required String collectionId,
     String? documentId,
   }) async {
-    if (document.name case final name?
-        when tryPeekDocumentByName(name) != null) {
+    final Document? exists;
+    if (documentId != null) {
+      exists = tryPeekDocumentByPath(collectionId, documentId);
+    } else if (document.name case final name?) {
+      exists = tryPeekDocumentByName(name);
+      documentId = p.split(name).last;
+    } else {
+      exists = null;
+    }
+    if (exists != null) {
       throw DetailedApiRequestError(
-        HttpStatus.notFound,
-        'Document "$name" already exists',
+        HttpStatus.conflict,
+        'Document "${document.name ?? documentId}" already exists',
       );
     }
     return putDocument(

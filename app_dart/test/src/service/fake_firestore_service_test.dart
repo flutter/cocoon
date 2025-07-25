@@ -5,6 +5,7 @@
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import 'fake_firestore_service.dart';
@@ -71,6 +72,120 @@ void main() {
         isA<g.DetailedApiRequestError>().having((e) => e.status, 'status', 500),
       ),
     );
+  });
+
+  group('createDocument', () {
+    test('generates a default document name if none is provided', () async {
+      final document = await firestore.createDocument(
+        g.Document(),
+        collectionId: 'collection-id',
+      );
+      expect(document.name, isNotEmpty);
+    });
+
+    test('fails if Document.name is set but it is not valid', () async {
+      await expectLater(
+        () => firestore.createDocument(
+          g.Document()..name = 'document-name',
+          collectionId: 'collection-id',
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('Unexpected database'),
+          ),
+        ),
+      );
+    });
+
+    test('succeeds if Document.name is set and it does not exist', () async {
+      final document = await firestore.createDocument(
+        g.Document()
+          ..name = p.join(
+            'projects',
+            'flutter-dashboard',
+            'databases',
+            'cocoon',
+            'documents',
+            'collection-id',
+            'document-name',
+          ),
+        collectionId: 'collection-id',
+      );
+      expect(document.name, endsWith('/document-name'));
+    });
+
+    test('fails if Document.name is set and it already exists', () async {
+      await firestore.createDocument(
+        g.Document()
+          ..name = p.join(
+            'projects',
+            'flutter-dashboard',
+            'databases',
+            'cocoon',
+            'documents',
+            'collection-id',
+            'document-name',
+          ),
+        collectionId: 'collection-id',
+      );
+
+      await expectLater(
+        () => firestore.createDocument(
+          g.Document()
+            ..name = p.join(
+              'projects',
+              'flutter-dashboard',
+              'databases',
+              'cocoon',
+              'documents',
+              'collection-id',
+              'document-name',
+            ),
+          collectionId: 'collection-id',
+        ),
+        throwsA(
+          isA<g.DetailedApiRequestError>().having(
+            (e) => e.message,
+            'message',
+            contains('already exists'),
+          ),
+        ),
+      );
+    });
+
+    test('succeeds if documentId is provided and does not exist', () async {
+      final document = await firestore.createDocument(
+        g.Document(),
+        collectionId: 'collection-id',
+        documentId: 'document-id',
+      );
+      expect(document.name, endsWith('/document-id'));
+    });
+
+    test('fails if documentId is provided and it already exists', () async {
+      await firestore.createDocument(
+        g.Document(),
+        collectionId: 'collection-id',
+        documentId: 'document-id',
+      );
+
+      await expectLater(
+        () => firestore.createDocument(
+          g.Document(),
+          collectionId: 'collection-id',
+          documentId: 'document-id',
+        ),
+        throwsA(
+          isA<g.DetailedApiRequestError>().having(
+            (e) => e.message,
+            'message',
+            contains('already exists'),
+          ),
+        ),
+      );
+    });
   });
 
   group('batchWriteDocuments', () {
