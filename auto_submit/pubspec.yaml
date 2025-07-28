@@ -43,7 +43,7 @@ dev_dependencies:
   dart_flutter_team_lints: 3.5.2
   json_serializable: ^6.9.4
   mockito: ^5.4.6
-  test: 1.26.0
+  test: 1.26.3
 
 builders:
   json_serializable: 3.3.0
