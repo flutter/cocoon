@@ -721,6 +721,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         filename.endsWith('pubspec.yaml') ||
         filename.endsWith('pubspec.yaml.tmpl') ||
         // Exempt categories.
+        filename.contains('.gemini/') ||
         filename.contains('.github/') ||
         filename.endsWith('.md') ||
         // Exempt paths.
