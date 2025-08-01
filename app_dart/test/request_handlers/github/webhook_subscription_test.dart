@@ -1541,7 +1541,7 @@ void main() {
     });
 
     test(
-      'Framework no comment if only CODEOWNERS or TESTOWNERS changed',
+      'Framework no comment if only CODEOWNERS or TESTOWNERS or .gemini/ changed',
       () async {
         const issueNumber = 123;
         tester.message = generateGithubWebhookMessage(
@@ -1554,6 +1554,8 @@ void main() {
           (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
             PullRequestFile()..filename = 'CODEOWNERS',
             PullRequestFile()..filename = 'TESTOWNERS',
+            PullRequestFile()..filename = '.gemini/styleguide.md',
+            PullRequestFile()..filename = '.gemini/config.yaml',
           ]),
         );
 
