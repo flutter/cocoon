@@ -3,6 +3,7 @@
 # The schema for this file is defined in DynamicConfig of
 # app_dart/lib/src/service/config.dart
 
+# TODO(matanlurey): Remove this flag, it is currently unused.
 allowManualTreeClosures: true
 
 backfillerCommitLimit: 50

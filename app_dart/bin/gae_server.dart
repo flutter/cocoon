@@ -113,10 +113,7 @@ Future<void> main() async {
     );
 
     final commitService = CommitService(config: config, firestore: firestore);
-    final buildStatusService = BuildStatusService(
-      config: config,
-      firestore: firestore,
-    );
+    final buildStatusService = BuildStatusService(firestore: firestore);
 
     final server = createServer(
       config: config,

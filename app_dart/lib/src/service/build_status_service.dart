@@ -17,13 +17,9 @@ import 'build_status_provider/commit_tasks_status.dart';
 
 /// Class that calculates the current build status.
 interface class BuildStatusService {
-  const BuildStatusService({
-    required Config config,
-    required FirestoreService firestore,
-  }) : _config = config,
-       _firestore = firestore;
+  const BuildStatusService({required FirestoreService firestore})
+    : _firestore = firestore;
 
-  final Config _config;
   final FirestoreService _firestore;
 
   @visibleForTesting
@@ -67,17 +63,15 @@ interface class BuildStatusService {
     };
 
     final failingTasks = <String>{};
-    if (_config.flags.allowManualTreeClosures) {
-      final latestManualChange = await TreeStatusChange.getLatest(
-        _firestore,
-        repository: slug,
+    final latestManualChange = await TreeStatusChange.getLatest(
+      _firestore,
+      repository: slug,
+    );
+    log.debug('Latest manual closure on $slug: $latestManualChange');
+    if (latestManualChange?.status == TreeStatus.failure) {
+      failingTasks.add(
+        'Manual Closure: ${latestManualChange?.reason ?? 'Unspecified'}',
       );
-      log.debug('Latest manual closure on $slug: $latestManualChange');
-      if (latestManualChange?.status == TreeStatus.failure) {
-        failingTasks.add(
-          'Manual Closure: ${latestManualChange?.reason ?? 'Unspecified'}',
-        );
-      }
     }
 
     // Then, iterate through commit by commit.
