@@ -38,10 +38,7 @@ void main() {
     tester = RequestHandlerTester();
     handler = GetBuildStatus(
       config: config,
-      buildStatusService: BuildStatusService(
-        config: config,
-        firestore: firestore,
-      ),
+      buildStatusService: BuildStatusService(firestore: firestore),
     );
   });
 

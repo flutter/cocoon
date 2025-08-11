@@ -17,10 +17,7 @@ void main() {
   final config = FakeConfig();
   final handler = GetBuildStatusBadge(
     config: config,
-    buildStatusService: BuildStatusService(
-      config: config,
-      firestore: FakeFirestoreService(),
-    ),
+    buildStatusService: BuildStatusService(firestore: FakeFirestoreService()),
   );
 
   test('passing status', () async {
