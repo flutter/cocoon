@@ -377,4 +377,87 @@ void main() {
       ]),
     );
   });
+
+  test('fallsback to re-run all if non-engine build failed', () async {
+    when(mockBuildBucketClient.getBuild(any)).thenAnswer((_) async {
+      return bbv2.Build(id: Int64(1001));
+    });
+
+    when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((i) async {
+      return bbv2.SearchBuildsResponse(
+        builds: [
+          bbv2.Build(
+            status: bbv2.Status.SUCCESS,
+            input: bbv2.Build_Input(
+              properties: bbv2.Struct(
+                fields: {'config_name': bbv2.Value(stringValue: 'engine_1')},
+              ),
+            ),
+          ),
+          bbv2.Build(
+            status: bbv2.Status.FAILURE,
+            input: bbv2.Build_Input(
+              properties: bbv2.Struct(
+                // Intentionally no config_name
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+
+    when(mockBuildBucketClient.scheduleBuild(any)).thenAnswer((i) async {
+      final [bbv2.ScheduleBuildRequest request] = i.positionalArguments;
+      expect(
+        request.builder,
+        isA<bbv2.BuilderID>()
+            .having((b) => b.project, 'project', 'dart-internal')
+            .having((b) => b.bucket, 'bucket', 'flutter')
+            .having(
+              (b) => b.builder,
+              'builder',
+              'Linux flutter_release_builder',
+            ),
+      );
+      expect(
+        request.hasExe(),
+        isFalse,
+        reason: 'Release recipes always run from ToT',
+      );
+      expect(
+        request.gitilesCommit,
+        bbv2.GitilesCommit(
+          project: 'mirrors/flutter',
+          host: 'flutter.googlesource.com',
+          ref: 'refs/heads/flutter-0.42-candidate.0',
+          id: 'abcdef',
+        ),
+      );
+      expect(request.hasNotify(), isFalse);
+      expect(request.properties, bbv2.Struct(fields: {}));
+      expect(request.priority, LuciBuildService.kRerunPriority);
+      return bbv2.Build();
+    });
+
+    await expectLater(
+      luci.rerunDartInternalReleaseBuilder(
+        commit: CommitRef(
+          sha: 'abcdef',
+          branch: 'flutter-0.42-candidate.0',
+          slug: Config.flutterSlug,
+        ),
+        task: task,
+      ),
+      completion(isTrue),
+    );
+
+    expect(log, hasNoErrorsOrHigher);
+    expect(
+      firestore,
+      existsInStorage(fs.Task.metadata, [
+        isTask.hasStatus(TaskStatus.failed).hasCurrentAttempt(1),
+        isTask.hasStatus(TaskStatus.inProgress).hasCurrentAttempt(2),
+      ]),
+    );
+  });
 }

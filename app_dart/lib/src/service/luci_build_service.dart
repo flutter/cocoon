@@ -1138,19 +1138,15 @@ class LuciBuildService {
         'rebuild will be triggered',
       );
     }
-    final failedBuilds = [
-      for (final build in search.builds)
-        if (const {
-          bbv2.Status.FAILURE,
-          bbv2.Status.INFRA_FAILURE,
-          bbv2.Status.CANCELED,
-        }.contains(build.status))
-          build.input.properties.fields['config_name']!.stringValue,
-    ];
-    if (failedBuilds.isEmpty) {
-      log.info('No failing builds found for $buildId, will rerun all builds');
+    final failedEngineBuilds = [..._filterFailedEngineBuilds(search.builds)];
+    if (failedEngineBuilds.isEmpty) {
+      log.info(
+        'No failing engine builds found for $buildId, will rerun all builds',
+      );
     } else {
-      log.debug('Re-running specific builders: $failedBuilds');
+      log.debug(
+        'Re-running specific engine builds: ${failedEngineBuilds.join(', ')}',
+      );
     }
 
     final result = await _buildBucketClient.scheduleBuild(
@@ -1172,9 +1168,9 @@ class LuciBuildService {
         // See https://flutter.googlesource.com/recipes/+/58bceb87e4a3d3b60e7f148c082eb262db7fd4bb/recipes/release/release_builder.py#162.
         properties: bbv2.Struct(
           fields: {
-            if (failedBuilds.isNotEmpty)
+            if (failedEngineBuilds.isNotEmpty)
               'retry_override_list': bbv2.Value(
-                stringValue: failedBuilds.join(' '),
+                stringValue: failedEngineBuilds.join(' '),
               ),
           },
         ),
@@ -1187,4 +1183,21 @@ class LuciBuildService {
     log.info('Scheduled build (attempt #$attempt): $result');
     return true;
   }
+
+  static Iterable<String> _filterFailedEngineBuilds(
+    Iterable<bbv2.Build> builds,
+  ) =>
+      builds
+          .where((b) {
+            final failed = const {
+              bbv2.Status.FAILURE,
+              bbv2.Status.INFRA_FAILURE,
+              bbv2.Status.CANCELED,
+            }.contains(b.status);
+            return failed;
+          })
+          .map((b) {
+            return b.input.properties.fields['config_name']?.stringValue;
+          })
+          .nonNulls;
 }
