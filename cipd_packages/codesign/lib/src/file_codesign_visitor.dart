@@ -247,8 +247,9 @@ configuration files, please delete or update these file paths accordingly.
 
     // `dryrun` flag defaults to true to save time for a faster sanity check
     if (!dryrun) {
-      await notarize(fileSystem.file(outputZipPath));
-
+      await retryOptions.retry(() async {
+        await notarize(fileSystem.file(outputZipPath));
+      }, retryIf: (e) => e is CodesignException && e.isRetryable);
       return outputZipPath;
     }
     return null;
@@ -501,11 +502,17 @@ configuration files, please delete or update these file paths accordingly.
     final uuid = await uploadZipToNotary(file);
 
     Future<void> callback(Timer timer) async {
-      final notaryFinished = checkNotaryJobFinished(uuid);
-      if (notaryFinished) {
+      try {
+        final notaryFinished = checkNotaryJobFinished(uuid);
+        if (notaryFinished) {
+          log.info('successfully notarized ${file.path}');
+          completer.complete();
+        }
+      } catch (e, s) {
+        log.severe('failed to notarize', e, s);
+        completer.completeError(e, s);
+      } finally {
         timer.cancel();
-        log.info('successfully notarized ${file.path}');
-        completer.complete();
       }
     }
 
@@ -542,14 +549,17 @@ configuration files, please delete or update these file paths accordingly.
     }
     log.info('checking notary info: $argsWithoutCredentials');
     final result = processManager.runSync(args);
-    final combinedOutput =
-        (result.stdout as String) + (result.stderr as String);
+    final combinedOutput = '${result.stdout}${result.stderr}'.trim();
 
     final match = _notarytoolStatusCheckPattern.firstMatch(combinedOutput);
 
     if (match == null) {
       throw CodesignException(
-        'Malformed output from "$argsWithoutCredentials"\n${combinedOutput.trim()}',
+        'Malformed output from "$argsWithoutCredentials"\n$combinedOutput',
+        // See https://github.com/flutter/flutter/issues/173793.
+        isRetryable: combinedOutput.contains(
+          'Please try again at a later time',
+        ),
       );
     }
 
