@@ -86,4 +86,7 @@ class FirebaseUserIdentity implements GoogleIdentity {
   @override
   // TODO: implement photoUrl
   String? get photoUrl => user.photoURL;
+
+  @override
+  String? get serverAuthCode => '';
 }
