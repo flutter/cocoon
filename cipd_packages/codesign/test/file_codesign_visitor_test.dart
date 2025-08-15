@@ -1124,6 +1124,40 @@ Status Message: Package Invalid''',
       );
     });
 
+    test('retryable failure throws exception with isRetryable=true', () async {
+      processManager.addCommands(<FakeCommand>[
+        const FakeCommand(
+          command: <String>[
+            'xcrun',
+            'notarytool',
+            'info',
+            uuid,
+            '--apple-id',
+            fakeAppleID,
+            '--password',
+            fakePassword,
+            '--team-id',
+            fakeTeamID,
+          ],
+          stdout: '''Error: HTTP status code: 500. Internal Server Error
+
+Request ID: H3P576FAF6RI2OUED27ZGPMFMQ.0.0
+ Please try again at a later time.''',
+        ),
+      ]);
+
+      expect(
+        () => codesignVisitor.checkNotaryJobFinished(uuid),
+        throwsA(
+          isA<CodesignException>().having(
+            (e) => e.isRetryable,
+            'isRetryable',
+            true,
+          ),
+        ),
+      );
+    });
+
     test('in progress notarization check returns false', () async {
       processManager.addCommands(<FakeCommand>[
         const FakeCommand(

@@ -85,9 +85,12 @@ FileType getFileType(String filePath, ProcessManager processManager) {
 }
 
 class CodesignException implements Exception {
-  CodesignException(this.message);
+  CodesignException(this.message, {this.isRetryable = false});
 
   final String message;
+
+  /// Whether the exception represents something that could succeed if retried.
+  final bool isRetryable;
 
   @override
   String toString() => 'Exception: $message';
