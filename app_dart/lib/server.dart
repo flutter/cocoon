@@ -8,12 +8,14 @@ import 'dart:math';
 import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/get_tree_status_changes.dart';
+import 'src/request_handlers/lookup_hash.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
 import 'src/request_handlers/update_tree_status.dart';
 import 'src/service/big_query.dart';
 import 'src/service/build_status_service.dart';
 import 'src/service/commit_service.dart';
+import 'src/service/content_aware_hash_service.dart';
 import 'src/service/discord_service.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
 
@@ -36,6 +38,7 @@ Server createServer({
   required Scheduler scheduler,
   required CiYamlFetcher ciYamlFetcher,
   required BuildStatusService buildStatusService,
+  required ContentAwareHashService contentAwareHashService,
 }) {
   final handlers = <String, RequestHandler>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
@@ -179,6 +182,12 @@ Server createServer({
     '/api/trigger-workflow': TriggerWorkflow(
       authenticationProvider: authProvider,
       config: config,
+    ),
+
+    '/api/lookup-hash': LookupHash(
+      contentAwareHashService: contentAwareHashService,
+      config: config,
+      authenticationProvider: authProvider,
     ),
 
     /// Returns status of the framework tree.

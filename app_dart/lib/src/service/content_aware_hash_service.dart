@@ -402,6 +402,27 @@ interface class ContentAwareHashService {
     }
     return ContentAwareHashBuilds.fromDocument(docs.first).contentHash;
   }
+
+  /// Tries to locate and return a [ContentAwareHashBuilds] via any [hash]
+  /// found in the document.
+  Future<List<ContentAwareHashBuilds>> getBuildsByHash(String hash) async {
+    final docs = await _firestore.query(
+      ContentAwareHashBuilds.metadata.collectionId,
+      {
+        '${ContentAwareHashBuilds.fieldContentHash} =': hash,
+        '${ContentAwareHashBuilds.fieldCommitSha} =': hash,
+        '${ContentAwareHashBuilds.fieldWaitingShas} @>': hash,
+      },
+      orderMap: {
+        ContentAwareHashBuilds.fieldCreateTimestamp: kQueryOrderDescending,
+      },
+      compositeFilterOp: kCompositeFilterOpOr,
+    );
+    if (docs.isEmpty) {
+      return const [];
+    }
+    return [for (var doc in docs) ContentAwareHashBuilds.fromDocument(doc)];
+  }
 }
 
 enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }
