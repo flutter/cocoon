@@ -27,6 +27,7 @@ const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
 const String kFieldFilterOpNotEqual = 'NOT_EQUAL';
 const String kCompositeFilterOpAnd = 'AND';
+const String kCompositeFilterOpOr = 'OR';
 const String kQueryOrderDescending = 'DESCENDING';
 
 const int kFilterStringSpaceSplitElements = 2;
@@ -39,6 +40,7 @@ const Map<String, String> kRelationMapping = <String, String>{
   '>': 'GREATER_THAN',
   '>=': 'GREATER_THAN_OR_EQUAL',
   '!=': 'NOT_EQUAL',
+  '@>': 'ARRAY_CONTAINS',
 };
 
 final kFieldMapRegExp = RegExp(

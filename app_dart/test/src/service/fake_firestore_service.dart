@@ -502,11 +502,20 @@ abstract base class _FakeInMemoryFirestoreService
       return collectionId == collection;
     });
 
-    results = results.where((document) {
-      return _matchesFilter(document.fields!, filterMap);
-    });
-
-    if (compositeFilterOp != kCompositeFilterOpAnd) {
+    if (compositeFilterOp == kCompositeFilterOpAnd) {
+      results = results.where((document) {
+        return _matchesFilter(document.fields!, filterMap);
+      });
+    } else if (compositeFilterOp == kCompositeFilterOpOr) {
+      final listFilters = [
+        for (final filter in filterMap.entries) {filter.key: filter.value},
+      ];
+      results = results.where((document) {
+        return listFilters.any(
+          (filter) => _matchesFilter(document.fields!, filter),
+        );
+      });
+    } else {
       throw UnimplementedError('compositeFilterOp: $compositeFilterOp');
     }
 
@@ -574,6 +583,13 @@ abstract base class _FakeInMemoryFirestoreService
             return false;
           }
           continue;
+        case '@>':
+          // ARRAY_CONTAINS check
+          if (fieldValue?.arrayValue == null) return false;
+          return fieldValue?.arrayValue?.values?.any(
+                (test) => _equals(test, value),
+              ) ??
+              false;
       }
 
       if (fieldValue == null) {
