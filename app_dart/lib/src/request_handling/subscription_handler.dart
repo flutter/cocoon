@@ -50,6 +50,7 @@ abstract base class SubscriptionHandler extends RequestHandler {
       getValue<AuthenticatedContext>(ApiKey.authContext)!;
 
   /// The [PushMessage] from this [HttpRequest].
+  // TODO(dmgr): Message should be either input param of a post or a method.
   @protected
   PushMessage get message => getValue<PushMessage>(PubSubKey.message)!;
 
@@ -118,10 +119,9 @@ abstract base class SubscriptionHandler extends RequestHandler {
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
       log.info('Ignoring $messageId, we already are/were writing a message');
-      final response =
-          request.response
-            ..statusCode = HttpStatus.ok
-            ..write('$messageId was already processed');
+      final response = request.response
+        ..statusCode = HttpStatus.ok
+        ..write('$messageId was already processed');
       await response.flush();
       await response.close();
       return;

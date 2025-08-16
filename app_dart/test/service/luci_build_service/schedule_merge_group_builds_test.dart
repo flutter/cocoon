@@ -244,6 +244,7 @@ Matcher _isExpectedScheduleBuild({required String name}) {
         'notify.userData',
         PresubmitUserData(
           checkRunId: 1,
+          checkSuiteId: 2,
           commit: CommitRef(
             slug: RepositorySlug('flutter', 'flutter'),
             sha: 'abc1234',

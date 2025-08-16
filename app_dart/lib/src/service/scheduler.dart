@@ -392,13 +392,9 @@ class Scheduler {
           );
           break;
         }
-        final presubmitTargets =
-            isFusion
-                ? await _getTestsForStage(
-                  pullRequest,
-                  CiStage.fusionEngineBuild,
-                )
-                : await getPresubmitTargets(pullRequest);
+        final presubmitTargets = isFusion
+            ? await _getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
+            : await getPresubmitTargets(pullRequest);
         final presubmitTriggerTargets = filterTargets(
           presubmitTargets,
           builderTriggerList,
@@ -712,10 +708,9 @@ $s
             baseRef:
                 'refs/heads/${tryParseGitHubMergeQueueBranch(job.headBranch!).branch}',
             slug: event.repository!.slug(),
-            contentHash:
-                artifactStatus.status == MergeQueueHashStatus.build
-                    ? artifactStatus.contentHash
-                    : null,
+            contentHash: artifactStatus.status == MergeQueueHashStatus.build
+                ? artifactStatus.contentHash
+                : null,
           );
 
         default:
@@ -736,20 +731,21 @@ $s
     String headSha,
     CiStage stage,
   ) async {
-    final mergeGroupTargets = [
-      ...await getMergeGroupTargets(baseRef, slug, headSha),
-      ...await getMergeGroupTargets(
-        baseRef,
-        slug,
-        headSha,
-        type: CiType.fusionEngine,
-      ),
-    ].where(
-      (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild => target.isReleaseBuild,
-        CiStage.fusionTests => !target.isReleaseBuild,
-      },
-    );
+    final mergeGroupTargets =
+        [
+          ...await getMergeGroupTargets(baseRef, slug, headSha),
+          ...await getMergeGroupTargets(
+            baseRef,
+            slug,
+            headSha,
+            type: CiType.fusionEngine,
+          ),
+        ].where(
+          (Target target) => switch (stage) {
+            CiStage.fusionEngineBuild => target.isReleaseBuild,
+            CiStage.fusionTests => !target.isReleaseBuild,
+          },
+        );
 
     return [...mergeGroupTargets];
   }
@@ -905,14 +901,13 @@ $s
     final inner = ciYaml.ciYamlFor(type);
 
     // Filter out schedulers targets with schedulers different than luci or cocoon.
-    final presubmitTargets =
-        inner.presubmitTargets
-            .where(
-              (Target target) =>
-                  target.scheduler == pb.SchedulerSystem.luci ||
-                  target.scheduler == pb.SchedulerSystem.cocoon,
-            )
-            .toList();
+    final presubmitTargets = inner.presubmitTargets
+        .where(
+          (Target target) =>
+              target.scheduler == pb.SchedulerSystem.luci ||
+              target.scheduler == pb.SchedulerSystem.cocoon,
+        )
+        .toList();
 
     log.info('Collected ${presubmitTargets.length} presubmit targets.');
     // Release branches should run every test.
@@ -936,13 +931,12 @@ $s
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompletion(
-    cocoon_checks.CheckRunEvent checkRunEvent,
+  Future<bool> processCheckRunCompleted(
+    cocoon_checks.CheckRun checkRun,
+    RepositorySlug? slug,
   ) async {
-    final checkRun = checkRunEvent.checkRun!;
     final name = checkRun.name;
     final sha = checkRun.headSha;
-    final slug = checkRunEvent.repository?.slug();
     final conclusion = TaskConclusion.fromName(checkRun.conclusion);
 
     if (name == null ||
@@ -1149,16 +1143,20 @@ $s
     CiStage stage, {
     bool skipEngine = false,
   }) async {
-    final presubmitTargets = [
-      ...await getPresubmitTargets(pullRequest),
-      if (!skipEngine)
-        ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
-    ].where(
-      (Target target) => switch (stage) {
-        CiStage.fusionEngineBuild => target.isReleaseBuild,
-        CiStage.fusionTests => !target.isReleaseBuild,
-      },
-    );
+    final presubmitTargets =
+        [
+          ...await getPresubmitTargets(pullRequest),
+          if (!skipEngine)
+            ...await getPresubmitTargets(
+              pullRequest,
+              type: CiType.fusionEngine,
+            ),
+        ].where(
+          (Target target) => switch (stage) {
+            CiStage.fusionEngineBuild => target.isReleaseBuild,
+            CiStage.fusionTests => !target.isReleaseBuild,
+          },
+        );
     return [...presubmitTargets];
   }
 
@@ -1324,7 +1322,8 @@ $s
       await githubService.createComment(
         slug,
         issueNumber: pullRequest.number!,
-        body: '''
+        body:
+            '''
 CI had a failure that stopped further tests from running.  We need to investigate to determine the root cause.
 
 SHA at time of execution: $sha.
@@ -1397,9 +1396,13 @@ $stacktrace
   ) async {
     switch (checkRunEvent.action) {
       case 'completed':
-        await processCheckRunCompletion(checkRunEvent);
+        if (!_config.flags.closeMqGuardAfterPresubmit) {
+          await processCheckRunCompleted(
+            checkRunEvent.checkRun!,
+            checkRunEvent.repository?.slug(),
+          );
+        }
         return const ProcessCheckRunResult.success();
-
       case 'rerequested':
         log.debug(
           'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',

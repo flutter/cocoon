@@ -6,7 +6,7 @@ name: _cocoon_workspace
 
 # Required for workspace support.
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.9.0
 
 workspace:
   - packages/buildbucket-dart

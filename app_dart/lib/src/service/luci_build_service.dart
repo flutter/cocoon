@@ -259,6 +259,7 @@ class LuciBuildService {
           branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
         ),
         checkRunId: checkRun.id!,
+        checkSuiteId: checkRun.checkSuiteId!,
       );
 
       final properties = target.getProperties();
@@ -586,8 +587,9 @@ class LuciBuildService {
           pageToken: token,
         ),
       );
-      final availableBuilderList =
-          listBuildersResponse.builders.map((e) => e.id.builder).toList();
+      final availableBuilderList = listBuildersResponse.builders
+          .map((e) => e.id.builder)
+          .toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       hasToken = listBuildersResponse.hasNextPageToken();
       if (hasToken) {
@@ -934,6 +936,7 @@ class LuciBuildService {
     final preUserData = PresubmitUserData(
       commit: commit,
       checkRunId: checkRun.id!,
+      checkSuiteId: checkRun.checkSuiteId!,
     );
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties['git_branch'] = commit.branch;
@@ -948,8 +951,8 @@ class LuciBuildService {
     processedProperties['git_repo'] = commit.slug.name;
     if (properties != null) processedProperties.addAll(properties);
 
-    final propertiesStruct =
-        bbv2.Struct()..mergeFromProto3Json(processedProperties);
+    final propertiesStruct = bbv2.Struct()
+      ..mergeFromProto3Json(processedProperties);
     final requestedDimensions = target.getDimensions();
     final executable = bbv2.Executable(cipdVersion: cipdExe);
 
@@ -977,18 +980,17 @@ class LuciBuildService {
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
         userData: preUserData.toBytes(),
       ),
-      tags:
-          BuildTags([
-            ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
-            ByCommitMirroredBuildSetBuildTag(
-              commitSha: commit.sha,
-              slugName: commit.slug.name,
-            ),
-            UserAgentBuildTag.flutterCocoon,
-            SchedulerJobIdBuildTag(targetName: target.name),
-            CurrentAttemptBuildTag(attemptNumber: 1),
-            InMergeQueueBuildTag(),
-          ]).toStringPairs(),
+      tags: BuildTags([
+        ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
+        ByCommitMirroredBuildSetBuildTag(
+          commitSha: commit.sha,
+          slugName: commit.slug.name,
+        ),
+        UserAgentBuildTag.flutterCocoon,
+        SchedulerJobIdBuildTag(targetName: target.name),
+        CurrentAttemptBuildTag(attemptNumber: 1),
+        InMergeQueueBuildTag(),
+      ]).toStringPairs(),
       properties: propertiesStruct,
       priority: priority,
     );

@@ -89,6 +89,7 @@ Server createServer({
       config: config,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
+      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
@@ -330,14 +331,12 @@ Server createServer({
     } else {
       /// Requests with query parameters and anchors need to be trimmed to get the file path.
       // TODO(chillers): Use toFilePath(), https://github.com/dart-lang/sdk/issues/39373
-      final queryIndex =
-          request.uri.path.contains('?')
-              ? request.uri.path.indexOf('?')
-              : request.uri.path.length;
-      final anchorIndex =
-          request.uri.path.contains('#')
-              ? request.uri.path.indexOf('#')
-              : request.uri.path.length;
+      final queryIndex = request.uri.path.contains('?')
+          ? request.uri.path.indexOf('?')
+          : request.uri.path.length;
+      final anchorIndex = request.uri.path.contains('#')
+          ? request.uri.path.indexOf('#')
+          : request.uri.path.length;
 
       /// Trim to the first instance of an anchor or query.
       final int trimIndex = min(queryIndex, anchorIndex);

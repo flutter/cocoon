@@ -20,13 +20,12 @@ class GithubChecksUtil {
     github.GitHub gitHubClient,
     CheckSuiteEvent checkSuiteEvent,
   ) async {
-    final allCheckRuns =
-        await gitHubClient.checks.checkRuns
-            .listCheckRunsInSuite(
-              checkSuiteEvent.repository!.slug(),
-              checkSuiteId: checkSuiteEvent.checkSuite!.id!,
-            )
-            .toList();
+    final allCheckRuns = await gitHubClient.checks.checkRuns
+        .listCheckRunsInSuite(
+          checkSuiteEvent.repository!.slug(),
+          checkSuiteId: checkSuiteEvent.checkSuite!.id!,
+        )
+        .toList();
     return {
       for (github.CheckRun check in allCheckRuns) check.name as String: check,
     };
