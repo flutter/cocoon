@@ -80,12 +80,11 @@ Future<String> githubFileContent(
   late final String content;
   try {
     await retryOptions.retry(
-      () async =>
-          content = await _getUrl(
-            githubUrl,
-            httpClientProvider,
-            timeout: timeout,
-          ),
+      () async => content = await _getUrl(
+        githubUrl,
+        httpClientProvider,
+        timeout: timeout,
+      ),
       retryIf: (Exception e) => e is HttpException || e is NotFoundException,
     );
   } on Exception catch (e) {
@@ -242,8 +241,8 @@ List<String> validateOwnership(
 }) {
   final noOwnerBuilders = <String>[];
   final ciYaml = loadYaml(ciYamlContent) as YamlMap?;
-  final unCheckedSchedulerConfig =
-      pb.SchedulerConfig()..mergeFromProto3Json(ciYaml);
+  final unCheckedSchedulerConfig = pb.SchedulerConfig()
+    ..mergeFromProto3Json(ciYaml);
 
   final ciYamlFromProto = CiYamlSet(
     slug: Config.flutterSlug,
@@ -261,8 +260,11 @@ List<String> validateOwnership(
       unfilteredTargets: unfilteredTargets,
     );
 
-    final owner =
-        getTestOwnership(target, builderType, testOwnersContent).owner;
+    final owner = getTestOwnership(
+      target,
+      builderType,
+      testOwnersContent,
+    ).owner;
     if (owner == null) {
       print(
         '$builder: No owner found. This task was classified as ${builderType.name}.\n'

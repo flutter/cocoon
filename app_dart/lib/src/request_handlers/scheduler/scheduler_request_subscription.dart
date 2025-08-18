@@ -110,10 +110,9 @@ final class SchedulerRequestSubscription extends SubscriptionHandler {
       final url =
           failed.scheduleBuild.properties.fields['git_url']?.stringValue;
       final builder = failed.scheduleBuild.builder.builder;
-      final checkRunId =
-          failed.scheduleBuild.tags
-              .firstWhereOrNull((t) => t.key == 'github_checkrun')
-              ?.value;
+      final checkRunId = failed.scheduleBuild.tags
+          .firstWhereOrNull((t) => t.key == 'github_checkrun')
+          ?.value;
       final pathSegments = Uri.tryParse(url ?? '')?.pathSegments ?? [];
       if (url == null ||
           pathSegments.length != 2 ||
@@ -140,7 +139,8 @@ final class SchedulerRequestSubscription extends SubscriptionHandler {
         conclusion: CheckRunConclusion.failure,
         output: CheckRunOutput(
           title: 'Failed to schedule build',
-          summary: '''
+          summary:
+              '''
 Failed to schedule `$builder`:
 
 ```

@@ -185,10 +185,9 @@ void main() {
             message: 'commit message',
             repositoryPath: 'flutter/$repo',
             sha: shas[index],
-            createTimestamp:
-                DateTime.fromMillisecondsSinceEpoch(
-                  int.parse(shas[index]),
-                ).millisecondsSinceEpoch,
+            createTimestamp: DateTime.fromMillisecondsSinceEpoch(
+              int.parse(shas[index]),
+            ).millisecondsSinceEpoch,
           ),
         );
       }
@@ -255,13 +254,12 @@ void main() {
         await scheduler.addCommits(
           createCommitList(<String>['1'], branch: 'main', repo: 'packages'),
         );
-        final List<Object?> captured =
-            verify(
-              luciBuildService.schedulePostsubmitBuilds(
-                commit: anyNamed('commit'),
-                toBeScheduled: captureAnyNamed('toBeScheduled'),
-              ),
-            ).captured;
+        final List<Object?> captured = verify(
+          luciBuildService.schedulePostsubmitBuilds(
+            commit: anyNamed('commit'),
+            toBeScheduled: captureAnyNamed('toBeScheduled'),
+          ),
+        ).captured;
         final toBeScheduled = captured.first as List<Object?>;
         expect(toBeScheduled.length, 2);
         final tuples = toBeScheduled.cast<PendingTask>();
@@ -2671,16 +2669,15 @@ targets:
           bigQuery: bigQuery,
         );
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        final results =
-            verify(
-              mockGithubChecksUtil.createCheckRun(
-                any,
-                any,
-                any,
-                captureAny,
-                output: captureAnyNamed('output'),
-              ),
-            ).captured;
+        final results = verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            captureAny,
+            output: captureAnyNamed('output'),
+          ),
+        ).captured;
         stdout.writeAll(results);
 
         final result = verify(

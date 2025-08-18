@@ -156,10 +156,9 @@ final class Target {
   Map<String, Object> getProperties() {
     final platformProperties = _getPlatformProperties();
     final properties = _getTargetProperties();
-    final mergedProperties =
-        <String, Object>{}
-          ..addAll(platformProperties)
-          ..addAll(properties);
+    final mergedProperties = <String, Object>{}
+      ..addAll(platformProperties)
+      ..addAll(properties);
 
     final targetDependencies = <Dependency>[];
     if (properties.containsKey('dependencies')) {
@@ -185,10 +184,9 @@ final class Target {
     for (var dep in targetDependencies) {
       mergedDependencies[dep.name] = dep;
     }
-    mergedProperties['dependencies'] =
-        mergedDependencies.values
-            .map((Dependency dep) => dep.toJson())
-            .toList();
+    mergedProperties['dependencies'] = mergedDependencies.values
+        .map((Dependency dep) => dep.toJson())
+        .toList();
     mergedProperties['bringup'] = _value.bringup;
 
     return mergedProperties;

@@ -93,10 +93,9 @@ void main() {
       });
 
       test('repositroy is not `flutter/flutter`', () async {
-        final job =
-            workflowJobTemplate(
-              repositoryFullName: 'flutter/fubar',
-            ).toWorkflowJob();
+        final job = workflowJobTemplate(
+          repositoryFullName: 'flutter/fubar',
+        ).toWorkflowJob();
         expect(await cahs.hashFromWorkflowJobEvent(job), isNull);
       });
 
@@ -106,24 +105,25 @@ void main() {
       });
 
       test('workflow status is not `completed`', () async {
-        final job =
-            workflowJobTemplate(workflowStatus: 'queued').toWorkflowJob();
+        final job = workflowJobTemplate(
+          workflowStatus: 'queued',
+        ).toWorkflowJob();
         expect(await cahs.hashFromWorkflowJobEvent(job), isNull);
       });
 
       test('workflow conclusion is not `success`', () async {
-        final job =
-            workflowJobTemplate(workflowConclusion: 'failure').toWorkflowJob();
+        final job = workflowJobTemplate(
+          workflowConclusion: 'failure',
+        ).toWorkflowJob();
         expect(await cahs.hashFromWorkflowJobEvent(job), isNull);
       });
 
       test(
         'workflowName is not `Generate a content aware hash for the Flutter Engine`',
         () async {
-          final job =
-              workflowJobTemplate(
-                workflowName: 'Codefu Workflow',
-              ).toWorkflowJob();
+          final job = workflowJobTemplate(
+            workflowName: 'Codefu Workflow',
+          ).toWorkflowJob();
           expect(await cahs.hashFromWorkflowJobEvent(job), isNull);
         },
       );
@@ -139,10 +139,9 @@ void main() {
       });
 
       test('sender is not `fluttergithubbot`', () async {
-        final job =
-            workflowJobTemplate(
-              senderLogin: 'totallyfluttergithubbot',
-            ).toWorkflowJob();
+        final job = workflowJobTemplate(
+          senderLogin: 'totallyfluttergithubbot',
+        ).toWorkflowJob();
         expect(await cahs.hashFromWorkflowJobEvent(job), isNull);
       });
     });

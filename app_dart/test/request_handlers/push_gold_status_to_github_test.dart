@@ -58,8 +58,8 @@ void main() {
     );
 
     final githubGraphQLClient = FakeGraphQLClient();
-    githubGraphQLClient.mutateResultForOptions =
-        (MutationOptions options) => createFakeQueryResult();
+    githubGraphQLClient.mutateResultForOptions = (MutationOptions options) =>
+        createFakeQueryResult();
     githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
       if (options.variables['sRepoName'] == slug.name) {
         return createGithubQueryResult(checkRuns);

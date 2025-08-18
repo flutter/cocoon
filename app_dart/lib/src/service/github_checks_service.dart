@@ -62,10 +62,9 @@ class GithubChecksService {
       'name': build.builder.builder,
     });
 
-    var conclusion =
-        (terminalStatuses.contains(build.status))
-            ? conclusionForResult(build.status)
-            : null;
+    var conclusion = (terminalStatuses.contains(build.status))
+        ? conclusionForResult(build.status)
+        : null;
     log.info(
       'conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}',
     );

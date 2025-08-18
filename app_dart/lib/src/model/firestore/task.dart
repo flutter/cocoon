@@ -297,10 +297,9 @@ final class Task extends AppDocument<Task> {
   bool get testFlaky => fields[fieldTestFlaky]!.booleanValue!;
 
   /// The build number of luci build: https://chromium.googlesource.com/infra/luci/luci-go/+/master/buildbucket/proto/build.proto#146
-  int? get buildNumber =>
-      fields.containsKey(fieldBuildNumber)
-          ? int.parse(fields[fieldBuildNumber]!.integerValue!)
-          : null;
+  int? get buildNumber => fields.containsKey(fieldBuildNumber)
+      ? int.parse(fields[fieldBuildNumber]!.integerValue!)
+      : null;
 
   /// The status of the task.
   TaskStatus get status {
@@ -323,12 +322,18 @@ final class Task extends AppDocument<Task> {
   void updateFromBuild(bbv2.Build build) {
     fields[fieldBuildNumber] = build.number.toValue();
 
-    fields[fieldCreateTimestamp] =
-        build.createTime.toDateTime().millisecondsSinceEpoch.toValue();
-    fields[fieldStartTimestamp] =
-        build.startTime.toDateTime().millisecondsSinceEpoch.toValue();
-    fields[fieldEndTimestamp] =
-        build.endTime.toDateTime().millisecondsSinceEpoch.toValue();
+    fields[fieldCreateTimestamp] = build.createTime
+        .toDateTime()
+        .millisecondsSinceEpoch
+        .toValue();
+    fields[fieldStartTimestamp] = build.startTime
+        .toDateTime()
+        .millisecondsSinceEpoch
+        .toValue();
+    fields[fieldEndTimestamp] = build.endTime
+        .toDateTime()
+        .millisecondsSinceEpoch
+        .toValue();
 
     _setStatusFromLuciStatus(build);
   }

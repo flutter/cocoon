@@ -33,8 +33,8 @@ Future<void> main() async {
         ref: config.branch,
       );
       final configYaml = loadYaml(configContent) as YamlMap;
-      final currentSchedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+      final currentSchedulerConfig = pb.SchedulerConfig()
+        ..mergeFromProto3Json(configYaml);
       try {
         CiYaml(
           type: CiType.any,
@@ -55,8 +55,8 @@ Future<void> main() async {
         ref: config.branch,
       );
       final configYaml = loadYaml(configContent) as YamlMap;
-      final schedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+      final schedulerConfig = pb.SchedulerConfig()
+        ..mergeFromProto3Json(configYaml);
       // Validate using the existing CiYaml logic.
       CiYaml(
         type: CiType.any,

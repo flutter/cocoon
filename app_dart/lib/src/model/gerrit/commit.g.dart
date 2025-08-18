@@ -11,14 +11,12 @@ part of 'commit.dart';
 GerritCommit _$GerritCommitFromJson(Map<String, dynamic> json) => GerritCommit(
   commit: json['commit'] as String?,
   tree: json['tree'] as String?,
-  author:
-      json['author'] == null
-          ? null
-          : GerritUser.fromJson(json['author'] as Map<String, dynamic>),
-  committer:
-      json['committer'] == null
-          ? null
-          : GerritUser.fromJson(json['committer'] as Map<String, dynamic>),
+  author: json['author'] == null
+      ? null
+      : GerritUser.fromJson(json['author'] as Map<String, dynamic>),
+  committer: json['committer'] == null
+      ? null
+      : GerritUser.fromJson(json['committer'] as Map<String, dynamic>),
   message: json['message'] as String?,
 );
 

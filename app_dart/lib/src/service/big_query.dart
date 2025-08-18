@@ -118,10 +118,9 @@ class BigQueryService {
     String bucket = 'prod',
   }) async {
     final query = QueryRequest.fromJson(<String, Object>{
-      'query':
-          bucket == 'staging'
-              ? getStagingBuilderStatisticQuery
-              : getBuilderStatisticQuery,
+      'query': bucket == 'staging'
+          ? getStagingBuilderStatisticQuery
+          : getBuilderStatisticQuery,
       'queryParameters': <Map<String, Object>>[
         <String, Object>{
           'name': 'LIMIT',

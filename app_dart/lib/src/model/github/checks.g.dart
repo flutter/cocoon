@@ -11,18 +11,15 @@ part of 'checks.dart';
 CheckRunEvent _$CheckRunEventFromJson(Map<String, dynamic> json) =>
     CheckRunEvent(
       action: json['action'] as String?,
-      checkRun:
-          json['check_run'] == null
-              ? null
-              : CheckRun.fromJson(json['check_run'] as Map<String, dynamic>),
-      sender:
-          json['sender'] == null
-              ? null
-              : User.fromJson(json['sender'] as Map<String, dynamic>),
-      repository:
-          json['repository'] == null
-              ? null
-              : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+      checkRun: json['check_run'] == null
+          ? null
+          : CheckRun.fromJson(json['check_run'] as Map<String, dynamic>),
+      sender: json['sender'] == null
+          ? null
+          : User.fromJson(json['sender'] as Map<String, dynamic>),
+      repository: json['repository'] == null
+          ? null
+          : Repository.fromJson(json['repository'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CheckRunEventToJson(CheckRunEvent instance) =>
@@ -43,10 +40,9 @@ CheckRun _$CheckRunFromJson(Map<String, dynamic> json) => CheckRun(
           .toList() ??
       [],
   name: json['name'] as String?,
-  checkSuite:
-      json['check_suite'] == null
-          ? null
-          : CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
+  checkSuite: json['check_suite'] == null
+      ? null
+      : CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
@@ -65,14 +61,12 @@ MergeGroupEvent _$MergeGroupEventFromJson(Map<String, dynamic> json) =>
         json['merge_group'] as Map<String, dynamic>,
       ),
       reason: json['reason'] as String?,
-      repository:
-          json['repository'] == null
-              ? null
-              : Repository.fromJson(json['repository'] as Map<String, dynamic>),
-      sender:
-          json['sender'] == null
-              ? null
-              : User.fromJson(json['sender'] as Map<String, dynamic>),
+      repository: json['repository'] == null
+          ? null
+          : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+      sender: json['sender'] == null
+          ? null
+          : User.fromJson(json['sender'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$MergeGroupEventToJson(MergeGroupEvent instance) =>
