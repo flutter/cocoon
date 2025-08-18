@@ -165,8 +165,10 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       log.warn(
         'Did not find builder with name: $builderName in ciYaml for $commit',
       );
-      final availableBuilderList =
-          ciYaml.presubmitTargets().map((Target e) => e..name).toList();
+      final availableBuilderList = ciYaml
+          .presubmitTargets()
+          .map((Target e) => e..name)
+          .toList();
       log.warn('ciYaml presubmit targets found: $availableBuilderList');
       return 1;
     }

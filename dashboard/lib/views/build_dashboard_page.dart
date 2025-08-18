@@ -124,8 +124,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
 
   Widget _settingsDialog(BuildContext context, BuildState buildState) {
     final theme = Theme.of(context);
-    final backgroundColor =
-        theme.brightness == Brightness.dark ? Colors.grey[800]! : Colors.white;
+    final backgroundColor = theme.brightness == Brightness.dark
+        ? Colors.grey[800]!
+        : Colors.white;
     return Center(
       child: Container(
         decoration: BoxDecoration(
@@ -146,10 +147,9 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                     final isAuthenticated =
                         buildState.authService.isAuthenticated;
                     return TextButton(
-                      onPressed:
-                          isAuthenticated
-                              ? buildState.refreshGitHubCommits
-                              : null,
+                      onPressed: isAuthenticated
+                          ? buildState.refreshGitHubCommits
+                          : null,
                       child: child!,
                     );
                   },
@@ -164,15 +164,15 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     TextButton(
-                      onPressed:
-                          _filter!.isDefault ? null : () => _filter!.reset(),
+                      onPressed: _filter!.isDefault
+                          ? null
+                          : () => _filter!.reset(),
                       child: const Text('Defaults'),
                     ),
                     TextButton(
-                      onPressed:
-                          _filter == _settingsBasis
-                              ? null
-                              : () => _updateNavigation(context),
+                      onPressed: _filter == _settingsBasis
+                          ? null
+                          : () => _updateNavigation(context),
                       child: const Text('Apply'),
                     ),
                     TextButton(
@@ -221,22 +221,21 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
           repo = selectedRepo;
           _updateNavigation(context);
         },
-        items:
-            buildState.repos.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 11),
-                  child: Center(
-                    child: Text(
-                      value,
-                      style: theme.primaryTextTheme.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+        items: buildState.repos.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 11),
+              child: Center(
+                child: Text(
+                  value,
+                  style: theme.primaryTextTheme.bodyLarge,
+                  textAlign: TextAlign.center,
                 ),
-              );
-            }).toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ),
       const Padding(
         padding: EdgeInsets.only(top: 22, left: 5, right: 5),
@@ -414,100 +413,97 @@ class BuildDashboardPageState extends State<BuildDashboardPage> {
     buildState.updateCurrentRepoBranch(repo!, branch!);
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
-        const SingleActivator(LogicalKeyboardKey.arrowUp):
-            () => _updatePage(context, 'flutter', 'master'),
-        const SingleActivator(LogicalKeyboardKey.arrowLeft):
-            () => _updatePage(context, 'cocoon', 'main'),
-        const SingleActivator(LogicalKeyboardKey.arrowRight):
-            () => _updatePage(context, 'packages', 'main'),
+        const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
+            _updatePage(context, 'flutter', 'master'),
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+            _updatePage(context, 'cocoon', 'main'),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+            _updatePage(context, 'packages', 'main'),
       },
       child: Focus(
         autofocus: true,
         child: AnimatedBuilder(
           animation: buildState,
-          builder:
-              (BuildContext context, Widget? _) => Scaffold(
-                appBar: CocoonAppBar(
-                  title: Tooltip(
-                    message: _getStatusTitle(buildState),
-                    child: SelectionArea(
-                      child: Text(_getStatusTitle(buildState)),
-                    ),
-                  ),
-                  backgroundColor: colorTable[buildState.isTreeBuilding],
-                  actions: <Widget>[
-                    if (!_smallScreen)
-                      ..._buildRepositorySelectionWidgets(context, buildState),
-                    IconButton(
-                      tooltip: 'Infra Ticket Queue',
-                      icon: const Icon(Icons.queue),
-                      onPressed: () async {
-                        if (await canLaunchUrl(flutterInfraTicketQueue)) {
-                          await launchUrl(flutterInfraTicketQueue);
-                        } else {
-                          throw 'Could not launch $flutterInfraTicketQueue';
-                        }
-                      },
-                    ),
-                    IconButton(
-                      tooltip: 'Report Issue',
-                      icon: const Icon(Icons.bug_report),
-                      onPressed: () async {
-                        if (await canLaunchUrl(flutterIssueUrl)) {
-                          await launchUrl(flutterIssueUrl);
-                        } else {
-                          throw 'Could not launch $flutterIssueUrl';
-                        }
-                      },
-                    ),
-                    PopupMenuButton<String>(
-                      tooltip: 'Task Status Key',
-                      child: const Icon(Icons.info_outline),
-                      itemBuilder:
-                          (BuildContext context) => _getTaskKey(isDark),
-                    ),
-                    IconButton(
-                      tooltip: 'Settings',
-                      icon: const Icon(Icons.settings),
-                      onPressed:
-                          _settingsBasis == null ? _showSettingsDialog : null,
-                    ),
-                  ],
-                ),
-                body: ErrorBrookWatcher(
-                  errors: buildState.errors,
-                  child: Stack(
-                    children: <Widget>[
-                      SizedBox.expand(
-                        child: TaskGridContainer(
-                          filter: _filter,
-                          useAnimatedLoading: true,
-                          schedulePostsubmitBuildForReleaseBranch: () {
-                            if (!buildState.authService.isAuthenticated) {
-                              return null;
-                            }
-                            if (buildState.currentRepo != 'flutter') {
-                              return null;
-                            }
-                            if (buildState.currentBranch == 'master') {
-                              return null;
-                            }
-                            return (Commit commit) async {
-                              return _schedulePostsubmitBuildForReleaseBranch(
-                                context: context,
-                                commit: commit,
-                              );
-                            };
-                          }(),
-                        ),
-                      ),
-                      if (_settingsBasis != null)
-                        _settingsDialog(context, buildState),
-                    ],
-                  ),
-                ),
-                drawer: const DashboardNavigationDrawer(),
+          builder: (BuildContext context, Widget? _) => Scaffold(
+            appBar: CocoonAppBar(
+              title: Tooltip(
+                message: _getStatusTitle(buildState),
+                child: SelectionArea(child: Text(_getStatusTitle(buildState))),
               ),
+              backgroundColor: colorTable[buildState.isTreeBuilding],
+              actions: <Widget>[
+                if (!_smallScreen)
+                  ..._buildRepositorySelectionWidgets(context, buildState),
+                IconButton(
+                  tooltip: 'Infra Ticket Queue',
+                  icon: const Icon(Icons.queue),
+                  onPressed: () async {
+                    if (await canLaunchUrl(flutterInfraTicketQueue)) {
+                      await launchUrl(flutterInfraTicketQueue);
+                    } else {
+                      throw 'Could not launch $flutterInfraTicketQueue';
+                    }
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Report Issue',
+                  icon: const Icon(Icons.bug_report),
+                  onPressed: () async {
+                    if (await canLaunchUrl(flutterIssueUrl)) {
+                      await launchUrl(flutterIssueUrl);
+                    } else {
+                      throw 'Could not launch $flutterIssueUrl';
+                    }
+                  },
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'Task Status Key',
+                  child: const Icon(Icons.info_outline),
+                  itemBuilder: (BuildContext context) => _getTaskKey(isDark),
+                ),
+                IconButton(
+                  tooltip: 'Settings',
+                  icon: const Icon(Icons.settings),
+                  onPressed: _settingsBasis == null
+                      ? _showSettingsDialog
+                      : null,
+                ),
+              ],
+            ),
+            body: ErrorBrookWatcher(
+              errors: buildState.errors,
+              child: Stack(
+                children: <Widget>[
+                  SizedBox.expand(
+                    child: TaskGridContainer(
+                      filter: _filter,
+                      useAnimatedLoading: true,
+                      schedulePostsubmitBuildForReleaseBranch: () {
+                        if (!buildState.authService.isAuthenticated) {
+                          return null;
+                        }
+                        if (buildState.currentRepo != 'flutter') {
+                          return null;
+                        }
+                        if (buildState.currentBranch == 'master') {
+                          return null;
+                        }
+                        return (Commit commit) async {
+                          return _schedulePostsubmitBuildForReleaseBranch(
+                            context: context,
+                            commit: commit,
+                          );
+                        };
+                      }(),
+                    ),
+                  ),
+                  if (_settingsBasis != null)
+                    _settingsDialog(context, buildState),
+                ],
+              ),
+            ),
+            drawer: const DashboardNavigationDrawer(),
+          ),
         ),
       ),
     );

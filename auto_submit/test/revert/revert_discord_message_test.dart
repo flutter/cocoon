@@ -18,7 +18,8 @@ void main() {
     String reasonForRevert,
     String realOutput,
   ) {
-    final expectedFormattedOutput = '''
+    final expectedFormattedOutput =
+        '''
 Pull Request [$originalPrDisplayText](<$originalPrUrl>) has been reverted by $initiatingAuthor.
 Please see the revert PR here: [$revertPrDisplayText](<$revertPrUrl>).
 Reason for reverting: $reasonForRevert''';

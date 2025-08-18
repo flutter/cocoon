@@ -130,7 +130,8 @@ class FileCodesignVisitor {
   );
   static final RegExp _notarytoolRequestPattern = RegExp(r'id: ([a-z0-9-]+)');
 
-  static final String fixItInstructions = '''
+  static final String fixItInstructions =
+      '''
 Codesign test failed.
 
 We compared binary files in engine artifacts with those listed in

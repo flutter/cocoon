@@ -45,12 +45,11 @@ Future<void> run(List<String> arguments) async {
 
 Future<void> verifyProtos(Directory workingDirectory) async {
   final errors = <String>[];
-  final protos =
-      await _allFiles(
-        workingDirectory.path,
-        'proto',
-        minimumMatches: 1,
-      ).toList();
+  final protos = await _allFiles(
+    workingDirectory.path,
+    'proto',
+    minimumMatches: 1,
+  ).toList();
   for (final proto in protos) {
     final content = proto.readAsStringSync();
     if (!content.contains(RegExp(r'package\ \w+;'))) {
@@ -244,10 +243,9 @@ Future<void> _checkForNewExecutables() async {
   // 0b001001001
   const executableBitMask = 0x49;
   final files = await _gitFiles(cocoonRoot.path);
-  final relativePaths =
-      files.map<String>((File file) {
-        return path.relative(file.path, from: cocoonRoot.path);
-      }).toList();
+  final relativePaths = files.map<String>((File file) {
+    return path.relative(file.path, from: cocoonRoot.path);
+  }).toList();
   for (var allowed in kExecutableAllowlist) {
     if (!relativePaths.contains(allowed)) {
       throw Exception(

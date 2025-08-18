@@ -75,8 +75,9 @@ class RevertInfoCollection {
     // is a block of text that contain links. We want to preserve the link so we
     // take text after the first colon ':' to avoid destroying information with
     // a split.
-    final matchedText =
-        foundMatch.substring(foundMatch.indexOf(':') + 1).trim();
+    final matchedText = foundMatch
+        .substring(foundMatch.indexOf(':') + 1)
+        .trim();
     return matchedText;
   }
 }

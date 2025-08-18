@@ -164,24 +164,22 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify comment is created correctly.
-      var captured =
-          verify(
-            mockIssuesService.createComment(captureAny, captureAny, captureAny),
-          ).captured;
+      var captured = verify(
+        mockIssuesService.createComment(captureAny, captureAny, captureAny),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
       expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
 
       // Verify labels are applied correctly.
-      captured =
-          verify(
-            mockGitHubClient.request(
-              captureAny,
-              captureAny,
-              body: captureAnyNamed('body'),
-            ),
-          ).captured;
+      captured = verify(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(
@@ -265,28 +263,22 @@ void main() {
                 as Map<String, dynamic>;
 
         // Verify comment is created correctly.
-        var captured =
-            verify(
-              mockIssuesService.createComment(
-                captureAny,
-                captureAny,
-                captureAny,
-              ),
-            ).captured;
+        var captured = verify(
+          mockIssuesService.createComment(captureAny, captureAny, captureAny),
+        ).captured;
         expect(captured.length, 3);
         expect(captured[0].toString(), Config.flutterSlug.toString());
         expect(captured[1], existingIssueNumber);
         expect(captured[2], expectedSemanticsIntegrationTestIssueComment);
 
         // Verify labels are applied correctly.
-        captured =
-            verify(
-              mockGitHubClient.request(
-                captureAny,
-                captureAny,
-                body: captureAnyNamed('body'),
-              ),
-            ).captured;
+        captured = verify(
+          mockGitHubClient.request(
+            captureAny,
+            captureAny,
+            body: captureAnyNamed('body'),
+          ),
+        ).captured;
         expect(captured.length, 3);
         expect(captured[0].toString(), 'PUT');
         expect(
@@ -369,14 +361,9 @@ void main() {
                 as Map<String, dynamic>;
 
         // Verify comment is created correctly.
-        final captured =
-            verify(
-              mockIssuesService.createComment(
-                captureAny,
-                captureAny,
-                captureAny,
-              ),
-            ).captured;
+        final captured = verify(
+          mockIssuesService.createComment(captureAny, captureAny, captureAny),
+        ).captured;
         expect(captured.length, 6);
         expect(captured[0].toString(), Config.flutterSlug.toString());
         expect(captured[1], existingIssueNumber);
@@ -463,10 +450,9 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify comment is created correctly.
-      final captured =
-          verify(
-            mockIssuesService.edit(captureAny, captureAny, captureAny),
-          ).captured;
+      final captured = verify(
+        mockIssuesService.edit(captureAny, captureAny, captureAny),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
@@ -541,10 +527,9 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify issue is created correctly.
-      var captured =
-          verify(
-            mockIssuesService.createComment(captureAny, captureAny, captureAny),
-          ).captured;
+      var captured = verify(
+        mockIssuesService.createComment(captureAny, captureAny, captureAny),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], existingIssueNumber);
@@ -554,14 +539,13 @@ void main() {
       );
 
       // Verify labels are the same.
-      captured =
-          verify(
-            mockGitHubClient.request(
-              captureAny,
-              captureAny,
-              body: captureAnyNamed('body'),
-            ),
-          ).captured;
+      captured = verify(
+        mockGitHubClient.request(
+          captureAny,
+          captureAny,
+          body: captureAnyNamed('body'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), 'PUT');
       expect(

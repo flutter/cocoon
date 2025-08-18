@@ -342,8 +342,9 @@ class RevertRequestValidationService extends ValidationService {
     var shouldReturn = false;
     for (final MapEntry(key: _, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.REMOVE_LABEL) {
-        final commmentMessage =
-            value.message.isEmpty ? 'Validations Fail.' : value.message;
+        final commmentMessage = value.message.isEmpty
+            ? 'Validations Fail.'
+            : value.message;
         final message =
             'auto label is removed for ${slug.fullName}/$prNumber, due to $commmentMessage';
         await githubService.removeLabel(slug, prNumber, Config.kRevertOfLabel);

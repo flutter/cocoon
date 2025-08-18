@@ -131,16 +131,11 @@ class RegExpFilterProperty extends ValueFilterProperty<String?> {
   /// The value of this property as a [RegExp] object, useful for matching its pattern
   /// against candidate values in the list being filtered.
   RegExp? _regExp;
-  RegExp? get regExp =>
-      _regExp ??=
-          _value == null
-              ? null
-              : RegExp(_value!, caseSensitive: _caseSensitive);
-  set regExp(RegExp? newRegExp) =>
-      value =
-          newRegExp == null || newRegExp.pattern == ''
-              ? null
-              : newRegExp.pattern;
+  RegExp? get regExp => _regExp ??= _value == null
+      ? null
+      : RegExp(_value!, caseSensitive: _caseSensitive);
+  set regExp(RegExp? newRegExp) => value =
+      newRegExp == null || newRegExp.pattern == '' ? null : newRegExp.pattern;
 
   /// True iff the value, interpreted as a regular expression, matches the candidate [String].
   bool matches(String candidate) => regExp?.hasMatch(candidate) ?? true;
@@ -335,8 +330,9 @@ class FilterPropertySheetState extends State<FilterPropertySheet> {
             0: IntrinsicColumnWidth(),
             1: FixedColumnWidth(300.0),
           },
-          children:
-              widget.propertySource!.sheetLayout.map(_makeTableRow).toList(),
+          children: widget.propertySource!.sheetLayout
+              .map(_makeTableRow)
+              .toList(),
         ),
       ],
     );

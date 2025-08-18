@@ -29,8 +29,9 @@ class CommitAuthorAvatar extends StatelessWidget {
     final themeValue = HSVColor.fromColor(theme.colorScheme.surface).value;
     var authorColor = HSVColor.fromAHSV(1.0, hue, 0.4, themeValue).toColor();
     if (theme.brightness == Brightness.dark) {
-      authorColor =
-          HSLColor.fromColor(authorColor).withLightness(.65).toColor();
+      authorColor = HSLColor.fromColor(
+        authorColor,
+      ).withLightness(.65).toColor();
     }
 
     /// Fallback widget that shows the initial of the commit author. In cases
@@ -40,10 +41,9 @@ class CommitAuthorAvatar extends StatelessWidget {
       child: Text(
         authorInitial,
         style: TextStyle(
-          color:
-              authorColor.computeLuminance() > 0.25
-                  ? Colors.black
-                  : Colors.white,
+          color: authorColor.computeLuminance() > 0.25
+              ? Colors.black
+              : Colors.white,
         ),
       ),
     );

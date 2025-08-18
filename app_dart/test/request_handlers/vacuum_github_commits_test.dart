@@ -34,19 +34,17 @@ void main() {
   List<RepositoryCommit> generateCommitsFromFakeGithubCommitShas() {
     final commits = <RepositoryCommit>[];
     for (var sha in fakeGithubCommitShas) {
-      final author =
-          User()
-            ..login = 'Username'
-            ..avatarUrl = 'http://example.org/avatar.jpg';
+      final author = User()
+        ..login = 'Username'
+        ..avatarUrl = 'http://example.org/avatar.jpg';
       final committer = GitCommitUser(
         'Username',
         'Username@abc.com',
         DateTime.fromMillisecondsSinceEpoch(int.parse(sha)),
       );
-      final gitCommit =
-          GitCommit()
-            ..message = 'commit message'
-            ..committer = committer;
+      final gitCommit = GitCommit()
+        ..message = 'commit message'
+        ..committer = committer;
       commits.add(
         RepositoryCommit()
           ..sha = sha

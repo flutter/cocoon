@@ -19,11 +19,10 @@ Future<void> precacheTaskIcons(WidgetTester tester) async {
   }
 
   final assetPath = path.joinAll(<String>[...pathParts, 'assets']);
-  final assets =
-      Directory(assetPath)
-          .listSync()
-          .map((FileSystemEntity entity) => path.basename(entity.path))
-          .toList();
+  final assets = Directory(assetPath)
+      .listSync()
+      .map((FileSystemEntity entity) => path.basename(entity.path))
+      .toList();
   await tester.pumpWidget(const SizedBox());
   await tester.runAsync(() async {
     for (final asset in assets) {

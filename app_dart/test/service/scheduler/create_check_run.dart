@@ -68,7 +68,8 @@ String checkRunEventFor({
   String owner = 'flutter',
   String repo = 'flutter',
   String headBranch = 'master',
-}) => '''{
+}) =>
+    '''{
   "action": "$action",
   "check_run": ${checkRunFor(name: test, sha: sha, conclusion: conclusion, owner: owner, repo: repo, headBranch: headBranch)},
   "repository": {

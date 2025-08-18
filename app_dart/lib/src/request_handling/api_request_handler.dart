@@ -35,8 +35,8 @@ abstract base class ApiRequestHandler extends RequestHandler {
     Map<String, Object?> requestData,
     List<String> requiredParameters,
   ) {
-    final Iterable<String> missingParams =
-        requiredParameters..removeWhere(requestData.containsKey);
+    final Iterable<String> missingParams = requiredParameters
+      ..removeWhere(requestData.containsKey);
     if (missingParams.isNotEmpty) {
       throw BadRequestException(
         'Missing required parameter: ${missingParams.join(', ')}',
@@ -50,9 +50,8 @@ abstract base class ApiRequestHandler extends RequestHandler {
     Request request,
     List<String> requiredQueryParameters,
   ) {
-    final Iterable<String> missingParams =
-        requiredQueryParameters
-          ..removeWhere(request.uri.queryParameters.containsKey);
+    final Iterable<String> missingParams = requiredQueryParameters
+      ..removeWhere(request.uri.queryParameters.containsKey);
     if (missingParams.isNotEmpty) {
       throw BadRequestException(
         'Missing required parameter: ${missingParams.join(', ')}',

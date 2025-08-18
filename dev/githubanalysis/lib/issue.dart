@@ -24,10 +24,9 @@ class FullIssue {
     this.redirect,
     this.isDeleted = false,
   }) {
-    _labels =
-        _metadata?.labels
-            .map<String>((final IssueLabel label) => label.name)
-            .toSet();
+    _labels = _metadata?.labels
+        .map<String>((final IssueLabel label) => label.name)
+        .toSet();
     if (_labels != null) {
       final matches = priorities.toSet().intersection(_labels);
       if (matches.length > 1) {
@@ -89,12 +88,12 @@ class FullIssue {
           } else if (issue.url == '') {
             return json.encode(<String, Object?>{'deleted': true});
           }
-          final comments =
-              await github.issues
-                  .listCommentsByIssue(repo, issueNumber)
-                  .toList();
-          final reactions =
-              await github.issues.listReactions(repo, issueNumber).toList();
+          final comments = await github.issues
+              .listCommentsByIssue(repo, issueNumber)
+              .toList();
+          final reactions = await github.issues
+              .listReactions(repo, issueNumber)
+              .toList();
           return json.encode(<String, Object?>{
             'issue': issue,
             'comments': comments,
@@ -262,15 +261,9 @@ Future<void> fetchAllIssues(
       invalid += 1;
     } on NotFound {
       if (index > lastIssueNumber) {
-        final lastIssue =
-            await github.issues
-                .listByRepo(
-                  repo,
-                  state: 'all',
-                  sort: 'created',
-                  direction: 'desc',
-                )
-                .first;
+        final lastIssue = await github.issues
+            .listByRepo(repo, state: 'all', sort: 'created', direction: 'desc')
+            .first;
         lastIssueNumber = lastIssue.number;
         maxKnown = true;
         if (index > lastIssueNumber) {
@@ -297,8 +290,9 @@ Future<void> updateAllIssues(
   final Map<int, FullIssue> issues,
 ) async {
   final pendingIssues = issues.isEmpty ? <int>{} : issues.keys.toSet();
-  var highestKnownIssue =
-      pendingIssues.isEmpty ? 0 : (pendingIssues.toList()..sort()).last;
+  var highestKnownIssue = pendingIssues.isEmpty
+      ? 0
+      : (pendingIssues.toList()..sort()).last;
   final updateStampFile = cacheFileFor(cache, <String>[
     'issue',
     repo.owner,

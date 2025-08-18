@@ -55,11 +55,12 @@ abstract base class _FakeInMemoryFirestoreService
     }
   }
 
-  static final _alphabet = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-              'abcdefghijklmnopqrstuvwxyz'
-              '0123456789' *
-          32)
-      .split('');
+  static final _alphabet =
+      ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                  'abcdefghijklmnopqrstuvwxyz'
+                  '0123456789' *
+              32)
+          .split('');
 
   String _generateDocumentId() {
     final result = (_alphabet..shuffle()).take(20).join('');

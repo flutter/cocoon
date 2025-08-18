@@ -15,7 +15,8 @@ String workflowJobTemplate({
       '27bfdee25949bc48044c4e16678f3449dd213b6e', // sha1(matanl was here)
   String senderLogin = 'fluttergithubbot',
   String repositoryFullName = 'flutter/flutter',
-}) => '''{
+}) =>
+    '''{
    "action" : "$action",
    "enterprise" : {
       "avatar_url" : "https://avatars.githubusercontent.com/b/1732?v=4",

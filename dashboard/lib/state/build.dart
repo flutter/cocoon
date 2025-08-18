@@ -277,10 +277,9 @@ class BuildState extends ChangeNotifier {
     /// there will be no subset of remaining statuses. Instead, it will give
     /// a list with a null generated [CommitStatus]. Therefore we manually
     /// return an empty list.
-    final remainingStatuses =
-        (firstIndex < lastIndex)
-            ? _statuses.getRange(firstIndex, lastIndex).toList()
-            : <CommitStatus>[];
+    final remainingStatuses = (firstIndex < lastIndex)
+        ? _statuses.getRange(firstIndex, lastIndex).toList()
+        : <CommitStatus>[];
 
     mergedStatuses.addAll(remainingStatuses);
 

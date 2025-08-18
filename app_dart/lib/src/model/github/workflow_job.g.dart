@@ -10,21 +10,16 @@ part of 'workflow_job.dart';
 
 WorkflowJobEvent _$WorkflowJobEventFromJson(Map<String, dynamic> json) =>
     WorkflowJobEvent(
-      workflowJob:
-          json['workflow_job'] == null
-              ? null
-              : WorkflowJob.fromJson(
-                json['workflow_job'] as Map<String, dynamic>,
-              ),
+      workflowJob: json['workflow_job'] == null
+          ? null
+          : WorkflowJob.fromJson(json['workflow_job'] as Map<String, dynamic>),
       action: json['action'] as String?,
-      sender:
-          json['sender'] == null
-              ? null
-              : User.fromJson(json['sender'] as Map<String, dynamic>),
-      repository:
-          json['repository'] == null
-              ? null
-              : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+      sender: json['sender'] == null
+          ? null
+          : User.fromJson(json['sender'] as Map<String, dynamic>),
+      repository: json['repository'] == null
+          ? null
+          : Repository.fromJson(json['repository'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$WorkflowJobEventToJson(WorkflowJobEvent instance) =>

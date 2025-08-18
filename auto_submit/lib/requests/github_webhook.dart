@@ -44,8 +44,10 @@ class GithubWebhook extends RequestHandler {
         request.headers[GithubWebhook.signatureHeader] == null) {
       throw const BadRequestException('Missing required headers.');
     }
-    final requestBytes =
-        await request.read().expand((bodyBytes) => bodyBytes).toList();
+    final requestBytes = await request
+        .read()
+        .expand((bodyBytes) => bodyBytes)
+        .toList();
     final hmacSignature = request.headers[GithubWebhook.signatureHeader];
     if (!await _validateRequest(hmacSignature, requestBytes)) {
       log.info('User is forbidden');

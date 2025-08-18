@@ -118,10 +118,9 @@ abstract base class SubscriptionHandler extends RequestHandler {
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
       log.info('Ignoring $messageId, we already are/were writing a message');
-      final response =
-          request.response
-            ..statusCode = HttpStatus.ok
-            ..write('$messageId was already processed');
+      final response = request.response
+        ..statusCode = HttpStatus.ok
+        ..write('$messageId was already processed');
       await response.flush();
       await response.close();
       return;

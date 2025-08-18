@@ -102,20 +102,19 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
                   await buildState.cocoonService.updateTreeStatus(
                     idToken: await buildState.authService.idToken,
                     repo: buildState.currentRepo,
-                    status:
-                        markedFailing ? TreeStatus.success : TreeStatus.failure,
+                    status: markedFailing
+                        ? TreeStatus.success
+                        : TreeStatus.failure,
                     reason: reason,
                   );
                   await _fetchTreeStatusChanges();
                 },
-                label:
-                    markedFailing
-                        ? const Text('Enable Tree')
-                        : const Text('Disable Tree'),
-                icon:
-                    markedFailing
-                        ? const Icon(Icons.check, color: Colors.green)
-                        : const Icon(Icons.close, color: Colors.red),
+                label: markedFailing
+                    ? const Text('Enable Tree')
+                    : const Text('Disable Tree'),
+                icon: markedFailing
+                    ? const Icon(Icons.check, color: Colors.green)
+                    : const Icon(Icons.close, color: Colors.red),
               ),
             ],
           ),
@@ -123,10 +122,9 @@ class _TreeStatusPageState extends State<TreeStatusPage> {
             delegate: SliverChildBuilderDelegate((_, i) {
               final item = changes[i];
               return ListTile(
-                leading:
-                    item.status == TreeStatus.success
-                        ? const Icon(Icons.check, color: Colors.green)
-                        : const Icon(Icons.error, color: Colors.red),
+                leading: item.status == TreeStatus.success
+                    ? const Icon(Icons.check, color: Colors.green)
+                    : const Icon(Icons.error, color: Colors.red),
                 title: Text(item.authoredBy),
                 subtitle: Text(
                   item.reason != null ? 'Reason: ${item.reason}' : '',
