@@ -5224,9 +5224,10 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               [request, parent],
               {#$fields: $fields},
             ),
-            returnValue: _i13.Future<
-              List<_i14.RunAggregationQueryResponseElement>
-            >.value(<_i14.RunAggregationQueryResponseElement>[]),
+            returnValue:
+                _i13.Future<
+                  List<_i14.RunAggregationQueryResponseElement>
+                >.value(<_i14.RunAggregationQueryResponseElement>[]),
           )
           as _i13.Future<List<_i14.RunAggregationQueryResponseElement>>);
 

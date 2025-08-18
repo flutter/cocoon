@@ -10,10 +10,9 @@ part of 'pubsub_message.dart';
 
 PubSubPushMessage _$PubSubPushMessageFromJson(Map<String, dynamic> json) =>
     PubSubPushMessage(
-      message:
-          json['message'] == null
-              ? null
-              : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
+      message: json['message'] == null
+          ? null
+          : PushMessage.fromJson(json['message'] as Map<String, dynamic>),
       subscription: json['subscription'] as String?,
     );
 

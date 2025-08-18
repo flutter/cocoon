@@ -42,8 +42,8 @@ final class FlushCache extends ApiRequestHandler {
     await _cache.getOrCreate(
       Config.configCacheName,
       cacheKey,
-      createFn:
-          () => throw NotFoundException('Failed to find cache key: $cacheKey'),
+      createFn: () =>
+          throw NotFoundException('Failed to find cache key: $cacheKey'),
     );
 
     await _cache.purge(Config.configCacheName, cacheKey);

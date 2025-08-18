@@ -121,10 +121,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         return result.toResponse();
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
-        final branch =
-            (event['ref'] as String).split(
-              '/',
-            )[2]; // Eg: refs/heads/beta would return beta.
+        final branch = (event['ref'] as String).split(
+          '/',
+        )[2]; // Eg: refs/heads/beta would return beta.
         final repository = event['repository']['name'] as String;
         // If the branch is beta/stable, then a commit wasn't created through a PR,
         // meaning the commit needs to be added to the Firestore here instead.
@@ -581,10 +580,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       switch (slug.name) {
         case 'flutter':
           final isFusion = slug == Config.flutterSlug;
-          final files =
-              await gitHubClient.pullRequests
-                  .listFiles(slug, pr.number!)
-                  .toList();
+          final files = await gitHubClient.pullRequests
+              .listFiles(slug, pr.number!)
+              .toList();
           await _applyFrameworkRepoLabels(
             gitHubClient,
             eventAction,
@@ -622,8 +620,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       'Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} isFusion=$isFusion and pr=${pr.number}',
     );
 
-    files ??=
-        await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+    files ??= await gitHubClient.pullRequests
+        .listFiles(slug, pr.number!)
+        .toList();
 
     final labels = <String>{};
     var hasTests = false;
@@ -773,8 +772,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
 
     var engineFiles = 0;
 
-    files ??=
-        await gitHubClient.pullRequests.listFiles(slug, pr.number!).toList();
+    files ??= await gitHubClient.pullRequests
+        .listFiles(slug, pr.number!)
+        .toList();
     for (var file in files) {
       final path = file.filename!;
       if (isFusion && _isFusionEnginePath(path)) {
@@ -1003,8 +1003,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final filename = file.filename!;
-    final extension =
-        filename.contains('.') ? filename.split('.').last.toLowerCase() : null;
+    final extension = filename.contains('.')
+        ? filename.split('.').last.toLowerCase()
+        : null;
     if (extension == null || !knownCommentCodeExtensions.contains(extension)) {
       return false;
     }
@@ -1095,12 +1096,11 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
       'attempting to unlock the ${Config.kMergeQueueLockName} for emergency',
     );
 
-    final guard =
-        (await githubService.getCheckRunsFiltered(
-          slug: slug,
-          ref: pullRequest.head!.sha!,
-          checkName: Config.kMergeQueueLockName,
-        )).singleOrNull;
+    final guard = (await githubService.getCheckRunsFiltered(
+      slug: slug,
+      ref: pullRequest.head!.sha!,
+      checkName: Config.kMergeQueueLockName,
+    )).singleOrNull;
 
     if (guard == null) {
       logSevere(

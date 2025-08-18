@@ -289,8 +289,9 @@ mixin FirestoreQueries {
             kGithubBuildStatusHeadField: head.toValue(),
             kGithubBuildStatusStatusField: ''.toValue(),
             kGithubBuildStatusUpdatesField: 0.toValue(),
-            kGithubBuildStatusUpdateTimeMillisField:
-                DateTime.now().millisecondsSinceEpoch.toValue(),
+            kGithubBuildStatusUpdateTimeMillisField: DateTime.now()
+                .millisecondsSinceEpoch
+                .toValue(),
             kGithubBuildStatusRepositoryField: slug.fullName.toValue(),
           },
         ),
@@ -457,7 +458,10 @@ class FirestoreService with FirestoreQueries {
     final orders = <Order>[];
     orderMap.forEach((field, direction) {
       orders.add(
-        Order(field: FieldReference(fieldPath: field), direction: direction),
+        Order(
+          field: FieldReference(fieldPath: field),
+          direction: direction,
+        ),
       );
     });
     return orders;

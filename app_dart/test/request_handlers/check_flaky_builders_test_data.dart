@@ -10,7 +10,8 @@ const int existingIssueNumber = 85578;
 const String existingIssueURL =
     'https://github.com/flutter/flutter/issues/$existingIssueNumber';
 
-const String ciYamlContent = '''
+const String ciYamlContent =
+    '''
 # Describes the targets run in continuous integration environment.
 #
 # Flutter infra uses this file to generate a checklist of tasks to be performed
@@ -254,7 +255,8 @@ targets:
 ''';
 const String expectedSemanticsIntegrationTestPullRequestTitle =
     'Marks Mac_android android_semantics_integration_test to be unflaky';
-const String expectedSemanticsIntegrationTestPullRequestBody = '''
+const String expectedSemanticsIntegrationTestPullRequestBody =
+    '''
 <!-- meta-tags: To be used by the automation script only, DO NOT MODIFY.
 {
   "name": "Mac_android android_semantics_integration_test"

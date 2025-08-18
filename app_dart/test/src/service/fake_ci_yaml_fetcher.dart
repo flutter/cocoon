@@ -29,8 +29,8 @@ final class FakeCiYamlFetcher implements CiYamlFetcher {
       yamls: {
         CiType.any: pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(root)),
         if (engine != null)
-          CiType.fusionEngine:
-              pb.SchedulerConfig()..mergeFromProto3Json(loadYaml(engine)),
+          CiType.fusionEngine: pb.SchedulerConfig()
+            ..mergeFromProto3Json(loadYaml(engine)),
       },
       totConfig: totCiYaml,
     );

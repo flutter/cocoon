@@ -11,16 +11,14 @@ part of 'dynamic_config.dart';
 DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
     DynamicConfig(
       backfillerCommitLimit: (json['backfillerCommitLimit'] as num?)?.toInt(),
-      ciYaml:
-          json['ciYaml'] == null
-              ? null
-              : CiYamlFlags.fromJson(json['ciYaml'] as Map<String, dynamic>?),
-      contentAwareHashing:
-          json['contentAwareHashing'] == null
-              ? null
-              : ContentAwareHashing.fromJson(
-                json['contentAwareHashing'] as Map<String, dynamic>?,
-              ),
+      ciYaml: json['ciYaml'] == null
+          ? null
+          : CiYamlFlags.fromJson(json['ciYaml'] as Map<String, dynamic>?),
+      contentAwareHashing: json['contentAwareHashing'] == null
+          ? null
+          : ContentAwareHashing.fromJson(
+              json['contentAwareHashing'] as Map<String, dynamic>?,
+            ),
     );
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
