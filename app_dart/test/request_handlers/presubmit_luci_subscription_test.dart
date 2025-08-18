@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -573,10 +571,9 @@ void main() {
 
     await tester.post(handler);
 
-    final captured =
-        verify(
-          mockScheduler.processCheckRunCompleted(captureAny, captureAny),
-        ).captured;
+    final captured = verify(
+      mockScheduler.processCheckRunCompleted(captureAny, captureAny),
+    ).captured;
     expect(captured, hasLength(2));
     expect(
       captured[0],
