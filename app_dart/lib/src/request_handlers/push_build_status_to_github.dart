@@ -67,10 +67,9 @@ final class PushBuildStatusToGithub extends ApiRequestHandler {
     final github = await config.createGitHubClient(slug: slug);
     final githubBuildStatuses = <GithubBuildStatus>[];
 
-    final prList =
-        await github.pullRequests
-            .list(slug, base: Config.defaultBranch(slug))
-            .toList();
+    final prList = await github.pullRequests
+        .list(slug, base: Config.defaultBranch(slug))
+        .toList();
     for (var pr in prList) {
       // Tree status only affects the default branch - which github should filter for.. but check for a whoopsie.
       if (pr.base!.ref != Config.defaultBranch(slug)) {
@@ -93,8 +92,8 @@ final class PushBuildStatusToGithub extends ApiRequestHandler {
           false;
       final status =
           (realStatus != GithubBuildStatus.statusSuccess && hasEmergencyLabel)
-              ? GithubBuildStatus.statusNeutral
-              : realStatus;
+          ? GithubBuildStatus.statusNeutral
+          : realStatus;
       if (githubBuildStatus.status != status) {
         log.log(
           severity: hasEmergencyLabel ? Severity.warning : Severity.debug,

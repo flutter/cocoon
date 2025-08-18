@@ -583,7 +583,8 @@ PushMessage generateCheckRunEvent({
   String action = 'created',
   int numberOfPullRequests = 1,
 }) {
-  var data = '''{
+  var data =
+      '''{
   "action": "$action",
   "check_run": {
     "id": 128620228,
@@ -750,7 +751,8 @@ PushMessage generateCheckRunEvent({
     "pull_requests": [''';
 
   for (var i = 0; i < numberOfPullRequests; i++) {
-    data += '''{
+    data +=
+        '''{
         "url": "https://api.github.com/repos/flutter/flutter/pulls/2",
         "id": 279147437,
         "number": ${i + 2},

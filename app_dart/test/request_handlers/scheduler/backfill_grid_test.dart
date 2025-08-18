@@ -72,12 +72,11 @@ void main() {
   test('skipped', () {
     final c1 = generateFirestoreCommit(1).toRef();
     final c2 = generateFirestoreCommit(2).toRef();
-    final t1c1 =
-        generateFirestoreTask(
-          1,
-          commitSha: c1.sha,
-          status: TaskStatus.inProgress,
-        ).toRef();
+    final t1c1 = generateFirestoreTask(
+      1,
+      commitSha: c1.sha,
+      status: TaskStatus.inProgress,
+    ).toRef();
     final t1c2 = generateFirestoreTask(1, commitSha: c2.sha).toRef();
     final t2c1 = generateFirestoreTask(2, commitSha: c1.sha).toRef();
     final t2c2 = generateFirestoreTask(2, commitSha: c2.sha).toRef();
@@ -136,8 +135,10 @@ void main() {
   test('filters out targets that are not batch policy', () {
     final commit = generateFirestoreCommit(1).toRef();
     final taskBatch = generateFirestoreTask(1, commitSha: commit.sha).toRef();
-    final taskNonBatch =
-        generateFirestoreTask(2, commitSha: commit.sha).toRef();
+    final taskNonBatch = generateFirestoreTask(
+      2,
+      commitSha: commit.sha,
+    ).toRef();
     final targetBatch = generateTarget(1, name: taskBatch.name);
     final targetNonBatch = generateTarget(
       2,

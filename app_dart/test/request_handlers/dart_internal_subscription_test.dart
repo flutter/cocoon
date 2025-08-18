@@ -43,7 +43,8 @@ void main() {
     }
   }''';
 
-  const buildMessageJsonSuccess = '''{
+  const buildMessageJsonSuccess =
+      '''{
     "build": $buildJsonSuccess
   }''';
 
@@ -65,7 +66,8 @@ void main() {
     }
   }''';
 
-  const buildMessageJsonInProgress = '''{
+  const buildMessageJsonInProgress =
+      '''{
     "build": $buildJsonInProgress
   }''';
 

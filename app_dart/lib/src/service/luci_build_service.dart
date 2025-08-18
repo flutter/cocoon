@@ -586,8 +586,9 @@ class LuciBuildService {
           pageToken: token,
         ),
       );
-      final availableBuilderList =
-          listBuildersResponse.builders.map((e) => e.id.builder).toList();
+      final availableBuilderList = listBuildersResponse.builders
+          .map((e) => e.id.builder)
+          .toList();
       availableBuilderSet.addAll(<String>{...availableBuilderList});
       hasToken = listBuildersResponse.hasNextPageToken();
       if (hasToken) {
@@ -948,8 +949,8 @@ class LuciBuildService {
     processedProperties['git_repo'] = commit.slug.name;
     if (properties != null) processedProperties.addAll(properties);
 
-    final propertiesStruct =
-        bbv2.Struct()..mergeFromProto3Json(processedProperties);
+    final propertiesStruct = bbv2.Struct()
+      ..mergeFromProto3Json(processedProperties);
     final requestedDimensions = target.getDimensions();
     final executable = bbv2.Executable(cipdVersion: cipdExe);
 
@@ -977,18 +978,17 @@ class LuciBuildService {
         pubsubTopic: 'projects/flutter-dashboard/topics/build-bucket-presubmit',
         userData: preUserData.toBytes(),
       ),
-      tags:
-          BuildTags([
-            ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
-            ByCommitMirroredBuildSetBuildTag(
-              commitSha: commit.sha,
-              slugName: commit.slug.name,
-            ),
-            UserAgentBuildTag.flutterCocoon,
-            SchedulerJobIdBuildTag(targetName: target.name),
-            CurrentAttemptBuildTag(attemptNumber: 1),
-            InMergeQueueBuildTag(),
-          ]).toStringPairs(),
+      tags: BuildTags([
+        ByPostsubmitCommitBuildSetBuildTag(commitSha: commit.sha),
+        ByCommitMirroredBuildSetBuildTag(
+          commitSha: commit.sha,
+          slugName: commit.slug.name,
+        ),
+        UserAgentBuildTag.flutterCocoon,
+        SchedulerJobIdBuildTag(targetName: target.name),
+        CurrentAttemptBuildTag(attemptNumber: 1),
+        InMergeQueueBuildTag(),
+      ]).toStringPairs(),
       properties: propertiesStruct,
       priority: priority,
     );
@@ -1186,18 +1186,17 @@ class LuciBuildService {
 
   static Iterable<String> _filterFailedEngineBuilds(
     Iterable<bbv2.Build> builds,
-  ) =>
-      builds
-          .where((b) {
-            final failed = const {
-              bbv2.Status.FAILURE,
-              bbv2.Status.INFRA_FAILURE,
-              bbv2.Status.CANCELED,
-            }.contains(b.status);
-            return failed;
-          })
-          .map((b) {
-            return b.input.properties.fields['config_name']?.stringValue;
-          })
-          .nonNulls;
+  ) => builds
+      .where((b) {
+        final failed = const {
+          bbv2.Status.FAILURE,
+          bbv2.Status.INFRA_FAILURE,
+          bbv2.Status.CANCELED,
+        }.contains(b.status);
+        return failed;
+      })
+      .map((b) {
+        return b.input.properties.fields['config_name']?.stringValue;
+      })
+      .nonNulls;
 }

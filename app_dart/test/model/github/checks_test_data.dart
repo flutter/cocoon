@@ -4,7 +4,8 @@
 
 String checkSuiteString = checkSuiteTemplate('requested');
 
-String checkSuiteTemplate(String action) => '''\
+String checkSuiteTemplate(String action) =>
+    '''\
 {
     "action": "$action",
     "check_suite": {
@@ -238,7 +239,8 @@ String checkSuiteTemplate(String action) => '''\
 String checkRunString({
   String repository = 'cocoon',
   String headSha = '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
-}) => '''
+}) =>
+    '''
 {
     "action": "rerequested",
     "check_run": {

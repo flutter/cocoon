@@ -226,8 +226,8 @@ interface class ContentAwareHashService {
             name: doc.name,
             fields: {
               ContentAwareHashBuilds.fieldCommitSha: headSha.toValue(),
-              ContentAwareHashBuilds.fieldStatus:
-                  BuildStatus.inProgress.name.toValue(),
+              ContentAwareHashBuilds.fieldStatus: BuildStatus.inProgress.name
+                  .toValue(),
             },
           ),
           updateMask: DocumentMask(
@@ -406,5 +406,7 @@ interface class ContentAwareHashService {
 
 enum MergeQueueHashStatus { wait, build, complete, ignoreJob, error }
 
-typedef ContentAwareHashStatus =
-    ({String contentHash, MergeQueueHashStatus status});
+typedef ContentAwareHashStatus = ({
+  String contentHash,
+  MergeQueueHashStatus status,
+});

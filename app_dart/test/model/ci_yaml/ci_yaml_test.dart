@@ -175,8 +175,9 @@ void main() {
 
       test('filter targets removed from presubmit', () {
         final initialTargets = ciYaml.presubmitTargets;
-        final initialTargetNames =
-            initialTargets.map((Target target) => target.name).toList();
+        final initialTargetNames = initialTargets
+            .map((Target target) => target.name)
+            .toList();
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
@@ -200,17 +201,17 @@ void main() {
           totConfig: totCIYaml,
         );
 
-        final initialTargetNames =
-            ciYaml.presubmitTargets
-                .map((Target target) => target.name)
-                .toList();
+        final initialTargetNames = ciYaml.presubmitTargets
+            .map((Target target) => target.name)
+            .toList();
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
       test('filter targets removed from postsubmit', () {
         final initialTargets = ciYaml.postsubmitTargets;
-        final initialTargetNames =
-            initialTargets.map((Target target) => target.name).toList();
+        final initialTargetNames = initialTargets
+            .map((Target target) => target.name)
+            .toList();
         expect(initialTargetNames, containsAll(<String>['Linux A']));
       });
 
@@ -236,8 +237,9 @@ void main() {
           totConfig: totCIYaml,
         );
         final initialTargets = releaseYaml.postsubmitTargets;
-        final initialTargetNames =
-            initialTargets.map((Target target) => target.name).toList();
+        final initialTargetNames = initialTargets
+            .map((Target target) => target.name)
+            .toList();
 
         expect(
           initialTargetNames,
@@ -270,8 +272,9 @@ void main() {
           totConfig: totCIYaml,
         );
         final initialTargets = releaseYaml.postsubmitTargets;
-        final initialTargetNames =
-            initialTargets.map((target) => target.name).toList();
+        final initialTargetNames = initialTargets
+            .map((target) => target.name)
+            .toList();
         expect(initialTargetNames, containsAll(<String>['Mac A']));
       });
 
@@ -297,8 +300,9 @@ void main() {
             ),
           );
           final initialTargets = releaseYaml.postsubmitTargets;
-          final initialTargetNames =
-              initialTargets.map((Target target) => target.name).toList();
+          final initialTargetNames = initialTargets
+              .map((Target target) => target.name)
+              .toList();
           expect(initialTargetNames, <String>[
             // This is a non-release target and therefore must run in post-submit in fusion mode.
             'Linux B',
@@ -368,8 +372,9 @@ void main() {
         'presubmit true target is scheduled though TOT is with presubmit false',
         () {
           final initialTargets = ciYaml.presubmitTargets;
-          final initialTargetNames =
-              initialTargets.map((Target target) => target.name).toList();
+          final initialTargetNames = initialTargets
+              .map((Target target) => target.name)
+              .toList();
           expect(initialTargetNames, containsAll(<String>['Linux A']));
         },
       );

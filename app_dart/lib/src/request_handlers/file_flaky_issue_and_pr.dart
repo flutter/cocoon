@@ -47,8 +47,8 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
     );
     final ci =
         loadYaml(await gitHub.getFileContent(slug, kCiYamlPath)) as YamlMap?;
-    final unCheckedSchedulerConfig =
-        pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final unCheckedSchedulerConfig = pb.SchedulerConfig()
+      ..mergeFromProto3Json(ci);
     final ciYaml = CiYamlSet(
       slug: slug,
       branch: Config.defaultBranch(slug),

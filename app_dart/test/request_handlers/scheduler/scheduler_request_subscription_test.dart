@@ -165,8 +165,9 @@ void main() {
       tester.message = pushMessage;
       final body = await tester.post(handler);
 
-      final bodyString =
-          await utf8.decoder.bind(body.body.asyncMap((b) => b)).join();
+      final bodyString = await utf8.decoder
+          .bind(body.body.asyncMap((b) => b))
+          .join();
       expect(bodyString, 'Failed to schedule builds: (builder: Linux A\n).');
       expect(verify(buildBucketClient.batch(any)).callCount, 3);
       expect(githubService.checkRunUpdates, hasLength(1));
@@ -193,10 +194,9 @@ unknown
       final response = bbv2.BatchResponse().createEmptyInstance();
       bbv2.BatchResponse_Response makeError(int code, String message) {
         final response = bbv2.BatchResponse_Response();
-        response.error =
-            response.error.createEmptyInstance()
-              ..code = code
-              ..message = message;
+        response.error = response.error.createEmptyInstance()
+          ..code = code
+          ..message = message;
 
         return response;
       }
