@@ -17,4 +17,4 @@ contentAwareHashing:
 
 # Whether to close the MQ guard right after LUCI presubmit compleated
 # instead of doing that as part of the `check_run` GitHub event handling.
-closeMqGuardAfterPresubmit: true
+closeMqGuardAfterPresubmit: false
