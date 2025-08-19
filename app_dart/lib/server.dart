@@ -89,6 +89,7 @@ Server createServer({
       config: config,
       luciBuildService: luciBuildService,
       githubChecksService: githubChecksService,
+      scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(

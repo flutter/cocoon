@@ -1155,11 +1155,11 @@ targets:
 
       group('completed action', () {
         test('works for non fusion cases', () async {
+          final text = checkRunEventFor(repo: 'packages');
           expect(
             await scheduler.processCheckRun(
               cocoon_checks.CheckRunEvent.fromJson(
-                json.decode(checkRunEventFor(repo: 'packages'))
-                    as Map<String, Object?>,
+                json.decode(text) as Map<String, Object?>,
               ),
             ),
             const ProcessCheckRunResult.success(),
@@ -1181,13 +1181,9 @@ targets:
 
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
-                  await scheduler.processCheckRunCompletion(
-                    cocoon_checks.CheckRunEvent.fromJson(
-                      json.decode(
-                            checkRunEventFor(test: ignored, sha: 'abc123'),
-                          )
-                          as Map<String, Object?>,
-                    ),
+                  await scheduler.processCheckRunCompleted(
+                    createCocoonCheckRun(name: ignored, sha: 'abc123'),
+                    createGithubRepository().slug(),
                   ),
                   isTrue,
                 );
@@ -1218,11 +1214,9 @@ targets:
             firestore.failOnWriteDocument(document);
 
             expect(
-              await scheduler.processCheckRunCompletion(
-                cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'abc123'))
-                      as Map<String, Object?>,
-                ),
+              await scheduler.processCheckRunCompleted(
+                createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                createGithubRepository().slug(),
               ),
               isFalse,
             );
@@ -1257,11 +1251,9 @@ targets:
             );
 
             expect(
-              await scheduler.processCheckRunCompletion(
-                cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'abc123'))
-                      as Map<String, Object?>,
-                ),
+              await scheduler.processCheckRunCompleted(
+                createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                createGithubRepository().slug(),
               ),
               isFalse,
             );
@@ -1298,7 +1290,7 @@ targets:
               await PrCheckRuns.initializeDocument(
                 firestoreService: firestore,
                 pullRequest: pullRequest,
-                checks: [createCheckRun(name: 'Bar bar')],
+                checks: [createGithubCheckRun(name: 'Bar bar')],
               );
 
               await CiStaging.initializeDocument(
@@ -1311,13 +1303,9 @@ targets:
               );
 
               expect(
-                await scheduler.processCheckRunCompletion(
-                  cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(
-                          checkRunEventFor(test: 'Bar bar', sha: 'abc123'),
-                        )
-                        as Map<String, Object?>,
-                  ),
+                await scheduler.processCheckRunCompleted(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -1420,11 +1408,9 @@ targets:
             );
 
             expect(
-              await scheduler.processCheckRunCompletion(
-                cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha'))
-                      as Map<String, Object?>,
-                ),
+              await scheduler.processCheckRunCompleted(
+                createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                createGithubRepository().slug(),
               ),
               isTrue,
             );
@@ -1521,11 +1507,9 @@ targets:
             );
 
             expect(
-              await scheduler.processCheckRunCompletion(
-                cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(checkRunEventFor(test: 'Bar bar', sha: 'testSha'))
-                      as Map<String, Object?>,
-                ),
+              await scheduler.processCheckRunCompleted(
+                createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                createGithubRepository().slug(),
               ),
               isTrue,
             );
@@ -1686,7 +1670,7 @@ targets:
               final sha = inv.positionalArguments[2] as String;
               final name = inv.positionalArguments[3] as String?;
               checkRuns.add(
-                createCheckRun(
+                createGithubCheckRun(
                   id: 1,
                   owner: slug.owner,
                   repo: slug.name,
@@ -1780,17 +1764,13 @@ targets:
               );
 
               expect(
-                await scheduler.processCheckRunCompletion(
-                  cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(
-                          checkRunEventFor(
-                            test: 'Bar bar',
-                            sha: 'testSha',
-                            conclusion: 'failure',
-                          ),
-                        )
-                        as Map<String, Object?>,
+                await scheduler.processCheckRunCompleted(
+                  createCocoonCheckRun(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    conclusion: 'failure',
                   ),
+                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -1864,18 +1844,14 @@ targets:
               );
 
               expect(
-                await scheduler.processCheckRunCompletion(
-                  cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(
-                          checkRunEventFor(
-                            test: 'Bar bar',
-                            sha: 'testSha',
-                            conclusion: 'failure',
-                            headBranch: headBranch,
-                          ),
-                        )
-                        as Map<String, Object?>,
+                await scheduler.processCheckRunCompleted(
+                  createCocoonCheckRun(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    conclusion: 'failure',
+                    headBranch: headBranch,
                   ),
+                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -1948,17 +1924,13 @@ targets:
             );
 
             expect(
-              await scheduler.processCheckRunCompletion(
-                cocoon_checks.CheckRunEvent.fromJson(
-                  json.decode(
-                        checkRunEventFor(
-                          test: 'Bar bar',
-                          sha: 'testSha',
-                          headBranch: headBranch,
-                        ),
-                      )
-                      as Map<String, Object?>,
+              await scheduler.processCheckRunCompleted(
+                createCocoonCheckRun(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  headBranch: headBranch,
                 ),
+                createGithubRepository().slug(),
               ),
               isTrue,
             );
@@ -2070,13 +2042,9 @@ targets:
               );
 
               expect(
-                await scheduler.processCheckRunCompletion(
-                  cocoon_checks.CheckRunEvent.fromJson(
-                    json.decode(
-                          checkRunEventFor(test: 'Bar bar', sha: 'testSha'),
-                        )
-                        as Map<String, Object?>,
-                  ),
+                await scheduler.processCheckRunCompleted(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -2476,7 +2444,7 @@ targets:
       test('ci.yaml validation passes with default config', () async {
         when(mockGithubChecksUtil.getCheckRun(any, any, any)).thenAnswer(
           (Invocation invocation) async =>
-              createCheckRun(id: 0, repo: 'packages'),
+              createGithubCheckRun(id: 0, repo: 'packages'),
         );
         await scheduler.triggerPresubmitTargets(
           pullRequest: generatePullRequest(repo: 'packages', branch: 'main'),
@@ -2636,7 +2604,7 @@ targets:
           final sha = inv.positionalArguments[2] as String;
           final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
-            createCheckRun(
+            createGithubCheckRun(
               id: 1,
               owner: slug.owner,
               repo: slug.name,
@@ -2766,7 +2734,7 @@ targets:
           final sha = inv.positionalArguments[2] as String;
           final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
-            createCheckRun(
+            createGithubCheckRun(
               id: 1,
               owner: slug.owner,
               repo: slug.name,
@@ -2902,7 +2870,7 @@ targets:
           final sha = inv.positionalArguments[2] as String;
           final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
-            createCheckRun(
+            createGithubCheckRun(
               id: 1,
               owner: slug.owner,
               repo: slug.name,
@@ -3030,7 +2998,7 @@ targets:
           final sha = inv.positionalArguments[2] as String;
           final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
-            createCheckRun(
+            createGithubCheckRun(
               id: 1,
               owner: slug.owner,
               repo: slug.name,
@@ -3150,7 +3118,7 @@ targets:
           final sha = inv.positionalArguments[2] as String;
           final name = inv.positionalArguments[3] as String?;
           checkRuns.add(
-            createCheckRun(
+            createGithubCheckRun(
               id: 1,
               owner: slug.owner,
               repo: slug.name,

@@ -103,6 +103,7 @@ void main() {
           build: _fakeBuild,
           userData: PresubmitUserData(
             checkRunId: checkRun.id!,
+            checkSuiteId: checkRun.checkSuiteId!,
             commit: CommitRef(
               sha: 'abc123',
               branch: 'master',
@@ -147,6 +148,7 @@ void main() {
           build: _fakeBuild,
           userData: PresubmitUserData(
             checkRunId: checkRun.id!,
+            checkSuiteId: checkRun.checkSuiteId!,
             commit: CommitRef(
               sha: 'abc123',
               branch: 'master',

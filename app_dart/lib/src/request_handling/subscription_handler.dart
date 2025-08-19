@@ -50,6 +50,7 @@ abstract base class SubscriptionHandler extends RequestHandler {
       getValue<AuthenticatedContext>(ApiKey.authContext)!;
 
   /// The [PushMessage] from this [HttpRequest].
+  // TODO(dmgr): Message should be either input param of a post or a method.
   @protected
   PushMessage get message => getValue<PushMessage>(PubSubKey.message)!;
 

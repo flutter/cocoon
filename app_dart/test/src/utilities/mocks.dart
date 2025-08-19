@@ -17,6 +17,7 @@ import 'package:cocoon_service/src/service/discord_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -56,6 +57,7 @@ export 'mocks.mocks.dart';
     ProjectsDatabasesDocumentsResource,
     BeginTransactionResponse,
     PullRequestLabelProcessor,
+    Scheduler,
   ],
   customMocks: [
     MockSpec<Cache<Uint8List>>(),

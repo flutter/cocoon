@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "analyze"
+		},	
+		{
+			"path": "app_dart"
+		},
+		{
+			"path": "auto_submit"
+		},
+		{
+			"path": "cipd_packages"
+		},
+		{
+			"path": "cloud_build"
+		},
+		{
+			"path": "dev"
+		},
+		{
+			"path": "licenses"
+		},
+		{
+			"path": "packages"
+		},
+		{
+			"path": "test_utilities"
+		},
+		{
+			"path": "tooling"
+		}
+	],
+	"settings": {}
+}
