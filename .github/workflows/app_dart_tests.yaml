@@ -21,7 +21,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get packages
         run: |

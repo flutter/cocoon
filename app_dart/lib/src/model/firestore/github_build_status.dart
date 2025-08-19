@@ -131,8 +131,8 @@ final class GithubBuildStatus extends AppDocument<GithubBuildStatus> {
   }
 
   int setUpdateTimeMillis(int updateTimeMillis) {
-    fields[kGithubBuildStatusUpdateTimeMillisField] =
-        updateTimeMillis.toValue();
+    fields[kGithubBuildStatusUpdateTimeMillisField] = updateTimeMillis
+        .toValue();
     return updateTimeMillis;
   }
 }

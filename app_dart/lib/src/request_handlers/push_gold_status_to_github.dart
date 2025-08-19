@@ -118,8 +118,11 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
       final gitHubGraphQLClient = await config.createGitHubGraphQLClient();
       final incompleteChecks = <String>[];
       var runsGoldenFileTests = false;
-      final data =
-          (await _queryGraphQL(gitHubGraphQLClient, slug, pr.number!))!;
+      final data = (await _queryGraphQL(
+        gitHubGraphQLClient,
+        slug,
+        pr.number!,
+      ))!;
       final prData = data['repository']['pullRequest'] as Map<String, dynamic>;
       final commit =
           prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
@@ -292,11 +295,10 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
     RepositorySlug slug,
     int prNumber,
   ) {
-    final statusUpdate =
-        CreateStatus(state)
-          ..targetUrl = _getTriageUrl(slug, prNumber)
-          ..context = 'flutter-gold'
-          ..description = description;
+    final statusUpdate = CreateStatus(state)
+      ..targetUrl = _getTriageUrl(slug, prNumber)
+      ..context = 'flutter-gold'
+      ..description = description;
     return statusUpdate;
   }
 

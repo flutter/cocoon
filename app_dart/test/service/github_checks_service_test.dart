@@ -123,18 +123,17 @@ void main() {
         slug: slug,
         rescheduled: true,
       );
-      final captured =
-          verify(
-            mockGithubChecksUtil.updateCheckRun(
-              any,
-              any,
-              captureAny,
-              status: captureAnyNamed('status'),
-              conclusion: captureAnyNamed('conclusion'),
-              detailsUrl: anyNamed('detailsUrl'),
-              output: anyNamed('output'),
-            ),
-          ).captured;
+      final captured = verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          captureAny,
+          status: captureAnyNamed('status'),
+          conclusion: captureAnyNamed('conclusion'),
+          detailsUrl: anyNamed('detailsUrl'),
+          output: anyNamed('output'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[1], github.CheckRunStatus.queued);
       expect(captured[2], isNull);
@@ -179,18 +178,17 @@ void main() {
         luciBuildService: mockLuciBuildService,
         slug: slug,
       );
-      final captured =
-          verify(
-            mockGithubChecksUtil.updateCheckRun(
-              any,
-              any,
-              any,
-              status: captureAnyNamed('status'),
-              conclusion: captureAnyNamed('conclusion'),
-              detailsUrl: anyNamed('detailsUrl'),
-              output: captureAnyNamed('output'),
-            ),
-          ).captured;
+      final captured = verify(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: captureAnyNamed('status'),
+          conclusion: captureAnyNamed('conclusion'),
+          detailsUrl: anyNamed('detailsUrl'),
+          output: captureAnyNamed('output'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0], github.CheckRunStatus.completed);
       expect(captured[1], github.CheckRunConclusion.failure);

@@ -1188,18 +1188,17 @@ class LuciBuildService {
 
   static Iterable<String> _filterFailedEngineBuilds(
     Iterable<bbv2.Build> builds,
-  ) =>
-      builds
-          .where((b) {
-            final failed = const {
-              bbv2.Status.FAILURE,
-              bbv2.Status.INFRA_FAILURE,
-              bbv2.Status.CANCELED,
-            }.contains(b.status);
-            return failed;
-          })
-          .map((b) {
-            return b.input.properties.fields['config_name']?.stringValue;
-          })
-          .nonNulls;
+  ) => builds
+      .where((b) {
+        final failed = const {
+          bbv2.Status.FAILURE,
+          bbv2.Status.INFRA_FAILURE,
+          bbv2.Status.CANCELED,
+        }.contains(b.status);
+        return failed;
+      })
+      .map((b) {
+        return b.input.properties.fields['config_name']?.stringValue;
+      })
+      .nonNulls;
 }

@@ -77,8 +77,9 @@ void main() {
     );
 
     // Verify we actually posted it
-    final [message] =
-        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    final [message] = verify(
+      discord.postTreeStatusMessage(captureAny),
+    ).captured;
     expect(message, contains('flutter/flutter is now :red_circle:!'));
   });
 
@@ -140,8 +141,9 @@ void main() {
     );
 
     // Verify we actually posted it
-    final [String message] =
-        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    final [String message] = verify(
+      discord.postTreeStatusMessage(captureAny),
+    ).captured;
     expect(
       message,
       stringContainsInOrder([
@@ -184,8 +186,9 @@ void main() {
     );
 
     // Verify we actually posted it
-    final [String message] =
-        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    final [String message] = verify(
+      discord.postTreeStatusMessage(captureAny),
+    ).captured;
     expect(
       message,
       stringContainsInOrder([
@@ -245,8 +248,9 @@ void main() {
     );
 
     // Verify we actually posted it
-    final [String message] =
-        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    final [String message] = verify(
+      discord.postTreeStatusMessage(captureAny),
+    ).captured;
     expect(
       message,
       stringContainsInOrder([
@@ -275,8 +279,9 @@ void main() {
     await decodeHandlerBody<Map<String, Object?>>();
 
     // Verify we actually posted it
-    final [String message] =
-        verify(discord.postTreeStatusMessage(captureAny)).captured;
+    final [String message] = verify(
+      discord.postTreeStatusMessage(captureAny),
+    ).captured;
 
     expect(
       message,

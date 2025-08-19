@@ -22,8 +22,9 @@ void main() {
   });
 
   test('.userError', () async {
-    final response =
-        const ProcessCheckRunResult.userError('Do better').toResponse();
+    final response = const ProcessCheckRunResult.userError(
+      'Do better',
+    ).toResponse();
 
     expect(response.statusCode, HttpStatus.badRequest);
     await expectLater(
@@ -33,8 +34,9 @@ void main() {
   });
 
   test('.missingEntity', () async {
-    final response =
-        const ProcessCheckRunResult.missingEntity('No hot dog').toResponse();
+    final response = const ProcessCheckRunResult.missingEntity(
+      'No hot dog',
+    ).toResponse();
 
     expect(response.statusCode, HttpStatus.notFound);
     await expectLater(
@@ -44,12 +46,11 @@ void main() {
   });
 
   test('.internalError', () async {
-    final response =
-        ProcessCheckRunResult.unexpectedError(
-          'Did a really bad thing',
-          error: StateError('Bad thing detected'),
-          stackTrace: StackTrace.current,
-        ).toResponse();
+    final response = ProcessCheckRunResult.unexpectedError(
+      'Did a really bad thing',
+      error: StateError('Bad thing detected'),
+      stackTrace: StackTrace.current,
+    ).toResponse();
 
     expect(response.statusCode, HttpStatus.internalServerError);
     await expectLater(

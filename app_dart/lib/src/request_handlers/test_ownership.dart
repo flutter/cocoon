@@ -68,24 +68,20 @@ class DeviceLabTestOwner implements TestOwner {
     //   /dev/devicelab/bin/tasks/dart_plugin_registry_test.dart @stuartmorgan @flutter/plugin
     final match = devicelabTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final lines =
-          match
-              .namedGroup(kOwnerGroupName)!
-              .split('\n')
-              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-              .toList();
+      final lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.isNotEmpty && !line.startsWith('#'))
+          .toList();
 
       for (final line in lines) {
         final words = line.trim().split(' ');
         // e.g. words = ['/xxx/xxx/xxx_test.dart', '@stuartmorgan' '@flutter/tool']
         if (words[0].endsWith('$testName.dart')) {
           owner = words[1].substring(1); // Strip out the lead '@'
-          team =
-              words.length < 3
-                  ? Team.unknown
-                  : teamFromString(
-                    words[2].substring(1),
-                  ); // Strip out the lead '@'
+          team = words.length < 3
+              ? Team.unknown
+              : teamFromString(words[2].substring(1)); // Strip out the lead '@'
           break;
         }
       }
@@ -105,24 +101,20 @@ class ShardTestOwner implements TestOwner {
     Team? team;
     final match = shardTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final lines =
-          match
-              .namedGroup(kOwnerGroupName)!
-              .split('\n')
-              .where((String line) => line.contains('@'))
-              .toList();
+      final lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.contains('@'))
+          .toList();
 
       for (final line in lines) {
         final words = line.trim().split(' ');
         // e.g. words = ['#', 'build_test', '@zanderso' '@flutter/tool']
         if (testName.contains(words[1])) {
           owner = words[2].substring(1); // Strip out the lead '@'
-          team =
-              words.length < 4
-                  ? Team.unknown
-                  : teamFromString(
-                    words[3].substring(1),
-                  ); // Strip out the lead '@'
+          team = words.length < 4
+              ? Team.unknown
+              : teamFromString(words[3].substring(1)); // Strip out the lead '@'
           break;
         }
       }
@@ -143,12 +135,11 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
     //   /dev/bots/analyze.dart @HansMuller @flutter/framework
     final match = frameworkHostOnlyTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final lines =
-          match
-              .namedGroup(kOwnerGroupName)!
-              .split('\n')
-              .where((String line) => line.isNotEmpty)
-              .toList();
+      final lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.isNotEmpty)
+          .toList();
       var index = 0;
       while (index < lines.length) {
         if (lines[index].startsWith('#')) {
@@ -169,12 +160,11 @@ class FrameworkHostOnlyTestOwner implements TestOwner {
             final ownerWords = lines[index].trim().split(' ');
             // e.g. ownerWords = ['/xxx/xxx/xxx_test.dart', '@HansMuller' '@flutter/framework']
             owner = ownerWords[1].substring(1); // Strip out the lead '@'
-            team =
-                ownerWords.length < 3
-                    ? Team.unknown
-                    : teamFromString(
-                      ownerWords[2].substring(1),
-                    ); // Strip out the lead '@'
+            team = ownerWords.length < 3
+                ? Team.unknown
+                : teamFromString(
+                    ownerWords[2].substring(1),
+                  ); // Strip out the lead '@'
             break;
           }
         }
@@ -197,24 +187,20 @@ class FirebaseLabTestOwner implements TestOwner {
     //   /dev/integration_tests/abstrac_method_smoke_test @blasten @flutter/android
     final match = firebaselabTestOwners.firstMatch(testOwnersContent);
     if (match != null && match.namedGroup(kOwnerGroupName) != null) {
-      final lines =
-          match
-              .namedGroup(kOwnerGroupName)!
-              .split('\n')
-              .where((String line) => line.isNotEmpty && !line.startsWith('#'))
-              .toList();
+      final lines = match
+          .namedGroup(kOwnerGroupName)!
+          .split('\n')
+          .where((String line) => line.isNotEmpty && !line.startsWith('#'))
+          .toList();
 
       for (final line in lines) {
         final words = line.trim().split(' ');
         final dirs = words[0].split('/').toList();
         if (testName.contains(dirs.last)) {
           owner = words[1].substring(1); // Strip out the lead '@'
-          team =
-              words.length < 3
-                  ? Team.unknown
-                  : teamFromString(
-                    words[2].substring(1),
-                  ); // Strip out the lead '@'
+          team = words.length < 3
+              ? Team.unknown
+              : teamFromString(words[2].substring(1)); // Strip out the lead '@'
           break;
         }
       }

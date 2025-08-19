@@ -47,10 +47,9 @@ class GithubService {
     final path = '/repos/${slug.fullName}/commits';
     final params = {
       'sha': branch,
-      'since':
-          DateTime.fromMillisecondsSinceEpoch(
-            (lastCommitTimestampMills ?? 0) + 1,
-          ).toUtc().toIso8601String(),
+      'since': DateTime.fromMillisecondsSinceEpoch(
+        (lastCommitTimestampMills ?? 0) + 1,
+      ).toUtc().toIso8601String(),
     };
     log.debug('Calling ${Uri(path: path, queryParameters: params)}');
     await for (final response in paginationHelper.fetchStreamed(
@@ -78,18 +77,16 @@ class GithubService {
     return commits.map<RepositoryCommit>((Map<String, dynamic> commit) {
       return RepositoryCommit()
         ..sha = commit['sha'] as String?
-        ..author =
-            (User()
-              ..login = commit['author']['login'] as String?
-              ..avatarUrl = commit['author']['avatar_url'] as String?)
-        ..commit =
-            (GitCommit()
-              ..message = commit['commit']['message'] as String?
-              ..committer = (GitCommitUser(
-                commit['commit']['author']['name'] as String?,
-                commit['commit']['author']['email'] as String?,
-                DateTime.parse(commit['commit']['author']['date'] as String),
-              )));
+        ..author = (User()
+          ..login = commit['author']['login'] as String?
+          ..avatarUrl = commit['author']['avatar_url'] as String?)
+        ..commit = (GitCommit()
+          ..message = commit['commit']['message'] as String?
+          ..committer = (GitCommitUser(
+            commit['commit']['author']['name'] as String?,
+            commit['commit']['author']['email'] as String?,
+            DateTime.parse(commit['commit']['author']['date'] as String),
+          )));
     }).toList();
   }
 
@@ -361,11 +358,10 @@ class GithubService {
   Future<List<String>> listFiles(
     RepositorySlug slug,
     int pullRequestNumber,
-  ) async =>
-      github.pullRequests
-          .listFiles(slug, pullRequestNumber)
-          .map((file) => file.filename!)
-          .toList();
+  ) async => github.pullRequests
+      .listFiles(slug, pullRequestNumber)
+      .map((file) => file.filename!)
+      .toList();
 
   /// Gets the file content as UTF8 string of the file specified by the `path`
   /// in the repository.

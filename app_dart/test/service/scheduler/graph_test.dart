@@ -28,16 +28,15 @@ targets:
       test: abc
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(singleTargetConfig);
-      final schedulerConfig =
-          CiYaml(
-            type: CiType.any,
-            slug: Config.flutterSlug,
-            branch: Config.defaultBranch(Config.flutterSlug),
-            config: unCheckedSchedulerConfig,
-            validate: true,
-          ).config;
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(singleTargetConfig);
+      final schedulerConfig = CiYaml(
+        type: CiType.any,
+        slug: Config.flutterSlug,
+        branch: Config.defaultBranch(Config.flutterSlug),
+        config: unCheckedSchedulerConfig,
+        validate: true,
+      ).config;
       expect(schedulerConfig.enabledBranches, <String>['master']);
       expect(schedulerConfig.targets.length, 1);
       final target = schedulerConfig.targets.first;
@@ -61,9 +60,8 @@ targets:
       ''')
               as YamlMap?;
       expect(() {
-        final unCheckedSchedulerConfig =
-            SchedulerConfig()
-              ..mergeFromProto3Json(targetWithNonexistentScheduler);
+        final unCheckedSchedulerConfig = SchedulerConfig()
+          ..mergeFromProto3Json(targetWithNonexistentScheduler);
         // ignore: unnecessary_statements
         CiYaml(
           type: CiType.any,
@@ -85,17 +83,16 @@ targets:
   - name: A
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(configWithDuplicateTargets);
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(configWithDuplicateTargets);
       expect(
-        () =>
-            CiYaml(
-              type: CiType.any,
-              slug: Config.flutterSlug,
-              branch: Config.defaultBranch(Config.flutterSlug),
-              config: unCheckedSchedulerConfig,
-              validate: true,
-            ).config,
+        () => CiYaml(
+          type: CiType.any,
+          slug: Config.flutterSlug,
+          branch: Config.defaultBranch(Config.flutterSlug),
+          config: unCheckedSchedulerConfig,
+          validate: true,
+        ).config,
         throwsA(
           isA<FormatException>().having(
             (FormatException e) => e.toString(),
@@ -119,8 +116,8 @@ targets:
   - name: A
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(totYaml);
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(totYaml);
       totConfig = CiYaml(
         type: CiType.any,
         slug: Config.flutterSlug,
@@ -139,8 +136,8 @@ targets:
   - name: A
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -165,8 +162,8 @@ targets:
     bringup: true
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -190,8 +187,8 @@ targets:
   - name: B
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,
@@ -224,8 +221,8 @@ targets:
     bringup: false
       ''')
               as YamlMap?;
-      final unCheckedSchedulerConfig =
-          SchedulerConfig()..mergeFromProto3Json(currentYaml);
+      final unCheckedSchedulerConfig = SchedulerConfig()
+        ..mergeFromProto3Json(currentYaml);
       expect(
         () => CiYaml(
           type: CiType.any,

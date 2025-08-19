@@ -18,10 +18,9 @@ import 'package:retry/retry.dart';
 /// of entries will be created. Otherwise, it will use the default redis cache.
 class CacheService {
   CacheService({bool inMemory = false, int inMemoryMaxNumberEntries = 256})
-    : _provider =
-          inMemory
-              ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries)
-              : Cache.redisCacheProvider(memorystoreUri);
+    : _provider = inMemory
+          ? Cache.inMemoryCacheProvider(inMemoryMaxNumberEntries)
+          : Cache.redisCacheProvider(memorystoreUri);
 
   final Mutex m = Mutex();
 

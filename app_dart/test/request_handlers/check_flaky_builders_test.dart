@@ -227,14 +227,13 @@ void main() {
                 as Map<String, dynamic>;
 
         // Verify BigQuery is called correctly.
-        var captured =
-            verify(
-              mockBigQueryService.listRecentBuildRecordsForBuilder(
-                captureAny,
-                builder: captureAnyNamed('builder'),
-                limit: captureAnyNamed('limit'),
-              ),
-            ).captured;
+        var captured = verify(
+          mockBigQueryService.listRecentBuildRecordsForBuilder(
+            captureAny,
+            builder: captureAnyNamed('builder'),
+            limit: captureAnyNamed('limit'),
+          ),
+        ).captured;
         expect(captured.length, 3);
         expect(captured[0].toString(), kBigQueryProjectId);
         expect(
@@ -244,15 +243,17 @@ void main() {
         expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
 
         // Verify it gets the correct issue.
-        captured =
-            verify(mockIssuesService.get(captureAny, captureAny)).captured;
+        captured = verify(
+          mockIssuesService.get(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0], Config.flutterSlug);
         expect(captured[1] as int?, existingIssueNumber);
 
         // Verify tree is created correctly.
-        captured =
-            verify(mockGitService.createTree(captureAny, captureAny)).captured;
+        captured = verify(
+          mockGitService.createTree(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
         expect(captured[1], isA<CreateGitTree>());
@@ -268,10 +269,9 @@ void main() {
         expect(tree.entries![0].type, kModifyType);
 
         // Verify commit is created correctly.
-        captured =
-            verify(
-              mockGitService.createCommit(captureAny, captureAny),
-            ).captured;
+        captured = verify(
+          mockGitService.createCommit(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
         expect(captured[1], isA<CreateGitCommit>());
@@ -289,24 +289,18 @@ void main() {
         expect(commit.parents![0], kCurrentMasterSHA);
 
         // Verify reference is created correctly.
-        captured =
-            verify(
-              mockGitService.createReference(
-                captureAny,
-                captureAny,
-                captureAny,
-              ),
-            ).captured;
+        captured = verify(
+          mockGitService.createReference(captureAny, captureAny, captureAny),
+        ).captured;
         expect(captured.length, 3);
         expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
         expect(captured[2], expectedSemanticsIntegrationTestTreeSha);
         final ref = captured[1] as String?;
 
         // Verify pr is created correctly.
-        captured =
-            verify(
-              mockPullRequestsService.create(captureAny, captureAny),
-            ).captured;
+        captured = verify(
+          mockPullRequestsService.create(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), Config.flutterSlug.toString());
         expect(captured[1], isA<CreatePullRequest>());
@@ -402,14 +396,13 @@ void main() {
                 as Map<String, dynamic>;
 
         // Verify BigQuery is called correctly.
-        var captured =
-            verify(
-              mockBigQueryService.listRecentBuildRecordsForBuilder(
-                captureAny,
-                builder: captureAnyNamed('builder'),
-                limit: captureAnyNamed('limit'),
-              ),
-            ).captured;
+        var captured = verify(
+          mockBigQueryService.listRecentBuildRecordsForBuilder(
+            captureAny,
+            builder: captureAnyNamed('builder'),
+            limit: captureAnyNamed('limit'),
+          ),
+        ).captured;
         expect(captured.length, 3);
         expect(captured[0].toString(), kBigQueryProjectId);
         expect(
@@ -422,8 +415,9 @@ void main() {
         verifyNever(mockIssuesService.get(captureAny, captureAny));
 
         // Verify tree is created correctly.
-        captured =
-            verify(mockGitService.createTree(captureAny, captureAny)).captured;
+        captured = verify(
+          mockGitService.createTree(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
         expect(captured[1], isA<CreateGitTree>());
@@ -439,10 +433,9 @@ void main() {
         expect(tree.entries![0].type, kModifyType);
 
         // Verify commit is created correctly.
-        captured =
-            verify(
-              mockGitService.createCommit(captureAny, captureAny),
-            ).captured;
+        captured = verify(
+          mockGitService.createCommit(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
         expect(captured[1], isA<CreateGitCommit>());
@@ -460,24 +453,18 @@ void main() {
         expect(commit.parents![0], kCurrentMasterSHA);
 
         // Verify reference is created correctly.
-        captured =
-            verify(
-              mockGitService.createReference(
-                captureAny,
-                captureAny,
-                captureAny,
-              ),
-            ).captured;
+        captured = verify(
+          mockGitService.createReference(captureAny, captureAny, captureAny),
+        ).captured;
         expect(captured.length, 3);
         expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
         expect(captured[2], expectedSemanticsIntegrationTestTreeSha);
         final ref = captured[1] as String?;
 
         // Verify pr is created correctly.
-        captured =
-            verify(
-              mockPullRequestsService.create(captureAny, captureAny),
-            ).captured;
+        captured = verify(
+          mockPullRequestsService.create(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), Config.flutterSlug.toString());
         expect(captured[1], isA<CreatePullRequest>());
@@ -572,8 +559,9 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify it gets the correct issue.
-      final captured =
-          verify(mockIssuesService.get(captureAny, captureAny)).captured;
+      final captured = verify(
+        mockIssuesService.get(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0], Config.flutterSlug);
       expect(captured[1] as int?, existingIssueNumber);
@@ -727,14 +715,13 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      var captured =
-          verify(
-            mockBigQueryService.listRecentBuildRecordsForBuilder(
-              captureAny,
-              builder: captureAnyNamed('builder'),
-              limit: captureAnyNamed('limit'),
-            ),
-          ).captured;
+      var captured = verify(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
+          captureAny,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(
@@ -854,14 +841,13 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify BigQuery is called correctly.
-      var captured =
-          verify(
-            mockBigQueryService.listRecentBuildRecordsForBuilder(
-              captureAny,
-              builder: captureAnyNamed('builder'),
-              limit: captureAnyNamed('limit'),
-            ),
-          ).captured;
+      var captured = verify(
+        mockBigQueryService.listRecentBuildRecordsForBuilder(
+          captureAny,
+          builder: captureAnyNamed('builder'),
+          limit: captureAnyNamed('limit'),
+        ),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), kBigQueryProjectId);
       expect(
@@ -949,8 +935,8 @@ void main() {
 
     test('getIgnoreFlakiness handles non-existing builderame', () async {
       final ci = loadYaml(ciYamlContent) as YamlMap?;
-      final unCheckedSchedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final unCheckedSchedulerConfig = pb.SchedulerConfig()
+        ..mergeFromProto3Json(ci);
       final ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),

@@ -85,10 +85,9 @@ void main() {
       final Entry<Uint8List> entry = FakeEntry();
       // Only on the first call do we want it to throw the exception.
       when(mockTestSubcache['does not matter']).thenAnswer(
-        (Invocation invocation) =>
-            getCallCount++ < 1
-                ? throw Exception('simulate stream sink error')
-                : entry,
+        (Invocation invocation) => getCallCount++ < 1
+            ? throw Exception('simulate stream sink error')
+            : entry,
       );
 
       cache.cacheValue = mockMainCache;
@@ -115,8 +114,8 @@ void main() {
       when(mockTestSubcache['does not matter']).thenAnswer(
         (Invocation invocation) =>
             getCallCount++ < CacheService.maxCacheGetAttempts
-                ? throw Exception('simulate stream sink error')
-                : entry,
+            ? throw Exception('simulate stream sink error')
+            : entry,
       );
 
       cache.cacheValue = mockMainCache;

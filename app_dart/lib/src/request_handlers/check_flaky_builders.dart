@@ -63,8 +63,8 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
     );
     final ciContent = await gitHub.getFileContent(slug, kCiYamlPath);
     final ci = loadYaml(ciContent) as YamlMap?;
-    final unCheckedSchedulerConfig =
-        pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final unCheckedSchedulerConfig = pb.SchedulerConfig()
+      ..mergeFromProto3Json(ci);
     final ciYaml = CiYamlSet(
       slug: slug,
       branch: Config.defaultBranch(slug),
@@ -154,11 +154,10 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
   }) async {
     final ci = loadYaml(content) as YamlMap;
     final targets = ci[kCiYamlTargetsKey] as YamlList;
-    final flakyTargets =
-        targets
-            .where((dynamic target) => target[kCiYamlTargetIsFlakyKey] == true)
-            .map<YamlMap?>((dynamic target) => target as YamlMap?)
-            .toList();
+    final flakyTargets = targets
+        .where((dynamic target) => target[kCiYamlTargetIsFlakyKey] == true)
+        .map<YamlMap?>((dynamic target) => target as YamlMap?)
+        .toList();
     log.debug(
       'Possibly eligible flaky builders:\n'
       '${flakyTargets.map((t) => t![kCiYamlTargetNameKey]).join('\n')}',
@@ -200,11 +199,10 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
             toBeAdded = _BuilderInfo(name: builder);
             break;
           }
-          final issue =
-              await gitHub.getIssue(
-                slug,
-                issueNumber: int.parse(match.namedGroup('id')!),
-              )!;
+          final issue = await gitHub.getIssue(
+            slug,
+            issueNumber: int.parse(match.namedGroup('id')!),
+          )!;
           // issue.isClosed checks for (strictly) "CLOSED", sigh.
           if (issue.state.toLowerCase() == 'closed') {
             toBeAdded = _BuilderInfo(name: builder, existingIssue: issue);
