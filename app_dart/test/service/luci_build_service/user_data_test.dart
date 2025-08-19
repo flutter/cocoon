@@ -16,6 +16,7 @@ void main() {
     test('should encode to JSON', () {
       final userData = PresubmitUserData(
         checkRunId: 1234,
+        checkSuiteId: 5678,
         commit: CommitRef(
           slug: RepositorySlug('repo-owner', 'repo-name'),
           sha: 'abc123',
@@ -24,6 +25,7 @@ void main() {
       );
       expect(userData.toJson(), {
         'check_run_id': 1234,
+        'check_suite_id': 5678,
         'commit_sha': 'abc123',
         'commit_branch': 'main',
         'repo_owner': 'repo-owner',
@@ -35,6 +37,7 @@ void main() {
       expect(
         PresubmitUserData.fromJson(const {
           'check_run_id': 1234,
+          'check_suite_id': 5678,
           'commit_sha': 'abc123',
           'commit_branch': 'main',
           'repo_owner': 'repo-owner',
@@ -42,6 +45,7 @@ void main() {
         }),
         PresubmitUserData(
           checkRunId: 1234,
+          checkSuiteId: 5678,
           commit: CommitRef(
             slug: RepositorySlug('repo-owner', 'repo-name'),
             sha: 'abc123',
@@ -66,6 +70,7 @@ void main() {
     test('should encode/decode to bytes', () {
       final userData = PresubmitUserData(
         checkRunId: 1234,
+        checkSuiteId: 5678,
         commit: CommitRef(
           slug: RepositorySlug('repo-owner', 'repo-name'),
           sha: 'abc123',

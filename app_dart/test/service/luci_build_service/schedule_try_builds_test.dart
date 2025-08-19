@@ -121,6 +121,7 @@ void main() {
       PresubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PresubmitUserData(
         checkRunId: 1,
+        checkSuiteId: 2,
         commit: CommitRef(
           slug: RepositorySlug('flutter', 'flutter'),
           sha: 'headsha123',
@@ -213,6 +214,7 @@ void main() {
       PresubmitUserData.fromBytes(scheduleBuild.notify.userData),
       PresubmitUserData(
         checkRunId: 1,
+        checkSuiteId: 2,
         commit: CommitRef(
           slug: RepositorySlug('flutter', 'flutter'),
           sha: 'headsha123',
@@ -491,6 +493,7 @@ void main() {
           nextAttempt: 2,
           userData: PresubmitUserData(
             checkRunId: 1234,
+            checkSuiteId: 5678,
             commit: CommitRef(
               slug: RepositorySlug('flutter', 'flutter'),
               sha: 'abc123',
@@ -525,6 +528,7 @@ void main() {
           nextAttempt: 2,
           userData: PresubmitUserData(
             checkRunId: 1234,
+            checkSuiteId: 5678,
             commit: CommitRef(
               slug: RepositorySlug('flutter', 'flutter'),
               sha: 'abc123',

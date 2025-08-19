@@ -259,6 +259,7 @@ class LuciBuildService {
           branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
         ),
         checkRunId: checkRun.id!,
+        checkSuiteId: checkRun.checkSuiteId!,
       );
 
       final properties = target.getProperties();
@@ -935,6 +936,7 @@ class LuciBuildService {
     final preUserData = PresubmitUserData(
       commit: commit,
       checkRunId: checkRun.id!,
+      checkSuiteId: checkRun.checkSuiteId!,
     );
     final processedProperties = target.getProperties().cast<String, Object?>();
     processedProperties['git_branch'] = commit.branch;

@@ -931,13 +931,12 @@ $s
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompletion(
-    cocoon_checks.CheckRunEvent checkRunEvent,
+  Future<bool> processCheckRunCompleted(
+    cocoon_checks.CheckRun checkRun,
+    RepositorySlug? slug,
   ) async {
-    final checkRun = checkRunEvent.checkRun!;
     final name = checkRun.name;
     final sha = checkRun.headSha;
-    final slug = checkRunEvent.repository?.slug();
     final conclusion = TaskConclusion.fromName(checkRun.conclusion);
 
     if (name == null ||
@@ -1397,9 +1396,13 @@ $stacktrace
   ) async {
     switch (checkRunEvent.action) {
       case 'completed':
-        await processCheckRunCompletion(checkRunEvent);
+        if (!_config.flags.closeMqGuardAfterPresubmit) {
+          await processCheckRunCompleted(
+            checkRunEvent.checkRun!,
+            checkRunEvent.repository?.slug(),
+          );
+        }
         return const ProcessCheckRunResult.success();
-
       case 'rerequested':
         log.debug(
           'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
