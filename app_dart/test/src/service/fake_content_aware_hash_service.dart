@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dart';
 import 'package:cocoon_service/src/model/github/workflow_job.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
@@ -78,5 +79,12 @@ class FakeContentAwareHashService implements ContentAwareHashService {
   @override
   Future<String?> getHashByCommitSha(String commitSha) async {
     return hashByCommit[commitSha];
+  }
+
+  final buildsByHash = <String, ContentAwareHashBuilds>{};
+
+  @override
+  Future<List<ContentAwareHashBuilds>> getBuildsByHash(String hash) async {
+    return [?buildsByHash[hash]];
   }
 }

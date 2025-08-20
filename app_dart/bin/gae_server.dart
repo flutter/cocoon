@@ -91,6 +91,11 @@ Future<void> main() async {
       firestore: firestore,
     );
 
+    final contentHashService = ContentAwareHashService(
+      config: config,
+      firestore: firestore,
+    );
+
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final scheduler = Scheduler(
       cache: cache,
@@ -99,10 +104,7 @@ Future<void> main() async {
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
-      contentAwareHash: ContentAwareHashService(
-        config: config,
-        firestore: firestore,
-      ),
+      contentAwareHash: contentHashService,
       firestore: firestore,
       bigQuery: bigQuery,
     );
@@ -131,6 +133,7 @@ Future<void> main() async {
       swarmingAuthProvider: swarmingAuthProvider,
       ciYamlFetcher: ciYamlFetcher,
       buildStatusService: buildStatusService,
+      contentAwareHashService: contentHashService,
     );
 
     return runAppEngine(

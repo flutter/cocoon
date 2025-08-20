@@ -17,6 +17,6 @@ GrpcStatus _$GrpcStatusFromJson(Map<String, dynamic> json) => GrpcStatus(
 Map<String, dynamic> _$GrpcStatusToJson(GrpcStatus instance) =>
     <String, dynamic>{
       'code': instance.code,
-      'message': ?instance.message,
-      'details': ?instance.details,
+      if (instance.message case final value?) 'message': value,
+      if (instance.details case final value?) 'details': value,
     };
