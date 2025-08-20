@@ -1103,12 +1103,11 @@ class LuciBuildService {
     );
 
     // We need to first look up: what is the full build ID given a build number?
-    final Int64 buildId;
+    final bbv2.Build build;
     try {
-      final build = await _buildBucketClient.getBuild(
+      build = await _buildBucketClient.getBuild(
         bbv2.GetBuildRequest(buildNumber: task.buildNumber, builder: builderId),
       );
-      buildId = build.id;
     } on BuildBucketException catch (e) {
       if (e.statusCode == 404) {
         log.error('No build found for ${task.buildNumber} in $builderId');
@@ -1123,7 +1122,7 @@ class LuciBuildService {
     // https://flutter.googlesource.com/recipes/+/refs/heads/main/recipes/release/release_builder.py#162
     final search = await _buildBucketClient.searchBuilds(
       bbv2.SearchBuildsRequest(
-        predicate: bbv2.BuildPredicate(childOf: buildId),
+        predicate: bbv2.BuildPredicate(childOf: build.id),
         // build.name is not available by default unless requested (http://shortn/_JMHFmMhfPn)
         mask: bbv2.BuildMask(
           inputProperties: [
@@ -1135,15 +1134,15 @@ class LuciBuildService {
     );
     if (search.builds.isEmpty) {
       log.warn(
-        'No builds found for $buildId. This can occur when the previous build '
-        'completely failed, i.e. no builds were successfully spawned. A full '
-        'rebuild will be triggered',
+        'No builds found for ${build.id}. This can occur when the previous '
+        'build completely failed, i.e. no builds were successfully spawned. A '
+        'full rebuild will be triggered',
       );
     }
     final failedEngineBuilds = [..._filterFailedEngineBuilds(search.builds)];
     if (failedEngineBuilds.isEmpty) {
       log.info(
-        'No failing engine builds found for $buildId, will rerun all builds',
+        'No failing engine builds found for ${build.id}, will rerun all builds',
       );
     } else {
       log.debug(
@@ -1156,12 +1155,8 @@ class LuciBuildService {
         builder: builderId,
         // Release builds intentionally use ToT for recipe branches.
         exe: null,
-        gitilesCommit: bbv2.GitilesCommit(
-          project: 'mirrors/${commit.slug.name}',
-          host: 'flutter.googlesource.com',
-          ref: 'refs/heads/${commit.branch}',
-          id: commit.sha,
-        ),
+        gitilesCommit: build.input.gitilesCommit,
+        tags: build.tags,
         // Explicitly omitted. We don't want a custom callback, and instead will
         // rely on the (automatic) callback that happens as part of the dart-interrnal
         // LUCI configuration:
@@ -1170,6 +1165,8 @@ class LuciBuildService {
         // See https://flutter.googlesource.com/recipes/+/58bceb87e4a3d3b60e7f148c082eb262db7fd4bb/recipes/release/release_builder.py#162.
         properties: bbv2.Struct(
           fields: {
+            // Use the existing build inputs to run in the same state.
+            ...build.input.properties.fields,
             if (failedEngineBuilds.isNotEmpty)
               'retry_override_list': bbv2.Value(
                 stringValue: failedEngineBuilds.join(' '),
