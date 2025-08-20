@@ -91,14 +91,13 @@ final class VacuumGithubCommits extends ApiRequestHandler {
       log.debug('Retrieved ${commits.length} commits from GitHub');
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
-      commits =
-          commits
-              .where(
-                (commit) =>
-                    commit.commit!.committer!.date!.millisecondsSinceEpoch <
-                    queryBefore.millisecondsSinceEpoch,
-              )
-              .toList();
+      commits = commits
+          .where(
+            (commit) =>
+                commit.commit!.committer!.date!.millisecondsSinceEpoch <
+                queryBefore.millisecondsSinceEpoch,
+          )
+          .toList();
     } on gh.GitHubError catch (e) {
       log.error('Failed retriving commits from GitHub', e);
     }

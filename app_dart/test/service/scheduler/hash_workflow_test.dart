@@ -79,7 +79,7 @@ void main() {
       final sha = inv.positionalArguments[2] as String;
       final name = inv.positionalArguments[3] as String?;
       checkRuns.add(
-        createCheckRun(
+        createGithubCheckRun(
           id: 1,
           owner: slug.owner,
           repo: slug.name,

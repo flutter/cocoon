@@ -146,10 +146,9 @@ class IssueUpdateBuilder {
   String get bucketString => bucket.toString().split('.').last;
 
   List<String> get issueLabels {
-    final existingLabels =
-        existingIssue.labels
-            .map<String>((IssueLabel label) => label.name)
-            .toList();
+    final existingLabels = existingIssue.labels
+        .map<String>((IssueLabel label) => label.name)
+        .toList();
     // Update the priority.
     if (!existingLabels.contains(kP0Label) && !isBelow) {
       existingLabels.add(kP0Label);
@@ -164,7 +163,8 @@ class IssueUpdateBuilder {
     var result =
         '[$bucketString pool] flaky ratio for the past (up to) 100 commits between ${statistic.fromDate} and ${statistic.toDate} is ${_formatRate(statistic.flakyRate)}%. Flaky number: ${statistic.flakyNumber}; total number: ${statistic.totalNumber}.\n';
     if (statistic.flakyRate > 0.0) {
-      result += '''
+      result +=
+          '''
 One recent flaky example for a same commit: ${_issueBuildLink(builder: statistic.name, build: statistic.flakyBuildOfRecentCommit, bucket: bucket)}
 Commit: $_commitPrefix${statistic.recentCommit}
 Flaky builds:
@@ -472,8 +472,9 @@ String _issueBuildLink({
   String? build,
   Bucket bucket = Bucket.prod,
 }) {
-  final buildPrefix =
-      bucket == Bucket.staging ? _stagingBuildPrefix : _prodBuildPrefix;
+  final buildPrefix = bucket == Bucket.staging
+      ? _stagingBuildPrefix
+      : _prodBuildPrefix;
   return Uri.encodeFull('$buildPrefix$builder/$build');
 }
 

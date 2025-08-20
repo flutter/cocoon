@@ -342,7 +342,8 @@ final class CiStaging extends AppDocument<CiStaging> {
           checkRunGuard: null,
           failed: failed,
           summary: 'Internal server error',
-          details: '''
+          details:
+              '''
 Staging document not found for CI stage "$stage" for $changeCrumb. Got 404 from
 Firestore.
 
@@ -372,28 +373,25 @@ $stack
       '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
     );
     return StagingConclusion(
-      result:
-          valid
-              ? StagingConclusionResult.ok
-              : StagingConclusionResult.internalError,
+      result: valid
+          ? StagingConclusionResult.ok
+          : StagingConclusionResult.internalError,
       remaining: remaining,
       checkRunGuard: checkRunGuard,
       failed: failed,
-      summary:
-          valid
-              ? 'All tests passed'
-              : 'Not a valid state transition for $checkRun',
-      details:
-          valid
-              ? '''
+      summary: valid
+          ? 'All tests passed'
+          : 'Not a valid state transition for $checkRun',
+      details: valid
+          ? '''
 For CI stage $stage:
   Total check runs scheduled: $total
   Pending: $remaining
   Failed: $failed
 '''
-              : ''
-                  'Attempted to transition the state of check run $checkRun '
-                  'from "${recordedConclusion.name}" to "${conclusion.name}".',
+          : ''
+                'Attempted to transition the state of check run $checkRun '
+                'from "${recordedConclusion.name}" to "${conclusion.name}".',
     );
   }
 
@@ -435,12 +433,11 @@ For CI stage $stage:
       final newDoc = await firestoreService.createDocument(
         document,
         collectionId: _collectionId,
-        documentId:
-            documentIdFor(
-              slug: slug,
-              sha: sha,
-              stage: stage, //
-            ).documentId,
+        documentId: documentIdFor(
+          slug: slug,
+          sha: sha,
+          stage: stage, //
+        ).documentId,
       );
       log.info('$logCrumb: document created');
       return newDoc;

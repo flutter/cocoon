@@ -225,8 +225,9 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify issue is created correctly.
-      var captured =
-          verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      var captured = verify(
+        mockIssuesService.create(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
@@ -246,20 +247,16 @@ void main() {
       );
 
       // Verify issue label is added correctly.
-      captured =
-          verify(
-            mockIssuesService.addLabelsToIssue(
-              captureAny,
-              captureAny,
-              captureAny,
-            ),
-          ).captured;
+      captured = verify(
+        mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[2], ['team-framework']);
 
       // Verify tree is created correctly.
-      captured =
-          verify(mockGitService.createTree(captureAny, captureAny)).captured;
+      captured = verify(
+        mockGitService.createTree(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
       expect(captured[1], isA<CreateGitTree>());
@@ -275,8 +272,9 @@ void main() {
       expect(tree.entries![0].type, kModifyType);
 
       // Verify commit is created correctly.
-      captured =
-          verify(mockGitService.createCommit(captureAny, captureAny)).captured;
+      captured = verify(
+        mockGitService.createCommit(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
       expect(captured[1], isA<CreateGitCommit>());
@@ -291,20 +289,18 @@ void main() {
       expect(commit.parents![0], kCurrentMasterSHA);
 
       // Verify reference is created correctly.
-      captured =
-          verify(
-            mockGitService.createReference(captureAny, captureAny, captureAny),
-          ).captured;
+      captured = verify(
+        mockGitService.createReference(captureAny, captureAny, captureAny),
+      ).captured;
       expect(captured.length, 3);
       expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
       expect(captured[2], expectedSemanticsIntegrationTestTreeSha);
       final ref = captured[1] as String?;
 
       // Verify pr is created correctly.
-      captured =
-          verify(
-            mockPullRequestsService.create(captureAny, captureAny),
-          ).captured;
+      captured = verify(
+        mockPullRequestsService.create(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
@@ -539,8 +535,9 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify issue is created correctly.
-      var captured =
-          verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      var captured = verify(
+        mockIssuesService.create(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
@@ -555,10 +552,9 @@ void main() {
       );
 
       // Verify pr is created correctly.
-      captured =
-          verify(
-            mockPullRequestsService.create(captureAny, captureAny),
-          ).captured;
+      captured = verify(
+        mockPullRequestsService.create(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<CreatePullRequest>());
@@ -636,8 +632,9 @@ void main() {
                 as Map<String, dynamic>;
 
         // Verify issue is created correctly.
-        final captured =
-            verify(mockIssuesService.create(captureAny, captureAny)).captured;
+        final captured = verify(
+          mockIssuesService.create(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), Config.flutterSlug.toString());
         expect(captured[1], isA<IssueRequest>());
@@ -669,8 +666,9 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify issue is created correctly.
-      final captured =
-          verify(mockIssuesService.create(captureAny, captureAny)).captured;
+      final captured = verify(
+        mockIssuesService.create(captureAny, captureAny),
+      ).captured;
       expect(captured.length, 2);
       expect(captured[0].toString(), Config.flutterSlug.toString());
       expect(captured[1], isA<IssueRequest>());
@@ -915,8 +913,9 @@ void main() {
                     .single
                 as Map<String, dynamic>;
         // Verify issue is created correctly.
-        final captured =
-            verify(mockIssuesService.create(captureAny, captureAny)).captured;
+        final captured = verify(
+          mockIssuesService.create(captureAny, captureAny),
+        ).captured;
         expect(captured.length, 2);
         expect(captured[0].toString(), Config.flutterSlug.toString());
         expect(captured[1], isA<IssueRequest>());
@@ -1012,8 +1011,8 @@ void main() {
 
     test('skips when the target doesn not exist', () {
       final ci = loadYaml(ciYamlContent) as YamlMap?;
-      final unCheckedSchedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final unCheckedSchedulerConfig = pb.SchedulerConfig()
+        ..mergeFromProto3Json(ci);
       final ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -1038,8 +1037,8 @@ void main() {
 
     test('skips if the flakiness_threshold is not met', () {
       final ci = loadYaml(ciYamlContent) as YamlMap?;
-      final unCheckedSchedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final unCheckedSchedulerConfig = pb.SchedulerConfig()
+        ..mergeFromProto3Json(ci);
       final ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -1065,8 +1064,8 @@ void main() {
 
     test('honors the flakiness_threshold', () {
       final ci = loadYaml(ciYamlContent) as YamlMap?;
-      final unCheckedSchedulerConfig =
-          pb.SchedulerConfig()..mergeFromProto3Json(ci);
+      final unCheckedSchedulerConfig = pb.SchedulerConfig()
+        ..mergeFromProto3Json(ci);
       final ciYaml = CiYamlSet(
         slug: Config.flutterSlug,
         branch: Config.defaultBranch(Config.flutterSlug),
@@ -1100,8 +1099,8 @@ void main() {
 
   test('getIgnoreFlakiness handles non-existing builderame', () async {
     final ci = loadYaml(ciYamlContent) as YamlMap?;
-    final unCheckedSchedulerConfig =
-        pb.SchedulerConfig()..mergeFromProto3Json(ci);
+    final unCheckedSchedulerConfig = pb.SchedulerConfig()
+      ..mergeFromProto3Json(ci);
     final ciYaml = CiYamlSet(
       slug: Config.flutterSlug,
       branch: Config.defaultBranch(Config.flutterSlug),

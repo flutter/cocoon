@@ -63,7 +63,8 @@ final class RerunProdTask extends ApiRequestHandler {
       _paramRepo: String repo,
       _paramCommitSha: String commitSha,
       _paramTaskName: String taskName,
-    } = requestData.cast<String, String>();
+    } = requestData
+        .cast<String, String>();
 
     final email = authContext?.email ?? 'EMAIL-MISSING';
 
@@ -174,14 +175,13 @@ final class RerunProdTask extends ApiRequestHandler {
     // Find the latest task for each task for this commit.
     final transaction = await _firestore.beginTransaction();
 
-    final latestTasks =
-        CommitAndTasks(
-          commit,
-          await _firestore.queryAllTasksForCommit(
-            commitSha: commit.sha,
-            transaction: transaction,
-          ),
-        ).withMostRecentTaskOnly().tasks;
+    final latestTasks = CommitAndTasks(
+      commit,
+      await _firestore.queryAllTasksForCommit(
+        commitSha: commit.sha,
+        transaction: transaction,
+      ),
+    ).withMostRecentTaskOnly().tasks;
 
     final wasMarkedNew = <String>[];
     final documentWrites = <g.Write>[];

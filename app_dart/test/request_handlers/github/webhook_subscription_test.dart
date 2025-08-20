@@ -678,10 +678,9 @@ void main() {
 
       await tester.post(webhook);
 
-      final reviews =
-          verify(
-            pullRequestsService.createReview(Config.flutterSlug, captureAny),
-          ).captured;
+      final reviews = verify(
+        pullRequestsService.createReview(Config.flutterSlug, captureAny),
+      ).captured;
       expect(reviews.length, 1);
       final review = reviews.single as CreatePullRequestReview;
       expect(review.event, 'APPROVE');
@@ -2762,8 +2761,8 @@ void foo() {
           ]);
         });
 
-        fakeBuildBucketClient.batchResponse =
-            (_, _) => Future<bbv2.BatchResponse>.value(
+        fakeBuildBucketClient.batchResponse = (_, _) =>
+            Future<bbv2.BatchResponse>.value(
               bbv2.BatchResponse(
                 responses: <bbv2.BatchResponse_Response>[
                   bbv2.BatchResponse_Response(
@@ -2880,8 +2879,8 @@ void foo() {
       test(
         'When synchronized, cancels existing builds and schedules new ones',
         () async {
-          fakeBuildBucketClient.batchResponse =
-              (_, _) => Future<bbv2.BatchResponse>.value(
+          fakeBuildBucketClient.batchResponse = (_, _) =>
+              Future<bbv2.BatchResponse>.value(
                 bbv2.BatchResponse(
                   responses: <bbv2.BatchResponse_Response>[
                     bbv2.BatchResponse_Response(
@@ -3524,14 +3523,12 @@ void foo() {
 
         for (final request in batchRequest.requests) {
           if (request.hasSearchBuilds()) {
-            final requestSha =
-                request.searchBuilds.predicate.tags
-                    .singleWhere((tag) => tag.key == 'buildset')
-                    .value;
-            final userAgent =
-                request.searchBuilds.predicate.tags
-                    .singleWhere((tag) => tag.key == 'user_agent')
-                    .value;
+            final requestSha = request.searchBuilds.predicate.tags
+                .singleWhere((tag) => tag.key == 'buildset')
+                .value;
+            final userAgent = request.searchBuilds.predicate.tags
+                .singleWhere((tag) => tag.key == 'user_agent')
+                .value;
             luciLog.add('search builds for $requestSha by $userAgent');
             batchResponseResponses.add(
               bbv2.BatchResponse_Response(
@@ -3650,14 +3647,12 @@ void foo() {
 
         for (final request in batchRequest.requests) {
           if (request.hasSearchBuilds()) {
-            final requestSha =
-                request.searchBuilds.predicate.tags
-                    .singleWhere((tag) => tag.key == 'buildset')
-                    .value;
-            final userAgent =
-                request.searchBuilds.predicate.tags
-                    .singleWhere((tag) => tag.key == 'user_agent')
-                    .value;
+            final requestSha = request.searchBuilds.predicate.tags
+                .singleWhere((tag) => tag.key == 'buildset')
+                .value;
+            final userAgent = request.searchBuilds.predicate.tags
+                .singleWhere((tag) => tag.key == 'user_agent')
+                .value;
             luciLog.add('search builds for $requestSha by $userAgent');
             batchResponseResponses.add(
               bbv2.BatchResponse_Response(

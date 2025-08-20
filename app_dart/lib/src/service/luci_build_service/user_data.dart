@@ -61,10 +61,12 @@ sealed class BuildBucketUserData {
 abstract final class PresubmitUserData extends BuildBucketUserData {
   const PresubmitUserData._();
 
-  /// Creates presubmit user data for the provided [commit] and [checkRunId].
+  /// Creates presubmit user data for the provided [commit],
+  /// [checkRunId] and [checkSuiteId].
   factory PresubmitUserData({
     required CommitRef commit,
     required int checkRunId,
+    required int checkSuiteId,
   }) {
     return _PresubmitUserData(
       repoOwner: commit.slug.owner,
@@ -72,6 +74,7 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
       commitBranch: commit.branch,
       commitSha: commit.sha,
       checkRunId: checkRunId,
+      checkSuiteId: checkSuiteId,
     );
   }
 
@@ -100,6 +103,8 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
 
   /// Which GitHub check run this build reports status to.
   int get checkRunId;
+
+  int get checkSuiteId;
 }
 
 @JsonSerializable(checked: true)
@@ -110,6 +115,7 @@ final class _PresubmitUserData extends PresubmitUserData {
     required this.commitBranch,
     required this.commitSha,
     required this.checkRunId,
+    required this.checkSuiteId,
   }) : super._();
 
   /// The owner of the GitHub repo, i.e. `flutter` or `matanlurey`.
@@ -131,6 +137,10 @@ final class _PresubmitUserData extends PresubmitUserData {
   @JsonKey(name: 'check_run_id')
   @override
   final int checkRunId;
+
+  @JsonKey(name: 'check_suite_id')
+  @override
+  final int checkSuiteId;
 
   @override
   CommitRef get commit {

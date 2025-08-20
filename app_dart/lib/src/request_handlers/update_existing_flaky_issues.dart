@@ -125,12 +125,11 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
       final schedulerConfig = ciYaml.configFor(CiType.any);
       final targets = schedulerConfig.targets;
 
-      final testOwner =
-          getTestOwnership(
-            targets.singleWhere((element) => element.name == statistic.name),
-            getTypeForBuilder(statistic.name, ciYaml),
-            testOwnerContent,
-          ).owner;
+      final testOwner = getTestOwnership(
+        targets.singleWhere((element) => element.name == statistic.name),
+        getTypeForBuilder(statistic.name, ciYaml),
+        testOwnerContent,
+      ).owner;
       if (testOwner != null) {
         await gitHub.assignIssue(
           slug,

@@ -22,8 +22,8 @@ void main(List<String> args) async {
   }
 
   final configYaml = loadYaml(configFile.readAsStringSync()) as YamlMap;
-  final unCheckedSchedulerConfig =
-      pb.SchedulerConfig()..mergeFromProto3Json(configYaml);
+  final unCheckedSchedulerConfig = pb.SchedulerConfig()
+    ..mergeFromProto3Json(configYaml);
   print(
     CiYaml(
       type: CiType.any,

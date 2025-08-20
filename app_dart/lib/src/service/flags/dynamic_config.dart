@@ -37,6 +37,7 @@ final class DynamicConfig {
     backfillerCommitLimit: 50,
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
+    closeMqGuardAfterPresubmit: false,
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -54,10 +55,16 @@ final class DynamicConfig {
   @JsonKey()
   final CiYamlFlags ciYaml;
 
+  /// Whether to close the MQ guard right after LUCI presubmit compleated
+  /// instead of doing that as part of the `check_run` GitHub event handling.
+  @JsonKey()
+  final bool closeMqGuardAfterPresubmit;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
     required this.ciYaml,
     required this.contentAwareHashing,
+    required this.closeMqGuardAfterPresubmit,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -67,6 +74,7 @@ final class DynamicConfig {
     int? backfillerCommitLimit,
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
+    bool? closeMqGuardAfterPresubmit,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -74,6 +82,9 @@ final class DynamicConfig {
       ciYaml: ciYaml ?? defaultInstance.ciYaml,
       contentAwareHashing:
           contentAwareHashing ?? defaultInstance.contentAwareHashing,
+      closeMqGuardAfterPresubmit:
+          closeMqGuardAfterPresubmit ??
+          defaultInstance.closeMqGuardAfterPresubmit,
     );
   }
 

@@ -46,6 +46,13 @@ $ dart run build_runner build
 
 Any updates should be checked into source control.
 
+#### Mockito
+To generate Mockito mock classes, run:
+
+```sh
+$ dart run build_runner build
+```
+
 #### Protobuf
 
 To update the Protocol Buffer generated code:

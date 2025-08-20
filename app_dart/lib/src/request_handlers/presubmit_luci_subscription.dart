@@ -7,10 +7,12 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
+import 'package:github/github.dart';
 
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
+import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/authentication.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -20,6 +22,7 @@ import '../service/github_checks_service.dart';
 import '../service/luci_build_service.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/user_data.dart';
+import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
@@ -42,15 +45,18 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     required LuciBuildService luciBuildService,
     required GithubChecksService githubChecksService,
     required CiYamlFetcher ciYamlFetcher,
+    required Scheduler scheduler,
     AuthenticationProvider? authProvider,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _githubChecksService = githubChecksService,
        _luciBuildService = luciBuildService,
+       _scheduler = scheduler,
        super(subscriptionName: 'build-bucket-presubmit-sub');
 
   final LuciBuildService _luciBuildService;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
+  final Scheduler _scheduler;
 
   @override
   Future<Response> post(Request request) async {
@@ -121,6 +127,29 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       slug: userData.commit.slug,
       rescheduled: rescheduled,
     );
+
+    if (!rescheduled && config.flags.closeMqGuardAfterPresubmit) {
+      // Process to the check-run status in the merge queue document during
+      // the LUCI callback.
+      final conclusion = _githubChecksService.conclusionForResult(build.status);
+      await _scheduler.processCheckRunCompleted(
+        cocoon_checks.CheckRun(
+          id: userData.checkRunId,
+          name: builderName,
+          headSha: userData.commit.sha,
+          conclusion: '$conclusion',
+          checkSuite: CheckSuite(
+            id: userData.checkSuiteId,
+            headBranch: userData.commit.branch,
+            headSha: userData.commit.sha,
+            conclusion: conclusion,
+            pullRequests: [],
+          ),
+        ),
+        userData.commit.slug,
+      );
+    }
+
     return Response.emptyOk;
   }
 
@@ -165,8 +194,10 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       log.warn(
         'Did not find builder with name: $builderName in ciYaml for $commit',
       );
-      final availableBuilderList =
-          ciYaml.presubmitTargets().map((Target e) => e..name).toList();
+      final availableBuilderList = ciYaml
+          .presubmitTargets()
+          .map((Target e) => e..name)
+          .toList();
       log.warn('ciYaml presubmit targets found: $availableBuilderList');
       return 1;
     }

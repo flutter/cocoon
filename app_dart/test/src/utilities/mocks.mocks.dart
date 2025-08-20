@@ -12,10 +12,14 @@ import 'package:buildbucket/buildbucket_pb.dart' as _i6;
 import 'package:cocoon_common/rpc_model.dart' as _i19;
 import 'package:cocoon_service/cocoon_service.dart' as _i17;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i10;
+import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart' as _i41;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i28;
 import 'package:cocoon_service/src/model/commit_ref.dart' as _i32;
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart' as _i40;
+import 'package:cocoon_service/src/model/firestore/commit.dart' as _i38;
 import 'package:cocoon_service/src/model/firestore/task.dart' as _i33;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i31;
+import 'package:cocoon_service/src/model/github/workflow_job.dart' as _i39;
 import 'package:cocoon_service/src/service/big_query.dart' as _i18;
 import 'package:cocoon_service/src/service/commit_service.dart' as _i21;
 import 'package:cocoon_service/src/service/config.dart' as _i2;
@@ -32,6 +36,8 @@ import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
     as _i35;
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
     as _i30;
+import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart'
+    as _i42;
 import 'package:fixnum/fixnum.dart' as _i34;
 import 'package:github/github.dart' as _i7;
 import 'package:github/hooks.dart' as _i22;
@@ -5224,9 +5230,10 @@ class MockProjectsDatabasesDocumentsResource extends _i1.Mock
               [request, parent],
               {#$fields: $fields},
             ),
-            returnValue: _i13.Future<
-              List<_i14.RunAggregationQueryResponseElement>
-            >.value(<_i14.RunAggregationQueryResponseElement>[]),
+            returnValue:
+                _i13.Future<
+                  List<_i14.RunAggregationQueryResponseElement>
+                >.value(<_i14.RunAggregationQueryResponseElement>[]),
           )
           as _i13.Future<List<_i14.RunAggregationQueryResponseElement>>);
 
@@ -5395,6 +5402,320 @@ class MockPullRequestLabelProcessor extends _i1.Mock
             returnValueForMissingStub: _i13.Future<void>.value(),
           )
           as _i13.Future<void>);
+}
+
+/// A class which mocks [Scheduler].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockScheduler extends _i1.Mock implements _i17.Scheduler {
+  MockScheduler() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i13.Future<void> addCommits(List<_i38.Commit>? commits) =>
+      (super.noSuchMethod(
+            Invocation.method(#addCommits, [commits]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> addPullRequest(_i7.PullRequest? pr) =>
+      (super.noSuchMethod(
+            Invocation.method(#addPullRequest, [pr]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> cancelPreSubmitTargets({
+    required _i7.PullRequest? pullRequest,
+    String? reason = 'Newer commit available',
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#cancelPreSubmitTargets, [], {
+              #pullRequest: pullRequest,
+              #reason: reason,
+            }),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> triggerPresubmitTargets({
+    required _i7.PullRequest? pullRequest,
+    String? reason = 'Newer commit available',
+    List<String>? builderTriggerList,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#triggerPresubmitTargets, [], {
+              #pullRequest: pullRequest,
+              #reason: reason,
+              #builderTriggerList: builderTriggerList,
+            }),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> closeCiYamlCheckRun(
+    String? description,
+    Object? exception,
+    _i7.RepositorySlug? slug,
+    _i7.CheckRun? ciValidationCheckRun,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#closeCiYamlCheckRun, [
+              description,
+              exception,
+              slug,
+              ciValidationCheckRun,
+            ]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> handleMergeGroupEvent({
+    required _i31.MergeGroupEvent? mergeGroupEvent,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#handleMergeGroupEvent, [], {
+              #mergeGroupEvent: mergeGroupEvent,
+            }),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> triggerTargetsForMergeGroup({
+    required String? headSha,
+    required String? headRef,
+    required String? baseRef,
+    required _i7.RepositorySlug? slug,
+    String? contentHash,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#triggerTargetsForMergeGroup, [], {
+              #headSha: headSha,
+              #headRef: headRef,
+              #baseRef: baseRef,
+              #slug: slug,
+              #contentHash: contentHash,
+            }),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> processWorkflowJob(_i39.WorkflowJobEvent? event) =>
+      (super.noSuchMethod(
+            Invocation.method(#processWorkflowJob, [event]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<List<_i28.Target>> getMergeGroupTargetsForStage(
+    String? baseRef,
+    _i7.RepositorySlug? slug,
+    String? headSha,
+    _i40.CiStage? stage,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getMergeGroupTargetsForStage, [
+              baseRef,
+              slug,
+              headSha,
+              stage,
+            ]),
+            returnValue: _i13.Future<List<_i28.Target>>.value(<_i28.Target>[]),
+          )
+          as _i13.Future<List<_i28.Target>>);
+
+  @override
+  _i13.Future<List<_i28.Target>> getMergeGroupTargets(
+    String? baseRef,
+    _i7.RepositorySlug? slug,
+    String? headSha, {
+    _i41.CiType? type = _i41.CiType.any,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getMergeGroupTargets,
+              [baseRef, slug, headSha],
+              {#type: type},
+            ),
+            returnValue: _i13.Future<List<_i28.Target>>.value(<_i28.Target>[]),
+          )
+          as _i13.Future<List<_i28.Target>>);
+
+  @override
+  _i13.Future<void> cancelDestroyedMergeGroupTargets({
+    required String? headSha,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#cancelDestroyedMergeGroupTargets, [], {
+              #headSha: headSha,
+            }),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<_i7.CheckRun> lockMergeGroupChecks(
+    _i7.RepositorySlug? slug,
+    String? headSha,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#lockMergeGroupChecks, [slug, headSha]),
+            returnValue: _i13.Future<_i7.CheckRun>.value(
+              _FakeCheckRun_20(
+                this,
+                Invocation.method(#lockMergeGroupChecks, [slug, headSha]),
+              ),
+            ),
+          )
+          as _i13.Future<_i7.CheckRun>);
+
+  @override
+  _i13.Future<void> unlockMergeQueueGuard(
+    _i7.RepositorySlug? slug,
+    String? headSha,
+    _i7.CheckRun? lock,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#unlockMergeQueueGuard, [slug, headSha, lock]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> failGuardForMergeGroup(
+    _i7.RepositorySlug? slug,
+    String? headSha,
+    String? summary,
+    String? details,
+    _i7.CheckRun? lock,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#failGuardForMergeGroup, [
+              slug,
+              headSha,
+              summary,
+              details,
+              lock,
+            ]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  List<_i28.Target> filterTargets(
+    List<_i28.Target>? presubmitTarget,
+    List<String>? builderTriggerList,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#filterTargets, [
+              presubmitTarget,
+              builderTriggerList,
+            ]),
+            returnValue: <_i28.Target>[],
+          )
+          as List<_i28.Target>);
+
+  @override
+  _i13.Future<List<_i28.Target>> getPresubmitTargets(
+    _i7.PullRequest? pullRequest, {
+    _i41.CiType? type = _i41.CiType.any,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getPresubmitTargets,
+              [pullRequest],
+              {#type: type},
+            ),
+            returnValue: _i13.Future<List<_i28.Target>>.value(<_i28.Target>[]),
+          )
+          as _i13.Future<List<_i28.Target>>);
+
+  @override
+  _i13.Future<bool> processCheckRunCompleted(
+    _i31.CheckRun? checkRun,
+    _i7.RepositorySlug? slug,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#processCheckRunCompleted, [checkRun, slug]),
+            returnValue: _i13.Future<bool>.value(false),
+          )
+          as _i13.Future<bool>);
+
+  @override
+  bool detectMergeGroup(_i31.CheckRun? checkRun) =>
+      (super.noSuchMethod(
+            Invocation.method(#detectMergeGroup, [checkRun]),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  _i13.Future<void> proceedToCiTestingStage({
+    required _i31.CheckRun? checkRun,
+    required _i7.RepositorySlug? slug,
+    required String? sha,
+    required String? mergeQueueGuard,
+    required String? logCrumb,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#proceedToCiTestingStage, [], {
+              #checkRun: checkRun,
+              #slug: slug,
+              #sha: sha,
+              #mergeQueueGuard: mergeQueueGuard,
+              #logCrumb: logCrumb,
+            }),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<_i42.ProcessCheckRunResult> processCheckRun(
+    _i31.CheckRunEvent? checkRunEvent,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#processCheckRun, [checkRunEvent]),
+            returnValue: _i13.Future<_i42.ProcessCheckRunResult>.value(
+              _i20.dummyValue<_i42.ProcessCheckRunResult>(
+                this,
+                Invocation.method(#processCheckRun, [checkRunEvent]),
+              ),
+            ),
+          )
+          as _i13.Future<_i42.ProcessCheckRunResult>);
+
+  @override
+  _i7.CheckRun checkRunFromString(String? input) =>
+      (super.noSuchMethod(
+            Invocation.method(#checkRunFromString, [input]),
+            returnValue: _FakeCheckRun_20(
+              this,
+              Invocation.method(#checkRunFromString, [input]),
+            ),
+          )
+          as _i7.CheckRun);
 }
 
 /// A class which mocks [Cache].

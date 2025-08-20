@@ -745,6 +745,52 @@ void main() {
         });
         expect(query.map((q) => q.name), [endsWith('1')]);
       });
+
+      test('multiple filters with OR', () async {
+        firestore.putDocuments([
+          g.Document(
+            name: firestore.resolveDocumentName('items', '1'),
+            fields: {'is_spicy': true.toValue(), 'calories': 200.toValue()},
+          ),
+          g.Document(
+            name: firestore.resolveDocumentName('items', '2'),
+            fields: {'is_spicy': false.toValue(), 'calories': 500.toValue()},
+          ),
+          g.Document(
+            name: firestore.resolveDocumentName('items', '3'),
+            fields: {'is_spicy': false.toValue(), 'calories': 100.toValue()},
+          ),
+        ]);
+
+        final query = await firestore.query('items', {
+          'calories >=': 200,
+          'is_spicy =': true,
+        }, compositeFilterOp: kCompositeFilterOpOr);
+        expect(query.map((q) => q.name), [endsWith('1'), endsWith('2')]);
+      });
+
+      test('array_contains', () async {
+        firestore.putDocument(
+          g.Document(
+            name: firestore.resolveDocumentName('items', '1'),
+            fields: {
+              'an_array': [1, 2, 3].toValue(),
+            },
+          ),
+        );
+
+        firestore.putDocument(
+          g.Document(
+            name: firestore.resolveDocumentName('items', '2'),
+            fields: {
+              'an_array': ['a', 'b', 'c'].toValue(),
+            },
+          ),
+        );
+
+        final query = await firestore.query('items', {'an_array @>': 1});
+        expect(query.map((q) => q.name), [endsWith('1')]);
+      });
     });
 
     group('limit', () {

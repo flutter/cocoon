@@ -96,12 +96,11 @@ final class CacheRequestHandler extends RequestHandler {
 @immutable
 final class _CachedHttpResponse {
   static const _magic4Bytes = 0xFA_CE_FE_ED;
-  static final _magic4Uint8List =
-      Uint8List(4)
-        ..[0] = 0xFA
-        ..[1] = 0xCE
-        ..[2] = 0xFE
-        ..[3] = 0xED;
+  static final _magic4Uint8List = Uint8List(4)
+    ..[0] = 0xFA
+    ..[1] = 0xCE
+    ..[2] = 0xFE
+    ..[3] = 0xED;
 
   factory _CachedHttpResponse.fromBytes(
     Uint8List bytes, {

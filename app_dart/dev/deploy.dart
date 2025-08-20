@@ -71,8 +71,10 @@ Future<bool> _checkDependencies() async {
   final dateRegExp = RegExp(
     r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))',
   );
-  final flutterVersionDateRaw =
-      dateRegExp.allMatches(flutterVersionOutput).first.group(0)!;
+  final flutterVersionDateRaw = dateRegExp
+      .allMatches(flutterVersionOutput)
+      .first
+      .group(0)!;
 
   final flutterVersionDate = DateTime.parse(flutterVersionDateRaw);
   final now = DateTime.now();
@@ -126,15 +128,11 @@ Future<void> shellCommand(List<String> args) async {
 }
 
 Future<void> main(List<String> arguments) async {
-  final argParser =
-      ArgParser()
-        ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
-        ..addOption(
-          gcloudProjectVersionFlag,
-          abbr: gcloudProjectVersionAbbrFlag,
-        )
-        ..addFlag(ignoreVersionFlag)
-        ..addFlag(helpFlag);
+  final argParser = ArgParser()
+    ..addOption(gcloudProjectIdFlag, abbr: gcloudProjectIdAbbrFlag)
+    ..addOption(gcloudProjectVersionFlag, abbr: gcloudProjectVersionAbbrFlag)
+    ..addFlag(ignoreVersionFlag)
+    ..addFlag(helpFlag);
 
   if (!_getArgs(argParser, arguments)) {
     stdout.write(

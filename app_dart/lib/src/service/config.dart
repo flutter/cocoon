@@ -281,7 +281,7 @@ interface class Config extends DynamicallyUpdatedConfig {
       '\n\n'
       '__Reviewers__: Read the [Tree Hygiene page]'
       '(https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#how-to-review-code) '
-      'and make sure this patch meets those guidelines before LGTMing.'
+      'and make sure this patch meets those guidelines before LGTMing. '
       'If you believe this PR qualifies for a test exemption, contact '
       '"@test-exemption-reviewer" in the #hackers channel in [Discord](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
       '(don\'t just cc them here, they won\'t see it!). The test '

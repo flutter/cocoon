@@ -38,10 +38,9 @@ base class GetBuildStatus extends RequestHandler {
       branch: repoBranch ?? Config.defaultBranch(slug),
     );
     return rpc_model.BuildStatusResponse(
-      buildStatus:
-          status.succeeded
-              ? rpc_model.BuildStatus.success
-              : rpc_model.BuildStatus.failure,
+      buildStatus: status.succeeded
+          ? rpc_model.BuildStatus.success
+          : rpc_model.BuildStatus.failure,
       failingTasks: status.failedTasks,
     );
   }

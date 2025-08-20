@@ -7,10 +7,13 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
+import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -38,17 +41,24 @@ void main() {
   late MockGithubChecksService mockGithubChecksService;
   late MockLuciBuildService mockLuciBuildService;
   late FakeCiYamlFetcher ciYamlFetcher;
+  late MockScheduler mockScheduler;
 
   setUp(() async {
     final firestore = FakeFirestoreService();
 
-    config = FakeConfig();
+    config = FakeConfig(
+      dynamicConfig: DynamicConfig.fromJson({
+        'closeMqGuardAfterPresubmit': true,
+      }),
+    );
     mockLuciBuildService = MockLuciBuildService();
     mockGithubChecksService = MockGithubChecksService();
+    mockScheduler = MockScheduler();
 
     ciYamlFetcher = FakeCiYamlFetcher(
       ciYaml: examplePresubmitRescheduleFusionConfig,
     );
+
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -58,6 +68,7 @@ void main() {
       ),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
+      scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
     request = FakeHttpRequest();
@@ -81,6 +92,12 @@ void main() {
     ).thenAnswer((_) async => true);
 
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
+    when(
+      mockGithubChecksService.conclusionForResult(any),
+    ).thenAnswer((_) => github.CheckRunConclusion.empty);
+    when(
+      mockScheduler.processCheckRunCompleted(any, any),
+    ).thenAnswer((_) async => true);
 
     tester.message = createPushMessage(
       Int64(1),
@@ -93,6 +110,7 @@ void main() {
           slug: RepositorySlug('flutter', 'cocoon'),
         ),
         checkRunId: 1,
+        checkSuiteId: 2,
       ),
     );
 
@@ -105,6 +123,8 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).called(1);
+
+    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
   });
 
   test('Requests when task failed but no need to reschedule', () async {
@@ -117,6 +137,12 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockGithubChecksService.conclusionForResult(any),
+    ).thenAnswer((_) => github.CheckRunConclusion.empty);
+    when(
+      mockScheduler.processCheckRunCompleted(any, any),
+    ).thenAnswer((_) async => true);
 
     final userData = PresubmitUserData(
       commit: CommitRef(
@@ -125,6 +151,7 @@ void main() {
         slug: RepositorySlug('flutter', 'flutter'),
       ),
       checkRunId: 1,
+      checkSuiteId: 2,
     );
     tester.message = createPushMessage(
       Int64(1),
@@ -156,6 +183,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).called(1);
+    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
   });
 
   test('Requests when task failed but need to reschedule', () async {
@@ -181,6 +209,7 @@ void main() {
           slug: RepositorySlug('flutter', 'flutter'),
         ),
         checkRunId: 1,
+        checkSuiteId: 2,
       ),
     );
     await tester.post(handler);
@@ -194,6 +223,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
+    verifyNever(mockScheduler.processCheckRunCompleted(any, any));
   });
 
   test('Build rescheduled when in merge queue', () async {
@@ -219,6 +249,7 @@ void main() {
           slug: RepositorySlug('flutter', 'flutter'),
         ),
         checkRunId: 1,
+        checkSuiteId: 2,
       ),
       // Merge queue should get extra requeues by default, even without presubmit_max_attempts > 1.
       extraTags: [InMergeQueueBuildTag().toStringPair()],
@@ -249,6 +280,7 @@ void main() {
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
+      scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
 
@@ -270,6 +302,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
+    verifyNever(mockScheduler.processCheckRunCompleted(any, any));
   });
 
   test('Build not rescheduled if not found in ciYaml list.', () async {
@@ -283,6 +316,12 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockGithubChecksService.conclusionForResult(any),
+    ).thenAnswer((_) => github.CheckRunConclusion.empty);
+    when(
+      mockScheduler.processCheckRunCompleted(any, any),
+    ).thenAnswer((_) async => true);
 
     final userData = PresubmitUserData(
       commit: CommitRef(
@@ -291,6 +330,7 @@ void main() {
         slug: RepositorySlug('flutter', 'flutter'),
       ),
       checkRunId: 1,
+      checkSuiteId: 2,
     );
 
     tester.message = createPushMessage(
@@ -324,6 +364,8 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
+    verify(mockGithubChecksService.taskFailed(any)).called(1);
+    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
   });
 
   test('Build not rescheduled if ci.yaml fails validation.', () async {
@@ -337,9 +379,16 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockGithubChecksService.conclusionForResult(any),
+    ).thenAnswer((_) => github.CheckRunConclusion.empty);
+    when(
+      mockScheduler.processCheckRunCompleted(any, any),
+    ).thenAnswer((_) async => true);
 
     final userData = PresubmitUserData(
       checkRunId: 1,
+      checkSuiteId: 2,
       commit: CommitRef(
         sha: 'abc',
         branch: 'master',
@@ -377,22 +426,15 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
+    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
   });
 
   test('Pubsub rejected if branch is not enabled.', () async {
-    when(
-      mockGithubChecksService.updateCheckStatus(
-        build: anyNamed('build'),
-        checkRunId: anyNamed('checkRunId'),
-        luciBuildService: anyNamed('luciBuildService'),
-        slug: anyNamed('slug'),
-        rescheduled: false,
-      ),
-    ).thenAnswer((_) async => true);
     when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
     final userData = PresubmitUserData(
       checkRunId: 1,
+      checkSuiteId: 2,
       commit: CommitRef(
         sha: 'abc',
         branch: 'main',
@@ -436,6 +478,7 @@ void main() {
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
         checkRunId: 1,
+        checkSuiteId: 2,
         commit: CommitRef(
           sha: 'abc',
           branch: 'master',
@@ -469,6 +512,7 @@ void main() {
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
+      scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
     );
 
@@ -488,5 +532,70 @@ void main() {
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.
     expect(build.input.properties.fields, contains('git_ref'));
+    verifyNever(mockScheduler.processCheckRunCompleted(any, any));
+  });
+
+  test('Close the MQ guard once presubmit compleated', () async {
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: anyNamed('rescheduled'),
+      ),
+    ).thenAnswer((_) async => true);
+    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.SUCCESS,
+      builder: 'Linux C',
+      userData: PresubmitUserData(
+        checkRunId: 1,
+        checkSuiteId: 2,
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+      ),
+    );
+
+    when(
+      mockGithubChecksService.conclusionForResult(bbv2.Status.SUCCESS),
+    ).thenAnswer((_) => github.CheckRunConclusion.success);
+    when(
+      mockScheduler.processCheckRunCompleted(any, any),
+    ).thenAnswer((_) async => true);
+
+    await tester.post(handler);
+
+    final captured = verify(
+      mockScheduler.processCheckRunCompleted(captureAny, captureAny),
+    ).captured;
+    expect(captured, hasLength(2));
+    expect(
+      captured[0],
+      isA<cocoon_checks.CheckRun>()
+          .having((e) => e.name, 'name', 'Linux C')
+          .having((e) => e.headSha, 'headSha', 'abc')
+          .having((e) => e.id, 'id', 1)
+          .having((e) => e.conclusion, 'conclusion', 'success')
+          .having(
+            (e) => e.checkSuite,
+            'checkSuite',
+            isA<CheckSuite>()
+                .having((e) => e.id, 'id', 2)
+                .having((e) => e.headBranch, 'headBranch', 'master')
+                .having((e) => e.headSha, 'headSha', 'abc'),
+          ),
+    );
+    expect(
+      captured[1],
+      isA<RepositorySlug>()
+          .having((e) => e.owner, 'owner', 'flutter')
+          .having((e) => e.name, 'name', 'flutter'),
+    );
   });
 }
