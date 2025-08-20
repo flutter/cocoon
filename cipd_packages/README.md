@@ -13,24 +13,25 @@ necessary lib files if needed.
 
 Note:
 
-1) make sure the build scripts create a `build` dir under the package folder and generate artifacts there
-2) we do not archive the binaries in the repo, and they will be uploaded to cipd via a bot.
-3) please add a code owner entry under section `cipd packages` in [CODEOWNERS](https://github.com/flutter/cocoon/blob/main/CODEOWNERS) file.
+1. make sure the build scripts create a `build` dir under the package folder and generate artifacts there
+2. we do not archive the binaries in the repo, and they will be uploaded to cipd via a bot.
+3. please add a code owner entry under section `cipd packages` in [CODEOWNERS](https://github.com/flutter/cocoon/blob/main/CODEOWNERS) file.
 
 ## Add an entry to cocoon .ci.yaml
 
 This is to enable the auto build and upload. Please follow the following example format:
+
 ```yaml
-  - name: Mac <package_name>
-    recipe: cocoon/cipd
-    bringup: true
-    properties:
-      script: cipd_packages/<package_name>/tool/build.sh
-      cipd_name: flutter/<package_name>/mac-amd64 # Use mac-arm64 for arm64 version.
-      device_type: none
-    runIf:
-      - cipd_packages/<package_name>/**
-      - .ci.yaml
+- name: Mac <package_name>
+  recipe: cocoon/cipd
+  bringup: true
+  properties:
+    script: cipd_packages/<package_name>/tool/build.sh
+    cipd_name: flutter/<package_name>/mac-amd64 # Use mac-arm64 for arm64 version.
+    device_type: none
+  runIf:
+    - cipd_packages/<package_name>/**
+    - .ci.yaml
 ```
 
 Start with `bringup: true`, same as any other regular new target. Once validated in CI, remove it to enable running
@@ -41,25 +42,32 @@ and will not upload to CIPD.
 
 ## Adding a reference to the CIPD package
 
-Until this step, artifacts are being uploaded to CIPD whenever a new commit is merged.  It is useful to add a reference
+Until this step, artifacts are being uploaded to CIPD whenever a new commit is merged. It is useful to add a reference
 to the package, so that we can use the reference in the CI recipe. This way we won’t need to change the recipe
 whenever we update the package.
 
 Googlers can request [cipd write access](http://go/flutter-aod#available-groups) to add a reference to a package via:
+
 ```sh
 cipd set-ref flutter/PackageName/mac-amd64 -ref Reference -version InstanceID
 ```
 
-* Reference: e.g. major release versions, like `stable`, `dev`, etc. You can update/point to a newer instance with the same reference name later. If not
-specified, `latest` will be used based on the latest package instance.
-* InstanceID: this can be obtained from the package page, e.g. [ruby](https://chrome-infra-packages.appspot.com/p/flutter/ruby/mac-amd64/+/TyvPskvefNRkTDmiDcwRHrdL_a2FQE_4wBojOqhxdtYC).
+- Reference: e.g. major release versions, like `stable`, `dev`, etc. You can update/point to a newer instance with the same reference name later. If not
+  specified, `latest` will be used based on the latest package instance.
+- InstanceID: this can be obtained from the package page, e.g. [ruby](https://chrome-infra-packages.appspot.com/p/flutter/ruby/mac-amd64/+/TyvPskvefNRkTDmiDcwRHrdL_a2FQE_4wBojOqhxdtYC).
 
-Note: for non-Googler contributors, please file an [infra bug](https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml) to make a reference request.
+Non-Googler contributors, must file an [infra bug](https://github.com/flutter/flutter/issues/new?assignees=&labels=team-infra&projects=&template=6_infrastructure.yml) to make a reference request.
 
-Note: if you want to define a specific version tied to a specific instance (e.g. `version: version_1_1_1`), you can  use a tag instead to reference an instance.
+To define a specific version tied to a specific instance (e.g. `version: version_1_1_1`), you can use a tag instead to reference an instance.
+
 ```sh
 cipd set-tag flutter/PackageName/mac-amd64 -tag Tag -version InstanceID
 ```
+
+> [!NOTE]
+>
+> Some packages, such as [`codesign`](./codesign/README.md) use `latest`
+> implicitly.
 
 ## Supporting packages download from CI recipe
 
@@ -72,7 +80,8 @@ contribute to recipes repository.
 
 This is the last step to enable the package usage in the real CI. Add or update the new package to either the platform level or
 target level entries for your targeted repository:
-``` yaml
+
+```yaml
 dependencies: >-
   [
     {"dependency": "chrome_and_driver", "version": "Reference"},
