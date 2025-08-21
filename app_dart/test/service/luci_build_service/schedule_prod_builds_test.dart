@@ -329,7 +329,6 @@ void main() {
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
     });
 
     expect(scheduleBuild.dimensions, [
@@ -428,7 +427,6 @@ void main() {
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
     });
 
     expect(scheduleBuild.dimensions, [
@@ -532,8 +530,6 @@ void main() {
       ),
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
-      // Intentionally omitted: flutter_prebuilt_engine_version
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
 
@@ -638,10 +634,6 @@ void main() {
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'os': bbv2.Value(stringValue: 'debian-10.12'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
-
-      // Experimental branches work similar to release branches.
-      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: '1'),
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
 

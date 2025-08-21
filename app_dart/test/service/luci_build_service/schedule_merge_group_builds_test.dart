@@ -261,7 +261,6 @@ Matcher _isExpectedScheduleBuild({required String name}) {
         ),
         'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/master'),
         'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-        'is_fusion': bbv2.Value(stringValue: 'true'),
         'git_repo': bbv2.Value(stringValue: 'flutter'),
         'in_merge_queue': bbv2.Value(boolValue: true),
       })
