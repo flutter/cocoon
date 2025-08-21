@@ -288,8 +288,7 @@ class LuciBuildService {
 
         // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
         switch (engineArtifacts) {
-          case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
-            properties['flutter_prebuilt_engine_version'] = commitSha;
+          case ContentAwareEngineArtifacts(:final flutterRealm):
             properties['flutter_realm'] = flutterRealm;
           case UnnecessaryEngineArtifacts(:final reason):
             log.debug(

@@ -416,13 +416,7 @@ class Scheduler {
           // Even though this appears to be an engine build, it could be a
           // release candidate build, where the engine artifacts are built
           // via the dart-internal builder.
-          //
-          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
-          // consequences for engine builds, as it just won't be used (it is
-          // only understood by the Flutter CLI).
-          //
-          // See https://github.com/flutter/flutter/issues/165810.
-          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
+          engineArtifacts = const EngineArtifacts.usingExistingEngine();
         } else {
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
@@ -1240,14 +1234,10 @@ $s
         final EngineArtifacts engineArtifacts;
         if (testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests) {
           // Use the engine that this PR was branched off of.
-          engineArtifacts = EngineArtifacts.usingExistingEngine(
-            commitSha: pullRequest.base!.sha!,
-          );
+          engineArtifacts = const EngineArtifacts.usingExistingEngine();
         } else {
           // Use the engine that was built from source *for* this PR.
-          engineArtifacts = EngineArtifacts.builtFromSource(
-            commitSha: pullRequest.head!.sha!,
-          );
+          engineArtifacts = const EngineArtifacts.builtFromSource();
         }
 
         await _luciBuildService.scheduleTryBuilds(
@@ -1481,13 +1471,9 @@ $stacktrace
                   pullRequest,
                 );
                 if (opt.shouldUsePrebuiltEngine) {
-                  engineArtifacts = EngineArtifacts.usingExistingEngine(
-                    commitSha: pullRequest.base!.sha!,
-                  );
+                  engineArtifacts = const EngineArtifacts.usingExistingEngine();
                 } else {
-                  engineArtifacts = EngineArtifacts.builtFromSource(
-                    commitSha: pullRequest.head!.sha!,
-                  );
+                  engineArtifacts = const EngineArtifacts.builtFromSource();
                 }
               } else {
                 presubmitTargets = await getPresubmitTargets(pullRequest);
