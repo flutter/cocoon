@@ -111,7 +111,17 @@ void main() {
 
   test('on missing associated sub-builds warns+does a full build', () async {
     when(mockBuildBucketClient.getBuild(any)).thenAnswer((_) async {
-      return bbv2.Build(id: Int64(1001));
+      return bbv2.Build(
+        id: Int64(1001),
+        input: bbv2.Build_Input(
+          gitilesCommit: bbv2.GitilesCommit(
+            project: 'mirrors/flutter',
+            host: 'flutter.googlesource.com',
+            ref: 'refs/heads/flutter-0.42-candidate.0',
+            id: 'abcdef',
+          ),
+        ),
+      );
     });
 
     when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((i) async {
@@ -197,7 +207,17 @@ void main() {
 
   test('reruns failed builds by config_name', () async {
     when(mockBuildBucketClient.getBuild(any)).thenAnswer((_) async {
-      return bbv2.Build(id: Int64(1001));
+      return bbv2.Build(
+        id: Int64(1001),
+        input: bbv2.Build_Input(
+          gitilesCommit: bbv2.GitilesCommit(
+            project: 'mirrors/flutter',
+            host: 'flutter.googlesource.com',
+            ref: 'refs/heads/flutter-0.42-candidate.0',
+            id: 'abcdef',
+          ),
+        ),
+      );
     });
 
     when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((i) async {
@@ -305,7 +325,17 @@ void main() {
 
   test('reruns entire build', () async {
     when(mockBuildBucketClient.getBuild(any)).thenAnswer((_) async {
-      return bbv2.Build(id: Int64(1001));
+      return bbv2.Build(
+        id: Int64(1001),
+        input: bbv2.Build_Input(
+          gitilesCommit: bbv2.GitilesCommit(
+            project: 'mirrors/flutter',
+            host: 'flutter.googlesource.com',
+            ref: 'refs/heads/flutter-0.42-candidate.0',
+            id: 'abcdef',
+          ),
+        ),
+      );
     });
 
     when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((i) async {
@@ -380,7 +410,17 @@ void main() {
 
   test('fallsback to re-run all if non-engine build failed', () async {
     when(mockBuildBucketClient.getBuild(any)).thenAnswer((_) async {
-      return bbv2.Build(id: Int64(1001));
+      return bbv2.Build(
+        id: Int64(1001),
+        input: bbv2.Build_Input(
+          gitilesCommit: bbv2.GitilesCommit(
+            project: 'mirrors/flutter',
+            host: 'flutter.googlesource.com',
+            ref: 'refs/heads/flutter-0.42-candidate.0',
+            id: 'abcdef',
+          ),
+        ),
+      );
     });
 
     when(mockBuildBucketClient.searchBuilds(any)).thenAnswer((i) async {

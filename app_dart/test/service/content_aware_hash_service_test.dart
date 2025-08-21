@@ -435,6 +435,46 @@ void main() {
       expect(hash, isNull);
     });
   });
+
+  group('getBuildsByHash', () {
+    setUp(() {
+      firestoreService.putDocument(
+        ContentAwareHashBuilds(
+          createdOn: DateTime.now(),
+          contentHash: '1' * 40,
+          commitSha: 'a' * 40,
+          buildStatus: BuildStatus.inProgress,
+          waitingShas: ['b' * 40, 'c' * 40],
+        ),
+      );
+    });
+
+    test('returns git hashes', () async {
+      final hash = await cahs.getBuildsByHash('a' * 40);
+      expect(hash, isNotEmpty);
+      expect(hash.first.commitSha, 'a' * 40);
+      expect(hash.first.contentHash, '1' * 40);
+    });
+
+    test('returns content hashes', () async {
+      final hash = await cahs.getBuildsByHash('1' * 40);
+      expect(hash, isNotEmpty);
+      expect(hash.first.commitSha, 'a' * 40);
+      expect(hash.first.contentHash, '1' * 40);
+    });
+
+    test('returns waiting git hashes', () async {
+      final hash = await cahs.getBuildsByHash('c' * 40);
+      expect(hash, isNotEmpty);
+      expect(hash.first.commitSha, 'a' * 40);
+      expect(hash.first.contentHash, '1' * 40);
+    });
+
+    test('returns empty for not found', () async {
+      final hash = await cahs.getBuildsByHash('d' * 40);
+      expect(hash, isEmpty);
+    });
+  });
 }
 
 extension on String {

@@ -68,6 +68,6 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) =>
     <String, dynamic>{
-      'check_run_id': ?instance.checkRunId,
+      if (instance.checkRunId case final value?) 'check_run_id': value,
       'task_id': PostsubmitUserData._documentToString(instance.taskId),
     };
