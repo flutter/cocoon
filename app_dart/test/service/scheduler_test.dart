@@ -1419,7 +1419,7 @@ targets:
               gitHubChecksService.findMatchingPullRequest(
                 Config.flutterSlug,
                 'testSha',
-                668083231,
+                0,
               ),
             ).called(1);
 
@@ -1464,6 +1464,148 @@ targets:
             expect(captured[0][2].name, 'Linux engine_presubmit');
             expect(captured[1], pullRequest);
           });
+
+          test(
+            'processCheckRunCompleted not failed when check suite id is 0',
+            () async {
+              final githubService = config.githubService = MockGithubService();
+              final githubClient = MockGitHub();
+              when(githubService.github).thenReturn(githubClient);
+              when(
+                githubService.searchIssuesAndPRs(
+                  any,
+                  any,
+                  sort: anyNamed('sort'),
+                  pages: anyNamed('pages'),
+                ),
+              ).thenAnswer((_) async => [generateIssue(42)]);
+
+              final pullRequest = generatePullRequest();
+              when(
+                githubService.getPullRequest(any, any),
+              ).thenAnswer((_) async => pullRequest);
+              getFilesChanged.cannedFiles = ['abc/def'];
+              when(
+                mockGithubChecksUtil.listCheckSuitesForRef(
+                  any,
+                  any,
+                  ref: anyNamed('ref'),
+                ),
+              ).thenAnswer(
+                (_) async => [
+                  // From check_run.check_suite.id in [checkRunString].
+                  generateCheckSuite(668083231),
+                ],
+              );
+
+              ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+              final luci = MockLuciBuildService();
+              when(
+                luci.scheduleTryBuilds(
+                  targets: anyNamed('targets'),
+                  pullRequest: anyNamed('pullRequest'),
+                  engineArtifacts: anyNamed('engineArtifacts'),
+                ),
+              ).thenAnswer((inv) async {
+                return [];
+              });
+
+              final gitHubChecksService = MockGithubChecksService();
+              when(
+                gitHubChecksService.githubChecksUtil,
+              ).thenReturn(mockGithubChecksUtil);
+              when(
+                gitHubChecksService.findMatchingPullRequest(any, any, any),
+              ).thenAnswer((inv) async {
+                return pullRequest;
+              });
+
+              // Cocoon creates a Firestore document to track the tasks in the
+              // test stage.
+
+              scheduler = Scheduler(
+                cache: cache,
+                config: config,
+                getFilesChanged: getFilesChanged,
+                githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
+                luciBuildService: luci,
+                contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  createCocoonCheckRun(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    checkSuiteId: 0,
+                  ),
+                  createGithubRepository().slug(),
+                ),
+                isTrue,
+              );
+
+              verify(
+                gitHubChecksService.findMatchingPullRequest(
+                  Config.flutterSlug,
+                  'testSha',
+                  0,
+                ),
+              ).called(1);
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.success,
+                  }),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Linux A': TaskConclusion.scheduled,
+                    'Linux Z': TaskConclusion.scheduled,
+                    'Linux engine_presubmit': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
+
+              verifyNever(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  output: anyNamed('output'),
+                ),
+              );
+
+              final result = verify(
+                luci.scheduleTryBuilds(
+                  targets: captureAnyNamed('targets'),
+                  pullRequest: captureAnyNamed('pullRequest'),
+                  engineArtifacts: anyNamed('engineArtifacts'),
+                ),
+              );
+              expect(result.callCount, 1);
+              final captured = result.captured;
+              expect(captured[0], hasLength(3));
+              // see the blend of fusionCiYaml and singleCiYaml
+              expect(captured[0][0].name, 'Linux A');
+              expect(captured[0][1].name, 'Linux Z');
+              expect(captured[0][2].name, 'Linux engine_presubmit');
+              expect(captured[1], pullRequest);
+            },
+          );
 
           test('tracks test check runs in firestore', () async {
             final githubService = config.githubService = MockGithubService();

@@ -138,7 +138,7 @@ final class _PresubmitUserData extends PresubmitUserData {
   @override
   final int checkRunId;
 
-  @JsonKey(name: 'check_suite_id')
+  @JsonKey(name: 'check_suite_id', defaultValue: 0)
   @override
   final int checkSuiteId;
 
