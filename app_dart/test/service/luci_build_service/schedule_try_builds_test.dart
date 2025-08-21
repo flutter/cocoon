@@ -96,6 +96,7 @@ void main() {
         pullRequest: pullRequest,
         targets: [buildTarget],
         engineArtifacts: const EngineArtifacts.builtFromSource(),
+        contentHash: 'abc123def456',
       ),
       completion([isTarget.hasName('Linux foo')]),
     );
@@ -139,6 +140,7 @@ void main() {
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
+      'content_hash': bbv2.Value(stringValue: 'abc123def456'),
     });
     expect(scheduleBuild.dimensions, [
       isA<bbv2.RequestedDimension>()

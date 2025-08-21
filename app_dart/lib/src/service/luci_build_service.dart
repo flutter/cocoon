@@ -227,6 +227,7 @@ class LuciBuildService {
     required List<Target> targets,
     required github.PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
+    String? contentHash,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -262,6 +263,9 @@ class LuciBuildService {
       );
 
       final properties = target.getProperties();
+      if (contentHash != null) {
+        properties['content_hash'] = contentHash;
+      }
       properties.putIfAbsent(
         'git_branch',
         () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
