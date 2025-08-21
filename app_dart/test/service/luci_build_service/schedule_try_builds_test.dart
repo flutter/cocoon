@@ -138,7 +138,6 @@ void main() {
       'git_repo': bbv2.Value(stringValue: 'flutter'),
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
       'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
     });
     expect(scheduleBuild.dimensions, [
@@ -228,7 +227,6 @@ void main() {
       'git_repo': bbv2.Value(stringValue: 'flutter'),
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
-      'is_fusion': bbv2.Value(stringValue: 'true'),
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
     expect(scheduleBuild.dimensions, [
