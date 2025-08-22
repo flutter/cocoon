@@ -234,7 +234,6 @@ void main() {
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
       'is_fusion': bbv2.Value(stringValue: 'true'),
-      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'basesha123'),
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
     expect(scheduleBuild.dimensions, [
