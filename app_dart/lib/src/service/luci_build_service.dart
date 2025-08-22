@@ -252,21 +252,15 @@ class LuciBuildService {
       checkRuns.add(checkRun);
 
       final slug = pullRequest.base!.repo!.slug();
+      final commitBranch = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
       final userData = PresubmitUserData(
-        commit: CommitRef(
-          slug: slug,
-          sha: commitSha,
-          branch: pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-        ),
+        commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
         checkRunId: checkRun.id!,
         checkSuiteId: checkRun.checkSuiteId!,
       );
 
       final properties = target.getProperties();
-      properties.putIfAbsent(
-        'git_branch',
-        () => pullRequest.base!.ref!.replaceAll('refs/heads/', ''),
-      );
+      properties.putIfAbsent('git_branch', () => commitBranch);
 
       final struct = bbv2.Struct.create();
       struct.mergeFromProto3Json(properties);
@@ -289,8 +283,12 @@ class LuciBuildService {
         // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
         switch (engineArtifacts) {
           case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
-            properties['flutter_prebuilt_engine_version'] = commitSha;
-            properties['flutter_realm'] = flutterRealm;
+            properties.addAll({
+              // For release candidates, let the flutter tool pick the right engine.
+              if (!isReleaseCandidateBranch(branchName: commitBranch))
+                'flutter_prebuilt_engine_version': commitSha,
+              'flutter_realm': flutterRealm,
+            });
           case UnnecessaryEngineArtifacts(:final reason):
             log.debug(
               'No engineArtifacts were specified for PR#${pullRequest.number} (${pullRequest.head!.sha}): $reason.',
@@ -875,8 +873,7 @@ class LuciBuildService {
       processedProperties['is_fusion'] = 'true';
       if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
         processedProperties.addAll({
-          // For release candidates, use the version pinned in engine.version.
-          // https://github.com/flutter/flutter/issues/170568
+          // For release candidates, let the flutter tool pick the right engine.
           if (!isReleaseCandidateBranch(branchName: commit.branch))
             'flutter_prebuilt_engine_version': commit.sha,
 
