@@ -244,6 +244,99 @@ void main() {
     ]);
   });
 
+  test('builds using an existing engine for a release branch', () async {
+    final pullRequest = generatePullRequest(
+      id: 1,
+      repo: 'flutter',
+      branch: 'flutter-3.35-candidate.0',
+      headSha: 'headsha123',
+      baseSha: 'basesha123',
+    );
+
+    final buildTarget = generateTarget(
+      1,
+      properties: {'os': 'abc'},
+      slug: RepositorySlug.full('flutter/flutter'),
+      name: 'Linux foo',
+    );
+
+    when(mockGithubChecksUtil.createCheckRun(any, any, any, any)).thenAnswer((
+      i,
+    ) async {
+      final [
+        _,
+        RepositorySlug slug,
+        String sha,
+        String name, //
+      ] = i.positionalArguments;
+
+      expect(slug, RepositorySlug.full('flutter/flutter'));
+      expect(sha, 'headsha123');
+      expect(name, 'Linux foo');
+
+      return generateCheckRun(1, name: 'Linux foo');
+    });
+
+    await expectLater(
+      luci.scheduleTryBuilds(
+        pullRequest: pullRequest,
+        targets: [buildTarget],
+        engineArtifacts: EngineArtifacts.usingExistingEngine(
+          commitSha: pullRequest.base!.sha!,
+        ),
+      ),
+      completion([isTarget.hasName('Linux foo')]),
+    );
+
+    expect(
+      firestore,
+      existsInStorage(PrCheckRuns.metadata, [
+        isPrCheckRun.hasCheckRuns({'Linux foo': '1'}),
+      ]),
+    );
+
+    final bbv2.ScheduleBuildRequest scheduleBuild;
+    {
+      final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+      batchRequest.mergeFromProto3Json(pubSub.messages.single);
+
+      expect(batchRequest.requests, hasLength(1));
+      scheduleBuild = batchRequest.requests.single.scheduleBuild;
+    }
+
+    expect(
+      PresubmitUserData.fromBytes(scheduleBuild.notify.userData),
+      PresubmitUserData(
+        checkRunId: 1,
+        checkSuiteId: 2,
+        commit: CommitRef(
+          slug: RepositorySlug('flutter', 'flutter'),
+          sha: 'headsha123',
+          branch: 'flutter-3.35-candidate.0',
+        ),
+      ),
+    );
+
+    expect(scheduleBuild.properties.fields, {
+      'os': bbv2.Value(stringValue: 'abc'),
+      'dependencies': bbv2.Value(listValue: bbv2.ListValue()),
+      'bringup': bbv2.Value(boolValue: false),
+      'git_branch': bbv2.Value(stringValue: 'flutter-3.35-candidate.0'),
+      'git_url': bbv2.Value(stringValue: 'https://github.com/flutter/flutter'),
+      'git_ref': bbv2.Value(stringValue: 'refs/pull/123/head'),
+      'git_repo': bbv2.Value(stringValue: 'flutter'),
+      'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
+      'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+      'flutter_realm': bbv2.Value(stringValue: ''),
+    });
+    expect(scheduleBuild.dimensions, [
+      isA<bbv2.RequestedDimension>()
+          .having((d) => d.key, 'key', 'os')
+          .having((d) => d.value, 'value', 'abc'),
+    ]);
+  });
+
   // Regression test for https://github.com/flutter/flutter/issues/166014.
   test('provides override labels for flutter/packages', () async {
     final pullRequest = generatePullRequest(
