@@ -284,8 +284,10 @@ class LuciBuildService {
         switch (engineArtifacts) {
           case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
             properties.addAll({
-              // For release candidates, let the flutter tool pick the right engine.
-              if (!isReleaseCandidateBranch(branchName: commitBranch))
+              // If we've touched the engine, we must use the current git sha's uploaded engine artifacts.
+              // Otherwise, let the flutter tool find the previously built artfiacts (using content-aware hashing).
+              // TODO(matanlurey): Review with jtmcdole to ensure this is correct.
+              if (engineArtifacts.isBuiltFromSource)
                 'flutter_prebuilt_engine_version': commitSha,
               'flutter_realm': flutterRealm,
             });
