@@ -403,6 +403,7 @@ class Scheduler {
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
         final EngineArtifacts engineArtifacts;
+        final String? contentHash;
         if (isFusion) {
           await CiStaging.initializeDocument(
             firestoreService: _firestore,
@@ -417,15 +418,18 @@ class Scheduler {
           // release candidate build, where the engine artifacts are built
           // via the dart-internal builder.
           engineArtifacts = const EngineArtifacts.usingExistingEngine();
+          contentHash = await _contentAwareHash.getHashByCommitSha(sha);
         } else {
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
           );
+          contentHash = null;
         }
         await _luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
+          contentHash: contentHash,
         );
       } on FormatException catch (e, s) {
         log.warn(
@@ -1244,6 +1248,8 @@ $s
           targets: presubmitTargets,
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
+          // This is the framework stage, the content hash (if needed) is computed by the flutter tool.
+          contentHash: null,
         );
       }
     } on FormatException catch (e, s) {
@@ -1456,6 +1462,7 @@ $stacktrace
               final isFusion = slug == Config.flutterSlug;
               final List<Target> presubmitTargets;
               final EngineArtifacts engineArtifacts;
+              final String? contentHash;
               if (isFusion) {
                 // Fusion repos have presubmits split across two .ci.yaml files.
                 // /ci.yaml
@@ -1472,14 +1479,17 @@ $stacktrace
                 );
                 if (opt.shouldUsePrebuiltEngine) {
                   engineArtifacts = const EngineArtifacts.usingExistingEngine();
+                  contentHash = null;
                 } else {
                   engineArtifacts = const EngineArtifacts.builtFromSource();
+                  contentHash = await _contentAwareHash.getHashByCommitSha(sha);
                 }
               } else {
                 presubmitTargets = await getPresubmitTargets(pullRequest);
                 engineArtifacts = const EngineArtifacts.noFrameworkTests(
                   reason: 'Not flutter/flutter',
                 );
+                contentHash = null;
               }
 
               final target = presubmitTargets.firstWhereOrNull(
@@ -1495,6 +1505,7 @@ $stacktrace
                 targets: [target],
                 pullRequest: pullRequest,
                 engineArtifacts: engineArtifacts,
+                contentHash: contentHash,
               );
             } else {
               log.debug('Rescheduling postsubmit build.');
