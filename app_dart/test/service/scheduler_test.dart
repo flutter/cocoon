@@ -943,9 +943,11 @@ void main() {
       test('rerequested presubmit check triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the Firestore.
-        final pullRequest = generatePullRequest(
-          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
-        );
+        const headSha = '66d6bd9a3f79a36fe4f5178ccefbc781488a596c';
+        final contentHash = 'a' * 40;
+        final pullRequest = generatePullRequest(headSha: headSha);
+        fakeContentAwareHash.hashByCommit[headSha] = contentHash;
+        config.maxFilesChangedForSkippingEnginePhaseValue = 10;
 
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
 
@@ -955,6 +957,7 @@ void main() {
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            contentHash: argThat(equals(contentHash), named: 'contentHash'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -981,7 +984,9 @@ void main() {
           checks: [generateCheckRun(1, name: 'Linux A')],
         );
 
-        final checkrun = jsonDecode(checkRunString()) as Map<String, dynamic>;
+        final checkrun =
+            jsonDecode(checkRunString(repository: 'flutter'))
+                as Map<String, dynamic>;
         checkrun['name'] = checkrun['check_run']['name'] = 'Linux A';
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(checkrun);
 
@@ -2720,6 +2725,7 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            contentHash: anyNamed('contentHash'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2750,7 +2756,9 @@ targets:
           return checkRuns.last;
         });
 
+        final contentHash = 'a' * 40;
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
+        fakeContentAwareHash.hashByCommit[pullRequest.head!.sha!] = contentHash;
 
         scheduler = Scheduler(
           cache: cache,
@@ -2788,6 +2796,7 @@ targets:
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            contentHash: argThat(equals(contentHash), named: 'contentHash'),
           ),
         );
         expect(result.callCount, 1);
@@ -3504,6 +3513,7 @@ final class _CapturingFakeLuciBuildService extends Fake
     required PullRequest pullRequest,
     CheckSuiteEvent? checkSuiteEvent,
     EngineArtifacts? engineArtifacts,
+    String? contentHash,
   }) async {
     scheduledTryBuilds = targets;
     this.engineArtifacts = engineArtifacts;

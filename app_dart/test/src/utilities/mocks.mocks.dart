@@ -4049,12 +4049,14 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
     required List<_i28.Target>? targets,
     required _i7.PullRequest? pullRequest,
     required _i29.EngineArtifacts? engineArtifacts,
+    String? contentHash,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleTryBuilds, [], {
               #targets: targets,
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
+              #contentHash: contentHash,
             }),
             returnValue: _i13.Future<List<_i28.Target>>.value(<_i28.Target>[]),
           )
