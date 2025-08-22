@@ -1848,10 +1848,17 @@ targets:
               logCrumb: 'test',
             );
 
+            // Ensure that we used the HEAD SHA as as FLUTTER_PREBUILT_ENGINE_VERSION,
+            // since the engine was built from source.
+            //
+            // See https://github.com/flutter/flutter/issues/164031.
             expect(
               engineArtifacts,
-              const EngineArtifacts.builtFromSource(),
-              reason: 'Should be set to build from source',
+              EngineArtifacts.builtFromSource(
+                commitSha: pullRequest.head!.sha!,
+              ),
+              reason:
+                  'Should be set to HEAD (i.e. the current SHA), since the engine was built from source.',
             );
           });
 
@@ -3451,7 +3458,10 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.engineArtifacts,
-          const EngineArtifacts.usingExistingEngine(),
+          EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.base!.sha!,
+          ),
+          reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
@@ -3481,7 +3491,10 @@ targets:
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
         expect(
           fakeLuciBuildService.engineArtifacts,
-          const EngineArtifacts.usingExistingEngine(),
+          EngineArtifacts.usingExistingEngine(
+            commitSha: pullRequest.base!.sha!,
+          ),
+          reason: 'Should use the base ref for the engine artifacts',
         );
         expect(
           fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),

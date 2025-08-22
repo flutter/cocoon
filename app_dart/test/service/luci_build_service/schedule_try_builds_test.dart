@@ -95,7 +95,9 @@ void main() {
       luci.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: [buildTarget],
-        engineArtifacts: const EngineArtifacts.builtFromSource(),
+        engineArtifacts: EngineArtifacts.builtFromSource(
+          commitSha: pullRequest.head!.sha!,
+        ),
       ),
       completion([isTarget.hasName('Linux foo')]),
     );
@@ -138,6 +140,8 @@ void main() {
       'git_repo': bbv2.Value(stringValue: 'flutter'),
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'headsha123'),
       'flutter_realm': bbv2.Value(stringValue: 'flutter_archives_v2'),
     });
     expect(scheduleBuild.dimensions, [
@@ -183,7 +187,9 @@ void main() {
       luci.scheduleTryBuilds(
         pullRequest: pullRequest,
         targets: [buildTarget],
-        engineArtifacts: const EngineArtifacts.usingExistingEngine(),
+        engineArtifacts: EngineArtifacts.usingExistingEngine(
+          commitSha: pullRequest.base!.sha!,
+        ),
       ),
       completion([isTarget.hasName('Linux foo')]),
     );
@@ -227,6 +233,8 @@ void main() {
       'git_repo': bbv2.Value(stringValue: 'flutter'),
       'exe_cipd_version': bbv2.Value(stringValue: 'refs/heads/main'),
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
+      'is_fusion': bbv2.Value(stringValue: 'true'),
+      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: 'basesha123'),
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
     expect(scheduleBuild.dimensions, [
@@ -356,7 +364,9 @@ void main() {
         await luci.scheduleTryBuilds(
           pullRequest: generatePullRequest(repo: 'flutter', branch: 'master'),
           targets: [generateTarget(1)],
-          engineArtifacts: const EngineArtifacts.builtFromSource(),
+          engineArtifacts: const EngineArtifacts.builtFromSource(
+            commitSha: 'abc123',
+          ),
         );
 
         expect(log, isNot(loggedFallingBackToDefaultRecipe));
@@ -393,7 +403,9 @@ void main() {
             branch: '3.7.0-19.0.pre',
           ),
           targets: [generateTarget(1)],
-          engineArtifacts: const EngineArtifacts.builtFromSource(),
+          engineArtifacts: const EngineArtifacts.builtFromSource(
+            commitSha: 'abc123',
+          ),
         );
 
         expect(log, loggedFallingBackToDefaultRecipe);
@@ -432,7 +444,9 @@ void main() {
           branch: '3.7.0-19.0.pre',
         ),
         targets: [generateTarget(1)],
-        engineArtifacts: const EngineArtifacts.builtFromSource(),
+        engineArtifacts: const EngineArtifacts.builtFromSource(
+          commitSha: 'abc123',
+        ),
       );
 
       expect(log, isNot(loggedFallingBackToDefaultRecipe));
