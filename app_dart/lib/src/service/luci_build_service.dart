@@ -7,6 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
@@ -283,9 +284,12 @@ class LuciBuildService {
       }
 
       if (isFusion) {
+        properties['is_fusion'] = 'true';
+
         // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
         switch (engineArtifacts) {
-          case ContentAwareEngineArtifacts(:final flutterRealm):
+          case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
+            properties['flutter_prebuilt_engine_version'] = commitSha;
             properties['flutter_realm'] = flutterRealm;
           case UnnecessaryEngineArtifacts(:final reason):
             log.debug(
@@ -867,11 +871,19 @@ class LuciBuildService {
     processedProperties['exe_cipd_version'] = cipdVersion.version;
 
     final isFusion = commit.slug == Config.flutterSlug;
-    if (isFusion && commit.branch != Config.defaultBranch(Config.flutterSlug)) {
-      processedProperties.addAll({
-        // Prod build bucket, built during the merge queue.
-        'flutter_realm': '',
-      });
+    if (isFusion) {
+      processedProperties['is_fusion'] = 'true';
+      if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
+        processedProperties.addAll({
+          // For release candidates, use the version pinned in engine.version.
+          // https://github.com/flutter/flutter/issues/170568
+          if (!isReleaseCandidateBranch(branchName: commit.branch))
+            'flutter_prebuilt_engine_version': commit.sha,
+
+          // Prod build bucket, built during the merge queue.
+          'flutter_realm': '',
+        });
+      }
     }
     final propertiesStruct = bbv2.Struct.create();
     propertiesStruct.mergeFromProto3Json(processedProperties);
@@ -934,6 +946,7 @@ class LuciBuildService {
 
     final cipdExe = 'refs/heads/${mqBranch.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
+    processedProperties['is_fusion'] = 'true';
     processedProperties[kMergeQueueKey] = true;
     processedProperties['git_repo'] = commit.slug.name;
     if (properties != null) processedProperties.addAll(properties);

@@ -13,24 +13,30 @@ sealed class EngineArtifacts {
   const factory EngineArtifacts.noFrameworkTests({required String reason}) =
       UnnecessaryEngineArtifacts._;
 
-  /// This build should use engine artifacts built during pre-submit (i.e. from source).
-  const factory EngineArtifacts.builtFromSource() =
-      ContentAwareEngineArtifacts._buildDuringPresubmit;
+  /// This build should use engine artifacts built during pre-submit (i.e. from source) for [commitSha].
+  const factory EngineArtifacts.builtFromSource({required String commitSha}) =
+      SpecifiedEngineArtifacts._builtFromSourceUsingSha;
 
-  /// This build should use engine artifacts built during post-submit (i.e. from a previous build).
-  const factory EngineArtifacts.usingExistingEngine() =
-      ContentAwareEngineArtifacts._builtPreviousPostsubmit;
+  /// This build should use engine artifacts built during post-submiut for [commitSha].
+  const factory EngineArtifacts.usingExistingEngine({
+    required String commitSha,
+  }) = SpecifiedEngineArtifacts._alreadyBuiltAtExistingSha;
 }
 
-/// Required [EngineArtifacts] that use content-aware hashing.
-final class ContentAwareEngineArtifacts extends EngineArtifacts {
-  const ContentAwareEngineArtifacts._buildDuringPresubmit()
-    : isBuiltFromSource = true;
+/// Required [EngineArtifacts].
+final class SpecifiedEngineArtifacts extends EngineArtifacts {
+  const SpecifiedEngineArtifacts._builtFromSourceUsingSha({
+    required this.commitSha,
+  }) : isBuiltFromSource = true;
 
-  const ContentAwareEngineArtifacts._builtPreviousPostsubmit()
-    : isBuiltFromSource = false;
+  const SpecifiedEngineArtifacts._alreadyBuiltAtExistingSha({
+    required this.commitSha,
+  }) : isBuiltFromSource = false;
 
-  /// Whether the artifacts were built from source in the pull request.
+  /// What SHA to provide to `FLUTTER_PREBUILT_ENGINE_VERSION`.
+  final String commitSha;
+
+  /// Whether [commitSha] is built from source in the pull request.
   final bool isBuiltFromSource;
 
   /// Which storage upload bucket this artifact belongs to.
@@ -40,17 +46,17 @@ final class ContentAwareEngineArtifacts extends EngineArtifacts {
 
   @override
   bool operator ==(Object other) {
-    return other is ContentAwareEngineArtifacts &&
+    return other is SpecifiedEngineArtifacts &&
+        commitSha == other.commitSha &&
         isBuiltFromSource == other.isBuiltFromSource;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(ContentAwareEngineArtifacts, isBuiltFromSource);
+  int get hashCode => Object.hash(commitSha, isBuiltFromSource);
 
   @override
   String toString() {
-    return 'EngineArtifacts.${isBuiltFromSource ? 'builtFromSource' : 'usingExistingEngine'}';
+    return 'EngineArtifacts.${isBuiltFromSource ? 'builtFromSource' : 'usingExistingEngine'}(commitSha: $commitSha)';
   }
 }
 
