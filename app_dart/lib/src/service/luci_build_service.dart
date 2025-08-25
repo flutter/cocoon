@@ -875,10 +875,6 @@ class LuciBuildService {
       processedProperties['is_fusion'] = 'true';
       if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
         processedProperties.addAll({
-          // For release candidates, let the flutter tool pick the right engine.
-          if (!isReleaseCandidateBranch(branchName: commit.branch))
-            'flutter_prebuilt_engine_version': commit.sha,
-
           // Prod build bucket, built during the merge queue.
           'flutter_realm': '',
         });
