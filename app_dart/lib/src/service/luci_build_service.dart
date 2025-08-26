@@ -278,8 +278,6 @@ class LuciBuildService {
       }
 
       if (isFusion) {
-        properties['is_fusion'] = 'true';
-
         // Fusion *also* means "this is flutter/flutter", so determine how to specify the engine version and realm.
         switch (engineArtifacts) {
           case SpecifiedEngineArtifacts(:final commitSha, :final flutterRealm):
@@ -872,7 +870,6 @@ class LuciBuildService {
 
     final isFusion = commit.slug == Config.flutterSlug;
     if (isFusion) {
-      processedProperties['is_fusion'] = 'true';
       if (commit.branch != Config.defaultBranch(Config.flutterSlug)) {
         processedProperties.addAll({
           // For release candidates, let the flutter tool pick the right engine.
@@ -945,7 +942,6 @@ class LuciBuildService {
 
     final cipdExe = 'refs/heads/${mqBranch.branch}';
     processedProperties['exe_cipd_version'] = cipdExe;
-    processedProperties['is_fusion'] = 'true';
     processedProperties[kMergeQueueKey] = true;
     processedProperties['git_repo'] = commit.slug.name;
     if (properties != null) processedProperties.addAll(properties);
