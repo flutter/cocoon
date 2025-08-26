@@ -181,8 +181,9 @@ class _PullRequestValidationProcessor {
     var shouldReturn = false;
     for (final MapEntry(key: _, :value) in validationsMap.entries) {
       if (!value.result && value.action == Action.REMOVE_LABEL) {
-        final commentMessage =
-            value.message.isEmpty ? 'Validations Fail.' : value.message;
+        final commentMessage = value.message.isEmpty
+            ? 'Validations Fail.'
+            : value.message;
         await _removeAutosubmitLabel(commentMessage);
         shouldReturn = true;
       }

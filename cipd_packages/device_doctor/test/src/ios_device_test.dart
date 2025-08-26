@@ -289,7 +289,8 @@ void main() {
         lsProcess = FakeProcess(0, out: lsOutput);
 
         const deviceID = 'deviceId';
-        const profileContent = '''<array>
+        const profileContent =
+            '''<array>
         <string>test1</string>
         <string>$deviceID</string>
         <string>test2</string>

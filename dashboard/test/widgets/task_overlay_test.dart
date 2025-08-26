@@ -443,10 +443,9 @@ void main() {
     await tester.tapAt(const Offset(_cellSize * 1.5, _cellSize * 1.5));
     await tester.pump();
 
-    final rerun =
-        tester
-            .element(find.text('RERUN'))
-            .findAncestorWidgetOfExactType<ProgressButton>();
+    final rerun = tester
+        .element(find.text('RERUN'))
+        .findAncestorWidgetOfExactType<ProgressButton>();
 
     expect(rerun, isNotNull, reason: 'The rerun button should exist.');
     expect(

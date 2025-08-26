@@ -27,8 +27,9 @@ void main() {
     );
 
     expect(find.text('M'), findsNWidgets(2));
-    final avatars =
-        tester.widgetList<CircleAvatar>(find.byType(CircleAvatar)).toList();
+    final avatars = tester
+        .widgetList<CircleAvatar>(find.byType(CircleAvatar))
+        .toList();
     expect(avatars, hasLength(2));
     expect(avatars.first.backgroundColor, isNot(avatars.last.backgroundColor));
   });

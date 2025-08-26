@@ -633,15 +633,14 @@ class AndroidDevice implements Device {
     // Example result:
     //
     // Proc # 0: fore  T/A/T  trm: 0 4544:com.google.android.googlequicksearchbox/u0a66 (top-activity)
-    final processes =
-        results
-            .map(
-              (result) => result.substring(
-                result.lastIndexOf(':') + 1,
-                result.lastIndexOf('/'),
-              ),
-            )
-            .toList();
+    final processes = results
+        .map(
+          (result) => result.substring(
+            result.lastIndexOf(':') + 1,
+            result.lastIndexOf('/'),
+          ),
+        )
+        .toList();
     try {
       for (var process in processes) {
         await eval('adb', <String>[

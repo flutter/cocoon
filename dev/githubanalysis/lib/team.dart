@@ -62,8 +62,8 @@ class TeamRoster {
         cacheEpoch,
         () async {
           final cacheData = StringBuffer();
-          await for (final TeamMember member in github.organizations
-              .listTeamMembers(teamId)) {
+          await for (final TeamMember member
+              in github.organizations.listTeamMembers(teamId)) {
             verifyStringSanity(member.login!, const <String>{'\n', ' '});
             verifyStringSanity(member.htmlUrl!, const <String>{'\n', ' '});
             verifyStringSanity(member.avatarUrl!, const <String>{'\n', ' '});

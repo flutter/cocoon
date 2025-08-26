@@ -55,10 +55,9 @@ void main() {
       final response = await githubWebhook.post(req);
       final resBody = await response.readAsString();
       final reqBody = json.decode(resBody) as Map<String, dynamic>;
-      final labels =
-          PullRequest.fromJson(
-            reqBody['pull_request'] as Map<String, dynamic>,
-          ).labels!;
+      final labels = PullRequest.fromJson(
+        reqBody['pull_request'] as Map<String, dynamic>,
+      ).labels!;
       expect(labels[0].name, 'cla: yes');
       expect(labels[1].name, 'autosubmit');
     });

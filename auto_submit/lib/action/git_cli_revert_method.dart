@@ -86,17 +86,16 @@ class GitCliRevertMethod implements RevertMethod {
       pullRequestToRevert.number!,
     );
 
-    final formatter =
-        RevertIssueBodyFormatter(
-          slug: slug,
-          prToRevertNumber: pullRequestToRevert.number!,
-          initiatingAuthor: initiatingAuthor,
-          revertReason: reasonForRevert,
-          prToRevertAuthor: pullRequestToRevert.user!.login,
-          prToRevertReviewers: prToRevertReviewers,
-          prToRevertTitle: pullRequestToRevert.title,
-          prToRevertBody: pullRequestToRevert.body,
-        ).format;
+    final formatter = RevertIssueBodyFormatter(
+      slug: slug,
+      prToRevertNumber: pullRequestToRevert.number!,
+      initiatingAuthor: initiatingAuthor,
+      revertReason: reasonForRevert,
+      prToRevertAuthor: pullRequestToRevert.user!.login,
+      prToRevertReviewers: prToRevertReviewers,
+      prToRevertTitle: pullRequestToRevert.title,
+      prToRevertBody: pullRequestToRevert.body,
+    ).format;
 
     log.info(
       'Attempting to create pull request with ${slug.fullName}/${gitRevertBranchName.branch}.',

@@ -43,10 +43,9 @@ class IosDeviceDiscovery implements DeviceDiscovery {
   Future<List<Device>> discoverDevices({
     Duration retryDuration = const Duration(seconds: 10),
   }) async {
-    final List<Device> discoveredDevices =
-        LineSplitter.split(
-          await deviceListOutput(),
-        ).map((String id) => IosDevice(deviceId: id)).toList();
+    final List<Device> discoveredDevices = LineSplitter.split(
+      await deviceListOutput(),
+    ).map((String id) => IosDevice(deviceId: id)).toList();
     stdout.write(
       'ios devices discovered: ${discoveredDevices.map((e) => e.deviceId).toList()}',
     );
@@ -349,8 +348,10 @@ class IosDevice implements Device {
       return true;
     }
     final results = result.trim().split('\n');
-    final bundleIdentifiers =
-        results.sublist(1).map((e) => e.split(',')[0].trim()).toList();
+    final bundleIdentifiers = results
+        .sublist(1)
+        .map((e) => e.split(',')[0].trim())
+        .toList();
     try {
       for (var bundleIdentifier in bundleIdentifiers) {
         await eval(fullPathIdeviceInstaller, <String>[

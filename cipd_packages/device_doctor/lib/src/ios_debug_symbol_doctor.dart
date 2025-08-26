@@ -99,13 +99,12 @@ class RecoverCommand extends Command<bool> {
   Directory get dashboardXcWorkspace {
     final cocoonRootPath = argResults!['cocoon-root'] as String;
     final cocoonRoot = fs.directory(cocoonRootPath);
-    final dashboardXcWorkspace =
-        cocoonRoot
-            .childDirectory('dashboard')
-            .childDirectory('ios')
-            .childDirectory('Runner.xcodeproj')
-            .childDirectory('project.xcworkspace')
-            .absolute;
+    final dashboardXcWorkspace = cocoonRoot
+        .childDirectory('dashboard')
+        .childDirectory('ios')
+        .childDirectory('Runner.xcodeproj')
+        .childDirectory('project.xcworkspace')
+        .absolute;
     if (!dashboardXcWorkspace.existsSync()) {
       throw StateError(
         'You provided the --cocoon-root option with "$cocoonRootPath", and the device doctor tried to '

@@ -124,16 +124,24 @@ Future<void> main(List<String> args) async {
 
   const Platform platform = LocalPlatform();
 
-  final codesignCertName =
-      getValueFromArgs(kCodesignCertNameOption, argResults)!;
+  final codesignCertName = getValueFromArgs(
+    kCodesignCertNameOption,
+    argResults,
+  )!;
   final inputZipPath = getValueFromArgs(kInputZipPathOption, argResults)!;
   final outputZipPath = getValueFromArgs(kOutputZipPathOption, argResults)!;
-  final appSpecificPasswordFilePath =
-      getValueFromArgs(kAppSpecificPasswordOption, argResults)!;
-  final codesignAppstoreIDFilePath =
-      getValueFromArgs(kCodesignAppstoreIDOption, argResults)!;
-  final codesignTeamIDFilePath =
-      getValueFromArgs(kCodesignTeamIDOption, argResults)!;
+  final appSpecificPasswordFilePath = getValueFromArgs(
+    kAppSpecificPasswordOption,
+    argResults,
+  )!;
+  final codesignAppstoreIDFilePath = getValueFromArgs(
+    kCodesignAppstoreIDOption,
+    argResults,
+  )!;
+  final codesignTeamIDFilePath = getValueFromArgs(
+    kCodesignTeamIDOption,
+    argResults,
+  )!;
 
   final dryrun = argResults[kDryrunFlag] as bool;
 

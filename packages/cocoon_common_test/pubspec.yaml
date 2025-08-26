@@ -3,7 +3,7 @@ description: Testing specific functionality for package:cocoon_common
 publish_to: none
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.9.0
 
 resolution: workspace
 

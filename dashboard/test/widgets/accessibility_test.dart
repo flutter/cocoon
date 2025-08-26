@@ -25,14 +25,12 @@ void main() {
     const longNames = <String>['Michael', 'Thomas', 'Peter', 'Volkert'];
 
     Widget buildAuthors({required List<String> names, ThemeData? theme}) {
-      final List<Widget> avatars =
-          names
-              .map(
-                (String name) => CommitAuthorAvatar(
-                  commit: generateCommitForTest(author: name),
-                ),
-              )
-              .toList();
+      final List<Widget> avatars = names
+          .map(
+            (String name) =>
+                CommitAuthorAvatar(commit: generateCommitForTest(author: name)),
+          )
+          .toList();
 
       return MaterialApp(
         theme: theme ?? ThemeData.light(),

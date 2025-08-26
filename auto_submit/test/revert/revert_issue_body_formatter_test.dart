@@ -23,17 +23,16 @@ void main() {
     final originalPrReviewers = <String>{'Mando', 'Grogu'};
     RevertIssueBodyFormatter? revertIssueBodyFormatter;
     expect(
-      () =>
-          revertIssueBodyFormatter = RevertIssueBodyFormatter(
-            slug: RepositorySlug('flutter', 'flutter'),
-            prToRevertNumber: pullRequest.number!,
-            initiatingAuthor: sender,
-            revertReason: reason,
-            prToRevertAuthor: originalPrAuthor,
-            prToRevertReviewers: originalPrReviewers,
-            prToRevertTitle: pullRequest.title,
-            prToRevertBody: pullRequest.body,
-          ),
+      () => revertIssueBodyFormatter = RevertIssueBodyFormatter(
+        slug: RepositorySlug('flutter', 'flutter'),
+        prToRevertNumber: pullRequest.number!,
+        initiatingAuthor: sender,
+        revertReason: reason,
+        prToRevertAuthor: originalPrAuthor,
+        prToRevertReviewers: originalPrReviewers,
+        prToRevertTitle: pullRequest.title,
+        prToRevertBody: pullRequest.body,
+      ),
       returnsNormally,
     );
     revertIssueBodyFormatter!.format;

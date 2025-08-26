@@ -70,7 +70,8 @@ class ValidationService {
 
     if (pullRequest.title!.contains(revertPattern)) {
       // Cleanup auto-generated revert messages.
-      messagePrefix = '''
+      messagePrefix =
+          '''
 ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
 
 ''';

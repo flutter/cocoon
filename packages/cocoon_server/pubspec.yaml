@@ -5,7 +5,7 @@ publish_to: none
 resolution: workspace
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.9.0
 
 # Version constraints in this package are intentionally relaxed, because the
 # exact versions are locked by app_dart and auto_submit apps.
