@@ -637,7 +637,6 @@ void main() {
       'recipe': bbv2.Value(stringValue: 'devicelab/devicelab'),
 
       // Experimental branches work similar to release branches.
-      'flutter_prebuilt_engine_version': bbv2.Value(stringValue: '1'),
       'flutter_realm': bbv2.Value(stringValue: ''),
     });
 
