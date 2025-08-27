@@ -13,15 +13,14 @@ import 'package:cocoon_common/cocoon_common.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
 
-final _parser =
-    ArgParser(allowTrailingOptions: false)
-      ..addOption(
-        'repository-root',
-        help: 'The root of the flutter/cocoon repository.',
-        defaultsTo: _findRepositoryRoot(),
-      )
-      ..addFlag('quiet', abbr: 'q', help: 'Quiet output')
-      ..addFlag('verbose', abbr: 'v', help: 'Show additional output');
+final _parser = ArgParser(allowTrailingOptions: false)
+  ..addOption(
+    'repository-root',
+    help: 'The root of the flutter/cocoon repository.',
+    defaultsTo: _findRepositoryRoot(),
+  )
+  ..addFlag('quiet', abbr: 'q', help: 'Quiet output')
+  ..addFlag('verbose', abbr: 'v', help: 'Show additional output');
 
 const _anyPackageChecks = [DoNotSubmitFixme(), NoTrailingWhitespace()];
 const _serverPackageChecks = [..._anyPackageChecks, UseTestLogging()];

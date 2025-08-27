@@ -345,7 +345,8 @@ const String _jsonWithNonFatalErrors = '''
   }
 ]''';
 
-String _jsonWithErrors(String name) => '''
+String _jsonWithErrors(String name) =>
+    '''
 [
   {
     "modelCode" : "iPhone8,1",
@@ -370,7 +371,8 @@ String _jsonWithErrors(String name) => '''
 ]
 ''';
 
-String _jsonWithPreparingErrors(String name) => '''
+String _jsonWithPreparingErrors(String name) =>
+    '''
 [
   {
     "modelCode" : "iPhone8,1",

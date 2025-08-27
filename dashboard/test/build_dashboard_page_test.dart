@@ -34,11 +34,10 @@ import 'utils/task_icons.dart';
 void main() {
   late MockFirebaseAuthService fakeAuthService;
 
-  final dropdownButtonType =
-      DropdownButton<String>(
-        onChanged: (_) {},
-        items: const <DropdownMenuItem<String>>[],
-      ).runtimeType;
+  final dropdownButtonType = DropdownButton<String>(
+    onChanged: (_) {},
+    items: const <DropdownMenuItem<String>>[],
+  ).runtimeType;
 
   void configureView(TestFlutterView view) {
     // device pixel ratio of 1.0 works well on web app and emulator
@@ -108,8 +107,8 @@ void main() {
 
   testWidgets('shows settings button', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -129,8 +128,8 @@ void main() {
 
   testWidgets('shows infra ticket queue button', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -150,8 +149,8 @@ void main() {
 
   testWidgets('shows file a bug button', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -171,8 +170,8 @@ void main() {
 
   testWidgets('shows key button & legend', (WidgetTester tester) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -203,8 +202,8 @@ void main() {
     'shows branch and repo dropdown button when screen is decently large',
     (WidgetTester tester) async {
       configureView(tester.view);
-      final BuildState fakeBuildState =
-          FakeBuildState()..authService = fakeAuthService;
+      final BuildState fakeBuildState = FakeBuildState()
+        ..authService = fakeAuthService;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -243,8 +242,8 @@ void main() {
     'shows enabled Refresh GitHub Commits button when isAuthenticated',
     (WidgetTester tester) async {
       configureView(tester.view);
-      final BuildState fakeBuildState =
-          FakeBuildState()..authService = fakeAuthService;
+      final BuildState fakeBuildState = FakeBuildState()
+        ..authService = fakeAuthService;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -270,10 +269,9 @@ void main() {
 
       expect(labelFinder, findsOneWidget);
 
-      final button =
-          tester
-              .element(labelFinder)
-              .findAncestorWidgetOfExactType<TextButton>()!;
+      final button = tester
+          .element(labelFinder)
+          .findAncestorWidgetOfExactType<TextButton>()!;
 
       expect(
         button.onPressed,
@@ -287,8 +285,8 @@ void main() {
     'shows disabled Refresh GitHub Commits button when !isAuthenticated',
     (WidgetTester tester) async {
       configureView(tester.view);
-      final BuildState fakeBuildState =
-          FakeBuildState()..authService = fakeAuthService;
+      final BuildState fakeBuildState = FakeBuildState()
+        ..authService = fakeAuthService;
       when(fakeAuthService.isAuthenticated).thenReturn(false);
 
       await tester.pumpWidget(
@@ -312,10 +310,9 @@ void main() {
       ); // Finish the menu animation.
 
       final labelFinder = find.text('Refresh GitHub Commits');
-      final button =
-          tester
-              .element(labelFinder)
-              .findAncestorWidgetOfExactType<TextButton>()!;
+      final button = tester
+          .element(labelFinder)
+          .findAncestorWidgetOfExactType<TextButton>()!;
 
       expect(
         button.onPressed,
@@ -329,10 +326,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = null
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = null
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -358,10 +354,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = null
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = null
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -387,10 +382,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = false
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = false
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -421,10 +415,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = false
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = false
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -455,10 +448,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = true
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = true
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -484,10 +476,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = true
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = true
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -514,10 +505,9 @@ void main() {
   ) async {
     configureView(tester.view);
     String? lastError;
-    final buildState =
-        FakeBuildState()
-          ..errors.addListener((String message) => lastError = message)
-          ..authService = fakeAuthService;
+    final buildState = FakeBuildState()
+      ..errors.addListener((String message) => lastError = message)
+      ..authService = fakeAuthService;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -640,8 +630,8 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..authService = fakeAuthService;
     var controlledBuildDashboardPage = const BuildDashboardPage(
       queryParameters: {'repo': 'cocoon', 'branch': 'flutter-release'},
     );
@@ -685,8 +675,8 @@ void main() {
       tester.view.physicalSize = const Size(500, 500);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      final BuildState fakeBuildState =
-          FakeBuildState()..authService = fakeAuthService;
+      final BuildState fakeBuildState = FakeBuildState()
+        ..authService = fakeAuthService;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -714,10 +704,9 @@ void main() {
     WidgetTester tester,
   ) async {
     configureView(tester.view);
-    final BuildState fakeBuildState =
-        FakeBuildState()
-          ..isTreeBuilding = true
-          ..authService = fakeAuthService;
+    final BuildState fakeBuildState = FakeBuildState()
+      ..isTreeBuilding = true
+      ..authService = fakeAuthService;
     const dialogText = 'Refresh GitHub Commits';
     ThemeData theme;
     Widget buildDashboard({required Brightness brightness}) {

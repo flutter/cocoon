@@ -38,7 +38,8 @@ void main() {
     processManager.addCommands(const <FakeCommand>[
       FakeCommand(
         command: <String>['codesign', '--display', '-vv', binaryPath],
-        stderr: '''
+        stderr:
+            '''
 Executable=$binaryPath
 Identifier=mybinary
 Format=Mach-O thin (x86_64)
@@ -64,7 +65,8 @@ Internal requirements count=1 size=164
           '--check-notarization',
           binaryPath,
         ],
-        stderr: '''
+        stderr:
+            '''
 $binaryPath: valid on disk
 $binaryPath: satisfies its Designated Requirement
 $binaryPath: explicit requirement satisfied
@@ -87,7 +89,8 @@ Notarization:   true
     processManager.addCommands(const <FakeCommand>[
       FakeCommand(
         command: <String>['codesign', '--display', '-vv', binaryPath],
-        stderr: '''
+        stderr:
+            '''
 Executable=$binaryPath
 Identifier=mybinary
 Format=Mach-O thin (x86_64)
@@ -113,7 +116,8 @@ Internal requirements count=1 size=164
           '--check-notarization',
           binaryPath,
         ],
-        stderr: '''
+        stderr:
+            '''
 $binaryPath: valid on disk
 $binaryPath: satisfies its Designated Requirement
 test-requirement: code failed to satisfy specified code requirement(s)

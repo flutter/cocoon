@@ -44,7 +44,8 @@ class RevertIssueBodyFormatter {
     prToRevertBody ??= 'No description provided.';
 
     // Create the body for the revert issue.
-    revertPrBody = '''
+    revertPrBody =
+        '''
 <!-- start_original_pr_link -->
 Reverts: $revertPrLink
 <!-- end_original_pr_link -->

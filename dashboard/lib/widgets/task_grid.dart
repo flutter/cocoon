@@ -218,17 +218,14 @@ class _TaskGridState extends State<TaskGrid> {
     var filter = taskGrid.filter;
     filter ??= TaskGridFilter();
     // 1: PREPARE ROWS
-    final filteredStatuses =
-        taskGrid.commitStatuses
-            .where(
-              (CommitStatus commitStatus) =>
-                  filter!.matchesCommit(commitStatus),
-            )
-            .toList();
-    final rows =
-        filteredStatuses
-            .map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit))
-            .toList();
+    final filteredStatuses = taskGrid.commitStatuses
+        .where(
+          (CommitStatus commitStatus) => filter!.matchesCommit(commitStatus),
+        )
+        .toList();
+    final rows = filteredStatuses
+        .map<_Row>((CommitStatus commitStatus) => _Row(commitStatus.commit))
+        .toList();
     // 2: WALK ALL TASKS
     final scores = <QualifiedTask, double>{};
     final taskLookupMap = <QualifiedTask, Task>{};
@@ -256,10 +253,9 @@ class _TaskGridState extends State<TaskGrid> {
             weightStatus += ' - Rerun';
           }
           // Make the score relative to how long ago it was run.
-          final score =
-              _statusScores.containsKey(weightStatus)
-                  ? _statusScores[weightStatus]! / commitCount
-                  : _statusScores['Unknown']! / commitCount;
+          final score = _statusScores.containsKey(weightStatus)
+              ? _statusScores[weightStatus]! / commitCount
+              : _statusScores['Unknown']! / commitCount;
           scores.update(
             qualifiedTask,
             (double value) => value += score,
@@ -279,14 +275,14 @@ class _TaskGridState extends State<TaskGrid> {
       }
     }
     // 3: SORT
-    final tasks =
-        scores.keys.toList()..sort((QualifiedTask a, QualifiedTask b) {
-          final scoreComparison = scores[b]!.compareTo(scores[a]!);
-          if (scoreComparison != 0) {
-            return scoreComparison;
-          }
-          return a.task.compareTo(b.task);
-        });
+    final tasks = scores.keys.toList()
+      ..sort((QualifiedTask a, QualifiedTask b) {
+        final scoreComparison = scores[b]!.compareTo(scores[a]!);
+        if (scoreComparison != 0) {
+          return scoreComparison;
+        }
+        return a.task.compareTo(b.task);
+      });
 
     // 4: GENERATE RESULTING LIST OF LISTS
     return <List<LatticeCell>>[
@@ -302,17 +298,16 @@ class _TaskGridState extends State<TaskGrid> {
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[
           LatticeCell(
-            builder:
-                (BuildContext context) => CommitBox(
-                  commit: row.commit,
-                  schedulePostsubmitBuild: () {
-                    if (widget.schedulePostsubmitBuildForReleaseBranch
-                        case final schedule?) {
-                      return () async => schedule(row.commit);
-                    }
-                    return null;
-                  }(),
-                ),
+            builder: (BuildContext context) => CommitBox(
+              commit: row.commit,
+              schedulePostsubmitBuild: () {
+                if (widget.schedulePostsubmitBuildForReleaseBranch
+                    case final schedule?) {
+                  return () async => schedule(row.commit);
+                }
+                return null;
+              }(),
+            ),
           ),
           ...tasks.map<LatticeCell>(
             (QualifiedTask task) => row.cells[task] ?? const LatticeCell(),
@@ -332,10 +327,9 @@ class _TaskGridState extends State<TaskGrid> {
       'Unknown or unexpected status: ${task.status}',
     );
 
-    var color =
-        TaskBox.statusColor.containsKey(task.status)
-            ? TaskBox.statusColor[task.status]!
-            : Colors.transparent;
+    var color = TaskBox.statusColor.containsKey(task.status)
+        ? TaskBox.statusColor[task.status]!
+        : Colors.transparent;
     if (task.status == TaskStatus.inProgress) {
       if (task.lastAttemptFailed) {
         color = TaskBox.statusColorFailedAndRerunning;
@@ -384,8 +378,9 @@ class _TaskGridState extends State<TaskGrid> {
     return null;
   }
 
-  static final List<String> _loadingMessage =
-      'LOADING...'.runes.map<String>(String.fromCharCode).toList();
+  static final List<String> _loadingMessage = 'LOADING...'.runes
+      .map<String>(String.fromCharCode)
+      .toList();
 
   List<LatticeCell> _generateLoadingRow(int length) {
     return <LatticeCell>[
@@ -395,12 +390,9 @@ class _TaskGridState extends State<TaskGrid> {
             fit: BoxFit.contain,
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child:
-                  widget.useAnimatedLoading
-                      ? const RepaintBoundary(
-                        child: CircularProgressIndicator(),
-                      )
-                      : const Icon(Icons.refresh),
+              child: widget.useAnimatedLoading
+                  ? const RepaintBoundary(child: CircularProgressIndicator())
+                  : const Icon(Icons.refresh),
             ),
           );
         },
@@ -430,19 +422,18 @@ class _TaskGridState extends State<TaskGrid> {
     return (Offset? localPosition) {
       _taskOverlay?.remove();
       _taskOverlay = OverlayEntry(
-        builder:
-            (BuildContext context) => TaskOverlayEntry(
-              position: (this.context.findRenderObject() as RenderBox)
-                  .localToGlobal(
-                    localPosition!,
-                    ancestor: Overlay.of(context).context.findRenderObject(),
-                  ),
-              task: task,
-              showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
-              closeCallback: _closeOverlay,
-              buildState: widget.buildState,
-              commit: commit,
-            ),
+        builder: (BuildContext context) => TaskOverlayEntry(
+          position: (this.context.findRenderObject() as RenderBox)
+              .localToGlobal(
+                localPosition!,
+                ancestor: Overlay.of(context).context.findRenderObject(),
+              ),
+          task: task,
+          showSnackBarCallback: ScaffoldMessenger.of(context).showSnackBar,
+          closeCallback: _closeOverlay,
+          buildState: widget.buildState,
+          commit: commit,
+        ),
       );
       Overlay.of(context).insert(_taskOverlay!);
     };

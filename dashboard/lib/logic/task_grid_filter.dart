@@ -272,24 +272,23 @@ class TaskGridFilter extends FilterPropertySource {
   /// Return the list of properties of this filter in a form that can be used by a
   /// [FilterPropertySheet] to display the fields to a user and allow them to edit the values.
   @override
-  List<FilterPropertyNode> get sheetLayout =>
-      _layout ??= <FilterPropertyNode>[
-        _taskProperty,
-        _authorProperty,
-        _messageProperty,
-        _hashProperty,
-        BoolFilterPropertyGroup(
-          label: 'Stages',
-          members: <BoolFilterProperty>[
-            _androidProperty,
-            _iosProperty,
-            _linuxPorperty,
-            _macProperty,
-            _windowsPorperty,
-            _bringUpProperty,
-          ],
-        ),
-      ];
+  List<FilterPropertyNode> get sheetLayout => _layout ??= <FilterPropertyNode>[
+    _taskProperty,
+    _authorProperty,
+    _messageProperty,
+    _hashProperty,
+    BoolFilterPropertyGroup(
+      label: 'Stages',
+      members: <BoolFilterProperty>[
+        _androidProperty,
+        _iosProperty,
+        _linuxPorperty,
+        _macProperty,
+        _windowsPorperty,
+        _bringUpProperty,
+      ],
+    ),
+  ];
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order
   String get _values => _allProperties.values

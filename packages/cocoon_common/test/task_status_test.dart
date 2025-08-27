@@ -31,15 +31,14 @@ void main() {
   });
 
   group('.value', () {
-    for (final MapEntry(key: value, value: expectation)
-        in {
-          TaskStatus.cancelled: 'Cancelled',
-          TaskStatus.waitingForBackfill: 'New',
-          TaskStatus.infraFailure: 'Infra Failure',
-          TaskStatus.failed: 'Failed',
-          TaskStatus.succeeded: 'Succeeded',
-          TaskStatus.skipped: 'Skipped',
-        }.entries) {
+    for (final MapEntry(key: value, value: expectation) in {
+      TaskStatus.cancelled: 'Cancelled',
+      TaskStatus.waitingForBackfill: 'New',
+      TaskStatus.infraFailure: 'Infra Failure',
+      TaskStatus.failed: 'Failed',
+      TaskStatus.succeeded: 'Succeeded',
+      TaskStatus.skipped: 'Skipped',
+    }.entries) {
       test('$value == $expectation', () {
         expect(value.value, expectation);
       });

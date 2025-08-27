@@ -417,13 +417,9 @@ void main() {
 
     /// This test requires runs on different platforms.
     test('should query correct endpoint whether web or mobile', () {
-      final uri =
-          service
-              .apiEndpoint(
-                '/test',
-                queryParameters: <String, String?>{'key': null},
-              )
-              .toString();
+      final uri = service
+          .apiEndpoint('/test', queryParameters: <String, String?>{'key': null})
+          .toString();
       if (kIsWeb) {
         expect(uri, '/test?key');
       } else {

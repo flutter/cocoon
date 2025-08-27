@@ -32,10 +32,9 @@ class CiSuccessful extends Validation {
     var allSuccess = true;
     final slug = messagePullRequest.base!.repo!.slug();
     final prNumber = messagePullRequest.number!;
-    final prState =
-        (messagePullRequest.state == 'closed')
-            ? PullRequestState.closed
-            : PullRequestState.open;
+    final prState = (messagePullRequest.state == 'closed')
+        ? PullRequestState.closed
+        : PullRequestState.open;
     final pullRequest = result.repository!.pullRequest!;
     final failures = <FailureDetail>{};
 
@@ -76,10 +75,9 @@ class CiSuccessful extends Validation {
     }
 
     // List of labels associated with the pull request.
-    final labelNames =
-        (messagePullRequest.labels as List<github.IssueLabel>)
-            .map<String>((github.IssueLabel labelMap) => labelMap.name)
-            .toList();
+    final labelNames = (messagePullRequest.labels as List<github.IssueLabel>)
+        .map<String>((github.IssueLabel labelMap) => labelMap.name)
+        .toList();
 
     /// Validate if all statuses have been successful.
     allSuccess = validateStatuses(
@@ -125,10 +123,9 @@ class CiSuccessful extends Validation {
         );
       }
     }
-    final action =
-        labelNames.contains(Config.kEmergencyLabel)
-            ? Action.IGNORE_FAILURE
-            : Action.REMOVE_LABEL;
+    final action = labelNames.contains(Config.kEmergencyLabel)
+        ? Action.IGNORE_FAILURE
+        : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
   }
 

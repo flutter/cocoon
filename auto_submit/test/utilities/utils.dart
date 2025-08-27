@@ -87,20 +87,16 @@ class PullRequestHelper {
               .toIso8601String(),
       'isInMergeQueue': isInMergeQueue,
       'reviews': <String, dynamic>{
-        'nodes':
-            reviews.map((PullRequestReviewHelper review) {
-              return <String, dynamic>{
-                'author': <String, dynamic>{'login': review.authorName},
-                'authorAssociation': review.memberType.toString().replaceFirst(
-                  'MemberType.',
-                  '',
-                ),
-                'state': review.state.toString().replaceFirst(
-                  'ReviewState.',
-                  '',
-                ),
-              };
-            }).toList(),
+        'nodes': reviews.map((PullRequestReviewHelper review) {
+          return <String, dynamic>{
+            'author': <String, dynamic>{'login': review.authorName},
+            'authorAssociation': review.memberType.toString().replaceFirst(
+              'MemberType.',
+              '',
+            ),
+            'state': review.state.toString().replaceFirst('ReviewState.', ''),
+          };
+        }).toList(),
       },
       'commits': <String, dynamic>{
         'nodes': <dynamic>[
@@ -113,16 +109,15 @@ class PullRequestHelper {
                       .toIso8601String(),
               'message': lastCommitMessage,
               'status': <String, dynamic>{
-                'contexts':
-                    lastCommitStatuses != null
-                        ? lastCommitStatuses!.map((StatusHelper status) {
-                          return <String, dynamic>{
-                            'context': status.name,
-                            'state': status.state,
-                            'targetUrl': 'https://${status.name}',
-                          };
-                        }).toList()
-                        : <dynamic>[],
+                'contexts': lastCommitStatuses != null
+                    ? lastCommitStatuses!.map((StatusHelper status) {
+                        return <String, dynamic>{
+                          'context': status.name,
+                          'state': status.state,
+                          'targetUrl': 'https://${status.name}',
+                        };
+                      }).toList()
+                    : <dynamic>[],
               },
             },
           },

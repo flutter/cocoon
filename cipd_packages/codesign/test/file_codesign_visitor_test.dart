@@ -127,18 +127,16 @@ void main() {
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
-          onRun:
-              () =>
-                  fileSystem
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/entitlements.txt',
-                    ).createSync(recursive: true)
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/without_entitlements.txt',
-                    ).createSync(recursive: true)
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/unsigned_binaries.txt',
-                    ).createSync(recursive: true),
+          onRun: () => fileSystem
+            ..file(
+              '${rootDirectory.path}/single_artifact/entitlements.txt',
+            ).createSync(recursive: true)
+            ..file(
+              '${rootDirectory.path}/single_artifact/without_entitlements.txt',
+            ).createSync(recursive: true)
+            ..file(
+              '${rootDirectory.path}/single_artifact/unsigned_binaries.txt',
+            ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -185,11 +183,10 @@ void main() {
       ]);
 
       await codesignVisitor.processRemoteZip();
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toSet();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
       expect(
         messages,
         contains(
@@ -300,11 +297,10 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: 'a.zip',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains('Visiting directory ${rootDirectory.path}/remote_zip_0'),
@@ -358,11 +354,10 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: '',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains('Visiting directory ${rootDirectory.path}/remote_zip_1'),
@@ -391,15 +386,13 @@ void main() {
             '-d',
             '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
           ],
-          onRun:
-              () =>
-                  fileSystem
-                    ..file(
-                      '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1',
-                    ).createSync(recursive: true)
-                    ..file(
-                      '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2',
-                    ).createSync(recursive: true),
+          onRun: () => fileSystem
+            ..file(
+              '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_1',
+            ).createSync(recursive: true)
+            ..file(
+              '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}/file_2',
+            ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -429,10 +422,9 @@ void main() {
             '--include',
             '*',
           ],
-          onRun:
-              () => fileSystem
-                  .file('${rootDirectory.path}/remote_zip_2/zip_1')
-                  .createSync(recursive: true),
+          onRun: () => fileSystem
+              .file('${rootDirectory.path}/remote_zip_2/zip_1')
+              .createSync(recursive: true),
         ),
       ]);
 
@@ -440,11 +432,10 @@ void main() {
         zipEntity: fileSystem.file('${rootDirectory.path}/remote_zip_2/zip_1'),
         parentVirtualPath: 'a.zip',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains(
@@ -491,12 +482,11 @@ void main() {
             '-d',
             '${rootDirectory.absolute.path}/embedded_zip_${zipFileName.hashCode}',
           ],
-          onRun:
-              () => fileSystem
-                  .directory(
-                    '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}',
-                  )
-                  .createSync(recursive: true),
+          onRun: () => fileSystem
+              .directory(
+                '${rootDirectory.path}/embedded_zip_${zipFileName.hashCode}',
+              )
+              .createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -515,11 +505,10 @@ void main() {
         directory: fileSystem.directory('${rootDirectory.path}/remote_zip_4'),
         parentVirtualPath: 'a.zip',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains(
@@ -577,22 +566,20 @@ void main() {
         ),
         parentVirtualPath: 'a.zip',
       );
-      var warnings =
-          records
-              .where((LogRecord record) => record.level == Level.WARNING)
-              .map((LogRecord record) => record.message)
-              .toList();
+      var warnings = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(warnings, isEmpty);
 
       await codesignVisitor.visitDirectory(
         directory: fileSystem.directory('${rootDirectory.path}/parent_1'),
         parentVirtualPath: 'a.zip',
       );
-      warnings =
-          records
-              .where((LogRecord record) => record.level == Level.WARNING)
-              .map((LogRecord record) => record.message)
-              .toList();
+      warnings = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         warnings,
         contains(
@@ -633,11 +620,10 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: 'a.zip',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toSet();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
       expect(
         messages,
         contains(
@@ -741,11 +727,10 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: '',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toSet();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
       expect(
         messages,
         contains(
@@ -869,11 +854,10 @@ void main() {
         directory: testDirectory,
         parentVirtualPath: 'root',
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains(
@@ -1028,11 +1012,10 @@ file_c''',
         ),
         cs.CodesignType.withoutEntitlements,
       );
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.WARNING)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains(
@@ -1257,11 +1240,10 @@ status: Invalid''',
         fileSystem.file('${rootDirectory.absolute.path}/temp'),
       );
       expect(uuid, '2efe2717-52ef-43a5-96dc-0797e4ca1041');
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.WARNING)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.WARNING)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(messages, contains('Failed to upload to the notary service'));
     });
 
@@ -1363,8 +1345,9 @@ status: Invalid''',
         ),
         throwsA(isA<CodesignException>()),
       );
-      final messages =
-          records.map((LogRecord record) => record.message).toList();
+      final messages = records
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(messages, contains('Failed to upload to the notary service'));
     });
   });
@@ -1408,15 +1391,13 @@ status: Invalid''',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
-          onRun:
-              () =>
-                  fileSystem
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/entitlements.txt',
-                    ).createSync(recursive: true)
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/without_entitlements.txt',
-                    ).createSync(recursive: true),
+          onRun: () => fileSystem
+            ..file(
+              '${rootDirectory.path}/single_artifact/entitlements.txt',
+            ).createSync(recursive: true)
+            ..file(
+              '${rootDirectory.path}/single_artifact/without_entitlements.txt',
+            ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -1462,11 +1443,10 @@ status: Invalid''',
         ),
       ]);
       await codesignVisitor.validateAll();
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toList();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toList();
       expect(
         messages,
         contains(
@@ -1485,15 +1465,13 @@ status: Invalid''',
             '-d',
             '${rootDirectory.absolute.path}/single_artifact',
           ],
-          onRun:
-              () =>
-                  fileSystem
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/entitlements.txt',
-                    ).createSync(recursive: true)
-                    ..file(
-                      '${rootDirectory.path}/single_artifact/without_entitlements.txt',
-                    ).createSync(recursive: true),
+          onRun: () => fileSystem
+            ..file(
+              '${rootDirectory.path}/single_artifact/entitlements.txt',
+            ).createSync(recursive: true)
+            ..file(
+              '${rootDirectory.path}/single_artifact/without_entitlements.txt',
+            ).createSync(recursive: true),
         ),
         FakeCommand(
           command: <String>[
@@ -1557,11 +1535,10 @@ status: Invalid''',
       codesignVisitor.codesignTeamId = fakeTeamID;
       codesignVisitor.directoriesVisited.clear();
       await codesignVisitor.validateAll();
-      final messages =
-          records
-              .where((LogRecord record) => record.level == Level.INFO)
-              .map((LogRecord record) => record.message)
-              .toSet();
+      final messages = records
+          .where((LogRecord record) => record.level == Level.INFO)
+          .map((LogRecord record) => record.message)
+          .toSet();
       expect(
         messages,
         contains(

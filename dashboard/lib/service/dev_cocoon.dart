@@ -226,10 +226,9 @@ class DevelopmentCocoonService implements CocoonService {
     String? branch,
   }) {
     branch ??= defaultBranches[repo]!;
-    final baseTimestamp =
-        lastCommitStatus != null
-            ? (lastCommitStatus.commit.timestamp.toInt())
-            : now.millisecondsSinceEpoch;
+    final baseTimestamp = lastCommitStatus != null
+        ? (lastCommitStatus.commit.timestamp.toInt())
+        : now.millisecondsSinceEpoch;
     final result = <CommitStatus>[];
     for (var index = 0; index < 25; index += 1) {
       final commitTimestamp = baseTimestamp - ((index + 1) * _commitGap);
@@ -487,8 +486,8 @@ class DevelopmentCocoonService implements CocoonService {
     final buildNumberList = List.generate(
       attempts > 1
           ? random.nextBool()
-              ? attempts
-              : attempts - 1
+                ? attempts
+                : attempts - 1
           : 1,
       (i) => i,
     );
@@ -500,8 +499,9 @@ class DevelopmentCocoonService implements CocoonService {
 
       builderName: 'Linux_android $index',
       attempts: attempts,
-      currentBuildNumber:
-          attempts == buildNumberList.length ? buildNumberList.last : null,
+      currentBuildNumber: attempts == buildNumberList.length
+          ? buildNumberList.last
+          : null,
       buildNumberList: buildNumberList,
       isBringup: index == now.millisecondsSinceEpoch % 13,
 
