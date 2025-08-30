@@ -21,6 +21,7 @@ class RepositoryConfiguration {
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
   static const String requiredCheckRunsOnRevertKey =
       'required_checkruns_on_revert';
+  static const String baseCommitAllowedDaysKey = 'base_commit_allowed_days';
 
   static const String defaultBranchStr = 'default';
 
@@ -33,6 +34,7 @@ class RepositoryConfiguration {
     bool? runCi,
     bool? supportNoReviewReverts,
     Set<String>? requiredCheckRunsOnRevert,
+    int? baseCommitAllowedDays,
   }) : allowConfigOverride = allowConfigOverride ?? false,
        defaultBranch = defaultBranch ?? defaultBranchStr,
        autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
@@ -40,7 +42,8 @@ class RepositoryConfiguration {
        approvalGroup = approvalGroup ?? 'flutter-hackers',
        runCi = runCi ?? true,
        supportNoReviewReverts = supportNoReviewReverts ?? true,
-       requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{};
+       requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{},
+       baseCommitAllowedDays = baseCommitAllowedDays ?? 0;
 
   /// This flag allows the repository to override the org level configuration.
   bool allowConfigOverride;
@@ -71,6 +74,10 @@ class RepositoryConfiguration {
   /// merged.
   Set<String> requiredCheckRunsOnRevert;
 
+  /// The number of days that the base commit of the pull request can not be
+  /// older than. If less than 1 then it will not be checked.
+  int baseCommitAllowedDays;
+
   @override
   String toString() {
     final stringBuffer = StringBuffer();
@@ -88,6 +95,7 @@ class RepositoryConfiguration {
     for (var checkrun in requiredCheckRunsOnRevert) {
       stringBuffer.writeln('  - $checkrun');
     }
+    stringBuffer.writeln('$baseCommitAllowedDaysKey: $baseCommitAllowedDays');
     return stringBuffer.toString();
   }
 
@@ -125,6 +133,7 @@ class RepositoryConfiguration {
       runCi: yamlDoc[runCiKey] as bool?,
       supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] as bool?,
       requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
+      baseCommitAllowedDays: yamlDoc[baseCommitAllowedDaysKey] as int?,
     );
   }
 }
