@@ -146,7 +146,7 @@ void main() {
       expect(processValidationResult.action, Action.REMOVE_LABEL);
       expect(
         processValidationResult.message,
-        'The base commit of the PR is older than 14 days and can not be merged. '
+        'The base commit of the PR is older than 7 days and can not be merged. '
         'Please merge the latest changes from the main into this branch and '
         'resubmit the PR.',
       );
