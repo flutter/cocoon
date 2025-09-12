@@ -141,6 +141,7 @@ class RepositoryConfigurationManager {
       runCi: globalConfiguration.runCi,
       supportNoReviewReverts: globalConfiguration.supportNoReviewReverts,
       requiredCheckRunsOnRevert: globalConfiguration.requiredCheckRunsOnRevert,
+      baseCommitAllowedDays: globalConfiguration.baseCommitAllowedDays,
     );
 
     // auto approval accounts, they should be empty if nothing was defined
@@ -184,6 +185,15 @@ class RepositoryConfigurationManager {
       mergedRepositoryConfiguration.requiredCheckRunsOnRevert.addAll(
         localConfiguration.requiredCheckRunsOnRevert,
       );
+    }
+
+    // if the local configuration is not the default value then use it.
+    // Can be setted to negative value in local configuration to turn-off
+    // base commit allowed days validation.
+    final localBaseCommitAllowedDays = localConfiguration.baseCommitAllowedDays;
+    if (localBaseCommitAllowedDays != 0) {
+      mergedRepositoryConfiguration.baseCommitAllowedDays =
+          localConfiguration.baseCommitAllowedDays;
     }
 
     return mergedRepositoryConfiguration;

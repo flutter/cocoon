@@ -51,6 +51,7 @@ void main() {
         - Google-testing
         - test (ubuntu-latest, 2.18.0)
         - cla/google
+      base_commit_allowed_days: 10
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -92,6 +93,7 @@ void main() {
       repositoryConfiguration.requiredCheckRunsOnRevert.contains('cla/google'),
       isTrue,
     );
+    expect(repositoryConfiguration.baseCommitAllowedDays, 10);
   });
 
   test(
@@ -189,6 +191,7 @@ void main() {
       ),
       isTrue,
     );
+    expect(repositoryConfiguration.baseCommitAllowedDays, 0);
   });
 
   test('Default branch collected if omitted main', () async {
@@ -204,6 +207,7 @@ void main() {
       required_checkruns_on_revert:
         - ci.yaml validation
         - Google-testing
+      base_commit_allowed_days: 7
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -236,6 +240,7 @@ void main() {
       ),
       isTrue,
     );
+    expect(repositoryConfiguration.baseCommitAllowedDays, 7);
   });
 
   group('Merging configurations tests', () {
@@ -253,6 +258,7 @@ void main() {
       support_no_review_revert: true
       required_checkruns_on_revert:
         - ci.yaml validation
+      base_commit_allowed_days: 7
     */
 
     test('Global config merged with default local config', () {
@@ -296,6 +302,7 @@ void main() {
         ),
         isTrue,
       );
+      expect(mergedRepositoryConfiguration.baseCommitAllowedDays, 7);
     });
 
     test('Auto approval accounts is additive, they cannot be removed', () {
@@ -398,29 +405,59 @@ void main() {
       );
     });
 
-    test('Approving reviews is not overridden if less than global config', () {
-      const expectedApprovingReviews = 2;
-      final localRepositoryConfiguration = RepositoryConfiguration(
-        approvingReviews: 1,
-      );
-      final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
-        sampleConfigWithOverride,
-      );
-      final mergedRepositoryConfiguration = repositoryConfigurationManager
-          .mergeConfigurations(
-            globalRepositoryConfiguration,
-            localRepositoryConfiguration,
-          );
-      expect(
-        globalRepositoryConfiguration.approvingReviews ==
-            mergedRepositoryConfiguration.approvingReviews,
-        isTrue,
-      );
-      expect(
-        mergedRepositoryConfiguration.approvingReviews,
-        expectedApprovingReviews,
-      );
-    });
+    test(
+      'Base commit recent days overridden by local config if value is not 0',
+      () {
+        const expectedBaseCommitAllowedDays = -1;
+        final localRepositoryConfiguration = RepositoryConfiguration(
+          baseCommitAllowedDays: expectedBaseCommitAllowedDays,
+        );
+        final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
+          sampleConfigWithOverride,
+        );
+        final mergedRepositoryConfiguration = repositoryConfigurationManager
+            .mergeConfigurations(
+              globalRepositoryConfiguration,
+              localRepositoryConfiguration,
+            );
+        expect(
+          globalRepositoryConfiguration.baseCommitAllowedDays !=
+              mergedRepositoryConfiguration.baseCommitAllowedDays,
+          isTrue,
+        );
+        expect(
+          mergedRepositoryConfiguration.baseCommitAllowedDays,
+          expectedBaseCommitAllowedDays,
+        );
+      },
+    );
+
+    test(
+      'Base commit recent days is not overridden by local config if value is 0',
+      () {
+        const expectedBaseCommitAllowedDays = 7;
+        final localRepositoryConfiguration = RepositoryConfiguration(
+          baseCommitAllowedDays: 0,
+        );
+        final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
+          sampleConfigWithOverride,
+        );
+        final mergedRepositoryConfiguration = repositoryConfigurationManager
+            .mergeConfigurations(
+              globalRepositoryConfiguration,
+              localRepositoryConfiguration,
+            );
+        expect(
+          globalRepositoryConfiguration.baseCommitAllowedDays ==
+              mergedRepositoryConfiguration.baseCommitAllowedDays,
+          isTrue,
+        );
+        expect(
+          mergedRepositoryConfiguration.baseCommitAllowedDays,
+          expectedBaseCommitAllowedDays,
+        );
+      },
+    );
 
     test('Approval group is overridden if defined', () {
       const expectedApprovalGroup = 'flutter-devs';

@@ -45,4 +45,5 @@ const String sampleConfigWithOverride = '''
   support_no_review_revert: true
   required_checkruns_on_revert:
     - ci.yaml validation
+  base_commit_allowed_days: 7
 ''';
