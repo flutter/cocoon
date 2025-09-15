@@ -24,7 +24,7 @@ class BaseCommitDateAllowed extends Validation {
   ) async {
     final slug = messagePullRequest.base!.repo!.slug();
     final gitHubService = await config.createGithubService(slug);
-    final sha = messagePullRequest.head!.sha!;
+    final sha = messagePullRequest.base!.sha!;
     final repositoryConfiguration = await config.getRepositoryConfiguration(
       slug,
     );
