@@ -117,9 +117,6 @@ final class Target {
   /// Name of the target.
   String get name => _value.name;
 
-  /// Timeout in minutes.
-  int get timeoutInMinutes => _value.timeout;
-
   /// Scheduler system of the target.
   pb.SchedulerSystem get scheduler => _value.scheduler;
 
