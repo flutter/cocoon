@@ -21,7 +21,7 @@ dependencies:
   github: 9.25.0
   googleapis: 14.0.0
   googleapis_auth: 2.0.0
-  gql: 1.0.1-alpha+1709845491443
+  gql: 1.0.1
   graphql: 5.2.0-beta.10
   http: 1.5.0
   json_annotation: 4.9.0
