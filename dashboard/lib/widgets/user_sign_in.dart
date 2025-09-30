@@ -33,8 +33,8 @@ class UserSignIn extends StatelessWidget {
         if (authService.user != null) {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
-            itemBuilder: (BuildContext context) =>
-                <PopupMenuEntry<_SignInButtonAction>>[
+            itemBuilder:
+                (BuildContext context) => <PopupMenuEntry<_SignInButtonAction>>[
                   const PopupMenuItem<_SignInButtonAction>(
                     value: _SignInButtonAction.logout,
                     child: Text('Log out'),
@@ -86,7 +86,4 @@ class FirebaseUserIdentity implements GoogleIdentity {
   @override
   // TODO: implement photoUrl
   String? get photoUrl => user.photoURL;
-
-  @override
-  String? get serverAuthCode => '';
 }
