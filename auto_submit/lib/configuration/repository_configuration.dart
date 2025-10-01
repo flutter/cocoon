@@ -6,6 +6,24 @@ import 'package:yaml/yaml.dart';
 
 import '../exception/configuration_exception.dart';
 
+class BaseCommitExpiration {
+  BaseCommitExpiration({
+    required this.slug,
+    required this.branch,
+    required this.allowedDays,
+  });
+
+  /// The repository slug on that  to validate the pull requests expiration.
+  final String slug;
+
+  /// The branch name to implement validation on.
+  final String branch;
+
+  /// The number of days that the base commit of the pull request can not be
+  /// older than. If less than 1 then it will not be checked.
+  final int allowedDays;
+}
+
 /// The RepositoryConfiguration stores the pertinent information that autosubmit
 /// will need when submiting and validating pull requests for a particular
 /// repository.
@@ -21,7 +39,10 @@ class RepositoryConfiguration {
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
   static const String requiredCheckRunsOnRevertKey =
       'required_checkruns_on_revert';
-  static const String baseCommitAllowedDaysKey = 'base_commit_allowed_days';
+  static const String baseCommitExpirationsKey = 'base_commit_expirations';
+  static const String slugKey = 'slug';
+  static const String branchKey = 'branch';
+  static const String allowedDaysKey = 'allowed_days';
 
   static const String defaultBranchStr = 'default';
 
@@ -34,7 +55,7 @@ class RepositoryConfiguration {
     bool? runCi,
     bool? supportNoReviewReverts,
     Set<String>? requiredCheckRunsOnRevert,
-    int? baseCommitAllowedDays,
+    Set<BaseCommitExpiration>? baseCommitExpirations,
   }) : allowConfigOverride = allowConfigOverride ?? false,
        defaultBranch = defaultBranch ?? defaultBranchStr,
        autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
@@ -43,7 +64,8 @@ class RepositoryConfiguration {
        runCi = runCi ?? true,
        supportNoReviewReverts = supportNoReviewReverts ?? true,
        requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{},
-       baseCommitAllowedDays = baseCommitAllowedDays ?? 0;
+       baseCommitExpirations =
+           baseCommitExpirations ?? <BaseCommitExpiration>{};
 
   /// This flag allows the repository to override the org level configuration.
   bool allowConfigOverride;
@@ -74,9 +96,8 @@ class RepositoryConfiguration {
   /// merged.
   Set<String> requiredCheckRunsOnRevert;
 
-  /// The number of days that the base commit of the pull request can not be
-  /// older than. If less than 1 then it will not be checked.
-  int baseCommitAllowedDays;
+  /// Repositories configuration of pull request base commit expiration.
+  Set<BaseCommitExpiration> baseCommitExpirations;
 
   @override
   String toString() {
@@ -95,7 +116,12 @@ class RepositoryConfiguration {
     for (var checkrun in requiredCheckRunsOnRevert) {
       stringBuffer.writeln('  - $checkrun');
     }
-    stringBuffer.writeln('$baseCommitAllowedDaysKey: $baseCommitAllowedDays');
+    stringBuffer.writeln('$baseCommitExpirationsKey:');
+    for (var expiration in baseCommitExpirations) {
+      stringBuffer.writeln('  - slug: ${expiration.slug}');
+      stringBuffer.writeln('    branch: ${expiration.branch}');
+      stringBuffer.writeln('    allowed_days: ${expiration.allowedDays}');
+    }
     return stringBuffer.toString();
   }
 
@@ -124,6 +150,35 @@ class RepositoryConfiguration {
       }
     }
 
+    final baseCommitExpirations = <BaseCommitExpiration>{};
+    final yamlBaseCommitExpirations =
+        yamlDoc[baseCommitExpirationsKey] as YamlList?;
+    if (yamlBaseCommitExpirations != null) {
+      for (var element in yamlBaseCommitExpirations.nodes) {
+        if (element is! YamlMap ||
+            element[slugKey] == null ||
+            element[branchKey] == null ||
+            element[allowedDaysKey] == null) {
+          throw ConfigurationException(
+            'Each base commit expiration entry must be a map containing the '
+            'keys: $slugKey, $branchKey, and $allowedDaysKey.',
+          );
+        }
+        if (element[allowedDaysKey] is! int ||
+            (element[allowedDaysKey] as int) <= 0) {
+          throw ConfigurationException(
+            'The $allowedDaysKey must be an integer greater than zero.',
+          );
+        }
+        final baseCommitExpiration = BaseCommitExpiration(
+          slug: element[slugKey] as String,
+          branch: element[branchKey] as String,
+          allowedDays: element[allowedDaysKey] as int,
+        );
+        baseCommitExpirations.add(baseCommitExpiration);
+      }
+    }
+
     return RepositoryConfiguration(
       allowConfigOverride: yamlDoc[allowConfigOverrideKey] as bool?,
       defaultBranch: yamlDoc[defaultBranchKey] as String?,
@@ -133,7 +188,7 @@ class RepositoryConfiguration {
       runCi: yamlDoc[runCiKey] as bool?,
       supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] as bool?,
       requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
-      baseCommitAllowedDays: yamlDoc[baseCommitAllowedDaysKey] as int?,
+      baseCommitExpirations: baseCommitExpirations,
     );
   }
 }

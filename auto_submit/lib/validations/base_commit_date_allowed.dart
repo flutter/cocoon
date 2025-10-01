@@ -29,18 +29,14 @@ class BaseCommitDateAllowed extends Validation {
       slug,
     );
 
-    // If the base commit allowed days is less than or equal to 0 then the
-    // validation is turned off and the base commit creation date is ignored.
-    if (repositoryConfiguration.baseCommitAllowedDays <= 0) {
-      log.info(
-        'PR base commit creation date validation turned off by setting '
-        'base_commit_allowed_days to ${repositoryConfiguration.baseCommitAllowedDays}.',
-      );
+    // If the base_commit_expirations is empty then the validation is turned off
+    // and the base commit creation date is ignored.
+    if (repositoryConfiguration.baseCommitExpirations.isEmpty) {
+      log.info('PR base commit creation date validation turned off');
       return ValidationResult(
         true,
         Action.IGNORE_FAILURE,
-        'PR base commit creation date validation turned off by setting '
-        'base_commit_allowed_days to ${repositoryConfiguration.baseCommitAllowedDays}.',
+        'PR base commit creation date validation turned off',
       );
     }
 

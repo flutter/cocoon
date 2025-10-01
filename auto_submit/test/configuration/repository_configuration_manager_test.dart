@@ -51,7 +51,13 @@ void main() {
         - Google-testing
         - test (ubuntu-latest, 2.18.0)
         - cla/google
-      base_commit_allowed_days: 10
+      base_commit_expirations:
+        - slug: "flutter/flutter"
+          branch: "main"
+          allowed_days: 10
+        - slug: "foo/bar"
+          branch: "master"
+          allowed_days: 14
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -93,7 +99,28 @@ void main() {
       repositoryConfiguration.requiredCheckRunsOnRevert.contains('cla/google'),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitAllowedDays, 10);
+
+    expect(repositoryConfiguration.baseCommitExpirations.length, 2);
+    expect(
+      repositoryConfiguration.baseCommitExpirations.contains(
+        BaseCommitExpiration(
+          slug: 'flutter/flutter',
+          branch: 'main',
+          allowedDays: 10,
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      repositoryConfiguration.baseCommitExpirations.contains(
+        BaseCommitExpiration(
+          slug: 'foo/bar',
+          branch: 'master',
+          allowedDays: 14,
+        ),
+      ),
+      isTrue,
+    );
   });
 
   test(
@@ -191,7 +218,7 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitAllowedDays, 0);
+    expect(repositoryConfiguration.baseCommitExpirations.isEmpty, true);
   });
 
   test('Default branch collected if omitted main', () async {
@@ -207,7 +234,10 @@ void main() {
       required_checkruns_on_revert:
         - ci.yaml validation
         - Google-testing
-      base_commit_allowed_days: 7
+      base_commit_expirations:
+        - slug: "flutter/flutter"
+          branch: "main"
+          allowed_days: 7
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -240,7 +270,17 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitAllowedDays, 7);
+    expect(repositoryConfiguration.baseCommitExpirations.length, 1);
+    expect(
+      repositoryConfiguration.baseCommitExpirations.contains(
+        BaseCommitExpiration(
+          slug: 'flutter/flutter',
+          branch: 'main',
+          allowedDays: 7,
+        ),
+      ),
+      isTrue,
+    );
   });
 
   group('Merging configurations tests', () {
@@ -258,7 +298,10 @@ void main() {
       support_no_review_revert: true
       required_checkruns_on_revert:
         - ci.yaml validation
-      base_commit_allowed_days: 7
+      base_commit_expirations:
+        - slug: "flutter/flutter"
+          branch: "main"
+          allowed_days: 7
     */
 
     test('Global config merged with default local config', () {
@@ -302,7 +345,17 @@ void main() {
         ),
         isTrue,
       );
-      expect(mergedRepositoryConfiguration.baseCommitAllowedDays, 7);
+      expect(mergedRepositoryConfiguration.baseCommitExpirations.length, 1);
+      expect(
+        mergedRepositoryConfiguration.baseCommitExpirations.contains(
+          BaseCommitExpiration(
+            slug: 'flutter/flutter',
+            branch: 'main',
+            allowedDays: 7,
+          ),
+        ),
+        isTrue,
+      );
     });
 
     test('Auto approval accounts is additive, they cannot be removed', () {
@@ -406,11 +459,17 @@ void main() {
     });
 
     test(
-      'Base commit recent days overridden by local config if value is not 0',
+      'base_commit_expirations overridden by local config if value is not empty',
       () {
         const expectedBaseCommitAllowedDays = -1;
         final localRepositoryConfiguration = RepositoryConfiguration(
-          baseCommitAllowedDays: expectedBaseCommitAllowedDays,
+          baseCommitExpirations: <BaseCommitExpiration>{
+            BaseCommitExpiration(
+              slug: 'foo/bar',
+              branch: 'buz',
+              allowedDays: 30,
+            ),
+          },
         );
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
@@ -420,25 +479,25 @@ void main() {
               globalRepositoryConfiguration,
               localRepositoryConfiguration,
             );
+        expect(mergedRepositoryConfiguration.baseCommitExpirations.length, 1);
         expect(
-          globalRepositoryConfiguration.baseCommitAllowedDays !=
-              mergedRepositoryConfiguration.baseCommitAllowedDays,
+          mergedRepositoryConfiguration.baseCommitExpirations.contains(
+            BaseCommitExpiration(
+              slug: 'foo/bar',
+              branch: 'buz',
+              allowedDays: 30,
+            ),
+          ),
           isTrue,
-        );
-        expect(
-          mergedRepositoryConfiguration.baseCommitAllowedDays,
-          expectedBaseCommitAllowedDays,
         );
       },
     );
 
     test(
-      'Base commit recent days is not overridden by local config if value is 0',
+      'base_commit_expirations is not overridden by local config if empty',
       () {
         const expectedBaseCommitAllowedDays = 7;
-        final localRepositoryConfiguration = RepositoryConfiguration(
-          baseCommitAllowedDays: 0,
-        );
+        final localRepositoryConfiguration = RepositoryConfiguration();
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
         );
@@ -447,14 +506,16 @@ void main() {
               globalRepositoryConfiguration,
               localRepositoryConfiguration,
             );
+        expect(mergedRepositoryConfiguration.baseCommitExpirations.length, 1);
         expect(
-          globalRepositoryConfiguration.baseCommitAllowedDays ==
-              mergedRepositoryConfiguration.baseCommitAllowedDays,
+          mergedRepositoryConfiguration.baseCommitExpirations.contains(
+            BaseCommitExpiration(
+              slug: 'flutter/flutter',
+              branch: 'main',
+              allowedDays: 7,
+            ),
+          ),
           isTrue,
-        );
-        expect(
-          mergedRepositoryConfiguration.baseCommitAllowedDays,
-          expectedBaseCommitAllowedDays,
         );
       },
     );
