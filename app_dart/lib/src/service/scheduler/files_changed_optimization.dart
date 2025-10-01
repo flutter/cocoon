@@ -68,7 +68,7 @@ final class FilesChangedOptimizer {
       case SuccessfulFilesChanged(:final filesChanged):
         var noSourceImpact = true;
         for (final file in filesChanged) {
-          if (file == 'DEPS' || file.startsWith('engine/')) {
+          if (_engineFilePaths.hasMatch(file)) {
             log.info(
               '$refusePrefix: Engine sources changed.\n${filesChanged.join('\n')}',
             );
@@ -101,6 +101,8 @@ final class FilesChangedOptimizer {
     'internal',
     'release-candidate-branch.version',
   );
+
+  static final _engineFilePaths = RegExp(r'^(DEPS|engine/.*|bin/internal/content_aware_hash\.(ps1|sh))$');
 
   static final _configPaths = RegExp(p.posix.join(r'.(github|vscode)', r'.*'));
 
