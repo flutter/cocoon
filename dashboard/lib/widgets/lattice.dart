@@ -76,9 +76,11 @@ class LatticeScrollView extends StatelessWidget {
               BuildContext context,
               ViewportOffset horizontalOffset,
             ) => NotificationListener<OverscrollNotification>(
-              onNotification: (notification) =>
-                  notification.metrics.axisDirection != AxisDirection.right &&
-                  notification.metrics.axisDirection != AxisDirection.left,
+              onNotification:
+                  (notification) =>
+                      notification.metrics.axisDirection !=
+                          AxisDirection.right &&
+                      notification.metrics.axisDirection != AxisDirection.left,
               child: Scrollbar(
                 thumbVisibility: true,
                 controller: verticalController,
@@ -576,9 +578,10 @@ class _RenderLatticeBody extends RenderBox {
     super.attach(owner);
     _horizontalOffset.addListener(_handleOffsetChange);
     _verticalOffset.addListener(_handleOffsetChange);
-    _tap = TapGestureRecognizer(debugOwner: this)
-      ..onTapDown = _handleTapDown
-      ..onTapUp = _handleTapUp;
+    _tap =
+        TapGestureRecognizer(debugOwner: this)
+          ..onTapDown = _handleTapDown
+          ..onTapUp = _handleTapUp;
     for (final child in _childrenByCoordinate.values) {
       child.attach(owner);
     }
@@ -809,7 +812,7 @@ class _RenderLatticeBody extends RenderBox {
   void applyPaintTransform(RenderBox child, Matrix4 transform) {
     final childParentData = child.parentData as _LatticeParentData;
     final offset = _coordinateToOffset(childParentData.coordinate!)!;
-    transform.translate(offset.dx, offset.dy);
+    transform.translateByDouble(offset.dx, offset.dy, 0.0, 1.0);
   }
 
   @override
