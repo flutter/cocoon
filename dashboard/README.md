@@ -41,6 +41,12 @@ flutter test --update-goldens
 
 For compatibility reasons, only a Linux host is supported.
 
+You could run the tests locally with ACT to compare and update diffs:
+
+```shell
+act --container-architecture linux/amd64 -b  -W .github/workflows/dashboard_tests.yaml
+```
+
 <details>
 
 <summary>Workaround using <code>tool/update_goldens_from_luci.dart</code></summary>
