@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -51,13 +53,9 @@ void main() {
         - Google-testing
         - test (ubuntu-latest, 2.18.0)
         - cla/google
-      base_commit_expirations:
-        - slug: "flutter/flutter"
-          branch: "main"
-          allowed_days: 10
-        - slug: "foo/bar"
-          branch: "master"
-          allowed_days: 14
+      base_commit_expiration:
+        branch: "main"
+        allowed_days: 10
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -100,27 +98,9 @@ void main() {
       isTrue,
     );
 
-    expect(repositoryConfiguration.baseCommitExpirations.length, 2);
-    expect(
-      repositoryConfiguration.baseCommitExpirations.contains(
-        BaseCommitExpiration(
-          slug: 'flutter/flutter',
-          branch: 'main',
-          allowedDays: 10,
-        ),
-      ),
-      isTrue,
-    );
-    expect(
-      repositoryConfiguration.baseCommitExpirations.contains(
-        BaseCommitExpiration(
-          slug: 'foo/bar',
-          branch: 'master',
-          allowedDays: 14,
-        ),
-      ),
-      isTrue,
-    );
+    expect(repositoryConfiguration.baseCommitExpiration, isNotNull);
+    expect(repositoryConfiguration.baseCommitExpiration?.branch, 'main');
+    expect(repositoryConfiguration.baseCommitExpiration?.allowedDays, 10);
   });
 
   test(
@@ -218,7 +198,7 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitExpirations.isEmpty, true);
+    expect(repositoryConfiguration.baseCommitExpiration, isNull);
   });
 
   test('Default branch collected if omitted main', () async {
@@ -234,10 +214,9 @@ void main() {
       required_checkruns_on_revert:
         - ci.yaml validation
         - Google-testing
-      base_commit_expirations:
-        - slug: "flutter/flutter"
-          branch: "main"
-          allowed_days: 7
+      base_commit_expiration:
+        branch: "main"
+        allowed_days: 7
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -270,17 +249,9 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitExpirations.length, 1);
-    expect(
-      repositoryConfiguration.baseCommitExpirations.contains(
-        BaseCommitExpiration(
-          slug: 'flutter/flutter',
-          branch: 'main',
-          allowedDays: 7,
-        ),
-      ),
-      isTrue,
-    );
+    expect(repositoryConfiguration.baseCommitExpiration, isNotNull);
+    expect(repositoryConfiguration.baseCommitExpiration?.branch, 'main');
+    expect(repositoryConfiguration.baseCommitExpiration?.allowedDays, 7);
   });
 
   group('Merging configurations tests', () {
@@ -298,10 +269,9 @@ void main() {
       support_no_review_revert: true
       required_checkruns_on_revert:
         - ci.yaml validation
-      base_commit_expirations:
-        - slug: "flutter/flutter"
-          branch: "main"
-          allowed_days: 7
+      base_commit_expiration:
+        branch: "main"
+        allowed_days: 7
     */
 
     test('Global config merged with default local config', () {
@@ -345,16 +315,14 @@ void main() {
         ),
         isTrue,
       );
-      expect(mergedRepositoryConfiguration.baseCommitExpirations.length, 1);
+      expect(mergedRepositoryConfiguration.baseCommitExpiration, isNotNull);
       expect(
-        mergedRepositoryConfiguration.baseCommitExpirations.contains(
-          BaseCommitExpiration(
-            slug: 'flutter/flutter',
-            branch: 'main',
-            allowedDays: 7,
-          ),
-        ),
-        isTrue,
+        mergedRepositoryConfiguration.baseCommitExpiration?.branch,
+        'main',
+      );
+      expect(
+        mergedRepositoryConfiguration.baseCommitExpiration?.allowedDays,
+        7,
       );
     });
 
@@ -459,17 +427,13 @@ void main() {
     });
 
     test(
-      'base_commit_expirations overridden by local config if value is not empty',
+      'base_commit_expiration overridden by local config if value is not empty',
       () {
-        const expectedBaseCommitAllowedDays = -1;
         final localRepositoryConfiguration = RepositoryConfiguration(
-          baseCommitExpirations: <BaseCommitExpiration>{
-            BaseCommitExpiration(
-              slug: 'foo/bar',
-              branch: 'buz',
-              allowedDays: 30,
-            ),
-          },
+          baseCommitExpiration: BaseCommitExpiration(
+            branch: 'buz',
+            allowedDays: 3,
+          ),
         );
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
@@ -479,24 +443,21 @@ void main() {
               globalRepositoryConfiguration,
               localRepositoryConfiguration,
             );
-        expect(mergedRepositoryConfiguration.baseCommitExpirations.length, 1);
+        expect(mergedRepositoryConfiguration.baseCommitExpiration, isNotNull);
         expect(
-          mergedRepositoryConfiguration.baseCommitExpirations.contains(
-            BaseCommitExpiration(
-              slug: 'foo/bar',
-              branch: 'buz',
-              allowedDays: 30,
-            ),
-          ),
-          isTrue,
+          mergedRepositoryConfiguration.baseCommitExpiration?.branch,
+          'buz',
+        );
+        expect(
+          mergedRepositoryConfiguration.baseCommitExpiration?.allowedDays,
+          3,
         );
       },
     );
 
     test(
-      'base_commit_expirations is not overridden by local config if empty',
+      'base_commit_expiration is not overridden by local config if empty',
       () {
-        const expectedBaseCommitAllowedDays = 7;
         final localRepositoryConfiguration = RepositoryConfiguration();
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
@@ -506,16 +467,14 @@ void main() {
               globalRepositoryConfiguration,
               localRepositoryConfiguration,
             );
-        expect(mergedRepositoryConfiguration.baseCommitExpirations.length, 1);
+        expect(mergedRepositoryConfiguration.baseCommitExpiration, isNotNull);
         expect(
-          mergedRepositoryConfiguration.baseCommitExpirations.contains(
-            BaseCommitExpiration(
-              slug: 'flutter/flutter',
-              branch: 'main',
-              allowedDays: 7,
-            ),
-          ),
-          isTrue,
+          mergedRepositoryConfiguration.baseCommitExpiration?.branch,
+          'main',
+        );
+        expect(
+          mergedRepositoryConfiguration.baseCommitExpiration?.allowedDays,
+          7,
         );
       },
     );

@@ -141,7 +141,7 @@ class RepositoryConfigurationManager {
       runCi: globalConfiguration.runCi,
       supportNoReviewReverts: globalConfiguration.supportNoReviewReverts,
       requiredCheckRunsOnRevert: globalConfiguration.requiredCheckRunsOnRevert,
-      baseCommitExpirations: globalConfiguration.baseCommitExpirations,
+      baseCommitExpiration: globalConfiguration.baseCommitExpiration,
     );
 
     // auto approval accounts, they should be empty if nothing was defined
@@ -188,11 +188,10 @@ class RepositoryConfigurationManager {
     }
 
     // if the local configuration is not empty then use it.
-    final localbaseCommitExpirations = localConfiguration.baseCommitExpirations;
-    if (localbaseCommitExpirations.isNotEmpty) {
-      mergedRepositoryConfiguration.baseCommitExpirations.addAll(
-        localConfiguration.baseCommitExpirations,
-      );
+    final localbaseCommitExpirations = localConfiguration.baseCommitExpiration;
+    if (localbaseCommitExpirations != null) {
+      mergedRepositoryConfiguration.baseCommitExpiration =
+          localConfiguration.baseCommitExpiration;
     }
 
     return mergedRepositoryConfiguration;
