@@ -18,7 +18,11 @@ jobs:
         working-directory: app_dart
 
     steps:
-      - uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        with:
+          channel: stable
+          architecture: x64 # only needed for running locally (mac)
 
       - name: Checkout code
         uses: actions/checkout@v5
