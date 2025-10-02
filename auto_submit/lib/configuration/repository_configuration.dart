@@ -6,7 +6,13 @@ import 'package:yaml/yaml.dart';
 
 import '../exception/configuration_exception.dart';
 
+/// The BaseCommitExpiration stores PR base commit expiration validation
+/// configuration of branch to implement validation on and allowed days before
+/// PR considered expired and not valid for submitting.
 class BaseCommitExpiration {
+  static const String branchKey = 'branch';
+  static const String allowedDaysKey = 'allowed_days';
+
   BaseCommitExpiration({required this.branch, required this.allowedDays});
 
   /// The branch name to implement validation on.
@@ -15,6 +21,35 @@ class BaseCommitExpiration {
   /// The number of days that the base commit of the pull request can not be
   /// older than. If less than 1 then it will not be checked.
   final int allowedDays;
+
+  @override
+  String toString() {
+    return '''
+      $branchKey: $branch
+      $allowedDaysKey: $allowedDays
+    ''';
+  }
+
+  /// Creates a [BaseCommitExpiration] from a [YamlMap].
+  /// Throws a [ConfigurationException] if the [YamlMap] is missing required
+  /// keys or has invalid values.
+  static BaseCommitExpiration fromYaml(YamlMap yaml) {
+    if (yaml[branchKey] == null || yaml[allowedDaysKey] == null) {
+      throw ConfigurationException(
+        'Each base commit expiration must containin the '
+        'keys: $branchKey, and $allowedDaysKey.',
+      );
+    }
+    if (yaml[allowedDaysKey] is! int || (yaml[allowedDaysKey] as int) <= 0) {
+      throw ConfigurationException(
+        'The $allowedDaysKey must be an integer greater than zero.',
+      );
+    }
+    return BaseCommitExpiration(
+      branch: yaml[branchKey] as String,
+      allowedDays: yaml[allowedDaysKey] as int,
+    );
+  }
 }
 
 /// The RepositoryConfiguration stores the pertinent information that autosubmit
@@ -33,8 +68,6 @@ class RepositoryConfiguration {
   static const String requiredCheckRunsOnRevertKey =
       'required_checkruns_on_revert';
   static const String baseCommitExpirationKey = 'base_commit_expiration';
-  static const String branchKey = 'branch';
-  static const String allowedDaysKey = 'allowed_days';
 
   static const String defaultBranchStr = 'default';
 
@@ -108,10 +141,7 @@ class RepositoryConfiguration {
     }
     if (baseCommitExpiration != null) {
       stringBuffer.writeln('$baseCommitExpirationKey:');
-      stringBuffer.writeln('  $branchKey: ${baseCommitExpiration?.branch}');
-      stringBuffer.writeln(
-        '  $allowedDaysKey: ${baseCommitExpiration?.allowedDays}',
-      );
+      stringBuffer.writeln('$baseCommitExpiration');
     }
     return stringBuffer.toString();
   }
@@ -141,25 +171,12 @@ class RepositoryConfiguration {
       }
     }
 
-    final dynamic yamlbaseCommitExpiration = yamlDoc[baseCommitExpirationKey];
+    final yamlbaseCommitExpiration =
+        yamlDoc[baseCommitExpirationKey] as YamlMap?;
     BaseCommitExpiration? baseCommitExpiration;
     if (yamlbaseCommitExpiration != null) {
-      if (yamlbaseCommitExpiration[branchKey] == null ||
-          yamlbaseCommitExpiration[allowedDaysKey] == null) {
-        throw ConfigurationException(
-          'Each base commit expiration must containin the '
-          'keys: $branchKey, and $allowedDaysKey.',
-        );
-      }
-      if (yamlbaseCommitExpiration[allowedDaysKey] is! int ||
-          (yamlbaseCommitExpiration[allowedDaysKey] as int) <= 0) {
-        throw ConfigurationException(
-          'The $allowedDaysKey must be an integer greater than zero.',
-        );
-      }
-      baseCommitExpiration = BaseCommitExpiration(
-        branch: yamlbaseCommitExpiration[branchKey] as String,
-        allowedDays: yamlbaseCommitExpiration[allowedDaysKey] as int,
+      baseCommitExpiration = BaseCommitExpiration.fromYaml(
+        yamlbaseCommitExpiration,
       );
     }
 
