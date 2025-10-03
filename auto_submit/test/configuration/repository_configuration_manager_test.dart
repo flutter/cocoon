@@ -298,8 +298,8 @@ void main() {
       required_checkruns_on_revert:
         - ci.yaml validation
       stale_pr_protection_in_days_for_base_refs:
-        branch: "main"
-        allowed_days: 7
+        flutter/flutter/main: 7
+        flutter/cocoon/main: 30
     */
 
     test('Global config merged with default local config', () {
