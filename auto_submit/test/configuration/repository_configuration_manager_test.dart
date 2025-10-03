@@ -51,9 +51,9 @@ void main() {
         - Google-testing
         - test (ubuntu-latest, 2.18.0)
         - cla/google
-      base_commit_expiration:
-        branch: "main"
-        allowed_days: 10
+      stale_pr_protection_in_days_for_base_refs:
+        flutter/flutter/main: 7
+        flutter/cocoon/main: 30
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -96,9 +96,24 @@ void main() {
       isTrue,
     );
 
-    expect(repositoryConfiguration.baseCommitExpiration, isNotNull);
-    expect(repositoryConfiguration.baseCommitExpiration?.branch, 'main');
-    expect(repositoryConfiguration.baseCommitExpiration?.allowedDays, 10);
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+      isNotEmpty,
+    );
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs.length,
+      2,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
+      7,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+      30,
+    );
   });
 
   test(
@@ -196,7 +211,7 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitExpiration, isNull);
+    expect(repositoryConfiguration.stalePrProtectionInDaysForBaseRefs, isEmpty);
   });
 
   test('Default branch collected if omitted main', () async {
@@ -212,9 +227,9 @@ void main() {
       required_checkruns_on_revert:
         - ci.yaml validation
         - Google-testing
-      base_commit_expiration:
-        branch: "main"
-        allowed_days: 7
+      stale_pr_protection_in_days_for_base_refs:
+        flutter/flutter/main: 7
+        flutter/cocoon/main: 30
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -247,9 +262,24 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitExpiration, isNotNull);
-    expect(repositoryConfiguration.baseCommitExpiration?.branch, 'main');
-    expect(repositoryConfiguration.baseCommitExpiration?.allowedDays, 7);
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+      isNotEmpty,
+    );
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs.length,
+      2,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
+      7,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+      30,
+    );
   });
 
   group('Merging configurations tests', () {
@@ -267,7 +297,7 @@ void main() {
       support_no_review_revert: true
       required_checkruns_on_revert:
         - ci.yaml validation
-      base_commit_expiration:
+      stale_pr_protection_in_days_for_base_refs:
         branch: "main"
         allowed_days: 7
     */
@@ -313,14 +343,23 @@ void main() {
         ),
         isTrue,
       );
-      expect(mergedRepositoryConfiguration.baseCommitExpiration, isNotNull);
       expect(
-        mergedRepositoryConfiguration.baseCommitExpiration?.branch,
-        'main',
+        mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+        isNotEmpty,
       );
       expect(
-        mergedRepositoryConfiguration.baseCommitExpiration?.allowedDays,
+        mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs.length,
+        2,
+      );
+      expect(
+        mergedRepositoryConfiguration
+            .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
         7,
+      );
+      expect(
+        mergedRepositoryConfiguration
+            .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+        30,
       );
     });
 
@@ -428,10 +467,7 @@ void main() {
       'base_commit_expiration overridden by local config if value is not empty',
       () {
         final localRepositoryConfiguration = RepositoryConfiguration(
-          baseCommitExpiration: BaseCommitExpiration(
-            branch: 'buz',
-            allowedDays: 3,
-          ),
+          stalePrProtectionInDaysForBaseRefs: <String, int>{'foo/bar/buz': 3},
         );
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
@@ -441,13 +477,19 @@ void main() {
               globalRepositoryConfiguration,
               localRepositoryConfiguration,
             );
-        expect(mergedRepositoryConfiguration.baseCommitExpiration, isNotNull);
         expect(
-          mergedRepositoryConfiguration.baseCommitExpiration?.branch,
-          'buz',
+          mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+          isNotEmpty,
         );
         expect(
-          mergedRepositoryConfiguration.baseCommitExpiration?.allowedDays,
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs
+              .length,
+          1,
+        );
+        expect(
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['foo/bar/buz'],
           3,
         );
       },
@@ -465,14 +507,25 @@ void main() {
               globalRepositoryConfiguration,
               localRepositoryConfiguration,
             );
-        expect(mergedRepositoryConfiguration.baseCommitExpiration, isNotNull);
         expect(
-          mergedRepositoryConfiguration.baseCommitExpiration?.branch,
-          'main',
+          mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+          isNotNull,
         );
         expect(
-          mergedRepositoryConfiguration.baseCommitExpiration?.allowedDays,
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs
+              .length,
+          2,
+        );
+        expect(
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
           7,
+        );
+        expect(
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+          30,
         );
       },
     );

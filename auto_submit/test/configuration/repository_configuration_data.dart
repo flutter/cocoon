@@ -45,7 +45,7 @@ const String sampleConfigWithOverride = '''
   support_no_review_revert: true
   required_checkruns_on_revert:
     - ci.yaml validation
-  base_commit_expiration:
-    branch: "main"
-    allowed_days: 7
+  stale_pr_protection_in_days_for_base_refs:
+    flutter/flutter/main: 7
+    flutter/cocoon/main: 30
 ''';

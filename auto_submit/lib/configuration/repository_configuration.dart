@@ -6,52 +6,6 @@ import 'package:yaml/yaml.dart';
 
 import '../exception/configuration_exception.dart';
 
-/// The BaseCommitExpiration stores PR base commit expiration validation
-/// configuration of branch to implement validation on and allowed days before
-/// PR considered expired and not valid for submitting.
-class BaseCommitExpiration {
-  static const String branchKey = 'branch';
-  static const String allowedDaysKey = 'allowed_days';
-
-  BaseCommitExpiration({required this.branch, required this.allowedDays});
-
-  /// The branch name to implement validation on.
-  final String branch;
-
-  /// The number of days that the base commit of the pull request can not be
-  /// older than. If less than 1 then it will not be checked.
-  final int allowedDays;
-
-  @override
-  String toString() {
-    return '''
-      $branchKey: $branch
-      $allowedDaysKey: $allowedDays
-    ''';
-  }
-
-  /// Creates a [BaseCommitExpiration] from a [YamlMap].
-  /// Throws a [ConfigurationException] if the [YamlMap] is missing required
-  /// keys or has invalid values.
-  static BaseCommitExpiration fromYaml(YamlMap yaml) {
-    if (yaml[branchKey] == null || yaml[allowedDaysKey] == null) {
-      throw ConfigurationException(
-        'Each base commit expiration must containin the '
-        'keys: $branchKey, and $allowedDaysKey.',
-      );
-    }
-    if (yaml[allowedDaysKey] is! int || (yaml[allowedDaysKey] as int) <= 0) {
-      throw ConfigurationException(
-        'The $allowedDaysKey must be an integer greater than zero.',
-      );
-    }
-    return BaseCommitExpiration(
-      branch: yaml[branchKey] as String,
-      allowedDays: yaml[allowedDaysKey] as int,
-    );
-  }
-}
-
 /// The RepositoryConfiguration stores the pertinent information that autosubmit
 /// will need when submiting and validating pull requests for a particular
 /// repository.
@@ -67,7 +21,8 @@ class RepositoryConfiguration {
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
   static const String requiredCheckRunsOnRevertKey =
       'required_checkruns_on_revert';
-  static const String baseCommitExpirationKey = 'base_commit_expiration';
+  static const String stalePrProtectionInDaysForBaseRefsKey =
+      'stale_pr_protection_in_days_for_base_refs';
 
   static const String defaultBranchStr = 'default';
 
@@ -80,7 +35,7 @@ class RepositoryConfiguration {
     bool? runCi,
     bool? supportNoReviewReverts,
     Set<String>? requiredCheckRunsOnRevert,
-    this.baseCommitExpiration,
+    Map<String, int>? stalePrProtectionInDaysForBaseRefs,
   }) : allowConfigOverride = allowConfigOverride ?? false,
        defaultBranch = defaultBranch ?? defaultBranchStr,
        autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
@@ -88,7 +43,9 @@ class RepositoryConfiguration {
        approvalGroup = approvalGroup ?? 'flutter-hackers',
        runCi = runCi ?? true,
        supportNoReviewReverts = supportNoReviewReverts ?? true,
-       requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{};
+       requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{},
+       stalePrProtectionInDaysForBaseRefs =
+           stalePrProtectionInDaysForBaseRefs ?? <String, int>{};
 
   /// This flag allows the repository to override the org level configuration.
   bool allowConfigOverride;
@@ -119,8 +76,9 @@ class RepositoryConfiguration {
   /// merged.
   Set<String> requiredCheckRunsOnRevert;
 
-  /// Pull request base commit expiration configuration.
-  BaseCommitExpiration? baseCommitExpiration;
+  /// A map of [slug]/[branch] as a key and number of days to validate PR base
+  /// date is not older than on that [slug]/[branch].
+  Map<String, int> stalePrProtectionInDaysForBaseRefs;
 
   @override
   String toString() {
@@ -139,9 +97,11 @@ class RepositoryConfiguration {
     for (var checkrun in requiredCheckRunsOnRevert) {
       stringBuffer.writeln('  - $checkrun');
     }
-    if (baseCommitExpiration != null) {
-      stringBuffer.writeln('$baseCommitExpirationKey:');
-      stringBuffer.writeln('$baseCommitExpiration');
+    if (stalePrProtectionInDaysForBaseRefs.isNotEmpty) {
+      stringBuffer.writeln('$stalePrProtectionInDaysForBaseRefsKey:');
+      for (var entry in stalePrProtectionInDaysForBaseRefs.entries) {
+        stringBuffer.writeln('  ${entry.key}: ${entry.value}');
+      }
     }
     return stringBuffer.toString();
   }
@@ -171,13 +131,25 @@ class RepositoryConfiguration {
       }
     }
 
-    final yamlbaseCommitExpiration =
-        yamlDoc[baseCommitExpirationKey] as YamlMap?;
-    BaseCommitExpiration? baseCommitExpiration;
-    if (yamlbaseCommitExpiration != null) {
-      baseCommitExpiration = BaseCommitExpiration.fromYaml(
-        yamlbaseCommitExpiration,
-      );
+    final stalePrProtectionInDaysForBaseRefs = <String, int>{};
+    final yamlstalePrProtectionInDaysForBaseRefs =
+        yamlDoc[stalePrProtectionInDaysForBaseRefsKey] as YamlMap?;
+    if (yamlstalePrProtectionInDaysForBaseRefs != null) {
+      for (var entry in yamlstalePrProtectionInDaysForBaseRefs.entries) {
+        if (entry.value is! int) {
+          throw ConfigurationException(
+            'The value for ${entry.key} must be an integer.',
+          );
+        }
+        if (entry.value as int <= 0) {
+          throw ConfigurationException(
+            'The value for ${entry.key} must be greater than zero.',
+          );
+        }
+
+        stalePrProtectionInDaysForBaseRefs[entry.key as String] =
+            entry.value as int;
+      }
     }
 
     return RepositoryConfiguration(
@@ -189,7 +161,7 @@ class RepositoryConfiguration {
       runCi: yamlDoc[runCiKey] as bool?,
       supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] as bool?,
       requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
-      baseCommitExpiration: baseCommitExpiration,
+      stalePrProtectionInDaysForBaseRefs: stalePrProtectionInDaysForBaseRefs,
     );
   }
 }
