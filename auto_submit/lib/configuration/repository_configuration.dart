@@ -99,8 +99,9 @@ class RepositoryConfiguration {
     }
     if (stalePrProtectionInDaysForBaseRefs.isNotEmpty) {
       stringBuffer.writeln('$stalePrProtectionInDaysForBaseRefsKey:');
-      for (var entry in stalePrProtectionInDaysForBaseRefs.entries) {
-        stringBuffer.writeln('  ${entry.key}: ${entry.value}');
+      for (final MapEntry(key: branch, value: days)
+          in stalePrProtectionInDaysForBaseRefs.entries) {
+        stringBuffer.writeln('  $branch: $days');
       }
     }
     return stringBuffer.toString();
