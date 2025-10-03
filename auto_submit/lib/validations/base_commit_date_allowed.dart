@@ -29,18 +29,31 @@ class BaseCommitDateAllowed extends Validation {
       slug,
     );
 
-    // If the base commit allowed days is less than or equal to 0 then the
-    // validation is turned off and the base commit creation date is ignored.
-    if (repositoryConfiguration.baseCommitAllowedDays <= 0) {
+    // If the base_commit_expiration is empty then the validation is turned off
+    // and the base commit creation date is ignored.
+    if (repositoryConfiguration.stalePrProtectionInDaysForBaseRefs.isEmpty) {
+      log.info('PR base commit creation date validation turned off');
+      return ValidationResult(
+        true,
+        Action.IGNORE_FAILURE,
+        'PR base commit creation date validation turned off',
+      );
+    }
+
+    // Check if PR base expiration validation is configured for this branch.
+    if (!repositoryConfiguration.stalePrProtectionInDaysForBaseRefs.containsKey(
+      '${slug.fullName}/${messagePullRequest.base!.ref}',
+    )) {
       log.info(
-        'PR base commit creation date validation turned off by setting '
-        'base_commit_allowed_days to ${repositoryConfiguration.baseCommitAllowedDays}.',
+        'PR ${slug.fullName}/${messagePullRequest.number} is for branch: '
+        '${messagePullRequest.base!.ref} which does not match any configured PR '
+        'base for stale protection',
       );
       return ValidationResult(
         true,
         Action.IGNORE_FAILURE,
-        'PR base commit creation date validation turned off by setting '
-        'base_commit_allowed_days to ${repositoryConfiguration.baseCommitAllowedDays}.',
+        'The base commit expiration validation is not configured for this '
+        'branch.',
       );
     }
 
@@ -61,23 +74,26 @@ class BaseCommitDateAllowed extends Validation {
     }
 
     log.info(
-      'PR ${slug.fullName}/${messagePullRequest.number} base creation date is: '
-      '${commit.commit?.author?.date}. Allowed age is '
-      '${repositoryConfiguration.baseCommitAllowedDays} days.',
+      'PR ${slug.fullName}/${messagePullRequest.number} requested for branch: '
+      '${messagePullRequest.base!.ref} with base creation date: '
+      '${commit.commit?.author?.date}.',
     );
 
     final isBaseRecent = commit.commit!.author!.date!.isAfter(
       DateTime.now().subtract(
-        Duration(days: repositoryConfiguration.baseCommitAllowedDays),
+        Duration(
+          days: repositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['${slug.fullName}/${messagePullRequest.base!.ref}']!,
+        ),
       ),
     );
 
     final message = isBaseRecent
         ? 'The base commit of the PR is recent enough for merging.'
         : 'The base commit of the PR is older than '
-              '${repositoryConfiguration.baseCommitAllowedDays} days and can not '
-              'be merged. Please merge the latest changes from the main into '
-              'this branch and resubmit the PR.';
+              '${repositoryConfiguration.stalePrProtectionInDaysForBaseRefs['${slug.fullName}/${messagePullRequest.base!.ref}']} '
+              'days and can not be merged. Please merge the latest changes '
+              'from the main into this branch and resubmit the PR.';
 
     return ValidationResult(isBaseRecent, Action.REMOVE_LABEL, message);
   }

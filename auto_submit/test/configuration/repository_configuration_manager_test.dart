@@ -51,7 +51,9 @@ void main() {
         - Google-testing
         - test (ubuntu-latest, 2.18.0)
         - cla/google
-      base_commit_allowed_days: 10
+      stale_pr_protection_in_days_for_base_refs:
+        flutter/flutter/main: 7
+        flutter/cocoon/main: 30
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -93,7 +95,25 @@ void main() {
       repositoryConfiguration.requiredCheckRunsOnRevert.contains('cla/google'),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitAllowedDays, 10);
+
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+      isNotEmpty,
+    );
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs.length,
+      2,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
+      7,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+      30,
+    );
   });
 
   test(
@@ -191,7 +211,7 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitAllowedDays, 0);
+    expect(repositoryConfiguration.stalePrProtectionInDaysForBaseRefs, isEmpty);
   });
 
   test('Default branch collected if omitted main', () async {
@@ -207,7 +227,9 @@ void main() {
       required_checkruns_on_revert:
         - ci.yaml validation
         - Google-testing
-      base_commit_allowed_days: 7
+      stale_pr_protection_in_days_for_base_refs:
+        flutter/flutter/main: 7
+        flutter/cocoon/main: 30
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -240,7 +262,24 @@ void main() {
       ),
       isTrue,
     );
-    expect(repositoryConfiguration.baseCommitAllowedDays, 7);
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+      isNotEmpty,
+    );
+    expect(
+      repositoryConfiguration.stalePrProtectionInDaysForBaseRefs.length,
+      2,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
+      7,
+    );
+    expect(
+      repositoryConfiguration
+          .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+      30,
+    );
   });
 
   group('Merging configurations tests', () {
@@ -258,7 +297,9 @@ void main() {
       support_no_review_revert: true
       required_checkruns_on_revert:
         - ci.yaml validation
-      base_commit_allowed_days: 7
+      stale_pr_protection_in_days_for_base_refs:
+        flutter/flutter/main: 7
+        flutter/cocoon/main: 30
     */
 
     test('Global config merged with default local config', () {
@@ -302,7 +343,24 @@ void main() {
         ),
         isTrue,
       );
-      expect(mergedRepositoryConfiguration.baseCommitAllowedDays, 7);
+      expect(
+        mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+        isNotEmpty,
+      );
+      expect(
+        mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs.length,
+        2,
+      );
+      expect(
+        mergedRepositoryConfiguration
+            .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
+        7,
+      );
+      expect(
+        mergedRepositoryConfiguration
+            .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+        30,
+      );
     });
 
     test('Auto approval accounts is additive, they cannot be removed', () {
@@ -406,11 +464,10 @@ void main() {
     });
 
     test(
-      'Base commit recent days overridden by local config if value is not 0',
+      'base_commit_expiration overridden by local config if value is not empty',
       () {
-        const expectedBaseCommitAllowedDays = -1;
         final localRepositoryConfiguration = RepositoryConfiguration(
-          baseCommitAllowedDays: expectedBaseCommitAllowedDays,
+          stalePrProtectionInDaysForBaseRefs: <String, int>{'foo/bar/buz': 3},
         );
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
@@ -421,24 +478,27 @@ void main() {
               localRepositoryConfiguration,
             );
         expect(
-          globalRepositoryConfiguration.baseCommitAllowedDays !=
-              mergedRepositoryConfiguration.baseCommitAllowedDays,
-          isTrue,
+          mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+          isNotEmpty,
         );
         expect(
-          mergedRepositoryConfiguration.baseCommitAllowedDays,
-          expectedBaseCommitAllowedDays,
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs
+              .length,
+          1,
+        );
+        expect(
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['foo/bar/buz'],
+          3,
         );
       },
     );
 
     test(
-      'Base commit recent days is not overridden by local config if value is 0',
+      'base_commit_expiration is not overridden by local config if empty',
       () {
-        const expectedBaseCommitAllowedDays = 7;
-        final localRepositoryConfiguration = RepositoryConfiguration(
-          baseCommitAllowedDays: 0,
-        );
+        final localRepositoryConfiguration = RepositoryConfiguration();
         final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
           sampleConfigWithOverride,
         );
@@ -448,13 +508,24 @@ void main() {
               localRepositoryConfiguration,
             );
         expect(
-          globalRepositoryConfiguration.baseCommitAllowedDays ==
-              mergedRepositoryConfiguration.baseCommitAllowedDays,
-          isTrue,
+          mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
+          isNotNull,
         );
         expect(
-          mergedRepositoryConfiguration.baseCommitAllowedDays,
-          expectedBaseCommitAllowedDays,
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs
+              .length,
+          2,
+        );
+        expect(
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['flutter/flutter/main'],
+          7,
+        );
+        expect(
+          mergedRepositoryConfiguration
+              .stalePrProtectionInDaysForBaseRefs['flutter/cocoon/main'],
+          30,
         );
       },
     );

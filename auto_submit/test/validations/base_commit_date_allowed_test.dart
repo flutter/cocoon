@@ -38,7 +38,7 @@ void main() {
     validator = BaseCommitDateAllowed(config: config);
   });
 
-  test('Pull request is valid then base_commit_allowed_days to 0', () async {
+  test('Pull request is valid then base_commit_expiration is empty', () async {
     const org = 'flutter';
     const repo = 'flutter';
 
@@ -66,7 +66,7 @@ void main() {
     expect(processValidationResult.result, isTrue);
     expect(
       processValidationResult.message,
-      'PR base commit creation date validation turned off by setting base_commit_allowed_days to 0.',
+      'PR base commit creation date validation turned off',
     );
   });
 
@@ -111,7 +111,7 @@ void main() {
   );
 
   test(
-    'Pull request base is expired if older than 7 days with config override',
+    'Pull request is valid then branch is not that configured for validation',
     () async {
       const org = 'flutter';
       const repo = 'flutter';
@@ -132,26 +132,64 @@ void main() {
         mergeable: true,
         login: org,
         repoName: repo,
+        baseRef: 'not-main',
       );
 
       githubService.commitData = constructCommit(
-        date: DateTime.now().subtract(const Duration(days: 7)),
+        date: DateTime.now().subtract(const Duration(days: 6)),
       );
 
       final processValidationResult = await validator.validate(
         queryResult,
         pullRequest,
       );
-      expect(processValidationResult.result, isFalse);
-      expect(processValidationResult.action, Action.REMOVE_LABEL);
+      expect(processValidationResult.result, isTrue);
       expect(
         processValidationResult.message,
-        'The base commit of the PR is older than 7 days and can not be merged. '
-        'Please merge the latest changes from the main into this branch and '
-        'resubmit the PR.',
+        'The base commit expiration validation is not configured for this '
+        'branch.',
       );
     },
   );
+  test('Pull request base is expired if older than 7 days', () async {
+    const org = 'flutter';
+    const repo = 'flutter';
+
+    final flutterRequest = PullRequestHelper(
+      prNumber: 0,
+      lastCommitHash: oid,
+      reviews: <PullRequestReviewHelper>[],
+    );
+
+    config.repositoryConfigurationMock = RepositoryConfiguration.fromYaml(
+      sampleConfigWithOverride,
+    );
+
+    final queryResult = createQueryResult(flutterRequest);
+
+    final pullRequest = generatePullRequest(
+      mergeable: true,
+      login: org,
+      repoName: repo,
+    );
+
+    githubService.commitData = constructCommit(
+      date: DateTime.now().subtract(const Duration(days: 7)),
+    );
+
+    final processValidationResult = await validator.validate(
+      queryResult,
+      pullRequest,
+    );
+    expect(processValidationResult.result, isFalse);
+    expect(processValidationResult.action, Action.REMOVE_LABEL);
+    expect(
+      processValidationResult.message,
+      'The base commit of the PR is older than 7 days and can not be merged. '
+      'Please merge the latest changes from the main into this branch and '
+      'resubmit the PR.',
+    );
+  });
 
   test(
     'Pull request is validation ignored if no base commit date is found',
