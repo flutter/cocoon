@@ -39,7 +39,7 @@ dependencies:
   meta: ^1.16.0
   mime: ^2.0.0
   mutex: 3.1.0
-  neat_cache: 2.0.4
+  neat_cache: 2.0.5
   path: ^1.9.1
   process: ^5.0.3
   process_runner: 4.2.3
