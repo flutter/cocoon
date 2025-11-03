@@ -11,7 +11,7 @@ part of 'consolidated_check_run_flow_flags.dart';
 ConsolidatedCheckRunFlow _$ConsolidatedCheckRunFlowFromJson(
   Map<String, dynamic> json,
 ) => ConsolidatedCheckRunFlow(
-  use: json['use'] as bool?,
+  useForAll: json['useForAll'] as bool?,
   useForUsers: (json['useForUsers'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
@@ -20,6 +20,6 @@ ConsolidatedCheckRunFlow _$ConsolidatedCheckRunFlowFromJson(
 Map<String, dynamic> _$ConsolidatedCheckRunFlowToJson(
   ConsolidatedCheckRunFlow instance,
 ) => <String, dynamic>{
-  'use': instance.use,
+  'useForAll': instance.useForAll,
   'useForUsers': instance.useForUsers,
 };
