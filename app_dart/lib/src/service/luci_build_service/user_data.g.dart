@@ -24,7 +24,7 @@ _PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
           ),
           checkSuiteId: $checkedConvert(
             'check_suite_id',
-            (v) => (v as num).toInt(),
+            (v) => (v as num?)?.toInt() ?? 0,
           ),
         );
         return val;
@@ -68,6 +68,6 @@ PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) =>
     <String, dynamic>{
-      if (instance.checkRunId case final value?) 'check_run_id': value,
+      'check_run_id': ?instance.checkRunId,
       'task_id': PostsubmitUserData._documentToString(instance.taskId),
     };

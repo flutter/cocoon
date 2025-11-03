@@ -18,8 +18,8 @@ PubSubPushMessage _$PubSubPushMessageFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$PubSubPushMessageToJson(PubSubPushMessage instance) =>
     <String, dynamic>{
-      if (instance.message case final value?) 'message': value,
-      if (instance.subscription case final value?) 'subscription': value,
+      'message': ?instance.message,
+      'subscription': ?instance.subscription,
     };
 
 PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
@@ -36,15 +36,13 @@ PushMessage _$PushMessageFromJson(Map<String, dynamic> json) => PushMessage(
 
 Map<String, dynamic> _$PushMessageToJson(PushMessage instance) =>
     <String, dynamic>{
-      if (instance.attributes case final value?) 'attributes': value,
-      if (_$JsonConverterToJson<String, String>(
-            instance.data,
-            const Base64Converter().toJson,
-          )
-          case final value?)
-        'data': value,
-      if (instance.messageId case final value?) 'messageId': value,
-      if (instance.publishTime case final value?) 'publishTime': value,
+      'attributes': ?instance.attributes,
+      'data': ?_$JsonConverterToJson<String, String>(
+        instance.data,
+        const Base64Converter().toJson,
+      ),
+      'messageId': ?instance.messageId,
+      'publishTime': ?instance.publishTime,
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(
