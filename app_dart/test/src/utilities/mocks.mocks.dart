@@ -67,6 +67,7 @@ import '../../service/cache_service_test.dart' as _i26;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeConfig_0 extends _i1.SmartFake implements _i2.Config {
   _FakeConfig_0(Object parent, Invocation parentInvocation)
@@ -736,17 +737,17 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   }
 
   @override
-  Set<_i7.RepositorySlug> get postsubmitSupportedRepos =>
+  Set<_i7.RepositorySlug> get supportedRepos =>
       (super.noSuchMethod(
-            Invocation.getter(#postsubmitSupportedRepos),
+            Invocation.getter(#supportedRepos),
             returnValue: <_i7.RepositorySlug>{},
           )
           as Set<_i7.RepositorySlug>);
 
   @override
-  Set<_i7.RepositorySlug> get supportedRepos =>
+  Set<_i7.RepositorySlug> get postsubmitSupportedRepos =>
       (super.noSuchMethod(
-            Invocation.getter(#supportedRepos),
+            Invocation.getter(#postsubmitSupportedRepos),
             returnValue: <_i7.RepositorySlug>{},
           )
           as Set<_i7.RepositorySlug>);
@@ -1290,8 +1291,8 @@ class MockFakeEntry extends _i1.Mock implements _i26.FakeEntry {
           as _i27.Uint8List);
 
   @override
-  set value(_i27.Uint8List? _value) => super.noSuchMethod(
-    Invocation.setter(#value, _value),
+  set value(_i27.Uint8List? value) => super.noSuchMethod(
+    Invocation.setter(#value, value),
     returnValueForMissingStub: null,
   );
 
@@ -1855,17 +1856,16 @@ class MockGithubChecksService extends _i1.Mock
           as _i10.GithubChecksUtil);
 
   @override
-  set config(_i2.Config? _config) => super.noSuchMethod(
-    Invocation.setter(#config, _config),
+  set config(_i2.Config? value) => super.noSuchMethod(
+    Invocation.setter(#config, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set githubChecksUtil(_i10.GithubChecksUtil? _githubChecksUtil) =>
-      super.noSuchMethod(
-        Invocation.setter(#githubChecksUtil, _githubChecksUtil),
-        returnValueForMissingStub: null,
-      );
+  set githubChecksUtil(_i10.GithubChecksUtil? value) => super.noSuchMethod(
+    Invocation.setter(#githubChecksUtil, value),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i13.Future<bool> updateCheckStatus({
@@ -2792,15 +2792,14 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
           as _i8.QueryManager);
 
   @override
-  set defaultPolicies(_i8.DefaultPolicies? _defaultPolicies) =>
-      super.noSuchMethod(
-        Invocation.setter(#defaultPolicies, _defaultPolicies),
-        returnValueForMissingStub: null,
-      );
+  set defaultPolicies(_i8.DefaultPolicies? value) => super.noSuchMethod(
+    Invocation.setter(#defaultPolicies, value),
+    returnValueForMissingStub: null,
+  );
 
   @override
-  set queryManager(_i8.QueryManager? _queryManager) => super.noSuchMethod(
-    Invocation.setter(#queryManager, _queryManager),
+  set queryManager(_i8.QueryManager? value) => super.noSuchMethod(
+    Invocation.setter(#queryManager, value),
     returnValueForMissingStub: null,
   );
 
@@ -2811,6 +2810,7 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
     _i8.DefaultPolicies? defaultPolicies,
     bool? alwaysRebroadcast,
     _i8.DeepEqualsFn? deepEquals,
+    _i8.AsyncDeepEqualsFn? asyncDeepEquals,
     bool? deduplicatePollers = false,
     Duration? queryRequestTimeout,
   }) =>
@@ -2821,6 +2821,7 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
               #defaultPolicies: defaultPolicies,
               #alwaysRebroadcast: alwaysRebroadcast,
               #deepEquals: deepEquals,
+              #asyncDeepEquals: asyncDeepEquals,
               #deduplicatePollers: deduplicatePollers,
               #queryRequestTimeout: queryRequestTimeout,
             }),
@@ -2832,6 +2833,7 @@ class MockGraphQLClient extends _i1.Mock implements _i8.GraphQLClient {
                 #defaultPolicies: defaultPolicies,
                 #alwaysRebroadcast: alwaysRebroadcast,
                 #deepEquals: deepEquals,
+                #asyncDeepEquals: asyncDeepEquals,
                 #deduplicatePollers: deduplicatePollers,
                 #queryRequestTimeout: queryRequestTimeout,
               }),
@@ -3025,32 +3027,32 @@ class MockHttpClient extends _i1.Mock implements _i11.HttpClient {
           as bool);
 
   @override
-  set idleTimeout(Duration? _idleTimeout) => super.noSuchMethod(
-    Invocation.setter(#idleTimeout, _idleTimeout),
+  set idleTimeout(Duration? value) => super.noSuchMethod(
+    Invocation.setter(#idleTimeout, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set connectionTimeout(Duration? _connectionTimeout) => super.noSuchMethod(
-    Invocation.setter(#connectionTimeout, _connectionTimeout),
+  set connectionTimeout(Duration? value) => super.noSuchMethod(
+    Invocation.setter(#connectionTimeout, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set maxConnectionsPerHost(int? _maxConnectionsPerHost) => super.noSuchMethod(
-    Invocation.setter(#maxConnectionsPerHost, _maxConnectionsPerHost),
+  set maxConnectionsPerHost(int? value) => super.noSuchMethod(
+    Invocation.setter(#maxConnectionsPerHost, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set autoUncompress(bool? _autoUncompress) => super.noSuchMethod(
-    Invocation.setter(#autoUncompress, _autoUncompress),
+  set autoUncompress(bool? value) => super.noSuchMethod(
+    Invocation.setter(#autoUncompress, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set userAgent(String? _userAgent) => super.noSuchMethod(
-    Invocation.setter(#userAgent, _userAgent),
+  set userAgent(String? value) => super.noSuchMethod(
+    Invocation.setter(#userAgent, value),
     returnValueForMissingStub: null,
   );
 
@@ -3367,16 +3369,6 @@ class MockHttpClientRequest extends _i1.Mock implements _i11.HttpClientRequest {
           as int);
 
   @override
-  int get contentLength =>
-      (super.noSuchMethod(Invocation.getter(#contentLength), returnValue: 0)
-          as int);
-
-  @override
-  bool get bufferOutput =>
-      (super.noSuchMethod(Invocation.getter(#bufferOutput), returnValue: false)
-          as bool);
-
-  @override
   String get method =>
       (super.noSuchMethod(
             Invocation.getter(#method),
@@ -3394,6 +3386,16 @@ class MockHttpClientRequest extends _i1.Mock implements _i11.HttpClientRequest {
             returnValue: _FakeUri_35(this, Invocation.getter(#uri)),
           )
           as Uri);
+
+  @override
+  int get contentLength =>
+      (super.noSuchMethod(Invocation.getter(#contentLength), returnValue: 0)
+          as int);
+
+  @override
+  bool get bufferOutput =>
+      (super.noSuchMethod(Invocation.getter(#bufferOutput), returnValue: false)
+          as bool);
 
   @override
   _i11.HttpHeaders get headers =>
@@ -3422,32 +3424,32 @@ class MockHttpClientRequest extends _i1.Mock implements _i11.HttpClientRequest {
           as _i13.Future<_i11.HttpClientResponse>);
 
   @override
-  set persistentConnection(bool? _persistentConnection) => super.noSuchMethod(
-    Invocation.setter(#persistentConnection, _persistentConnection),
+  set persistentConnection(bool? value) => super.noSuchMethod(
+    Invocation.setter(#persistentConnection, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set followRedirects(bool? _followRedirects) => super.noSuchMethod(
-    Invocation.setter(#followRedirects, _followRedirects),
+  set followRedirects(bool? value) => super.noSuchMethod(
+    Invocation.setter(#followRedirects, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set maxRedirects(int? _maxRedirects) => super.noSuchMethod(
-    Invocation.setter(#maxRedirects, _maxRedirects),
+  set maxRedirects(int? value) => super.noSuchMethod(
+    Invocation.setter(#maxRedirects, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set contentLength(int? _contentLength) => super.noSuchMethod(
-    Invocation.setter(#contentLength, _contentLength),
+  set contentLength(int? value) => super.noSuchMethod(
+    Invocation.setter(#contentLength, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set bufferOutput(bool? _bufferOutput) => super.noSuchMethod(
-    Invocation.setter(#bufferOutput, _bufferOutput),
+  set bufferOutput(bool? value) => super.noSuchMethod(
+    Invocation.setter(#bufferOutput, value),
     returnValueForMissingStub: null,
   );
 
@@ -3460,8 +3462,8 @@ class MockHttpClientRequest extends _i1.Mock implements _i11.HttpClientRequest {
           as _i12.Encoding);
 
   @override
-  set encoding(_i12.Encoding? _encoding) => super.noSuchMethod(
-    Invocation.setter(#encoding, _encoding),
+  set encoding(_i12.Encoding? value) => super.noSuchMethod(
+    Invocation.setter(#encoding, value),
     returnValueForMissingStub: null,
   );
 
@@ -5295,8 +5297,8 @@ class MockBeginTransactionResponse extends _i1.Mock
           as List<int>);
 
   @override
-  set transaction(String? _transaction) => super.noSuchMethod(
-    Invocation.setter(#transaction, _transaction),
+  set transaction(String? value) => super.noSuchMethod(
+    Invocation.setter(#transaction, value),
     returnValueForMissingStub: null,
   );
 
