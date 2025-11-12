@@ -20,7 +20,7 @@ class SignInButton extends StatelessWidget {
 
     return TextButton(
       style: TextButton.styleFrom(foregroundColor: textButtonForeground),
-      onPressed: authService.signIn,
+      onPressed: authService.signInWithGoogle,
       child: const Text('SIGN IN'),
     );
   }
