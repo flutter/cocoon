@@ -67,12 +67,12 @@ void main() {
     );
     await tester.pump();
 
-    verifyNever(mockAuthService.signIn());
+    verifyNever(mockAuthService.signInWithGoogle());
 
     await tester.tap(find.text('SIGN IN'));
     await tester.pump();
 
-    verify(mockAuthService.signIn()).called(1);
+    verify(mockAuthService.signInWithGoogle()).called(1);
   });
 
   testWidgets('SignInButton shows avatar when authenticated', (

@@ -53,12 +53,30 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   /// Initiate the Google Sign In process.
-  Future<void> signIn() async {
+  Future<void> signInWithGoogle() async {
     try {
-      await _auth.signInWithProvider(GoogleAuthProvider());
+      await _auth.signInWithPopup(GoogleAuthProvider());
       notifyListeners();
     } catch (error) {
       debugPrint('signin failed: $error');
+    }
+  }
+
+  Future<void> signInWithGithub() async {
+    try {
+      await _auth.signInWithPopup(GithubAuthProvider());
+      notifyListeners();
+    } catch (error) {
+      // If email of Github account already registered in Frebase but with
+      // Google provider, we need to sign in with Google  provider first,
+      // then link the GitHub provider.
+      if (error is FirebaseAuthException &&
+          error.code == 'account-exists-with-different-credential') {
+        await signInWithGoogle();
+        await linkWithProvider(GithubAuthProvider());
+        return;
+      }
+      debugPrint('signin with github failed: $error');
     }
   }
 
@@ -68,6 +86,30 @@ class FirebaseAuthService extends ChangeNotifier {
       notifyListeners();
     } catch (error) {
       debugPrint('signout error $error');
+    }
+  }
+
+  Future<void> linkWithProvider(AuthProvider provider) async {
+    try {
+      final userCredential = await _auth.currentUser?.linkWithPopup(provider);
+      _user = userCredential?.user;
+      notifyListeners();
+      debugPrint(await _auth.currentUser?.getIdToken(true));
+    } catch (error) {
+      debugPrint('linkWithProvider failed: $error');
+    }
+  }
+
+  Future<void> unlinkProvider(AuthProvider provider) async {
+    try {
+      final userCredential = await _auth.currentUser?.unlink(
+        provider.providerId,
+      );
+      _user = userCredential;
+      notifyListeners();
+      debugPrint(await _auth.currentUser?.getIdToken(true));
+    } catch (error) {
+      debugPrint('unlinkProvider failed: $error');
     }
   }
 

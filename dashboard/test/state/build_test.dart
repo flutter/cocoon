@@ -768,7 +768,7 @@ void main() {
 
     await tester.pump(const Duration(seconds: 5));
 
-    await signInService.signIn();
+    await signInService.signInWithGoogle();
     expect(callCount, 1);
 
     await signInService.signOut();
