@@ -73,7 +73,7 @@ class FirebaseAuthService extends ChangeNotifier {
       if (error is FirebaseAuthException &&
           error.code == 'account-exists-with-different-credential') {
         await signInWithGoogle();
-        await linkWithProvider(GithubAuthProvider());
+        await linkWithGithub();
         return;
       }
       debugPrint('signin with github failed: $error');
@@ -89,14 +89,51 @@ class FirebaseAuthService extends ChangeNotifier {
     }
   }
 
-  Future<void> linkWithProvider(AuthProvider provider) async {
+  Future<void> linkWithGoogle() async {
     try {
-      final userCredential = await _auth.currentUser?.linkWithPopup(provider);
+      final userCredential = await _auth.currentUser?.linkWithPopup(
+        GoogleAuthProvider(),
+      );
       _user = userCredential?.user;
       notifyListeners();
       debugPrint(await _auth.currentUser?.getIdToken(true));
     } catch (error) {
-      debugPrint('linkWithProvider failed: $error');
+      // If Google account's credential already exists in firebase, we need to:
+      //   1. delete Gihub account from firebase records, to do so we need to:
+      //      1.1 sign out;
+      //      1.2 sign in with Github;
+      //      1.3 delete the user;
+      //   2. sign in with Google;
+      //   3. then link Github account to existing Google account.
+      if (error is FirebaseAuthException &&
+          error.code == 'credential-already-in-use') {
+        try {
+          await signOut();
+          await signInWithGithub();
+          await FirebaseAuth.instance.currentUser?.delete();
+        } catch (e) {
+          debugPrint('delete user failed: $e');
+          return;
+        }
+        await signInWithGoogle();
+        await linkWithGithub();
+      }
+      debugPrint('linkWithGoogle failed: $error');
+      //
+    }
+  }
+
+  Future<void> linkWithGithub() async {
+    try {
+      final userCredential = await _auth.currentUser?.linkWithPopup(
+        GithubAuthProvider(),
+      );
+      _user = userCredential?.user;
+      notifyListeners();
+      debugPrint(await _auth.currentUser?.getIdToken(true));
+    } catch (error) {
+      debugPrint('linkWithGithub failed: $error');
+      //
     }
   }
 
