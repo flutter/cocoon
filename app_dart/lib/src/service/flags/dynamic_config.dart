@@ -14,6 +14,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import 'ci_yaml_flags.dart';
+import 'consolidated_check_run_flow_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
 
@@ -38,6 +39,7 @@ final class DynamicConfig {
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
+    consolidatedCheckRunFlow: ConsolidatedCheckRunFlow.defaultInstance,
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -60,11 +62,16 @@ final class DynamicConfig {
   @JsonKey()
   final bool closeMqGuardAfterPresubmit;
 
+  /// Flags related tp consolidated check-run flow configuration.
+  @JsonKey()
+  final ConsolidatedCheckRunFlow consolidatedCheckRunFlow;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
     required this.ciYaml,
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
+    required this.consolidatedCheckRunFlow,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -75,6 +82,7 @@ final class DynamicConfig {
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
+    ConsolidatedCheckRunFlow? consolidatedCheckRunFlow,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -85,6 +93,8 @@ final class DynamicConfig {
       closeMqGuardAfterPresubmit:
           closeMqGuardAfterPresubmit ??
           defaultInstance.closeMqGuardAfterPresubmit,
+      consolidatedCheckRunFlow:
+          consolidatedCheckRunFlow ?? defaultInstance.consolidatedCheckRunFlow,
     );
   }
 
