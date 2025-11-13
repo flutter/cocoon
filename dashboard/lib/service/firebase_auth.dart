@@ -137,7 +137,13 @@ class FirebaseAuthService extends ChangeNotifier {
     }
   }
 
-  Future<void> unlinkProvider(AuthProvider provider) async {
+  Future<void> unlinkGithub() async =>
+      await _unlinkProvider(GithubAuthProvider());
+
+  Future<void> unlinkGoogle() async =>
+      await _unlinkProvider(GoogleAuthProvider());
+
+  Future<void> _unlinkProvider(AuthProvider provider) async {
     try {
       final userCredential = await _auth.currentUser?.unlink(
         provider.providerId,
@@ -146,7 +152,7 @@ class FirebaseAuthService extends ChangeNotifier {
       notifyListeners();
       debugPrint(await _auth.currentUser?.getIdToken(true));
     } catch (error) {
-      debugPrint('unlinkProvider failed: $error');
+      debugPrint('unlink ${provider.runtimeType} failed: $error');
     }
   }
 

@@ -51,13 +51,13 @@ class UserSignIn extends StatelessWidget {
                   await authService.linkWithGithub();
                   break;
                 case _SignInButtonAction.unlinkGithub:
-                  await authService.unlinkProvider(GithubAuthProvider());
+                  await authService.unlinkGithub();
                   break;
                 case _SignInButtonAction.linkGoogle:
                   await authService.linkWithGoogle();
                   break;
                 case _SignInButtonAction.unlinkGoogle:
-                  await authService.unlinkProvider(GoogleAuthProvider());
+                  await authService.unlinkGoogle();
                   break;
               }
             },
