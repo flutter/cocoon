@@ -8,13 +8,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../service/firebase_auth.dart';
 import 'sign_in_button/sign_in_button.dart';
 
-enum _SignInButtonAction {
+enum SignInButtonAction {
   logout,
   linkGithub,
   unlinkGithub,
@@ -38,25 +37,25 @@ class UserSignIn extends StatelessWidget {
       animation: authService,
       builder: (BuildContext context, _) {
         if (authService.user != null) {
-          return PopupMenuButton<_SignInButtonAction>(
+          return PopupMenuButton<SignInButtonAction>(
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) =>
                 _buildLinkUnlinkMenuItem(authService.user!.providerData),
-            onSelected: (_SignInButtonAction value) async {
+            onSelected: (SignInButtonAction value) async {
               switch (value) {
-                case _SignInButtonAction.logout:
+                case SignInButtonAction.logout:
                   await authService.signOut();
                   break;
-                case _SignInButtonAction.linkGithub:
+                case SignInButtonAction.linkGithub:
                   await authService.linkWithGithub();
                   break;
-                case _SignInButtonAction.unlinkGithub:
+                case SignInButtonAction.unlinkGithub:
                   await authService.unlinkGithub();
                   break;
-                case _SignInButtonAction.linkGoogle:
+                case SignInButtonAction.linkGoogle:
                   await authService.linkWithGoogle();
                   break;
-                case _SignInButtonAction.unlinkGoogle:
+                case SignInButtonAction.unlinkGoogle:
                   await authService.unlinkGoogle();
                   break;
               }
@@ -89,6 +88,7 @@ class UserSignIn extends StatelessWidget {
                         .split(' ')
                         .map((String str) => str[0])
                         .join()
+                        .substring(0, 2)
                         .toUpperCase(),
                     textAlign: TextAlign.center,
                   ),
@@ -102,18 +102,18 @@ class UserSignIn extends StatelessWidget {
     );
   }
 
-  List<PopupMenuItem<_SignInButtonAction>> _buildLinkUnlinkMenuItem(
+  List<PopupMenuItem<SignInButtonAction>> _buildLinkUnlinkMenuItem(
     List<UserInfo> providerData,
   ) {
-    final items = <PopupMenuItem<_SignInButtonAction>>[];
+    final items = <PopupMenuItem<SignInButtonAction>>[];
     if (providerData.isNotEmpty && providerData.length <= 2) {
       // One provider linked to firebase user. Show link option for the other.
       if (providerData.length == 1) {
         // Linked provider is Google. Show Link GitHub Account option.
         if (providerData.first.providerId == GoogleAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<_SignInButtonAction>(
-              value: _SignInButtonAction.linkGithub,
+            const PopupMenuItem<SignInButtonAction>(
+              value: SignInButtonAction.linkGithub,
               child: Text('Link GitHub Account'),
             ),
           );
@@ -122,8 +122,8 @@ class UserSignIn extends StatelessWidget {
         else if (providerData.first.providerId ==
             GithubAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<_SignInButtonAction>(
-              value: _SignInButtonAction.linkGoogle,
+            const PopupMenuItem<SignInButtonAction>(
+              value: SignInButtonAction.linkGoogle,
               child: Text('Link Google Account'),
             ),
           );
@@ -135,8 +135,8 @@ class UserSignIn extends StatelessWidget {
         // If last linked provider is Google. Allow unlinking Google Account.
         if (providerData.last.providerId == GoogleAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<_SignInButtonAction>(
-              value: _SignInButtonAction.unlinkGoogle,
+            const PopupMenuItem<SignInButtonAction>(
+              value: SignInButtonAction.unlinkGoogle,
               child: Text('Unlink Google Account'),
             ),
           );
@@ -144,8 +144,8 @@ class UserSignIn extends StatelessWidget {
         else if (providerData.last.providerId ==
             GithubAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<_SignInButtonAction>(
-              value: _SignInButtonAction.unlinkGithub,
+            const PopupMenuItem<SignInButtonAction>(
+              value: SignInButtonAction.unlinkGithub,
               child: Text('Unlink GitHub Account'),
             ),
           );
@@ -154,30 +154,11 @@ class UserSignIn extends StatelessWidget {
     }
     // Always show logout option.
     items.add(
-      const PopupMenuItem<_SignInButtonAction>(
-        value: _SignInButtonAction.logout,
+      const PopupMenuItem<SignInButtonAction>(
+        value: SignInButtonAction.logout,
         child: Text('Log out'),
       ),
     );
     return items;
   }
-}
-
-class FirebaseUserIdentity implements GoogleIdentity {
-  FirebaseUserIdentity(this.user);
-
-  final User user;
-
-  @override
-  String? get displayName => user.displayName;
-
-  @override
-  String get email => user.email!;
-
-  @override
-  String get id => '1234';
-
-  @override
-  // TODO: implement photoUrl
-  String? get photoUrl => user.photoURL;
 }

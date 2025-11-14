@@ -77,7 +77,7 @@ class FakeFirebaseUser implements User {
       'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID';
 
   @override
-  List<UserInfo> get providerData => throw UnimplementedError();
+  List<UserInfo> get providerData => [];
 
   @override
   Future<UserCredential> reauthenticateWithCredential(
