@@ -7,7 +7,6 @@ import 'package:flutter_dashboard/service/firebase_auth.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_dashboard/widgets/user_sign_in.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/widgets.dart';
 import 'package:mockito/mockito.dart';
 
 import '../utils/fake_firebase_user.dart';
@@ -44,7 +43,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(GoogleUserCircleAvatar), findsNothing);
+    expect(find.byType(CircleAvatar), findsNothing);
     expect(find.text('SIGN IN'), findsOneWidget);
     expect(find.text('test@flutter.dev'), findsNothing);
     await expectGoldenMatches(
@@ -67,12 +66,11 @@ void main() {
     );
     await tester.pump();
 
-    verifyNever(mockAuthService.signInWithGoogle());
-
+    verifyNever(mockAuthService.signInWithGithub());
     await tester.tap(find.text('SIGN IN'));
     await tester.pump();
 
-    verify(mockAuthService.signInWithGoogle()).called(1);
+    verify(mockAuthService.signInWithGithub()).called(1);
   });
 
   testWidgets('SignInButton shows avatar when authenticated', (
@@ -119,7 +117,6 @@ void main() {
     await tester.pumpAndSettle();
 
     verifyNever(mockAuthService.signOut());
-
     await tester.tap(find.text('Log out'));
 
     verify(mockAuthService.signOut()).called(1);
