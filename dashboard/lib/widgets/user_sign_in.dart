@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import '../service/firebase_auth.dart';
 import 'sign_in_button/sign_in_button.dart';
 
-enum SignInButtonAction {
+enum _SignInButtonAction {
   logout,
   linkGithub,
   unlinkGithub,
@@ -37,25 +37,25 @@ class UserSignIn extends StatelessWidget {
       animation: authService,
       builder: (BuildContext context, _) {
         if (authService.user != null) {
-          return PopupMenuButton<SignInButtonAction>(
+          return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) =>
                 _buildLinkUnlinkMenuItem(authService.user!.providerData),
-            onSelected: (SignInButtonAction value) async {
+            onSelected: (_SignInButtonAction value) async {
               switch (value) {
-                case SignInButtonAction.logout:
+                case _SignInButtonAction.logout:
                   await authService.signOut();
                   break;
-                case SignInButtonAction.linkGithub:
+                case _SignInButtonAction.linkGithub:
                   await authService.linkWithGithub();
                   break;
-                case SignInButtonAction.unlinkGithub:
+                case _SignInButtonAction.unlinkGithub:
                   await authService.unlinkGithub();
                   break;
-                case SignInButtonAction.linkGoogle:
+                case _SignInButtonAction.linkGoogle:
                   await authService.linkWithGoogle();
                   break;
-                case SignInButtonAction.unlinkGoogle:
+                case _SignInButtonAction.unlinkGoogle:
                   await authService.unlinkGoogle();
                   break;
               }
@@ -102,18 +102,18 @@ class UserSignIn extends StatelessWidget {
     );
   }
 
-  List<PopupMenuItem<SignInButtonAction>> _buildLinkUnlinkMenuItem(
+  List<PopupMenuItem<_SignInButtonAction>> _buildLinkUnlinkMenuItem(
     List<UserInfo> providerData,
   ) {
-    final items = <PopupMenuItem<SignInButtonAction>>[];
+    final items = <PopupMenuItem<_SignInButtonAction>>[];
     if (providerData.isNotEmpty && providerData.length <= 2) {
       // One provider linked to firebase user. Show link option for the other.
       if (providerData.length == 1) {
         // Linked provider is Google. Show Link GitHub Account option.
         if (providerData.first.providerId == GoogleAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<SignInButtonAction>(
-              value: SignInButtonAction.linkGithub,
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.linkGithub,
               child: Text('Link GitHub Account'),
             ),
           );
@@ -122,8 +122,8 @@ class UserSignIn extends StatelessWidget {
         else if (providerData.first.providerId ==
             GithubAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<SignInButtonAction>(
-              value: SignInButtonAction.linkGoogle,
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.linkGoogle,
               child: Text('Link Google Account'),
             ),
           );
@@ -135,8 +135,8 @@ class UserSignIn extends StatelessWidget {
         // If last linked provider is Google. Allow unlinking Google Account.
         if (providerData.last.providerId == GoogleAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<SignInButtonAction>(
-              value: SignInButtonAction.unlinkGoogle,
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.unlinkGoogle,
               child: Text('Unlink Google Account'),
             ),
           );
@@ -144,8 +144,8 @@ class UserSignIn extends StatelessWidget {
         else if (providerData.last.providerId ==
             GithubAuthProvider.PROVIDER_ID) {
           items.add(
-            const PopupMenuItem<SignInButtonAction>(
-              value: SignInButtonAction.unlinkGithub,
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.unlinkGithub,
               child: Text('Unlink GitHub Account'),
             ),
           );
@@ -154,8 +154,8 @@ class UserSignIn extends StatelessWidget {
     }
     // Always show logout option.
     items.add(
-      const PopupMenuItem<SignInButtonAction>(
-        value: SignInButtonAction.logout,
+      const PopupMenuItem<_SignInButtonAction>(
+        value: _SignInButtonAction.logout,
         child: Text('Log out'),
       ),
     );

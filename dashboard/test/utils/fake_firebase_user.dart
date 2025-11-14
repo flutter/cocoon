@@ -10,6 +10,9 @@ class FakeFirebaseUser implements User {
     throw UnimplementedError();
   }
 
+  final _tokens = <String>[];
+  final _providerData = <UserInfo>[];
+
   @override
   String? get displayName => 'Dr. Test';
 
@@ -19,12 +22,10 @@ class FakeFirebaseUser implements User {
   @override
   bool get emailVerified => true;
 
-  final tokens = <String>[];
-
   @override
   Future<String?> getIdToken([bool forceRefresh = false]) async {
-    if (tokens.isEmpty) return null;
-    return tokens.removeAt(0);
+    if (_tokens.isEmpty) return null;
+    return _tokens.removeAt(0);
   }
 
   @override
@@ -77,7 +78,7 @@ class FakeFirebaseUser implements User {
       'https://lh3.googleusercontent.com/-ukEAtRyRhw8/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhID9XACtdb9q_xK43VSXQvBV11Q.CMID';
 
   @override
-  List<UserInfo> get providerData => [];
+  List<UserInfo> get providerData => _providerData;
 
   @override
   Future<UserCredential> reauthenticateWithCredential(
