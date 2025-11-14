@@ -5,14 +5,12 @@
 // import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart'
     show
         GoogleSignIn,
         GoogleSignInAuthenticationEventSignIn,
         GoogleSignInAuthenticationEventSignOut;
-
-import 'package:google_sign_in_web/web_only.dart' as gsw;
+import 'package:provider/provider.dart';
 import 'package:sign_in_button/sign_in_button.dart' as sib;
 
 import '../../service/firebase_auth.dart';
