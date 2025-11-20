@@ -81,8 +81,7 @@ class UserSignIn extends StatelessWidget {
                           '-',
                         ]
                         .firstWhere(
-                          (String? str) =>
-                              str != null && str.trimLeft().isNotEmpty,
+                          (String? str) => str?.trimLeft().isNotEmpty ?? false,
                         )!
                         .getUserInitials(),
                     textAlign: TextAlign.center,
