@@ -62,6 +62,7 @@ class FirebaseAuthService extends ChangeNotifier {
     }
   }
 
+  /// Initiate the GitHub Sign In process.
   Future<void> signInWithGithub() async {
     try {
       await _auth.signInWithPopup(GithubAuthProvider());
@@ -80,6 +81,7 @@ class FirebaseAuthService extends ChangeNotifier {
     }
   }
 
+  /// Sign out the currently signed in user.
   Future<void> signOut() async {
     try {
       await _auth.signOut();
@@ -96,7 +98,7 @@ class FirebaseAuthService extends ChangeNotifier {
       );
       _user = userCredential?.user;
       notifyListeners();
-      debugPrint(await _auth.currentUser?.getIdToken(true));
+      await _auth.currentUser?.getIdToken(true);
     } catch (error) {
       // If Google account's credential already exists in firebase, we need to:
       //   1. delete Gihub account from firebase records, to do so we need to:
@@ -123,6 +125,7 @@ class FirebaseAuthService extends ChangeNotifier {
     }
   }
 
+  /// Link the Github provider to the currently signed in user.
   Future<void> linkWithGithub() async {
     try {
       final userCredential = await _auth.currentUser?.linkWithPopup(
@@ -137,9 +140,11 @@ class FirebaseAuthService extends ChangeNotifier {
     }
   }
 
+  /// Unlink the Github provider from the currently signed in user.
   Future<void> unlinkGithub() async =>
       await _unlinkProvider(GithubAuthProvider());
 
+  /// Unlink the Google provider from the currently signed in user.
   Future<void> unlinkGoogle() async =>
       await _unlinkProvider(GoogleAuthProvider());
 

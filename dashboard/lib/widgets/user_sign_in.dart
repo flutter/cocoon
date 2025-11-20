@@ -84,12 +84,7 @@ class UserSignIn extends StatelessWidget {
                           (String? str) =>
                               str != null && str.trimLeft().isNotEmpty,
                         )!
-                        .trimLeft()
-                        .split(' ')
-                        .map((String str) => str[0])
-                        .join()
-                        .substring(0, 2)
-                        .toUpperCase(),
+                        .getUserInitials(),
                     textAlign: TextAlign.center,
                   ),
                 );
@@ -106,7 +101,7 @@ class UserSignIn extends StatelessWidget {
     List<UserInfo> providerData,
   ) {
     final items = <PopupMenuItem<_SignInButtonAction>>[];
-    if (providerData.isNotEmpty && providerData.length <= 2) {
+    if (providerData.isNotEmpty) {
       // One provider linked to firebase user. Show link option for the other.
       if (providerData.length == 1) {
         // Linked provider is Google. Show Link GitHub Account option.
@@ -130,7 +125,7 @@ class UserSignIn extends StatelessWidget {
         }
       }
       // Two providers linked. Show unlink option.
-      else if (providerData.length == 2) {
+      else if (providerData.length >= 2) {
         // The only way to figure out which account was linked is to check order.
         // If last linked provider is Google. Allow unlinking Google Account.
         if (providerData.last.providerId == GoogleAuthProvider.PROVIDER_ID) {
@@ -160,5 +155,27 @@ class UserSignIn extends StatelessWidget {
       ),
     );
     return items;
+  }
+}
+
+extension on String {
+  String getUserInitials() {
+    // Define the regular expression to split by space, dots,underscore, or dash
+    final splitter = RegExp(r'[ ._-]+');
+
+    final parts =
+        split('@') // Split the email into local and domain parts
+            .first // Take only the local part (before the '@' symbol)
+            .split(splitter); // Split string into a list of substrings
+
+    // Extract the first character of each non-empty part and join them.
+    final result = parts
+        .where((part) => part.isNotEmpty) // Filter out empty strings from split
+        .map((part) => part[0]) // Get the first character of each part
+        .join() // Join the characters into a single string
+        .toUpperCase(); // Convert to upper case
+
+    // Ensure no more than 2 characters are returned.
+    return result.length > 2 ? result.substring(0, 2) : result;
   }
 }
