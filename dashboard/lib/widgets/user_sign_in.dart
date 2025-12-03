@@ -130,6 +130,8 @@ class UserSignIn extends StatelessWidget {
       else if (providerData.length >= 2) {
         // The only way to figure out which account was linked is to check order.
         // If last linked provider is Google. Allow unlinking Google Account.
+        // Thus Google is always primary oAuth provider keeep this option  only
+        // for some unexpected cases.
         if (providerData.last.providerId == GoogleAuthProvider.PROVIDER_ID) {
           items.add(
             const PopupMenuItem<_SignInButtonAction>(
@@ -137,7 +139,11 @@ class UserSignIn extends StatelessWidget {
               child: Text('Unlink Google Account'),
             ),
           );
-        } // If last linked provider is Github. Allow unlinking Github Account.
+        }
+        // Pretend we unlink Google account but actualy:
+        //  - Unlink Github account.
+        //  - Delete Google account.
+        //  - Sign in with Github again.
         else if (providerData.last.providerId ==
             GithubAuthProvider.PROVIDER_ID) {
           items.add(

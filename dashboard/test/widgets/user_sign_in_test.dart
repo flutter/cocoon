@@ -194,7 +194,7 @@ void main() {
     verify(mockAuthService.linkWithGithub()).called(1);
   });
 
-  testWidgets('SignInButton let unlink google account when linked', (
+  testWidgets('SignInButton let unlink google account when github primary', (
     WidgetTester tester,
   ) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
@@ -237,7 +237,7 @@ void main() {
     verify(mockAuthService.unlinkGoogle()).called(1);
   });
 
-  testWidgets('SignInButton let unlink github account when linked', (
+  testWidgets('SignInButton let unlink google account when google primary', (
     WidgetTester tester,
   ) async {
     when(mockAuthService.isAuthenticated).thenReturn(true);
@@ -275,7 +275,7 @@ void main() {
 
     verifyNever(mockAuthService.unlinkGithub());
 
-    await tester.tap(find.text('Unlink GitHub Account'));
+    await tester.tap(find.text('Unlink Google Account'));
 
     verify(mockAuthService.unlinkGithub()).called(1);
   });
