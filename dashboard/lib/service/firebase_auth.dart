@@ -117,7 +117,34 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   Future<void> _linkWithGoogle() async {
-    // We want to have Googole account Primary if present, so we try to:
+    //Try to link google provider first.
+    try {
+      final userCredential = await _auth.currentUser?.linkWithPopup(
+        GoogleAuthProvider(),
+      );
+      _user = userCredential?.user;
+      notifyListeners();
+      await _auth.currentUser?.getIdToken(true);
+    } catch (error) {
+      // If Google account's credential already exists in firebase, we going to
+      // link github account to google.
+      if (error is FirebaseAuthException &&
+          error.code == 'credential-already-in-use') {
+        await _relinkGithubToGoogle();
+        return;
+      }
+      debugPrint('linkWithGoogle failed: $error');
+      //
+    }
+    // If linking google succeeded, we need to unlink it and relink
+    // github to google to make google primary.
+    await _unlinkGoogle();
+    await _relinkGithubToGoogle();
+  }
+
+  Future<void> _relinkGithubToGoogle() async {
+    // We want to have Googole account Primary if present in firestore or linked,
+    // so we try to:
     // 1. Delete GitHub account from firebase records, but to avoid
     //    **requires-recent-login** error we need to re-sign-in first;
     try {
