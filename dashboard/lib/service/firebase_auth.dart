@@ -83,6 +83,7 @@ class FirebaseAuthService extends ChangeNotifier {
       // then link the GitHub provider to Google provider.
       if (error is FirebaseAuthException &&
           error.code == 'account-exists-with-different-credential') {
+        debugPrint('google account exists, signing in with google');
         await _signInWithGoogle();
         await _linkWithGithub();
         return;
