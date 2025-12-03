@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image_platform_interface/cached_network_image_platform_interface.dart'
+    show ImageRenderMethodForWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +75,7 @@ class UserSignIn extends StatelessWidget {
                 return CircleAvatar(
                   foregroundImage: CachedNetworkImageProvider(
                     authService.user!.photoURL!,
+                    imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
                   ),
                   child: Text(
                     <String?>[
@@ -140,7 +143,7 @@ class UserSignIn extends StatelessWidget {
           items.add(
             const PopupMenuItem<_SignInButtonAction>(
               value: _SignInButtonAction.unlinkGithub,
-              child: Text('Unlink GitHub Account'),
+              child: Text('Unlink Google Account'),
             ),
           );
         }

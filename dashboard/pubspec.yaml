@@ -12,6 +12,7 @@ environment:
 
 dependencies:
   cached_network_image: ^3.4.1
+  cached_network_image_platform_interface: ^4.1.1
   cocoon_common:
     path: ../packages/cocoon_common
   collection: any # Match Flutter SDK
