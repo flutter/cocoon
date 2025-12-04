@@ -142,6 +142,13 @@ final class DynamicConfig {
 
   /// The inverse operation of [DynamicConfig.fromJson].
   Map<String, Object?> toJson() => _$DynamicConfigToJson(this);
+
+  bool isConsolidatedCheckRunFlowEnabledForUser(String githubUsername) {
+    if (consolidatedCheckRunFlow.useForAll) {
+      return true;
+    }
+    return consolidatedCheckRunFlow.useForUsers.contains(githubUsername);
+  }
 }
 
 extension _YamlMapToMap on YamlMap {
