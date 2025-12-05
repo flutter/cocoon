@@ -304,4 +304,18 @@ class FakeGithubService implements GithubService {
     commentExistsCalls.add((slug: slug, issue: issue, body: body));
     return commentExistsMock;
   }
+
+  User userByAccountIdMock = User();
+
+  @override
+  Future<User> getUserByAccountId(String accountId) async {
+    return userByAccountIdMock;
+  }
+
+  bool hasUserWritePermissionsMock = false;
+
+  @override
+  Future<bool> hasUserWritePermissions(RepositorySlug slug, String user) async {
+    return hasUserWritePermissionsMock;
+  }
 }

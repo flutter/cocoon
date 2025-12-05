@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:http/http.dart' as http;
 
 class GithubService {
   GithubService(this.github);
@@ -464,6 +465,41 @@ class GithubService {
     await for (IssueComment comment in comments) {
       if (comment.body != null && comment.body!.contains(body)) {
         return true;
+      }
+    }
+    return false;
+  }
+
+  /// Retrieves a GitHub [User] by their account ID.
+  Future<User> getUserByAccountId(String accountId) async {
+    return github.users.getUser(accountId);
+  }
+
+  /// Checks whether a user has write permissions to a repository.
+  Future<bool> hasUserWritePermissions(RepositorySlug slug, String user) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(user);
+    var catchError = false;
+    http.Response response;
+    try {
+      response = await github.request(
+        'GET',
+        '/repos/${slug.fullName}/collaborators/$user/permission',
+        fail: (response) {
+          if (response.statusCode == StatusCodes.NOT_FOUND) {
+            catchError = true;
+          }
+        },
+      );
+      if (response.statusCode == StatusCodes.OK && response.body.isNotEmpty) {
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        if (body['permission'] == 'admin' || body['permission'] == 'write') {
+          return true;
+        }
+      }
+    } catch (e) {
+      if (!catchError) {
+        rethrow;
       }
     }
     return false;

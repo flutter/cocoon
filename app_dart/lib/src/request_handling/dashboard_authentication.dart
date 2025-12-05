@@ -4,9 +4,11 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -49,6 +51,7 @@ import 'exceptions.dart';
 @immutable
 interface class DashboardAuthentication implements AuthenticationProvider {
   DashboardAuthentication({
+    required CacheService cache,
     required Config config,
     required FirebaseJwtValidator firebaseJwtValidator,
     required FirestoreService firestore,
@@ -58,6 +61,7 @@ interface class DashboardAuthentication implements AuthenticationProvider {
     _authenticationChain.addAll([
       DashboardCronAuthentication(clientContextProvider: clientContextProvider),
       DashboardFirebaseAuthentication(
+        cache: cache,
         config: config,
         validator: firebaseJwtValidator,
         clientContextProvider: clientContextProvider,
@@ -92,25 +96,25 @@ interface class DashboardAuthentication implements AuthenticationProvider {
 
 class DashboardFirebaseAuthentication implements AuthenticationProvider {
   DashboardFirebaseAuthentication({
-    required Config config,
-    required FirebaseJwtValidator validator,
-    required FirestoreService firestore,
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-  }) : _config = config,
-       _validator = validator,
-       _firestore = firestore,
-       _clientContextProvider = clientContextProvider;
+    required this.cache,
+    required this.config,
+    required this.validator,
+    required this.firestore,
+    this.clientContextProvider = Providers.serviceScopeContext,
+  });
+
+  final CacheService cache;
 
   /// The Cocoon config, guaranteed to be non-null.
-  final Config _config;
+  final Config config;
 
   /// Provides the App Engine client context as part of the
   /// [AuthenticatedContext].
   ///
   /// This is guaranteed to be non-null.
-  final ClientContextProvider _clientContextProvider;
-  final FirestoreService _firestore;
-  final FirebaseJwtValidator _validator;
+  final ClientContextProvider clientContextProvider;
+  final FirestoreService firestore;
+  final FirebaseJwtValidator validator;
 
   /// Attempt to validate a JWT as a Firebase token.
   ///
@@ -121,11 +125,11 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     try {
       if (request.headers.value('X-Flutter-IdToken')
           case final idTokenFromHeader?) {
-        final token = await _validator.decodeAndVerify(idTokenFromHeader);
+        final token = await validator.decodeAndVerify(idTokenFromHeader);
         log.info('authed with firebase: ${token.email}');
         return authenticateFirebase(
           token,
-          clientContext: _clientContextProvider(),
+          clientContext: clientContextProvider(),
         );
       }
     } on JwtException {
@@ -141,7 +145,10 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
   }) async {
     if (token.email case final email?) {
       if (email.endsWith('@google.com') ||
-          await _isAllowed(_config, token.email)) {
+          await _isAllowedCached(token.email) ||
+          await _isGithubAllowedCached(
+            token.firebase?.identities?['github.com']?.first,
+          )) {
         return AuthenticatedContext(
           clientContext: clientContext,
           email: token.email!,
@@ -153,12 +160,47 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     );
   }
 
-  Future<bool> _isAllowed(Config config, String? email) async {
+  Future<bool> _isGithubAllowed(String? accountId) async {
+    if (accountId == null) {
+      return false;
+    }
+    final ghService = config.createGithubServiceWithToken(
+      await config.githubOAuthToken,
+    );
+    final user = await ghService.getUserByAccountId(accountId);
+    if (user.login == null) {
+      return false;
+    }
+    return await ghService.hasUserWritePermissions(
+      RepositorySlug('flutter', 'flutter'),
+      user.login!,
+    );
+  }
+
+  Future<bool> _isGithubAllowedCached(String? accountId) async {
+    final bytes = await cache.getOrCreateWithLocking(
+      'github_account_allowed',
+      accountId ?? 'null_accountId',
+      createFn: () async => (await _isGithubAllowed(accountId)).toUint8List(),
+    );
+    return bytes?.toBool() ?? false;
+  }
+
+  Future<bool> _isAllowed(String? email) async {
     if (email == null) {
       return false;
     }
-    final account = await Account.getByEmail(_firestore, email: email);
+    final account = await Account.getByEmail(firestore, email: email);
     return account != null;
+  }
+
+  Future<bool> _isAllowedCached(String? email) async {
+    final bytes = await cache.getOrCreateWithLocking(
+      'account_allowed',
+      email ?? 'null_email',
+      createFn: () async => (await _isAllowed(email)).toUint8List(),
+    );
+    return bytes?.toBool() ?? false;
   }
 }
 
@@ -182,5 +224,25 @@ class DashboardCronAuthentication implements AuthenticationProvider {
       );
     }
     throw const Unauthenticated('Not a cron job');
+  }
+}
+
+extension BoolToUint8List on bool {
+  /// Converts this boolean to a [Uint8List] containing a single byte.
+  ///
+  /// Returns `[1]` for true and `[0]` for false.
+  Uint8List toUint8List() {
+    return Uint8List.fromList([this ? 1 : 0]);
+  }
+}
+
+extension Uint8ListToBool on Uint8List {
+  /// Converts a [Uint8List] to a boolean.
+  ///
+  /// Returns `true` if the first byte is non-zero (C-style).
+  /// Returns `false` if the list is empty or the first byte is 0.
+  bool toBool() {
+    if (isEmpty) return false;
+    return first != 0;
   }
 }

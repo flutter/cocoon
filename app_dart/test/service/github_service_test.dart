@@ -38,7 +38,7 @@ void main() {
     final mockGitHub = MockGitHub();
     githubService = GithubService(mockGitHub);
     slug = RepositorySlug('flutter', 'flutter');
-    final whenGithubRequest = when(
+    when(
       // ignore: discarded_futures
       mockGitHub.request(
         'GET',
@@ -48,8 +48,7 @@ void main() {
         body: anyNamed('body'),
         statusCode: anyNamed('statusCode'),
       ),
-    );
-    whenGithubRequest.thenAnswer((_) async {
+    ).thenAnswer((_) async {
       final data = <dynamic>[];
       for (var sha in shas) {
         // https://developer.github.com/v3/repos/commits/#list-commits
@@ -110,4 +109,90 @@ void main() {
       '6afa96d84e2ecf6537f8ea76341d8ba397942e80',
     );
   });
+
+  test('getUserByAccountId calls github users.getUser', () async {
+    final mockGitHub = MockGitHub();
+    final mockUsersService = MockUsersService();
+    when(mockGitHub.users).thenReturn(mockUsersService);
+    const accountId = 'some-account-id';
+    when(mockUsersService.getUser(accountId)).thenAnswer((_) async => User());
+    githubService = GithubService(mockGitHub);
+    await githubService.getUserByAccountId(accountId);
+    verify(mockUsersService.getUser(accountId)).called(1);
+  });
+
+  test(
+    'hasUserWritePermissions is true when user have write permissions',
+    () async {
+      final mockGitHub = MockGitHub();
+      when(
+        // ignore: discarded_futures
+        mockGitHub.request(
+          'GET',
+          '/repos/${slug.fullName}/collaborators/$authorLogin/permission',
+          fail: anyNamed('fail'),
+        ),
+      ).thenAnswer((_) async {
+        final data = <String, dynamic>{'permission': 'write'};
+        return http.Response(json.encode(data), HttpStatus.ok);
+      });
+      githubService = GithubService(mockGitHub);
+
+      final result = await githubService.hasUserWritePermissions(
+        slug,
+        authorLogin,
+      );
+      expect(result, isTrue);
+    },
+  );
+
+  test(
+    'hasUserWritePermissions is true when user have admin permissions',
+    () async {
+      final mockGitHub = MockGitHub();
+      when(
+        // ignore: discarded_futures
+        mockGitHub.request(
+          'GET',
+          '/repos/${slug.fullName}/collaborators/$authorLogin/permission',
+          fail: anyNamed('fail'),
+        ),
+      ).thenAnswer((_) async {
+        final data = <String, dynamic>{'permission': 'admin'};
+        return http.Response(json.encode(data), HttpStatus.ok);
+      });
+      githubService = GithubService(mockGitHub);
+
+      final result = await githubService.hasUserWritePermissions(
+        slug,
+        authorLogin,
+      );
+      expect(result, isTrue);
+    },
+  );
+
+  test(
+    'hasUserWritePermissions is false when user have read permissions',
+    () async {
+      final mockGitHub = MockGitHub();
+      when(
+        // ignore: discarded_futures
+        mockGitHub.request(
+          'GET',
+          '/repos/${slug.fullName}/collaborators/$authorLogin/permission',
+          fail: anyNamed('fail'),
+        ),
+      ).thenAnswer((_) async {
+        final data = <String, dynamic>{'permission': 'read'};
+        return http.Response(json.encode(data), HttpStatus.ok);
+      });
+      githubService = GithubService(mockGitHub);
+
+      final result = await githubService.hasUserWritePermissions(
+        slug,
+        authorLogin,
+      );
+      expect(result, isFalse);
+    },
+  );
 }
