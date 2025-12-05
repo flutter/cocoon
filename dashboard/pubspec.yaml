@@ -11,6 +11,8 @@ environment:
   sdk: ^3.9.0
 
 dependencies:
+  cached_network_image: ^3.4.1
+  cached_network_image_platform_interface: ^4.1.1
   cocoon_common:
     path: ../packages/cocoon_common
   collection: any # Match Flutter SDK
@@ -27,6 +29,7 @@ dependencies:
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
   provider: 6.1.5 # Rolled by dependabot
+  sign_in_button: ^4.0.1
   truncate: 3.0.1 # Rolled by dependabot
   url_launcher: 6.3.2 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
