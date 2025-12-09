@@ -167,14 +167,13 @@ class UserSignIn extends StatelessWidget {
 }
 
 extension on String {
-  String getUserInitials() {
-    // Define the regular expression to split by space, dots,underscore, or dash
-    final splitter = RegExp(r'[ ._-]+');
+  static final RegExp _splitter = RegExp(r'[ ._-]+');
 
+  String getUserInitials() {
     final parts =
         split('@') // Split the email into local and domain parts
             .first // Take only the local part (before the '@' symbol)
-            .split(splitter); // Split string into a list of substrings
+            .split(_splitter); // Split string into a list of substrings
 
     // Extract the first character of each non-empty part and join them.
     final result = parts

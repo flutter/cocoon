@@ -77,17 +77,18 @@ class FirebaseAuthService extends ChangeNotifier {
     try {
       final userCredential = await _auth.signInWithPopup(GithubAuthProvider());
       _user = userCredential.user;
-    } catch (error) {
+    } on FirebaseAuthException catch (error) {
       // If email of Github account already registered in Frebase but with
       // Google provider, we need to sign in with Google provider first,
       // then link the GitHub provider to Google provider.
-      if (error is FirebaseAuthException &&
-          error.code == 'account-exists-with-different-credential') {
+      if (error.code == 'account-exists-with-different-credential') {
         debugPrint('google account exists, signing in with google');
         await _signInWithGoogle();
         await _linkWithGithub();
         return;
       }
+      debugPrint('signin with github failed: $error');
+    } catch (error) {
       debugPrint('signin with github failed: $error');
     }
   }
@@ -125,16 +126,16 @@ class FirebaseAuthService extends ChangeNotifier {
       _user = userCredential?.user;
       notifyListeners();
       await _auth.currentUser?.getIdToken(true);
-    } catch (error) {
-      // If Google account's credential already exists in firebase, we going to
-      // link github account to google.
-      if (error is FirebaseAuthException &&
-          error.code == 'credential-already-in-use') {
+    } on FirebaseAuthException catch (error) {
+      // If Github account's credential already exists in firebase, we going to
+      // link google account to github.
+      if (error.code == 'credential-already-in-use') {
         await _relinkGithubToGoogle();
         return;
       }
       debugPrint('linkWithGoogle failed: $error');
-      //
+    } catch (error) {
+      debugPrint('linkWithGoogle failed: $error');
     }
     // If linking google succeeded, we need to unlink it and relink
     // github to google to make google primary.

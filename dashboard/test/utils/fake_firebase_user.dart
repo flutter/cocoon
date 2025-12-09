@@ -10,7 +10,7 @@ class FakeFirebaseUser implements User {
     throw UnimplementedError();
   }
 
-  final _tokens = <String>[];
+  final tokens = <String>[];
   final _providerData = <UserInfo>[];
 
   @override
@@ -24,8 +24,8 @@ class FakeFirebaseUser implements User {
 
   @override
   Future<String?> getIdToken([bool forceRefresh = false]) async {
-    if (_tokens.isEmpty) return null;
-    return _tokens.removeAt(0);
+    if (tokens.isEmpty) return null;
+    return tokens.removeAt(0);
   }
 
   @override
