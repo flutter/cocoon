@@ -230,4 +230,3 @@ class DashboardCronAuthentication implements AuthenticationProvider {
     throw const Unauthenticated('Not a cron job');
   }
 }
-
