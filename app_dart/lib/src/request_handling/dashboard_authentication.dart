@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
@@ -96,25 +95,30 @@ interface class DashboardAuthentication implements AuthenticationProvider {
 
 class DashboardFirebaseAuthentication implements AuthenticationProvider {
   DashboardFirebaseAuthentication({
-    required this.cache,
-    required this.config,
-    required this.validator,
-    required this.firestore,
-    this.clientContextProvider = Providers.serviceScopeContext,
-  });
+    required CacheService cache,
+    required Config config,
+    required FirebaseJwtValidator validator,
+    required FirestoreService firestore,
+    ClientContext Function() clientContextProvider =
+        Providers.serviceScopeContext,
+  }) : _cache = cache,
+       _config = config,
+       _validator = validator,
+       _firestore = firestore,
+       _clientContextProvider = clientContextProvider;
 
-  final CacheService cache;
+  final CacheService _cache;
 
   /// The Cocoon config, guaranteed to be non-null.
-  final Config config;
+  final Config _config;
 
   /// Provides the App Engine client context as part of the
   /// [AuthenticatedContext].
   ///
   /// This is guaranteed to be non-null.
-  final ClientContextProvider clientContextProvider;
-  final FirestoreService firestore;
-  final FirebaseJwtValidator validator;
+  final ClientContextProvider _clientContextProvider;
+  final FirestoreService _firestore;
+  final FirebaseJwtValidator _validator;
 
   /// Attempt to validate a JWT as a Firebase token.
   ///
@@ -125,11 +129,11 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     try {
       if (request.headers.value('X-Flutter-IdToken')
           case final idTokenFromHeader?) {
-        final token = await validator.decodeAndVerify(idTokenFromHeader);
+        final token = await _validator.decodeAndVerify(idTokenFromHeader);
         log.info('authed with firebase: ${token.email}');
         return authenticateFirebase(
           token,
-          clientContext: clientContextProvider(),
+          clientContext: _clientContextProvider(),
         );
       }
     } on JwtException {
@@ -164,8 +168,8 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     if (accountId == null) {
       return false;
     }
-    final ghService = config.createGithubServiceWithToken(
-      await config.githubOAuthToken,
+    final ghService = _config.createGithubServiceWithToken(
+      await _config.githubOAuthToken,
     );
     final user = await ghService.getUserByAccountId(accountId);
     if (user.login == null) {
@@ -178,7 +182,7 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
   }
 
   Future<bool> _isGithubAllowedCached(String? accountId) async {
-    final bytes = await cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreateWithLocking(
       'github_account_allowed',
       accountId ?? 'null_accountId',
       createFn: () async => (await _isGithubAllowed(accountId)).toUint8List(),
@@ -190,12 +194,12 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     if (email == null) {
       return false;
     }
-    final account = await Account.getByEmail(firestore, email: email);
+    final account = await Account.getByEmail(_firestore, email: email);
     return account != null;
   }
 
   Future<bool> _isAllowedCached(String? email) async {
-    final bytes = await cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreateWithLocking(
       'account_allowed',
       email ?? 'null_email',
       createFn: () async => (await _isAllowed(email)).toUint8List(),
@@ -227,22 +231,3 @@ class DashboardCronAuthentication implements AuthenticationProvider {
   }
 }
 
-extension BoolToUint8List on bool {
-  /// Converts this boolean to a [Uint8List] containing a single byte.
-  ///
-  /// Returns `[1]` for true and `[0]` for false.
-  Uint8List toUint8List() {
-    return Uint8List.fromList([this ? 1 : 0]);
-  }
-}
-
-extension Uint8ListToBool on Uint8List {
-  /// Converts a [Uint8List] to a boolean.
-  ///
-  /// Returns `true` if the first byte is non-zero (C-style).
-  /// Returns `false` if the list is empty or the first byte is 0.
-  bool toBool() {
-    if (isEmpty) return false;
-    return first != 0;
-  }
-}

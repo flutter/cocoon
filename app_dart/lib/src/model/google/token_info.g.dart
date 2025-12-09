@@ -30,7 +30,7 @@ TokenInfo _$TokenInfoFromJson(Map<String, dynamic> json) => TokenInfo(
   encoding: json['typ'] as String?,
   firebase: json['firebase'] == null
       ? null
-      : Firebase.fromJson(json['firebase'] as Map<String, dynamic>),
+      : FirebaseJwtClaim.fromJson(json['firebase'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$TokenInfoToJson(TokenInfo instance) => <String, dynamic>{

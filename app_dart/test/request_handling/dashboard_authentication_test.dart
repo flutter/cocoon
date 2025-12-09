@@ -9,7 +9,7 @@ import 'package:cocoon_server_test/mocks.mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/account.dart';
-import 'package:cocoon_service/src/model/google/firebase.dart';
+import 'package:cocoon_service/src/model/google/firebase_jwt_claim.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -106,7 +106,7 @@ void main() {
           TokenInfo(
             email: email,
             issued: DateTime.now(),
-            firebase: const Firebase(
+            firebase: const FirebaseJwtClaim(
               identities: {
                 'github.com': [id],
               },

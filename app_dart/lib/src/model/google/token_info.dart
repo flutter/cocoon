@@ -5,7 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../common/json_converters.dart';
-import 'firebase.dart';
+import 'firebase_jwt_claim.dart';
 
 part 'token_info.g.dart';
 
@@ -124,7 +124,7 @@ class TokenInfo {
 
   /// Firebase specific auth data.
   @JsonKey(name: 'firebase')
-  final Firebase? firebase;
+  final FirebaseJwtClaim? firebase;
 
   /// Serializes this object to a JSON primitive.
   Map<String, dynamic> toJson() => _$TokenInfoToJson(this);

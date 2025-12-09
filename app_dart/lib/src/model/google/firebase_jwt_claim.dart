@@ -4,15 +4,15 @@
 
 import 'package:json_annotation/json_annotation.dart';
 
-part 'firebase.g.dart';
+part 'firebase_jwt_claim.g.dart';
 
 @JsonSerializable()
-class Firebase {
-  /// Creates a new [Firebase].
-  const Firebase({this.identities, this.signInProvider, this.tenant});
+class FirebaseJwtClaim {
+  /// Creates a new [FirebaseJwtClaim].
+  const FirebaseJwtClaim({this.identities, this.signInProvider, this.tenant});
 
-  /// Create a new [Firebase] object from its JSON representation.
-  factory Firebase.fromJson(Map<String, dynamic> json) =>
+  /// Create a new [FirebaseJwtClaim] object from its JSON representation.
+  factory FirebaseJwtClaim.fromJson(Map<String, dynamic> json) =>
       _$FirebaseFromJson(json);
 
   /// Dictionary of all the identities that are associated with this user's account. The keys of the dictionary can be any of the following: email, phone, google.com, facebook.com, github.com, twitter.com. The values of the dictionary are arrays of unique identifiers for each identity provider associated with the account. For example, auth.token.firebase.identities["google.com"][0] contains the first Google user ID associated with the account.
