@@ -8,7 +8,7 @@ part of 'firebase_jwt_claim.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-FirebaseJwtClaim _$FirebaseFromJson(Map<String, dynamic> json) =>
+FirebaseJwtClaim _$FirebaseJwtClaimFromJson(Map<String, dynamic> json) =>
     FirebaseJwtClaim(
       identities: (json['identities'] as Map<String, dynamic>?)?.map(
         (k, e) =>
@@ -18,7 +18,7 @@ FirebaseJwtClaim _$FirebaseFromJson(Map<String, dynamic> json) =>
       tenant: json['tenant'] as String?,
     );
 
-Map<String, dynamic> _$FirebaseToJson(FirebaseJwtClaim instance) =>
+Map<String, dynamic> _$FirebaseJwtClaimToJson(FirebaseJwtClaim instance) =>
     <String, dynamic>{
       'identities': instance.identities,
       'sign_in_provider': instance.signInProvider,

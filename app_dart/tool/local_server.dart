@@ -37,7 +37,6 @@ Future<void> main() async {
   final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
   final authProvider = DashboardAuthentication(
     cache: cache,
-    config: config,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
     firestore: firestore,
   );

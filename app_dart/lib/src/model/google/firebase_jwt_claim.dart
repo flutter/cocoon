@@ -13,7 +13,7 @@ class FirebaseJwtClaim {
 
   /// Create a new [FirebaseJwtClaim] object from its JSON representation.
   factory FirebaseJwtClaim.fromJson(Map<String, dynamic> json) =>
-      _$FirebaseFromJson(json);
+      _$FirebaseJwtClaimFromJson(json);
 
   /// Dictionary of all the identities that are associated with this user's account. The keys of the dictionary can be any of the following: email, phone, google.com, facebook.com, github.com, twitter.com. The values of the dictionary are arrays of unique identifiers for each identity provider associated with the account. For example, auth.token.firebase.identities["google.com"][0] contains the first Google user ID associated with the account.
   @JsonKey(name: 'identities')
@@ -28,5 +28,5 @@ class FirebaseJwtClaim {
   final String? tenant;
 
   /// Serializes this object to a JSON primitive.
-  Map<String, dynamic> toJson() => _$FirebaseToJson(this);
+  Map<String, dynamic> toJson() => _$FirebaseJwtClaimToJson(this);
 }
