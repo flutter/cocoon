@@ -33,6 +33,7 @@ import 'package:mockito/src/dummies.dart' as _i10;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeResponse_0 extends _i1.SmartFake implements _i2.Response {
   _FakeResponse_0(Object parent, Invocation parentInvocation)
@@ -87,6 +88,12 @@ class _FakeUserCredential_8 extends _i1.SmartFake
 class _FakeConfirmationResult_9 extends _i1.SmartFake
     implements _i7.ConfirmationResult {
   _FakeConfirmationResult_9(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakePasswordValidationStatus_10 extends _i1.SmartFake
+    implements _i7.PasswordValidationStatus {
+  _FakePasswordValidationStatus_10(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -355,6 +362,57 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
           as _i8.Future<_i3.CocoonResponse<List<String>>>);
 
   @override
+  _i8.Future<_i3.CocoonResponse<List<_i12.TreeStatusChange>>>
+  fetchTreeStatusChanges({required String? idToken, required String? repo}) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchTreeStatusChanges, [], {
+              #idToken: idToken,
+              #repo: repo,
+            }),
+            returnValue:
+                _i8.Future<
+                  _i3.CocoonResponse<List<_i12.TreeStatusChange>>
+                >.value(
+                  _FakeCocoonResponse_2<List<_i12.TreeStatusChange>>(
+                    this,
+                    Invocation.method(#fetchTreeStatusChanges, [], {
+                      #idToken: idToken,
+                      #repo: repo,
+                    }),
+                  ),
+                ),
+          )
+          as _i8.Future<_i3.CocoonResponse<List<_i12.TreeStatusChange>>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<void>> updateTreeStatus({
+    required String? idToken,
+    required String? repo,
+    required _i12.TreeStatus? status,
+    String? reason,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateTreeStatus, [], {
+              #idToken: idToken,
+              #repo: repo,
+              #status: status,
+              #reason: reason,
+            }),
+            returnValue: _i8.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#updateTreeStatus, [], {
+                  #idToken: idToken,
+                  #repo: repo,
+                  #status: status,
+                  #reason: reason,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i3.CocoonResponse<void>>);
+
+  @override
   _i8.Future<_i3.CocoonResponse<bool>> rerunTask({
     required String? idToken,
     required String? taskName,
@@ -540,14 +598,14 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
           as _i5.Brook<String>);
 
   @override
-  set authService(_i4.FirebaseAuthService? _authService) => super.noSuchMethod(
-    Invocation.setter(#authService, _authService),
+  set authService(_i4.FirebaseAuthService? value) => super.noSuchMethod(
+    Invocation.setter(#authService, value),
     returnValueForMissingStub: null,
   );
 
   @override
-  set refreshTimer(_i8.Timer? _refreshTimer) => super.noSuchMethod(
-    Invocation.setter(#refreshTimer, _refreshTimer),
+  set refreshTimer(_i8.Timer? value) => super.noSuchMethod(
+    Invocation.setter(#refreshTimer, value),
     returnValueForMissingStub: null,
   );
 
@@ -645,9 +703,18 @@ class MockFirebaseAuthService extends _i1.Mock
           as bool);
 
   @override
-  _i8.Future<void> signIn() =>
+  _i8.Future<void> signInWithGoogle() =>
       (super.noSuchMethod(
-            Invocation.method(#signIn, []),
+            Invocation.method(#signInWithGoogle, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> signInWithGithub() =>
+      (super.noSuchMethod(
+            Invocation.method(#signInWithGithub, []),
             returnValue: _i8.Future<void>.value(),
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
@@ -657,6 +724,42 @@ class MockFirebaseAuthService extends _i1.Mock
   _i8.Future<void> signOut() =>
       (super.noSuchMethod(
             Invocation.method(#signOut, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> linkWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#linkWithGoogle, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> linkWithGithub() =>
+      (super.noSuchMethod(
+            Invocation.method(#linkWithGithub, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> unlinkGithub() =>
+      (super.noSuchMethod(
+            Invocation.method(#unlinkGithub, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> unlinkGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#unlinkGoogle, []),
             returnValue: _i8.Future<void>.value(),
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
@@ -713,8 +816,8 @@ class MockFirebaseAuth extends _i1.Mock implements _i7.FirebaseAuth {
           as _i6.FirebaseApp);
 
   @override
-  set app(_i6.FirebaseApp? _app) => super.noSuchMethod(
-    Invocation.setter(#app, _app),
+  set app(_i6.FirebaseApp? value) => super.noSuchMethod(
+    Invocation.setter(#app, value),
     returnValueForMissingStub: null,
   );
 
@@ -813,14 +916,6 @@ class MockFirebaseAuth extends _i1.Mock implements _i7.FirebaseAuth {
             ),
           )
           as _i8.Future<_i7.UserCredential>);
-
-  @override
-  _i8.Future<List<String>> fetchSignInMethodsForEmail(String? email) =>
-      (super.noSuchMethod(
-            Invocation.method(#fetchSignInMethodsForEmail, [email]),
-            returnValue: _i8.Future<List<String>>.value(<String>[]),
-          )
-          as _i8.Future<List<String>>);
 
   @override
   _i8.Future<_i7.UserCredential> getRedirectResult() =>
@@ -1079,15 +1174,6 @@ class MockFirebaseAuth extends _i1.Mock implements _i7.FirebaseAuth {
           as _i8.Future<void>);
 
   @override
-  _i8.Future<void> signOut() =>
-      (super.noSuchMethod(
-            Invocation.method(#signOut, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
-
-  @override
   _i8.Future<String> verifyPasswordResetCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#verifyPasswordResetCode, [code]),
@@ -1143,6 +1229,40 @@ class MockFirebaseAuth extends _i1.Mock implements _i7.FirebaseAuth {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> signOut() =>
+      (super.noSuchMethod(
+            Invocation.method(#signOut, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> initializeRecaptchaConfig() =>
+      (super.noSuchMethod(
+            Invocation.method(#initializeRecaptchaConfig, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<_i7.PasswordValidationStatus> validatePassword(
+    _i7.FirebaseAuth? auth,
+    String? password,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#validatePassword, [auth, password]),
+            returnValue: _i8.Future<_i7.PasswordValidationStatus>.value(
+              _FakePasswordValidationStatus_10(
+                this,
+                Invocation.method(#validatePassword, [auth, password]),
+              ),
+            ),
+          )
+          as _i8.Future<_i7.PasswordValidationStatus>);
 }
 
 /// A class which mocks [UserCredential].
