@@ -56,7 +56,6 @@ Future<void> main() async {
 
     final authProvider = DashboardAuthentication(
       cache: cache,
-
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
       firestore: firestore,
     );
