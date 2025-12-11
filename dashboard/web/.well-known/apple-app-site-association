@@ -3,12 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appIDs": ["5ZYFU28XY6.com.okorohelijah.deeplink"],
+        "appIDs": ["EQHXZ8M8AV.com.google.experimental0.dev"],
         "paths": ["*"]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["5ZYFU28XY6.com.okorohelijah.deeplink"]
+    "apps": ["EQHXZ8M8AV.com.google.experimental0.dev"]
   }
 }
