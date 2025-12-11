@@ -108,5 +108,21 @@ void main() {
       final response = await decodeHandlerBody(body);
       expect(response, 'abc');
     });
+
+    test('Unknown extensions do not throw', () async {
+      fs.file('build/web/shader.frag').writeAsStringSync('abc');
+      final staticFileHandler = StaticFileHandler(
+        '/shader.frag',
+        config: config,
+        fs: fs,
+      );
+
+      final body = await tester.get(staticFileHandler);
+      expect(body, isNotNull);
+      final response = await decodeHandlerBody(body);
+      expect(response, 'abc');
+      expect(body.contentType, isNotNull);
+      expect(body.contentType!.mimeType, 'application/octet-stream');
+    });
   });
 }
