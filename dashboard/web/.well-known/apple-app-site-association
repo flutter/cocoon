@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["5ZYFU28XY6.com.okorohelijah.deeplink"],
+        "paths": ["*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["5ZYFU28XY6.com.okorohelijah.deeplink"]
+  }
+}
