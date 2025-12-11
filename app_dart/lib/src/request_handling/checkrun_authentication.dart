@@ -1,4 +1,4 @@
-// Copyright 2019 The Flutter Authors. All rights reserved.
+// Copyright 2025 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -18,7 +18,7 @@ import '../service/firebase_jwt_validator.dart';
 import 'dashboard_authentication.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s from the Dashboard
+/// Class capable of authenticating [HttpRequest]s from the Checkrun page.
 ///
 /// There are two types of authentication this class supports:
 ///
@@ -92,6 +92,7 @@ interface class CheckrunAuthentication implements AuthenticationProvider {
   }
 }
 
+/// Class capable of authenticating [HttpRequest]s from the Checkrun page.
 class GithubAuthentication implements AuthenticationProvider {
   GithubAuthentication({
     required CacheService cache,
@@ -117,7 +118,7 @@ class GithubAuthentication implements AuthenticationProvider {
   final FirebaseJwtValidator _validator;
 
   /// Attempt to validate a JWT as a Firebase token.
-  /// And then validate whether the token have flutter repo write permissions.
+  /// And then validate whether the token has flutter repo write permissions.
   @override
   Future<AuthenticatedContext> authenticate(HttpRequest request) async {
     try {
