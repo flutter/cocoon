@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["EQHXZ8M8AV.com.google.experimental0.dev"],
+        "paths": ["*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["EQHXZ8M8AV.com.google.experimental0.dev"]
+  }
+}
