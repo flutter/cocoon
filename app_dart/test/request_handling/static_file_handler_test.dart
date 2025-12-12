@@ -124,5 +124,21 @@ void main() {
       expect(body.contentType, isNotNull);
       expect(body.contentType!.mimeType, 'application/octet-stream');
     });
+
+    test('Basename overrides', () async {
+      fs.file('build/web/apple-app-site-association').writeAsStringSync('abc');
+      final staticFileHandler = StaticFileHandler(
+        '/apple-app-site-association',
+        config: config,
+        fs: fs,
+      );
+
+      final body = await tester.get(staticFileHandler);
+      expect(body, isNotNull);
+      final response = await decodeHandlerBody(body);
+      expect(response, 'abc');
+      expect(body.contentType, isNotNull);
+      expect(body.contentType!.mimeType, 'application/json');
+    });
   });
 }
