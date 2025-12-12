@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/account.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 // import '../src/service/fake_firebase_jwt_validator.dart';
@@ -56,7 +56,7 @@ void main() {
       clientContext = FakeClientContext();
       validator = FakeFirebaseJwtValidator();
       auth = DashboardFirebaseAuthentication(
-        config: FakeConfig(),
+        cache: CacheService(inMemory: true),
         clientContextProvider: () => clientContext,
         validator: validator,
         firestore: firestore,
