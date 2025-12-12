@@ -4,16 +4,24 @@
 
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image_platform_interface/cached_network_image_platform_interface.dart'
+    show ImageRenderMethodForWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../service/firebase_auth.dart';
 import 'sign_in_button/sign_in_button.dart';
 
-enum _SignInButtonAction { logout }
+enum _SignInButtonAction {
+  logout,
+  linkGithub,
+  unlinkGithub,
+  linkGoogle,
+  unlinkGoogle,
+}
 
 /// Widget for displaying sign in information for the current user.
 ///
@@ -34,16 +42,24 @@ class UserSignIn extends StatelessWidget {
           return PopupMenuButton<_SignInButtonAction>(
             offset: const Offset(0, 50),
             itemBuilder: (BuildContext context) =>
-                <PopupMenuEntry<_SignInButtonAction>>[
-                  const PopupMenuItem<_SignInButtonAction>(
-                    value: _SignInButtonAction.logout,
-                    child: Text('Log out'),
-                  ),
-                ],
+                _buildLinkUnlinkMenuItem(authService.user!.providerData),
             onSelected: (_SignInButtonAction value) async {
               switch (value) {
                 case _SignInButtonAction.logout:
                   await authService.signOut();
+                  break;
+                case _SignInButtonAction.linkGithub:
+                  await authService.linkWithGithub();
+                  break;
+                case _SignInButtonAction.unlinkGithub:
+                  await authService.unlinkGithub();
+                  break;
+                case _SignInButtonAction.linkGoogle:
+                  await authService.linkWithGoogle();
+                  break;
+                case _SignInButtonAction.unlinkGoogle:
+                  await authService.unlinkGoogle();
+                  break;
               }
             },
             iconSize: Scaffold.of(context).appBarMaxHeight,
@@ -56,8 +72,23 @@ class UserSignIn extends StatelessWidget {
                     child: Text(authService.user?.email ?? 'user@example.com'),
                   );
                 }
-                return GoogleUserCircleAvatar(
-                  identity: FirebaseUserIdentity(authService.user!),
+                return CircleAvatar(
+                  foregroundImage: CachedNetworkImageProvider(
+                    authService.user!.photoURL!,
+                    imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
+                  ),
+                  child: Text(
+                    <String?>[
+                          authService.user!.displayName,
+                          authService.user!.email,
+                          '-',
+                        ]
+                        .firstWhere(
+                          (String? str) => str?.trimLeft().isNotEmpty ?? false,
+                        )!
+                        .getUserInitials(),
+                    textAlign: TextAlign.center,
+                  ),
                 );
               },
             ),
@@ -67,26 +98,91 @@ class UserSignIn extends StatelessWidget {
       },
     );
   }
+
+  List<PopupMenuItem<_SignInButtonAction>> _buildLinkUnlinkMenuItem(
+    List<UserInfo> providerData,
+  ) {
+    final items = <PopupMenuItem<_SignInButtonAction>>[];
+    if (providerData.isNotEmpty) {
+      // One provider linked to firebase user. Show link option for the other.
+      if (providerData.length == 1) {
+        // Linked provider is Google. Show Link GitHub Account option.
+        if (providerData.first.providerId == GoogleAuthProvider.PROVIDER_ID) {
+          items.add(
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.linkGithub,
+              child: Text('Link GitHub Account'),
+            ),
+          );
+        }
+        // Linked provider is Github. Show Link Google Account option.
+        else if (providerData.first.providerId ==
+            GithubAuthProvider.PROVIDER_ID) {
+          items.add(
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.linkGoogle,
+              child: Text('Link Google Account'),
+            ),
+          );
+        }
+      }
+      // Two providers linked. Show unlink option.
+      else if (providerData.length >= 2) {
+        // The only way to figure out which account was linked is to check order.
+        // If last linked provider is Google. Allow unlinking Google Account.
+        // Thus Google is always primary oAuth provider keeep this option  only
+        // for some unexpected cases.
+        if (providerData.last.providerId == GoogleAuthProvider.PROVIDER_ID) {
+          items.add(
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.unlinkGoogle,
+              child: Text('Unlink Google Account'),
+            ),
+          );
+        }
+        // Pretend we unlink Google account but actualy:
+        //  - Unlink Github account.
+        //  - Delete Google account.
+        //  - Sign in with Github again.
+        else if (providerData.last.providerId ==
+            GithubAuthProvider.PROVIDER_ID) {
+          items.add(
+            const PopupMenuItem<_SignInButtonAction>(
+              value: _SignInButtonAction.unlinkGithub,
+              child: Text('Unlink Google Account'),
+            ),
+          );
+        }
+      }
+    }
+    // Always show logout option.
+    items.add(
+      const PopupMenuItem<_SignInButtonAction>(
+        value: _SignInButtonAction.logout,
+        child: Text('Log out'),
+      ),
+    );
+    return items;
+  }
 }
 
-class FirebaseUserIdentity implements GoogleIdentity {
-  FirebaseUserIdentity(this.user);
+extension on String {
+  static final RegExp _splitter = RegExp(r'[ ._-]+');
 
-  final User user;
+  String getUserInitials() {
+    final parts =
+        split('@') // Split the email into local and domain parts
+            .first // Take only the local part (before the '@' symbol)
+            .split(_splitter); // Split string into a list of substrings
 
-  @override
-  String? get displayName => user.displayName;
+    // Extract the first character of each non-empty part and join them.
+    final result = parts
+        .where((part) => part.isNotEmpty) // Filter out empty strings from split
+        .map((part) => part[0]) // Get the first character of each part
+        .join() // Join the characters into a single string
+        .toUpperCase(); // Convert to upper case
 
-  @override
-  String get email => user.email!;
-
-  @override
-  String get id => '1234';
-
-  @override
-  // TODO: implement photoUrl
-  String? get photoUrl => user.photoURL;
-
-  @override
-  String? get serverAuthCode => '';
+    // Ensure no more than 2 characters are returned.
+    return result.length > 2 ? result.substring(0, 2) : result;
+  }
 }

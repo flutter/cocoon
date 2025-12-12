@@ -20,6 +20,11 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
               json['contentAwareHashing'] as Map<String, dynamic>?,
             ),
       closeMqGuardAfterPresubmit: json['closeMqGuardAfterPresubmit'] as bool?,
+      consolidatedCheckRunFlow: json['consolidatedCheckRunFlow'] == null
+          ? null
+          : ConsolidatedCheckRunFlow.fromJson(
+              json['consolidatedCheckRunFlow'] as Map<String, dynamic>?,
+            ),
     );
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
@@ -28,4 +33,5 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'contentAwareHashing': instance.contentAwareHashing.toJson(),
       'ciYaml': instance.ciYaml.toJson(),
       'closeMqGuardAfterPresubmit': instance.closeMqGuardAfterPresubmit,
+      'consolidatedCheckRunFlow': instance.consolidatedCheckRunFlow.toJson(),
     };

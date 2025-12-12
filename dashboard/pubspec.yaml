@@ -11,22 +11,25 @@ environment:
   sdk: ^3.9.0
 
 dependencies:
+  cached_network_image: ^3.4.1
+  cached_network_image_platform_interface: ^4.1.1
   cocoon_common:
     path: ../packages/cocoon_common
   collection: any # Match Flutter SDK
   firebase_auth: ^6.0.0
-  firebase_core: 4.1.0 # Rolled by dependabot
-  firebase_crashlytics: 5.0.1 # Rolled by dependabot
+  firebase_core: 4.2.1 # Rolled by dependabot
+  firebase_crashlytics: 5.0.5 # Rolled by dependabot
   flutter:
     sdk: flutter
   flutter_app_icons: 0.1.1 # Rolled by dependabot
   google_sign_in: ^7.0.0
   google_sign_in_platform_interface: ^3.0.0
   google_sign_in_web: ^1.0.0
-  http: 1.5.0 # Rolled by dependabot
+  http: 1.6.0 # Rolled by dependabot
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
   provider: 6.1.5 # Rolled by dependabot
+  sign_in_button: ^4.0.1
   truncate: 3.0.1 # Rolled by dependabot
   url_launcher: 6.3.2 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot

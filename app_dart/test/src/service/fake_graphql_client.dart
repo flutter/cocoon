@@ -90,6 +90,7 @@ class FakeGraphQLClient implements GraphQLClient {
     DefaultPolicies? defaultPolicies,
     bool? alwaysRebroadcast,
     DeepEqualsFn? deepEquals,
+    Future<bool> Function(dynamic, dynamic)? asyncDeepEquals,
     bool deduplicatePollers = false,
     Duration? queryRequestTimeout,
   }) {

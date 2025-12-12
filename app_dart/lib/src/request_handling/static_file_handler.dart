@@ -39,15 +39,21 @@ final class StaticFileHandler extends RequestHandler {
       '.smcbin': 'application/octet-stream',
     };
 
+    const mimeFileMap = {
+     'apple-app-site-association': 'application/json',
+    };
+
     final resultPath = filePath == '/' ? '/index.html' : filePath;
 
     /// The file path in app_dart to the files to serve
     const basePath = 'build/web';
     final file = fs.file('$basePath$resultPath');
     if (file.existsSync()) {
-      final mimeType = mimeTypeMap.containsKey(path.extension(file.path))
-          ? mimeTypeMap[path.extension(file.path)]!
-          : lookupMimeType(resultPath)!;
+      final mimeType =
+          mimeFileMap[path.basename(file.path)] ??
+          mimeTypeMap[path.extension(file.path)] ??
+          lookupMimeType(resultPath) ??
+          'application/octet-stream';
       return Response.stream(
         file.openRead().cast<Uint8List>(),
         contentType: ContentType.parse(mimeType),

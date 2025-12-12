@@ -21,7 +21,8 @@ class RepositoryConfiguration {
   static const String supportNoReviewRevertKey = 'support_no_review_revert';
   static const String requiredCheckRunsOnRevertKey =
       'required_checkruns_on_revert';
-  static const String baseCommitAllowedDaysKey = 'base_commit_allowed_days';
+  static const String stalePrProtectionInDaysForBaseRefsKey =
+      'stale_pr_protection_in_days_for_base_refs';
 
   static const String defaultBranchStr = 'default';
 
@@ -34,7 +35,7 @@ class RepositoryConfiguration {
     bool? runCi,
     bool? supportNoReviewReverts,
     Set<String>? requiredCheckRunsOnRevert,
-    int? baseCommitAllowedDays,
+    Map<String, int>? stalePrProtectionInDaysForBaseRefs,
   }) : allowConfigOverride = allowConfigOverride ?? false,
        defaultBranch = defaultBranch ?? defaultBranchStr,
        autoApprovalAccounts = autoApprovalAccounts ?? <String>{},
@@ -43,7 +44,8 @@ class RepositoryConfiguration {
        runCi = runCi ?? true,
        supportNoReviewReverts = supportNoReviewReverts ?? true,
        requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{},
-       baseCommitAllowedDays = baseCommitAllowedDays ?? 0;
+       stalePrProtectionInDaysForBaseRefs =
+           stalePrProtectionInDaysForBaseRefs ?? <String, int>{};
 
   /// This flag allows the repository to override the org level configuration.
   bool allowConfigOverride;
@@ -74,9 +76,9 @@ class RepositoryConfiguration {
   /// merged.
   Set<String> requiredCheckRunsOnRevert;
 
-  /// The number of days that the base commit of the pull request can not be
-  /// older than. If less than 1 then it will not be checked.
-  int baseCommitAllowedDays;
+  /// A map of [slug]/[branch] as a key and number of days to validate PR base
+  /// date is not older than on that [slug]/[branch].
+  Map<String, int> stalePrProtectionInDaysForBaseRefs;
 
   @override
   String toString() {
@@ -95,7 +97,13 @@ class RepositoryConfiguration {
     for (var checkrun in requiredCheckRunsOnRevert) {
       stringBuffer.writeln('  - $checkrun');
     }
-    stringBuffer.writeln('$baseCommitAllowedDaysKey: $baseCommitAllowedDays');
+    if (stalePrProtectionInDaysForBaseRefs.isNotEmpty) {
+      stringBuffer.writeln('$stalePrProtectionInDaysForBaseRefsKey:');
+      for (final MapEntry(key: branch, value: days)
+          in stalePrProtectionInDaysForBaseRefs.entries) {
+        stringBuffer.writeln('  $branch: $days');
+      }
+    }
     return stringBuffer.toString();
   }
 
@@ -124,6 +132,27 @@ class RepositoryConfiguration {
       }
     }
 
+    final stalePrProtectionInDaysForBaseRefs = <String, int>{};
+    final yamlstalePrProtectionInDaysForBaseRefs =
+        yamlDoc[stalePrProtectionInDaysForBaseRefsKey] as YamlMap?;
+    if (yamlstalePrProtectionInDaysForBaseRefs != null) {
+      for (var entry in yamlstalePrProtectionInDaysForBaseRefs.entries) {
+        if (entry.value is! int) {
+          throw ConfigurationException(
+            'The value for ${entry.key} must be an integer.',
+          );
+        }
+        if (entry.value as int <= 0) {
+          throw ConfigurationException(
+            'The value for ${entry.key} must be greater than zero.',
+          );
+        }
+
+        stalePrProtectionInDaysForBaseRefs[entry.key as String] =
+            entry.value as int;
+      }
+    }
+
     return RepositoryConfiguration(
       allowConfigOverride: yamlDoc[allowConfigOverrideKey] as bool?,
       defaultBranch: yamlDoc[defaultBranchKey] as String?,
@@ -133,7 +162,7 @@ class RepositoryConfiguration {
       runCi: yamlDoc[runCiKey] as bool?,
       supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] as bool?,
       requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
-      baseCommitAllowedDays: yamlDoc[baseCommitAllowedDaysKey] as int?,
+      stalePrProtectionInDaysForBaseRefs: stalePrProtectionInDaysForBaseRefs,
     );
   }
 }

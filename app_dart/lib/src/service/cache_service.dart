@@ -195,3 +195,23 @@ class _Uint8ListConverter extends Converter<List<int>, Uint8List> {
   @override
   Uint8List convert(List<int> input) => Uint8List.fromList(input);
 }
+
+extension BoolToUint8List on bool {
+  /// Converts this boolean to a [Uint8List] containing a single byte.
+  ///
+  /// Returns `[1]` for true and `[0]` for false.
+  Uint8List toUint8List() {
+    return Uint8List.fromList([this ? 1 : 0]);
+  }
+}
+
+extension Uint8ListToBool on Uint8List {
+  /// Converts a [Uint8List] to a boolean.
+  ///
+  /// Returns `true` if the first byte is non-zero (C-style).
+  /// Returns `false` if the list is empty or the first byte is 0.
+  bool toBool() {
+    if (isEmpty) return false;
+    return first != 0;
+  }
+}

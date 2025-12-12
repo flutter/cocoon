@@ -289,4 +289,77 @@ void main() {
       ),
     );
   });
+
+  group('content_aware_hash', () {
+    test('sh is considered an engine file for presubmits', () async {
+      final optimizer = FilesChangedOptimizer(
+        getFilesChanged: filesChanged(['bin/internal/content_aware_hash.sh']),
+        ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
+        config: config(maxFilesChangedForSkippingEnginePhase: 100),
+      );
+
+      await expectLater(
+        optimizer.checkPullRequest(
+          generatePullRequest(
+            repo: 'flutter',
+            changedFilesCount: 1,
+            number: 123,
+          ),
+        ),
+        completion(FilesChangedOptimization.none),
+      );
+
+      expect(
+        log,
+        bufferedLoggerOf(
+          contains(logThat(message: contains('Engine sources changed'))),
+        ),
+      );
+    });
+
+    test('ps1 is considered an engine file for presubmits', () async {
+      final optimizer = FilesChangedOptimizer(
+        getFilesChanged: filesChanged(['bin/internal/content_aware_hash.ps1']),
+        ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
+        config: config(maxFilesChangedForSkippingEnginePhase: 100),
+      );
+
+      await expectLater(
+        optimizer.checkPullRequest(
+          generatePullRequest(
+            repo: 'flutter',
+            changedFilesCount: 1,
+            number: 123,
+          ),
+        ),
+        completion(FilesChangedOptimization.none),
+      );
+
+      expect(
+        log,
+        bufferedLoggerOf(
+          contains(logThat(message: contains('Engine sources changed'))),
+        ),
+      );
+    });
+
+    test('others is not considered an engine file for presubmits', () async {
+      final optimizer = FilesChangedOptimizer(
+        getFilesChanged: filesChanged(['bin/internal/content_aware_hash.bar']),
+        ciYamlFetcher: ciYamlFetcher(slug: Config.flutterSlug),
+        config: config(maxFilesChangedForSkippingEnginePhase: 100),
+      );
+
+      await expectLater(
+        optimizer.checkPullRequest(
+          generatePullRequest(
+            repo: 'flutter',
+            changedFilesCount: 1,
+            number: 123,
+          ),
+        ),
+        completion(FilesChangedOptimization.skipPresubmitEngine),
+      );
+    });
+  });
 }

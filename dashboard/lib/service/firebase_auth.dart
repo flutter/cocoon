@@ -53,21 +53,202 @@ class FirebaseAuthService extends ChangeNotifier {
   }
 
   /// Initiate the Google Sign In process.
-  Future<void> signIn() async {
+  Future<void> signInWithGoogle() async {
+    await _signInWithGoogle();
+    notifyListeners();
+  }
+
+  Future<void> _signInWithGoogle() async {
     try {
-      await _auth.signInWithProvider(GoogleAuthProvider());
-      notifyListeners();
+      final userCredential = await _auth.signInWithPopup(GoogleAuthProvider());
+      _user = userCredential.user;
     } catch (error) {
       debugPrint('signin failed: $error');
     }
   }
 
+  /// Initiate the GitHub Sign In process.
+  Future<void> signInWithGithub() async {
+    await _signInWithGithub();
+    notifyListeners();
+  }
+
+  Future<void> _signInWithGithub() async {
+    try {
+      final userCredential = await _auth.signInWithPopup(GithubAuthProvider());
+      _user = userCredential.user;
+    } on FirebaseAuthException catch (error) {
+      // If email of Github account already registered in Frebase but with
+      // Google provider, we need to sign in with Google provider first,
+      // then link the GitHub provider to Google provider.
+      if (error.code == 'account-exists-with-different-credential') {
+        debugPrint('google account exists, signing in with google');
+        await _signInWithGoogle();
+        await _linkWithGithub();
+        return;
+      }
+      debugPrint('signin with github failed: $error');
+    } catch (error) {
+      debugPrint('signin with github failed: $error');
+    }
+  }
+
+  /// Sign out the currently signed in user.
   Future<void> signOut() async {
+    await _signOut();
+    notifyListeners();
+  }
+
+  Future<void> _signOut() async {
     try {
       await _auth.signOut();
-      notifyListeners();
+      _user = null;
     } catch (error) {
       debugPrint('signout error $error');
+    }
+  }
+
+  /// Link the Google provider to the currently signed in user.
+  ///
+  /// This method tries to keep Google account as primary provider.
+  Future<void> linkWithGoogle() async {
+    await _linkWithGoogle();
+    await _user?.getIdToken(true);
+    notifyListeners();
+  }
+
+  Future<void> _linkWithGoogle() async {
+    //Try to link google provider first.
+    try {
+      final userCredential = await _auth.currentUser?.linkWithPopup(
+        GoogleAuthProvider(),
+      );
+      _user = userCredential?.user;
+      notifyListeners();
+      await _auth.currentUser?.getIdToken(true);
+    } on FirebaseAuthException catch (error) {
+      // If Github account's credential already exists in firebase, we going to
+      // link google account to github.
+      if (error.code == 'credential-already-in-use') {
+        await _relinkGithubToGoogle();
+        return;
+      }
+      debugPrint('linkWithGoogle failed: $error');
+    } catch (error) {
+      debugPrint('linkWithGoogle failed: $error');
+    }
+    // If linking google succeeded, we need to unlink it and relink
+    // github to google to make google primary.
+    await _unlinkGoogle();
+    await _relinkGithubToGoogle();
+  }
+
+  Future<void> _relinkGithubToGoogle() async {
+    // We want to have Googole account Primary if present in firestore or linked,
+    // so we try to:
+    // 1. Delete GitHub account from firebase records, but to avoid
+    //    **requires-recent-login** error we need to re-sign-in first;
+    try {
+      await _signOut();
+      await _signInWithGithub();
+      await FirebaseAuth.instance.currentUser?.delete();
+    } catch (e) {
+      debugPrint('delete user failed: $e');
+      return;
+    }
+
+    // 2. sign in with Google;
+    try {
+      await _signInWithGoogle();
+    } catch (error) {
+      debugPrint('signInWithGoogle failed: $error');
+      return;
+    }
+
+    // 3. then link GitHub account to existing Google account.
+    try {
+      await _linkWithGithub();
+    } catch (error) {
+      debugPrint('linkWithGoogle failed: $error');
+    }
+  }
+
+  /// Link the Github provider to the currently signed in user.
+  Future<void> linkWithGithub() async {
+    await _linkWithGithub();
+    await _user?.getIdToken(true);
+    notifyListeners();
+  }
+
+  Future<void> _linkWithGithub() async {
+    try {
+      final userCredential = await _auth.currentUser?.linkWithPopup(
+        GithubAuthProvider(),
+      );
+      _user = userCredential?.user;
+    } catch (error) {
+      debugPrint('linkWithGithub failed: $error');
+      //
+    }
+  }
+
+  /// Unlink the Github provider from the currently signed in user.
+  Future<void> unlinkGithub() async {
+    await _unlinkGithub();
+    await _user?.getIdToken(true);
+    notifyListeners();
+  }
+
+  Future<void> _unlinkGithub() async {
+    // Since google acount should be primary if linked to github,
+    // but single account should be github, after unlinking github we have to:
+    // delete google account and re-signin with github.
+    // 1. Unlink github provider
+    final provider = GithubAuthProvider();
+    try {
+      _user = await _auth.currentUser?.unlink(provider.providerId);
+    } catch (error) {
+      debugPrint('unlink ${provider.runtimeType} failed: $error');
+      return;
+    }
+
+    // 2. Delete Google account from firebase records, but to avoid
+    //    **requires-recent-login** error we need to re-sign-in first;
+    try {
+      await _signOut();
+      await _signInWithGoogle();
+      await _auth.currentUser?.delete();
+    } catch (e) {
+      debugPrint('delete user failed: $e');
+      return;
+    }
+
+    // 3. sign in with Github;
+    try {
+      await _signOut();
+      await _signInWithGithub();
+    } catch (error) {
+      debugPrint('signInWithGithub failed: $error');
+    }
+  }
+
+  /// Unlink the Google provider from the currently signed in user.
+  ///
+  /// Only exists for some unxepected cases whend Github acccount appeared to be
+  /// primary.
+  Future<void> unlinkGoogle() async {
+    await _unlinkGoogle();
+    await _user?.getIdToken(true);
+    notifyListeners();
+  }
+
+  Future<void> _unlinkGoogle() async {
+    final provider = GoogleAuthProvider();
+    try {
+      _user = await _auth.currentUser?.unlink(provider.providerId);
+    } catch (error) {
+      debugPrint('unlink ${provider.runtimeType} failed: $error');
+      return;
     }
   }
 
