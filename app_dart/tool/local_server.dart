@@ -36,7 +36,7 @@ Future<void> main() async {
   // https://github.com/flutter/cocoon/blob/2995f3a4b8c778bf41df5cd1a42dce966202a6b9/app_dart/lib/src/service/config.dart#L505-L507
   final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
   final authProvider = DashboardAuthentication(
-    config: config,
+    cache: cache,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
     firestore: firestore,
   );

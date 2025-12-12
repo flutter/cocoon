@@ -17,13 +17,13 @@ dependencies:
   cocoon_server:
     path: ../packages/cocoon_server
   corsac_jwt: 2.0.2
-  crypto: 3.0.6
+  crypto: 3.0.7
   github: 9.25.0
   googleapis: 14.0.0
   googleapis_auth: 2.0.0
   gql: 1.0.1
   graphql: 5.2.0-beta.10
-  http: 1.5.0
+  http: 1.6.0
   json_annotation: 4.9.0
   logging: 1.2.0
   meta: 1.17.0

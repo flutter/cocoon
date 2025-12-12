@@ -28,6 +28,9 @@ TokenInfo _$TokenInfoFromJson(Map<String, dynamic> json) => TokenInfo(
   algorithm: json['alg'] as String?,
   keyId: json['kid'] as String?,
   encoding: json['typ'] as String?,
+  firebase: json['firebase'] == null
+      ? null
+      : FirebaseJwtClaim.fromJson(json['firebase'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$TokenInfoToJson(TokenInfo instance) => <String, dynamic>{
@@ -50,4 +53,5 @@ Map<String, dynamic> _$TokenInfoToJson(TokenInfo instance) => <String, dynamic>{
   'alg': instance.algorithm,
   'kid': instance.keyId,
   'typ': instance.encoding,
+  'firebase': instance.firebase,
 };

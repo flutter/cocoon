@@ -25,7 +25,7 @@ jobs:
           architecture: x64 # only needed for running locally (mac)
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Get packages
         run: |

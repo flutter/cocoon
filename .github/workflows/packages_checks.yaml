@@ -15,7 +15,7 @@ jobs:
     outputs:
       tests: ${{ steps.tests.outputs.tests }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: tests
         run: |
           echo "tests=$(find packages dev cipd_packages auto_submit licenses -type f -name 'pubspec.yaml' -print0 | xargs -0 dirname | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')" >> ${GITHUB_OUTPUT}
@@ -31,7 +31,7 @@ jobs:
         working-directory: ${{ matrix.dir }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - uses: dart-lang/setup-dart@v1
 

@@ -732,7 +732,7 @@ void main() {
       mockSignIn.authStateChanges(),
     ).thenAnswer((_) => const Stream<User>.empty());
     when(
-      mockSignIn.signInWithProvider(any),
+      mockSignIn.signInWithPopup(any),
     ).thenAnswer((_) async => MockUserCredential());
     when(mockSignIn.signOut()).thenAnswer((_) async {});
     final mockCocoonService = MockCocoonService();
@@ -768,7 +768,7 @@ void main() {
 
     await tester.pump(const Duration(seconds: 5));
 
-    await signInService.signIn();
+    await signInService.signInWithGoogle();
     expect(callCount, 1);
 
     await signInService.signOut();

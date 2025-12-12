@@ -55,7 +55,7 @@ Future<void> main() async {
     configUpdater.startUpdateLoop(config);
 
     final authProvider = DashboardAuthentication(
-      config: config,
+      cache: cache,
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
       firestore: firestore,
     );
