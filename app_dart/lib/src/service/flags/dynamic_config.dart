@@ -67,7 +67,7 @@ final class DynamicConfig {
   @JsonKey()
   final ConsolidatedCheckRunFlow consolidatedCheckRunFlow;
 
-  /// Whether to allow Cocoon to suppress certain tests from tree blocking.
+  /// Whether to allow the tree status to be suppressed for specific failed tests.
   @JsonKey()
   final bool dynamicTestSuppression;
 
@@ -89,7 +89,7 @@ final class DynamicConfig {
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
     ConsolidatedCheckRunFlow? consolidatedCheckRunFlow,
-    bool? treeStatusSuppression,
+    bool? dynamicTestSuppression,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -103,7 +103,7 @@ final class DynamicConfig {
       consolidatedCheckRunFlow:
           consolidatedCheckRunFlow ?? defaultInstance.consolidatedCheckRunFlow,
       dynamicTestSuppression:
-          treeStatusSuppression ?? defaultInstance.dynamicTestSuppression,
+          dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
     );
   }
 
