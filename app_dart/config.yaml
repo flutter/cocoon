@@ -18,3 +18,6 @@ contentAwareHashing:
 # Whether to close the MQ guard right after LUCI presubmit completed
 # instead of doing that as part of the `check_run` GitHub event handling.
 closeMqGuardAfterPresubmit: true
+
+# Whether to allow the tree status to be suppressed for specific failed tests.
+treeStatusSuppression: false
