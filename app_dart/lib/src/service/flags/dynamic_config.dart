@@ -40,7 +40,7 @@ final class DynamicConfig {
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
     consolidatedCheckRunFlow: ConsolidatedCheckRunFlow.defaultInstance,
-    treeStatusSuppression: false,
+    dynamicTestSuppression: false,
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -67,9 +67,9 @@ final class DynamicConfig {
   @JsonKey()
   final ConsolidatedCheckRunFlow consolidatedCheckRunFlow;
 
-  /// Whether to allow the tree status to be suppressed for specific failed tests.
+  /// Whether to allow Cocoon to suppress certain tests from tree blocking.
   @JsonKey()
-  final bool treeStatusSuppression;
+  final bool dynamicTestSuppression;
 
   const DynamicConfig._({
     required this.backfillerCommitLimit,
@@ -77,7 +77,7 @@ final class DynamicConfig {
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
     required this.consolidatedCheckRunFlow,
-    required this.treeStatusSuppression,
+    required this.dynamicTestSuppression,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -102,8 +102,8 @@ final class DynamicConfig {
           defaultInstance.closeMqGuardAfterPresubmit,
       consolidatedCheckRunFlow:
           consolidatedCheckRunFlow ?? defaultInstance.consolidatedCheckRunFlow,
-      treeStatusSuppression:
-          treeStatusSuppression ?? defaultInstance.treeStatusSuppression,
+      dynamicTestSuppression:
+          treeStatusSuppression ?? defaultInstance.dynamicTestSuppression,
     );
   }
 

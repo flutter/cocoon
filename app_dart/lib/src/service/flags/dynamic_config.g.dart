@@ -25,7 +25,6 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
           : ConsolidatedCheckRunFlow.fromJson(
               json['consolidatedCheckRunFlow'] as Map<String, dynamic>?,
             ),
-      treeStatusSuppression: json['treeStatusSuppression'] as bool?,
     );
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
@@ -35,5 +34,4 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'ciYaml': instance.ciYaml.toJson(),
       'closeMqGuardAfterPresubmit': instance.closeMqGuardAfterPresubmit,
       'consolidatedCheckRunFlow': instance.consolidatedCheckRunFlow.toJson(),
-      'treeStatusSuppression': instance.treeStatusSuppression,
     };
