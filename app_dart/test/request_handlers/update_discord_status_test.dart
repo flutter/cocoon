@@ -55,7 +55,10 @@ void main() {
     handler = UpdateDiscordStatus(
       config: config,
       discord: discord,
-      buildStatusService: BuildStatusService(firestore: firestore),
+      buildStatusService: BuildStatusService(
+        firestore: firestore,
+        config: config,
+      ),
       firestore: firestore,
       now: () => alwaysTime,
     );

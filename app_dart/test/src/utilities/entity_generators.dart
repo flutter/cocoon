@@ -8,9 +8,11 @@ import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
+import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 
@@ -289,3 +291,17 @@ github.Issue generateIssue(
     user: github.User(login: authorLogin, avatarUrl: authorAvatar),
   );
 }
+
+SuppressedTest generateSuppressedTest({
+  String name = 'task',
+  String repository = 'flutter/flutter',
+  bool isSuppressed = true,
+  String issueLink = 'link',
+  DateTime? createTimestamp,
+}) => SuppressedTest(
+  name: name,
+  repository: repository,
+  isSuppressed: isSuppressed,
+  issueLink: issueLink,
+  createTimestamp: createTimestamp ?? DateTime.fromMillisecondsSinceEpoch(1),
+)..name = '$kDatabase/documents/${SuppressedTest.kCollectionId}/$name';

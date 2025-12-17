@@ -31,8 +31,31 @@ extension ListToValue on List {
           int() => t.toValue(),
           bool() => t.toValue(),
           DateTime() => t.toValue(),
-          _ => throw UnimplementedError(),
+          Map<String, dynamic>() => t.toValue(),
+          _ => throw UnimplementedError(
+            'Unsupported list type: ${t.runtimeType}',
+          ),
         },
     ],
+  );
+}
+
+extension MapToValue on Map<String, dynamic> {
+  Value toValue() => Value(mapValue: toMapValue());
+
+  MapValue toMapValue() => MapValue(
+    fields: {
+      for (final MapEntry(:key, :value) in entries)
+        key: switch (value) {
+          String() => value.toValue(),
+          int() => value.toValue(),
+          bool() => value.toValue(),
+          DateTime() => value.toValue(),
+          Map<String, dynamic>() => value.toValue(),
+          _ => throw UnimplementedError(
+            'Unsupported map type: ${value.runtimeType}',
+          ),
+        },
+    },
   );
 }
