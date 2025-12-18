@@ -21,4 +21,3 @@ closeMqGuardAfterPresubmit: true
 
 # Whether to allow the tree status to be suppressed for specific failed tests.
 dynamicTestSuppression: true
-
