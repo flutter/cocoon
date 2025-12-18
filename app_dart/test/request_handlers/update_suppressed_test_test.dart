@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
-import 'package:cocoon_service/src/request_handlers/update_test_suppression.dart';
+import 'package:cocoon_service/src/request_handlers/update_suppressed_test.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
