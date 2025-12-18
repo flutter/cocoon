@@ -43,7 +43,9 @@ void main() {
     );
     handler = GetSuppressedTests(config: config, firestore: firestore);
 
-    expect(() => tester.get(handler), throwsA(isA<MethodNotAllowed>()));
+    final response = await tester.get(handler);
+    final body = await utf8.decodeStream(response.body);
+    expect(body, '[]');
   });
 
   test('returns empty list if no suppressed tests', () async {

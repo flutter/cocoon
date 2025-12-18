@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/suppressed_test.dart';
-import '../request_handling/exceptions.dart';
 
 /// Request handler to get a list of suppressed tests.
 ///
@@ -46,7 +45,7 @@ final class GetSuppressedTests extends RequestHandler {
   @override
   Future<Response> get(Request request) async {
     if (!config.flags.dynamicTestSuppression) {
-      throw const MethodNotAllowed('Tree status suppression is disabled.');
+      return Response.json([]);
     }
 
     final repoName =
