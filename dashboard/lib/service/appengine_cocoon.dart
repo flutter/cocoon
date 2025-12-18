@@ -274,9 +274,9 @@ class AppEngineCocoonService implements CocoonService {
       updateTestSuppressionUrl,
       headers: {'X-Flutter-IdToken': idToken},
       body: jsonEncode({
-        'repo': repo,
+        'repository': repo,
         'testName': testName,
-        'suppress': suppress,
+        'action': suppress ? 'SUPPRESS' : 'UNSUPPRESS',
         'issueLink': issueLink,
         'note': ?note,
       }),

@@ -8,7 +8,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
 
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 
 import 'package:test/test.dart';
@@ -43,7 +42,9 @@ void main() {
     );
     handler = GetSuppressedTests(config: config, firestore: firestore);
 
-    expect(() => tester.get(handler), throwsA(isA<MethodNotAllowed>()));
+    final response = await tester.get(handler);
+    final body = await utf8.decodeStream(response.body);
+    expect(body, '[]');
   });
 
   test('returns empty list if no suppressed tests', () async {

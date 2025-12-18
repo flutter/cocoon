@@ -365,6 +365,116 @@ void main() {
     });
   });
 
+  group('AppEngine CocoonService fetchSuppressedTests', () {
+    late AppEngineCocoonService service;
+
+    test('should return list of SuppressedTest', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response(
+            '[{"name":"linux_android","repository":"flutter/flutter","issueLink":"link","createTimestamp":123,"updates":[]}]',
+            200,
+          );
+        }),
+      );
+
+      final response = await service.fetchSuppressedTests(
+        repo: 'flutter/flutter',
+      );
+
+      expect(response.error, isNull);
+      expect(response.data!.length, 1);
+      final test = response.data!.first;
+      expect(test.name, 'linux_android');
+      expect(test.issueLink, 'link');
+    });
+
+    test('should return error on failure', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response('Internal Server Error', 500);
+        }),
+      );
+
+      final response = await service.fetchSuppressedTests(
+        repo: 'flutter/flutter',
+      );
+      expect(response.error, isNotNull);
+    });
+  });
+
+  group('AppEngine CocoonService updateTestSuppression', () {
+    late AppEngineCocoonService service;
+
+    test('should post correct parameters', () async {
+      var capturedBody = '';
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          capturedBody = request.body;
+          return Response('', 200);
+        }),
+      );
+
+      final response = await service.updateTestSuppression(
+        idToken: 'token',
+        repo: 'flutter/flutter',
+        testName: 'linux_android',
+        suppress: true,
+        issueLink: 'link',
+        note: 'note',
+      );
+
+      expect(response.error, isNull);
+      expect(
+        capturedBody,
+        '{"repository":"flutter/flutter","testName":"linux_android","action":"SUPPRESS","issueLink":"link","note":"note"}',
+      );
+    });
+
+    test('should post correct parameters for unsuppress', () async {
+      var capturedBody = '';
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          capturedBody = request.body;
+          return Response('', 200);
+        }),
+      );
+
+      final response = await service.updateTestSuppression(
+        idToken: 'token',
+        repo: 'flutter/flutter',
+        testName: 'linux_android',
+        suppress: false,
+        issueLink: 'link',
+        note: 'note',
+      );
+
+      expect(response.error, isNull);
+      expect(
+        capturedBody,
+        '{"repository":"flutter/flutter","testName":"linux_android","action":"UNSUPPRESS","issueLink":"link","note":"note"}',
+      );
+    });
+
+    test('should return error on failure', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response('Bad Request', 400);
+        }),
+      );
+
+      final response = await service.updateTestSuppression(
+        idToken: 'token',
+        repo: 'flutter/flutter',
+        testName: 'linux_android',
+        suppress: true,
+        issueLink: 'link',
+      );
+
+      expect(response.error, isNotNull);
+    });
+  });
+
   group('AppEngine CocoonService apiEndpoint', () {
     final service = AppEngineCocoonService(
       client: MockClient((Request request) async {
