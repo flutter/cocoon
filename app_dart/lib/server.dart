@@ -224,6 +224,12 @@ Server createServer({
       ),
       ttl: const Duration(seconds: 15),
     ),
+    '/api/public/get-test-suppression': CacheRequestHandler(
+      cache: cache,
+      config: config,
+      delegate: GetTestSuppression(config: config, firestore: firestore),
+      ttl: const Duration(seconds: 15),
+    ),
     '/api/public/update-discord-status': CacheRequestHandler(
       cache: cache,
       config: config,
