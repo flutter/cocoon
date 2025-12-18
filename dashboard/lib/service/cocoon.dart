@@ -89,6 +89,23 @@ abstract class CocoonService {
     required String repo,
     required String branch,
   });
+
+  /// Get the current list of suppressed tests in a particular repo.
+  Future<CocoonResponse<List<SuppressedTest>>> fetchSuppressedTests({
+    String? repo,
+  });
+
+  /// Updates the suppression status of a test.
+  ///
+  /// [suppress] true means "suppress" (block tree), false means "unsuppress" (include test).
+  Future<CocoonResponse<void>> updateTestSuppression({
+    required String idToken,
+    required String repo,
+    required String testName,
+    required bool suppress,
+    required String issueLink,
+    String? note,
+  });
 }
 
 /// Wrapper class for data this state serves.

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
@@ -23,8 +24,8 @@ import '../service/firestore.dart';
 /// - `action`: `SUPPRESS` or `UNSUPPRESS`.
 /// - `issueLink`: URL to the GitHub issue tracking the failure.
 /// - `note`: Optional note describing the action.
-final class UpdateTestSuppression extends ApiRequestHandler {
-  const UpdateTestSuppression({
+final class UpdateSuppressedTest extends ApiRequestHandler {
+  const UpdateSuppressedTest({
     required FirestoreService firestore,
     required super.config,
     required super.authenticationProvider,
@@ -131,6 +132,10 @@ final class UpdateTestSuppression extends ApiRequestHandler {
       action: action,
       issueLink: issueLink,
       note: note,
+    );
+
+    log.info(
+      'Test suppression update: $action $testName in $repository by ${authContext!.email}',
     );
 
     return Response.emptyOk;

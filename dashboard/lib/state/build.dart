@@ -124,6 +124,14 @@ class BuildState extends ChangeNotifier {
     }
   }
 
+  /// The current list of suppressed tests.
+  List<SuppressedTest> get suppressedTests => _suppressedTests;
+  List<SuppressedTest> _suppressedTests = <SuppressedTest>[];
+
+  @visibleForTesting
+  static const String errorMessageFetchingSuppressedTests =
+      'An error occurred fetching suppressed tests from Cocoon';
+
   /// Start a fixed interval loop that fetches build state updates based on [refreshRate].
   void _startFetchingStatusUpdates() {
     assert(refreshTimer == null);
@@ -205,6 +213,22 @@ class BuildState extends ChangeNotifier {
           } else {
             unawaited(flutterAppIconsPlugin.setIcon(icon: 'favicon.png'));
           }
+          notifyListeners();
+        }
+      }(),
+      () async {
+        final response = await cocoonService.fetchSuppressedTests(
+          repo: currentRepo,
+        );
+        if (!_active) {
+          return null;
+        }
+        if (response.error != null) {
+          _errors.send(
+            '$errorMessageFetchingSuppressedTests: ${response.error}',
+          );
+        } else {
+          _suppressedTests = response.data!;
           notifyListeners();
         }
       }(),
@@ -390,6 +414,46 @@ class BuildState extends ChangeNotifier {
       }
       return false;
     }
+    return true;
+  }
+
+  /// Updates the suppression status of a test.
+  ///
+  /// Returns true if the update was successful.
+  Future<bool> updateTestSuppression({
+    required String testName,
+    required bool suppress,
+    required String issueLink,
+    String? note,
+  }) async {
+    if (!authService.isAuthenticated) {
+      return false;
+    }
+    final response = await cocoonService.updateTestSuppression(
+      idToken: await authService.idToken,
+      repo: currentRepo,
+      testName: testName,
+      suppress: suppress,
+      issueLink: issueLink,
+      note: note,
+    );
+    if (response.error != null) {
+      _errors.send('Failed to update test suppression: ${response.error}');
+      if (response.statusCode == 401 /* Unauthorized */ ) {
+        await authService.clearUser();
+      }
+      return false;
+    }
+
+    // Refresh suppressed tests after update
+    final suppressedTestsResponse = await cocoonService.fetchSuppressedTests(
+      repo: currentRepo,
+    );
+    if (suppressedTestsResponse.error == null) {
+      _suppressedTests = suppressedTestsResponse.data!;
+      notifyListeners();
+    }
+
     return true;
   }
 

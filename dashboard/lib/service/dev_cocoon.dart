@@ -119,6 +119,62 @@ class DevelopmentCocoonService implements CocoonService {
     );
   }
 
+  final _suppressedTests = <String, List<SuppressedTest>>{};
+
+  @override
+  Future<CocoonResponse<List<SuppressedTest>>> fetchSuppressedTests({
+    String? repo,
+  }) async {
+    final effectiveRepo = repo ?? 'flutter/flutter';
+    // Initialize with a default suppressed test if the repo hasn't been accessed yet
+    if (!_suppressedTests.containsKey(effectiveRepo)) {
+      _suppressedTests[effectiveRepo] = [
+        SuppressedTest(
+          name: 'Linux_android 0',
+          repository: effectiveRepo,
+          issueLink: 'https://github.com/flutter/flutter/issues/123',
+          createTimestamp: now.millisecondsSinceEpoch,
+        ),
+      ];
+    }
+    return CocoonResponse.data(_suppressedTests[effectiveRepo]!);
+  }
+
+  @override
+  Future<CocoonResponse<void>> updateTestSuppression({
+    required String idToken,
+    required String repo,
+    required String testName,
+    required bool suppress,
+    required String issueLink,
+    String? note,
+  }) async {
+    final list = _suppressedTests.putIfAbsent(repo, () => []);
+    if (suppress) {
+      if (!list.any((t) => t.name == testName)) {
+        list.add(
+          SuppressedTest(
+            name: testName,
+            repository: repo,
+            issueLink: issueLink,
+            createTimestamp: DateTime.now().millisecondsSinceEpoch,
+            updates: [
+              SuppressionUpdate(
+                user: 'dev-user',
+                action: 'SUPPRESS',
+                updateTimestamp: DateTime.now().millisecondsSinceEpoch,
+                note: note,
+              ),
+            ],
+          ),
+        );
+      }
+    } else {
+      list.removeWhere((t) => t.name == testName);
+    }
+    return const CocoonResponse.data(null);
+  }
+
   @override
   Future<CocoonResponse<void>> updateTreeStatus({
     required String idToken,

@@ -67,6 +67,11 @@ void main() {
           Branch(channel: defaultBranch, reference: defaultBranch),
         ]),
       );
+      when(
+        mockCocoonService.fetchSuppressedTests(repo: anyNamed('repo')),
+      ).thenAnswer(
+        (_) async => const CocoonResponse<List<SuppressedTest>>.data([]),
+      );
 
       FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
     });
@@ -731,9 +736,9 @@ void main() {
     when(
       mockSignIn.authStateChanges(),
     ).thenAnswer((_) => const Stream<User>.empty());
-    when(
-      mockSignIn.signInWithPopup(any),
-    ).thenAnswer((_) async => MockUserCredential());
+    final cred = MockUserCredential();
+    when(cred.user).thenReturn(null);
+    when(mockSignIn.signInWithPopup(any)).thenAnswer((_) async => cred);
     when(mockSignIn.signOut()).thenAnswer((_) async {});
     final mockCocoonService = MockCocoonService();
     when(

@@ -16,10 +16,13 @@ import 'task_box.dart';
 /// icon based on [qualifiedTask.stage], defaulting to [Icons.help] if
 /// it can't be mapped. On tap, shows the task.
 class TaskIcon extends StatelessWidget {
-  const TaskIcon({super.key, required this.qualifiedTask});
+  const TaskIcon({super.key, required this.qualifiedTask, this.onTap});
 
   /// [Task] to get information from.
   final QualifiedTask qualifiedTask;
+
+  /// Callback when the icon is tapped.
+  final VoidCallback? onTap;
 
   /// A lookup table for matching [stageName] to [Image].
   ///
@@ -87,7 +90,11 @@ class TaskIcon extends StatelessWidget {
       data: IconThemeData(size: TaskBox.of(context) - 5),
       child: InkWell(
         onTap: () async {
-          await launchUrl(qualifiedTask.sourceConfigurationUrl);
+          if (onTap != null) {
+            onTap!();
+          } else {
+            await launchUrl(qualifiedTask.sourceConfigurationUrl);
+          }
         },
         child: Tooltip(
           message: qualifiedTask.task,
