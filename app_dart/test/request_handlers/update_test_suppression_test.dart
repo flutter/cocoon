@@ -24,7 +24,7 @@ void main() {
 
   late FakeFirestoreService firestore;
   late ApiRequestHandlerTester tester;
-  late UpdateTestSuppression handler;
+  late UpdateSuppressedTest handler;
   late FakeConfig config;
   late FakeGithubServiceWithIssue githubService;
 
@@ -45,7 +45,7 @@ void main() {
       dynamicConfig: dynamicConfig,
     );
 
-    handler = UpdateTestSuppression(
+    handler = UpdateSuppressedTest(
       config: config,
       authenticationProvider: FakeDashboardAuthentication(),
       firestore: firestore,

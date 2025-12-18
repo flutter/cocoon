@@ -268,7 +268,7 @@ class AppEngineCocoonService implements CocoonService {
     String? note,
   }) async {
     final updateTestSuppressionUrl = apiEndpoint(
-      '/api/update-test-suppression',
+      '/api/update-suppressed-test',
     );
     final response = await _client.post(
       updateTestSuppressionUrl,

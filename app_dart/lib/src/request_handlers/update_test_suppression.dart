@@ -24,8 +24,8 @@ import '../service/firestore.dart';
 /// - `action`: `SUPPRESS` or `UNSUPPRESS`.
 /// - `issueLink`: URL to the GitHub issue tracking the failure.
 /// - `note`: Optional note describing the action.
-final class UpdateTestSuppression extends ApiRequestHandler {
-  const UpdateTestSuppression({
+final class UpdateSuppressedTest extends ApiRequestHandler {
+  const UpdateSuppressedTest({
     required FirestoreService firestore,
     required super.config,
     required super.authenticationProvider,

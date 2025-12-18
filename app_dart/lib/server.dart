@@ -144,7 +144,7 @@ Server createServer({
       authenticationProvider: authProvider,
       firestore: firestore,
     ),
-    '/api/update-test-suppression': UpdateTestSuppression(
+    '/api/update-suppressed-test': UpdateSuppressedTest(
       authenticationProvider: authProvider,
       firestore: firestore,
       config: config,
