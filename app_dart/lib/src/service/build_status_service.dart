@@ -12,15 +12,20 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
+import '../model/firestore/suppressed_test.dart';
 import '../model/firestore/tree_status_change.dart';
 import 'build_status_provider/commit_tasks_status.dart';
 
 /// Class that calculates the current build status.
 interface class BuildStatusService {
-  const BuildStatusService({required FirestoreService firestore})
-    : _firestore = firestore;
+  const BuildStatusService({
+    required FirestoreService firestore,
+    required Config config,
+  }) : _firestore = firestore,
+       _config = config;
 
   final FirestoreService _firestore;
+  final Config _config;
 
   @visibleForTesting
   static const int numberOfCommitsToReferenceForTreeStatus = 20;
@@ -74,6 +79,11 @@ interface class BuildStatusService {
       );
     }
 
+    final suppressedTasks = await _getSuppressedTasks(slug);
+    if (suppressedTasks.isNotEmpty) {
+      log.info('Suppressed tasks for $slug: $suppressedTasks');
+    }
+
     // Then, iterate through commit by commit.
     // If we see a task fail, mark as failing.
     // If we see a task pass, mark as passing and no longer look for it.
@@ -83,6 +93,9 @@ interface class BuildStatusService {
           continue;
         }
         if (collatedTask.lastCompletedAttemptWasFailure) {
+          if (suppressedTasks.contains(collatedTask.task.taskName)) {
+            continue;
+          }
           failingTasks.add(collatedTask.task.taskName);
         } else if (collatedTask.task.status == TaskStatus.succeeded) {
           toBePassing.remove(collatedTask.task.taskName);
@@ -95,6 +108,18 @@ interface class BuildStatusService {
     } else {
       return BuildStatus.failure([...failingTasks]);
     }
+  }
+
+  Future<Set<String>> _getSuppressedTasks(RepositorySlug slug) async {
+    if (!_config.flags.dynamicTestSuppression) {
+      return const <String>{};
+    }
+
+    final docs = await SuppressedTest.getSuppressedTests(
+      _firestore,
+      slug.fullName,
+    );
+    return {for (final doc in docs) doc.testName};
   }
 
   /// Retrieves the comprehensive status of every task that runs per commit.

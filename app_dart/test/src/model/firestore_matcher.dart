@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dar
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/firestore/tree_status_change.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
@@ -26,6 +27,9 @@ part '_github_gold_status.dart';
 part '_pr_check_run.dart';
 part '_task.dart';
 part '_tree_status_change.dart';
+
+// Special name "_test.dart" is caught by "dart test test"
+part '_suppressed_test_.dart';
 
 /// Matches a Firestore model, or raw document, of type [Commit].
 const isCommit = CommitMatcher._(TypeMatcher());
@@ -53,6 +57,8 @@ const isContentAwareHashBuilds = ContentAwareHashBuildsMatcher._(TypeMatcher());
 
 /// Matches a Firestore model, or raw document, of type [TreeStatusChange].
 const isTreeStatusChange = TreeStatusChangeMatcher._(TypeMatcher());
+
+const isSuppressedTest = SuppressedTestMatcher._(TypeMatcher());
 
 /// Returns whether the document is a path to the collection [metadata].
 bool isDocumentA(g.Document document, AppDocumentMetadata<void> metadata) {

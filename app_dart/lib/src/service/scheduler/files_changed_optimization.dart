@@ -102,7 +102,9 @@ final class FilesChangedOptimizer {
     'release-candidate-branch.version',
   );
 
-  static final _engineFilePaths = RegExp(r'^(DEPS|engine/.*|bin/internal/content_aware_hash\.(ps1|sh))$');
+  static final _engineFilePaths = RegExp(
+    r'^(DEPS|engine/.*|bin/internal/content_aware_hash\.(ps1|sh))$',
+  );
 
   static final _configPaths = RegExp(p.posix.join(r'.(github|vscode)', r'.*'));
 

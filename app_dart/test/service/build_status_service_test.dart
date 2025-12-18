@@ -6,9 +6,11 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/tree_status_change.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
+import '../src/fake_config.dart';
 import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
 
@@ -33,7 +35,10 @@ void main() {
 
   setUp(() {
     firestore = FakeFirestoreService();
-    buildStatusService = BuildStatusService(firestore: firestore);
+    buildStatusService = BuildStatusService(
+      firestore: firestore,
+      config: FakeConfig(),
+    );
   });
 
   group('calculateStatus', () {
@@ -441,6 +446,46 @@ void main() {
         generateFirestoreCommit(2, branch: 'flutter-0.42-candidate.0'),
         generateFirestoreTask(2, commitSha: '2', status: TaskStatus.failed),
       ]);
+      final status = await buildStatusService.calculateCumulativeStatus(
+        slug,
+        branch: 'master',
+      );
+      expect(status, BuildStatus.success());
+    });
+
+    test('returns success if failing task is suppressed', () async {
+      buildStatusService = BuildStatusService(
+        firestore: firestore,
+        config: FakeConfig(
+          dynamicConfig: DynamicConfig.fromJson({
+            'dynamicTestSuppression': true,
+          }),
+        ),
+      );
+
+      firestore.putDocuments([
+        newerCommit,
+        generateFirestoreTask(
+          1,
+          name: 'task1',
+          status: TaskStatus.succeeded,
+          commitSha: newerCommit.sha,
+        ),
+        generateFirestoreTask(
+          2,
+          name: 'task2',
+          status: TaskStatus.failed,
+          commitSha: newerCommit.sha,
+        ),
+        generateSuppressedTest(
+          name: 'task2',
+          repository: slug.fullName,
+          isSuppressed: true,
+          issueLink: 'link',
+          createTimestamp: DateTime.fromMillisecondsSinceEpoch(1234),
+        ),
+      ]);
+
       final status = await buildStatusService.calculateCumulativeStatus(
         slug,
         branch: 'master',
