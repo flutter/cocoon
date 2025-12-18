@@ -230,10 +230,10 @@ Server createServer({
       ),
       ttl: const Duration(seconds: 15),
     ),
-    '/api/public/get-test-suppression': CacheRequestHandler(
+    '/api/public/suppressed-tests': CacheRequestHandler(
       cache: cache,
       config: config,
-      delegate: GetTestSuppression(config: config, firestore: firestore),
+      delegate: GetSuppressedTests(config: config, firestore: firestore),
       ttl: const Duration(seconds: 15),
     ),
     '/api/public/update-discord-status': CacheRequestHandler(

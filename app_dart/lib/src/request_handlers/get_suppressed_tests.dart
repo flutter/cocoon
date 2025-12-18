@@ -13,7 +13,7 @@ import '../request_handling/exceptions.dart';
 
 /// Request handler to get a list of suppressed tests.
 ///
-/// GET /api/public/get-test-suppression
+/// GET /api/public/suppressed-tests
 ///
 /// Parameters:
 ///   repo: (string in query) default: 'flutter/flutter'. Name of the repo.
@@ -36,8 +36,8 @@ import '../request_handling/exceptions.dart';
 ///   }
 /// ]
 @immutable
-final class GetTestSuppression extends RequestHandler {
-  const GetTestSuppression({required super.config, required this.firestore});
+final class GetSuppressedTests extends RequestHandler {
+  const GetSuppressedTests({required super.config, required this.firestore});
 
   final FirestoreService firestore;
 

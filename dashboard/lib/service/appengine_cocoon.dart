@@ -230,7 +230,7 @@ class AppEngineCocoonService implements CocoonService {
     String? repo,
   }) async {
     final getSuppressedTestsUrl = apiEndpoint(
-      '/api/public/get-test-suppression',
+      '/api/public/suppressed-tests',
       queryParameters: {'repo': ?repo},
     );
 
@@ -238,7 +238,7 @@ class AppEngineCocoonService implements CocoonService {
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse.error(
-        '/api/public/get-test-suppression returned ${response.statusCode}',
+        '/api/public/suppressed-tests returned ${response.statusCode}',
         statusCode: response.statusCode,
       );
     }

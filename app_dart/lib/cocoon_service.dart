@@ -14,7 +14,7 @@ export 'src/request_handlers/get_green_commits.dart';
 export 'src/request_handlers/get_release_branches.dart';
 export 'src/request_handlers/get_repos.dart';
 export 'src/request_handlers/get_status.dart';
-export 'src/request_handlers/get_test_suppression.dart';
+export 'src/request_handlers/get_suppressed_tests.dart';
 export 'src/request_handlers/github/webhook_subscription.dart';
 export 'src/request_handlers/github_rate_limit_status.dart';
 export 'src/request_handlers/github_webhook.dart';

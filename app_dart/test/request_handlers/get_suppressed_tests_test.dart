@@ -22,7 +22,7 @@ void main() {
 
   late FakeFirestoreService firestore;
   late ApiRequestHandlerTester tester;
-  late GetTestSuppression handler;
+  late GetSuppressedTests handler;
   late FakeConfig config;
 
   final fakeNow = DateTime.now().toUtc();
@@ -34,14 +34,14 @@ void main() {
       dynamicConfig: DynamicConfig(dynamicTestSuppression: true),
     );
 
-    handler = GetTestSuppression(config: config, firestore: firestore);
+    handler = GetSuppressedTests(config: config, firestore: firestore);
   });
 
   test('throws MethodNotAllowed if feature flag is disabled', () async {
     config = FakeConfig(
       dynamicConfig: DynamicConfig(dynamicTestSuppression: false),
     );
-    handler = GetTestSuppression(config: config, firestore: firestore);
+    handler = GetSuppressedTests(config: config, firestore: firestore);
 
     expect(() => tester.get(handler), throwsA(isA<MethodNotAllowed>()));
   });
