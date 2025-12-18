@@ -11,6 +11,7 @@ import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/lookup_hash.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
+import 'src/request_handlers/update_test_suppression.dart';
 import 'src/request_handlers/update_tree_status.dart';
 import 'src/service/big_query.dart';
 import 'src/service/build_status_service.dart';
@@ -142,6 +143,11 @@ Server createServer({
       config: config,
       authenticationProvider: authProvider,
       firestore: firestore,
+    ),
+    '/api/update-test-suppression': UpdateTestSuppression(
+      authenticationProvider: authProvider,
+      firestore: firestore,
+      config: config,
     ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
