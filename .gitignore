@@ -11,3 +11,5 @@
 
 # VSCode
 .vscode/
+
+build/*
