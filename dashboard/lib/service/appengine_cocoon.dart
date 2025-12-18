@@ -226,6 +226,71 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<SuppressedTest>>> fetchSuppressedTests({
+    String? repo,
+  }) async {
+    final getSuppressedTestsUrl = apiEndpoint(
+      '/api/public/get-test-suppression',
+      queryParameters: {'repo': ?repo},
+    );
+
+    final response = await _client.get(getSuppressedTestsUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/public/get-test-suppression returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
+      final suppressedTests = <SuppressedTest>[];
+      for (final jsonTest in jsonResponse.cast<Map<String, Object?>>()) {
+        suppressedTests.add(SuppressedTest.fromJson(jsonTest));
+      }
+      return CocoonResponse.data(suppressedTests);
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<CocoonResponse<void>> updateTestSuppression({
+    required String idToken,
+    required String repo,
+    required String testName,
+    required bool suppress,
+    required String issueLink,
+    String? note,
+  }) async {
+    final updateTestSuppressionUrl = apiEndpoint(
+      '/api/update-test-suppression',
+    );
+    final response = await _client.post(
+      updateTestSuppressionUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+      body: jsonEncode({
+        'repo': repo,
+        'testName': testName,
+        'suppress': suppress,
+        'issueLink': issueLink,
+        'note': ?note,
+      }),
+    );
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
+  @override
   Future<CocoonResponse<void>> updateTreeStatus({
     required String idToken,
     required String repo,

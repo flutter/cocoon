@@ -19,6 +19,7 @@ import 'lattice.dart';
 import 'task_box.dart';
 import 'task_icon.dart';
 import 'task_overlay.dart';
+import 'test_details_popover.dart';
 
 /// Container that manages the layout and data handling for [TaskGrid].
 ///
@@ -217,6 +218,12 @@ class _TaskGridState extends State<TaskGrid> {
   List<List<LatticeCell>> _processCommitStatuses(TaskGrid taskGrid) {
     var filter = taskGrid.filter;
     filter ??= TaskGridFilter();
+
+    // Pre-compute suppressed task names for faster lookup
+    final suppressedTaskNames = {
+      for (final s in taskGrid.buildState.suppressedTests) s.name,
+    };
+
     // 1: PREPARE ROWS
     final filteredStatuses = taskGrid.commitStatuses
         .where(
@@ -267,9 +274,10 @@ class _TaskGridState extends State<TaskGrid> {
           // won't know how to sort the task later.
           scores.putIfAbsent(qualifiedTask, () => 0.0);
         }
+        final isSuppressed = suppressedTaskNames.contains(task.builderName);
         rows[commitCount - 1].cells[qualifiedTask] = LatticeCell(
-          painter: _painterFor(task),
-          builder: _builderFor(task),
+          painter: _painterFor(task, isSuppressed),
+          builder: _builderFor(task, isSuppressed),
           onTap: _tapHandlerFor(status.commit, task),
         );
       }
@@ -277,6 +285,16 @@ class _TaskGridState extends State<TaskGrid> {
     // 3: SORT
     final tasks = scores.keys.toList()
       ..sort((QualifiedTask a, QualifiedTask b) {
+        // Suppressed tests go first (far left)
+        final aSuppressed = suppressedTaskNames.contains(a.task);
+        final bSuppressed = suppressedTaskNames.contains(b.task);
+        if (aSuppressed && !bSuppressed) {
+          return -1;
+        }
+        if (!aSuppressed && bSuppressed) {
+          return 1;
+        }
+
         final scoreComparison = scores[b]!.compareTo(scores[a]!);
         if (scoreComparison != 0) {
           return scoreComparison;
@@ -288,12 +306,51 @@ class _TaskGridState extends State<TaskGrid> {
     return <List<LatticeCell>>[
       <LatticeCell>[
         const LatticeCell(),
-        ...tasks.map<LatticeCell>(
-          (QualifiedTask task) => LatticeCell(
-            builder: (BuildContext context) => TaskIcon(qualifiedTask: task),
+        ...tasks.map<LatticeCell>((QualifiedTask task) {
+          final isSuppressed = suppressedTaskNames.contains(task.task);
+          return LatticeCell(
+            builder: (BuildContext context) {
+              final icon = TaskIcon(
+                qualifiedTask: task,
+                onTap: () => _showTestDetails(context, task),
+              );
+              if (isSuppressed) {
+                final suppressedTest = taskGrid.buildState.suppressedTests
+                    .firstWhere((s) => s.name == task.task);
+                // Format audit log
+                final tip = [
+                  'Issue: ${suppressedTest.issueLink}',
+                  for (var update
+                      in [...suppressedTest.updates]..sort(
+                        (a, b) =>
+                            b.updateTimestamp.compareTo(a.updateTimestamp),
+                      ))
+                    '[${DateTime.fromMillisecondsSinceEpoch(update.updateTimestamp)}] ${update.action} by ${update.user} ${update.note != null ? '- ${update.note}' : ''}',
+                ].join('\n');
+
+                return Tooltip(
+                  message: tip,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Opacity(opacity: 0.3, child: icon),
+                      const IgnorePointer(
+                        child: Icon(
+                          Icons.snooze,
+                          fontWeight: FontWeight.bold,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return icon;
+            },
             taskName: task.task,
-          ),
-        ),
+          );
+        }),
       ],
       ...rows.map<List<LatticeCell>>(
         (_Row row) => <LatticeCell>[
@@ -319,7 +376,7 @@ class _TaskGridState extends State<TaskGrid> {
     ];
   }
 
-  Painter _painterFor(Task task) {
+  Painter _painterFor(Task task, bool isSuppressed) {
     final backgroundPaint = Paint()..color = Theme.of(context).canvasColor;
 
     assert(
@@ -336,6 +393,12 @@ class _TaskGridState extends State<TaskGrid> {
       } else if (task.currentBuildNumber == null) {
         color = TaskBox.statusColorInProgressButQueued;
       }
+    }
+
+    // Apply "Ghost Mode" for suppressed tests
+    if (isSuppressed) {
+      // Apply "ghost mode" to the color.
+      color = color.withValues(alpha: 0.5);
     }
 
     final paint = Paint()..color = color;
@@ -358,21 +421,23 @@ class _TaskGridState extends State<TaskGrid> {
     };
   }
 
-  WidgetBuilder? _builderFor(Task task) {
+  WidgetBuilder? _builderFor(Task task, bool isSuppressed) {
     if (task.isFlaky) {
       return (BuildContext context) {
-        return Padding(
+        final icon = Padding(
           padding: const EdgeInsets.all(4.0),
           child: Icon(Icons.priority_high, size: TaskBox.of(context) * 0.4),
         );
+        return isSuppressed ? Opacity(opacity: 0.5, child: icon) : icon;
       };
     }
     if (task.status == TaskStatus.skipped) {
       return (BuildContext context) {
-        return Padding(
+        final icon = Padding(
           padding: const EdgeInsets.all(4.0),
           child: Icon(Icons.network_ping, size: TaskBox.of(context) * 0.6),
         );
+        return isSuppressed ? Opacity(opacity: 0.5, child: icon) : icon;
       };
     }
     return null;
@@ -437,6 +502,42 @@ class _TaskGridState extends State<TaskGrid> {
       );
       Overlay.of(context).insert(_taskOverlay!);
     };
+  }
+
+  void _showTestDetails(BuildContext context, QualifiedTask task) {
+    _taskOverlay?.remove();
+
+    final renderBox = context.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+
+    _taskOverlay = OverlayEntry(
+      builder: (BuildContext context) => Stack(
+        children: <Widget>[
+          GestureDetector(
+            onTap: _closeOverlay,
+            behavior: HitTestBehavior.opaque,
+            child: const SizedBox.expand(),
+          ),
+          Positioned(
+            child: CustomSingleChildLayout(
+              delegate: TaskOverlayEntryPositionDelegate(
+                position,
+                cellSize: TaskBox.of(context),
+              ),
+              child: TestDetailsPopover(
+                qualifiedTask: task,
+                buildState: widget.buildState,
+                showSnackBarCallback: ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar,
+                closeCallback: _closeOverlay,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    Overlay.of(context).insert(_taskOverlay!);
   }
 
   void _closeOverlay() {

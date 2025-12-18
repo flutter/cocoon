@@ -67,6 +67,11 @@ void main() {
           Branch(channel: defaultBranch, reference: defaultBranch),
         ]),
       );
+      when(
+        mockCocoonService.fetchSuppressedTests(repo: anyNamed('repo')),
+      ).thenAnswer(
+        (_) async => const CocoonResponse<List<SuppressedTest>>.data([]),
+      );
 
       FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
     });
@@ -727,54 +732,61 @@ void main() {
   testWidgets('sign in functions call notify listener', (
     WidgetTester tester,
   ) async {
-    final mockSignIn = MockFirebaseAuth();
-    when(
-      mockSignIn.authStateChanges(),
-    ).thenAnswer((_) => const Stream<User>.empty());
-    when(
-      mockSignIn.signInWithPopup(any),
-    ).thenAnswer((_) async => MockUserCredential());
-    when(mockSignIn.signOut()).thenAnswer((_) async {});
-    final mockCocoonService = MockCocoonService();
-    when(
-      mockCocoonService.fetchFlutterBranches(),
-    ).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
-    when(
-      mockCocoonService.fetchCommitStatuses(
-        branch: anyNamed('branch'),
-        repo: anyNamed('repo'),
-      ),
-    ).thenAnswer((_) => Completer<CocoonResponse<List<CommitStatus>>>().future);
-    when(
-      mockCocoonService.fetchRepos(),
-    ).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
-    when(
-      mockCocoonService.fetchTreeBuildStatus(
-        branch: anyNamed('branch'),
-        repo: anyNamed('repo'),
-      ),
-    ).thenAnswer(
-      (_) => Completer<CocoonResponse<BuildStatusResponse>>().future,
-    );
-    final signInService = FirebaseAuthService(auth: mockSignIn);
+    try {
+      final mockSignIn = MockFirebaseAuth();
+      when(
+        mockSignIn.authStateChanges(),
+      ).thenAnswer((_) => const Stream<User>.empty());
+      final cred = MockUserCredential();
+      when(cred.user).thenReturn(null);
+      when(mockSignIn.signInWithPopup(any)).thenAnswer((_) async => cred);
+      when(mockSignIn.signOut()).thenAnswer((_) async {});
+      final mockCocoonService = MockCocoonService();
+      when(
+        mockCocoonService.fetchFlutterBranches(),
+      ).thenAnswer((_) => Completer<CocoonResponse<List<Branch>>>().future);
+      when(
+        mockCocoonService.fetchCommitStatuses(
+          branch: anyNamed('branch'),
+          repo: anyNamed('repo'),
+        ),
+      ).thenAnswer(
+        (_) => Completer<CocoonResponse<List<CommitStatus>>>().future,
+      );
+      when(
+        mockCocoonService.fetchRepos(),
+      ).thenAnswer((_) => Completer<CocoonResponse<List<String>>>().future);
+      when(
+        mockCocoonService.fetchTreeBuildStatus(
+          branch: anyNamed('branch'),
+          repo: anyNamed('repo'),
+        ),
+      ).thenAnswer(
+        (_) => Completer<CocoonResponse<BuildStatusResponse>>().future,
+      );
+      final signInService = FirebaseAuthService(auth: mockSignIn);
 
-    final buildState = BuildState(
-      cocoonService: mockCocoonService,
-      authService: signInService,
-    );
+      final buildState = BuildState(
+        cocoonService: mockCocoonService,
+        authService: signInService,
+      );
 
-    var callCount = 0;
-    buildState.addListener(() => callCount += 1);
+      var callCount = 0;
+      buildState.addListener(() => callCount += 1);
 
-    await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 5));
 
-    await signInService.signInWithGoogle();
-    expect(callCount, 1);
+      await signInService.signInWithGoogle();
+      expect(callCount, 1);
 
-    await signInService.signOut();
-    expect(callCount, 2);
+      await signInService.signOut();
+      expect(callCount, 2);
 
-    buildState.dispose();
+      buildState.dispose();
+    } catch (e, s) {
+      print("cfu failure: $e\n$s");
+      rethrow;
+    }
   });
 }
 

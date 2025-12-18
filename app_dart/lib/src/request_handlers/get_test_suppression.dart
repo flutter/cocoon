@@ -24,7 +24,15 @@ import '../request_handling/exceptions.dart';
 ///     "name": "foo_test",
 ///     "repository": "flutter/flutter",
 ///     "issueLink": "...",
-///     "createTimestamp": 123456789
+///     "createTimestamp": 123456789,
+///     "updates": [
+///       {
+///         "updateTimestamp": 123456789,
+///         "note": "...",
+///         "user": "..."
+///         "action": "SUPPRESS" or "UNSUPPRESS"
+///       }
+///     ]
 ///   }
 /// ]
 @immutable
@@ -60,7 +68,9 @@ final class GetTestSuppression extends RequestHandler {
           'updates': [
             for (var update in test.updates)
               {
-                ...update,
+                'user': update['user'],
+                'action': update['action'],
+                'note': update['note'],
                 'updateTimestamp':
                     update['updateTimestamp'].millisecondsSinceEpoch,
               },

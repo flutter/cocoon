@@ -498,6 +498,55 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
             ),
           )
           as _i8.Future<_i3.CocoonResponse<bool>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<List<_i12.SuppressedTest>>>
+  fetchSuppressedTests({String? repo}) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchSuppressedTests, [], {#repo: repo}),
+            returnValue:
+                _i8.Future<_i3.CocoonResponse<List<_i12.SuppressedTest>>>.value(
+                  _FakeCocoonResponse_2<List<_i12.SuppressedTest>>(
+                    this,
+                    Invocation.method(#fetchSuppressedTests, [], {#repo: repo}),
+                  ),
+                ),
+          )
+          as _i8.Future<_i3.CocoonResponse<List<_i12.SuppressedTest>>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<void>> updateTestSuppression({
+    required String? idToken,
+    required String? repo,
+    required String? testName,
+    required bool? suppress,
+    required String? issueLink,
+    String? note,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateTestSuppression, [], {
+              #idToken: idToken,
+              #repo: repo,
+              #testName: testName,
+              #suppress: suppress,
+              #issueLink: issueLink,
+              #note: note,
+            }),
+            returnValue: _i8.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#updateTestSuppression, [], {
+                  #idToken: idToken,
+                  #repo: repo,
+                  #testName: testName,
+                  #suppress: suppress,
+                  #issueLink: issueLink,
+                  #note: note,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i3.CocoonResponse<void>>);
 }
 
 /// A class which mocks [BuildState].
@@ -598,6 +647,14 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
           as _i5.Brook<String>);
 
   @override
+  List<_i12.SuppressedTest> get suppressedTests =>
+      (super.noSuchMethod(
+            Invocation.getter(#suppressedTests),
+            returnValue: <_i12.SuppressedTest>[],
+          )
+          as List<_i12.SuppressedTest>);
+
+  @override
   set authService(_i4.FirebaseAuthService? value) => super.noSuchMethod(
     Invocation.setter(#authService, value),
     returnValueForMissingStub: null,
@@ -653,6 +710,24 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
   _i8.Future<bool> rerunTask(_i12.Task? task, _i12.Commit? commit) =>
       (super.noSuchMethod(
             Invocation.method(#rerunTask, [task, commit]),
+            returnValue: _i8.Future<bool>.value(false),
+          )
+          as _i8.Future<bool>);
+
+  @override
+  _i8.Future<bool> updateTestSuppression({
+    required String? testName,
+    required bool? suppress,
+    required String? issueLink,
+    String? note,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateTestSuppression, [], {
+              #testName: testName,
+              #suppress: suppress,
+              #issueLink: issueLink,
+              #note: note,
+            }),
             returnValue: _i8.Future<bool>.value(false),
           )
           as _i8.Future<bool>);

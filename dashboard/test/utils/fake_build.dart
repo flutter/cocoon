@@ -101,4 +101,36 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
     _currentBranch = branch;
     _currentRepo = repo;
   }
+
+  final _suppressedTests = <SuppressedTest>[];
+  set suppressedTests(List<SuppressedTest> value) {
+    _suppressedTests
+      ..clear()
+      ..addAll(value);
+    notifyListeners();
+  }
+
+  @override
+  List<SuppressedTest> get suppressedTests => [..._suppressedTests];
+
+  final updateTestSuppressionCalls =
+      <({String testName, bool suppress, String? issueLink, String? note})>[];
+
+  bool updateTestSuppressionResult = true;
+
+  @override
+  Future<bool> updateTestSuppression({
+    required String testName,
+    required bool suppress,
+    String? issueLink,
+    String? note,
+  }) async {
+    updateTestSuppressionCalls.add((
+      testName: testName,
+      suppress: suppress,
+      issueLink: issueLink,
+      note: note,
+    ));
+    return updateTestSuppressionResult;
+  }
 }
