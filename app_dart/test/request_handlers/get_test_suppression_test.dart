@@ -137,7 +137,7 @@ void main() {
     expect(json[0]['repository'], 'flutter/engine');
     expect(json[1]['name'], 'engine_test2');
     expect(json[1]['repository'], 'flutter/engine');
-    
+
     final updates = json[1]['updates'] as List<dynamic>;
     expect(updates.length, 2);
     expect(updates[0]['user'], 'fake@example.com');
