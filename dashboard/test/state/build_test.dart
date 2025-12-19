@@ -729,6 +729,112 @@ void main() {
     });
   });
 
+  group('updateTestSuppression', () {
+    late MockCocoonService cocoonService;
+    late MockFirebaseAuthService authService;
+    const idToken = 'id_token';
+
+    setUp(() {
+      cocoonService = MockCocoonService();
+      authService = MockFirebaseAuthService();
+      when(authService.isAuthenticated).thenReturn(true);
+      when(authService.idToken).thenAnswer((_) async => idToken);
+      when(
+        cocoonService.fetchSuppressedTests(repo: anyNamed('repo')),
+      ).thenAnswer(
+        (_) async => const CocoonResponse<List<SuppressedTest>>.data([]),
+      );
+      when(
+        cocoonService.fetchCommitStatuses(
+          branch: anyNamed('branch'),
+          repo: anyNamed('repo'),
+        ),
+      ).thenAnswer(
+        (_) async => const CocoonResponse<List<CommitStatus>>.data([]),
+      );
+      when(
+        cocoonService.fetchTreeBuildStatus(
+          branch: anyNamed('branch'),
+          repo: anyNamed('repo'),
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse<BuildStatusResponse>.data(
+          BuildStatusResponse(
+            buildStatus: BuildStatus.success,
+            failingTasks: [],
+          ),
+        ),
+      );
+      when(
+        cocoonService.fetchFlutterBranches(),
+      ).thenAnswer((_) async => const CocoonResponse<List<Branch>>.data([]));
+      when(
+        cocoonService.fetchRepos(),
+      ).thenAnswer((_) async => const CocoonResponse<List<String>>.data([]));
+    });
+
+    testWidgets('prepends flutter/ to repository name', (_) async {
+      when(
+        cocoonService.updateTestSuppression(
+          idToken: anyNamed('idToken'),
+          testName: anyNamed('testName'),
+          suppress: anyNamed('suppress'),
+          issueLink: anyNamed('issueLink'),
+          repo: anyNamed('repo'),
+          note: anyNamed('note'),
+        ),
+      ).thenAnswer((_) async => const CocoonResponse<bool>.data(true));
+
+      final buildState = BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      );
+
+      // Default repo is flutter
+      expect(buildState.currentRepo, 'flutter');
+
+      await buildState.updateTestSuppression(
+        testName: 'my_test',
+        suppress: true,
+        issueLink: 'link',
+      );
+
+      verify(
+        cocoonService.updateTestSuppression(
+          idToken: anyNamed('idToken'),
+          testName: anyNamed('testName'),
+          suppress: anyNamed('suppress'),
+          issueLink: anyNamed('issueLink'),
+          repo: 'flutter/flutter',
+          note: anyNamed('note'),
+        ),
+      ).called(1);
+
+      verify(cocoonService.fetchSuppressedTests(repo: 'flutter/flutter'));
+
+      // Switch to engine
+      buildState.updateCurrentRepoBranch('engine', 'main');
+      await buildState.updateTestSuppression(
+        testName: 'my_test',
+        suppress: true,
+        issueLink: 'link',
+      );
+
+      verify(cocoonService.fetchSuppressedTests(repo: 'flutter/engine'));
+
+      verify(
+        cocoonService.updateTestSuppression(
+          idToken: anyNamed('idToken'),
+          testName: anyNamed('testName'),
+          suppress: anyNamed('suppress'),
+          issueLink: anyNamed('issueLink'),
+          repo: 'flutter/engine',
+          note: anyNamed('note'),
+        ),
+      ).called(1);
+    });
+  });
+
   testWidgets('sign in functions call notify listener', (
     WidgetTester tester,
   ) async {

@@ -218,7 +218,7 @@ class BuildState extends ChangeNotifier {
       }(),
       () async {
         final response = await cocoonService.fetchSuppressedTests(
-          repo: currentRepo,
+          repo: 'flutter/$currentRepo',
         );
         if (!_active) {
           return null;
@@ -269,6 +269,9 @@ class BuildState extends ChangeNotifier {
   void _mergeRecentCommitStatusesWithStoredStatuses(
     List<CommitStatus> recentStatuses,
   ) {
+    if (recentStatuses.isEmpty) {
+      return;
+    }
     if (!_statusesMatchCurrentBranch(recentStatuses)) {
       // Do not merge statuses if they are not from the current branch.
       // Happens in delayed network requests after switching branches.
@@ -431,7 +434,7 @@ class BuildState extends ChangeNotifier {
     }
     final response = await cocoonService.updateTestSuppression(
       idToken: await authService.idToken,
-      repo: currentRepo,
+      repo: 'flutter/$currentRepo', // TODO: support more than flutter/*?
       testName: testName,
       suppress: suppress,
       issueLink: issueLink,
@@ -447,7 +450,7 @@ class BuildState extends ChangeNotifier {
 
     // Refresh suppressed tests after update
     final suppressedTestsResponse = await cocoonService.fetchSuppressedTests(
-      repo: currentRepo,
+      repo: 'flutter/$currentRepo',
     );
     if (suppressedTestsResponse.error == null) {
       _suppressedTests = suppressedTestsResponse.data!;
