@@ -17,7 +17,7 @@ dependencies:
     path: ../packages/cocoon_common
   collection: any # Match Flutter SDK
   firebase_auth: ^6.0.0
-  firebase_core: 4.2.1 # Rolled by dependabot
+  firebase_core: 4.3.0 # Rolled by dependabot
   firebase_crashlytics: 5.0.5 # Rolled by dependabot
   flutter:
     sdk: flutter
