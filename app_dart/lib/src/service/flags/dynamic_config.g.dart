@@ -20,10 +20,10 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
               json['contentAwareHashing'] as Map<String, dynamic>?,
             ),
       closeMqGuardAfterPresubmit: json['closeMqGuardAfterPresubmit'] as bool?,
-      consolidatedCheckRunFlow: json['consolidatedCheckRunFlow'] == null
+      unifiedCheckRunFlow: json['unifiedCheckRunFlow'] == null
           ? null
-          : ConsolidatedCheckRunFlow.fromJson(
-              json['consolidatedCheckRunFlow'] as Map<String, dynamic>?,
+          : UnifiedCheckRunFlow.fromJson(
+              json['unifiedCheckRunFlow'] as Map<String, dynamic>?,
             ),
       dynamicTestSuppression: json['dynamicTestSuppression'] as bool?,
     );
@@ -34,6 +34,6 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'contentAwareHashing': instance.contentAwareHashing.toJson(),
       'ciYaml': instance.ciYaml.toJson(),
       'closeMqGuardAfterPresubmit': instance.closeMqGuardAfterPresubmit,
-      'consolidatedCheckRunFlow': instance.consolidatedCheckRunFlow.toJson(),
+      'unifiedCheckRunFlow': instance.unifiedCheckRunFlow.toJson(),
       'dynamicTestSuppression': instance.dynamicTestSuppression,
     };

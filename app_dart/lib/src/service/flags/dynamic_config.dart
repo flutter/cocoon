@@ -14,9 +14,9 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import 'ci_yaml_flags.dart';
-import 'consolidated_check_run_flow_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
+import 'unified_check_run_flow_flags.dart';
 
 part 'dynamic_config.g.dart';
 
@@ -39,7 +39,7 @@ final class DynamicConfig {
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
-    consolidatedCheckRunFlow: ConsolidatedCheckRunFlow.defaultInstance,
+    unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
     dynamicTestSuppression: false,
   );
 
@@ -63,9 +63,9 @@ final class DynamicConfig {
   @JsonKey()
   final bool closeMqGuardAfterPresubmit;
 
-  /// Flags related tp consolidated check-run flow configuration.
+  /// Flags related tp unified check-run flow configuration.
   @JsonKey()
-  final ConsolidatedCheckRunFlow consolidatedCheckRunFlow;
+  final UnifiedCheckRunFlow unifiedCheckRunFlow;
 
   /// Whether to allow the tree status to be suppressed for specific failed tests.
   @JsonKey()
@@ -76,7 +76,7 @@ final class DynamicConfig {
     required this.ciYaml,
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
-    required this.consolidatedCheckRunFlow,
+    required this.unifiedCheckRunFlow,
     required this.dynamicTestSuppression,
   });
 
@@ -88,7 +88,7 @@ final class DynamicConfig {
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
-    ConsolidatedCheckRunFlow? consolidatedCheckRunFlow,
+    UnifiedCheckRunFlow? unifiedCheckRunFlow,
     bool? dynamicTestSuppression,
   }) {
     return DynamicConfig._(
@@ -100,8 +100,8 @@ final class DynamicConfig {
       closeMqGuardAfterPresubmit:
           closeMqGuardAfterPresubmit ??
           defaultInstance.closeMqGuardAfterPresubmit,
-      consolidatedCheckRunFlow:
-          consolidatedCheckRunFlow ?? defaultInstance.consolidatedCheckRunFlow,
+      unifiedCheckRunFlow:
+          unifiedCheckRunFlow ?? defaultInstance.unifiedCheckRunFlow,
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
     );
@@ -151,6 +151,13 @@ final class DynamicConfig {
 
   /// The inverse operation of [DynamicConfig.fromJson].
   Map<String, Object?> toJson() => _$DynamicConfigToJson(this);
+
+  bool isUnifiedCheckRunFlowEnabledForUser(String githubUsername) {
+    if (unifiedCheckRunFlow.useForAll) {
+      return true;
+    }
+    return unifiedCheckRunFlow.useForUsers.contains(githubUsername);
+  }
 }
 
 extension _YamlMapToMap on YamlMap {
@@ -160,6 +167,8 @@ extension _YamlMapToMap on YamlMap {
         '$key': value.asMap
       else if (value is YamlList)
         '$key': value.asList
+      else if (value is YamlScalar)
+        '$key': value.value
       else
         '$key': value,
   };
@@ -167,12 +176,14 @@ extension _YamlMapToMap on YamlMap {
 
 extension _YamlListToList on YamlList {
   List<Object?> get asList => <Object?>[
-    for (final value in nodes)
-      if (value is YamlMap)
-        value.asMap
-      else if (value is YamlList)
-        value.asList
+    for (final node in nodes)
+      if (node is YamlMap)
+        node.asMap
+      else if (node is YamlList)
+        node.asList
+      else if (node is YamlScalar)
+        node.value
       else
-        value,
+        node,
   ];
 }
