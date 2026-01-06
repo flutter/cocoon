@@ -21,3 +21,10 @@ closeMqGuardAfterPresubmit: true
 
 # Whether to allow the tree status to be suppressed for specific failed tests.
 dynamicTestSuppression: true
+
+# Whether to allow unified check run flow to specific users or to everyone.
+unifiedCheckRunFlow:
+  useForAll: false
+  useForUsers:
+    - dmgr
+    - matanlurey
