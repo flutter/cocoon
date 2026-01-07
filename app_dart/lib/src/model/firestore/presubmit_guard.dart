@@ -149,7 +149,12 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
         if (remainingBuilds != null)
           fieldRemainingBuilds: remainingBuilds.toValue(),
         if (failedBuilds != null) fieldFailedBuilds: failedBuilds.toValue(),
-        if (builds != null) fieldBuilds: builds.toValue(),
+        if (builds != null)
+          fieldBuilds: Value(
+            mapValue: MapValue(
+              fields: builds.map((k, v) => MapEntry(k, v.value.toValue())),
+            ),
+          ),
       },
       name: documentNameFor(
         slug: slug,

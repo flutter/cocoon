@@ -215,6 +215,7 @@ github.PullRequest generatePullRequest({
   String title = 'example message',
   int number = 123,
   DateTime? mergedAt,
+  DateTime? createdAt,
   String headSha = 'abc',
   String baseSha = 'def',
   bool merged = true,
@@ -222,11 +223,13 @@ github.PullRequest generatePullRequest({
   int changedFilesCount = 1,
 }) {
   mergedAt ??= DateTime.fromMillisecondsSinceEpoch(1);
+  createdAt ??= DateTime.fromMillisecondsSinceEpoch(1);
   return github.PullRequest(
     id: id,
     title: title,
     number: number,
     mergedAt: mergedAt,
+    createdAt: createdAt,
     base: github.PullRequestHead(
       ref: branch,
       sha: baseSha,
