@@ -9,6 +9,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 
+import '../model/bbv2_extension.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
@@ -102,44 +103,57 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
     var rescheduled = false;
-    if (_githubChecksService.taskFailed(build.status)) {
-      final currentAttempt = _nextAttempt(tagSet);
+    if (build.status.isTaskFailed()) {
+      // if failed summary stored in github check run and unified check run.
+      build.summaryMarkdown = (await _luciBuildService.getBuildById(
+        build.id,
+        buildMask: bbv2.BuildMask(
+          // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
+          allFields: true,
+        ),
+      )).summaryMarkdown;
       final maxAttempt = await _getMaxAttempt(
         userData.commit,
         builderName,
         tagSet,
       );
-      if (currentAttempt < maxAttempt) {
+      if (tagSet.currentAttempt < maxAttempt) {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
         await _luciBuildService.reschedulePresubmitBuild(
           builderName: builderName,
           build: build,
-          nextAttempt: currentAttempt + 1,
+          nextAttempt: tagSet.currentAttempt + 1,
           userData: userData,
         );
       }
     }
-    await _githubChecksService.updateCheckStatus(
-      checkRunId: userData.checkRunId,
-      build: build,
-      luciBuildService: _luciBuildService,
-      slug: userData.commit.slug,
-      rescheduled: rescheduled,
-    );
-
-    if (!rescheduled && config.flags.closeMqGuardAfterPresubmit) {
+    if (userData.checkRunId != null) {
+      await _githubChecksService.updateCheckStatus(
+        checkRunId: userData.checkRunId!,
+        build: build,
+        luciBuildService: _luciBuildService,
+        slug: userData.commit.slug,
+        rescheduled: rescheduled,
+      );
+    }
+    if (!rescheduled && config.flags.closeMqGuardAfterPresubmit ||
+        !rescheduled && userData.guardCheckRunId != null) {
       // Process to the check-run status in the merge queue document during
       // the LUCI callback.
       final conclusion = _githubChecksService.conclusionForResult(build.status);
       await _scheduler.processCheckRunCompleted(
         cocoon_checks.CheckRun(
-          id: userData.checkRunId,
-          name: builderName,
+          id: userData.guardCheckRunId != null
+              ? userData.guardCheckRunId!
+              : userData.checkRunId,
+          name: userData.guardCheckRunId != null
+              ? 'Merge Queue Guard'
+              : builderName,
           headSha: userData.commit.sha,
           conclusion: '$conclusion',
           checkSuite: CheckSuite(
-            id: userData.checkSuiteId,
+            id: userData.checkSuiteId ?? 0,
             headBranch: userData.commit.branch,
             headSha: userData.commit.sha,
             conclusion: conclusion,
@@ -151,14 +165,6 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     }
 
     return Response.emptyOk;
-  }
-
-  /// Returns the current reschedule attempt.
-  ///
-  /// It returns 1 if this is the first run.
-  static int _nextAttempt(BuildTags buildTags) {
-    final attempt = buildTags.getTagOfType<CurrentAttemptBuildTag>();
-    return attempt?.attemptNumber ?? 1;
   }
 
   Future<int> _getMaxAttempt(

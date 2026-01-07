@@ -11,7 +11,6 @@ import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
@@ -20,6 +19,7 @@ import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
+import '../model/firestore/base.dart';
 import '../model/firestore/pr_check_runs.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
@@ -98,7 +98,7 @@ class LuciBuildService {
   ///
   /// Returns a list of BuildBucket [Build]s for a given Github [PullRequest].
   Future<Iterable<bbv2.Build>> getTryBuildsByPullRequest({
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
   }) async {
     final slug = pullRequest.base!.repo!.slug();
     return _getBuilds(
@@ -226,8 +226,10 @@ class LuciBuildService {
   /// framework tests, provide [EngineArtifacts.noFrameworkTests].
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
+    CheckRun? checkRunGuard,
+    CiStage? stage,
   }) async {
     if (targets.isEmpty) {
       return targets;
@@ -235,30 +237,45 @@ class LuciBuildService {
 
     final batchRequestList = <bbv2.BatchRequest_Request>[];
     final commitSha = pullRequest.head!.sha!;
-    final isFusion = pullRequest.base!.repo!.slug() == Config.flutterSlug;
+    final slug = pullRequest.base!.repo!.slug();
+    final commitBranch = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
+    final isFusion = slug == Config.flutterSlug;
+    final isUnifiedCheckRunFlow = _config.flags
+        .isUnifiedCheckRunFlowEnabledForUser(pullRequest.user!.login!);
     final cipdVersion = await _getAndCheckRecipeVersion(
       slug: pullRequest.base!.repo!.slug(),
       branch: pullRequest.base!.ref!,
     );
 
-    final checkRuns = <github.CheckRun>[];
+    final checkRuns = <CheckRun>[];
+    PresubmitUserData userData;
     for (var target in targets) {
-      final checkRun = await _githubChecksUtil.createCheckRun(
-        _config,
-        target.slug,
-        commitSha,
-        target.name,
-      );
-      checkRuns.add(checkRun);
+      // If the unified check run flow is not enabled for this user,
+      //create individual check runs for each target.
+      if (isUnifiedCheckRunFlow && checkRunGuard != null) {
+        userData = PresubmitUserData(
+          commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
+          guardCheckRunId: checkRunGuard.id!,
+          stage: stage,
+        );
+        // We need to store PR to checkrun mapping in order to get PR later in
+        // [Scheduler.proceedUnifiedCheckRunToTestingStage] method
+        checkRuns.add(checkRunGuard);
+      } else {
+        final checkRun = await _githubChecksUtil.createCheckRun(
+          _config,
+          target.slug,
+          commitSha,
+          target.name,
+        );
+        checkRuns.add(checkRun);
 
-      final slug = pullRequest.base!.repo!.slug();
-      final commitBranch = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
-      final userData = PresubmitUserData(
-        commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
-        checkRunId: checkRun.id!,
-        checkSuiteId: checkRun.checkSuiteId!,
-      );
-
+        userData = PresubmitUserData(
+          commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
+          checkRunId: checkRun.id,
+          checkSuiteId: checkRun.checkSuiteId,
+        );
+      }
       final properties = target.getProperties();
       properties.putIfAbsent('git_branch', () => commitBranch);
 
@@ -314,9 +331,14 @@ class LuciBuildService {
             cipdVersion: cipdVersion,
             userData: userData,
             properties: properties,
-            tags: BuildTags([
-              GitHubCheckRunIdBuildTag(checkRunId: checkRun.id!),
-            ]),
+            // if unified check run flow is enabled, use guard check run othervise check run id.
+            tags: isUnifiedCheckRunFlow && checkRunGuard != null
+                ? BuildTags([
+                    GuardCheckRunIdBuildTag(checkRunId: checkRunGuard.id!),
+                  ])
+                : BuildTags([
+                    GitHubCheckRunIdBuildTag(checkRunId: userData.checkRunId!),
+                  ]),
             dimensions: requestedDimensions,
           ),
         ),
@@ -356,7 +378,7 @@ class LuciBuildService {
 
   /// Cancels all the current builds on [pullRequest] with [reason].
   Future<void> cancelBuilds({
-    required github.PullRequest pullRequest,
+    required PullRequest pullRequest,
     required String reason,
   }) async {
     log.info(
@@ -472,7 +494,7 @@ class LuciBuildService {
   ///
   /// Returns a [List] of prefixed label names as [String]s.
   static List<String>? _extractPrefixedLabels({
-    List<github.IssueLabel>? issueLabels,
+    List<IssueLabel>? issueLabels,
     required String prefix,
   }) {
     return issueLabels
@@ -744,7 +766,7 @@ class LuciBuildService {
   /// Create a Presubmit ScheduleBuildRequest using the [slug], [sha], and
   /// [checkName] for the provided [build] with the provided [checkRunId].
   bbv2.ScheduleBuildRequest _createPresubmitScheduleBuild({
-    required github.RepositorySlug slug,
+    required RepositorySlug slug,
     required String sha,
     required String checkName,
     required int pullRequestNumber,

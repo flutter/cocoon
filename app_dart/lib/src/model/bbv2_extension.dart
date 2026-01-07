@@ -20,3 +20,16 @@ extension StatusExtension on bbv2.Status {
     };
   }
 }
+
+extension TaskFailedExtension on bbv2.Status {
+  bool isTaskFailed() {
+    switch (this) {
+      case bbv2.Status.FAILURE:
+      case bbv2.Status.CANCELED:
+      case bbv2.Status.INFRA_FAILURE:
+        return true;
+      default:
+        return false;
+    }
+  }
+}

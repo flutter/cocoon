@@ -60,6 +60,7 @@ void main() {
         targets: anyNamed('targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
+        checkRunGuard: anyNamed('checkRunGuard'),
       ),
     ).thenAnswer((inv) async {
       return [];

@@ -91,7 +91,6 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
@@ -136,7 +135,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
@@ -155,14 +154,14 @@ void main() {
     );
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux A',
       userData: userData,
     );
 
     final buildsPubSub = createBuild(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux A',
     );
 
@@ -196,11 +195,10 @@ void main() {
         rescheduled: true,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
         commit: CommitRef(
@@ -236,7 +234,9 @@ void main() {
         rescheduled: true,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
+    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
 
     tester.message = createPushMessage(
       Int64(1),
@@ -315,7 +315,7 @@ void main() {
         rescheduled: false,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
@@ -335,14 +335,14 @@ void main() {
 
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
       userData: userData,
     );
 
     final buildsPubSub = createBuild(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
     );
 
@@ -364,7 +364,7 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
-    verify(mockGithubChecksService.taskFailed(any)).called(1);
+
     verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
   });
 
@@ -378,7 +378,7 @@ void main() {
         rescheduled: false,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
@@ -397,14 +397,14 @@ void main() {
     );
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
       userData: userData,
     );
 
     final buildsPubSub = createBuild(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
     );
 
@@ -430,8 +430,6 @@ void main() {
   });
 
   test('Pubsub rejected if branch is not enabled.', () async {
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-
     final userData = PresubmitUserData(
       checkRunId: 1,
       checkSuiteId: 2,
@@ -443,7 +441,7 @@ void main() {
     );
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
       userData: userData,
     );
@@ -470,11 +468,13 @@ void main() {
         rescheduled: anyNamed('rescheduled'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
+    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
 
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
         checkRunId: 1,
@@ -545,7 +545,6 @@ void main() {
         rescheduled: anyNamed('rescheduled'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
 
     tester.message = createPushMessage(
       Int64(1),
