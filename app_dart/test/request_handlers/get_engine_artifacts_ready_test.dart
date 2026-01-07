@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/common/firestore_extensions.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/request_handlers/get_engine_artifacts_ready.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';

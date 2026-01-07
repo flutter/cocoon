@@ -7,6 +7,25 @@ import 'dart:convert';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 
+/// Well-defined stages in the build infrastructure.
+enum CiStage implements Comparable<CiStage> {
+  /// Build engine artifacts
+  fusionEngineBuild('engine'),
+
+  /// All non-engine artifact tests (engine & framework)
+  fusionTests('fusion');
+
+  const CiStage(this.name);
+
+  final String name;
+
+  @override
+  int compareTo(CiStage other) => index - other.index;
+
+  @override
+  String toString() => name;
+}
+
 /// Defines the `documentId` for a given document [T].
 ///
 /// The path to a document in Firestore follows the pattern:
