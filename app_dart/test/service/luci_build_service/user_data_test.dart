@@ -30,6 +30,8 @@ void main() {
         'commit_branch': 'main',
         'repo_owner': 'repo-owner',
         'repo_name': 'repo-name',
+        'guard_check_run_id': null,
+        'stage': null,
       });
     });
 
@@ -42,6 +44,8 @@ void main() {
           'commit_branch': 'main',
           'repo_owner': 'repo-owner',
           'repo_name': 'repo-name',
+          'guard_check_run_id': null,
+          'stage': null,
         }),
         PresubmitUserData(
           checkRunId: 1234,

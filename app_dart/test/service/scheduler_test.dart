@@ -25,7 +25,6 @@ import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -956,6 +955,8 @@ void main() {
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -1369,6 +1370,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+                stage: anyNamed('stage'),
               ),
             ).thenAnswer((inv) async {
               return [];
@@ -1454,6 +1457,8 @@ targets:
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+                stage: anyNamed('stage'),
               ),
             );
             expect(result.callCount, 1);
@@ -1506,6 +1511,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
                 return [];
@@ -1595,6 +1602,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               );
               expect(result.callCount, 1);
@@ -1830,6 +1839,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+                stage: anyNamed('stage'),
               ),
             ).thenAnswer((Invocation i) async {
               engineArtifacts =
@@ -2153,6 +2164,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
                 return [];
@@ -2226,6 +2239,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               );
               expect(result.callCount, 1);
@@ -2728,6 +2743,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2796,6 +2813,8 @@ targets:
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         );
         expect(result.callCount, 1);
@@ -2858,6 +2877,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2994,6 +3015,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -3122,6 +3145,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -3511,16 +3536,23 @@ final class _CapturingFakeLuciBuildService extends Fake
     implements LuciBuildService {
   List<Target> scheduledTryBuilds = [];
   EngineArtifacts? engineArtifacts;
+  PullRequest? pullRequest;
+  CheckRun? checkRunGuard;
+  CiStage? stage;
 
   @override
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
-    EngineArtifacts? engineArtifacts,
+    required EngineArtifacts engineArtifacts,
+    CheckRun? checkRunGuard,
+    CiStage? stage,
   }) async {
     scheduledTryBuilds = targets;
     this.engineArtifacts = engineArtifacts;
+    this.pullRequest = pullRequest;
+    this.checkRunGuard = checkRunGuard;
+    this.stage = stage;
     return targets;
   }
 

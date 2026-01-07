@@ -11,6 +11,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/commit_ref.dart';
+import '../../model/firestore/base.dart';
 import '../../model/firestore/task.dart';
 
 part 'user_data.g.dart';
@@ -65,8 +66,10 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
   /// [checkRunId] and [checkSuiteId].
   factory PresubmitUserData({
     required CommitRef commit,
-    required int checkRunId,
-    required int checkSuiteId,
+    int? checkRunId,
+    int? checkSuiteId,
+    int? guardCheckRunId,
+    CiStage? stage,
   }) {
     return _PresubmitUserData(
       repoOwner: commit.slug.owner,
@@ -75,6 +78,8 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
       commitSha: commit.sha,
       checkRunId: checkRunId,
       checkSuiteId: checkSuiteId,
+      guardCheckRunId: guardCheckRunId,
+      stage: stage,
     );
   }
 
@@ -102,9 +107,14 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
   CommitRef get commit;
 
   /// Which GitHub check run this build reports status to.
-  int get checkRunId;
+  int? get checkRunId;
 
-  int get checkSuiteId;
+  int? get checkSuiteId;
+
+  /// The check run ID of the MQ guard build associated with this presubmit.
+  int? get guardCheckRunId;
+
+  CiStage? get stage;
 }
 
 @JsonSerializable(checked: true)
@@ -114,8 +124,10 @@ final class _PresubmitUserData extends PresubmitUserData {
     required this.repoName,
     required this.commitBranch,
     required this.commitSha,
-    required this.checkRunId,
-    required this.checkSuiteId,
+    this.checkRunId,
+    this.checkSuiteId,
+    this.guardCheckRunId,
+    this.stage,
   }) : super._();
 
   /// The owner of the GitHub repo, i.e. `flutter` or `matanlurey`.
@@ -136,11 +148,19 @@ final class _PresubmitUserData extends PresubmitUserData {
 
   @JsonKey(name: 'check_run_id')
   @override
-  final int checkRunId;
+  final int? checkRunId;
 
-  @JsonKey(name: 'check_suite_id', defaultValue: 0)
+  @JsonKey(name: 'check_suite_id')
   @override
-  final int checkSuiteId;
+  final int? checkSuiteId;
+
+  @JsonKey(name: 'guard_check_run_id')
+  @override
+  final int? guardCheckRunId;
+
+  @JsonKey(name: 'stage')
+  @override
+  final CiStage? stage;
 
   @override
   CommitRef get commit {
