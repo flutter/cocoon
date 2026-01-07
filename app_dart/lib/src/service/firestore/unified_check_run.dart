@@ -183,10 +183,9 @@ final class UnifiedCheckRun {
   }) async {
     final filterMap = {
       '${PresubmitCheck.fieldCheckRunId} =': checkRunId,
-      if (buildName != null) '${PresubmitCheck.fieldBuildName} =': buildName,
-      if (status != null) '${PresubmitCheck.fieldStatus} =': status.value,
-      if (attemptNumber != null)
-        '${PresubmitCheck.fieldAttemptNumber} =': attemptNumber,
+      '${PresubmitCheck.fieldBuildName} =': ?buildName,
+      '${PresubmitCheck.fieldStatus} =': ?status?.value,
+      '${PresubmitCheck.fieldAttemptNumber} =': ?attemptNumber,
     };
     // For tasks, therer is no reason to _not_ order this way.
     final orderMap = {PresubmitCheck.fieldCreationTime: kQueryOrderDescending};

@@ -158,10 +158,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
   /// It returns 1 if this is the first run.
   static int _nextAttempt(BuildTags buildTags) {
     final attempt = buildTags.getTagOfType<CurrentAttemptBuildTag>();
-    if (attempt == null) {
-      return 1;
-    }
-    return attempt.attemptNumber;
+    return attempt?.attemptNumber ?? 1;
   }
 
   Future<int> _getMaxAttempt(

@@ -157,13 +157,13 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
       {
         fieldCheckRunId: checkRunId.toValue(),
         fieldBuildName: buildName.toValue(),
-        if (buildNumber != null) fieldBuildNumber: buildNumber.toValue(),
+        fieldBuildNumber: ?buildNumber?.toValue(),
         fieldStatus: status.value.toValue(),
         fieldAttemptNumber: attemptNumber.toValue(),
         fieldCreationTime: creationTime.toValue(),
-        if (startTime != null) fieldStartTime: startTime.toValue(),
-        if (endTime != null) fieldEndTime: endTime.toValue(),
-        if (summary != null) fieldSummary: summary.toValue(),
+        fieldStartTime: ?startTime?.toValue(),
+        fieldEndTime: ?endTime?.toValue(),
+        fieldSummary: ?summary?.toValue(),
       },
       name: documentNameFor(
         checkRunId: checkRunId,

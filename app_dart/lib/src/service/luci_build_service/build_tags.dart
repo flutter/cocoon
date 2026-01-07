@@ -81,10 +81,7 @@ final class BuildTags {
   /// It returns 1 if this is the first run.
   int get currentAttempt {
     final attempt = getTagOfType<CurrentAttemptBuildTag>();
-    if (attempt == null) {
-      return 1;
-    }
-    return attempt.attemptNumber;
+    return attempt?.attemptNumber ?? 1;
   }
 
   /// GitHub Pull Request Number

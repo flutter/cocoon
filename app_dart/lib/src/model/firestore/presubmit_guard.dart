@@ -146,9 +146,8 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
         fieldCreationTime: creationTime.toValue(),
         fieldAuthor: author.toValue(),
         fieldCheckRun: json.encode(checkRun.toJson()).toValue(),
-        if (remainingBuilds != null)
-          fieldRemainingBuilds: remainingBuilds.toValue(),
-        if (failedBuilds != null) fieldFailedBuilds: failedBuilds.toValue(),
+        fieldRemainingBuilds: ?remainingBuilds?.toValue(),
+        fieldFailedBuilds: ?failedBuilds?.toValue(),
         if (builds != null)
           fieldBuilds: Value(
             mapValue: MapValue(
