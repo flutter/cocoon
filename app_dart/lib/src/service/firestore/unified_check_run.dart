@@ -53,13 +53,12 @@ final class UnifiedCheckRun {
         builds: {for (final task in tasks) task: TaskStatus.waitingForBackfill},
       );
       final checks = [
-        ...tasks.map(
-          (t) => PresubmitCheck.init(
-            buildName: t,
+        for (final task in tasks)
+          PresubmitCheck.init(
+            buildName: task,
             checkRunId: checkRun.id!,
             creationTime: pullRequest.createdAt!.microsecondsSinceEpoch,
           ),
-        ),
       ];
       await firestoreService.writeViaTransaction(
         documentsToWrites([...checks, guard], exists: false),
