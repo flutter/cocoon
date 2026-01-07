@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:googleapis/firestore/v1.dart';
 
 import '../../cocoon_service.dart';
+import '../model/firestore/base.dart';
 import '../model/firestore/ci_staging.dart';
 import '../request_handling/exceptions.dart';
 

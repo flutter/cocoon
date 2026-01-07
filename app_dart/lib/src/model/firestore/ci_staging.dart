@@ -479,25 +479,6 @@ enum TaskConclusion {
   bool get isSuccess => this == success;
 }
 
-/// Well-defined stages in the build infrastructure.
-enum CiStage implements Comparable<CiStage> {
-  /// Build engine artifacts
-  fusionEngineBuild('engine'),
-
-  /// All non-engine artifact tests (engine & framework)
-  fusionTests('fusion');
-
-  const CiStage(this.name);
-
-  final String name;
-
-  @override
-  int compareTo(CiStage other) => index - other.index;
-
-  @override
-  String toString() => name;
-}
-
 /// Explains what happened when attempting to mark the conclusion of a check run
 /// using [CiStaging.markConclusion].
 enum StagingConclusionResult {

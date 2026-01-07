@@ -20,6 +20,7 @@ import '../foundation/utils.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
+import '../model/firestore/base.dart';
 import '../model/firestore/ci_staging.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';

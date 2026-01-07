@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/github.dart';

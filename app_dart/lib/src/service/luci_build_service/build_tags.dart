@@ -75,6 +75,20 @@ final class BuildTags {
   List<bbv2.StringPair> toStringPairs() {
     return buildTags.map((e) => e.toStringPair()).toList();
   }
+
+  /// the current reschedule attempt.
+  ///
+  /// It returns 1 if this is the first run.
+  int get currentAttempt {
+    final attempt = getTagOfType<CurrentAttemptBuildTag>();
+    return attempt?.attemptNumber ?? 1;
+  }
+
+  /// GitHub Pull Request Number
+  int get pullRequestNumber {
+    final prTag = getTagOfType<GitHubPullRequestBuildTag>();
+    return prTag!.pullRequestNumber;
+  }
 }
 
 /// Valid tags for [bbv2.ScheduleBuildRequest.tags].
@@ -314,6 +328,16 @@ final class GitHubPullRequestBuildTag extends BuildTag {
 final class GitHubCheckRunIdBuildTag extends BuildTag {
   static const _keyName = 'github_checkrun';
   GitHubCheckRunIdBuildTag({required this.checkRunId})
+    : super(_keyName, '$checkRunId');
+
+  /// ID of the checkRun.
+  final int checkRunId;
+}
+
+/// A link back to the GitHub checkRun for this build.
+final class GuardCheckRunIdBuildTag extends BuildTag {
+  static const _keyName = 'guard_checkrun';
+  GuardCheckRunIdBuildTag({required this.checkRunId})
     : super(_keyName, '$checkRunId');
 
   /// ID of the checkRun.
