@@ -12,16 +12,22 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
+import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
@@ -3527,6 +3533,273 @@ targets:
           ['Linux analyze'],
           reason: 'Only scheduled a special-cased build',
         );
+      });
+    });
+    group('process unified check run', () {
+      late _CapturingFakeLuciBuildService fakeLuciBuildService;
+
+      setUp(() {
+        fakeLuciBuildService = _CapturingFakeLuciBuildService();
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: fakeLuciBuildService,
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+      });
+
+      test('schedules tests after engine stage', () async {
+        final pullRequest = generatePullRequest();
+        final checkRunGuard = generateCheckRun(1234, name: 'Merge Queue Guard');
+
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestore,
+          checks: [checkRunGuard],
+          pullRequest: pullRequest,
+        );
+
+        // Initialize presubmit guard for engine stage
+        await UnifiedCheckRun.initializePresubmitGuardDocument(
+          firestoreService: firestore,
+          slug: pullRequest.base!.repo!.slug(),
+          pullRequestId: pullRequest.number!,
+          checkRun: checkRunGuard,
+          stage: CiStage.fusionEngineBuild,
+          commitSha: pullRequest.head!.sha!,
+          creationTime: DateTime.now().millisecondsSinceEpoch,
+          author: pullRequest.user!.login!,
+          tasks: ['Linux engine_build'],
+        );
+
+        // Initialize check run for the task
+        firestore.putDocument(
+          PresubmitCheck.init(
+            buildName: 'Linux engine_build',
+            checkRunId: checkRunGuard.id!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        // Enable fusion
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+        config.dynamicConfig = DynamicConfig(
+          unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+        );
+
+        final userData = PresubmitUserData(
+          commit: CommitRef(
+            slug: pullRequest.base!.repo!.slug(),
+            sha: pullRequest.head!.sha!,
+            branch: pullRequest.head!.ref!,
+          ),
+          guardCheckRunId: checkRunGuard.id,
+          stage: CiStage.fusionEngineBuild,
+          checkSuiteId: 2,
+          pullRequestNumber: pullRequest.number,
+        );
+
+        final build = generateBbv2Build(
+          Int64(1),
+          name: 'Linux engine_build',
+          tags: [
+            bbv2.StringPair(key: 'current_attempt', value: '1'),
+            bbv2.StringPair(
+              key: 'buildset',
+              value: 'sha/git/${pullRequest.head!.sha!}',
+            ),
+          ],
+        );
+
+        expect(
+          await scheduler.processUnifiedCheckRunCompleted(build, userData),
+          isTrue,
+        );
+
+        // Should schedule tests for the next stage (fusionTests)
+        expect(fakeLuciBuildService.scheduledTryBuilds, isNotEmpty);
+        expect(fakeLuciBuildService.stage, CiStage.fusionTests);
+        // Verify state update in Firestore
+        final guards = await firestore.query(PresubmitGuard.collectionId, {});
+        final guard = guards
+            .map(PresubmitGuard.fromDocument)
+            .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
+        expect(guard.builds?['Linux engine_build'], TaskStatus.succeeded);
+        expect(guard.remainingBuilds, 0);
+      });
+
+      test(
+        'fails the merge queue guard when a test check run fails (merge group)',
+        () async {
+          final pullRequest = generatePullRequest();
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: 'Merge Queue Guard',
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          // Make it look like a merge group
+          // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
+
+          // Initialize presubmit guard for tests stage
+          await UnifiedCheckRun.initializePresubmitGuardDocument(
+            firestoreService: firestore,
+            slug: pullRequest.base!.repo!.slug(),
+            pullRequestId: pullRequest.number!,
+            checkRun: checkRunGuard,
+            stage: CiStage.fusionTests,
+            commitSha: pullRequest.head!.sha!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+            author: pullRequest.user!.login!,
+            tasks: ['Linux test'],
+          );
+
+          // Initialize check run for the task
+          firestore.putDocument(
+            PresubmitCheck.init(
+              buildName: 'Linux test',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'gh-readonly-queue/master/pr-123-abc',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.fusionTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.FAILURE,
+            tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
+          );
+
+          expect(
+            await scheduler.processUnifiedCheckRunCompleted(build, userData),
+            isTrue,
+          );
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: anyNamed('status'),
+              conclusion: CheckRunConclusion.failure, // Merge queue failure
+              output: anyNamed('output'),
+            ),
+          ).called(1);
+
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          final guard = PresubmitGuard.fromDocument(guards.single);
+          expect(guard.failedBuilds, 1);
+        },
+      );
+
+      test('closes merge queue guard in merge group success', () async {
+        final pullRequest = generatePullRequest();
+        final checkRunGuard = generateCheckRun(
+          1234,
+          name: 'Merge Queue Guard',
+          startedAt: DateTime.now(),
+        );
+
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestore,
+          checks: [checkRunGuard],
+          pullRequest: pullRequest,
+        );
+
+        // Make it look like a merge group
+        // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
+
+        // Initialize presubmit guard for tests stage
+        await UnifiedCheckRun.initializePresubmitGuardDocument(
+          firestoreService: firestore,
+          slug: pullRequest.base!.repo!.slug(),
+          pullRequestId: pullRequest.number!,
+          checkRun: checkRunGuard,
+          stage: CiStage.fusionTests,
+          commitSha: pullRequest.head!.sha!,
+          creationTime: DateTime.now().millisecondsSinceEpoch,
+          author: pullRequest.user!.login!,
+          tasks: ['Linux test'],
+        );
+
+        // Initialize check run for the task
+        firestore.putDocument(
+          PresubmitCheck.init(
+            buildName: 'Linux test',
+            checkRunId: checkRunGuard.id!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        final userData = PresubmitUserData(
+          commit: CommitRef(
+            slug: pullRequest.base!.repo!.slug(),
+            sha: pullRequest.head!.sha!,
+            branch: 'gh-readonly-queue/master/pr-123-abc',
+          ),
+          guardCheckRunId: checkRunGuard.id,
+          stage: CiStage.fusionTests,
+          checkSuiteId: 2,
+          pullRequestNumber: pullRequest.number,
+        );
+
+        final build = generateBbv2Build(
+          Int64(1),
+          name: 'Linux test',
+          status: bbv2.Status.SUCCESS,
+          tags: [
+            bbv2.StringPair(key: 'current_attempt', value: '1'),
+            bbv2.StringPair(
+              key: 'buildset',
+              value: 'sha/git/${pullRequest.head!.sha!}',
+            ),
+          ],
+        );
+
+        expect(
+          await scheduler.processUnifiedCheckRunCompleted(build, userData),
+          isTrue,
+        );
+
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: CheckRunConclusion.success, // Merge queue success
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+
+        final guards = await firestore.query(PresubmitGuard.collectionId, {});
+        final guard = PresubmitGuard.fromDocument(guards.single);
+        expect(guard.remainingBuilds, 0);
       });
     });
   });
