@@ -5685,6 +5685,20 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<bool>);
 
   @override
+  _i13.Future<bool> processUnifiedCheckRunCompleted(
+    _i6.Build? build,
+    _i31.PresubmitUserData? userData,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#processUnifiedCheckRunCompleted, [
+              build,
+              userData,
+            ]),
+            returnValue: _i13.Future<bool>.value(false),
+          )
+          as _i13.Future<bool>);
+
+  @override
   bool detectMergeGroup(_i32.CheckRun? checkRun) =>
       (super.noSuchMethod(
             Invocation.method(#detectMergeGroup, [checkRun]),

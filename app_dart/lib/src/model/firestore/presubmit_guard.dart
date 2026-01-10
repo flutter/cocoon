@@ -185,8 +185,14 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   CheckRun get checkRun {
     final jsonData =
         jsonDecode(fields[fieldCheckRun]!.stringValue!) as Map<String, Object?>;
+    // Workaround for https://github.com/SpinlockLabs/github.dart/issues/412
+    if (jsonData['conclusion'] == 'null') {
+      jsonData.remove('conclusion');
+    }
     return CheckRun.fromJson(jsonData);
   }
+
+  String get checkRunJson => fields[fieldCheckRun]!.stringValue!;
 
   /// The repository that this stage is recorded for.
   RepositorySlug get slug {

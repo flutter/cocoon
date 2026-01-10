@@ -136,32 +136,32 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
         slug: userData.commit.slug,
         rescheduled: rescheduled,
       );
-    }
-    if (!rescheduled && config.flags.closeMqGuardAfterPresubmit ||
-        !rescheduled && userData.guardCheckRunId != null) {
-      // Process to the check-run status in the merge queue document during
-      // the LUCI callback.
-      final conclusion = _githubChecksService.conclusionForResult(build.status);
-      await _scheduler.processCheckRunCompleted(
-        cocoon_checks.CheckRun(
-          id: userData.guardCheckRunId != null
-              ? userData.guardCheckRunId!
-              : userData.checkRunId,
-          name: userData.guardCheckRunId != null
-              ? 'Merge Queue Guard'
-              : builderName,
-          headSha: userData.commit.sha,
-          conclusion: '$conclusion',
-          checkSuite: CheckSuite(
-            id: userData.checkSuiteId ?? 0,
-            headBranch: userData.commit.branch,
+
+      if (!rescheduled && config.flags.closeMqGuardAfterPresubmit) {
+        // Process to the check-run status in the merge queue document during
+        // the LUCI callback.
+        final conclusion = _githubChecksService.conclusionForResult(
+          build.status,
+        );
+        await _scheduler.processCheckRunCompleted(
+          cocoon_checks.CheckRun(
+            id: userData.checkRunId,
+            name: builderName,
             headSha: userData.commit.sha,
-            conclusion: conclusion,
-            pullRequests: [],
+            conclusion: '$conclusion',
+            checkSuite: CheckSuite(
+              id: userData.checkSuiteId,
+              headBranch: userData.commit.branch,
+              headSha: userData.commit.sha,
+              conclusion: conclusion,
+              pullRequests: [],
+            ),
           ),
-        ),
-        userData.commit.slug,
-      );
+          userData.commit.slug,
+        );
+      }
+    } else if (!rescheduled) {
+      await _scheduler.processUnifiedCheckRunCompleted(build, userData);
     }
 
     return Response.emptyOk;
