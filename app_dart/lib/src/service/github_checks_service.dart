@@ -7,6 +7,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
 import '../foundation/github_checks_util.dart';
+import '../model/bbv2_extension.dart';
 import 'config.dart';
 import 'luci_build_service.dart';
 
@@ -72,7 +73,7 @@ class GithubChecksService {
     final url = 'https://cr-buildbucket.appspot.com/build/${build.id}';
     github.CheckRunOutput? output;
     // If status has completed with failure then provide more details.
-    if (taskFailed(build.status)) {
+    if (build.status.isTaskFailed()) {
       log.info(
         'failed presubmit task, ${build.id} has failed, status = ${build.status.toString()}',
       );
@@ -112,14 +113,6 @@ class GithubChecksService {
       output: output,
     );
     return true;
-  }
-
-  /// Check if task has completed with failure.
-  bool taskFailed(bbv2.Status status) {
-    final checkRunStatus = statusForResult(status);
-    final conclusion = conclusionForResult(status);
-    return (checkRunStatus == github.CheckRunStatus.completed) &&
-        failedStatesSet.contains(conclusion);
   }
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
