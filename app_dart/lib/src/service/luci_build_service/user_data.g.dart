@@ -30,6 +30,10 @@ _PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
             'guard_check_run_id',
             (v) => (v as num?)?.toInt(),
           ),
+          pullRequestNumber: $checkedConvert(
+            'pull_request_number',
+            (v) => (v as num?)?.toInt(),
+          ),
           stage: $checkedConvert(
             'stage',
             (v) => $enumDecodeNullable(_$CiStageEnumMap, v),
@@ -45,6 +49,7 @@ _PresubmitUserData _$PresubmitUserDataFromJson(Map<String, dynamic> json) =>
         'checkRunId': 'check_run_id',
         'checkSuiteId': 'check_suite_id',
         'guardCheckRunId': 'guard_check_run_id',
+        'pullRequestNumber': 'pull_request_number',
       },
     );
 
@@ -57,6 +62,7 @@ Map<String, dynamic> _$PresubmitUserDataToJson(_PresubmitUserData instance) =>
       'check_run_id': instance.checkRunId,
       'check_suite_id': instance.checkSuiteId,
       'guard_check_run_id': instance.guardCheckRunId,
+      'pull_request_number': instance.pullRequestNumber,
       'stage': _$CiStageEnumMap[instance.stage],
     };
 

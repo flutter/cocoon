@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
@@ -17,6 +18,7 @@ import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
 
 import '../foundation/utils.dart';
+import '../model/bbv2_extension.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
@@ -42,8 +44,10 @@ import 'firestore/unified_check_run.dart';
 import 'get_files_changed.dart';
 import 'github_checks_service.dart';
 import 'luci_build_service.dart';
+import 'luci_build_service/build_tags.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
+import 'luci_build_service/user_data.dart';
 import 'scheduler/ci_yaml_fetcher.dart';
 import 'scheduler/files_changed_optimization.dart';
 import 'scheduler/process_check_run_result.dart';
@@ -1061,17 +1065,176 @@ $s
       case CiStage.fusionEngineBuild:
         if (isMergeGroup) {
           await _completeArtifacts(sha, true);
+          await _closeMergeQueue(
+            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            slug: slug,
+            sha: sha,
+            stage: CiStage.fusionEngineBuild,
+            logCrumb: logCrumb,
+          );
+        } else {
+          await _closeSuccessfulEngineBuildStage(
+            checkRun: checkRun,
+            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            slug: slug,
+            sha: sha,
+            logCrumb: logCrumb,
+          );
+        }
+      case CiStage.fusionTests:
+        await _closeSuccessfulTestStage(
+          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          slug: slug,
+          sha: sha,
+          logCrumb: logCrumb,
+        );
+    }
+    return true;
+  }
+
+  /// Process a completed unified check run.
+  ///
+  /// Handles pull requests only
+  Future<bool> processUnifiedCheckRunCompleted(
+    bbv2.Build build,
+    PresubmitUserData userData,
+  ) async {
+    final name = build.builder.builder;
+    final sha = userData.commit.sha;
+    final status = build.status.toTaskStatus();
+    final slug = userData.commit.slug;
+    final stage = userData.stage!;
+    final tagSet = BuildTags.fromStringPairs(build.tags);
+
+    /// Create a fake check run to pass to existing methods.
+    final checkRun = cocoon_checks.CheckRun(
+      id: userData.guardCheckRunId,
+      name: 'Merge Queue Guard',
+      headSha: userData.commit.sha,
+      checkSuite: CheckSuite(
+        id: userData.checkSuiteId,
+        headBranch: userData.commit.branch,
+        headSha: userData.commit.sha,
+        conclusion: CheckRunConclusion.empty,
+        pullRequests: [],
+      ),
+    );
+
+    if (kCheckRunsToIgnore.contains(name)) {
+      return true;
+    }
+
+    final logCrumb =
+        'processUnifiedCheckRunCompleted($name, $slug, $sha, $status)';
+
+    final isFusion = slug == Config.flutterSlug;
+    if (!isFusion) {
+      return true;
+    }
+
+    final isMergeGroup = detectMergeGroup(checkRun);
+
+    final stagingConclusion = await _markUnifiedCheckRunConclusion(
+      slug: slug,
+      stage: stage,
+      name: name,
+      status: status,
+      pullRequestNumber: userData.pullRequestNumber!,
+      guardCheckRunId: userData.guardCheckRunId!,
+      attempt: tagSet.currentAttempt,
+      startTime: build.startTime.toDateTime().microsecondsSinceEpoch,
+      endTime: build.endTime.toDateTime().microsecondsSinceEpoch,
+      summary: build.summaryMarkdown,
+    );
+
+    // First; check if we even recorded anything. This can occur if we've already passed the check_run and
+    // have moved on to running more tests (which wouldn't be present in our document).
+    if (!stagingConclusion.isOk) {
+      return false;
+    }
+
+    // If an internal error happened in Cocoon, we need human assistance to
+    // figure out next steps.
+    if (stagingConclusion.result ==
+        PresubmitGuardConclusionResult.internalError) {
+      // If an internal error happened in the merge group, there may be no further
+      // signals from GitHub that would cause the merge group to either land or
+      // fail. The safest thing to do is to kick the pull request out of the queue
+      // and let humans sort it out. If the group is left hanging in the queue, it
+      // will hold up all other PRs that are trying to land.
+      if (isMergeGroup) {
+        await _completeArtifacts(sha, false);
+        final guard = checkRunFromString(stagingConclusion.checkRunJson);
+        await failGuardForMergeGroup(
+          slug,
+          sha,
+          stagingConclusion.summary,
+          stagingConclusion.details,
+          guard,
+        );
+      }
+      return false;
+    }
+
+    // Are there tests remaining? Keep waiting.
+    if (stagingConclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
+      return false;
+    }
+
+    if (stagingConclusion.isFailed) {
+      // Something failed in the current CI stage:
+      //
+      // * If this is a pull request: keep the merge guard open and do not proceed
+      //   to the next stage. Let the author sort out what's up.
+      // * If this is a merge group: kick the pull request out of the queue, and
+      //   let the author sort it out.
+      if (isMergeGroup) {
+        await _completeArtifacts(sha, false);
+        final guard = checkRunFromString(stagingConclusion.checkRunJson);
+        await failGuardForMergeGroup(
+          slug,
+          sha,
+          stagingConclusion.summary,
+          stagingConclusion.details,
+          guard,
+        );
+      }
+      return true;
+    }
+
+    // The logic for finishing a stage is different between build and test stages:
+    //
+    // * If this is a build stage, then:
+    //    * If this is a pull request presubmit, then start the test stage.
+    //    * If this is a merge group (in MQ), then close the MQ guard, letting
+    //      GitHub land it.
+    // * If this is a test stage, then close the MQ guard (allowing the PR to
+    //   enter the MQ).
+    switch (stage) {
+      case CiStage.fusionEngineBuild:
+        if (isMergeGroup) {
+          await _completeArtifacts(sha, true);
+          await _closeMergeQueue(
+            mergeQueueGuard: stagingConclusion.checkRunJson,
+            slug: slug,
+            sha: sha,
+            stage: CiStage.fusionEngineBuild,
+            logCrumb: logCrumb,
+          );
         }
         await _closeSuccessfulEngineBuildStage(
           checkRun: checkRun,
-          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          mergeQueueGuard: stagingConclusion.checkRunJson,
           slug: slug,
           sha: sha,
           logCrumb: logCrumb,
         );
       case CiStage.fusionTests:
         await _closeSuccessfulTestStage(
-          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          mergeQueueGuard: stagingConclusion.checkRunJson,
           slug: slug,
           sha: sha,
           logCrumb: logCrumb,
@@ -1111,20 +1274,6 @@ $s
     required String sha,
     required String logCrumb,
   }) async {
-    // We know that we're in a fusion repo; now we need to figure out if we are
-    //   1) in a presubmit test or
-    //   2) in the merge queue
-    if (detectMergeGroup(checkRun)) {
-      await _closeMergeQueue(
-        mergeQueueGuard: mergeQueueGuard,
-        slug: slug,
-        sha: sha,
-        stage: CiStage.fusionEngineBuild,
-        logCrumb: logCrumb,
-      );
-      return;
-    }
-
     log.info(
       '$logCrumb: Stage completed successfully: ${CiStage.fusionEngineBuild}',
     );
@@ -1392,6 +1541,48 @@ $stacktrace
         stage: stage,
         checkRun: name,
         conclusion: conclusion,
+      );
+    });
+  }
+
+  Future<PresubmitGuardConclusion> _markUnifiedCheckRunConclusion({
+    required RepositorySlug slug,
+    required CiStage stage,
+    required String name,
+    required TaskStatus status,
+    required int pullRequestNumber,
+    required int guardCheckRunId,
+    required int attempt,
+    int? startTime,
+    int? endTime,
+    String? summary,
+  }) async {
+    final logCrumb = 'checkCompleted($name, $stage, $slug, $status)';
+    final guardId = PresubmitGuardId(
+      slug: slug,
+      pullRequestId: pullRequestNumber,
+      checkRunId: guardCheckRunId,
+      stage: stage,
+    );
+    final state = PresubmitCheckState(
+      buildName: name,
+      status: status,
+      attemptNumber: attempt,
+      startTime: startTime,
+      endTime: endTime,
+      summary: summary,
+    );
+    log.info('$logCrumb: ${guardId.documentId}');
+    // We're doing a transactional update, which could fail if multiple tasks
+    // are running at the same time so retry a sane amount of times before
+    // giving up.
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
+
+    return r.retry(() {
+      return UnifiedCheckRun.markConclusion(
+        firestoreService: _firestore,
+        guardId: guardId,
+        state: state,
       );
     });
   }

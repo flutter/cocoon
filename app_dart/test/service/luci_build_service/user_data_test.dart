@@ -31,6 +31,7 @@ void main() {
         'repo_owner': 'repo-owner',
         'repo_name': 'repo-name',
         'guard_check_run_id': null,
+        'pull_request_number': null,
         'stage': null,
       });
     });

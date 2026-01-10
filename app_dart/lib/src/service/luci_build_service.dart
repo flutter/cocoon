@@ -248,20 +248,26 @@ class LuciBuildService {
     );
 
     final checkRuns = <CheckRun>[];
-    PresubmitUserData userData;
+    late PresubmitUserData userData;
+    // If the unified check run flow is enabled, do not create individual
+    // check runs for each target but use the guard check run instead.
+    if (isUnifiedCheckRunFlow && checkRunGuard != null) {
+      userData = PresubmitUserData(
+        commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
+        guardCheckRunId: checkRunGuard.id!,
+        checkSuiteId: checkRunGuard.checkSuiteId,
+        pullRequestNumber: pullRequest.number!,
+        stage: stage,
+      );
+      // We need to store PR to checkrun mapping in order to get PR later in
+      // [Scheduler.proceedUnifiedCheckRunToTestingStage] method
+      checkRuns.add(checkRunGuard);
+    }
+
     for (var target in targets) {
-      // If the unified check run flow is not enabled for this user,
-      //create individual check runs for each target.
-      if (isUnifiedCheckRunFlow && checkRunGuard != null) {
-        userData = PresubmitUserData(
-          commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
-          guardCheckRunId: checkRunGuard.id!,
-          stage: stage,
-        );
-        // We need to store PR to checkrun mapping in order to get PR later in
-        // [Scheduler.proceedUnifiedCheckRunToTestingStage] method
-        checkRuns.add(checkRunGuard);
-      } else {
+      // If the unified check run flow is disabled create individual check runs
+      // for each target.
+      if (!isUnifiedCheckRunFlow || checkRunGuard == null) {
         final checkRun = await _githubChecksUtil.createCheckRun(
           _config,
           target.slug,
@@ -334,7 +340,7 @@ class LuciBuildService {
             // if unified check run flow is enabled, use guard check run othervise check run id.
             tags: isUnifiedCheckRunFlow && checkRunGuard != null
                 ? BuildTags([
-                    GuardCheckRunIdBuildTag(checkRunId: checkRunGuard.id!),
+                    GuardCheckRunIdBuildTag(guardCheckRunId: checkRunGuard.id!),
                   ])
                 : BuildTags([
                     GitHubCheckRunIdBuildTag(checkRunId: userData.checkRunId!),
