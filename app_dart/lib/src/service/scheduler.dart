@@ -984,7 +984,7 @@ $s
       conclusion: conclusion,
     );
 
-    if (stagingConclusion.result == StagingConclusionResult.missing) {
+    if (stagingConclusion.result == PresubmitGuardConclusionResult.missing) {
       // Check run not found in the engine stage. Look for it in the test stage.
       stage = CiStage.fusionTests;
       stagingConclusion = await _recordCurrentCiStage(
@@ -1004,7 +1004,8 @@ $s
 
     // If an internal error happened in Cocoon, we need human assistance to
     // figure out next steps.
-    if (stagingConclusion.result == StagingConclusionResult.internalError) {
+    if (stagingConclusion.result ==
+        PresubmitGuardConclusionResult.internalError) {
       // If an internal error happened in the merge group, there may be no further
       // signals from GitHub that would cause the merge group to either land or
       // fail. The safest thing to do is to kick the pull request out of the queue
@@ -1164,7 +1165,7 @@ $s
       // will hold up all other PRs that are trying to land.
       if (isMergeGroup) {
         await _completeArtifacts(sha, false);
-        final guard = checkRunFromString(stagingConclusion.checkRunJson);
+        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
           sha,
@@ -1193,7 +1194,7 @@ $s
       //   let the author sort it out.
       if (isMergeGroup) {
         await _completeArtifacts(sha, false);
-        final guard = checkRunFromString(stagingConclusion.checkRunJson);
+        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           slug,
           sha,
@@ -1218,7 +1219,7 @@ $s
         if (isMergeGroup) {
           await _completeArtifacts(sha, true);
           await _closeMergeQueue(
-            mergeQueueGuard: stagingConclusion.checkRunJson,
+            mergeQueueGuard: stagingConclusion.checkRunGuard!,
             slug: slug,
             sha: sha,
             stage: CiStage.fusionEngineBuild,
@@ -1227,14 +1228,14 @@ $s
         }
         await _closeSuccessfulEngineBuildStage(
           checkRun: checkRun,
-          mergeQueueGuard: stagingConclusion.checkRunJson,
+          mergeQueueGuard: stagingConclusion.checkRunGuard!,
           slug: slug,
           sha: sha,
           logCrumb: logCrumb,
         );
       case CiStage.fusionTests:
         await _closeSuccessfulTestStage(
-          mergeQueueGuard: stagingConclusion.checkRunJson,
+          mergeQueueGuard: stagingConclusion.checkRunGuard!,
           slug: slug,
           sha: sha,
           logCrumb: logCrumb,
@@ -1514,7 +1515,7 @@ $stacktrace
     }
   }
 
-  Future<StagingConclusion> _recordCurrentCiStage({
+  Future<PresubmitGuardConclusion> _recordCurrentCiStage({
     required RepositorySlug slug,
     required String sha,
     required CiStage stage,

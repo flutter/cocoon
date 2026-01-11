@@ -38,7 +38,7 @@ enum PresubmitGuardConclusionResult {
 class PresubmitGuardConclusion {
   final PresubmitGuardConclusionResult result;
   final int remaining;
-  final String checkRunJson;
+  final String? checkRunGuard;
   final int failed;
   final String summary;
   final String details;
@@ -46,7 +46,7 @@ class PresubmitGuardConclusion {
   const PresubmitGuardConclusion({
     required this.result,
     required this.remaining,
-    required this.checkRunJson,
+    required this.checkRunGuard,
     required this.failed,
     required this.summary,
     required this.details,
@@ -66,7 +66,7 @@ class PresubmitGuardConclusion {
       (other is PresubmitGuardConclusion &&
           other.result == result &&
           other.remaining == remaining &&
-          other.checkRunJson == checkRunJson &&
+          other.checkRunGuard == checkRunGuard &&
           other.failed == failed &&
           other.summary == summary &&
           other.details == details);
@@ -75,7 +75,7 @@ class PresubmitGuardConclusion {
   int get hashCode => Object.hashAll([
     result,
     remaining,
-    checkRunJson,
+    checkRunGuard,
     failed,
     summary,
     details,
@@ -83,5 +83,5 @@ class PresubmitGuardConclusion {
 
   @override
   String toString() =>
-      'BuildConclusion("$result", "$remaining", "$failed", "$summary", "$details", "$checkRunJson")';
+      'BuildConclusion("$result", "$remaining", "$failed", "$summary", "$details", "$checkRunGuard")';
 }

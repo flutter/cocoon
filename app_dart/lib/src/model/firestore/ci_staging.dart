@@ -12,6 +12,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import '../../model/common/presubmit_guard_conclusion.dart';
 import '../../service/firestore.dart';
 import 'base.dart';
 
@@ -189,11 +190,11 @@ final class CiStaging extends AppDocument<CiStaging> {
 
   /// Mark a [checkRun] for a given [stage] with [conclusion].
   ///
-  /// Returns a [StagingConclusion] record or throws. If the check_run was
+  /// Returns a [PresubmitGuardConclusion] record or throws. If the check_run was
   /// both valid and recorded successfully, the record's `remaining` value
   /// signals how many more tests are running. Returns the record (valid: false)
   /// otherwise.
-  static Future<StagingConclusion> markConclusion({
+  static Future<PresubmitGuardConclusion> markConclusion({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required String sha,
@@ -267,8 +268,8 @@ final class CiStaging extends AppDocument<CiStaging> {
           '$logCrumb: $checkRun not present in doc for $transaction / $doc',
         );
         await firestoreService.rollback(transaction);
-        return StagingConclusion(
-          result: StagingConclusionResult.missing,
+        return PresubmitGuardConclusion(
+          result: PresubmitGuardConclusionResult.missing,
           remaining: remaining,
           checkRunGuard: null,
           failed: failed,
@@ -336,8 +337,8 @@ final class CiStaging extends AppDocument<CiStaging> {
         // An attempt to read a document not in firestore should not be retried.
         log.info('$logCrumb: staging document not found for $transaction');
         await firestoreService.rollback(transaction);
-        return StagingConclusion(
-          result: StagingConclusionResult.internalError,
+        return PresubmitGuardConclusion(
+          result: PresubmitGuardConclusionResult.internalError,
           remaining: -1,
           checkRunGuard: null,
           failed: failed,
@@ -372,12 +373,12 @@ $stack
     log.info(
       '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
     );
-    return StagingConclusion(
+    return PresubmitGuardConclusion(
       result: valid
-          ? StagingConclusionResult.ok
-          : StagingConclusionResult.internalError,
+          ? PresubmitGuardConclusionResult.ok
+          : PresubmitGuardConclusionResult.internalError,
       remaining: remaining,
-      checkRunGuard: checkRunGuard,
+      checkRunGuard: checkRunGuard ?? '',
       failed: failed,
       summary: valid
           ? 'All tests passed'
@@ -477,85 +478,4 @@ enum TaskConclusion {
 
   /// Whether the task is a success or not.
   bool get isSuccess => this == success;
-}
-
-/// Explains what happened when attempting to mark the conclusion of a check run
-/// using [CiStaging.markConclusion].
-enum StagingConclusionResult {
-  /// Check run update recorded successfully in the respective CI stage.
-  ///
-  /// It is OK to evaluate returned results for stage completeness.
-  ok,
-
-  /// The check run is not in the specified CI stage.
-  ///
-  /// Perhaps it's from a different CI stage.
-  missing,
-
-  /// An unexpected error happened, and the results of the conclusion are
-  /// undefined.
-  ///
-  /// Examples of situations that can lead to this result:
-  ///
-  /// * The Firestore document is missing.
-  /// * The contents of the Firestore document are inconsistent.
-  /// * An unexpected error happend while trying to read from/write to Firestore.
-  ///
-  /// When this happens, it's best to stop the current transaction, report the
-  /// error to the logs, and have someone investigate the issue.
-  internalError,
-}
-
-/// Results from attempting to mark a staging task as completed.
-///
-/// See: [CiStaging.markConclusion]
-class StagingConclusion {
-  final StagingConclusionResult result;
-  final int remaining;
-  final String? checkRunGuard;
-  final int failed;
-  final String summary;
-  final String details;
-
-  const StagingConclusion({
-    required this.result,
-    required this.remaining,
-    required this.checkRunGuard,
-    required this.failed,
-    required this.summary,
-    required this.details,
-  });
-
-  bool get isOk => result == StagingConclusionResult.ok;
-
-  bool get isPending => isOk && remaining > 0;
-
-  bool get isFailed => isOk && !isPending && failed > 0;
-
-  bool get isComplete => isOk && !isPending && !isFailed;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StagingConclusion &&
-          other.result == result &&
-          other.remaining == remaining &&
-          other.checkRunGuard == checkRunGuard &&
-          other.failed == failed &&
-          other.summary == summary &&
-          other.details == details);
-
-  @override
-  int get hashCode => Object.hashAll([
-    result,
-    remaining,
-    checkRunGuard,
-    failed,
-    summary,
-    details,
-  ]);
-
-  @override
-  String toString() =>
-      'StagingConclusion("$result", "$remaining", "$checkRunGuard", "$failed", "$summary", "$details")';
 }

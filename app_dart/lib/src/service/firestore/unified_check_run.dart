@@ -249,7 +249,7 @@ final class UnifiedCheckRun {
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
           remaining: presubmitGuard.remainingBuilds ?? -1,
-          checkRunJson: presubmitGuard.checkRunJson,
+          checkRunGuard: presubmitGuard.checkRunJson,
           failed: presubmitGuard.failedBuilds ?? -1,
           summary:
               'Check run "${state.buildName}" not present in ${guardId.stage} CI stage',
@@ -336,7 +336,7 @@ final class UnifiedCheckRun {
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
           remaining: -1,
-          checkRunJson: '',
+          checkRunGuard: null,
           failed: failed,
           summary: 'Internal server error',
           details:
@@ -371,7 +371,7 @@ $stack
             ? PresubmitGuardConclusionResult.ok
             : PresubmitGuardConclusionResult.internalError,
         remaining: remaining,
-        checkRunJson: presubmitGuard.checkRunJson,
+        checkRunGuard: presubmitGuard.checkRunJson,
         failed: failed,
         summary: valid
             ? 'Successfully updated presubmit guard status'
