@@ -15,6 +15,8 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i10;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart' as _i41;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i28;
 import 'package:cocoon_service/src/model/commit_ref.dart' as _i33;
+import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart'
+    as _i42;
 import 'package:cocoon_service/src/model/firestore/base.dart' as _i30;
 import 'package:cocoon_service/src/model/firestore/commit.dart' as _i39;
 import 'package:cocoon_service/src/model/firestore/task.dart' as _i34;
@@ -37,7 +39,7 @@ import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart'
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart'
     as _i31;
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart'
-    as _i42;
+    as _i43;
 import 'package:fixnum/fixnum.dart' as _i35;
 import 'package:github/github.dart' as _i7;
 import 'package:github/hooks.dart' as _i22;
@@ -5675,25 +5677,20 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
 
   @override
   _i13.Future<bool> processCheckRunCompleted(
-    _i32.CheckRun? checkRun,
-    _i7.RepositorySlug? slug,
+    _i42.PresubmitCompletedCheck? check,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#processCheckRunCompleted, [checkRun, slug]),
+            Invocation.method(#processCheckRunCompleted, [check]),
             returnValue: _i13.Future<bool>.value(false),
           )
           as _i13.Future<bool>);
 
   @override
   _i13.Future<bool> processUnifiedCheckRunCompleted(
-    _i6.Build? build,
-    _i31.PresubmitUserData? userData,
+    _i42.PresubmitCompletedCheck? check,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#processUnifiedCheckRunCompleted, [
-              build,
-              userData,
-            ]),
+            Invocation.method(#processUnifiedCheckRunCompleted, [check]),
             returnValue: _i13.Future<bool>.value(false),
           )
           as _i13.Future<bool>);
@@ -5728,19 +5725,19 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<_i42.ProcessCheckRunResult> processCheckRun(
+  _i13.Future<_i43.ProcessCheckRunResult> processCheckRun(
     _i32.CheckRunEvent? checkRunEvent,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#processCheckRun, [checkRunEvent]),
-            returnValue: _i13.Future<_i42.ProcessCheckRunResult>.value(
-              _i20.dummyValue<_i42.ProcessCheckRunResult>(
+            returnValue: _i13.Future<_i43.ProcessCheckRunResult>.value(
+              _i20.dummyValue<_i43.ProcessCheckRunResult>(
                 this,
                 Invocation.method(#processCheckRun, [checkRunEvent]),
               ),
             ),
           )
-          as _i13.Future<_i42.ProcessCheckRunResult>);
+          as _i13.Future<_i43.ProcessCheckRunResult>);
 
   @override
   _i7.CheckRun checkRunFromString(String? input) =>

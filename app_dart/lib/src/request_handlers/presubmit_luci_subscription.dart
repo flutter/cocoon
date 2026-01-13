@@ -13,6 +13,7 @@ import '../model/bbv2_extension.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
+import '../model/common/presubmit_completed_check.dart';
 import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/authentication.dart';
 import '../request_handling/exceptions.dart';
@@ -136,32 +137,18 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
         slug: userData.commit.slug,
         rescheduled: rescheduled,
       );
-
-      if (!rescheduled && config.flags.closeMqGuardAfterPresubmit) {
-        // Process to the check-run status in the merge queue document during
-        // the LUCI callback.
-        final conclusion = _githubChecksService.conclusionForResult(
-          build.status,
-        );
-        await _scheduler.processCheckRunCompleted(
-          cocoon_checks.CheckRun(
-            id: userData.checkRunId,
-            name: builderName,
-            headSha: userData.commit.sha,
-            conclusion: '$conclusion',
-            checkSuite: CheckSuite(
-              id: userData.checkSuiteId,
-              headBranch: userData.commit.branch,
-              headSha: userData.commit.sha,
-              conclusion: conclusion,
-              pullRequests: [],
-            ),
-          ),
-          userData.commit.slug,
-        );
+    }
+    if (!rescheduled) {
+      // Process to the check-run status in the merge queue document during
+      // the LUCI callback.
+      if (config.flags.closeMqGuardAfterPresubmit) {
+        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+        await _scheduler.processCheckRunCompleted(check);
       }
-    } else if (!rescheduled) {
-      await _scheduler.processUnifiedCheckRunCompleted(build, userData);
+      if (userData.guardCheckRunId != null) {
+        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+        await _scheduler.processUnifiedCheckRunCompleted(check);
+      }
     }
 
     return Response.emptyOk;

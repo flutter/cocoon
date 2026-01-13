@@ -22,6 +22,7 @@ import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
+import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
@@ -1190,8 +1191,10 @@ targets:
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
                   await scheduler.processCheckRunCompleted(
-                    createCocoonCheckRun(name: ignored, sha: 'abc123'),
-                    createGithubRepository().slug(),
+                    PresubmitCompletedCheck.fromCheckRun(
+                      createCocoonCheckRun(name: ignored, sha: 'abc123'),
+                      createGithubRepository().slug(),
+                    ),
                   ),
                   isTrue,
                 );
@@ -1223,8 +1226,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isFalse,
             );
@@ -1260,8 +1265,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isFalse,
             );
@@ -1312,8 +1319,10 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                  createGithubRepository().slug(),
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                    createGithubRepository().slug(),
+                  ),
                 ),
                 isTrue,
               );
@@ -1419,8 +1428,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isTrue,
             );
@@ -1560,12 +1571,14 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    checkSuiteId: 0,
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'testSha',
+                      checkSuiteId: 0,
+                    ),
+                    createGithubRepository().slug(),
                   ),
-                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -1666,8 +1679,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isTrue,
             );
@@ -1925,12 +1940,14 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    conclusion: 'failure',
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'testSha',
+                      conclusion: 'failure',
+                    ),
+                    createGithubRepository().slug(),
                   ),
-                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -2005,13 +2022,15 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    conclusion: 'failure',
-                    headBranch: headBranch,
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'testSha',
+                      conclusion: 'failure',
+                      headBranch: headBranch,
+                    ),
+                    createGithubRepository().slug(),
                   ),
-                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -2085,12 +2104,14 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(
-                  name: 'Bar bar',
-                  sha: 'testSha',
-                  headBranch: headBranch,
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    headBranch: headBranch,
+                  ),
+                  createGithubRepository().slug(),
                 ),
-                createGithubRepository().slug(),
               ),
               isTrue,
             );
@@ -2205,8 +2226,10 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                  createGithubRepository().slug(),
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                    createGithubRepository().slug(),
+                  ),
                 ),
                 isTrue,
               );
@@ -3618,8 +3641,10 @@ targets:
           ],
         );
 
+        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+
         expect(
-          await scheduler.processUnifiedCheckRunCompleted(build, userData),
+          await scheduler.processUnifiedCheckRunCompleted(check),
           isTrue,
         );
 
@@ -3695,8 +3720,10 @@ targets:
             tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
           );
 
+          final check = PresubmitCompletedCheck.fromBuild(build, userData);
+
           expect(
-            await scheduler.processUnifiedCheckRunCompleted(build, userData),
+            await scheduler.processUnifiedCheckRunCompleted(check),
             isTrue,
           );
 
@@ -3781,8 +3808,10 @@ targets:
           ],
         );
 
+        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+
         expect(
-          await scheduler.processUnifiedCheckRunCompleted(build, userData),
+          await scheduler.processUnifiedCheckRunCompleted(check),
           isTrue,
         );
 
