@@ -1102,8 +1102,6 @@ $s
       return true;
     }
 
-    final isMergeGroup = check.isMergeGroup;
-
     final stagingConclusion = await _markUnifiedCheckRunConclusion(
       slug: check.slug,
       stage: check.stage!,
@@ -1132,7 +1130,7 @@ $s
       // fail. The safest thing to do is to kick the pull request out of the queue
       // and let humans sort it out. If the group is left hanging in the queue, it
       // will hold up all other PRs that are trying to land.
-      if (isMergeGroup) {
+      if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
@@ -1161,7 +1159,7 @@ $s
       //   to the next stage. Let the author sort out what's up.
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
-      if (isMergeGroup) {
+      if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
@@ -1185,7 +1183,7 @@ $s
     //   enter the MQ).
     switch (check.stage!) {
       case CiStage.fusionEngineBuild:
-        if (isMergeGroup) {
+        if (check.isMergeGroup) {
           await _completeArtifacts(check.sha, true);
           await _closeMergeQueue(
             mergeQueueGuard: stagingConclusion.checkRunGuard!,
