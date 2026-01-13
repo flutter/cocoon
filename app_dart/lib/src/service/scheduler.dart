@@ -978,7 +978,7 @@ $s
         sha: check.sha,
         stage: stage,
         name: check.name,
-        conclusion: TaskConclusion.fromName(check.status.toConclusion()),
+        conclusion: check.status.toTaskConclusion(),
       );
 
       if (stagingConclusion.result == PresubmitGuardConclusionResult.missing) {
@@ -989,7 +989,7 @@ $s
           sha: check.sha,
           stage: stage,
           name: check.name,
-          conclusion: TaskConclusion.fromName(check.status.toConclusion()),
+          conclusion: check.status.toTaskConclusion(),
         );
       }
     }

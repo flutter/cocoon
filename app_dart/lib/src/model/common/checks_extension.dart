@@ -5,7 +5,19 @@
 import 'package:cocoon_common/task_status.dart';
 import 'package:github/github.dart';
 
+import '../firestore/ci_staging.dart';
+
 extension ChecksExtension on TaskStatus {
+  /// Converts a [TaskStatus] to a [TaskConclusion].
+  TaskConclusion toTaskConclusion() {
+    return switch (this) {
+      TaskStatus.succeeded => TaskConclusion.success,
+      TaskStatus.failed || TaskStatus.infraFailure => TaskConclusion.failure,
+      TaskStatus.inProgress => TaskConclusion.scheduled,
+      _ => TaskConclusion.unknown,
+    };
+  }
+
   /// Converts a [TaskStatus] to a GitHub check conclusion string.
   String toConclusion() {
     return switch (this) {
