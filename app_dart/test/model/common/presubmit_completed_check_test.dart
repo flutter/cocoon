@@ -4,6 +4,7 @@
 
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -13,6 +14,8 @@ import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('PresubmitCompletedCheck', () {
     const sha = 'abc';
     final slug = RepositorySlug('flutter', 'flutter');
