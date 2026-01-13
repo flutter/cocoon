@@ -12,8 +12,10 @@ import '../../service/luci_build_service/build_tags.dart';
 import '../../service/luci_build_service/user_data.dart';
 import '../bbv2_extension.dart';
 import '../firestore/base.dart';
+import '../firestore/presubmit_guard.dart';
 import '../github/checks.dart' as cocoon_checks;
 import 'checks_extension.dart';
+import 'presubmit_check_state.dart';
 
 /// Unified representation of a completed presubmit check.
 ///
@@ -27,7 +29,7 @@ class PresubmitCompletedCheck {
   final TaskStatus status;
   final bool isMergeGroup;
 
-  final int? checkRunId;
+  final int checkRunId;
   final int? checkSuiteId;
   final String? headBranch;
   final bool isUnifiedCheckRun;
@@ -67,7 +69,7 @@ class PresubmitCompletedCheck {
       slug: slug,
       status: ChecksExtension.fromConclusion(checkRun.conclusion),
       isMergeGroup: _isMergeGroup(checkRun.checkSuite?.headBranch),
-      checkRunId: checkRun.id,
+      checkRunId: checkRun.id!,
       checkSuiteId: checkRun.checkSuite?.id,
       headBranch: checkRun.checkSuite?.headBranch,
       isUnifiedCheckRun: false,
@@ -89,9 +91,7 @@ class PresubmitCompletedCheck {
       slug: userData.commit.slug,
       status: build.status.toTaskStatus(),
       isMergeGroup: _isMergeGroup(userData.commit.branch),
-      checkRunId: userData.guardCheckRunId != null
-          ? userData.guardCheckRunId!
-          : userData.checkRunId,
+      checkRunId: userData.guardCheckRunId ?? userData.checkRunId!,
       checkSuiteId: userData.checkSuiteId,
       headBranch: userData.commit.branch,
       isUnifiedCheckRun: userData.guardCheckRunId != null,
@@ -122,6 +122,26 @@ class PresubmitCompletedCheck {
         conclusion: CheckRunConclusion.empty,
         pullRequests: [],
       ),
+    );
+  }
+
+  PresubmitGuardId get guardId {
+    return PresubmitGuardId(
+      slug: slug,
+      pullRequestId: pullRequestNumber ?? 0,
+      checkRunId: checkRunId,
+      stage: stage ?? CiStage.fusionTests,
+    );
+  }
+
+  PresubmitCheckState get state {
+    return PresubmitCheckState(
+      buildName: name,
+      status: status,
+      attemptNumber: attempt,
+      startTime: startTime,
+      endTime: endTime,
+      summary: summary,
     );
   }
 

@@ -4,14 +4,13 @@
 
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
-
-import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/firestore/base.dart';
-import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 
 void main() {
   group('PresubmitCompletedCheck', () {
@@ -20,6 +19,7 @@ void main() {
 
     test('fromCheckRun creates correct instance', () {
       final checkRun = const cocoon_checks.CheckRun(
+        id: 1,
         name: 'test_check',
         headSha: sha,
         conclusion: 'success',
@@ -32,7 +32,7 @@ void main() {
       expect(check.slug, slug);
       expect(check.status, TaskStatus.succeeded);
       expect(check.isMergeGroup, false);
-      expect(check.checkRunId, null);
+      expect(check.checkRunId, 1);
       expect(check.checkSuiteId, null);
       expect(check.headBranch, null);
       expect(check.isUnifiedCheckRun, false);

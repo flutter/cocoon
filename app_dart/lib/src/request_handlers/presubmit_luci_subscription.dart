@@ -7,14 +7,12 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:github/github.dart';
 
 import '../model/bbv2_extension.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../model/common/presubmit_completed_check.dart';
-import '../model/github/checks.dart' as cocoon_checks;
 import '../request_handling/authentication.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/request_handler.dart';
@@ -141,13 +139,10 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     if (!rescheduled) {
       // Process to the check-run status in the merge queue document during
       // the LUCI callback.
-      if (config.flags.closeMqGuardAfterPresubmit) {
+      if (config.flags.closeMqGuardAfterPresubmit ||
+          userData.guardCheckRunId != null) {
         final check = PresubmitCompletedCheck.fromBuild(build, userData);
         await _scheduler.processCheckRunCompleted(check);
-      }
-      if (userData.guardCheckRunId != null) {
-        final check = PresubmitCompletedCheck.fromBuild(build, userData);
-        await _scheduler.processUnifiedCheckRunCompleted(check);
       }
     }
 

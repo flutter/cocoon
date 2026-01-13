@@ -13,6 +13,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
+import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
@@ -22,7 +23,6 @@ import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
@@ -3644,7 +3644,7 @@ targets:
         final check = PresubmitCompletedCheck.fromBuild(build, userData);
 
         expect(
-          await scheduler.processUnifiedCheckRunCompleted(check),
+          await scheduler.processCheckRunCompleted(check),
           isTrue,
         );
 
@@ -3723,7 +3723,7 @@ targets:
           final check = PresubmitCompletedCheck.fromBuild(build, userData);
 
           expect(
-            await scheduler.processUnifiedCheckRunCompleted(check),
+            await scheduler.processCheckRunCompleted(check),
             isTrue,
           );
 
@@ -3811,7 +3811,7 @@ targets:
         final check = PresubmitCompletedCheck.fromBuild(build, userData);
 
         expect(
-          await scheduler.processUnifiedCheckRunCompleted(check),
+          await scheduler.processCheckRunCompleted(check),
           isTrue,
         );
 
