@@ -1192,7 +1192,7 @@ $s
             stage: CiStage.fusionEngineBuild,
             logCrumb: logCrumb,
           );
-        }
+        } else {
         await _closeSuccessfulEngineBuildStage(
           checkRun: check.checkRun,
           mergeQueueGuard: stagingConclusion.checkRunGuard!,
@@ -1200,6 +1200,7 @@ $s
           sha: check.sha,
           logCrumb: logCrumb,
         );
+        }
       case CiStage.fusionTests:
         await _closeSuccessfulTestStage(
           mergeQueueGuard: stagingConclusion.checkRunGuard!,
