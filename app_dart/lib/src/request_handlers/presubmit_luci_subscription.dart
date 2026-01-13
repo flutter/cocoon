@@ -102,6 +102,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
     var rescheduled = false;
+    final isUnifiedCheckRun = userData.guardCheckRunId != null;
     if (build.status.isTaskFailed()) {
       // if failed summary stored in github check run and unified check run.
       build.summaryMarkdown = (await _luciBuildService.getBuildById(
@@ -127,7 +128,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
         );
       }
     }
-    if (userData.checkRunId != null) {
+    if (!isUnifiedCheckRun) {
       await _githubChecksService.updateCheckStatus(
         checkRunId: userData.checkRunId!,
         build: build,
@@ -139,8 +140,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     if (!rescheduled) {
       // Process to the check-run status in the merge queue document during
       // the LUCI callback.
-      if (config.flags.closeMqGuardAfterPresubmit ||
-          userData.guardCheckRunId != null) {
+      if (config.flags.closeMqGuardAfterPresubmit || isUnifiedCheckRun) {
         final check = PresubmitCompletedCheck.fromBuild(build, userData);
         await _scheduler.processCheckRunCompleted(check);
       }
