@@ -944,15 +944,14 @@ $s
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompleted(
-    PresubmitCompletedCheck check,
-  ) async {
+  Future<bool> processCheckRunCompleted(PresubmitCompletedCheck check) async {
     if (kCheckRunsToIgnore.contains(check.name)) {
       return true;
     }
-
+    final flow = check.isUnifiedCheckRun ? 'unified' : 'legacy';
+    final requestor = check.isMergeGroup ? 'merge group' : 'pull request';
     final logCrumb =
-        'checkCompleted(${check.name}, ${check.slug}, ${check.sha}, ${check.status})';
+        'checkCompleted(${check.name}, $flow, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
 
     final isFusion = check.slug == Config.flutterSlug;
     if (!isFusion) {
@@ -1399,7 +1398,6 @@ $stacktrace
   }) async {
     final logCrumb =
         'checkCompleted(${state.buildName}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
-
 
     log.info('$logCrumb: ${guardId.documentId}');
     // We're doing a transactional update, which could fail if multiple tasks
