@@ -948,7 +948,7 @@ $s
     if (kCheckRunsToIgnore.contains(check.name)) {
       return true;
     }
-    final flow = check.isUnifiedCheckRun ? 'unified' : 'legacy';
+    final flow = check.isUnifiedCheckRun ? 'unified' : 'github';
     final requestor = check.isMergeGroup ? 'merge group' : 'pull request';
     final logCrumb =
         'checkCompleted(${check.name}, $flow, $requestor, ${check.slug}, ${check.sha}, ${check.status})';

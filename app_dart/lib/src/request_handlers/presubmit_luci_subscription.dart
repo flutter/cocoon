@@ -77,7 +77,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       return Response.emptyOk;
     }
 
-    final build = buildsPubSub.build;
+    var build = buildsPubSub.build;
 
     // Add build fields that are stored in a separate compressed buffer.
     build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
@@ -104,14 +104,17 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     var rescheduled = false;
     final isUnifiedCheckRun = userData.guardCheckRunId != null;
     if (build.status.isTaskFailed()) {
-      // if failed summary stored in github check run and unified check run.
-      build.summaryMarkdown = (await _luciBuildService.getBuildById(
-        build.id,
-        buildMask: bbv2.BuildMask(
-          // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
-          allFields: true,
-        ),
-      )).summaryMarkdown;
+      if (isUnifiedCheckRun) {
+        // If failed we need summaryMarkdown. For github check run flow this
+        // called in [GithubChecksService.updateCheckStatus(...)]
+        build = await _luciBuildService.getBuildById(
+          build.id,
+          buildMask: bbv2.BuildMask(
+            // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
+            allFields: true,
+          ),
+        );
+      }
       final maxAttempt = await _getMaxAttempt(
         userData.commit,
         builderName,
