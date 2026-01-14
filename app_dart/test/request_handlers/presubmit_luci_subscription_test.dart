@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
+import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
@@ -59,6 +60,8 @@ void main() {
       ciYaml: examplePresubmitRescheduleFusionConfig,
     );
 
+
+
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,
@@ -91,12 +94,11 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
     when(
-      mockScheduler.processCheckRunCompleted(any, any),
+      mockScheduler.processCheckRunCompleted(any),
     ).thenAnswer((_) async => true);
 
     tester.message = createPushMessage(
@@ -124,7 +126,7 @@ void main() {
       ),
     ).called(1);
 
-    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
+    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
   });
 
   test('Requests when task failed but no need to reschedule', () async {
@@ -136,12 +138,12 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
     when(
-      mockScheduler.processCheckRunCompleted(any, any),
+      mockScheduler.processCheckRunCompleted(any),
     ).thenAnswer((_) async => true);
 
     final userData = PresubmitUserData(
@@ -155,14 +157,14 @@ void main() {
     );
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux A',
       userData: userData,
     );
 
     final buildsPubSub = createBuild(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux A',
     );
 
@@ -183,7 +185,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).called(1);
-    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
+    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
   });
 
   test('Requests when task failed but need to reschedule', () async {
@@ -196,11 +198,10 @@ void main() {
         rescheduled: true,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
 
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
         commit: CommitRef(
@@ -223,7 +224,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
-    verifyNever(mockScheduler.processCheckRunCompleted(any, any));
+    verifyNever(mockScheduler.processCheckRunCompleted(any));
   });
 
   test('Build rescheduled when in merge queue', () async {
@@ -236,7 +237,9 @@ void main() {
         rescheduled: true,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
+    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
 
     tester.message = createPushMessage(
       Int64(1),
@@ -302,7 +305,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
-    verifyNever(mockScheduler.processCheckRunCompleted(any, any));
+    verifyNever(mockScheduler.processCheckRunCompleted(any));
   });
 
   test('Build not rescheduled if not found in ciYaml list.', () async {
@@ -315,12 +318,12 @@ void main() {
         rescheduled: false,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
     when(
-      mockScheduler.processCheckRunCompleted(any, any),
+      mockScheduler.processCheckRunCompleted(any),
     ).thenAnswer((_) async => true);
 
     final userData = PresubmitUserData(
@@ -335,14 +338,14 @@ void main() {
 
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
       userData: userData,
     );
 
     final buildsPubSub = createBuild(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
     );
 
@@ -364,8 +367,8 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
-    verify(mockGithubChecksService.taskFailed(any)).called(1);
-    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
+
+    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
   });
 
   test('Build not rescheduled if ci.yaml fails validation.', () async {
@@ -378,12 +381,12 @@ void main() {
         rescheduled: false,
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
     when(
-      mockScheduler.processCheckRunCompleted(any, any),
+      mockScheduler.processCheckRunCompleted(any),
     ).thenAnswer((_) async => true);
 
     final userData = PresubmitUserData(
@@ -397,14 +400,14 @@ void main() {
     );
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
       userData: userData,
     );
 
     final buildsPubSub = createBuild(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
     );
 
@@ -426,12 +429,10 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
-    verify(mockScheduler.processCheckRunCompleted(any, any)).called(1);
+    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
   });
 
   test('Pubsub rejected if branch is not enabled.', () async {
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
-
     final userData = PresubmitUserData(
       checkRunId: 1,
       checkSuiteId: 2,
@@ -443,7 +444,7 @@ void main() {
     );
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux C',
       userData: userData,
     );
@@ -470,11 +471,13 @@ void main() {
         rescheduled: anyNamed('rescheduled'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => true);
+    when(
+      mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
+    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
 
     tester.message = createPushMessage(
       Int64(1),
-      status: bbv2.Status.SUCCESS,
+      status: bbv2.Status.FAILURE,
       builder: 'Linux presubmit_max_attempts=2',
       userData: PresubmitUserData(
         checkRunId: 1,
@@ -532,7 +535,7 @@ void main() {
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.
     expect(build.input.properties.fields, contains('git_ref'));
-    verifyNever(mockScheduler.processCheckRunCompleted(any, any));
+    verifyNever(mockScheduler.processCheckRunCompleted(any));
   });
 
   test('Close the MQ guard once presubmit compleated', () async {
@@ -545,7 +548,6 @@ void main() {
         rescheduled: anyNamed('rescheduled'),
       ),
     ).thenAnswer((_) async => true);
-    when(mockGithubChecksService.taskFailed(any)).thenAnswer((_) => false);
 
     tester.message = createPushMessage(
       Int64(1),
@@ -566,36 +568,24 @@ void main() {
       mockGithubChecksService.conclusionForResult(bbv2.Status.SUCCESS),
     ).thenAnswer((_) => github.CheckRunConclusion.success);
     when(
-      mockScheduler.processCheckRunCompleted(any, any),
+      mockScheduler.processCheckRunCompleted(any),
     ).thenAnswer((_) async => true);
 
     await tester.post(handler);
 
     final captured = verify(
-      mockScheduler.processCheckRunCompleted(captureAny, captureAny),
+      mockScheduler.processCheckRunCompleted(captureAny),
     ).captured;
-    expect(captured, hasLength(2));
+    expect(captured, hasLength(1));
     expect(
       captured[0],
-      isA<cocoon_checks.CheckRun>()
+      isA<PresubmitCompletedCheck>()
           .having((e) => e.name, 'name', 'Linux C')
-          .having((e) => e.headSha, 'headSha', 'abc')
-          .having((e) => e.id, 'id', 1)
-          .having((e) => e.conclusion, 'conclusion', 'success')
-          .having(
-            (e) => e.checkSuite,
-            'checkSuite',
-            isA<CheckSuite>()
-                .having((e) => e.id, 'id', 2)
-                .having((e) => e.headBranch, 'headBranch', 'master')
-                .having((e) => e.headSha, 'headSha', 'abc'),
-          ),
-    );
-    expect(
-      captured[1],
-      isA<RepositorySlug>()
-          .having((e) => e.owner, 'owner', 'flutter')
-          .having((e) => e.name, 'name', 'flutter'),
+          .having((e) => e.sha, 'sha', 'abc')
+          .having((e) => e.checkRunId, 'checkRunId', 1)
+          .having((e) => e.status, 'status', TaskStatus.succeeded)
+          .having((e) => e.checkSuiteId, 'checkSuiteId', 2)
+          .having((e) => e.headBranch, 'headBranch', 'master'),
     );
   });
 }

@@ -12,20 +12,26 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/model/commit_ref.dart';
+import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
+import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
+import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:cocoon_service/src/service/scheduler/process_check_run_result.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
-import 'package:github/hooks.dart';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -956,6 +962,8 @@ void main() {
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -1183,8 +1191,10 @@ targets:
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
                   await scheduler.processCheckRunCompleted(
-                    createCocoonCheckRun(name: ignored, sha: 'abc123'),
-                    createGithubRepository().slug(),
+                    PresubmitCompletedCheck.fromCheckRun(
+                      createCocoonCheckRun(name: ignored, sha: 'abc123'),
+                      createGithubRepository().slug(),
+                    ),
                   ),
                   isTrue,
                 );
@@ -1216,8 +1226,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isFalse,
             );
@@ -1253,8 +1265,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isFalse,
             );
@@ -1305,8 +1319,10 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                  createGithubRepository().slug(),
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
+                    createGithubRepository().slug(),
+                  ),
                 ),
                 isTrue,
               );
@@ -1369,6 +1385,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+                stage: anyNamed('stage'),
               ),
             ).thenAnswer((inv) async {
               return [];
@@ -1410,8 +1428,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isTrue,
             );
@@ -1454,6 +1474,8 @@ targets:
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+                stage: anyNamed('stage'),
               ),
             );
             expect(result.callCount, 1);
@@ -1506,6 +1528,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
                 return [];
@@ -1547,12 +1571,14 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    checkSuiteId: 0,
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'testSha',
+                      checkSuiteId: 0,
+                    ),
+                    createGithubRepository().slug(),
                   ),
-                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -1595,6 +1621,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               );
               expect(result.callCount, 1);
@@ -1651,8 +1679,10 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                createGithubRepository().slug(),
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                  createGithubRepository().slug(),
+                ),
               ),
               isTrue,
             );
@@ -1830,6 +1860,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
+                checkRunGuard: anyNamed('checkRunGuard'),
+                stage: anyNamed('stage'),
               ),
             ).thenAnswer((Invocation i) async {
               engineArtifacts =
@@ -1908,12 +1940,14 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    conclusion: 'failure',
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'testSha',
+                      conclusion: 'failure',
+                    ),
+                    createGithubRepository().slug(),
                   ),
-                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -1988,13 +2022,15 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    conclusion: 'failure',
-                    headBranch: headBranch,
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'testSha',
+                      conclusion: 'failure',
+                      headBranch: headBranch,
+                    ),
+                    createGithubRepository().slug(),
                   ),
-                  createGithubRepository().slug(),
                 ),
                 isTrue,
               );
@@ -2068,12 +2104,14 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                createCocoonCheckRun(
-                  name: 'Bar bar',
-                  sha: 'testSha',
-                  headBranch: headBranch,
+                PresubmitCompletedCheck.fromCheckRun(
+                  createCocoonCheckRun(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    headBranch: headBranch,
+                  ),
+                  createGithubRepository().slug(),
                 ),
-                createGithubRepository().slug(),
               ),
               isTrue,
             );
@@ -2153,6 +2191,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
                 return [];
@@ -2186,8 +2226,10 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                  createGithubRepository().slug(),
+                  PresubmitCompletedCheck.fromCheckRun(
+                    createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
+                    createGithubRepository().slug(),
+                  ),
                 ),
                 isTrue,
               );
@@ -2226,6 +2268,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
+                  checkRunGuard: anyNamed('checkRunGuard'),
+                  stage: anyNamed('stage'),
                 ),
               );
               expect(result.callCount, 1);
@@ -2728,6 +2772,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2796,6 +2842,8 @@ targets:
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         );
         expect(result.callCount, 1);
@@ -2858,6 +2906,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -2994,6 +3044,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -3122,6 +3174,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
           return [];
@@ -3504,6 +3558,279 @@ targets:
         );
       });
     });
+    group('process unified check run', () {
+      late _CapturingFakeLuciBuildService fakeLuciBuildService;
+
+      setUp(() {
+        fakeLuciBuildService = _CapturingFakeLuciBuildService();
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: fakeLuciBuildService,
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+      });
+
+      test('schedules tests after engine stage', () async {
+        final pullRequest = generatePullRequest();
+        final checkRunGuard = generateCheckRun(1234, name: 'Merge Queue Guard');
+
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestore,
+          checks: [checkRunGuard],
+          pullRequest: pullRequest,
+        );
+
+        // Initialize presubmit guard for engine stage
+        await UnifiedCheckRun.initializePresubmitGuardDocument(
+          firestoreService: firestore,
+          slug: pullRequest.base!.repo!.slug(),
+          pullRequestId: pullRequest.number!,
+          checkRun: checkRunGuard,
+          stage: CiStage.fusionEngineBuild,
+          commitSha: pullRequest.head!.sha!,
+          creationTime: DateTime.now().millisecondsSinceEpoch,
+          author: pullRequest.user!.login!,
+          tasks: ['Linux engine_build'],
+        );
+
+        // Initialize check run for the task
+        firestore.putDocument(
+          PresubmitCheck.init(
+            buildName: 'Linux engine_build',
+            checkRunId: checkRunGuard.id!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        // Enable fusion
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+        config.dynamicConfig = DynamicConfig(
+          unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+        );
+
+        final userData = PresubmitUserData(
+          commit: CommitRef(
+            slug: pullRequest.base!.repo!.slug(),
+            sha: pullRequest.head!.sha!,
+            branch: pullRequest.head!.ref!,
+          ),
+          guardCheckRunId: checkRunGuard.id,
+          stage: CiStage.fusionEngineBuild,
+          checkSuiteId: 2,
+          pullRequestNumber: pullRequest.number,
+        );
+
+        final build = generateBbv2Build(
+          Int64(1),
+          name: 'Linux engine_build',
+          tags: [
+            bbv2.StringPair(key: 'current_attempt', value: '1'),
+            bbv2.StringPair(
+              key: 'buildset',
+              value: 'sha/git/${pullRequest.head!.sha!}',
+            ),
+          ],
+        );
+
+        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+
+        expect(
+          await scheduler.processCheckRunCompleted(check),
+          isTrue,
+        );
+
+        // Should schedule tests for the next stage (fusionTests)
+        expect(fakeLuciBuildService.scheduledTryBuilds, isNotEmpty);
+        expect(fakeLuciBuildService.stage, CiStage.fusionTests);
+        // Verify state update in Firestore
+        final guards = await firestore.query(PresubmitGuard.collectionId, {});
+        final guard = guards
+            .map(PresubmitGuard.fromDocument)
+            .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
+        expect(guard.builds?['Linux engine_build'], TaskStatus.succeeded);
+        expect(guard.remainingBuilds, 0);
+      });
+
+      test(
+        'fails the merge queue guard when a test check run fails (merge group)',
+        () async {
+          final pullRequest = generatePullRequest();
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: 'Merge Queue Guard',
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          // Make it look like a merge group
+          // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
+
+          // Initialize presubmit guard for tests stage
+          await UnifiedCheckRun.initializePresubmitGuardDocument(
+            firestoreService: firestore,
+            slug: pullRequest.base!.repo!.slug(),
+            pullRequestId: pullRequest.number!,
+            checkRun: checkRunGuard,
+            stage: CiStage.fusionTests,
+            commitSha: pullRequest.head!.sha!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+            author: pullRequest.user!.login!,
+            tasks: ['Linux test'],
+          );
+
+          // Initialize check run for the task
+          firestore.putDocument(
+            PresubmitCheck.init(
+              buildName: 'Linux test',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'gh-readonly-queue/master/pr-123-abc',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.fusionTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.FAILURE,
+            tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
+          );
+
+          final check = PresubmitCompletedCheck.fromBuild(build, userData);
+
+          expect(
+            await scheduler.processCheckRunCompleted(check),
+            isTrue,
+          );
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: anyNamed('status'),
+              conclusion: CheckRunConclusion.failure, // Merge queue failure
+              output: anyNamed('output'),
+            ),
+          ).called(1);
+
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          final guard = PresubmitGuard.fromDocument(guards.single);
+          expect(guard.failedBuilds, 1);
+        },
+      );
+
+      test('closes merge queue guard in merge group success', () async {
+        final pullRequest = generatePullRequest();
+        final checkRunGuard = generateCheckRun(
+          1234,
+          name: 'Merge Queue Guard',
+          startedAt: DateTime.now(),
+        );
+
+        await PrCheckRuns.initializeDocument(
+          firestoreService: firestore,
+          checks: [checkRunGuard],
+          pullRequest: pullRequest,
+        );
+
+        // Make it look like a merge group
+        // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
+
+        // Initialize presubmit guard for tests stage
+        await UnifiedCheckRun.initializePresubmitGuardDocument(
+          firestoreService: firestore,
+          slug: pullRequest.base!.repo!.slug(),
+          pullRequestId: pullRequest.number!,
+          checkRun: checkRunGuard,
+          stage: CiStage.fusionTests,
+          commitSha: pullRequest.head!.sha!,
+          creationTime: DateTime.now().millisecondsSinceEpoch,
+          author: pullRequest.user!.login!,
+          tasks: ['Linux test'],
+        );
+
+        // Initialize check run for the task
+        firestore.putDocument(
+          PresubmitCheck.init(
+            buildName: 'Linux test',
+            checkRunId: checkRunGuard.id!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        final userData = PresubmitUserData(
+          commit: CommitRef(
+            slug: pullRequest.base!.repo!.slug(),
+            sha: pullRequest.head!.sha!,
+            branch: 'gh-readonly-queue/master/pr-123-abc',
+          ),
+          guardCheckRunId: checkRunGuard.id,
+          stage: CiStage.fusionTests,
+          checkSuiteId: 2,
+          pullRequestNumber: pullRequest.number,
+        );
+
+        final build = generateBbv2Build(
+          Int64(1),
+          name: 'Linux test',
+          status: bbv2.Status.SUCCESS,
+          tags: [
+            bbv2.StringPair(key: 'current_attempt', value: '1'),
+            bbv2.StringPair(
+              key: 'buildset',
+              value: 'sha/git/${pullRequest.head!.sha!}',
+            ),
+          ],
+        );
+
+        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+
+        expect(
+          await scheduler.processCheckRunCompleted(check),
+          isTrue,
+        );
+
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: CheckRunConclusion.success, // Merge queue success
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+
+        final guards = await firestore.query(PresubmitGuard.collectionId, {});
+        final guard = PresubmitGuard.fromDocument(guards.single);
+        expect(guard.remainingBuilds, 0);
+      });
+    });
   });
 }
 
@@ -3511,16 +3838,23 @@ final class _CapturingFakeLuciBuildService extends Fake
     implements LuciBuildService {
   List<Target> scheduledTryBuilds = [];
   EngineArtifacts? engineArtifacts;
+  PullRequest? pullRequest;
+  CheckRun? checkRunGuard;
+  CiStage? stage;
 
   @override
   Future<List<Target>> scheduleTryBuilds({
     required List<Target> targets,
     required PullRequest pullRequest,
-    CheckSuiteEvent? checkSuiteEvent,
-    EngineArtifacts? engineArtifacts,
+    required EngineArtifacts engineArtifacts,
+    CheckRun? checkRunGuard,
+    CiStage? stage,
   }) async {
     scheduledTryBuilds = targets;
     this.engineArtifacts = engineArtifacts;
+    this.pullRequest = pullRequest;
+    this.checkRunGuard = checkRunGuard;
+    this.stage = stage;
     return targets;
   }
 

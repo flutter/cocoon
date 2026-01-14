@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/common/presubmit_guard_conclusion.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -159,9 +160,9 @@ void main() {
       final result = await future;
       expect(
         result,
-        const StagingConclusion(
+        const PresubmitGuardConclusion(
           remaining: 1,
-          result: StagingConclusionResult.missing,
+          result: PresubmitGuardConclusionResult.missing,
           failed: 0,
           checkRunGuard: null,
           summary: 'Check run "test" not present in engine CI stage',
@@ -227,9 +228,9 @@ void main() {
       final result = await future;
       expect(
         result,
-        const StagingConclusion(
+        const PresubmitGuardConclusion(
           remaining: 0,
-          result: StagingConclusionResult.ok,
+          result: PresubmitGuardConclusionResult.ok,
           failed: 0,
           checkRunGuard: '{}',
           summary: 'All tests passed',
@@ -269,9 +270,9 @@ For CI stage engine:
       final result = await future;
       expect(
         result,
-        const StagingConclusion(
+        const PresubmitGuardConclusion(
           remaining: 1,
-          result: StagingConclusionResult.internalError,
+          result: PresubmitGuardConclusionResult.internalError,
           failed: 0,
           checkRunGuard: '{}',
           summary: 'Not a valid state transition for MacOS build_test',
@@ -308,9 +309,9 @@ For CI stage engine:
       // Remaining == 1 because our test was already concluded.
       expect(
         result,
-        const StagingConclusion(
+        const PresubmitGuardConclusion(
           remaining: 1,
-          result: StagingConclusionResult.ok,
+          result: PresubmitGuardConclusionResult.ok,
           failed: 0,
           checkRunGuard: '{}',
           summary: 'All tests passed',
@@ -350,9 +351,9 @@ For CI stage engine:
       final result = await future;
       expect(
         result,
-        const StagingConclusion(
+        const PresubmitGuardConclusion(
           remaining: 1,
-          result: StagingConclusionResult.internalError,
+          result: PresubmitGuardConclusionResult.internalError,
           failed: 1,
           checkRunGuard: '{}',
           summary: 'Not a valid state transition for MacOS build_test',
@@ -388,9 +389,9 @@ For CI stage engine:
       final result = await future;
       expect(
         result,
-        const StagingConclusion(
+        const PresubmitGuardConclusion(
           remaining: 1,
-          result: StagingConclusionResult.ok,
+          result: PresubmitGuardConclusionResult.ok,
           failed: 1,
           checkRunGuard: '{}',
           summary: 'All tests passed',

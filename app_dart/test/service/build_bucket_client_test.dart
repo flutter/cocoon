@@ -59,10 +59,7 @@ void main() {
         return AccessToken('Bearer', 'data', DateTime.utc(2119));
       });
       httpClient = MockClient((http.Request request) async {
-        expect(
-          request.headers['content-type'],
-          'application/json; charset=utf-8',
-        );
+        expect(request.headers['content-type'], 'application/json');
         expect(request.headers['accept'], 'application/json');
         expect(request.headers['authorization'], 'Bearer data');
         if (request.method == 'POST' &&

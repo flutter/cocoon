@@ -11,6 +11,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
 import '../../model/commit_ref.dart';
+import '../../model/firestore/base.dart';
 import '../../model/firestore/task.dart';
 
 part 'user_data.g.dart';
@@ -65,8 +66,11 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
   /// [checkRunId] and [checkSuiteId].
   factory PresubmitUserData({
     required CommitRef commit,
-    required int checkRunId,
-    required int checkSuiteId,
+    int? checkRunId,
+    int? checkSuiteId,
+    int? guardCheckRunId,
+    int? pullRequestNumber,
+    CiStage? stage,
   }) {
     return _PresubmitUserData(
       repoOwner: commit.slug.owner,
@@ -75,6 +79,9 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
       commitSha: commit.sha,
       checkRunId: checkRunId,
       checkSuiteId: checkSuiteId,
+      guardCheckRunId: guardCheckRunId,
+      pullRequestNumber: pullRequestNumber,
+      stage: stage,
     );
   }
 
@@ -102,45 +109,64 @@ abstract final class PresubmitUserData extends BuildBucketUserData {
   CommitRef get commit;
 
   /// Which GitHub check run this build reports status to.
-  int get checkRunId;
+  int? get checkRunId;
 
-  int get checkSuiteId;
+  /// The check suite ID to which check run belongs.
+  int? get checkSuiteId;
+
+  /// The check run ID of the MQ guard build associated with this presubmit.
+  /// Used for Unified check runs.
+  int? get guardCheckRunId;
+
+  /// The pull request number associated with this presubmit.
+  /// Used for Unified check runs.
+  int? get pullRequestNumber;
+
+  /// The CI stage associated with this presubmit.
+  /// Used for Unified check runs.
+  CiStage? get stage;
 }
 
-@JsonSerializable(checked: true)
+@JsonSerializable(checked: true, fieldRename: FieldRename.snake)
 final class _PresubmitUserData extends PresubmitUserData {
   const _PresubmitUserData({
     required this.repoOwner,
     required this.repoName,
     required this.commitBranch,
     required this.commitSha,
-    required this.checkRunId,
-    required this.checkSuiteId,
+    this.checkRunId,
+    this.checkSuiteId,
+    this.guardCheckRunId,
+    this.pullRequestNumber,
+    this.stage,
   }) : super._();
 
   /// The owner of the GitHub repo, i.e. `flutter` or `matanlurey`.
-  @JsonKey(name: 'repo_owner')
   final String repoOwner;
 
   /// The name of the GitHub repo, i.e. `flutter` or `packages`.
-  @JsonKey(name: 'repo_name')
   final String repoName;
 
   /// The branch the [commitSha] is on.
-  @JsonKey(name: 'commit_branch')
   final String commitBranch;
 
   /// The commit SHA being built at.
-  @JsonKey(name: 'commit_sha')
   final String commitSha;
 
-  @JsonKey(name: 'check_run_id')
   @override
-  final int checkRunId;
+  final int? checkRunId;
 
-  @JsonKey(name: 'check_suite_id', defaultValue: 0)
   @override
-  final int checkSuiteId;
+  final int? checkSuiteId;
+
+  @override
+  final int? guardCheckRunId;
+
+  @override
+  final int? pullRequestNumber;
+
+  @override
+  final CiStage? stage;
 
   @override
   CommitRef get commit {
@@ -156,7 +182,11 @@ final class _PresubmitUserData extends PresubmitUserData {
 }
 
 /// Represents the data passed to Buildbucket as part of a postsubmit build.
-@JsonSerializable(checked: true, includeIfNull: false)
+@JsonSerializable(
+  checked: true,
+  includeIfNull: false,
+  fieldRename: FieldRename.snake,
+)
 final class PostsubmitUserData extends BuildBucketUserData {
   PostsubmitUserData({required this.checkRunId, required this.taskId});
 
@@ -183,11 +213,10 @@ final class PostsubmitUserData extends BuildBucketUserData {
   /// Which GitHub check run this build reports status to.
   ///
   /// If this postsubmit is marked bringup (`bringup: true`) there is no associated ID.
-  @JsonKey(name: 'check_run_id', includeIfNull: false)
   final int? checkRunId;
 
   /// The firestore task document name storing results of this build.
-  @JsonKey(name: 'task_id', fromJson: TaskId.parse, toJson: _documentToString)
+  @JsonKey(fromJson: TaskId.parse, toJson: _documentToString)
   final TaskId taskId;
   static String _documentToString(TaskId firestoreTask) {
     return firestoreTask.documentId;
