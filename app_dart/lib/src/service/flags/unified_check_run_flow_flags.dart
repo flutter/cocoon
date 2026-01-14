@@ -18,7 +18,7 @@ final class UnifiedCheckRunFlow {
   );
 
   /// Whether to use unified check-run flow with only one check-run created
-  /// for all LUCI tests or legacy check-run flow.
+  /// for all LUCI tests or github check-run flow.
   @JsonKey()
   final bool useForAll;
 
