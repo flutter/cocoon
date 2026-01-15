@@ -26,5 +26,5 @@ dynamicTestSuppression: true
 unifiedCheckRunFlow:
   useForAll: false
   useForUsers:
-    - dmgr
+    - ievdokdm
     - matanlurey
