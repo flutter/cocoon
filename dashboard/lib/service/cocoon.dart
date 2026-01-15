@@ -103,7 +103,7 @@ abstract class CocoonService {
     required String repo,
     required String testName,
     required bool suppress,
-    required String issueLink,
+    String? issueLink,
     String? note,
   });
 }

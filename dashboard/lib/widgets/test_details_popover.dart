@@ -68,11 +68,7 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
                     // Test is suppressed (NOT Blocking Tree).
                     // Button: "Include Test" -> Unsuppress
                     return ElevatedButton.icon(
-                      onPressed: () => _toggleSuppression(
-                        false,
-                        issueLink:
-                            'https://github.com/flutter/flutter/issues/123',
-                      ),
+                      onPressed: () => _toggleSuppression(false),
                       icon: const Icon(Icons.check_circle_outline),
                       label: const Text('Include Test in Tree'),
                       style: ElevatedButton.styleFrom(
@@ -197,7 +193,7 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
 
   Future<void> _toggleSuppression(
     bool suppress, {
-    required String issueLink,
+    String? issueLink,
     String? note,
   }) async {
     final success = await widget.buildState.updateTestSuppression(

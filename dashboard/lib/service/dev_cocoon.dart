@@ -146,7 +146,7 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
     required String testName,
     required bool suppress,
-    required String issueLink,
+    String? issueLink,
     String? note,
   }) async {
     final list = _suppressedTests.putIfAbsent(repo, () => []);
@@ -156,7 +156,8 @@ class DevelopmentCocoonService implements CocoonService {
           SuppressedTest(
             name: testName,
             repository: repo,
-            issueLink: issueLink,
+            issueLink:
+                issueLink ?? 'https://github.com/flutter/flutter/issues/123',
             createTimestamp: DateTime.now().millisecondsSinceEpoch,
             updates: [
               SuppressionUpdate(

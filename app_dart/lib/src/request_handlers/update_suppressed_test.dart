@@ -23,6 +23,7 @@ import '../service/firestore.dart';
 /// - `repository`: The repository slug (e.g. `flutter/flutter`).
 /// - `action`: `SUPPRESS` or `UNSUPPRESS`.
 /// - `issueLink`: URL to the GitHub issue tracking the failure.
+///    required if SUPPRESS
 /// - `note`: Optional note describing the action.
 final class UpdateSuppressedTest extends ApiRequestHandler {
   const UpdateSuppressedTest({
@@ -75,13 +76,6 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       );
     }
 
-    final issueLink = body[_paramIssueLink];
-    if (issueLink is! String) {
-      throw const BadRequestException(
-        'Parameter "$_paramIssueLink" must be a string',
-      );
-    }
-
     final RepositorySlug repository;
     {
       final repositoryString = body[_paramRepository];
@@ -100,16 +94,26 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       );
     }
 
-    // Validate issue link
-    final issueNumber = _parseIssueNumber(issueLink);
-    if (issueNumber == null) {
-      throw const BadRequestException(
-        'Invalid issue link format, expected https://github.com/flutter/flutter/issues/1234',
-      );
-    }
+    String? issueLink;
 
     // Validate issue exists and is open if suppressing
     if (action == _actionSuppress) {
+      final link = body[_paramIssueLink];
+      if (link is! String) {
+        throw const BadRequestException(
+          'Parameter "$_paramIssueLink" must be a string',
+        );
+      }
+      issueLink = link;
+
+      // Validate issue link
+      final issueNumber = _parseIssueNumber(issueLink);
+      if (issueNumber == null) {
+        throw const BadRequestException(
+          'Invalid issue link format, expected https://github.com/flutter/flutter/issues/1234',
+        );
+      }
+
       final githubService = await config.createGithubService(repository);
       final issue = await githubService.getIssue(
         repository,
@@ -160,8 +164,8 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
     required String testName,
     required RepositorySlug repository,
     required String action,
-    required String issueLink,
     required String note,
+    String? issueLink,
   }) async {
     // Query for existing suppression - we assume there is at most one document
     // per (repo, name) based on business logic, though the DB constraint might
@@ -197,7 +201,8 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       final updatedSuppression = SuppressedTest(
         name: testName,
         repository: repository.fullName,
-        issueLink: issueLink,
+        // issue: today we don't have UI affordance for updating the link.
+        issueLink: existingSuppression.issueLink,
         isSuppressed: isSuppressed,
         createTimestamp: existingSuppression.createTimestamp,
         updates: [...existingSuppression.updates, updateEntry],
@@ -224,7 +229,7 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       final newSuppression = SuppressedTest(
         name: testName,
         repository: repository.fullName,
-        issueLink: issueLink,
+        issueLink: issueLink ?? 'BUG',
         isSuppressed: true,
         createTimestamp: now,
         updates: [updateEntry],
