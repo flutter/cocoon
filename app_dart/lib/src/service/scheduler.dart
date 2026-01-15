@@ -968,6 +968,11 @@ $s
         state: check.state,
       );
     } else {
+      // for github flow check runs are processed only if the build succeeded or
+      // some kind of failure occurred.
+      if (!check.status.isBuildCompleted) {
+        return true;
+      }
       // Check runs are fired at every stage. However, at this point it is unknown
       // if this check run belongs in the engine build stage or in the test stage.
       // So first look for it in the engine stage, and if it's missing, look for

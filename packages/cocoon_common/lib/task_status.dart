@@ -66,6 +66,27 @@ enum TaskStatus {
   /// Whether the status represents a running state.
   bool get isRunning => this == inProgress;
 
+  /// Returns true if the build is waiting for backfill or in progress.
+  bool get isBuildInProgress =>
+      this == TaskStatus.waitingForBackfill || this == TaskStatus.inProgress;
+
+  /// Returns true if the build succeeded or was skipped.
+  bool get isBuildSuccessed =>
+      this == TaskStatus.succeeded || this == TaskStatus.skipped;
+
+  /// Returns true if the build failed, had an infra failure, or was cancelled.
+  bool get isBuildFailed =>
+      this == TaskStatus.failed ||
+      this == TaskStatus.infraFailure ||
+      this == TaskStatus.cancelled;
+
+  /// Returns true if the build succeeded or some kind of failure occurred.
+  bool get isBuildCompleted =>
+      this == TaskStatus.succeeded ||
+      this == TaskStatus.failed ||
+      this == TaskStatus.infraFailure ||
+      this == TaskStatus.cancelled;
+
   /// Returns the JSON representation of `this`.
   Object? toJson() => _schemaValue;
 

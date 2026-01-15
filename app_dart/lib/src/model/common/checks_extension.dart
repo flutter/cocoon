@@ -25,7 +25,7 @@ extension ChecksExtension on TaskStatus {
       TaskStatus.failed || TaskStatus.infraFailure => 'failure',
       TaskStatus.cancelled => 'cancelled',
       TaskStatus.skipped => 'skipped',
-      _ => 'neutral',
+      _ => '',
     };
   }
 
@@ -37,7 +37,7 @@ extension ChecksExtension on TaskStatus {
       TaskStatus.infraFailure => CheckRunConclusion.failure,
       TaskStatus.cancelled => CheckRunConclusion.cancelled,
       TaskStatus.skipped => CheckRunConclusion.skipped,
-      _ => CheckRunConclusion.neutral,
+      _ => CheckRunConclusion.empty,
     };
   }
 
