@@ -127,7 +127,9 @@ final class BatchBackfiller extends RequestHandler {
           (commit, [...tasks.map((t) => t.toRef())]),
       ], postsubmitTargets: currentTargets);
     }
-    log.debug('Built a grid of ${grid.eligibleTasks.length} target columns');
+    log.debug(
+      'Built a grid of ${grid.eligibleTasks.length} target columns for $grid',
+    );
 
     // Produce a list of tasks, ordered from highest to lowest, to backfill.
     // ... but only take the top N tasks, at most.
