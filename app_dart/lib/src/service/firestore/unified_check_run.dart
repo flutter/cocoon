@@ -274,7 +274,7 @@ final class UnifiedCheckRun {
 
       // If build is in progress, we should only update appropriate checks with
       // that [TaskStatus]
-      if (state.isBuildInProgress) {
+      if (state.status.isBuildInProgress) {
         presubmitCheck.startTime = state.startTime!;
       } else {
         // "remaining" should go down if buildSuccessed of any attempt
@@ -285,8 +285,8 @@ final class UnifiedCheckRun {
         // So if the test existed and either remaining or failed_count is changed;
         // the response is valid.
 
-        if (state.isBuildSuccessed ||
-            state.attemptNumber == 1 && state.isBuildFailed) {
+        if (state.status.isBuildSuccessed ||
+            state.attemptNumber == 1 && state.status.isBuildFailed) {
           // Guard against going negative and log enough info so we can debug.
           if (remaining == 0) {
             throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
@@ -297,7 +297,7 @@ final class UnifiedCheckRun {
 
         // Only rollback the "failed" counter if this is a successful test run,
         // i.e. the test failed, the user requested a rerun, and now it passes.
-        if (state.attemptNumber > 1 && state.isBuildSuccessed) {
+        if (state.attemptNumber > 1 && state.status.isBuildSuccessed) {
           log.info(
             '$logCrumb: conclusion flipped to positive - assuming test was re-run',
           );
@@ -309,7 +309,7 @@ final class UnifiedCheckRun {
         }
 
         // Only increment the "failed" counter if the conclusion failed for the first attempt.
-        if (state.attemptNumber == 1 && state.isBuildFailed) {
+        if (state.attemptNumber == 1 && state.status.isBuildFailed) {
           log.info('$logCrumb: test failed');
           valid = true;
           failed = failed + 1;

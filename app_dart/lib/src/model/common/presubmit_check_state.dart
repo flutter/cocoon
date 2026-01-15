@@ -28,21 +28,6 @@ class PresubmitCheckState {
     this.endTime,
     this.summary,
   });
-
-  /// Returns true if the build is waiting for backfill or in progress.
-  bool get isBuildInProgress =>
-      status == TaskStatus.waitingForBackfill ||
-      status == TaskStatus.inProgress;
-
-  /// Returns true if the build succeeded or was skipped.
-  bool get isBuildSuccessed =>
-      status == TaskStatus.succeeded || status == TaskStatus.skipped;
-
-  /// Returns true if the build failed, had an infra failure, or was cancelled.
-  bool get isBuildFailed =>
-      status == TaskStatus.failed ||
-      status == TaskStatus.infraFailure ||
-      status == TaskStatus.cancelled;
 }
 
 extension BuildToPresubmitCheckState on bbv2.Build {
