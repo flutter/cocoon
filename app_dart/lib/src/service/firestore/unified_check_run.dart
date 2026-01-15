@@ -48,8 +48,8 @@ final class UnifiedCheckRun {
         stage: stage,
         creationTime: pullRequest.createdAt!.microsecondsSinceEpoch,
         author: pullRequest.user!.login!,
-        remainingBuilds: null,
-        failedBuilds: null,
+        remainingBuilds: tasks.length,
+        failedBuilds: 0,
         builds: {for (final task in tasks) task: TaskStatus.waitingForBackfill},
       );
       final checks = [
