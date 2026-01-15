@@ -83,11 +83,28 @@ final class VacuumGithubCommits extends ApiRequestHandler {
         'Listing commit for slug: $slug branch: $branch and msSinceEpoch: '
         '${queryAfter.millisecondsSinceEpoch}',
       );
-      commits = await githubService.listBranchedCommits(
-        slug,
-        branch,
-        queryAfter.millisecondsSinceEpoch,
-      );
+
+      try {
+        commits = await githubService.listBranchedCommits(
+          slug,
+          branch,
+          queryAfter.millisecondsSinceEpoch,
+        );
+      } catch (e) {
+        log.error('Failed retrieving commits from githubService', e);
+
+        final gh = config.createGitHubClientWithToken(
+          await config.githubOAuthToken,
+        );
+        commits = await gh.repositories
+            .listCommits(
+              slug,
+              sha: branch,
+              since: queryAfter,
+              until: queryBefore,
+            )
+            .toList();
+      }
       log.debug('Retrieved ${commits.length} commits from GitHub');
       // Do not try to add recent commits as they may already be processed
       // by cocoon, which can cause race conditions.
@@ -99,7 +116,7 @@ final class VacuumGithubCommits extends ApiRequestHandler {
           )
           .toList();
     } on gh.GitHubError catch (e) {
-      log.error('Failed retriving commits from GitHub', e);
+      log.error('Failed retrieving commits from GitHub', e);
     }
 
     return [
