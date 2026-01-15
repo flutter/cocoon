@@ -39,9 +39,7 @@ final class StaticFileHandler extends RequestHandler {
       '.smcbin': 'application/octet-stream',
     };
 
-    const mimeFileMap = {
-     'apple-app-site-association': 'application/json',
-    };
+    const mimeFileMap = {'apple-app-site-association': 'application/json'};
 
     final resultPath = filePath == '/' ? '/index.html' : filePath;
 
