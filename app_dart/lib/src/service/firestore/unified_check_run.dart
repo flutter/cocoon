@@ -213,7 +213,8 @@ final class UnifiedCheckRun {
       final builds = presubmitGuard.builds;
       var status = builds?[state.buildName]!;
 
-      // If build is waiting for backfill, we should only update appropriate 
+      // If build is waiting for backfill, that means its initiated by github
+      // or re-run. So no processing needed, we should only update appropriate
       // checks with that [TaskStatus]
       if (state.status == TaskStatus.waitingForBackfill) {
         status = state.status;
