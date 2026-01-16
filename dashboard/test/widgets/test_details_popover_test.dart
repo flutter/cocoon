@@ -68,7 +68,7 @@ void main() {
       );
 
       expect(find.text('Unblock Tree'), findsOneWidget);
-      expect(find.text('Include Test in Tree'), findsNothing);
+      expect(find.text('Remove Suppression'), findsNothing);
     });
 
     final suppressedTest = SuppressedTest(
@@ -78,7 +78,7 @@ void main() {
       createTimestamp: 123,
     );
 
-    testWidgets('shows Include Test in Tree button when suppressed', (
+    testWidgets('shows `Remove Suppression` button when suppressed', (
       WidgetTester tester,
     ) async {
       buildState.suppressedTests = [suppressedTest];
@@ -96,11 +96,11 @@ void main() {
         ),
       );
 
-      expect(find.text('Include Test in Tree'), findsOneWidget);
+      expect(find.text('Remove Suppression'), findsOneWidget);
       expect(find.text('Unblock Tree'), findsNothing);
     });
 
-    testWidgets('Include Test button unsuppresses test', (
+    testWidgets('Remove Suppression button unsuppresses test', (
       WidgetTester tester,
     ) async {
       buildState.suppressedTests = [suppressedTest];
@@ -118,7 +118,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Include Test in Tree'));
+      await tester.tap(find.text('Remove Suppression'));
       await tester.pump();
 
       expect(buildState.updateTestSuppressionCalls, isNotEmpty);
@@ -235,8 +235,8 @@ void main() {
         ),
       );
 
-      // Tap Include Test
-      await tester.tap(find.text('Include Test in Tree'));
+      // Tap Remove Suppression
+      await tester.tap(find.text('Remove Suppression'));
       await tester.pump(); // Start async call
       await tester.pump(); // Resolve async call and show snackbar
 
