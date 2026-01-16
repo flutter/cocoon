@@ -213,8 +213,7 @@ final class UnifiedCheckRun {
       final builds = presubmitGuard.builds;
       var status = builds?[state.buildName]!;
 
-      // If build is waiting for backfill, that means its initiated by github 
-      // or re-run. So no processing needed, we should only update appropriate 
+      // If build is waiting for backfill, we should only update appropriate 
       // checks with that [TaskStatus]
       if (state.status == TaskStatus.waitingForBackfill) {
         status = state.status;
@@ -275,11 +274,11 @@ final class UnifiedCheckRun {
         presubmitGuard.remainingBuilds = remaining;
         presubmitGuard.failedBuilds = failed;
         presubmitCheck.endTime = state.endTime!;
+        presubmitCheck.summary = state.summary;
       }
       builds![state.buildName] = status;
       presubmitGuard.builds = builds;
       presubmitCheck.status = status;
-      presubmitCheck.summary = state.summary;
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
