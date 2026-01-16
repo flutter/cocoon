@@ -5626,21 +5626,23 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<void> failGuardForMergeGroup(
-    _i7.RepositorySlug? slug,
-    String? headSha,
-    String? summary,
-    String? details,
-    _i7.CheckRun? lock,
-  ) =>
+  _i13.Future<void> failGuardForMergeGroup({
+    required _i7.RepositorySlug? slug,
+    required _i7.CheckRun? lock,
+    required String? headSha,
+    required String? summary,
+    required String? details,
+    String? detailsUrl,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#failGuardForMergeGroup, [
-              slug,
-              headSha,
-              summary,
-              details,
-              lock,
-            ]),
+            Invocation.method(#failGuardForMergeGroup, [], {
+              #slug: slug,
+              #lock: lock,
+              #headSha: headSha,
+              #summary: summary,
+              #details: details,
+              #detailsUrl: detailsUrl,
+            }),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),
           )
@@ -5681,16 +5683,6 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
   ) =>
       (super.noSuchMethod(
             Invocation.method(#processCheckRunCompleted, [check]),
-            returnValue: _i13.Future<bool>.value(false),
-          )
-          as _i13.Future<bool>);
-
-  @override
-  _i13.Future<bool> processUnifiedCheckRunCompleted(
-    _i42.PresubmitCompletedCheck? check,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#processUnifiedCheckRunCompleted, [check]),
             returnValue: _i13.Future<bool>.value(false),
           )
           as _i13.Future<bool>);

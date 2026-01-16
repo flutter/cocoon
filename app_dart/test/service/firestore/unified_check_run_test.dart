@@ -132,31 +132,36 @@ void main() {
         );
 
         // Initialize documents
-        await UnifiedCheckRun.initializePresubmitGuardDocument(
-          firestoreService: firestoreService,
+        final guard = PresubmitGuard(
+          checkRun: checkRun,
+          commitSha: sha,
           slug: slug,
           pullRequestId: 1,
-          checkRun: checkRun,
           stage: CiStage.fusionEngineBuild,
-          commitSha: sha,
           creationTime: 1000,
           author: 'dash',
-          tasks: ['linux', 'mac'],
+          builds: {
+            for (final task in ['linux', 'mac'])
+              task: TaskStatus.waitingForBackfill,
+          },
+          remainingBuilds: 2,
+          failedBuilds: 0,
         );
 
         final check1 = PresubmitCheck.init(
           buildName: 'linux',
-          checkRunId: 123,
+          checkRunId: guardId.checkRunId,
           creationTime: 1000,
         );
         final check2 = PresubmitCheck.init(
           buildName: 'mac',
-          checkRunId: 123,
+          checkRunId: guardId.checkRunId,
           creationTime: 1000,
         );
 
         await firestoreService.writeViaTransaction(
           documentsToWrites([
+            Document(name: guard.name, fields: guard.fields),
             Document(name: check1.name, fields: check1.fields),
             Document(name: check2.name, fields: check2.fields),
           ], exists: false),
@@ -262,7 +267,7 @@ void main() {
         );
 
         expect(result.result, PresubmitGuardConclusionResult.ok);
-        expect(result.remaining, 1);
+        expect(result.remaining, 2);
         expect(result.failed, 1);
       });
 

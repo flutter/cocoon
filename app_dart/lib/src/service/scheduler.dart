@@ -670,16 +670,17 @@ class Scheduler {
       // of the queue. To do that, the merge queue guard must fail as it's the
       // only required GitHub check.
       await failGuardForMergeGroup(
-        slug,
-        headSha,
-        'Failed to schedule checks for merge group',
-        '''
+        slug: slug,
+        lock: lock,
+        headSha: headSha,
+        summary: 'Failed to schedule checks for merge group',
+        details:
+            '''
 $logCrumb
 
 ERROR: $e
 $s
 ''',
-        lock,
       );
     }
   }
@@ -852,13 +853,14 @@ $s
   ///
   /// This removes the merge group from the merge queue without landing it. The
   /// corresponding pull request will have to be fixed and re-enqueued again.
-  Future<void> failGuardForMergeGroup(
-    RepositorySlug slug,
-    String headSha,
-    String summary,
-    String details,
-    CheckRun lock,
-  ) async {
+  Future<void> failGuardForMergeGroup({
+    required RepositorySlug slug,
+    required CheckRun lock,
+    required String headSha,
+    required String summary,
+    required String details,
+    String? detailsUrl,
+  }) async {
     log.info('Failing merge group guard for merge group $headSha in $slug');
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
@@ -871,6 +873,7 @@ $s
         summary: summary,
         text: details,
       ),
+      detailsUrl: detailsUrl,
     );
   }
 
@@ -1017,14 +1020,32 @@ $s
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
-          check.slug,
-          check.sha,
-          stagingConclusion.summary,
-          stagingConclusion.details,
-          guard,
+          slug: check.slug,
+          lock: guard,
+          headSha: check.sha,
+          summary: stagingConclusion.summary,
+          details: stagingConclusion.details,
         );
       }
       return false;
+    }
+
+    // If the number of failed checks is equal to the number of remaining checks, then all remaining checks have failed.
+    if (check.isUnifiedCheckRun &&
+        stagingConclusion.failed > 0 &&
+        stagingConclusion.failed == stagingConclusion.remaining) {
+      final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+      await failGuardForMergeGroup(
+        slug: check.slug,
+        lock: guard,
+        headSha: check.sha,
+        summary: kMergeQueueLockDescription,
+        details:
+            'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
+        detailsUrl:
+            'https://flutter-dashboard.appspot.com/repo/${check.slug.name}/checkrun/${check.guardId}',
+      );
+      return true;
     }
 
     // Are there tests remaining? Keep waiting.
@@ -1046,11 +1067,11 @@ $s
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
-          check.slug,
-          check.sha,
-          stagingConclusion.summary,
-          stagingConclusion.details,
-          guard,
+          slug: check.slug,
+          lock: guard,
+          headSha: check.sha,
+          summary: stagingConclusion.summary,
+          details: stagingConclusion.details,
         );
       }
       return true;

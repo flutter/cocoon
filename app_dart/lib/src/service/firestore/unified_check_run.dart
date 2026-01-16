@@ -76,66 +76,6 @@ final class UnifiedCheckRun {
     }
   }
 
-  /// Initializes a new document for the given [tasks] in Firestore so that stage-tracking can succeed.
-  ///
-  /// The list of tasks will be written as fields of a document with additional fields for tracking the creationTime
-  /// number of tasks, remaining count. It is required to include [commitSha] as a json encoded [CheckRun] as this
-  /// will be used to unlock any check runs blocking progress.
-  ///
-  /// Returns the created document or throws an error.
-  static Future<Document> initializePresubmitGuardDocument({
-    required FirestoreService firestoreService,
-
-    required RepositorySlug slug,
-    required int pullRequestId,
-    required CheckRun checkRun,
-    required CiStage stage,
-    required String commitSha,
-    required int creationTime,
-    required String author,
-    required List<String> tasks,
-  }) async {
-    final buildCount = tasks.length;
-    final logCrumb =
-        'initializeDocument(${slug.owner}_${slug.name}_${pullRequestId}_${checkRun.id}_$stage, $buildCount builds)';
-
-    final presubmitGuard = PresubmitGuard(
-      checkRun: checkRun,
-      commitSha: commitSha,
-      slug: slug,
-      pullRequestId: pullRequestId,
-      stage: stage,
-      creationTime: creationTime,
-      author: author,
-      remainingBuilds: buildCount,
-      failedBuilds: 0,
-      builds: {for (final task in tasks) task: TaskStatus.waitingForBackfill},
-    );
-
-    final presubmitGuardId = PresubmitGuard.documentIdFor(
-      slug: slug,
-      pullRequestId: pullRequestId,
-      checkRunId: checkRun.id!,
-      stage: stage,
-    );
-
-    try {
-      // Calling createDocument multiple times for the same documentId will return a 409 - ALREADY_EXISTS error;
-      // this is good because it means we don't have to do any transactions.
-      // curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <TOKEN>" "https://firestore.googleapis.com/v1beta1/projects/flutter-dashboard/databases/cocoon/documents/presubmit_guard?documentId=foo_bar_baz" -d '{"fields": {"test": {"stringValue": "baz"}}}'
-      final newDoc = await firestoreService.createDocument(
-        presubmitGuard,
-        collectionId: presubmitGuard.runtimeMetadata.collectionId,
-        documentId: presubmitGuardId.documentId,
-      );
-      log.info('$logCrumb: document created');
-      return newDoc;
-    } catch (e) {
-      log.warn('$logCrumb: failed to create document', e);
-      rethrow;
-    }
-  }
-
   /// Returns _all_ checks running against the specified github [checkRunId].
   static Future<List<PresubmitCheck>> queryAllPresubmitChecksForGuard({
     required FirestoreService firestoreService,
@@ -248,9 +188,9 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingBuilds ?? -1,
+          remaining: presubmitGuard.remainingBuilds!,
           checkRunGuard: presubmitGuard.checkRunJson,
-          failed: presubmitGuard.failedBuilds ?? -1,
+          failed: presubmitGuard.failedBuilds!,
           summary:
               'Check run "${state.buildName}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
@@ -271,11 +211,24 @@ final class UnifiedCheckRun {
       remaining = presubmitGuard.remainingBuilds!;
       failed = presubmitGuard.failedBuilds!;
       final builds = presubmitGuard.builds;
+      var status = builds?[state.buildName]!;
 
-      // If build is in progress, we should only update appropriate checks with
-      // that [TaskStatus]
-      if (state.status.isBuildInProgress) {
+      // If build is waiting for backfill, that means its initiated by github
+      // or re-run. So no processing needed, we should only update appropriate
+      // checks with that [TaskStatus]
+      if (state.status == TaskStatus.waitingForBackfill) {
+        status = state.status;
+        valid = true;
+        // If build is in progress, we should update apropriate checks with start
+        // time and their status to that [TaskStatus] only if the build is not
+        // completed.
+      } else if (state.status == TaskStatus.inProgress) {
         presubmitCheck.startTime = state.startTime!;
+        // If the build is not completed, update the status.
+        if (!status!.isBuildCompleted) {
+          status = state.status;
+        }
+        valid = true;
       } else {
         // "remaining" should go down if buildSuccessed of any attempt
         // or buildFailed a first attempt.
@@ -284,35 +237,35 @@ final class UnifiedCheckRun {
         //   attemptNumber = 1 && buildFailed: up (+1)
         // So if the test existed and either remaining or failed_count is changed;
         // the response is valid.
-
-        if (state.status.isBuildSuccessed ||
-            state.attemptNumber == 1 && state.status.isBuildFailed) {
+        status = state.status;
+        if (status.isBuildSuccessed) {
           // Guard against going negative and log enough info so we can debug.
           if (remaining == 0) {
             throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
           }
           remaining = remaining - 1;
-          valid = true;
-        }
 
-        // Only rollback the "failed" counter if this is a successful test run,
-        // i.e. the test failed, the user requested a rerun, and now it passes.
-        if (state.attemptNumber > 1 && state.status.isBuildSuccessed) {
-          log.info(
-            '$logCrumb: conclusion flipped to positive - assuming test was re-run',
-          );
-          if (failed == 0) {
-            throw '$logCrumb: field "${PresubmitGuard.fieldFailedBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
+          // Only rollback the "failed" counter if this is a successful test run,
+          // i.e. the test failed, the user requested a rerun, and now it passes.
+          if (state.attemptNumber > 1) {
+            log.info(
+              '$logCrumb: conclusion flipped to positive - assuming test was re-run',
+            );
+            if (failed == 0) {
+              throw '$logCrumb: field "${PresubmitGuard.fieldFailedBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
+            }
+            failed = failed - 1;
           }
           valid = true;
-          failed = failed - 1;
         }
 
         // Only increment the "failed" counter if the conclusion failed for the first attempt.
-        if (state.attemptNumber == 1 && state.status.isBuildFailed) {
-          log.info('$logCrumb: test failed');
+        if (status.isBuildFailed) {
+          if (state.attemptNumber == 1) {
+            log.info('$logCrumb: test failed');
+            failed = failed + 1;
+          }
           valid = true;
-          failed = failed + 1;
         }
 
         // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
@@ -322,10 +275,11 @@ final class UnifiedCheckRun {
         presubmitGuard.remainingBuilds = remaining;
         presubmitGuard.failedBuilds = failed;
         presubmitCheck.endTime = state.endTime!;
+        presubmitCheck.summary = state.summary;
       }
-      builds![state.buildName] = state.status;
+      builds![state.buildName] = status;
       presubmitGuard.builds = builds;
-      presubmitCheck.status = state.status;
+      presubmitCheck.status = status;
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
