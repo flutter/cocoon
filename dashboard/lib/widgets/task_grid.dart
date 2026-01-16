@@ -312,7 +312,8 @@ class _TaskGridState extends State<TaskGrid> {
               final suppressedTest = suppressedTasks[task.task];
               final icon = TaskIcon(
                 qualifiedTask: task,
-                onTap: (BuildContext context) => _showTestDetails(context, task),
+                onTap: (BuildContext context) =>
+                    _showTestDetails(context, task),
               );
               if (suppressedTest != null) {
                 // Format audit log
