@@ -310,10 +310,9 @@ class _TaskGridState extends State<TaskGrid> {
           return LatticeCell(
             builder: (BuildContext context) {
               final suppressedTest = suppressedTasks[task.task];
-
               final icon = TaskIcon(
                 qualifiedTask: task,
-                onTap: () => _showTestDetails(context, task),
+                onTap: (BuildContext context) => _showTestDetails(context, task),
               );
               if (suppressedTest != null) {
                 // Format audit log
@@ -496,6 +495,7 @@ class _TaskGridState extends State<TaskGrid> {
     final renderBox = context.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero);
 
+    print('_showTestDetails: $position');
     _taskOverlay = OverlayEntry(
       builder: (BuildContext context) => Stack(
         children: <Widget>[

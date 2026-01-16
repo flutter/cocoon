@@ -22,7 +22,7 @@ class TaskIcon extends StatelessWidget {
   final QualifiedTask qualifiedTask;
 
   /// Callback when the icon is tapped.
-  final VoidCallback? onTap;
+  final void Function(BuildContext)? onTap;
 
   /// A lookup table for matching [stageName] to [Image].
   ///
@@ -91,7 +91,7 @@ class TaskIcon extends StatelessWidget {
       child: InkWell(
         onTap: () async {
           if (onTap != null) {
-            onTap!();
+            onTap!(context);
           } else {
             await launchUrl(qualifiedTask.sourceConfigurationUrl);
           }
