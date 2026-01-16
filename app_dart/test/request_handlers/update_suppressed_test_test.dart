@@ -247,7 +247,7 @@ void main() {
       'testName': 'my_test',
       'repository': 'flutter/flutter',
       'action': 'UNSUPPRESS',
-      'issueLink': 'https://github.com/flutter/flutter/issues/123',
+      'issueLink': 'https://github.com/flutter/flutter/issues/345',
       'note': 'Closing issue',
     });
 

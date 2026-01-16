@@ -3643,10 +3643,7 @@ targets:
 
         final check = PresubmitCompletedCheck.fromBuild(build, userData);
 
-        expect(
-          await scheduler.processCheckRunCompleted(check),
-          isTrue,
-        );
+        expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
         // Should schedule tests for the next stage (fusionTests)
         expect(fakeLuciBuildService.scheduledTryBuilds, isNotEmpty);
@@ -3722,10 +3719,7 @@ targets:
 
           final check = PresubmitCompletedCheck.fromBuild(build, userData);
 
-          expect(
-            await scheduler.processCheckRunCompleted(check),
-            isTrue,
-          );
+          expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -3810,10 +3804,7 @@ targets:
 
         final check = PresubmitCompletedCheck.fromBuild(build, userData);
 
-        expect(
-          await scheduler.processCheckRunCompleted(check),
-          isTrue,
-        );
+        expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
         verify(
           mockGithubChecksUtil.updateCheckRun(

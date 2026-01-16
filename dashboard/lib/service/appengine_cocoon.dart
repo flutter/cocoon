@@ -264,12 +264,10 @@ class AppEngineCocoonService implements CocoonService {
     required String repo,
     required String testName,
     required bool suppress,
-    required String issueLink,
+    String? issueLink,
     String? note,
   }) async {
-    final updateTestSuppressionUrl = apiEndpoint(
-      '/api/update-suppressed-test',
-    );
+    final updateTestSuppressionUrl = apiEndpoint('/api/update-suppressed-test');
     final response = await _client.post(
       updateTestSuppressionUrl,
       headers: {'X-Flutter-IdToken': idToken},
@@ -277,7 +275,7 @@ class AppEngineCocoonService implements CocoonService {
         'repository': repo,
         'testName': testName,
         'action': suppress ? 'SUPPRESS' : 'UNSUPPRESS',
-        'issueLink': issueLink,
+        'issueLink': ?issueLink,
         'note': ?note,
       }),
     );

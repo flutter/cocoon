@@ -520,7 +520,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
     required String? repo,
     required String? testName,
     required bool? suppress,
-    required String? issueLink,
+    String? issueLink,
     String? note,
   }) =>
       (super.noSuchMethod(
@@ -718,7 +718,7 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
   _i8.Future<bool> updateTestSuppression({
     required String? testName,
     required bool? suppress,
-    required String? issueLink,
+    String? issueLink,
     String? note,
   }) =>
       (super.noSuchMethod(

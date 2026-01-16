@@ -426,7 +426,7 @@ class BuildState extends ChangeNotifier {
   Future<bool> updateTestSuppression({
     required String testName,
     required bool suppress,
-    required String issueLink,
+    String? issueLink,
     String? note,
   }) async {
     if (!authService.isAuthenticated) {

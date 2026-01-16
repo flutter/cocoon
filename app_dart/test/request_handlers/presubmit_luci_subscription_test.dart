@@ -60,8 +60,6 @@ void main() {
       ciYaml: examplePresubmitRescheduleFusionConfig,
     );
 
-
-
     handler = PresubmitLuciSubscription(
       cache: CacheService(inMemory: true),
       config: config,

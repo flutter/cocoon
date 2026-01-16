@@ -8,7 +8,6 @@ import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
 
-
 void main() {
   useTestLoggerPerTest();
 
