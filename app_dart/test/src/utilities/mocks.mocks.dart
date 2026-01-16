@@ -5628,18 +5628,20 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
   @override
   _i13.Future<void> failGuardForMergeGroup(
     _i7.RepositorySlug? slug,
+    _i7.CheckRun? lock,
     String? headSha,
     String? summary,
     String? details,
-    _i7.CheckRun? lock,
+    String? detailsUrl,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#failGuardForMergeGroup, [
               slug,
+              lock,
               headSha,
               summary,
               details,
-              lock,
+              detailsUrl,
             ]),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),

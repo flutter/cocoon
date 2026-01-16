@@ -233,8 +233,12 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     fields[fieldEndTime] = endTime.toValue();
   }
 
-  set summary(String summary) {
-    fields[fieldSummary] = summary.toValue();
+  set summary(String? summary) {
+    if (summary == null) {
+      fields.remove(fieldSummary);
+    } else {
+      fields[fieldSummary] = summary.toValue();
+    }
   }
 
   void updateFromBuild(bbv2.Build build) {

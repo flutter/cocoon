@@ -671,6 +671,7 @@ class Scheduler {
       // only required GitHub check.
       await failGuardForMergeGroup(
         slug,
+        lock,
         headSha,
         'Failed to schedule checks for merge group',
         '''
@@ -679,7 +680,7 @@ $logCrumb
 ERROR: $e
 $s
 ''',
-        lock,
+        null,
       );
     }
   }
@@ -854,10 +855,11 @@ $s
   /// corresponding pull request will have to be fixed and re-enqueued again.
   Future<void> failGuardForMergeGroup(
     RepositorySlug slug,
+    CheckRun lock,
     String headSha,
     String summary,
     String details,
-    CheckRun lock,
+    String? detailsUrl,
   ) async {
     log.info('Failing merge group guard for merge group $headSha in $slug');
     await _githubChecksService.githubChecksUtil.updateCheckRun(
@@ -871,6 +873,7 @@ $s
         summary: summary,
         text: details,
       ),
+      detailsUrl: detailsUrl,
     );
   }
 
@@ -1018,13 +1021,30 @@ $s
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           check.slug,
+          guard,
           check.sha,
           stagingConclusion.summary,
           stagingConclusion.details,
-          guard,
+          null,
         );
       }
       return false;
+    }
+
+    // If the number of failed checks is equal to the number of remaining checks, then all remaining checks have failed.
+    if (check.isUnifiedCheckRun &&
+        stagingConclusion.failed > 0 &&
+        stagingConclusion.failed == stagingConclusion.remaining) {
+      final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+      await failGuardForMergeGroup(
+        check.slug,
+        guard,
+        check.sha,
+        kMergeQueueLockDescription,
+        'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
+        'https://flutter-dashboard.appspot.com/repo/${check.slug.name}/checkrun/${check.guardId}',
+      );
+      return true;
     }
 
     // Are there tests remaining? Keep waiting.
@@ -1047,10 +1067,11 @@ $s
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         await failGuardForMergeGroup(
           check.slug,
+          guard,
           check.sha,
           stagingConclusion.summary,
           stagingConclusion.details,
-          guard,
+          null,
         );
       }
       return true;

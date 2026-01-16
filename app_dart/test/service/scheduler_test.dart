@@ -23,7 +23,6 @@ import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
-import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
@@ -3590,16 +3589,19 @@ targets:
         );
 
         // Initialize presubmit guard for engine stage
-        await UnifiedCheckRun.initializePresubmitGuardDocument(
-          firestoreService: firestore,
-          slug: pullRequest.base!.repo!.slug(),
-          pullRequestId: pullRequest.number!,
-          checkRun: checkRunGuard,
-          stage: CiStage.fusionEngineBuild,
-          commitSha: pullRequest.head!.sha!,
-          creationTime: DateTime.now().millisecondsSinceEpoch,
-          author: pullRequest.user!.login!,
-          tasks: ['Linux engine_build'],
+        firestore.putDocument(
+          PresubmitGuard(
+            checkRun: checkRunGuard,
+            commitSha: pullRequest.head!.sha!,
+            slug: pullRequest.base!.repo!.slug(),
+            pullRequestId: pullRequest.number!,
+            stage: CiStage.fusionEngineBuild,
+            author: pullRequest.user!.login!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+            builds: {'Linux engine_build': TaskStatus.waitingForBackfill},
+            remainingBuilds: 1,
+            failedBuilds: 0,
+          ),
         );
 
         // Initialize check run for the task
@@ -3677,16 +3679,19 @@ targets:
           // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
 
           // Initialize presubmit guard for tests stage
-          await UnifiedCheckRun.initializePresubmitGuardDocument(
-            firestoreService: firestore,
-            slug: pullRequest.base!.repo!.slug(),
-            pullRequestId: pullRequest.number!,
-            checkRun: checkRunGuard,
-            stage: CiStage.fusionTests,
-            commitSha: pullRequest.head!.sha!,
-            creationTime: DateTime.now().millisecondsSinceEpoch,
-            author: pullRequest.user!.login!,
-            tasks: ['Linux test'],
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: checkRunGuard,
+              commitSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              pullRequestId: pullRequest.number!,
+              stage: CiStage.fusionTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              builds: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingBuilds: 1,
+              failedBuilds: 0,
+            ),
           );
 
           // Initialize check run for the task
@@ -3728,6 +3733,7 @@ targets:
               any,
               status: anyNamed('status'),
               conclusion: CheckRunConclusion.failure, // Merge queue failure
+              detailsUrl: anyNamed('detailsUrl'),
               output: anyNamed('output'),
             ),
           ).called(1);
@@ -3756,16 +3762,19 @@ targets:
         // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
 
         // Initialize presubmit guard for tests stage
-        await UnifiedCheckRun.initializePresubmitGuardDocument(
-          firestoreService: firestore,
-          slug: pullRequest.base!.repo!.slug(),
-          pullRequestId: pullRequest.number!,
-          checkRun: checkRunGuard,
-          stage: CiStage.fusionTests,
-          commitSha: pullRequest.head!.sha!,
-          creationTime: DateTime.now().millisecondsSinceEpoch,
-          author: pullRequest.user!.login!,
-          tasks: ['Linux test'],
+        firestore.putDocument(
+          PresubmitGuard(
+            checkRun: checkRunGuard,
+            commitSha: pullRequest.head!.sha!,
+            slug: pullRequest.base!.repo!.slug(),
+            pullRequestId: pullRequest.number!,
+            stage: CiStage.fusionTests,
+            author: pullRequest.user!.login!,
+            creationTime: DateTime.now().millisecondsSinceEpoch,
+            builds: {'Linux test': TaskStatus.waitingForBackfill},
+            remainingBuilds: 1,
+            failedBuilds: 0,
+          ),
         );
 
         // Initialize check run for the task
