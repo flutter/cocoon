@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/rpc_model.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -28,14 +30,17 @@ class TestDetailsPopover extends StatefulWidget {
 }
 
 class _TestDetailsPopoverState extends State<TestDetailsPopover> {
-  bool get isSuppressed {
-    return widget.buildState.suppressedTests.any(
+  SuppressedTest? get suppressedTest {
+    return widget.buildState.suppressedTests.firstWhereOrNull(
       (s) => s.name == widget.qualifiedTask.task,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final suppressed = suppressedTest;
+    final isAuthenticated = widget.buildState.authService.isAuthenticated;
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -45,56 +50,91 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              SelectableText(
                 widget.qualifiedTask.task,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              AnimatedBuilder(
-                animation: widget.buildState,
-                builder: (context, child) {
-                  final suppressed = isSuppressed;
-                  final isAuthenticated =
-                      widget.buildState.authService.isAuthenticated;
+              switch ((isAuthenticated, suppressed)) {
+                (false, _) => const Text(
+                  'Sign in to change tree blocking status',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+                (true, null) => ElevatedButton.icon(
+                  onPressed: () => _showSuppressDialog(context),
+                  icon: const Icon(Icons.do_not_disturb_on_outlined),
+                  label: const Text('Unblock Tree'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber.shade100,
+                    foregroundColor: Colors.amber.shade900,
+                  ),
+                ),
+                (true, _) => ElevatedButton.icon(
+                  onPressed: () => _toggleSuppression(false),
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Remove Suppression'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade100,
+                    foregroundColor: Colors.green.shade900,
+                  ),
+                ),
+              },
+              if (suppressed?.updates.isNotEmpty == true) ...[
+                const SizedBox(height: 16),
 
-                  if (!isAuthenticated) {
-                    return const Text(
-                      'Sign in to change tree blocking status',
-                      style: TextStyle(fontStyle: FontStyle.italic),
-                    );
-                  }
+                Text(
+                  'Update History:',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    height: 1.4,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Divider(),
+                for (var update in suppressed!.updates.sortedBy(
+                  (u) => u.updateTimestamp,
+                ))
+                  Tooltip(
+                    message:
+                        '${DateTime.fromMillisecondsSinceEpoch(update.updateTimestamp)}',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${update.action} by ${update.user}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(height: 1.4),
+                        ),
+                        if (update.note?.isNotEmpty == true)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              'Note: ${update.note}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(height: 1.4),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
 
-                  if (suppressed) {
-                    // Test is suppressed (NOT Blocking Tree).
-                    // Button: "Include Test" -> Unsuppress
-                    return ElevatedButton.icon(
-                      onPressed: () => _toggleSuppression(false),
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('Include Test in Tree'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade100,
-                        foregroundColor: Colors.green.shade900,
-                      ),
-                    );
-                  } else {
-                    // Test is NOT suppressed (Blocking Tree).
-                    // Button: "Unblock Tree" -> Suppress
-                    return ElevatedButton.icon(
-                      onPressed: () => _showSuppressDialog(context),
-                      icon: const Icon(Icons.do_not_disturb_on_outlined),
-                      label: const Text('Unblock Tree'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber.shade100,
-                        foregroundColor: Colors.amber.shade900,
-                      ),
-                    );
-                  }
-                },
-              ),
+                const Divider(),
+              ],
+
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (suppressed != null)
+                    TextButton.icon(
+                      onPressed: () async {
+                        await launchUrl(Uri.parse(suppressed.issueLink));
+                      },
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Tracking Issue'),
+                    ),
+
                   TextButton.icon(
                     onPressed: () async {
                       await launchUrl(

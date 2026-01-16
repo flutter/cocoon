@@ -220,8 +220,8 @@ class _TaskGridState extends State<TaskGrid> {
     filter ??= TaskGridFilter();
 
     // Pre-compute suppressed task names for faster lookup
-    final suppressedTaskNames = {
-      for (final s in taskGrid.buildState.suppressedTests) s.name,
+    final suppressedTasks = {
+      for (final s in taskGrid.buildState.suppressedTests) s.name: s,
     };
 
     // 1: PREPARE ROWS
@@ -274,7 +274,7 @@ class _TaskGridState extends State<TaskGrid> {
           // won't know how to sort the task later.
           scores.putIfAbsent(qualifiedTask, () => 0.0);
         }
-        final isSuppressed = suppressedTaskNames.contains(task.builderName);
+        final isSuppressed = suppressedTasks.containsKey(task.builderName);
         rows[commitCount - 1].cells[qualifiedTask] = LatticeCell(
           painter: _painterFor(task, isSuppressed),
           builder: _builderFor(task, isSuppressed),
@@ -286,8 +286,8 @@ class _TaskGridState extends State<TaskGrid> {
     final tasks = scores.keys.toList()
       ..sort((QualifiedTask a, QualifiedTask b) {
         // Suppressed tests go first (far left)
-        final aSuppressed = suppressedTaskNames.contains(a.task);
-        final bSuppressed = suppressedTaskNames.contains(b.task);
+        final aSuppressed = suppressedTasks.containsKey(a.task);
+        final bSuppressed = suppressedTasks.containsKey(b.task);
         if (aSuppressed && !bSuppressed) {
           return -1;
         }
@@ -307,43 +307,29 @@ class _TaskGridState extends State<TaskGrid> {
       <LatticeCell>[
         const LatticeCell(),
         ...tasks.map<LatticeCell>((QualifiedTask task) {
-          final isSuppressed = suppressedTaskNames.contains(task.task);
           return LatticeCell(
             builder: (BuildContext context) {
+              final suppressedTest = suppressedTasks[task.task];
+
               final icon = TaskIcon(
                 qualifiedTask: task,
                 onTap: () => _showTestDetails(context, task),
               );
-              if (isSuppressed) {
-                final suppressedTest = taskGrid.buildState.suppressedTests
-                    .firstWhere((s) => s.name == task.task);
+              if (suppressedTest != null) {
                 // Format audit log
-                final tip = [
-                  'Issue: ${suppressedTest.issueLink}',
-                  for (var update
-                      in [...suppressedTest.updates]..sort(
-                        (a, b) =>
-                            b.updateTimestamp.compareTo(a.updateTimestamp),
-                      ))
-                    '[${DateTime.fromMillisecondsSinceEpoch(update.updateTimestamp)}] ${update.action} by ${update.user} ${update.note != null ? '- ${update.note}' : ''}',
-                ].join('\n');
-
-                return Tooltip(
-                  message: tip,
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Opacity(opacity: 0.3, child: icon),
-                      const IgnorePointer(
-                        child: Icon(
-                          Icons.snooze,
-                          fontWeight: FontWeight.bold,
-                          size: 20,
-                          color: Colors.red,
-                        ),
+                return Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Opacity(opacity: 0.3, child: icon),
+                    const IgnorePointer(
+                      child: Icon(
+                        Icons.snooze,
+                        fontWeight: FontWeight.bold,
+                        size: 20,
+                        color: Colors.red,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               }
               return icon;
