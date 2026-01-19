@@ -22,7 +22,7 @@ dependencies:
   googleapis: 14.0.0
   googleapis_auth: 2.0.0
   gql: 1.0.1
-  graphql: 5.2.0-beta.10
+  graphql: 5.2.3
   http: 1.6.0
   json_annotation: 4.9.0
   logging: 1.2.0
