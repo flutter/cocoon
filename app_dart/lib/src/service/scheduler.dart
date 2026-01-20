@@ -1062,7 +1062,6 @@ $s
       return false;
     }
 
-
     if (stagingConclusion.isFailed) {
       // Something failed in the current CI stage:
       //
