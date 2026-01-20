@@ -81,11 +81,7 @@ enum TaskStatus {
       this == TaskStatus.cancelled;
 
   /// Returns true if the build succeeded or some kind of failure occurred.
-  bool get isBuildCompleted =>
-      this == TaskStatus.succeeded ||
-      this == TaskStatus.failed ||
-      this == TaskStatus.infraFailure ||
-      this == TaskStatus.cancelled;
+  bool get isBuildCompleted => isBuildSuccessed || isBuildFailed;
 
   /// Returns the JSON representation of `this`.
   Object? toJson() => _schemaValue;

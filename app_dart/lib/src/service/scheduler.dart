@@ -1030,10 +1030,20 @@ $s
       return false;
     }
 
-    // If the number of failed checks is equal to the number of remaining checks, then all remaining checks have failed.
-    if (check.isUnifiedCheckRun &&
-        stagingConclusion.failed > 0 &&
-        stagingConclusion.failed == stagingConclusion.remaining) {
+    // Are there tests remaining? Keep waiting.
+    if (stagingConclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
+      return false;
+    }
+
+    // If all tests are processed and there some failed then 
+    // for unified check run we need to fail the guard.
+    if (check.isUnifiedCheckRun && stagingConclusion.isFailed) {
+      if (check.isMergeGroup) {
+        await _completeArtifacts(check.sha, false);
+      }
       final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
       await failGuardForMergeGroup(
         slug: check.slug,
@@ -1046,14 +1056,6 @@ $s
             'https://flutter-dashboard.appspot.com/repo/${check.slug.name}/checkrun/${check.guardId}',
       );
       return true;
-    }
-
-    // Are there tests remaining? Keep waiting.
-    if (stagingConclusion.isPending) {
-      log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
-      );
-      return false;
     }
 
     if (stagingConclusion.isFailed) {

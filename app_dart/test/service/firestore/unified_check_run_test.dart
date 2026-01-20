@@ -267,7 +267,7 @@ void main() {
         );
 
         expect(result.result, PresubmitGuardConclusionResult.ok);
-        expect(result.remaining, 2);
+        expect(result.remaining, 1);
         expect(result.failed, 1);
       });
 

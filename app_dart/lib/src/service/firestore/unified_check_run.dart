@@ -230,21 +230,22 @@ final class UnifiedCheckRun {
         }
         valid = true;
       } else {
-        // "remaining" should go down if buildSuccessed of any attempt
-        // or buildFailed a first attempt.
+        // "remaining" should go down if build is succeeded or failed.
         // "failed_count" can go up or down depending on:
         //   attemptNumber > 1 && buildSuccessed: down (-1)
         //   attemptNumber = 1 && buildFailed: up (+1)
         // So if the test existed and either remaining or failed_count is changed;
         // the response is valid.
         status = state.status;
-        if (status.isBuildSuccessed) {
+        if (status.isBuildCompleted) {
           // Guard against going negative and log enough info so we can debug.
           if (remaining == 0) {
             throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
           }
           remaining = remaining - 1;
-
+        }
+        
+        if (status.isBuildSuccessed) {
           // Only rollback the "failed" counter if this is a successful test run,
           // i.e. the test failed, the user requested a rerun, and now it passes.
           if (state.attemptNumber > 1) {
