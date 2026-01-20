@@ -244,7 +244,7 @@ final class UnifiedCheckRun {
           }
           remaining = remaining - 1;
         }
-        
+
         if (status.isBuildSuccessed) {
           // Only rollback the "failed" counter if this is a successful test run,
           // i.e. the test failed, the user requested a rerun, and now it passes.
