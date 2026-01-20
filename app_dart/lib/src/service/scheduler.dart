@@ -877,6 +877,30 @@ $s
     );
   }
 
+  Future<void> _requireActionForGuard({
+    required RepositorySlug slug,
+    required CheckRun lock,
+    required String headSha,
+    required String summary,
+    required String details,
+    String? detailsUrl,
+  }) async {
+    log.info('Failing merge group guard for merge group $headSha in $slug');
+    await _githubChecksService.githubChecksUtil.updateCheckRun(
+      _config,
+      slug,
+      lock,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.actionRequired,
+      output: CheckRunOutput(
+        title: Config.kCiYamlCheckName,
+        summary: summary,
+        text: details,
+      ),
+      detailsUrl: detailsUrl,
+    );
+  }
+
   /// If [builderTriggerList] is specificed, return only builders that are contained in [presubmitTarget].
   /// Otherwise, return [presubmitTarget].
   List<Target> filterTargets(
@@ -1038,25 +1062,6 @@ $s
       return false;
     }
 
-    // If all tests are processed and there some failed then 
-    // for unified check run we need to fail the guard.
-    if (check.isUnifiedCheckRun && stagingConclusion.isFailed) {
-      if (check.isMergeGroup) {
-        await _completeArtifacts(check.sha, false);
-      }
-      final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
-      await failGuardForMergeGroup(
-        slug: check.slug,
-        lock: guard,
-        headSha: check.sha,
-        summary: kMergeQueueLockDescription,
-        details:
-            'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
-        detailsUrl:
-            'https://flutter-dashboard.appspot.com/repo/${check.slug.name}/checkrun/${check.guardId}',
-      );
-      return true;
-    }
 
     if (stagingConclusion.isFailed) {
       // Something failed in the current CI stage:
@@ -1065,6 +1070,7 @@ $s
       //   to the next stage. Let the author sort out what's up.
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
+      // If its a unified check run we need to require action on the guard.
       if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
@@ -1074,6 +1080,18 @@ $s
           headSha: check.sha,
           summary: stagingConclusion.summary,
           details: stagingConclusion.details,
+        );
+      } else if (check.isUnifiedCheckRun) {
+        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        await _requireActionForGuard(
+          slug: check.slug,
+          lock: guard,
+          headSha: check.sha,
+          summary: kMergeQueueLockDescription,
+          details:
+              'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
+          detailsUrl:
+              'https://flutter-dashboard.appspot.com/repo/${check.slug.name}/checkrun/${check.guardId}',
         );
       }
       return true;
