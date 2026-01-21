@@ -25,6 +25,7 @@ class CheckRunEvent extends HookEvent {
   String? action;
   User? sender;
   Repository? repository;
+  RequestedAction? requestedAction;
 
   Map<String, dynamic> toJson() => _$CheckRunEventToJson(this);
 
@@ -60,6 +61,23 @@ class CheckRun {
   @override
   String toString() {
     return 'CheckRun ${const JsonEncoder.withIndent('  ').convert(toJson())}';
+  }
+}
+
+/// Data model for a `requested_action` event.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RequestedAction {
+  const RequestedAction({required this.identifier});
+
+  factory RequestedAction.fromJson(Map<String, dynamic> input) =>
+      _$RequestedActionFromJson(input);
+  final String identifier;
+
+  Map<String, dynamic> toJson() => _$RequestedActionToJson(this);
+
+  @override
+  String toString() {
+    return 'RequestedAction ${const JsonEncoder.withIndent('  ').convert(toJson())}';
   }
 }
 

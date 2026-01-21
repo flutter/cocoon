@@ -76,6 +76,7 @@ class GithubChecksUtil {
     github.CheckRunConclusion? conclusion,
     String? detailsUrl,
     github.CheckRunOutput? output,
+    List<github.CheckRunAction>? actions,
   }) async {
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
@@ -88,6 +89,7 @@ class GithubChecksUtil {
           conclusion: conclusion,
           detailsUrl: detailsUrl,
           output: output,
+          actions: actions,
         );
       },
       retryIf: (Exception e) => e is github.GitHubError || e is SocketException,

@@ -898,6 +898,13 @@ $s
         text: details,
       ),
       detailsUrl: detailsUrl,
+      actions: [
+        const CheckRunAction(
+          label: 'Re-run Failed',
+          description: 'Re-run failed tests',
+          identifier: 're_run_failed',
+        ),
+      ],
     );
   }
 
@@ -1482,7 +1489,7 @@ $stacktrace
             ),
           );
         }
-        return const ProcessCheckRunResult.success();
+        break;
       case 'rerequested':
         log.debug(
           'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
@@ -1644,6 +1651,18 @@ $stacktrace
             'Not successful. See previous log messages',
           );
         }
+        break;
+      case 'requested_action':
+        if (checkRunEvent.requestedAction?.identifier == 're_run_failed') {
+          log.info(
+            'Requested to re-run failed tests for ${checkRunEvent.checkRun!.id} check-run id',
+          );
+        } else {
+          log.warn(
+            'Requested unexpected action: ${checkRunEvent.requestedAction?.identifier} for ${checkRunEvent.checkRun!.id} check-run id',
+          );
+        }
+        break;
     }
 
     return const ProcessCheckRunResult.success();
