@@ -98,21 +98,19 @@ final class UnifiedCheckRun {
     );
 
     for (final guard in guards) {
-      final failedBuilds = guard.builds?.entries
-          .where((entry) => entry.value.isFailure)
-          .map((entry) => entry.key)
-          .toList();
-      final stage = guard.stage;
-      if (failedBuilds != null && failedBuilds.isNotEmpty) {
+      // Copy the failed build names to a local variable to avoid losing the
+      // failed build names after resetting the failed guard.builds.
+      final failedBuildNames = guard.failedBuildNames;
+      if (failedBuildNames.isNotEmpty) {
         guard.failedBuilds = 0;
-        guard.remainingBuilds = failedBuilds.length;
-        final builds = guard.builds!;
-        for (final buildName in failedBuilds) {
+        guard.remainingBuilds = failedBuildNames.length;
+        final builds = guard.builds;
+        for (final buildName in failedBuildNames) {
           builds[buildName] = TaskStatus.waitingForBackfill;
         }
         guard.builds = builds;
         final checks = [
-          for (final buildName in failedBuilds)
+          for (final buildName in failedBuildNames)
             PresubmitCheck.init(
               buildName: buildName,
               checkRunId: checkRunId,
@@ -138,8 +136,8 @@ final class UnifiedCheckRun {
           );
           return FailedChecksForRerun(
             checkRunGuard: guard.checkRun,
-            checkNames: failedBuilds,
-            stage: stage,
+            checkNames: failedBuildNames,
+            stage: guard.stage,
           );
         } catch (e) {
           log.info('$logCrumb: failed to update presubmit check', e);
@@ -327,7 +325,7 @@ final class UnifiedCheckRun {
       presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
 
       // Check if the build is present in the guard before trying to load it.
-      if (presubmitGuard.builds?[state.buildName] == null) {
+      if (presubmitGuard.builds[state.buildName] == null) {
         log.info(
           '$logCrumb: ${state.buildName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
         );
@@ -357,7 +355,7 @@ final class UnifiedCheckRun {
       remaining = presubmitGuard.remainingBuilds!;
       failed = presubmitGuard.failedBuilds!;
       final builds = presubmitGuard.builds;
-      var status = builds?[state.buildName]!;
+      var status = builds[state.buildName]!;
 
       // If build is waiting for backfill, that means its initiated by github
       // or re-run. So no processing needed, we should only update appropriate
@@ -424,7 +422,7 @@ final class UnifiedCheckRun {
         presubmitCheck.endTime = state.endTime!;
         presubmitCheck.summary = state.summary;
       }
-      builds![state.buildName] = status;
+      builds[state.buildName] = status;
       presubmitGuard.builds = builds;
       presubmitCheck.status = status;
     } on DetailedApiRequestError catch (e, stack) {

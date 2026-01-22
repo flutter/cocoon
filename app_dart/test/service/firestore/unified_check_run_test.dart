@@ -356,8 +356,8 @@ void main() {
 
         expect(guard.failedBuilds, 0);
         expect(guard.remainingBuilds, 1);
-        expect(guard.builds!['linux'], TaskStatus.waitingForBackfill);
-        expect(guard.builds!['mac'], TaskStatus.succeeded);
+        expect(guard.builds['linux'], TaskStatus.waitingForBackfill);
+        expect(guard.builds['mac'], TaskStatus.succeeded);
 
         // Verify new check document created with incremented attempt number
         final checkDoc = await PresubmitCheck.fromFirestore(
@@ -436,8 +436,8 @@ void main() {
 
         expect(restartedGuard.failedBuilds, 0);
         expect(restartedGuard.remainingBuilds, 1);
-        expect(restartedGuard.builds!['linux'], TaskStatus.waitingForBackfill);
-        expect(restartedGuard.builds!['mac'], TaskStatus.succeeded);
+        expect(restartedGuard.builds['linux'], TaskStatus.waitingForBackfill);
+        expect(restartedGuard.builds['mac'], TaskStatus.succeeded);
 
         // Verify new check document created with incremented attempt number
         final checkDoc = await PresubmitCheck.fromFirestore(
@@ -458,7 +458,7 @@ void main() {
           'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${fusionGuardId.documentId}',
         );
         final guard = PresubmitGuard.fromDocument(guardDoc);
-        final builds = guard.builds!;
+        final builds = guard.builds;
         builds['linux'] = TaskStatus.succeeded;
         guard.builds = builds;
         guard.failedBuilds = 0;

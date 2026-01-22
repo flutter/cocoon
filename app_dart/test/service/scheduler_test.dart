@@ -1287,7 +1287,7 @@ targets:
         final updatedGuardDoc = await firestore.getDocument(guard.name!);
         final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
         expect(updatedGuard.failedBuilds, 0);
-        expect(updatedGuard.builds!['Linux A'], TaskStatus.waitingForBackfill);
+        expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
       });
 
 
@@ -1430,7 +1430,7 @@ targets:
         final updatedGuardDoc = await firestore.getDocument(fusionGuard.name!);
         final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
         expect(updatedGuard.failedBuilds, 0);
-        expect(updatedGuard.builds!['Linux A'], TaskStatus.waitingForBackfill);
+        expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
       });
 
       group('completed action', () {
@@ -3927,7 +3927,7 @@ targets:
         final guard = guards
             .map(PresubmitGuard.fromDocument)
             .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
-        expect(guard.builds?['Linux engine_build'], TaskStatus.succeeded);
+        expect(guard.builds['Linux engine_build'], TaskStatus.succeeded);
         expect(guard.remainingBuilds, 0);
       });
 

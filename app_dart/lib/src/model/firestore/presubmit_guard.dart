@@ -182,16 +182,14 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   String get commitSha => fields[fieldCommitSha]!.stringValue!;
   String get author => fields[fieldAuthor]!.stringValue!;
   int get creationTime => int.parse(fields[fieldCreationTime]!.integerValue!);
-  int? get remainingBuilds => fields[fieldRemainingBuilds] != null
-      ? int.parse(fields[fieldRemainingBuilds]!.integerValue!)
-      : null;
-  int? get failedBuilds => fields[fieldFailedBuilds] != null
-      ? int.parse(fields[fieldFailedBuilds]!.integerValue!)
-      : null;
-  Map<String, TaskStatus>? get builds =>
+  int get remainingBuilds =>
+      int.parse(fields[fieldRemainingBuilds]!.integerValue!);
+  int get failedBuilds => int.parse(fields[fieldFailedBuilds]!.integerValue!);
+  Map<String, TaskStatus> get builds =>
       fields[fieldBuilds]?.mapValue?.fields?.map<String, TaskStatus>(
         (k, v) => MapEntry(k, TaskStatus.from(v.stringValue!)),
-      );
+      ) ??
+      <String, TaskStatus>{};
   CheckRun get checkRun {
     final jsonData =
         jsonDecode(fields[fieldCheckRun]!.stringValue!) as Map<String, Object?>;
@@ -245,6 +243,11 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     final [_, _, _, _, stageName] = p.posix.basename(name!).split('_');
     return CiStage.values.firstWhere((e) => e.name == stageName);
   }
+
+  List<String> get failedBuildNames => [
+    for (final MapEntry(:key, :value) in builds.entries)
+      if (value.isFailure) key,
+  ];
 
   set remainingBuilds(int remainingBuilds) {
     fields[fieldRemainingBuilds] = remainingBuilds.toValue();
