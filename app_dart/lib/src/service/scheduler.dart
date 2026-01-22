@@ -382,7 +382,6 @@ class Scheduler {
             tasks: [],
             pullRequest: pullRequest,
             config: _config,
-            checkRun: lock,
           );
 
           await _runCiTestingStage(
@@ -1636,26 +1635,14 @@ $stacktrace
           final pullRequest = await _githubChecksService
               .findMatchingPullRequest(slug, headSha, checkSuiteId);
 
-          var stage = CiStage.fusionEngineBuild;
-
-          var failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+          final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
             firestoreService: _firestore,
             slug: slug,
-            stage: stage,
-            pullRequest: pullRequest!,
+            pullRequestId: pullRequest!.number!,
             checkRunId: checkRunEvent.checkRun!.id!,
           );
-          if (failedChecks.checkNames.isEmpty) {
-            stage = CiStage.fusionTests;
-            failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
-              firestoreService: _firestore,
-              slug: slug,
-              stage: stage,
-              pullRequest: pullRequest,
-              checkRunId: checkRunEvent.checkRun!.id!,
-            );
-          }
-          if (failedChecks.checkNames.isEmpty) {
+
+          if (failedChecks == null) {
             log.error(
               'No failed targets found for ${checkRunEvent.checkRun!.id} check-run id',
             );
@@ -1684,7 +1671,7 @@ $stacktrace
             pullRequest: pullRequest,
             engineArtifacts: artifacts,
             checkRunGuard: failedChecks.checkRunGuard,
-            stage: stage,
+            stage: failedChecks.stage,
           );
         } else {
           log.warn(

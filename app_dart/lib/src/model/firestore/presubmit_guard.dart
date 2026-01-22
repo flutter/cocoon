@@ -48,6 +48,10 @@ final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {
 final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   static const collectionId = 'presubmit_guards';
   static const fieldCheckRun = 'check_run';
+  static const fieldCheckRunId = 'check_run_id';
+  static const fieldPullRequestId = 'pull_request_id';
+  static const fieldSlug = 'slug';
+  static const fieldStage = 'stage';
   static const fieldCommitSha = 'commit_sha';
   static const fieldAuthor = 'author';
   static const fieldCreationTime = 'creation_time';
@@ -60,12 +64,14 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     required int pullRequestId,
     required int checkRunId,
     required CiStage stage,
-  }) => PresubmitGuardId(
-    slug: slug,
-    pullRequestId: pullRequestId,
-    checkRunId: checkRunId,
-    stage: stage,
-  );
+  }) {
+    return PresubmitGuardId(
+      slug: slug,
+      pullRequestId: pullRequestId,
+      checkRunId: checkRunId,
+      stage: stage,
+    );
+  }
 
   /// Returns a firebase documentName used in [fromFirestore].
   static String documentNameFor({
@@ -142,6 +148,10 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   }) {
     return PresubmitGuard._(
       {
+        fieldCheckRunId: checkRun.id!.toValue(),
+        fieldPullRequestId: pullRequestId.toValue(),
+        fieldSlug: slug.fullName.toValue(),
+        fieldStage: stage.name.toValue(),
         fieldCommitSha: commitSha.toValue(),
         fieldCreationTime: creationTime.toValue(),
         fieldAuthor: author.toValue(),
@@ -196,6 +206,9 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
 
   /// The repository that this stage is recorded for.
   RepositorySlug get slug {
+    if (fields[fieldSlug] != null) {
+      return RepositorySlug.full(fields[fieldSlug]!.stringValue!);
+    }
     // Read it from the document name.
     final [owner, repo, _, _, _] = p.posix.basename(name!).split('_');
     return RepositorySlug(owner, repo);
@@ -203,6 +216,9 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
 
   /// The pull request for which this stage is recorded for.
   int get pullRequestId {
+    if (fields[fieldPullRequestId] != null) {
+      return int.parse(fields[fieldPullRequestId]!.integerValue!);
+    }
     // Read it from the document name.
     final [_, _, pullRequestId, _, _] = p.posix.basename(name!).split('_');
     return int.parse(pullRequestId);
@@ -210,6 +226,9 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
 
   /// Which commit this stage is recorded for.
   int get checkRunId {
+    if (fields[fieldCheckRunId] != null) {
+      return int.parse(fields[fieldCheckRunId]!.integerValue!);
+    }
     // Read it from the document name.
     final [_, _, _, checkRunId, _] = p.posix.basename(name!).split('_');
     return int.parse(checkRunId);
@@ -217,6 +236,11 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
 
   /// The stage of the CI process.
   CiStage get stage {
+    if (fields[fieldStage] != null) {
+      return CiStage.values.firstWhere(
+        (e) => e.name == fields[fieldStage]!.stringValue!,
+      );
+    }
     // Read it from the document name.
     final [_, _, _, _, stageName] = p.posix.basename(name!).split('_');
     return CiStage.values.firstWhere((e) => e.name == stageName);

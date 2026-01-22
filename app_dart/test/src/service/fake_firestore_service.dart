@@ -523,7 +523,9 @@ abstract base class _FakeInMemoryFirestoreService
     var sorted = [...results];
 
     if (orderMap != null) {
-      if (orderMap.values.any((v) => v != kQueryOrderDescending)) {
+      if (orderMap.values.any(
+        (v) => v != kQueryOrderDescending && v != kQueryOrderAscending,
+      )) {
         throw UnimplementedError('orderMap: ${[...orderMap.values]}');
       }
 
@@ -535,19 +537,21 @@ abstract base class _FakeInMemoryFirestoreService
         }
       }
 
-      // Hard-coded to assume all sorts are DESCENDING.
+      // Assume all sorts are either ASCENDING or DESCENDING.
       sorted.sort((a, b) {
-        for (final fieldName in orderMap.keys) {
+        for (final MapEntry(key: fieldName, value: order) in orderMap.entries) {
           final aField = a.fields?[fieldName];
           final bField = b.fields?[fieldName];
           if (aField == null) {
-            return 1;
+            return order == kQueryOrderDescending ? 1 : -1;
           }
           if (bField == null) {
-            return -1;
+            return order == kQueryOrderDescending ? -1 : 1;
           }
 
-          final result = _compareValues(bField, aField);
+          final result = order == kQueryOrderDescending
+              ? _compareValues(bField, aField)
+              : _compareValues(aField, bField);
           if (result != 0) {
             return result;
           }

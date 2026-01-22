@@ -29,6 +29,7 @@ const String kFieldFilterOpNotEqual = 'NOT_EQUAL';
 const String kCompositeFilterOpAnd = 'AND';
 const String kCompositeFilterOpOr = 'OR';
 const String kQueryOrderDescending = 'DESCENDING';
+const String kQueryOrderAscending = 'ASCENDING';
 
 const int kFilterStringSpaceSplitElements = 2;
 const int kFilterStringSpaceSplitOpIndex = 1;
