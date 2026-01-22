@@ -15,8 +15,6 @@ import '../../service/firestore.dart';
 import '../bbv2_extension.dart';
 import 'base.dart';
 
-const String collectionId = 'presubmit_checks';
-
 @immutable
 final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
   PresubmitCheckId({
@@ -87,6 +85,7 @@ final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
 }
 
 final class PresubmitCheck extends AppDocument<PresubmitCheck> {
+  static const collectionId = 'presubmit_checks';
   static const fieldCheckRunId = 'checkRunId';
   static const fieldBuildName = 'buildName';
   static const fieldBuildNumber = 'buildNumber';
@@ -181,10 +180,11 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     required String buildName,
     required int checkRunId,
     required int creationTime,
+    int? attemptNumber,
   }) {
     return PresubmitCheck(
       buildName: buildName,
-      attemptNumber: 1,
+      attemptNumber: attemptNumber ?? 1,
       checkRunId: checkRunId,
       creationTime: creationTime,
       status: TaskStatus.waitingForBackfill,

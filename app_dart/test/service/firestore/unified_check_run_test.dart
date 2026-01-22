@@ -287,5 +287,123 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.missing);
       });
     });
+    group('reInitializeFailedChecks', () {
+      late PresubmitGuardId guardId;
+
+      setUp(() async {
+        guardId = PresubmitGuardId(
+          slug: slug,
+          pullRequestId: 1,
+          checkRunId: 123,
+          stage: CiStage.fusionTests,
+        );
+
+        // Initialize documents
+        final guard = PresubmitGuard(
+          checkRun: checkRun,
+          commitSha: sha,
+          slug: slug,
+          pullRequestId: 1,
+          stage: CiStage.fusionTests,
+          creationTime: 1000,
+          author: 'dash',
+          builds: {'linux': TaskStatus.failed, 'mac': TaskStatus.succeeded},
+          remainingBuilds: 0,
+          failedBuilds: 1,
+        );
+
+        final check1 = PresubmitCheck(
+          buildName: 'linux',
+          checkRunId: guardId.checkRunId,
+          creationTime: 1000,
+          status: TaskStatus.failed,
+          attemptNumber: 1,
+        );
+
+        final check2 = PresubmitCheck(
+          buildName: 'mac',
+          checkRunId: guardId.checkRunId,
+          creationTime: 1000,
+          status: TaskStatus.succeeded,
+          attemptNumber: 1,
+        );
+
+        await firestoreService.writeViaTransaction(
+          documentsToWrites([
+            Document(name: guard.name, fields: guard.fields),
+            Document(name: check1.name, fields: check1.fields),
+            Document(name: check2.name, fields: check2.fields),
+          ], exists: false),
+        );
+      });
+
+      test('updates failed checks and remaining count', () async {
+        final result = await UnifiedCheckRun.reInitializeFailedChecks(
+          firestoreService: firestoreService,
+          slug: slug,
+          stage: CiStage.fusionTests,
+          pullRequest: pullRequest,
+          checkRunId: 123,
+        );
+
+        expect(result.checkNames, contains('linux'));
+        expect(result.checkNames, isNot(contains('mac')));
+
+        final guardDoc = await firestoreService.getDocument(
+          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
+        );
+        final guard = PresubmitGuard.fromDocument(guardDoc);
+
+        expect(guard.failedBuilds, 0);
+        expect(guard.remainingBuilds, 1);
+        expect(guard.builds!['linux'], TaskStatus.waitingForBackfill);
+        expect(guard.builds!['mac'], TaskStatus.succeeded);
+
+        // Verify new check document created with incremented attempt number
+        final checkDoc = await PresubmitCheck.fromFirestore(
+          firestoreService,
+          PresubmitCheckId(
+            checkRunId: 123,
+            buildName: 'linux',
+            attemptNumber: 2,
+          ),
+        );
+        expect(checkDoc.status, TaskStatus.waitingForBackfill);
+        expect(checkDoc.attemptNumber, 2);
+      });
+
+      test('returns empty list when no failed checks', () async {
+        // Update setup to have no failed checks
+        var guardDoc = await firestoreService.getDocument(
+          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
+        );
+        final guard = PresubmitGuard.fromDocument(guardDoc);
+        final builds = guard.builds!;
+        builds['linux'] = TaskStatus.succeeded;
+        guard.builds = builds;
+        guard.failedBuilds = 0;
+        await firestoreService.writeViaTransaction(
+          documentsToWrites([guard], exists: true),
+        );
+
+        final result = await UnifiedCheckRun.reInitializeFailedChecks(
+          firestoreService: firestoreService,
+          slug: slug,
+          stage: CiStage.fusionTests,
+          pullRequest: pullRequest,
+          checkRunId: 123,
+        );
+
+        expect(result.checkNames, isEmpty);
+
+        guardDoc = await firestoreService.getDocument(
+          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
+        );
+        final updatedGuard = PresubmitGuard.fromDocument(guardDoc);
+        // Should remain unchanged
+        expect(updatedGuard.failedBuilds, 0);
+        expect(updatedGuard.remainingBuilds, 0);
+      });
+    });
   });
 }
