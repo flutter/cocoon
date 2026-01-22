@@ -116,6 +116,8 @@ void main() {
         stage: CiStage.fusionEngineBuild,
         creationTime: 1000,
         author: 'author',
+        remainingBuilds: 0,
+        failedBuilds: 0,
       );
 
       expect(guard.slug, slug);

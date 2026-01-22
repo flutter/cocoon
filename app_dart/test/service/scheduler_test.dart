@@ -1185,6 +1185,7 @@ targets:
           author: 'dash',
           builds: {'Linux A': TaskStatus.failed},
           failedBuilds: 1,
+          remainingBuilds: 0,
         );
 
         final check = PresubmitCheck(

@@ -136,8 +136,8 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     required CiStage stage,
     required int creationTime,
     required String author,
-    int? remainingBuilds,
-    int? failedBuilds,
+    required int remainingBuilds,
+    required int failedBuilds,
     Map<String, TaskStatus>? builds,
   }) {
     return PresubmitGuard._(
@@ -146,8 +146,8 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
         fieldCreationTime: creationTime.toValue(),
         fieldAuthor: author.toValue(),
         fieldCheckRun: json.encode(checkRun.toJson()).toValue(),
-        fieldRemainingBuilds: ?remainingBuilds?.toValue(),
-        fieldFailedBuilds: ?failedBuilds?.toValue(),
+        fieldRemainingBuilds: remainingBuilds.toValue(),
+        fieldFailedBuilds: failedBuilds.toValue(),
         if (builds != null)
           fieldBuilds: Value(
             mapValue: MapValue(
