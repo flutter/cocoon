@@ -58,7 +58,6 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       _paramTestName,
       _paramRepository,
       _paramAction,
-      _paramIssueLink,
     ]);
 
     final testName = body[_paramTestName];

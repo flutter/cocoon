@@ -108,6 +108,33 @@ void main() {
     );
   });
 
+  test('throws if missing issue link for suppression', () async {
+    tester.request.body = jsonEncode({
+      'testName': 'my_test',
+      'repository': 'flutter/flutter',
+      'action': 'SUPPRESS',
+    });
+
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<BadRequestException>()),
+    );
+  });
+
+  test('does not throw if missing issue link for unsuppression', () async {
+    tester.request.body = jsonEncode({
+      'testName': 'my_test',
+      'repository': 'flutter/flutter',
+      'action': 'UNSUPPRESS',
+    });
+
+    await expectLater(
+      tester.post(handler),
+      completes,
+      reason: 'Issue link is not required for UNSUPPRESS action',
+    );
+  });
+
   test('throws BadRequestException if issue not found (SUPPRESS)', () async {
     githubService.issueResponse = null; // Issue not found
 
