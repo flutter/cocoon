@@ -97,69 +97,57 @@ final class UnifiedCheckRun {
       transaction: transaction,
     );
 
-    List<String>? failedBuilds;
-    CiStage? stage;
-    PresubmitGuard? guard;
-    for (final g in guards) {
-      guard = g;
-      failedBuilds = guard.builds?.entries
+    for (final guard in guards) {
+      final failedBuilds = guard.builds?.entries
           .where((entry) => entry.value.isFailure)
           .map((entry) => entry.key)
           .toList();
-      stage = guard.stage;
+      final stage = guard.stage;
       if (failedBuilds != null && failedBuilds.isNotEmpty) {
-        break;
+        guard.failedBuilds = 0;
+        guard.remainingBuilds = failedBuilds.length;
+        final builds = guard.builds!;
+        for (final buildName in failedBuilds) {
+          builds[buildName] = TaskStatus.waitingForBackfill;
+        }
+        guard.builds = builds;
+        final checks = [
+          for (final buildName in failedBuilds)
+            PresubmitCheck.init(
+              buildName: buildName,
+              checkRunId: checkRunId,
+              creationTime: DateTime.now().toUtc().microsecondsSinceEpoch,
+              attemptNumber:
+                  ((await getLatestPresubmitCheck(
+                        firestoreService: firestoreService,
+                        checkRunId: checkRunId,
+                        buildName: buildName,
+                        transaction: transaction,
+                      ))?.attemptNumber ??
+                      0) +
+                  1, // Increment the latest attempt number.
+            ),
+        ];
+        try {
+          final response = await firestoreService.commit(
+            transaction,
+            documentsToWrites([...checks, guard]),
+          );
+          log.info(
+            '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
+          );
+          return FailedChecksForRerun(
+            checkRunGuard: guard.checkRun,
+            checkNames: failedBuilds,
+            stage: stage,
+          );
+        } catch (e) {
+          log.info('$logCrumb: failed to update presubmit check', e);
+          rethrow;
+        }
       }
     }
-
-    if (failedBuilds == null || failedBuilds.isEmpty) {
-      log.warn('$logCrumb No failed builds found.');
-      return null;
-    }
-
-    guard!.failedBuilds = 0;
-    guard.remainingBuilds = failedBuilds.length;
-    final builds = guard.builds!;
-    for (final buildName in failedBuilds) {
-      builds[buildName] = TaskStatus.waitingForBackfill;
-    }
-    guard.builds = builds;
-
-    final checks = [
-      for (final buildName in failedBuilds)
-        PresubmitCheck.init(
-          buildName: buildName,
-          checkRunId: checkRunId,
-          creationTime: DateTime.now().toUtc().microsecondsSinceEpoch,
-          attemptNumber:
-              ((await getLatestPresubmitCheck(
-                    firestoreService: firestoreService,
-                    checkRunId: checkRunId,
-                    buildName: buildName,
-                    transaction: transaction,
-                  ))?.attemptNumber ??
-                  0) +
-              1, // Increment the latest attempt number.
-        ),
-    ];
-
-    try {
-      final response = await firestoreService.commit(
-        transaction,
-        documentsToWrites([...checks, guard]),
-      );
-      log.info(
-        '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
-      );
-      return FailedChecksForRerun(
-        checkRunGuard: guard.checkRun,
-        checkNames: failedBuilds,
-        stage: stage!,
-      );
-    } catch (e) {
-      log.info('$logCrumb: failed to update presubmit check', e);
-      rethrow;
-    }
+    return null;
   }
 
   /// Returns _all_ checks running against the specified github [checkRunId].
