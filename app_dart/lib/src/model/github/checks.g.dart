@@ -10,17 +10,22 @@ part of 'checks.dart';
 
 CheckRunEvent _$CheckRunEventFromJson(Map<String, dynamic> json) =>
     CheckRunEvent(
-      action: json['action'] as String?,
-      checkRun: json['check_run'] == null
+        action: json['action'] as String?,
+        checkRun: json['check_run'] == null
+            ? null
+            : CheckRun.fromJson(json['check_run'] as Map<String, dynamic>),
+        sender: json['sender'] == null
+            ? null
+            : User.fromJson(json['sender'] as Map<String, dynamic>),
+        repository: json['repository'] == null
+            ? null
+            : Repository.fromJson(json['repository'] as Map<String, dynamic>),
+      )
+      ..requestedAction = json['requested_action'] == null
           ? null
-          : CheckRun.fromJson(json['check_run'] as Map<String, dynamic>),
-      sender: json['sender'] == null
-          ? null
-          : User.fromJson(json['sender'] as Map<String, dynamic>),
-      repository: json['repository'] == null
-          ? null
-          : Repository.fromJson(json['repository'] as Map<String, dynamic>),
-    );
+          : RequestedAction.fromJson(
+              json['requested_action'] as Map<String, dynamic>,
+            );
 
 Map<String, dynamic> _$CheckRunEventToJson(CheckRunEvent instance) =>
     <String, dynamic>{
@@ -28,6 +33,7 @@ Map<String, dynamic> _$CheckRunEventToJson(CheckRunEvent instance) =>
       'action': instance.action,
       'sender': instance.sender,
       'repository': instance.repository,
+      'requested_action': instance.requestedAction,
     };
 
 CheckRun _$CheckRunFromJson(Map<String, dynamic> json) => CheckRun(
@@ -53,6 +59,12 @@ Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
   'check_suite': instance.checkSuite,
   'pull_requests': instance.pullRequests,
 };
+
+RequestedAction _$RequestedActionFromJson(Map<String, dynamic> json) =>
+    RequestedAction(identifier: json['identifier'] as String);
+
+Map<String, dynamic> _$RequestedActionToJson(RequestedAction instance) =>
+    <String, dynamic>{'identifier': instance.identifier};
 
 MergeGroupEvent _$MergeGroupEventFromJson(Map<String, dynamic> json) =>
     MergeGroupEvent(

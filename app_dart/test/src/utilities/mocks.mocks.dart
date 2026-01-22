@@ -2014,6 +2014,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
     _i7.CheckRunConclusion? conclusion,
     String? detailsUrl,
     _i7.CheckRunOutput? output,
+    List<_i7.CheckRunAction>? actions,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -2024,6 +2025,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
                 #conclusion: conclusion,
                 #detailsUrl: detailsUrl,
                 #output: output,
+                #actions: actions,
               },
             ),
             returnValue: _i13.Future<void>.value(),

@@ -58,6 +58,19 @@ void main() {
       expect(guard.remainingBuilds, 2);
       expect(guard.failedBuilds, 0);
       expect(guard.checkRun.id, 456);
+      expect(guard.fields[PresubmitGuard.fieldCheckRunId]!.integerValue, '456');
+      expect(
+        guard.fields[PresubmitGuard.fieldPullRequestId]!.integerValue,
+        '123',
+      );
+      expect(
+        guard.fields[PresubmitGuard.fieldSlug]!.stringValue,
+        'flutter/flutter',
+      );
+      expect(
+        guard.fields[PresubmitGuard.fieldStage]!.stringValue,
+        CiStage.fusionEngineBuild.name,
+      );
     });
 
     test('fromDocument loads correct state', () {
@@ -116,6 +129,8 @@ void main() {
         stage: CiStage.fusionEngineBuild,
         creationTime: 1000,
         author: 'author',
+        remainingBuilds: 0,
+        failedBuilds: 0,
       );
 
       expect(guard.slug, slug);

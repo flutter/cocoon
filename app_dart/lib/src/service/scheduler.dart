@@ -898,6 +898,13 @@ $s
         text: details,
       ),
       detailsUrl: detailsUrl,
+      actions: [
+        const CheckRunAction(
+          label: 'Re-run Failed',
+          description: 'Re-run failed tests',
+          identifier: 're_run_failed',
+        ),
+      ],
     );
   }
 
@@ -1482,7 +1489,7 @@ $stacktrace
             ),
           );
         }
-        return const ProcessCheckRunResult.success();
+        break;
       case 'rerequested':
         log.debug(
           'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
@@ -1543,38 +1550,8 @@ $stacktrace
                 );
               }
 
-              final isFusion = slug == Config.flutterSlug;
-              final List<Target> presubmitTargets;
-              final EngineArtifacts engineArtifacts;
-              if (isFusion) {
-                // Fusion repos have presubmits split across two .ci.yaml files.
-                // /ci.yaml
-                // /engine/src/flutter/.ci.yaml
-                presubmitTargets = [
-                  ...await getPresubmitTargets(pullRequest),
-                  ...await getPresubmitTargets(
-                    pullRequest,
-                    type: CiType.fusionEngine,
-                  ),
-                ];
-                final opt = await _filesChangedOptimizer.checkPullRequest(
-                  pullRequest,
-                );
-                if (opt.shouldUsePrebuiltEngine) {
-                  engineArtifacts = EngineArtifacts.usingExistingEngine(
-                    commitSha: pullRequest.base!.sha!,
-                  );
-                } else {
-                  engineArtifacts = EngineArtifacts.builtFromSource(
-                    commitSha: pullRequest.head!.sha!,
-                  );
-                }
-              } else {
-                presubmitTargets = await getPresubmitTargets(pullRequest);
-                engineArtifacts = const EngineArtifacts.noFrameworkTests(
-                  reason: 'Not flutter/flutter',
-                );
-              }
+              final (presubmitTargets, engineArtifacts) =
+                  await _getAllTargetsForPullRequest(slug, pullRequest);
 
               final target = presubmitTargets.firstWhereOrNull(
                 (target) => checkRunEvent.checkRun!.name == target.name,
@@ -1644,9 +1621,102 @@ $stacktrace
             'Not successful. See previous log messages',
           );
         }
+        break;
+      case 'requested_action':
+        if (checkRunEvent.requestedAction?.identifier == 're_run_failed') {
+          log.info(
+            'Requested to re-run failed tests for ${checkRunEvent.checkRun!.id} check-run id',
+          );
+          // The CheckRunEvent.checkRun.pullRequests array is empty for this
+          // event, so we need to find the matching pull request.
+          final slug = checkRunEvent.repository!.slug();
+          final headSha = checkRunEvent.checkRun!.headSha!;
+          final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+          final pullRequest = await _githubChecksService
+              .findMatchingPullRequest(slug, headSha, checkSuiteId);
+
+          final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+            firestoreService: _firestore,
+            slug: slug,
+            pullRequestId: pullRequest!.number!,
+            checkRunId: checkRunEvent.checkRun!.id!,
+          );
+
+          if (failedChecks == null) {
+            log.error(
+              'No failed targets found for ${checkRunEvent.checkRun!.id} check-run id',
+            );
+            return ProcessCheckRunResult.missingEntity(
+              'No failed targets found for ${checkRunEvent.checkRun!.id} check-run id',
+            );
+          }
+
+          final (targets, artifacts) = await _getAllTargetsForPullRequest(
+            slug,
+            pullRequest,
+          );
+
+          final failedTargets = targets
+              .where((target) => failedChecks.checkNames.contains(target.name))
+              .toList();
+          if (failedTargets.length != failedChecks.checkNames.length) {
+            log.error('Failed to find all failed targets in presubmit targets');
+            return const ProcessCheckRunResult.missingEntity(
+              'Failed to find all failed targets in presubmit targets',
+            );
+          }
+
+          await _luciBuildService.scheduleTryBuilds(
+            targets: failedTargets,
+            pullRequest: pullRequest,
+            engineArtifacts: artifacts,
+            checkRunGuard: failedChecks.checkRunGuard,
+            stage: failedChecks.stage,
+          );
+        } else {
+          log.warn(
+            'Requested unexpected action: ${checkRunEvent.requestedAction?.identifier} for ${checkRunEvent.checkRun!.id} check-run id',
+          );
+        }
+        break;
     }
 
     return const ProcessCheckRunResult.success();
+  }
+
+
+  Future<(List<Target>, EngineArtifacts)> _getAllTargetsForPullRequest(
+    RepositorySlug slug,
+    PullRequest pullRequest,
+  ) async {
+    final isFusion = slug == Config.flutterSlug;
+    final List<Target> presubmitTargets;
+    final EngineArtifacts engineArtifacts;
+    if (isFusion) {
+      // Fusion repos have presubmits split across two .ci.yaml files.
+      // /ci.yaml
+      // /engine/src/flutter/.ci.yaml
+      presubmitTargets = [
+        ...await getPresubmitTargets(pullRequest),
+        ...await getPresubmitTargets(pullRequest, type: CiType.fusionEngine),
+      ];
+      final opt = await _filesChangedOptimizer.checkPullRequest(pullRequest);
+      if (opt.shouldUsePrebuiltEngine) {
+        engineArtifacts = EngineArtifacts.usingExistingEngine(
+          commitSha: pullRequest.base!.sha!,
+        );
+      } else {
+        engineArtifacts = EngineArtifacts.builtFromSource(
+          commitSha: pullRequest.head!.sha!,
+        );
+      }
+    } else {
+      presubmitTargets = await getPresubmitTargets(pullRequest);
+      engineArtifacts = const EngineArtifacts.noFrameworkTests(
+        reason: 'Not flutter/flutter',
+      );
+    }
+    return (presubmitTargets, engineArtifacts);
   }
 
   /// Push [Commit] to BigQuery as part of the infra metrics dashboards.

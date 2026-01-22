@@ -32,6 +32,7 @@ import 'package:cocoon_service/src/service/scheduler/process_check_run_result.da
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
+import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -1159,6 +1160,277 @@ targets:
           ),
         );
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
+      });
+
+      test('rerequested action reschedules failed checks for engine', () async {
+        final mockGithubChecksService = MockGithubChecksService();
+        when(
+          mockGithubChecksService.githubChecksUtil,
+        ).thenReturn(mockGithubChecksUtil);
+
+        final pullRequest = generatePullRequest(id: 789, number: 1);
+        when(
+          mockGithubChecksService.findMatchingPullRequest(any, any, any),
+        ).thenAnswer((_) async => pullRequest);
+
+        final slug = RepositorySlug('flutter', 'flutter');
+
+        final guard = PresubmitGuard(
+          checkRun: createGithubCheckRun(id: 1),
+          commitSha: 'sha',
+          slug: slug,
+          pullRequestId: 1,
+          stage: CiStage.fusionEngineBuild,
+          creationTime: 1000,
+          author: 'dash',
+          builds: {'Linux A': TaskStatus.failed},
+          failedBuilds: 1,
+          remainingBuilds: 0,
+        );
+
+        final check = PresubmitCheck(
+          buildName: 'Linux A',
+          checkRunId: 1,
+          creationTime: 1000,
+          status: TaskStatus.failed,
+          attemptNumber: 1,
+        );
+
+        await firestore.writeViaTransaction(
+          documentsToWrites([
+            Document(name: guard.name, fields: guard.fields),
+            Document(name: check.name, fields: check.fields),
+          ], exists: false),
+        );
+
+        final mockLuciBuildService = MockLuciBuildService();
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+        // Setup getFilesChanged to return files that trigger 'Linux A'.
+        // logic for triggering Linux A depends on ci.yaml and files.
+        // Assuming singleCiYaml defines Linux A (it usually doesn't, it defines Linux, Mac, Windows).
+        // Actually singleCiYaml in mocks.dart:
+        // targets:
+        //   - name: Linux A
+        // So it should work if we have files.
+        getFilesChanged.cannedFiles = ['pubspec.yaml'];
+        config.maxFilesChangedForSkippingEnginePhaseValue = 12;
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: mockGithubChecksService,
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: mockLuciBuildService,
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+
+        // CheckRunEvent with requested_action
+        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson({
+          'action': 'requested_action',
+          'requested_action': {'identifier': 're_run_failed'},
+          'check_run': {
+            'id': 1,
+            'name': 'check_run',
+            'head_sha': 'sha',
+            'check_suite': {'id': 2, 'pull_requests': <dynamic>[]},
+            'pull_requests': <dynamic>[],
+          },
+          'repository': {
+            'id': 12345,
+            'name': 'flutter',
+            'full_name': 'flutter/flutter',
+            'owner': {
+              'login': 'flutter',
+              'id': 67890,
+              'avatar_url': 'http://avatar',
+              'url': 'http://url',
+              'html_url': 'http://html_url',
+            },
+          },
+          'installation': {'id': 123},
+        });
+
+        // Ensure scheduleTryBuilds returns something to avoid null errors?
+        // MockLuciBuildService.scheduleTryBuilds is mocked using Mockito?
+        // In this file `MockLuciBuildService` extends `Mock` implements `LuciBuildService`.
+        when(
+          mockLuciBuildService.scheduleTryBuilds(
+            targets: anyNamed('targets'),
+            pullRequest: anyNamed('pullRequest'),
+            engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
+          ),
+        ).thenAnswer((_) async => []);
+
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
+
+        verify(
+          mockLuciBuildService.scheduleTryBuilds(
+            targets: argThat(
+              contains(predicate<Target>((t) => t.name == 'Linux A')),
+              named: 'targets',
+            ),
+            pullRequest: pullRequest,
+            engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: CiStage.fusionEngineBuild,
+          ),
+        ).called(1);
+
+        final updatedGuardDoc = await firestore.getDocument(guard.name!);
+        final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
+        expect(updatedGuard.failedBuilds, 0);
+        expect(updatedGuard.builds!['Linux A'], TaskStatus.waitingForBackfill);
+      });
+
+
+
+      test('rerequested action reschedules failed checks for fusion', () async {
+        final mockGithubChecksService = MockGithubChecksService();
+        when(
+          mockGithubChecksService.githubChecksUtil,
+        ).thenReturn(mockGithubChecksUtil);
+
+        final pullRequest = generatePullRequest(id: 789, number: 1);
+        when(
+          mockGithubChecksService.findMatchingPullRequest(any, any, any),
+        ).thenAnswer((_) async => pullRequest);
+
+        final slug = RepositorySlug('flutter', 'flutter');
+
+        final engineGuard = PresubmitGuard(
+          checkRun: createGithubCheckRun(id: 1),
+          commitSha: 'sha',
+          slug: slug,
+          pullRequestId: 1,
+          stage: CiStage.fusionEngineBuild,
+          creationTime: 1000,
+          author: 'dash',
+          failedBuilds: 0,
+          remainingBuilds: 0,
+        );
+
+        final fusionGuard = PresubmitGuard(
+          checkRun: createGithubCheckRun(id: 1),
+          commitSha: 'sha',
+          slug: slug,
+          pullRequestId: 1,
+          stage: CiStage.fusionTests,
+          creationTime: 1000,
+          author: 'dash',
+          builds: {'Linux A': TaskStatus.failed},
+          failedBuilds: 1,
+          remainingBuilds: 0,
+        );
+
+        final check = PresubmitCheck(
+          buildName: 'Linux A',
+          checkRunId: 1,
+          creationTime: 1000,
+          status: TaskStatus.failed,
+          attemptNumber: 1,
+        );
+
+        await firestore.writeViaTransaction(
+          documentsToWrites([
+            Document(name: engineGuard.name, fields: engineGuard.fields),
+            Document(name: fusionGuard.name, fields: fusionGuard.fields),
+            Document(name: check.name, fields: check.fields),
+          ], exists: false),
+        );
+
+        final mockLuciBuildService = MockLuciBuildService();
+        ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+        // Setup getFilesChanged to return files that trigger 'Linux A'.
+        // logic for triggering Linux A depends on ci.yaml and files.
+        // Assuming singleCiYaml defines Linux A (it usually doesn't, it defines Linux, Mac, Windows).
+        // Actually singleCiYaml in mocks.dart:
+        // targets:
+        //   - name: Linux A
+        // So it should work if we have files.
+        getFilesChanged.cannedFiles = ['pubspec.yaml'];
+        config.maxFilesChangedForSkippingEnginePhaseValue = 12;
+
+        scheduler = Scheduler(
+          cache: cache,
+          config: config,
+          githubChecksService: mockGithubChecksService,
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: mockLuciBuildService,
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+
+        // CheckRunEvent with requested_action
+        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson({
+          'action': 'requested_action',
+          'requested_action': {'identifier': 're_run_failed'},
+          'check_run': {
+            'id': 1,
+            'name': 'check_run',
+            'head_sha': 'sha',
+            'check_suite': {'id': 2, 'pull_requests': <dynamic>[]},
+            'pull_requests': <dynamic>[],
+          },
+          'repository': {
+            'id': 12345,
+            'name': 'flutter',
+            'full_name': 'flutter/flutter',
+            'owner': {
+              'login': 'flutter',
+              'id': 67890,
+              'avatar_url': 'http://avatar',
+              'url': 'http://url',
+              'html_url': 'http://html_url',
+            },
+          },
+          'installation': {'id': 123},
+        });
+
+        // Ensure scheduleTryBuilds returns something to avoid null errors?
+        // MockLuciBuildService.scheduleTryBuilds is mocked using Mockito?
+        // In this file `MockLuciBuildService` extends `Mock` implements `LuciBuildService`.
+        when(
+          mockLuciBuildService.scheduleTryBuilds(
+            targets: anyNamed('targets'),
+            pullRequest: anyNamed('pullRequest'),
+            engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: anyNamed('stage'),
+          ),
+        ).thenAnswer((_) async => []);
+
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
+
+        verify(
+          mockLuciBuildService.scheduleTryBuilds(
+            targets: argThat(
+              contains(predicate<Target>((t) => t.name == 'Linux A')),
+              named: 'targets',
+            ),
+            pullRequest: pullRequest,
+            engineArtifacts: anyNamed('engineArtifacts'),
+            checkRunGuard: anyNamed('checkRunGuard'),
+            stage: CiStage.fusionTests,
+          ),
+        ).called(1);
+
+        final updatedGuardDoc = await firestore.getDocument(fusionGuard.name!);
+        final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
+        expect(updatedGuard.failedBuilds, 0);
+        expect(updatedGuard.builds!['Linux A'], TaskStatus.waitingForBackfill);
       });
 
       group('completed action', () {
