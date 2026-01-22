@@ -1491,199 +1491,226 @@ $stacktrace
         }
         break;
       case 'rerequested':
-        log.debug(
-          'Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
-        );
-        final name = checkRunEvent.checkRun!.name;
-        var success = false;
-        if (name == Config.kMergeQueueLockName) {
-          final slug = checkRunEvent.repository!.slug();
-          final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          log.debug(
-            'Requested re-run of "${Config.kMergeQueueLockName}" for '
-            '$slug / $checkSuiteId - ignoring',
-          );
-          success = true;
-        } else if (name == Config.kCiYamlCheckName) {
-          // The CheckRunEvent.checkRun.pullRequests array is empty for this
-          // event, so we need to find the matching pull request.
-          final slug = checkRunEvent.repository!.slug();
-          final headSha = checkRunEvent.checkRun!.headSha!;
-          final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          final pullRequest = await _githubChecksService
-              .findMatchingPullRequest(slug, headSha, checkSuiteId);
-          if (pullRequest != null) {
-            log.debug(
-              'Matched PR: ${pullRequest.number} Repo: ${slug.fullName}',
+        return await _reRun(checkRunEvent);
+      case 'requested_action':
+        switch (checkRunEvent.requestedAction?.identifier) {
+          case 're_run_failed':
+            return await _reRunFailed(checkRunEvent);
+          default:
+            log.warn(
+              'Requested unexpected action identifier: ${checkRunEvent.requestedAction?.identifier} for ${checkRunEvent.checkRun!.id} check-run id',
             );
-            await triggerPresubmitTargets(pullRequest: pullRequest);
-            success = true;
-          } else {
-            log.warn('No matching PR found for head_sha in check run event.');
-          }
-        } else {
-          try {
-            final slug = checkRunEvent.repository!.slug();
-            final sha = checkRunEvent.checkRun!.headSha!;
-
-            // Only merged commits are added to the Database.
-            // If a commit is found, this must be a postsubmit checkrun.
-            final fsCommit = await fs.Commit.tryFromFirestoreBySha(
-              _firestore,
-              sha: sha,
-            );
-
-            // TODO(matanlurey): Refactor into its own branch.
-            // https://github.com/flutter/flutter/issues/167211.
-            final isPresubmit = fsCommit == null;
-            if (isPresubmit) {
-              log.debug(
-                'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
-              );
-              final pullRequest = await PrCheckRuns.findPullRequestForSha(
-                _firestore,
-                checkRunEvent.checkRun!.headSha!,
-              );
-              if (pullRequest == null) {
-                return ProcessCheckRunResult.userError(
-                  'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
-                );
-              }
-
-              final (presubmitTargets, engineArtifacts) =
-                  await _getAllTargetsForPullRequest(slug, pullRequest);
-
-              final target = presubmitTargets.firstWhereOrNull(
-                (target) => checkRunEvent.checkRun!.name == target.name,
-              );
-              if (target == null) {
-                return ProcessCheckRunResult.missingEntity(
-                  'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
-                  'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.name).toList()}',
-                );
-              }
-              await _luciBuildService.scheduleTryBuilds(
-                targets: [target],
-                pullRequest: pullRequest,
-                engineArtifacts: engineArtifacts,
-                checkRunGuard: null,
-                stage: null,
-              );
-            } else {
-              log.debug('Rescheduling postsubmit build.');
-
-              final checkName = checkRunEvent.checkRun!.name!;
-              final fs.Task fsTask;
-              {
-                // Query the lastest run of the `checkName` againt commit `sha`.
-                final fsTasks = await _firestore.queryRecentTasks(
-                  limit: 1,
-                  commitSha: fsCommit.sha,
-                  name: checkName,
-                );
-                if (fsTasks.isEmpty) {
-                  throw StateError('Expected 1+ tasks for $checkName');
-                }
-                fsTask = fsTasks.first;
-              }
-              log.debug('Latest firestore task is $fsTask');
-              final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
-                fsCommit.toRef(),
-                postsubmit: true,
-              );
-              final target = ciYaml.postsubmitTargets().singleWhere(
-                (target) => target.name == fsTask.taskName,
-              );
-              await _luciBuildService
-                  .reschedulePostsubmitBuildUsingCheckRunEvent(
-                    checkRunEvent,
-                    commit: fsCommit.toRef(),
-                    task: fsTask,
-                    target: target,
-                  );
-            }
-
-            success = true;
-          } on NoBuildFoundException {
-            log.warn('No build found to reschedule.');
-          } on FormatException catch (e) {
-            // See https://github.com/flutter/flutter/issues/165018.
-            log.info('CheckName: $name failed due to user error: $e');
-            return ProcessCheckRunResult.userError('$e');
-          }
-        }
-
-        log.debug('CheckName: $name State: $success');
-
-        // TODO(matanlurey): It would be better to early return above where it is not a success.
-        if (!success) {
-          return const ProcessCheckRunResult.unexpectedError(
-            'Not successful. See previous log messages',
-          );
+            break;
         }
         break;
-      case 'requested_action':
-        if (checkRunEvent.requestedAction?.identifier == 're_run_failed') {
-          log.info(
-            'Requested to re-run failed tests for ${checkRunEvent.checkRun!.id} check-run id',
-          );
-          // The CheckRunEvent.checkRun.pullRequests array is empty for this
-          // event, so we need to find the matching pull request.
-          final slug = checkRunEvent.repository!.slug();
-          final headSha = checkRunEvent.checkRun!.headSha!;
-          final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-          final pullRequest = await _githubChecksService
-              .findMatchingPullRequest(slug, headSha, checkSuiteId);
-
-          final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
-            firestoreService: _firestore,
-            slug: slug,
-            pullRequestId: pullRequest!.number!,
-            checkRunId: checkRunEvent.checkRun!.id!,
-          );
-
-          if (failedChecks == null) {
-            log.error(
-              'No failed targets found for ${checkRunEvent.checkRun!.id} check-run id',
-            );
-            return ProcessCheckRunResult.missingEntity(
-              'No failed targets found for ${checkRunEvent.checkRun!.id} check-run id',
-            );
-          }
-
-          final (targets, artifacts) = await _getAllTargetsForPullRequest(
-            slug,
-            pullRequest,
-          );
-
-          final failedTargets = targets
-              .where((target) => failedChecks.checkNames.contains(target.name))
-              .toList();
-          if (failedTargets.length != failedChecks.checkNames.length) {
-            log.error('Failed to find all failed targets in presubmit targets');
-            return const ProcessCheckRunResult.missingEntity(
-              'Failed to find all failed targets in presubmit targets',
-            );
-          }
-
-          await _luciBuildService.scheduleTryBuilds(
-            targets: failedTargets,
-            pullRequest: pullRequest,
-            engineArtifacts: artifacts,
-            checkRunGuard: failedChecks.checkRunGuard,
-            stage: failedChecks.stage,
-          );
-        } else {
-          log.warn(
-            'Requested unexpected action: ${checkRunEvent.requestedAction?.identifier} for ${checkRunEvent.checkRun!.id} check-run id',
-          );
-        }
+      default:
+        log.warn(
+          'Requested unexpected action: ${checkRunEvent.action} for ${checkRunEvent.checkRun!.id} check-run id',
+        );
         break;
     }
 
     return const ProcessCheckRunResult.success();
   }
 
+  Future<ProcessCheckRunResult> _reRun(
+    cocoon_checks.CheckRunEvent checkRunEvent,
+  ) async {
+    final logCrumb = 'reRun(${checkRunEvent.checkRun!.id})';
+    log.debug(
+      '$logCrumb: Rerun requested by GitHub user: ${checkRunEvent.sender?.login}',
+    );
+    final name = checkRunEvent.checkRun!.name;
+    var success = false;
+    if (name == Config.kMergeQueueLockName) {
+      final slug = checkRunEvent.repository!.slug();
+      final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+      log.debug(
+        '$logCrumb: Requested re-run of "${Config.kMergeQueueLockName}" for '
+        '$slug / $checkSuiteId - ignoring',
+      );
+      success = true;
+    } else if (name == Config.kCiYamlCheckName) {
+      // The CheckRunEvent.checkRun.pullRequests array is empty for this
+      // event, so we need to find the matching pull request.
+      final slug = checkRunEvent.repository!.slug();
+      final headSha = checkRunEvent.checkRun!.headSha!;
+      final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+      final pullRequest = await _githubChecksService.findMatchingPullRequest(
+        slug,
+        headSha,
+        checkSuiteId,
+      );
+      if (pullRequest != null) {
+        log.debug('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
+        await triggerPresubmitTargets(pullRequest: pullRequest);
+        success = true;
+      } else {
+        log.warn('No matching PR found for head_sha in check run event.');
+      }
+    } else {
+      try {
+        final slug = checkRunEvent.repository!.slug();
+        final sha = checkRunEvent.checkRun!.headSha!;
+
+        // Only merged commits are added to the Database.
+        // If a commit is found, this must be a postsubmit checkrun.
+        final fsCommit = await fs.Commit.tryFromFirestoreBySha(
+          _firestore,
+          sha: sha,
+        );
+
+        // TODO(matanlurey): Refactor into its own branch.
+        // https://github.com/flutter/flutter/issues/167211.
+        final isPresubmit = fsCommit == null;
+        if (isPresubmit) {
+          log.debug(
+            'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
+          );
+          final pullRequest = await PrCheckRuns.findPullRequestForSha(
+            _firestore,
+            checkRunEvent.checkRun!.headSha!,
+          );
+          if (pullRequest == null) {
+            return ProcessCheckRunResult.userError(
+              'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
+            );
+          }
+
+          final (presubmitTargets, engineArtifacts) =
+              await _getAllTargetsForPullRequest(slug, pullRequest);
+
+          final target = presubmitTargets.firstWhereOrNull(
+            (target) => checkRunEvent.checkRun!.name == target.name,
+          );
+          if (target == null) {
+            return ProcessCheckRunResult.missingEntity(
+              'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
+              'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.name).toList()}',
+            );
+          }
+          await _luciBuildService.scheduleTryBuilds(
+            targets: [target],
+            pullRequest: pullRequest,
+            engineArtifacts: engineArtifacts,
+            checkRunGuard: null,
+            stage: null,
+          );
+        } else {
+          log.debug('Rescheduling postsubmit build.');
+
+          final checkName = checkRunEvent.checkRun!.name!;
+          final fs.Task fsTask;
+          {
+            // Query the lastest run of the `checkName` againt commit `sha`.
+            final fsTasks = await _firestore.queryRecentTasks(
+              limit: 1,
+              commitSha: fsCommit.sha,
+              name: checkName,
+            );
+            if (fsTasks.isEmpty) {
+              throw StateError('Expected 1+ tasks for $checkName');
+            }
+            fsTask = fsTasks.first;
+          }
+          log.debug('Latest firestore task is $fsTask');
+          final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+            fsCommit.toRef(),
+            postsubmit: true,
+          );
+          final target = ciYaml.postsubmitTargets().singleWhere(
+            (target) => target.name == fsTask.taskName,
+          );
+          await _luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+            checkRunEvent,
+            commit: fsCommit.toRef(),
+            task: fsTask,
+            target: target,
+          );
+        }
+
+        success = true;
+      } on NoBuildFoundException {
+        log.warn('No build found to reschedule.');
+      } on FormatException catch (e) {
+        // See https://github.com/flutter/flutter/issues/165018.
+        log.info('CheckName: $name failed due to user error: $e');
+        return ProcessCheckRunResult.userError('$e');
+      }
+    }
+
+    log.debug('CheckName: $name State: $success');
+
+    // TODO(matanlurey): It would be better to early return above where it is not a success.
+    if (!success) {
+      return const ProcessCheckRunResult.unexpectedError(
+        'Not successful. See previous log messages',
+      );
+    }
+    return const ProcessCheckRunResult.success();
+  }
+
+  Future<ProcessCheckRunResult> _reRunFailed(
+    cocoon_checks.CheckRunEvent checkRunEvent,
+  ) async {
+    final logCrumb = 'reRunFailed(${checkRunEvent.checkRun!.id})';
+    log.info('$logCrumb: Requested to re-run failed tests');
+
+    // The CheckRunEvent.checkRun.pullRequests array is empty for this
+    // event, so we need to find the matching pull request.
+    final slug = checkRunEvent.repository!.slug();
+    final headSha = checkRunEvent.checkRun!.headSha!;
+    final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+    final pullRequest = await _githubChecksService.findMatchingPullRequest(
+      slug,
+      headSha,
+      checkSuiteId,
+    );
+
+    final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+      firestoreService: _firestore,
+      slug: slug,
+      pullRequestId: pullRequest!.number!,
+      checkRunId: checkRunEvent.checkRun!.id!,
+    );
+
+    if (failedChecks == null) {
+      log.error('$logCrumb: No failed targets found');
+      return const ProcessCheckRunResult.missingEntity(
+        'No failed targets found',
+      );
+    }
+
+    final (targets, artifacts) = await _getAllTargetsForPullRequest(
+      slug,
+      pullRequest,
+    );
+
+    final failedTargets = targets
+        .where((target) => failedChecks.checkNames.contains(target.name))
+        .toList();
+    if (failedTargets.length != failedChecks.checkNames.length) {
+      log.error(
+        '$logCrumb: Failed to find all failed targets in presubmit targets',
+      );
+      return const ProcessCheckRunResult.missingEntity(
+        'Failed to find all failed targets in presubmit targets',
+      );
+    }
+
+    await _luciBuildService.scheduleTryBuilds(
+      targets: failedTargets,
+      pullRequest: pullRequest,
+      engineArtifacts: artifacts,
+      checkRunGuard: failedChecks.checkRunGuard,
+      stage: failedChecks.stage,
+    );
+
+    log.info(
+      '$logCrumb: Successfully rescheduled ${failedTargets.length} targets',
+    );
+    return const ProcessCheckRunResult.success();
+  }
 
   Future<(List<Target>, EngineArtifacts)> _getAllTargetsForPullRequest(
     RepositorySlug slug,
