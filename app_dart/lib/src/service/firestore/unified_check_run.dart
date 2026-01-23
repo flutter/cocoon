@@ -154,6 +154,7 @@ final class UnifiedCheckRun {
         rethrow;
       }
     }
+    return null;
   }
 
   /// Returns _all_ checks running against the specified github [checkRunId].
@@ -340,9 +341,9 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingBuilds!,
+          remaining: presubmitGuard.remainingBuilds,
           checkRunGuard: presubmitGuard.checkRunJson,
-          failed: presubmitGuard.failedBuilds!,
+          failed: presubmitGuard.failedBuilds,
           summary:
               'Check run "${state.buildName}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
@@ -360,8 +361,8 @@ final class UnifiedCheckRun {
       );
       presubmitCheck = PresubmitCheck.fromDocument(presubmitCheckDocument);
 
-      remaining = presubmitGuard.remainingBuilds!;
-      failed = presubmitGuard.failedBuilds!;
+      remaining = presubmitGuard.remainingBuilds;
+      failed = presubmitGuard.failedBuilds;
       final builds = presubmitGuard.builds;
       var status = builds[state.buildName]!;
 
@@ -377,7 +378,7 @@ final class UnifiedCheckRun {
       } else if (state.status == TaskStatus.inProgress) {
         presubmitCheck.startTime = state.startTime!;
         // If the build is not completed, update the status.
-        if (!status!.isBuildCompleted) {
+        if (!status.isBuildCompleted) {
           status = state.status;
         }
         valid = true;
