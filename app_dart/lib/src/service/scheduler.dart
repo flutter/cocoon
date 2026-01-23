@@ -1497,14 +1497,14 @@ $stacktrace
           case 're_run_failed':
             return await _reRunFailed(checkRunEvent);
           default:
-            log.warn(
+            log.debug(
               'Requested unexpected action identifier: ${checkRunEvent.requestedAction?.identifier} for ${checkRunEvent.checkRun!.id} check-run id',
             );
             break;
         }
         break;
       default:
-        log.warn(
+        log.debug(
           'Requested unexpected action: ${checkRunEvent.action} for ${checkRunEvent.checkRun!.id} check-run id',
         );
         break;
