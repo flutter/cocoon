@@ -43,7 +43,7 @@ final class UnifiedCheckRun {
       );
       // We store the creation time of the guard since there might be several
       // guards for the same PR created and each new one created after previous
-      // was succeeded so we are interested in a state of the last one.
+      // was succeeded so we are interested in a state of the latest one.
       final creationTime = DateTime.now().toUtc().microsecondsSinceEpoch;
       final guard = PresubmitGuard(
         checkRun: checkRun,
@@ -94,8 +94,8 @@ final class UnifiedCheckRun {
     final transaction = await firestoreService.beginTransaction();
 
     // New guard created only if previous is succeeded so failed checks might be
-    // only in last guard.
-    final guard = await getLastPresubmitGuardForCheckRun(
+    // only in latest guard.
+    final guard = await getLatestPresubmitGuardForCheckRun(
       firestoreService: firestoreService,
       slug: slug,
       pullRequestId: pullRequestId,
@@ -192,7 +192,7 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
-  /// Returns the latest check for the specified github [checkRunId] and
+  /// Returns the latest [PresubmitCheck] for the specified github [checkRunId] and
   /// [buildName].
   static Future<PresubmitCheck?> getLatestPresubmitCheck({
     required FirestoreService firestoreService,
@@ -210,8 +210,8 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
-  /// Returns [PresubmitGuard]s for the specified github [checkRunId].
-  static Future<PresubmitGuard?> getLastPresubmitGuardForCheckRun({
+  /// Returns the latest [PresubmitGuard] for the specified github [checkRunId].
+  static Future<PresubmitGuard?> getLatestPresubmitGuardForCheckRun({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required int pullRequestId,
