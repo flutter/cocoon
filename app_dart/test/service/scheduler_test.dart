@@ -1321,7 +1321,7 @@ targets:
           slug: slug,
           pullRequestId: 1,
           stage: CiStage.fusionTests,
-          creationTime: 1000,
+          creationTime: 2000,
           author: 'dash',
           builds: {'Linux A': TaskStatus.failed},
           failedBuilds: 1,
@@ -1331,7 +1331,7 @@ targets:
         final check = PresubmitCheck(
           buildName: 'Linux A',
           checkRunId: 1,
-          creationTime: 1000,
+          creationTime: 2000,
           status: TaskStatus.failed,
           attemptNumber: 1,
         );

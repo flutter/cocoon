@@ -484,7 +484,7 @@ void main() {
       });
     });
 
-    test('getPresubmitGuardsForCheckRun returns correct guards', () async {
+    test('getLastPresubmitGuardForCheckRun returns newest guard', () async {
       final sha = 'sha';
       final slug = RepositorySlug('flutter', 'flutter');
       final checkRun = CheckRun.fromJson(const {
@@ -513,7 +513,7 @@ void main() {
         slug: slug,
         pullRequestId: 1,
         stage: CiStage.fusionTests,
-        creationTime: 1000,
+        creationTime: 2000,
         author: 'dash',
         remainingBuilds: 1,
         failedBuilds: 0,
@@ -527,17 +527,16 @@ void main() {
         ], exists: false),
       );
 
-      final guards = await UnifiedCheckRun.getPresubmitGuardsForCheckRun(
+      final guard = await UnifiedCheckRun.getLastPresubmitGuardForCheckRun(
         firestoreService: firestoreService,
         slug: slug,
         pullRequestId: 1,
         checkRunId: 123,
       );
 
-      expect(guards, hasLength(2));
-      expect(guards[0].stage, CiStage.fusionEngineBuild);
-      expect(guards[1].stage, CiStage.fusionTests);
-      expect(guards.every((g) => g.checkRunId == 123), isTrue);
+      expect(guard, isNotNull);
+      expect(guard!.stage, CiStage.fusionTests);
+      expect(guard.checkRunId, 123);
     });
   });
 }
