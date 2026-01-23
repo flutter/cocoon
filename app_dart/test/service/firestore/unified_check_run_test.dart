@@ -484,7 +484,7 @@ void main() {
       });
     });
 
-    test('getLastPresubmitGuardForCheckRun returns newest guard', () async {
+    test('getLatestPresubmitGuardForCheckRun returns latest guard', () async {
       final sha = 'sha';
       final slug = RepositorySlug('flutter', 'flutter');
       final checkRun = CheckRun.fromJson(const {
@@ -527,7 +527,7 @@ void main() {
         ], exists: false),
       );
 
-      final guard = await UnifiedCheckRun.getLastPresubmitGuardForCheckRun(
+      final guard = await UnifiedCheckRun.getLatestPresubmitGuardForCheckRun(
         firestoreService: firestoreService,
         slug: slug,
         pullRequestId: 1,
