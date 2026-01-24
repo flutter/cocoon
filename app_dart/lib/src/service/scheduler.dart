@@ -885,7 +885,14 @@ $s
     required String details,
     String? detailsUrl,
   }) async {
-    log.info('Failing merge group guard for merge group $headSha in $slug');
+    log.info('''
+Require action for merge group guard ${lock.id} for:
+head sha: $headSha
+slug: $slug
+summary: $summary
+details: $details
+detailsUrl: $detailsUrl
+''');
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
       slug,
@@ -897,7 +904,8 @@ $s
         summary: summary,
         text: details,
       ),
-      detailsUrl: detailsUrl,
+      // temporary disabled due to https://github.com/flutter/flutter/issues/181425
+      //detailsUrl: detailsUrl,
       actions: [
         const CheckRunAction(
           label: 'Re-run Failed',
