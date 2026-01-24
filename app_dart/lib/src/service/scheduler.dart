@@ -886,8 +886,9 @@ $s
     String? detailsUrl,
   }) async {
     log.info('''
-Require action for merge group guard ${lock.id} 
-for merge group $headSha in $slug with:
+Require action for merge group guard ${lock.id} for:
+head sha: $headSha
+slug: $slug
 summary: $summary
 details: $details
 detailsUrl: $detailsUrl
