@@ -1356,29 +1356,17 @@ detailsUrl: $detailsUrl
   }) async {
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
 
-    // Look up the PR in our cache first. This reduces github quota and requires less calls.
-    PullRequest? pullRequest;
-    final id = checkRun.id!;
-    final name = checkRun.name!;
-    try {
-      pullRequest = await PrCheckRuns.findPullRequestFor(_firestore, id, name);
-    } catch (e, s) {
-      log.warn('$logCrumb: unable to find PR in PrCheckRuns', e, s);
-    }
-
-    // We've failed to find the pull request; try a reverse look it from the check suite.
-    if (pullRequest == null) {
-      final checkSuiteId = checkRun.checkSuite!.id!;
-      pullRequest = await _githubChecksService.findMatchingPullRequest(
-        slug,
-        sha,
-        checkSuiteId,
-      );
-    }
+    final pullRequest = await findPullRequestCached(
+      checkRun.id!,
+      checkRun.name!,
+      slug,
+      sha,
+      checkRun.checkSuite!.id!,
+    );
 
     // We cannot make any forward progress. Abandon all hope, Check runs who enter here.
     if (pullRequest == null) {
-      throw 'No PR found matching this check_run($id, $name)';
+      throw 'No PR found matching this check_run(${checkRun.id}, ${checkRun.name})';
     }
 
     try {
@@ -1463,7 +1451,7 @@ $stacktrace
     // We're doing a transactional update, which could fail if multiple tasks
     // are running at the same time so retry a sane amount of times before
     // giving up.
-    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 5));
 
     return r.retry(() {
       return UnifiedCheckRun.markConclusion(
@@ -1658,6 +1646,38 @@ $stacktrace
     return const ProcessCheckRunResult.success();
   }
 
+  Future<PullRequest?> findPullRequestCached(
+    int checkRunId,
+    String checkRunName,
+    RepositorySlug slug,
+    String headSha,
+    int checkSuiteId,
+  ) async {
+    final logCrumb = 'findPullRequestCached($checkRunId)';
+    PullRequest? pullRequest;
+    // Look up the PR in our cache first. This reduces github quota and requires less calls.
+    try {
+      pullRequest = await PrCheckRuns.findPullRequestFor(
+        _firestore,
+        checkRunId,
+        checkRunName,
+      );
+    } catch (e, s) {
+      log.info('$logCrumb: unable to find PR in PrCheckRuns', e, s);
+    }
+    // We've failed to find the pull request; try a reverse look it from the check suite.
+
+    pullRequest ??= await _githubChecksService.findMatchingPullRequest(
+      slug,
+      headSha,
+      checkSuiteId,
+    );
+    if (pullRequest == null) {
+      log.warn('$logCrumb: No pull request found');
+    }
+    return pullRequest;
+  }
+
   Future<ProcessCheckRunResult> _reRunFailed(
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {
@@ -1667,12 +1687,13 @@ $stacktrace
     // The CheckRunEvent.checkRun.pullRequests array is empty for this
     // event, so we need to find the matching pull request.
     final slug = checkRunEvent.repository!.slug();
-    final headSha = checkRunEvent.checkRun!.headSha!;
-    final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-    final pullRequest = await _githubChecksService.findMatchingPullRequest(
-      slug,
-      headSha,
-      checkSuiteId,
+
+    final pullRequest = await findPullRequestCached(
+      checkRunEvent.checkRun!.id!,
+      checkRunEvent.checkRun!.name!,
+      checkRunEvent.repository!.slug(),
+      checkRunEvent.checkRun!.headSha!,
+      checkRunEvent.checkRun!.checkSuite!.id!,
     );
 
     final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
