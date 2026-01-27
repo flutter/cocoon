@@ -869,7 +869,7 @@ $s
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.failure,
       output: CheckRunOutput(
-        title: Config.kCiYamlCheckName,
+        title: Config.kMergeQueueLockName,
         summary: summary,
         text: details,
       ),
@@ -900,12 +900,11 @@ detailsUrl: $detailsUrl
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.actionRequired,
       output: CheckRunOutput(
-        title: Config.kCiYamlCheckName,
+        title: Config.kMergeQueueLockName,
         summary: summary,
         text: details,
       ),
-      // temporary disabled due to https://github.com/flutter/flutter/issues/181425
-      //detailsUrl: detailsUrl,
+      detailsUrl: detailsUrl,
       actions: [
         const CheckRunAction(
           label: 'Re-run Failed',
@@ -1097,15 +1096,19 @@ detailsUrl: $detailsUrl
         );
       } else if (check.isUnifiedCheckRun) {
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        final detailsUrl =
+            'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&checkrun=${check.guardId.checkRunId}';
         await _requireActionForGuard(
           slug: check.slug,
           lock: guard,
           headSha: check.sha,
-          summary: kMergeQueueLockDescription,
+          summary: _githubChecksService.getGithubSummaryWithHeader('''
+**[Failed Checks Details]($detailsUrl)**
+
+''', kMergeQueueLockDescription),
           details:
               'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
-          detailsUrl:
-              'https://flutter-dashboard.appspot.com/repo/${check.slug.name}/checkrun/${check.guardId}',
+          detailsUrl: detailsUrl,
         );
       }
       return true;
