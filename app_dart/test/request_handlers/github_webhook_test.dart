@@ -8,9 +8,9 @@ import 'dart:typed_data';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/model/firestore/github_webhook_message.dart'
     as ghwm;
+import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 
@@ -111,7 +111,8 @@ void main() {
         isGithubWebhookMessage
             .hasJsonString('{"test": "data"}')
             .hasEvent('merge_group')
-            .hasTimestamp(DateTime.utc(2024, 1, 1, 12, 0, 0)),
+            .hasTimestamp(DateTime.utc(2024, 1, 1, 12, 0, 0))
+            .hasExpireAt(DateTime.utc(2024, 1, 8, 12, 0, 0)),
       ]),
     );
   });

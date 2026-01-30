@@ -22,6 +22,7 @@ final class GithubWebhookMessage extends AppDocument<GithubWebhookMessage> {
     required String event,
     required String jsonString,
     required DateTime timestamp,
+    required DateTime expireAt,
   }) {
     return GithubWebhookMessage.fromDocument(
       g.Document(
@@ -29,6 +30,7 @@ final class GithubWebhookMessage extends AppDocument<GithubWebhookMessage> {
           _fieldTimestamp: timestamp.toValue(),
           _fieldEvent: event.toValue(),
           _fieldJsonString: jsonString.toValue(),
+          _fieldExpireAt: expireAt.toValue(),
         },
       ),
     );
@@ -40,6 +42,7 @@ final class GithubWebhookMessage extends AppDocument<GithubWebhookMessage> {
   static const _fieldTimestamp = 'timestamp';
   static const _fieldEvent = 'event';
   static const _fieldJsonString = 'jsonString';
+  static const _fieldExpireAt = 'expireAt';
 
   DateTime get timestamp {
     return DateTime.parse(fields[_fieldTimestamp]!.timestampValue!);
@@ -51,5 +54,9 @@ final class GithubWebhookMessage extends AppDocument<GithubWebhookMessage> {
 
   String get jsonString {
     return fields[_fieldJsonString]!.stringValue!;
+  }
+
+  DateTime get expireAt {
+    return DateTime.parse(fields[_fieldExpireAt]!.timestampValue!);
   }
 }

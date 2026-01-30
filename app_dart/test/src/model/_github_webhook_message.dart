@@ -25,6 +25,12 @@ final class GithubWebhookMessageMatcher
     );
   }
 
+  GithubWebhookMessageMatcher hasExpireAt(Object? matcherOr) {
+    return GithubWebhookMessageMatcher._(
+      _delegate.having((message) => message.expireAt, 'expireAt', matcherOr),
+    );
+  }
+
   GithubWebhookMessageMatcher hasJsonString(Object? matcherOr) {
     return GithubWebhookMessageMatcher._(
       _delegate.having(

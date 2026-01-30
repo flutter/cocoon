@@ -67,11 +67,14 @@ final class GithubWebhook extends RequestHandler {
 
     if (_firestore != null && event == 'merge_group') {
       log.info('GithubWebhook: saving to firestore');
+      final now = _now();
+      final ttl = now.add(const Duration(days: 7));
       await _firestore.createDocument(
         GithubWebhookMessage(
           event: event,
           jsonString: requestString,
           timestamp: _now(),
+          expireAt: ttl,
         ),
         collectionId: GithubWebhookMessage.metadata.collectionId,
       );
