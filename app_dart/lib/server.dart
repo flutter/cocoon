@@ -72,6 +72,7 @@ Server createServer({
       pubsub: const PubSub(),
       secret: config.webhookKey,
       topic: 'github-webhooks',
+      firestore: firestore,
     ),
     // TODO(chillers): Move to release service. https://github.com/flutter/flutter/issues/132082
     '/api/github/frob-webhook': GithubWebhook(

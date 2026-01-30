@@ -1290,8 +1290,6 @@ targets:
         expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
       });
 
-
-
       test('rerequested action reschedules failed checks for fusion', () async {
         final mockGithubChecksService = MockGithubChecksService();
         when(

@@ -10,12 +10,15 @@ import 'dart:convert';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 
+import '../model/firestore/github_webhook_message.dart';
 import '../model/proto/protos.dart' as pb;
 import '../request_handling/exceptions.dart';
 import '../request_handling/pubsub.dart';
 import '../request_handling/request_handler.dart';
 import '../request_handling/response.dart';
+import '../service/firestore.dart';
 
 /// Processes GitHub webhooks and publishes valid events to PubSub.
 ///
@@ -28,9 +31,15 @@ final class GithubWebhook extends RequestHandler {
     required PubSub pubsub,
     required Future<String> secret,
     required String topic,
+    FirestoreService? firestore,
+    @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _secret = secret,
        _topic = topic,
-       _pubsub = pubsub;
+       _pubsub = pubsub,
+       _firestore = firestore,
+       _now = now;
+
+  final DateTime Function() _now;
 
   final PubSub _pubsub;
 
@@ -39,6 +48,9 @@ final class GithubWebhook extends RequestHandler {
 
   /// Future that resolves to the GitHub apps webhook secret.
   final Future<String> _secret;
+
+  /// Optional firestore service for storing webhook messages.
+  final FirestoreService? _firestore;
 
   @override
   Future<Response> post(Request request) async {
@@ -53,6 +65,26 @@ final class GithubWebhook extends RequestHandler {
 
     final requestString = utf8.decode(requestBytes);
 
+    if (_firestore != null && event == 'merge_group') {
+      log.info('GithubWebhook: saving to firestore');
+      final now = _now();
+      final ttl = now.add(const Duration(days: 7));
+      await _firestore.createDocument(
+        GithubWebhookMessage(
+          event: event,
+          jsonString: requestString,
+          timestamp: _now(),
+          expireAt: ttl,
+        ),
+        collectionId: GithubWebhookMessage.metadata.collectionId,
+      );
+    }
+
+    return await publish(event, requestString);
+  }
+
+  /// Publishes the [event] and [requestString] to PubSub.
+  Future<Response> publish(String event, String requestString) async {
     final message = pb.GithubWebhookMessage.create()
       ..event = event
       ..payload = requestString;
