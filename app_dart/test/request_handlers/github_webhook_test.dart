@@ -9,7 +9,8 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-
+import 'package:cocoon_service/src/model/firestore/github_webhook_message.dart'
+    as ghwm;
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 
@@ -17,6 +18,7 @@ import '../src/fake_config.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/request_handler_tester.dart';
+import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();
@@ -80,5 +82,60 @@ void main() {
     final message = GithubWebhookMessage.fromJson(jsonEncode(messageJson));
     expect(message.event, 'pull_request');
     expect(message.payload, '{}');
+  });
+
+  test('writes merge_group events to firebase', () async {
+    final firestore = FakeFirestoreService();
+
+    webhook = GithubWebhook(
+      config: config,
+      pubsub: pubsub,
+      secret: config.webhookKey,
+      topic: 'github-webhooks',
+      firestore: firestore,
+      now: () => DateTime.utc(2024, 1, 1, 12, 0, 0),
+    );
+
+    request.headers.set('X-GitHub-Event', 'merge_group');
+    request.body = '{"test": "data"}';
+    final body = utf8.encode(request.body!);
+    final key = utf8.encode(keyString);
+    final hmac = getHmac(body, key);
+    request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+    await tester.post(webhook);
+
+    expect(firestore.documents, hasLength(1));
+    expect(
+      firestore,
+      existsInStorage(ghwm.GithubWebhookMessage.metadata, [
+        isGithubWebhookMessage
+            .hasJsonString('{"test": "data"}')
+            .hasEvent('merge_group')
+            .hasTimestamp(DateTime.utc(2024, 1, 1, 12, 0, 0)),
+      ]),
+    );
+  });
+
+  test('does not write non-merge_group events to firebase', () async {
+    final firestore = FakeFirestoreService();
+
+    webhook = GithubWebhook(
+      config: config,
+      pubsub: pubsub,
+      secret: config.webhookKey,
+      topic: 'github-webhooks',
+      firestore: firestore,
+      now: () => DateTime.utc(2024, 1, 1, 12, 0, 0),
+    );
+
+    request.headers.set('X-GitHub-Event', 'pull_request');
+    request.body = '{"test": "data"}';
+    final body = utf8.encode(request.body!);
+    final key = utf8.encode(keyString);
+    final hmac = getHmac(body, key);
+    request.headers.set('X-Hub-Signature', 'sha1=$hmac');
+    await tester.post(webhook);
+
+    expect(firestore.documents, isEmpty);
   });
 }
