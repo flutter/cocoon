@@ -485,7 +485,7 @@ For CI stage ${guardId.stage}:
                   'to "${state.status.name}".',
       );
     } catch (e) {
-      log.error('$logCrumb: failed to update presubmit check', e);
+      log.info('$logCrumb: failed to update presubmit check', e);
       rethrow;
     }
   }

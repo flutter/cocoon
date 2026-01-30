@@ -118,14 +118,17 @@ class GithubChecksService {
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
   /// reference from github check run page.
   String getGithubSummary(String? summary) {
+    return getGithubSummaryWithHeader(kGithubSummary, summary);
+  }
+
+  String getGithubSummaryWithHeader(String header, String? summary) {
     if (summary == null) {
-      return '${kGithubSummary}Empty summaryMarkdown';
+      return '${header}Empty summaryMarkdown';
     }
     // This is an imposed GitHub limit
     const checkSummaryLimit = 65535;
     // This is to give buffer room incase GitHub lowers the amount.
-    const checkSummaryBufferLimit =
-        checkSummaryLimit - 10000 - kGithubSummary.length;
+    final checkSummaryBufferLimit = checkSummaryLimit - 10000 - header.length;
     // Return the last [checkSummaryBufferLimit] characters as they are likely the most relevant.
     if (summary.length > checkSummaryBufferLimit) {
       final truncatedSummary = summary.substring(
@@ -133,7 +136,7 @@ class GithubChecksService {
       );
       summary = '[TRUNCATED...] $truncatedSummary';
     }
-    return '$kGithubSummary$summary';
+    return '$header$summary';
   }
 
   /// Relevant APIs:
