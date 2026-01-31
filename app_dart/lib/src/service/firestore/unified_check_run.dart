@@ -10,6 +10,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
+import 'package:meta/meta.dart';
 
 import '../../model/common/failed_presubmit_checks.dart';
 import '../../model/common/presubmit_check_state.dart';
@@ -22,6 +23,9 @@ import '../config.dart';
 import '../firestore.dart';
 
 final class UnifiedCheckRun {
+  @visibleForTesting
+  static DateTime Function() utcNow = () => DateTime.now().toUtc();
+
   static Future<void> initializeCiStagingDocument({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
@@ -44,7 +48,7 @@ final class UnifiedCheckRun {
       // We store the creation time of the guard since there might be several
       // guards for the same PR created and each new one created after previous
       // was succeeded so we are interested in a state of the latest one.
-      final creationTime = DateTime.now().toUtc().microsecondsSinceEpoch;
+      final creationTime = utcNow().microsecondsSinceEpoch;
       final guard = PresubmitGuard(
         checkRun: checkRun,
         commitSha: sha,
@@ -109,7 +113,7 @@ final class UnifiedCheckRun {
 
     // Copy the failed build names to a local variable to avoid losing the
     // failed build names after resetting the failed guard.builds.
-    final creationTime = DateTime.now().toUtc().microsecondsSinceEpoch;
+    final creationTime = utcNow().microsecondsSinceEpoch;
     final failedBuildNames = guard.failedBuildNames;
     if (failedBuildNames.isNotEmpty) {
       guard.failedBuilds = 0;
