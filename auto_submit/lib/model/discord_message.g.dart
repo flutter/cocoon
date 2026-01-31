@@ -15,5 +15,5 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
   'content': instance.content,
   'username': instance.username,
-  if (instance.avatarUrl case final value?) 'avatar_url': value,
+  'avatar_url': ?instance.avatarUrl,
 };
