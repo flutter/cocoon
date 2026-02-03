@@ -23,9 +23,6 @@ import '../config.dart';
 import '../firestore.dart';
 
 final class UnifiedCheckRun {
-  @visibleForTesting
-  static DateTime Function() utcNow = () => DateTime.now().toUtc();
-
   static Future<void> initializeCiStagingDocument({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
@@ -35,6 +32,7 @@ final class UnifiedCheckRun {
     required Config config,
     PullRequest? pullRequest,
     CheckRun? checkRun,
+    @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
     if (checkRun != null &&
         pullRequest != null &&
@@ -90,6 +88,7 @@ final class UnifiedCheckRun {
     required RepositorySlug slug,
     required int pullRequestId,
     required int checkRunId,
+    @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
     final logCrumb =
         'reInitializeFailedChecks(${slug.fullName}, $pullRequestId, $checkRunId)';
