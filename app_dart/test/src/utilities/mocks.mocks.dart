@@ -1901,6 +1901,17 @@ class MockGithubChecksService extends _i1.Mock
           as String);
 
   @override
+  String getGithubSummaryWithHeader(String? header, String? summary) =>
+      (super.noSuchMethod(
+            Invocation.method(#getGithubSummaryWithHeader, [header, summary]),
+            returnValue: _i20.dummyValue<String>(
+              this,
+              Invocation.method(#getGithubSummaryWithHeader, [header, summary]),
+            ),
+          )
+          as String);
+
+  @override
   _i7.CheckRunConclusion conclusionForResult(_i6.Status? status) =>
       (super.noSuchMethod(
             Invocation.method(#conclusionForResult, [status]),
@@ -5732,6 +5743,26 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
             ),
           )
           as _i13.Future<_i43.ProcessCheckRunResult>);
+
+  @override
+  _i13.Future<_i7.PullRequest?> findPullRequestCached(
+    int? checkRunId,
+    String? checkRunName,
+    _i7.RepositorySlug? slug,
+    String? headSha,
+    int? checkSuiteId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#findPullRequestCached, [
+              checkRunId,
+              checkRunName,
+              slug,
+              headSha,
+              checkSuiteId,
+            ]),
+            returnValue: _i13.Future<_i7.PullRequest?>.value(),
+          )
+          as _i13.Future<_i7.PullRequest?>);
 
   @override
   _i7.CheckRun checkRunFromString(String? input) =>

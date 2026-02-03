@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-// ignore_for_file: always_specify_types, implicit_dynamic_parameter
+// ignore_for_file: always_specify_types, implicit_dynamic_parameter, use_null_aware_elements
 
 part of 'grpc.dart';
 
