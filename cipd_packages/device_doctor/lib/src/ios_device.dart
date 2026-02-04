@@ -275,7 +275,7 @@ class IosDeviceDiscovery implements DeviceDiscovery {
 
 /// iOS device.
 class IosDevice implements Device {
-  const IosDevice({@required this.deviceId});
+  const IosDevice({required this.deviceId});
 
   @override
   final String? deviceId;
