@@ -13,7 +13,7 @@ import '../request_handling/request_handler.dart';
 import '../request_handling/response.dart';
 import '../service/firestore.dart';
 
-/// Returns the last 20 GitHub merge queue hooks from Firestore.
+/// Returns the latest GitHub merge queue hooks from Firestore.
 final class MergeQueueHooks extends ApiRequestHandler {
   const MergeQueueHooks({
     required FirestoreService firestore,
@@ -23,6 +23,8 @@ final class MergeQueueHooks extends ApiRequestHandler {
 
   final FirestoreService _firestore;
 
+  static const String kPageSize = 'pageSize';
+
   @override
   Future<Response> get(Request request) async {
     final email = authContext!.email;
@@ -30,10 +32,14 @@ final class MergeQueueHooks extends ApiRequestHandler {
       throw const Forbidden();
     }
 
+    final pageSize =
+        (int.tryParse(request.uri.queryParameters[kPageSize] ?? '') ?? 20)
+            .clamp(1, 100);
+
     final documents = await _firestore.query(
       GithubWebhookMessage.metadata.collectionId,
       <String, Object>{},
-      limit: 20,
+      limit: pageSize,
       orderMap: <String, String>{'timestamp': kQueryOrderDescending},
     );
 

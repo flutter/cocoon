@@ -92,4 +92,72 @@ void main() {
     expect(hook.headCommitId, '123456');
     expect(hook.headCommitMessage, 'test commit');
   });
+
+  group('page size', () {
+    setUp(() async {
+      tester.context.email = 'user@google.com';
+
+      // Seed Firestore with a mock GithubWebhookMessage
+      final timestamp = DateTime.now();
+      final jsonString = jsonEncode({
+        'action': 'enqueue',
+        'merge_group': {
+          'head_ref': 'refs/heads/main',
+          'head_commit': {'id': '123456', 'message': 'test commit\nbody'},
+        },
+      });
+
+      for (var i = 0; i < 200; i++) {
+        final message = GithubWebhookMessage(
+          event: 'merge_group',
+          jsonString: jsonString,
+          timestamp: timestamp,
+          expireAt: timestamp.add(const Duration(days: 1)),
+        )..name = 'projects/flutter-dashboard/databases/cocoon/documents/github_webhook_messages/$i';
+        await firestore.createDocument(
+          message,
+          collectionId: GithubWebhookMessage.metadata.collectionId,
+        );
+      }
+    });
+
+    Future<MergeGroupHooks> decodeHandlerBody() async {
+      final body = await tester.get(handler);
+      return MergeGroupHooks.fromJson(
+        json.decode(
+              await body.body.cast<List<int>>().transform(utf8.decoder).join(),
+            )
+            as Map<String, Object?>,
+      );
+    }
+
+    test('defaults to 20', () async {
+      final hooks = await decodeHandlerBody();
+      expect(hooks.hooks, hasLength(20));
+    });
+
+    test('minimum 1', () async {
+      tester.request.uri = tester.request.uri.replace(
+        queryParameters: <String, String>{'pageSize': '0'},
+      );
+      final hooks = await decodeHandlerBody();
+      expect(hooks.hooks, hasLength(1));
+    });
+
+    test('maximum 100', () async {
+      tester.request.uri = tester.request.uri.replace(
+        queryParameters: <String, String>{'pageSize': '200'},
+      );
+      final hooks = await decodeHandlerBody();
+      expect(hooks.hooks, hasLength(100));
+    });
+
+    test('ignores bad page size values', () async {
+      tester.request.uri = tester.request.uri.replace(
+        queryParameters: <String, String>{'pageSize': 'xyz'},
+      );
+      final hooks = await decodeHandlerBody();
+      expect(hooks.hooks, hasLength(20));
+    });
+  });
 }
