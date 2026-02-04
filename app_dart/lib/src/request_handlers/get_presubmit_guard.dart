@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -43,10 +44,23 @@ final class GetPresubmitGuard extends ApiRequestHandler {
 
     // Consolidate metadata from the first record.
     final first = guards.first;
+
+    final GuardStatus guardStatus;
+    if (guards.any((g) => g.failedBuilds > 0)) {
+      guardStatus = GuardStatus.failed;
+    } else if (guards.every((g) => g.failedBuilds == 0 && g.remainingBuilds == 0)) {
+      guardStatus = GuardStatus.succeeded;
+    } else if (guards.every((g) => g.remainingBuilds == g.builds.length)) {
+      guardStatus = GuardStatus.waitingForBackfill;
+    } else {
+      guardStatus = GuardStatus.inProgress;
+    }
+
     final response = rpc_model.PresubmitGuardResponse(
       prNum: first.pullRequestId,
       checkRunId: first.checkRunId,
       author: first.author,
+      guardStatus: guardStatus,
       stages: [
         ...guards.map(
           (g) => rpc_model.PresubmitGuardStage(

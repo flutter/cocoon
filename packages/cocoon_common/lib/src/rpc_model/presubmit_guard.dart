@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
@@ -16,6 +17,7 @@ final class PresubmitGuardResponse {
     required this.checkRunId,
     required this.author,
     required this.stages,
+    required this.guardStatus,
   });
 
   factory PresubmitGuardResponse.fromJson(Map<String, Object?> json) =>
@@ -30,6 +32,9 @@ final class PresubmitGuardResponse {
   final String author;
 
   final List<PresubmitGuardStage> stages;
+
+  @JsonKey(name: 'guard_status')
+  final GuardStatus guardStatus;
 
   Map<String, Object?> toJson() => _$PresubmitGuardResponseToJson(this);
 }

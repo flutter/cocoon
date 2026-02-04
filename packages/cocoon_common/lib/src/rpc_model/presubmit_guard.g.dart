@@ -15,6 +15,7 @@ PresubmitGuardResponse _$PresubmitGuardResponseFromJson(
   stages: (json['stages'] as List<dynamic>)
       .map((e) => PresubmitGuardStage.fromJson(e as Map<String, dynamic>))
       .toList(),
+  guardStatus: $enumDecode(_$GuardStatusEnumMap, json['guard_status']),
 );
 
 Map<String, dynamic> _$PresubmitGuardResponseToJson(
@@ -24,6 +25,14 @@ Map<String, dynamic> _$PresubmitGuardResponseToJson(
   'check_run_id': instance.checkRunId,
   'author': instance.author,
   'stages': instance.stages,
+  'guard_status': instance.guardStatus,
+};
+
+const _$GuardStatusEnumMap = {
+  GuardStatus.waitingForBackfill: 'waitingForBackfill',
+  GuardStatus.inProgress: 'inProgress',
+  GuardStatus.failed: 'failed',
+  GuardStatus.succeeded: 'succeeded',
 };
 
 PresubmitGuardStage _$PresubmitGuardStageFromJson(Map<String, dynamic> json) =>

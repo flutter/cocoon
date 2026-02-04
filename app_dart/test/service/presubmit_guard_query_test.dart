@@ -54,4 +54,14 @@ void main() {
     expect(results.any((g) => g.stage == CiStage.fusionTests), isTrue);
     expect(results.any((g) => g.stage == CiStage.fusionEngineBuild), isTrue);
   });
+
+  test('queryPresubmitGuards returns empty list when no guards found', () async {
+    final slug = RepositorySlug('flutter', 'flutter');
+    final results = await firestoreService.queryPresubmitGuards(
+      slug: slug,
+      commitSha: 'non-existent',
+    );
+
+    expect(results, isEmpty);
+  });
 }
