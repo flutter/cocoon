@@ -29,7 +29,7 @@ jobs:
 
       - name: Get packages
         run: |
-          dart pub get
+          flutter pub get
 
       - name: dart analyze app_dart
         run: |
