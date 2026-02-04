@@ -13,6 +13,7 @@ workspace:
   - auto_submit
   - dashboard
   - analyze
+  - licenses
   - packages/buildbucket-dart
   - packages/cocoon_common
   - packages/cocoon_common_test
