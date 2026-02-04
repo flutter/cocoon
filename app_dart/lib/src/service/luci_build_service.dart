@@ -668,9 +668,7 @@ class LuciBuildService {
       log.info(
         'create postsubmit schedule request for target: ${pending.target} in commit ${commit.sha}',
       );
-      final properties = <String, Object>{
-        'content_hash': ?contentHash,
-      };
+      final properties = <String, Object>{'content_hash': ?contentHash};
       final scheduleBuildRequest = await _createPostsubmitScheduleBuild(
         commit: commit,
         target: pending.target,
@@ -736,9 +734,7 @@ class LuciBuildService {
         'create postsubmit schedule request for target: $target in commit ${commit.sha}',
       );
 
-      final properties = <String, Object>{
-        'content_hash': ?contentHash,
-      };
+      final properties = <String, Object>{'content_hash': ?contentHash};
       final scheduleBuildRequest = await _createMergeGroupScheduleBuild(
         commit: commit,
         target: target,
