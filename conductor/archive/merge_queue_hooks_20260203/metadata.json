@@ -1,0 +1,8 @@
+{
+  "track_id": "merge_queue_hooks_20260203",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-02-03T12:00:00Z",
+  "updated_at": "2026-02-03T12:00:00Z",
+  "description": "Add a new api to @app_dart/lib/server.dart at `/api/merge_queue_hooks` to query merge queue hooks from Firestore."
+}
