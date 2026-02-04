@@ -55,6 +55,11 @@ melos:
       run: melos exec dart format . --set-exit-if-changed
       description: Run `dart format` checks for all packages.
 
+    pub-get:
+      steps:
+        - melos exec --no-flutter -- "dart pub get"
+        - melos exec --flutter -- "flutter pub get"
+
     upgrade: melos exec flutter pub upgrade
 
     test:
