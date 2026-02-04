@@ -1,6 +1,13 @@
 name: Test dashboard
 
 on:
+  workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: 'Update Golden files'
+        required: false
+        type: boolean
+        default: false
   pull_request:
     branches: [main]
     paths:
@@ -16,6 +23,8 @@ jobs:
     defaults:
       run:
         working-directory: dashboard
+    env:
+      UPDATE_GOLDENS: ${{ inputs.update_goldens || 'false' }}
 
     steps:
       - name: Set up Flutter
@@ -41,4 +50,22 @@ jobs:
 
       - name: Flutter Test
         run: |
-          flutter test --test-randomize-ordering-seed=random --reporter expanded
+          EXTRA_ARGS=""
+          if [ "$UPDATE_GOLDENS" = "true" ]; then
+            EXTRA_ARGS="--update-goldens"
+          fi
+          flutter test --test-randomize-ordering-seed=random --reporter expanded $EXTRA_ARGS
+
+      - name: Upload Updated Goldens
+        if: env.UPDATE_GOLDENS == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-goldens
+          path: dashboard/test/**/goldens/**/*.png
+
+      - name: Upload Golden Failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: dashboard/**/failures/
