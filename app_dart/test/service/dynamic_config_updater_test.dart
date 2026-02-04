@@ -110,7 +110,13 @@ void main() {
   test('handles format errors', () async {
     mockHttpFile = 'BLAH BLAH BLAH';
     updater.startUpdateLoop(config);
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // Wait for at least 2 requests to verify the loop continues after error
+    await pollUntil(
+      () => requestUris.length >= 2,
+      interval: const Duration(milliseconds: 10),
+    );
+
     updater.stopUpdateLoop();
     expect(requestUris.length, greaterThan(1));
   });
@@ -118,14 +124,26 @@ void main() {
   test('handles fetch errors', () async {
     mockHttpFile = null;
     updater.startUpdateLoop(config);
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // Wait for at least 2 requests to verify the loop continues after error
+    await pollUntil(
+      () => requestUris.length >= 2,
+      interval: const Duration(milliseconds: 10),
+    );
+
     updater.stopUpdateLoop();
     expect(requestUris.length, greaterThan(1));
   });
 
   test('works...', () async {
     updater.startUpdateLoop(config);
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // Wait for config to be updated (default is 50, goodConfigYaml is 100)
+    await pollUntil(
+      () => config.flags.backfillerCommitLimit == 100,
+      interval: const Duration(milliseconds: 10),
+    );
+
     updater.stopUpdateLoop();
     expect(
       '${requestUris.last}',
@@ -136,9 +154,21 @@ void main() {
 
   test('handles updating values', () async {
     updater.startUpdateLoop(config);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    // Wait for initial update (100)
+    await pollUntil(
+      () => config.flags.backfillerCommitLimit == 100,
+      interval: const Duration(milliseconds: 10),
+    );
+
     mockHttpFile = updatedConfigYaml;
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    // Wait for second update (200)
+    await pollUntil(
+      () => config.flags.backfillerCommitLimit == 200,
+      interval: const Duration(milliseconds: 10),
+    );
+
     updater.stopUpdateLoop();
 
     expect(config.flags.backfillerCommitLimit, 200);

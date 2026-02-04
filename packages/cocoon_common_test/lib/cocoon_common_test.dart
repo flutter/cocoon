@@ -5,3 +5,4 @@
 export 'src/buffered_logger_matchers.dart';
 export 'src/json_matchers.dart';
 export 'src/severity_matchers.dart';
+export 'src/utilities.dart';
