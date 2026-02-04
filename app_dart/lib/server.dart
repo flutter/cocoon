@@ -8,6 +8,7 @@ import 'dart:math';
 import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/get_tree_status_changes.dart';
+import 'src/request_handlers/github_webhook_replay.dart';
 import 'src/request_handlers/lookup_hash.dart';
 import 'src/request_handlers/merge_queue_hooks.dart';
 import 'src/request_handlers/trigger_workflow.dart';
@@ -42,6 +43,14 @@ Server createServer({
   required BuildStatusService buildStatusService,
   required ContentAwareHashService contentAwareHashService,
 }) {
+  final githubWebhook = GithubWebhook(
+    config: config,
+    pubsub: const PubSub(),
+    secret: config.webhookKey,
+    topic: 'github-webhooks',
+    firestore: firestore,
+  );
+
   final handlers = <String, RequestHandler>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
@@ -68,12 +77,12 @@ Server createServer({
       authenticationProvider: authProvider,
       cache: cache,
     ),
-    '/api/github-webhook-pullrequest': GithubWebhook(
+    '/api/github-webhook-pullrequest': githubWebhook,
+    '/api/github-webhook-replay': GithubWebhookReplay(
       config: config,
-      pubsub: const PubSub(),
-      secret: config.webhookKey,
-      topic: 'github-webhooks',
-      firestore: firestore,
+      authenticationProvider: authProvider,
+      firestoreService: firestore,
+      githubWebhook: githubWebhook,
     ),
     // TODO(chillers): Move to release service. https://github.com/flutter/flutter/issues/132082
     '/api/github/frob-webhook': GithubWebhook(
