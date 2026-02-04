@@ -1,11 +1,12 @@
-// Copyright 2025 The Flutter Authors. All rights reserved.
+// Copyright 2026 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_common/guard_status.dart';
-import 'package:cocoon_common/task_status.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
+
+import '../../guard_status.dart';
+import '../../task_status.dart';
 
 part 'presubmit_guard.g.dart';
 
