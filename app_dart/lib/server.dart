@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
+import 'src/request_handlers/get_presubmit_guard.dart';
 import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/github_webhook_replay.dart';
 import 'src/request_handlers/lookup_hash.dart';
@@ -151,6 +152,39 @@ Server createServer({
       firestore: firestore,
     ),
     '/api/get-tree-status': GetTreeStatus(
+      config: config,
+      authenticationProvider: authProvider,
+      firestore: firestore,
+    ),
+
+    /// Returns the presubmit guard status for a given slug and commit SHA.
+    ///
+    /// Consolidates multiple [PresubmitGuard] records (one per stage) into a single response.
+    ///
+    /// GET: /api/get-presubmit-guard
+    ///
+    /// Parameters:
+    ///   slug: (string in query) required. The repository owner/name (e.g., 'flutter/flutter').
+    ///   sha: (string in query) required. The commit SHA to query for.
+    ///
+    /// Response: Status 200 OK
+    /// Returns [PresubmitGuardResponse]:
+    ///  {
+    ///    "pr_num": 123,
+    ///    "check_run_id": 456,
+    ///    "author": "dash",
+    ///    "stages": [
+    ///      {
+    ///        "name": "fusion",
+    ///        "created_at": 123456789,
+    ///        "builds": {
+    ///          "test1": "Succeeded",
+    ///          "test2": "In Progress"
+    ///        }
+    ///      }
+    ///    ]
+    ///  }
+    '/api/get-presubmit-guard': GetPresubmitGuard(
       config: config,
       authenticationProvider: authProvider,
       firestore: firestore,
