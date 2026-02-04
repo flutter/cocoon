@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/github_webhook_message.dart';
 import 'package:cocoon_service/src/request_handlers/github_webhook_replay.dart';
@@ -15,6 +16,8 @@ import '../src/request_handling/fake_pubsub.dart';
 import '../src/service/fake_firestore_service.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late GithubWebhookReplay handler;
   late FakeConfig config;
   late FakeFirestoreService firestoreService;
