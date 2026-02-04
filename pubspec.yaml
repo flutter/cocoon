@@ -18,6 +18,8 @@ workspace:
   - packages/cocoon_common_test
   - packages/cocoon_server
   - packages/cocoon_server_test
+  - cipd_packages/codesign
+  - cipd_packages/device_doctor
   - dev/cocoon_code_health
   - dev/githubanalysis
 
