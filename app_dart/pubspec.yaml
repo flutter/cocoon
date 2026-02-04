@@ -7,6 +7,8 @@ description: AppEngine service for managing Flutter CI
 homepage: https://github.com/flutter/cocoon
 publish_to: none
 
+resolution: workspace
+
 environment:
   sdk: ^3.9.0
 

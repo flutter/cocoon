@@ -2,6 +2,8 @@ name: device_doctor
 description: A Dart tool to check device healthiness and implement recovery mechanisms to get the device back to a working state.
 version: 1.0.1
 
+resolution: workspace
+
 environment:
   sdk: ^3.9.0
 

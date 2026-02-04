@@ -1,6 +1,8 @@
 name: license_checks
 description: Script to check licenses.
 
+resolution: workspace
+
 environment:
   sdk: ^3.9.0
 

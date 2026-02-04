@@ -15,6 +15,50 @@ workspace:
   - packages/cocoon_server
   - packages/cocoon_server_test
   - dev/cocoon_code_health
+  - auto_submit
+  - dev/githubanalysis
+  - app_dart
+  - dashboard
+  - analyze
 
 dev_dependencies:
-  dart_flutter_team_lints: 3.5.0
+  dart_flutter_team_lints: 3.5.2
+  melos: ^7.0.0-dev.7
+
+melos:
+  command:
+    bootstrap:
+      environment:
+        sdk: ">=3.10.0 <4.0.0"
+        flutter: ">=3.27.1"
+      dev_dependencies:
+        test: any
+  scripts:
+    lint:all:
+      steps:
+        - analyze
+        - format
+      description: Run all static analysis checks.
+
+    build_runner:
+      exec: dart run build_runner build --delete-conflicting-outputs
+      description: Run build_runner for each folder
+      packageFilters:
+        fileExists: build.yaml
+
+    analyze:
+      run: melos exec dart analyze .
+      description: Run `dart analyze` for all packages.
+
+    format-check:
+      run: melos exec dart format . --set-exit-if-changed
+      description: Run `dart format` checks for all packages.
+
+    upgrade: melos exec flutter pub upgrade
+
+    test:
+      steps:
+        - melos exec --no-flutter --dir-exists test -- "dart test"
+        - melos exec --flutter --dir-exists test -- "flutter test"
+      description: Run all tests in this project.
+
