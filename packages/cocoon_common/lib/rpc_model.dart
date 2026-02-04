@@ -32,6 +32,8 @@ export 'src/rpc_model/build_status_response.dart'
 export 'src/rpc_model/commit.dart' show Commit, CommitAuthor;
 export 'src/rpc_model/commit_status.dart' show CommitStatus;
 export 'src/rpc_model/content_hash_lookup.dart' show ContentHashLookup;
+export 'src/rpc_model/merge_group_hooks.dart'
+    show MergeGroupHook, MergeGroupHooks;
 export 'src/rpc_model/suppressed_test.dart'
     show SuppressedTest, SuppressionUpdate;
 export 'src/rpc_model/task.dart' show Task;

@@ -9,6 +9,7 @@ import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/lookup_hash.dart';
+import 'src/request_handlers/merge_queue_hooks.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
 import 'src/request_handlers/update_suppressed_test.dart';
@@ -146,6 +147,11 @@ Server createServer({
       firestore: firestore,
     ),
     '/api/update-suppressed-test': UpdateSuppressedTest(
+      authenticationProvider: authProvider,
+      firestore: firestore,
+      config: config,
+    ),
+    '/api/merge_queue_hooks': MergeQueueHooks(
       authenticationProvider: authProvider,
       firestore: firestore,
       config: config,
