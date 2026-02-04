@@ -124,7 +124,7 @@ interface class CiYamlFetcher {
     return CiYamlSet(
       yamls: {
         CiType.any: rootConfig,
-        if (engineConfig != null) CiType.fusionEngine: engineConfig,
+        CiType.fusionEngine: ?engineConfig,
       },
       slug: commit.slug,
       branch: commit.branch,

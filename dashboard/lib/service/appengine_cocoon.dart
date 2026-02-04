@@ -302,7 +302,7 @@ class AppEngineCocoonService implements CocoonService {
       body: jsonEncode({
         'repo': repo,
         'passing': status == TreeStatus.success,
-        if (reason != null) 'reason': reason,
+        'reason': ?reason,
       }),
     );
     if (response.statusCode == HttpStatus.ok) {
