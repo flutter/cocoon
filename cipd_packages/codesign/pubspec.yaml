@@ -3,8 +3,6 @@ description: A standalone app to codesign Mac engine binaries.
 version: 1.0.0
 homepage: https://github.com/flutter/cocoon
 
-resolution: workspace
-
 environment:
   sdk: ^3.10.0
 
