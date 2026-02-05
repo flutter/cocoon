@@ -23,21 +23,6 @@ import '../config.dart';
 import '../firestore.dart';
 
 final class UnifiedCheckRun {
-  /// Returns detailed information for a specific presubmit check.
-  static Future<List<PresubmitCheck>> getPresubmitCheckDetails({
-    required FirestoreService firestoreService,
-    required int checkRunId,
-    required String buildName,
-  }) async {
-    return await _queryPresubmitChecks(
-      firestoreService: firestoreService,
-      checkRunId: checkRunId,
-      buildName: buildName,
-      // Order by attempt number ascending as per specification.
-      orderMap: {PresubmitCheck.fieldAttemptNumber: kQueryOrderAscending},
-    );
-  }
-
   static Future<void> initializeCiStagingDocument({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
@@ -226,6 +211,8 @@ final class UnifiedCheckRun {
       status: null,
       transaction: transaction,
       limit: 1,
+      // Default order is ascending.
+      orderMap: {PresubmitCheck.fieldAttemptNumber: kQueryOrderDescending},
     )).firstOrNull;
   }
 
@@ -279,6 +266,19 @@ final class UnifiedCheckRun {
     return [...documents.map(PresubmitGuard.fromDocument)];
   }
 
+  /// Returns detailed information for a specific presubmit check.
+  static Future<List<PresubmitCheck>> getPresubmitCheckDetails({
+    required FirestoreService firestoreService,
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    return await _queryPresubmitChecks(
+      firestoreService: firestoreService,
+      checkRunId: checkRunId,
+      buildName: buildName,
+    );
+  }
+
   static Future<List<PresubmitCheck>> _queryPresubmitChecks({
     required FirestoreService firestoreService,
     required int checkRunId,
@@ -286,9 +286,9 @@ final class UnifiedCheckRun {
     TaskStatus? status,
     Transaction? transaction,
     int? attemptNumber,
-    // By default order by attempt number descending to get the latest check first.
+    // By default order by attempt number ascending.
     Map<String, String>? orderMap = const {
-      PresubmitCheck.fieldAttemptNumber: kQueryOrderDescending,
+      PresubmitCheck.fieldAttemptNumber: kQueryOrderAscending,
     },
     int? limit,
   }) async {
