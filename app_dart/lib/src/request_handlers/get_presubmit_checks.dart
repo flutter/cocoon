@@ -47,18 +47,17 @@ final class GetPresubmitChecks extends RequestHandler {
     final buildName = request.uri.queryParameters[kBuildNameParam];
 
     if (checkRunIdString == null || buildName == null) {
-      return Response.json(
-        {'error': 'Missing mandatory parameters: $kCheckRunIdParam, $kBuildNameParam'},
-        statusCode: HttpStatus.badRequest,
-      );
+      return Response.json({
+        'error':
+            'Missing mandatory parameters: $kCheckRunIdParam, $kBuildNameParam',
+      }, statusCode: HttpStatus.badRequest);
     }
 
     final checkRunId = int.tryParse(checkRunIdString);
     if (checkRunId == null) {
-      return Response.json(
-        {'error': 'Parameter $kCheckRunIdParam must be an integer'},
-        statusCode: HttpStatus.badRequest,
-      );
+      return Response.json({
+        'error': 'Parameter $kCheckRunIdParam must be an integer',
+      }, statusCode: HttpStatus.badRequest);
     }
 
     final attempts = await UnifiedCheckRun.getPresubmitCheckDetails(
@@ -68,10 +67,10 @@ final class GetPresubmitChecks extends RequestHandler {
     );
 
     if (attempts.isEmpty) {
-      return Response.json(
-        {'error': 'No attempts found for check_run_id $checkRunId and build_name $buildName'},
-        statusCode: HttpStatus.notFound,
-      );
+      return Response.json({
+        'error':
+            'No attempts found for check_run_id $checkRunId and build_name $buildName',
+      }, statusCode: HttpStatus.notFound);
     }
 
     final rpcAttempts = attempts

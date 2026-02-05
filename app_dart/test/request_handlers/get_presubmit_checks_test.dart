@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_check.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/get_presubmit_checks.dart';
@@ -18,6 +19,7 @@ import '../src/service/fake_firestore_service.dart';
 
 void main() {
   group('GetPresubmitChecks', () {
+    useTestLoggerPerTest();
     late FakeConfig config;
     late RequestHandlerTester tester;
     late GetPresubmitChecks handler;
@@ -27,10 +29,7 @@ void main() {
       config = FakeConfig();
       tester = RequestHandlerTester();
       firestoreService = FakeFirestoreService();
-      handler = GetPresubmitChecks(
-        config: config,
-        firestore: firestoreService,
-      );
+      handler = GetPresubmitChecks(config: config, firestore: firestoreService);
     });
 
     Future<T?> decodeHandlerBody<T>(Response response) async {
@@ -49,10 +48,7 @@ void main() {
 
     test('returns 400 when check_run_id is not an integer', () async {
       tester.request = FakeHttpRequest(
-        queryParametersValue: {
-          'check_run_id': 'abc',
-          'build_name': 'linux',
-        },
+        queryParametersValue: {'check_run_id': 'abc', 'build_name': 'linux'},
       );
       final response = await tester.get(handler);
       expect(response.statusCode, HttpStatus.badRequest);
@@ -60,10 +56,7 @@ void main() {
 
     test('returns 404 when no attempts found', () async {
       tester.request = FakeHttpRequest(
-        queryParametersValue: {
-          'check_run_id': '123',
-          'build_name': 'linux',
-        },
+        queryParametersValue: {'check_run_id': '123', 'build_name': 'linux'},
       );
       final response = await tester.get(handler);
       expect(response.statusCode, HttpStatus.notFound);
@@ -85,10 +78,7 @@ void main() {
       );
 
       tester.request = FakeHttpRequest(
-        queryParametersValue: {
-          'check_run_id': '123',
-          'build_name': 'linux',
-        },
+        queryParametersValue: {'check_run_id': '123', 'build_name': 'linux'},
       );
       final response = await tester.get(handler);
       expect(response.statusCode, HttpStatus.ok);
@@ -120,10 +110,7 @@ void main() {
       );
 
       tester.request = FakeHttpRequest(
-        queryParametersValue: {
-          'check_run_id': '123',
-          'build_name': 'linux',
-        },
+        queryParametersValue: {'check_run_id': '123', 'build_name': 'linux'},
       );
       final response = await tester.get(handler);
       expect(response.statusCode, HttpStatus.ok);
