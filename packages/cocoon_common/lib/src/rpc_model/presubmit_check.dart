@@ -16,7 +16,7 @@ final class PresubmitCheck extends Model {
   /// Creates a [PresubmitCheck] with the given properties.
   PresubmitCheck({
     required this.attemptNumber,
-    required this.taskName,
+    required this.checkName,
     required this.creationTime,
     this.startTime,
     this.endTime,
@@ -37,9 +37,9 @@ final class PresubmitCheck extends Model {
   @JsonKey(name: 'attempt_number')
   final int attemptNumber;
 
-  /// The name of the task.
-  @JsonKey(name: 'task_name')
-  final String taskName;
+  /// The name of the check.
+  @JsonKey(name: 'check_name')
+  final String checkName;
 
   /// The time the check was created.
   @JsonKey(name: 'creation_time')

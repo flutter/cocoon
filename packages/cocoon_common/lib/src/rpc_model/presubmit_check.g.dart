@@ -16,7 +16,7 @@ PresubmitCheck _$PresubmitCheckFromJson(Map<String, dynamic> json) =>
             'attempt_number',
             (v) => (v as num).toInt(),
           ),
-          taskName: $checkedConvert('task_name', (v) => v as String),
+          checkName: $checkedConvert('check_name', (v) => v as String),
           creationTime: $checkedConvert(
             'creation_time',
             (v) => (v as num).toInt(),
@@ -30,7 +30,7 @@ PresubmitCheck _$PresubmitCheckFromJson(Map<String, dynamic> json) =>
       },
       fieldKeyMap: const {
         'attemptNumber': 'attempt_number',
-        'taskName': 'task_name',
+        'checkName': 'check_name',
         'creationTime': 'creation_time',
         'startTime': 'start_time',
         'endTime': 'end_time',
@@ -40,7 +40,7 @@ PresubmitCheck _$PresubmitCheckFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$PresubmitCheckToJson(PresubmitCheck instance) =>
     <String, dynamic>{
       'attempt_number': instance.attemptNumber,
-      'task_name': instance.taskName,
+      'check_name': instance.checkName,
       'creation_time': instance.creationTime,
       'start_time': instance.startTime,
       'end_time': instance.endTime,
