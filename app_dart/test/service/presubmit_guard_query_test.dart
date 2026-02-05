@@ -2,9 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
-import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
@@ -12,6 +11,8 @@ import '../src/service/fake_firestore_service.dart';
 import '../src/utilities/entity_generators.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   late FakeFirestoreService firestoreService;
 
   setUp(() {
@@ -21,7 +22,7 @@ void main() {
   test('queryPresubmitGuards returns matching guards', () async {
     final slug = RepositorySlug('flutter', 'flutter');
     const commitSha = 'abc';
-    
+
     final guard1 = generatePresubmitGuard(
       slug: slug,
       commitSha: commitSha,
@@ -39,11 +40,7 @@ void main() {
       stage: CiStage.fusionTests,
     );
 
-    firestoreService.putDocuments([
-      guard1,
-      guard2,
-      otherGuard,
-    ]);
+    firestoreService.putDocuments([guard1, guard2, otherGuard]);
 
     final results = await firestoreService.queryPresubmitGuards(
       slug: slug,
@@ -55,13 +52,16 @@ void main() {
     expect(results.any((g) => g.stage == CiStage.fusionEngineBuild), isTrue);
   });
 
-  test('queryPresubmitGuards returns empty list when no guards found', () async {
-    final slug = RepositorySlug('flutter', 'flutter');
-    final results = await firestoreService.queryPresubmitGuards(
-      slug: slug,
-      commitSha: 'non-existent',
-    );
+  test(
+    'queryPresubmitGuards returns empty list when no guards found',
+    () async {
+      final slug = RepositorySlug('flutter', 'flutter');
+      final results = await firestoreService.queryPresubmitGuards(
+        slug: slug,
+        commitSha: 'non-existent',
+      );
 
-    expect(results, isEmpty);
-  });
+      expect(results, isEmpty);
+    },
+  );
 }

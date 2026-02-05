@@ -5,9 +5,9 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
-import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';

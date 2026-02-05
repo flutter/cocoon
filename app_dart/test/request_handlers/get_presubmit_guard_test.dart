@@ -65,7 +65,7 @@ void main() {
   test('consolidates multiple stages', () async {
     final slug = RepositorySlug('flutter', 'flutter');
     const sha = 'abc';
-    
+
     final guard1 = generatePresubmitGuard(
       slug: slug,
       commitSha: sha,
@@ -98,13 +98,13 @@ void main() {
     expect(result['author'], 'dash');
     expect(result['check_run_id'], 1);
     expect(result['guard_status'], 'In Progress');
-    
+
     final stages = result['stages'] as List<Object?>;
     expect(stages.length, 2);
-    
+
     final fusionStage = stages.firstWhere((s) => (s as Map)['name'] == 'fusion') as Map;
     expect(fusionStage['builds'], {'test1': 'Succeeded'});
-    
+
     final engineStage = stages.firstWhere((s) => (s as Map)['name'] == 'engine') as Map;
     expect(engineStage['builds'], {'engine1': 'In Progress'});
   });
@@ -137,7 +137,7 @@ void main() {
   test('guardStatus is Succeeded if all stages are complete without failures', () async {
     final slug = RepositorySlug('flutter', 'flutter');
     const sha = 'abc';
-    
+
     final guard = generatePresubmitGuard(
       slug: slug,
       commitSha: sha,
@@ -162,7 +162,7 @@ void main() {
   test('guardStatus is New if all stages are waiting for backfill', () async {
     final slug = RepositorySlug('flutter', 'flutter');
     const sha = 'abc';
-    
+
     final guard = generatePresubmitGuard(
       slug: slug,
       commitSha: sha,
