@@ -50,7 +50,9 @@ final class GetPresubmitGuard extends ApiRequestHandler {
     final GuardStatus guardStatus;
     if (guards.any((g) => g.failedBuilds > 0)) {
       guardStatus = GuardStatus.failed;
-    } else if (guards.every((g) => g.failedBuilds == 0 && g.remainingBuilds == 0)) {
+    } else if (guards.every(
+      (g) => g.failedBuilds == 0 && g.remainingBuilds == 0,
+    )) {
       guardStatus = GuardStatus.succeeded;
     } else if (guards.every((g) => g.remainingBuilds == g.builds.length)) {
       guardStatus = GuardStatus.waitingForBackfill;

@@ -102,10 +102,12 @@ void main() {
     final stages = result['stages'] as List<Object?>;
     expect(stages.length, 2);
 
-    final fusionStage = stages.firstWhere((s) => (s as Map)['name'] == 'fusion') as Map;
+    final fusionStage =
+        stages.firstWhere((s) => (s as Map)['name'] == 'fusion') as Map;
     expect(fusionStage['builds'], {'test1': 'Succeeded'});
 
-    final engineStage = stages.firstWhere((s) => (s as Map)['name'] == 'engine') as Map;
+    final engineStage =
+        stages.firstWhere((s) => (s as Map)['name'] == 'engine') as Map;
     expect(engineStage['builds'], {'engine1': 'In Progress'});
   });
 
@@ -134,30 +136,33 @@ void main() {
     expect(result['guard_status'], 'Failed');
   });
 
-  test('guardStatus is Succeeded if all stages are complete without failures', () async {
-    final slug = RepositorySlug('flutter', 'flutter');
-    const sha = 'abc';
+  test(
+    'guardStatus is Succeeded if all stages are complete without failures',
+    () async {
+      final slug = RepositorySlug('flutter', 'flutter');
+      const sha = 'abc';
 
-    final guard = generatePresubmitGuard(
-      slug: slug,
-      commitSha: sha,
-      builds: {'test1': TaskStatus.succeeded},
-    );
-    guard.failedBuilds = 0;
-    guard.remainingBuilds = 0;
+      final guard = generatePresubmitGuard(
+        slug: slug,
+        commitSha: sha,
+        builds: {'test1': TaskStatus.succeeded},
+      );
+      guard.failedBuilds = 0;
+      guard.remainingBuilds = 0;
 
-    firestore.putDocuments([guard]);
+      firestore.putDocuments([guard]);
 
-    tester.request = FakeHttpRequest(
-      queryParametersValue: {
-        GetPresubmitGuard.kSlugParam: 'flutter/flutter',
-        GetPresubmitGuard.kShaParam: sha,
-      },
-    );
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+          GetPresubmitGuard.kShaParam: sha,
+        },
+      );
 
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-    expect(result['guard_status'], 'Succeeded');
-  });
+      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
+      expect(result['guard_status'], 'Succeeded');
+    },
+  );
 
   test('guardStatus is New if all stages are waiting for backfill', () async {
     final slug = RepositorySlug('flutter', 'flutter');

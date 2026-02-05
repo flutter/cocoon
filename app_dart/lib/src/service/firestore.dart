@@ -264,8 +264,6 @@ mixin FirestoreQueries {
     return tasks.isEmpty ? null : Task.fromDocument(tasks.first);
   }
 
-
-
   /// Queries the last updated build status for the [slug], [prNumber], and [head].
   ///
   /// If not existing, returns a fresh new Build status.
