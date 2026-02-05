@@ -538,5 +538,43 @@ void main() {
       expect(guard!.stage, CiStage.fusionTests);
       expect(guard.checkRunId, 123);
     });
+
+    test('getPresubmitCheckDetails returns all attempts sorted', () async {
+      final check1 = PresubmitCheck(
+        checkRunId: 1234,
+        buildName: 'linux_test',
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: 100,
+        startTime: 110,
+        endTime: 120,
+        summary: 'attempt 1',
+      );
+      final check2 = PresubmitCheck(
+        checkRunId: 1234,
+        buildName: 'linux_test',
+        status: TaskStatus.failed,
+        attemptNumber: 2,
+        creationTime: 200,
+        startTime: 210,
+        endTime: 220,
+        summary: 'attempt 2',
+      );
+      await firestoreService.writeViaTransaction(
+        documentsToWrites([check1, check2], exists: false),
+      );
+
+      final attempts = await UnifiedCheckRun.getPresubmitCheckDetails(
+        firestoreService: firestoreService,
+        checkRunId: 1234,
+        buildName: 'linux_test',
+      );
+
+      expect(attempts.length, 2);
+      expect(attempts[0].attemptNumber, 1);
+      expect(attempts[0].summary, 'attempt 1');
+      expect(attempts[1].attemptNumber, 2);
+      expect(attempts[1].summary, 'attempt 2');
+    });
   });
 }

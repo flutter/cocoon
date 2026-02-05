@@ -23,6 +23,21 @@ import '../config.dart';
 import '../firestore.dart';
 
 final class UnifiedCheckRun {
+  /// Returns detailed information for a specific presubmit check.
+  static Future<List<PresubmitCheck>> getPresubmitCheckDetails({
+    required FirestoreService firestoreService,
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    return await _queryPresubmitChecks(
+      firestoreService: firestoreService,
+      checkRunId: checkRunId,
+      buildName: buildName,
+      // Order by attempt number ascending as per specification.
+      orderMap: {PresubmitCheck.fieldAttemptNumber: kQueryOrderAscending},
+    );
+  }
+
   static Future<void> initializeCiStagingDocument({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
