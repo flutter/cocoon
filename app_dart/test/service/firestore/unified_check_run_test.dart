@@ -571,10 +571,10 @@ void main() {
       );
 
       expect(attempts.length, 2);
-      expect(attempts[0].attemptNumber, 1);
-      expect(attempts[0].summary, 'attempt 1');
-      expect(attempts[1].attemptNumber, 2);
-      expect(attempts[1].summary, 'attempt 2');
+      expect(attempts[0].attemptNumber, 2);
+      expect(attempts[0].summary, 'attempt 2');
+      expect(attempts[1].attemptNumber, 1);
+      expect(attempts[1].summary, 'attempt 1');
     });
   });
 }

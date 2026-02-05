@@ -211,8 +211,6 @@ final class UnifiedCheckRun {
       status: null,
       transaction: transaction,
       limit: 1,
-      // Default order is ascending.
-      orderMap: {PresubmitCheck.fieldAttemptNumber: kQueryOrderDescending},
     )).firstOrNull;
   }
 
@@ -286,9 +284,9 @@ final class UnifiedCheckRun {
     TaskStatus? status,
     Transaction? transaction,
     int? attemptNumber,
-    // By default order by attempt number ascending.
+    // By default order by attempt number descending.
     Map<String, String>? orderMap = const {
-      PresubmitCheck.fieldAttemptNumber: kQueryOrderAscending,
+      PresubmitCheck.fieldAttemptNumber: kQueryOrderDescending,
     },
     int? limit,
   }) async {

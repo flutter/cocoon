@@ -86,6 +86,8 @@ final class GetPresubmitChecks extends RequestHandler {
             summary: attempt.summary,
           ),
         )
+        .toList()
+        .reversed
         .toList();
 
     return Response.json(rpcAttempts);
