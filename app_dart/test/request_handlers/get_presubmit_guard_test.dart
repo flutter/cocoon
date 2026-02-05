@@ -112,7 +112,7 @@ void main() {
   test('guardStatus is Failed if any stage has failed builds', () async {
     final slug = RepositorySlug('flutter', 'flutter');
     const sha = 'abc';
-    
+
     final guard = generatePresubmitGuard(
       slug: slug,
       commitSha: sha,
