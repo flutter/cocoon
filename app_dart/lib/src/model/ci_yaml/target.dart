@@ -338,9 +338,6 @@ class Dependency {
   final String? version;
 
   Map<String, Object> toJson() {
-    return <String, Object>{
-      'dependency': name,
-      if (version != null) 'version': version!,
-    };
+    return <String, Object>{'dependency': name, 'version': ?version};
   }
 }

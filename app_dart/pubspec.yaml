@@ -7,6 +7,8 @@ description: AppEngine service for managing Flutter CI
 homepage: https://github.com/flutter/cocoon
 publish_to: none
 
+resolution: workspace
+
 environment:
   sdk: ^3.9.0
 
@@ -30,7 +32,7 @@ dependencies:
   googleapis: 14.0.0
   googleapis_auth: 2.0.0
   gql: ^1.0.1-alpha+1730759315362
-  graphql: 5.2.3
+  graphql: ^5.2.3
   grpc: ^4.0.1
   http: ^1.2.1
   jose_plus: ^0.4.6
@@ -65,4 +67,4 @@ dev_dependencies:
   test: ^1.25.15
 
 builders:
-  json_serializable: 3.3.0
+  json_serializable: ^3.3.0

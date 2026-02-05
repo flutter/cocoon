@@ -122,10 +122,7 @@ interface class CiYamlFetcher {
     // If totCiYaml is not null, we assume the caller has verified that the
     // current branch is not a release branch.
     return CiYamlSet(
-      yamls: {
-        CiType.any: rootConfig,
-        if (engineConfig != null) CiType.fusionEngine: engineConfig,
-      },
+      yamls: {CiType.any: rootConfig, CiType.fusionEngine: ?engineConfig},
       slug: commit.slug,
       branch: commit.branch,
       totConfig: totCiYaml,

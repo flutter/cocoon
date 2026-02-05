@@ -7,9 +7,6 @@ targets:
       - test/**.dart
     builders:
       json_serializable:
-        generate_for:
-          - test/**.dart
-          - lib/**.dart
         options:
           # Options configure how source code is generated for every
           # `@JsonSerializable`-annotated class in the package.

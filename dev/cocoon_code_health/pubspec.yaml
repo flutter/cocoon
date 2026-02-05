@@ -2,10 +2,10 @@ name: cocoon_code_health
 description: Tests and tools that try to keep the flutter/cocoon repo healthy.
 publish_to: none
 
+resolution: workspace
+
 environment:
   sdk: ^3.9.0
-
-resolution: workspace
 
 executables:
   check:

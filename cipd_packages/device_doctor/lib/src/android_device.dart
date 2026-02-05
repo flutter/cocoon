@@ -489,7 +489,7 @@ class AndroidDeviceDiscovery implements DeviceDiscovery {
 }
 
 class AndroidDevice implements Device {
-  AndroidDevice({@required this.deviceId});
+  AndroidDevice({required this.deviceId});
 
   @override
   final String? deviceId;

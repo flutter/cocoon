@@ -1,5 +1,7 @@
 name: githubanalysis
 
+resolution: workspace
+
 environment:
   sdk: ^3.9.0
 
@@ -8,4 +10,4 @@ dependencies:
   http: ^1.0.0
 
 dev_dependencies:
-  dart_flutter_team_lints: 3.5.0
+  dart_flutter_team_lints: 3.5.2

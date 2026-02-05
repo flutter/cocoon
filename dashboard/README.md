@@ -33,43 +33,29 @@ flutter test
 
 ### Updating Goldens
 
-Some tests take and compare UI screenshots which will change over time:
+Some tests take and compare UI screenshots which will change over time. For compatibility reasons, only a Linux host is supported.
 
 ```sh
 flutter test --update-goldens
 ```
 
-For compatibility reasons, only a Linux host is supported.
-
-You could run the tests locally with ACT to compare and update diffs:
+The GitHub workflow that checks this should upload the golden failures as annotations
+to review. You can also verify locally with:
 
 ```shell
-act --container-architecture linux/amd64 -b  -W .github/workflows/dashboard_tests.yaml
+gh act \
+  -b \ # BIND your folder instead of copying - this is how you get failures/ out.
+  --container-architecture linux/amd64 \ # required for mac
+  --container-options="--tty" \
+  --workflows ".github/workflows/dashboard_tests.yaml"
 ```
 
-<details>
-
-<summary>Workaround using <code>tool/update_goldens_from_luci.dart</code></summary>
-As a workaround, you can download the latest images from a failing presubmit run on Cocoon's CI
-which involes a few manual steps (but is way faster than getting another PC):
-
-1. Open the failing pull request
-1. Click on "Linux Cocoon" in failing checks
-
-   ![1 failing check, Linux Cocoon](./tool/luci-failing-check.png)
-
-1. Find and click on `stdout` under the `dashboard` step
-
-   ![dashoard > stdout](./tool/dashboard-stdout.png)
-
-1. Run the following command with a link to the stdout URL:
-
-   ```sh
-   $ dart run tool/update_goldens_from_luci.dart "<url ending in /stdout>"
-
-   Wrote 36825 bytes to goldens/build_dashboard.defaultPropertySheet.dark.png.
-   Wrote 38556 bytes to goldens/build_dashboard.defaultPropertySheet.png.
-   Wrote 24715 bytes to widgets/goldens/task_grid_test.dev.origin.png.
-   ```
-
-</details>
+To just accept the changes:
+```shell
+gh act \
+  -b \ # BIND your folder instead of copying - this is how you get updates out.
+  --env UPDATE_GOLDENS=true \            # Use this to pass --update-goldens.
+  --container-architecture linux/amd64 \ # required for mac
+  --container-options="--tty" \
+  --workflows ".github/workflows/dashboard_tests.yaml"
+```

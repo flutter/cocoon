@@ -10,7 +10,11 @@ jobs:
   common-validations:
     runs-on: ubuntu-latest
     steps:
-      - uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        with:
+          channel: stable
+          architecture: x64 # only needed for running locally (mac)
 
       - name: Checkout code
         uses: actions/checkout@v6
@@ -18,16 +22,16 @@ jobs:
       - name: Run analyze.dart
         working-directory: analyze
         run: |
-          dart pub get 
+          flutter pub get 
           dart --enable-asserts analyze.dart
 
       - name: Run cocoon_code_health
         run: |
-          dart pub get
+          flutter pub get
           dart run dev/cocoon_code_health/bin/check.dart
 
       - name: Run license check
         working-directory: licenses
         run: |
-          dart pub get
+          flutter pub get
           dart run check_licenses.dart

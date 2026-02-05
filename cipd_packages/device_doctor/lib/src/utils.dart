@@ -5,7 +5,6 @@
 import 'dart:convert' show utf8;
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:process/process.dart';
 
@@ -139,7 +138,7 @@ Future<String> eval(
 }
 
 /// Splits [from] into lines and selects those that contain [pattern].
-Iterable<String> grep(Pattern pattern, {@required String? from}) {
+Iterable<String> grep(Pattern pattern, {required String? from}) {
   return from!.split('\n').where((String line) {
     return line.contains(pattern);
   });

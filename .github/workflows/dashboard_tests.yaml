@@ -1,6 +1,13 @@
 name: Test dashboard
 
 on:
+  workflow_dispatch:
+    inputs:
+      update_goldens:
+        description: 'Update Golden files'
+        required: false
+        type: boolean
+        default: false
   pull_request:
     branches: [main]
     paths:
@@ -16,6 +23,8 @@ jobs:
     defaults:
       run:
         working-directory: dashboard
+    env:
+      UPDATE_GOLDENS: ${{ inputs.update_goldens || 'false' }}
 
     steps:
       - name: Set up Flutter
@@ -39,6 +48,23 @@ jobs:
         run: |
           dart format --set-exit-if-changed .
 
+      # Failures on github will upload the artifacts as annotations.
+      # Review them and if you accept them, either download them or run:
+      # gh act -b --env UPDATE_GOLDENS=true --container-architecture linux/amd64 --container-options="--tty" --workflows ".github/workflows/dashboard_tests.yaml"
+      # The `--update-goldens` flag will not work on GitHub because we do not
+      # have write access to the repository.
+      - name: Upload Golden Failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: 'dashboard/**/failures/*.png'
+
       - name: Flutter Test
         run: |
-          flutter test --test-randomize-ordering-seed=random --reporter expanded
+          EXTRA_ARGS=""
+          if [ "$UPDATE_GOLDENS" = "true" ]; then
+            EXTRA_ARGS="--update-goldens"
+          fi
+          flutter test --test-randomize-ordering-seed=random --reporter expanded $EXTRA_ARGS
+

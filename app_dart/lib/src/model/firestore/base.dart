@@ -150,9 +150,9 @@ abstract class AppDocument<T extends AppDocument<T>> implements g.Document {
     // Copied from [g.Document.toJson].
     return {
       'fields': fields,
-      if (createTime != null) 'createTime': createTime!,
-      if (name != null) 'name': name!,
-      if (updateTime != null) 'updateTime': updateTime!,
+      'createTime': ?createTime,
+      'name': ?name,
+      'updateTime': ?updateTime,
     };
   }
 

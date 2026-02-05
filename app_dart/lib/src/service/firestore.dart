@@ -101,7 +101,7 @@ mixin FirestoreQueries {
     created ??= TimeRange.indefinite;
     final filterMap = <String, Object>{
       '${Commit.fieldRepositoryPath} =': slug.fullName,
-      if (branch != null) '${Commit.fieldBranch} =': branch,
+      '${Commit.fieldBranch} =': ?branch,
       ..._filterByTimeRange(Commit.fieldCreateTimestamp, created),
     };
     final orderMap = <String, String>{
@@ -124,9 +124,9 @@ mixin FirestoreQueries {
     Transaction? transaction,
   }) async {
     final filterMap = {
-      if (name != null) '${Task.fieldName} =': name,
+      '${Task.fieldName} =': ?name,
       if (status != null) '${Task.fieldStatus} =': status.value,
-      if (commitSha != null) '${Task.fieldCommitSha} =': commitSha,
+      '${Task.fieldCommitSha} =': ?commitSha,
     };
 
     // Avoid a full table-scan.

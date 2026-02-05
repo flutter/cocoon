@@ -6,4 +6,3 @@ targets:
           ignore_for_file:
             - always_specify_types
             - implicit_dynamic_parameter
-            - use_null_aware_elements
