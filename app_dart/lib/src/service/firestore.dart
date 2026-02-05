@@ -16,7 +16,7 @@ import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
-import '../model/firestore/presubmit_guard.dart';
+
 import '../model/firestore/task.dart';
 import 'firestore/commit_and_tasks.dart';
 
@@ -264,21 +264,7 @@ mixin FirestoreQueries {
     return tasks.isEmpty ? null : Task.fromDocument(tasks.first);
   }
 
-  /// Queries for [PresubmitGuard] records by [slug] and [commitSha].
-  Future<List<PresubmitGuard>> queryPresubmitGuards({
-    required RepositorySlug slug,
-    required String commitSha,
-  }) async {
-    final filterMap = <String, Object>{
-      '${PresubmitGuard.fieldSlug} =': slug.fullName,
-      '${PresubmitGuard.fieldCommitSha} =': commitSha,
-    };
-    final documents = await query(
-      PresubmitGuard.collectionId,
-      filterMap,
-    );
-    return [...documents.map(PresubmitGuard.fromDocument)];
-  }
+
 
   /// Queries the last updated build status for the [slug], [prNumber], and [head].
   ///

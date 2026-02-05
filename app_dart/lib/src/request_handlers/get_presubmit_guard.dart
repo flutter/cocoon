@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
+import '../service/firestore/unified_check_run.dart';
 
 @immutable
 final class GetPresubmitGuard extends ApiRequestHandler {
@@ -33,7 +34,8 @@ final class GetPresubmitGuard extends ApiRequestHandler {
     final sha = request.uri.queryParameters[kShaParam]!;
 
     final slug = RepositorySlug.full(slugName);
-    final guards = await _firestore.queryPresubmitGuards(
+    final guards = await UnifiedCheckRun.getPresubmitGuardsForCommitSha(
+      firestoreService: _firestore,
       slug: slug,
       commitSha: sha,
     );

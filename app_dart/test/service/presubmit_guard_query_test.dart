@@ -4,6 +4,7 @@
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
+import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
@@ -42,7 +43,8 @@ void main() {
 
     firestoreService.putDocuments([guard1, guard2, otherGuard]);
 
-    final results = await firestoreService.queryPresubmitGuards(
+    final results = await UnifiedCheckRun.getPresubmitGuardsForCommitSha(
+      firestoreService: firestoreService,
       slug: slug,
       commitSha: commitSha,
     );
@@ -56,7 +58,8 @@ void main() {
     'queryPresubmitGuards returns empty list when no guards found',
     () async {
       final slug = RepositorySlug('flutter', 'flutter');
-      final results = await firestoreService.queryPresubmitGuards(
+      final results = await UnifiedCheckRun.getPresubmitGuardsForCommitSha(
+        firestoreService: firestoreService,
         slug: slug,
         commitSha: 'non-existent',
       );
