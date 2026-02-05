@@ -99,5 +99,39 @@ void main() {
       expect(jsonBody[0]['build_name'], 'linux');
       expect(jsonBody[0]['status'], 'Succeeded');
     });
+
+    test('returns multiple attempts in descending order', () async {
+      final check1 = fs.PresubmitCheck(
+        checkRunId: 123,
+        buildName: 'linux',
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: 100,
+      );
+      final check2 = fs.PresubmitCheck(
+        checkRunId: 123,
+        buildName: 'linux',
+        status: TaskStatus.failed,
+        attemptNumber: 2,
+        creationTime: 200,
+      );
+      await firestoreService.writeViaTransaction(
+        documentsToWrites([check1, check2], exists: false),
+      );
+
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          'check_run_id': '123',
+          'build_name': 'linux',
+        },
+      );
+      final response = await tester.get(handler);
+      expect(response.statusCode, HttpStatus.ok);
+
+      final jsonBody = (await decodeHandlerBody<List<dynamic>>(response))!;
+      expect(jsonBody.length, 2);
+      expect(jsonBody[0]['attempt_number'], 2);
+      expect(jsonBody[1]['attempt_number'], 1);
+    });
   });
 }

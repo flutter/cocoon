@@ -13,7 +13,7 @@ This track involves implementing a new API endpoint in the `app_dart` backend se
 - **Data Source:** Firestore.
 - **Response Format:** JSON (Top-level array).
 - **Response Data:**
-    - An array of `PresubmitCheck` objects, sorted in ascending order by `attempt_number`.
+    - An array of `PresubmitCheck` objects, sorted in descending order by `attempt_number`.
     - Each `PresubmitCheck` object MUST contain:
         - `attempt_number`: Integer
         - `task_name`: String
