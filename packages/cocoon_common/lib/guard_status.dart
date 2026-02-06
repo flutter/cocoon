@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:collection/collection.dart';
-
 /// Represents different states of a presubmit guard.
+library;
+
+import 'package:json_annotation/json_annotation.dart';
+
+@JsonEnum(valueField: 'value')
 enum GuardStatus {
   /// The guard is waiting for backfill.
   waitingForBackfill('New'),
@@ -18,25 +21,9 @@ enum GuardStatus {
   /// The guard ran successfully.
   succeeded('Succeeded');
 
-  const GuardStatus(this._schemaValue);
-  final String _schemaValue;
-
-  /// Returns the status represented by the provided [value].
-  factory GuardStatus.from(String value) {
-    return tryFrom(value) ?? (throw ArgumentError.value(value, 'value'));
-  }
-
-  /// Returns the guard status represented by the provided [value].
-  static GuardStatus? tryFrom(String value) {
-    return values.firstWhereOrNull((v) => v.value == value);
-  }
-
-  /// The canonical string value representing `this`.
-  String get value => _schemaValue;
+  const GuardStatus(this.value);
+  final String value;
 
   /// Returns the JSON representation of `this`.
-  Object? toJson() => _schemaValue;
-
-  @override
-  String toString() => _schemaValue;
+  Object? toJson() => value;
 }

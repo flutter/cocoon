@@ -3,7 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/src/rpc_model/presubmit_guard.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -26,13 +29,21 @@ void main() {
   late GetPresubmitGuard handler;
   late FakeFirestoreService firestore;
 
-  Future<T?> decodeHandlerBody<T>() async {
-    final body = await tester.get(handler);
-    return await utf8.decoder
-            .bind(body.body as Stream<List<int>>)
-            .transform(json.decoder)
-            .single
-        as T?;
+  Future<PresubmitGuardResponse?> getResponse() async {
+    final response = await tester.get(handler);
+    if (response.statusCode != HttpStatus.ok) {
+      return null;
+    }
+    final responseBody = await utf8.decoder
+        .bind(response.body as Stream<List<int>>)
+        .transform(json.decoder)
+        .single;
+    if (responseBody == null) {
+      return null;
+    }
+    return PresubmitGuardResponse.fromJson(
+      responseBody as Map<String, Object?>,
+    );
   }
 
   setUp(() {
@@ -58,7 +69,7 @@ void main() {
       },
     );
 
-    final result = await decodeHandlerBody<Object?>();
+    final result = await getResponse();
     expect(result, isNull);
   });
 
@@ -93,22 +104,20 @@ void main() {
       },
     );
 
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-    expect(result['pr_num'], 123);
-    expect(result['author'], 'dash');
-    expect(result['check_run_id'], 1);
-    expect(result['guard_status'], 'In Progress');
+    final result = (await getResponse())!;
+    expect(result.prNum, 123);
+    expect(result.author, 'dash');
+    expect(result.checkRunId, 1);
+    expect(result.guardStatus, GuardStatus.inProgress);
 
-    final stages = result['stages'] as List<Object?>;
+    final stages = result.stages;
     expect(stages.length, 2);
 
-    final fusionStage =
-        stages.firstWhere((s) => (s as Map)['name'] == 'fusion') as Map;
-    expect(fusionStage['builds'], {'test1': 'Succeeded'});
+    final fusionStage = stages.firstWhere((s) => s.name == 'fusion');
+    expect(fusionStage.builds, {'test1': TaskStatus.succeeded});
 
-    final engineStage =
-        stages.firstWhere((s) => (s as Map)['name'] == 'engine') as Map;
-    expect(engineStage['builds'], {'engine1': 'In Progress'});
+    final engineStage = stages.firstWhere((s) => s.name == 'engine');
+    expect(engineStage.builds, {'engine1': TaskStatus.inProgress});
   });
 
   test('guardStatus is Failed if any stage has failed builds', () async {
@@ -132,8 +141,8 @@ void main() {
       },
     );
 
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-    expect(result['guard_status'], 'Failed');
+    final result = (await getResponse())!;
+    expect(result.guardStatus, GuardStatus.failed);
   });
 
   test(
@@ -159,8 +168,8 @@ void main() {
         },
       );
 
-      final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-      expect(result['guard_status'], 'Succeeded');
+      final result = (await getResponse())!;
+      expect(result.guardStatus, GuardStatus.succeeded);
     },
   );
 
@@ -185,7 +194,7 @@ void main() {
       },
     );
 
-    final result = (await decodeHandlerBody<Map<String, Object?>>())!;
-    expect(result['guard_status'], 'New');
+    final result = (await getResponse())!;
+    expect(result.guardStatus, GuardStatus.waitingForBackfill);
   });
 }

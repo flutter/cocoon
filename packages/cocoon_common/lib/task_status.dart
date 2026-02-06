@@ -5,6 +5,9 @@
 import 'package:collection/collection.dart';
 
 /// Represents differerent states of a task, or an execution of a build target.
+import 'package:json_annotation/json_annotation.dart';
+
+@JsonEnum(valueField: 'value')
 enum TaskStatus {
   /// The task was cancelled.
   cancelled('Cancelled'),

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
@@ -13,8 +14,14 @@ import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
+/// Request handler for retrieving the aggregated presubmit guard status.
+///
+/// This handler queries the presubmit guards for a specific commit SHA and
+/// returns an aggregated response including the overall guard status and
+/// individual stage statuses.
 @immutable
 final class GetPresubmitGuard extends ApiRequestHandler {
+  /// Defines the [GetPresubmitGuard] handler.
   const GetPresubmitGuard({
     required super.config,
     required super.authenticationProvider,
@@ -23,9 +30,16 @@ final class GetPresubmitGuard extends ApiRequestHandler {
 
   final FirestoreService _firestore;
 
+  /// The name of the query parameter for the repository slug (e.g. 'flutter/flutter').
   static const String kSlugParam = 'slug';
+
+  /// The name of the query parameter for the commit SHA.
   static const String kShaParam = 'sha';
 
+  /// Handles the HTTP GET request.
+  ///
+  /// Requires [kSlugParam] and [kShaParam] query parameters.
+  /// Returns a JSON response with the aggregated presubmit guard data.
   @override
   Future<Response> get(Request request) async {
     checkRequiredQueryParameters(request, [kSlugParam, kShaParam]);
@@ -41,7 +55,9 @@ final class GetPresubmitGuard extends ApiRequestHandler {
     );
 
     if (guards.isEmpty) {
-      return Response.json(null);
+      return Response.json({
+        'error': 'No guard found for slug $slug and sha $sha',
+      }, statusCode: HttpStatus.notFound);
     }
 
     // Consolidate metadata from the first record.
@@ -66,16 +82,15 @@ final class GetPresubmitGuard extends ApiRequestHandler {
       author: first.author,
       guardStatus: guardStatus,
       stages: [
-        ...guards.map(
-          (g) => rpc_model.PresubmitGuardStage(
+        for (final g in guards)
+          rpc_model.PresubmitGuardStage(
             name: g.stage.name,
             createdAt: g.creationTime,
             builds: g.builds,
           ),
-        ),
       ],
     );
 
-    return Response.json(response.toJson());
+    return Response.json(response);
   }
 }

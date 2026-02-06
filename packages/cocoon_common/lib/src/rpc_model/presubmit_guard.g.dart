@@ -29,10 +29,10 @@ Map<String, dynamic> _$PresubmitGuardResponseToJson(
 };
 
 const _$GuardStatusEnumMap = {
-  GuardStatus.waitingForBackfill: 'waitingForBackfill',
-  GuardStatus.inProgress: 'inProgress',
-  GuardStatus.failed: 'failed',
-  GuardStatus.succeeded: 'succeeded',
+  GuardStatus.waitingForBackfill: 'New',
+  GuardStatus.inProgress: 'In Progress',
+  GuardStatus.failed: 'Failed',
+  GuardStatus.succeeded: 'Succeeded',
 };
 
 PresubmitGuardStage _$PresubmitGuardStageFromJson(Map<String, dynamic> json) =>
@@ -53,11 +53,11 @@ Map<String, dynamic> _$PresubmitGuardStageToJson(
 };
 
 const _$TaskStatusEnumMap = {
-  TaskStatus.cancelled: 'cancelled',
-  TaskStatus.waitingForBackfill: 'waitingForBackfill',
-  TaskStatus.inProgress: 'inProgress',
-  TaskStatus.infraFailure: 'infraFailure',
-  TaskStatus.failed: 'failed',
-  TaskStatus.succeeded: 'succeeded',
-  TaskStatus.skipped: 'skipped',
+  TaskStatus.cancelled: 'Cancelled',
+  TaskStatus.waitingForBackfill: 'New',
+  TaskStatus.inProgress: 'In Progress',
+  TaskStatus.infraFailure: 'Infra Failure',
+  TaskStatus.failed: 'Failed',
+  TaskStatus.succeeded: 'Succeeded',
+  TaskStatus.skipped: 'Skipped',
 };
