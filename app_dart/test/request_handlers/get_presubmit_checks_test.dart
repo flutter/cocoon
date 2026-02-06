@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -32,12 +33,25 @@ void main() {
       handler = GetPresubmitChecks(config: config, firestore: firestoreService);
     });
 
-    Future<T?> decodeHandlerBody<T>(Response response) async {
-      return await utf8.decoder
+    Future<List<PresubmitCheckResponse>?> getPresubmitCheckResponse(
+      Response response,
+    ) async {
+      if (response.statusCode != HttpStatus.ok) {
+        return null;
+      }
+      final jsonBody =
+          await utf8.decoder
               .bind(response.body)
               .transform(json.decoder)
               .single
-          as T?;
+              as List<dynamic>?;
+      if (jsonBody == null) {
+        return null;
+      }
+      return [
+        for (final item in jsonBody)
+          PresubmitCheckResponse.fromJson(item as Map<String, Object?>),
+      ];
     }
 
     test('returns 400 when parameters are missing', () async {
@@ -83,11 +97,11 @@ void main() {
       final response = await tester.get(handler);
       expect(response.statusCode, HttpStatus.ok);
 
-      final jsonBody = (await decodeHandlerBody<List<dynamic>>(response))!;
-      expect(jsonBody.length, 1);
-      expect(jsonBody[0]['attempt_number'], 1);
-      expect(jsonBody[0]['build_name'], 'linux');
-      expect(jsonBody[0]['status'], 'Succeeded');
+      final checks = (await getPresubmitCheckResponse(response))!;
+      expect(checks.length, 1);
+      expect(checks[0].attemptNumber, 1);
+      expect(checks[0].buildName, 'linux');
+      expect(checks[0].status, 'Succeeded');
     });
 
     test('returns multiple attempts in descending order', () async {
@@ -115,10 +129,10 @@ void main() {
       final response = await tester.get(handler);
       expect(response.statusCode, HttpStatus.ok);
 
-      final jsonBody = (await decodeHandlerBody<List<dynamic>>(response))!;
-      expect(jsonBody.length, 2);
-      expect(jsonBody[0]['attempt_number'], 2);
-      expect(jsonBody[1]['attempt_number'], 1);
+      final checks = (await getPresubmitCheckResponse(response))!;
+      expect(checks.length, 2);
+      expect(checks[0].attemptNumber, 2);
+      expect(checks[1].attemptNumber, 1);
     });
   });
 }
