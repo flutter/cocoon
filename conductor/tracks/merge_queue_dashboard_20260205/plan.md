@@ -1,17 +1,17 @@
 # Implementation Plan: Merge Queue Dashboard
 
 ## Phase 1: Service Layer Integration
-- [ ] Task: Write Tests for `fetchMergeQueueHooks` and `replayGitHubWebhook` in `CocoonService`.
-    - [ ] Add tests to `dashboard/test/service/appengine_cocoon_test.dart` (or create a new test file).
-    - [ ] Define expected behavior for successful fetches (List of `MergeGroupHook`) and successful replays (POST request).
-    - [ ] Define expected behavior for access denied (403) and other API errors.
-- [ ] Task: Update `CocoonService` interface and implement in `AppEngineCocoonService`.
-    - [ ] Add `fetchMergeQueueHooks` to `CocoonService` in `dashboard/lib/service/cocoon.dart`.
-    - [ ] Add `replayGitHubWebhook` to `CocoonService` in `dashboard/lib/service/cocoon.dart`.
-    - [ ] Implement `fetchMergeQueueHooks` (GET `/api/merge_queue_hooks`) in `AppEngineCocoonService`.
-    - [ ] Implement `replayGitHubWebhook` (POST `/api/github-webhook-replay?id=...`) in `AppEngineCocoonService`.
-    - [ ] Ensure the `idToken` is included in the headers for both requests.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Service Layer Integration' (Protocol in workflow.md)
+- [x] Task: Write Tests for `fetchMergeQueueHooks` and `replayGitHubWebhook` in `CocoonService`.
+    - [x] Add tests to `dashboard/test/service/appengine_cocoon_test.dart` (or create a new test file).
+    - [x] Define expected behavior for successful fetches (List of `MergeGroupHook`) and successful replays (POST request).
+    - [x] Define expected behavior for access denied (403) and other API errors.
+- [x] Task: Update `CocoonService` interface and implement in `AppEngineCocoonService`.
+    - [x] Add `fetchMergeQueueHooks` to `CocoonService` in `dashboard/lib/service/cocoon.dart`.
+    - [x] Add `replayGitHubWebhook` to `CocoonService` in `dashboard/lib/service/cocoon.dart`.
+    - [x] Implement `fetchMergeQueueHooks` (GET `/api/merge_queue_hooks`) in `AppEngineCocoonService`.
+    - [x] Implement `replayGitHubWebhook` (POST `/api/github-webhook-replay?id=...`) in `AppEngineCocoonService`.
+    - [x] Ensure the `idToken` is included in the headers for both requests.
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Service Layer Integration' (Protocol in workflow.md)
 
 ## Phase 2: State Management
 - [ ] Task: Write Tests for `MergeQueueState`.
