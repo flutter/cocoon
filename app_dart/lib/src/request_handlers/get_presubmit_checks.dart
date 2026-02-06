@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cocoon_common/rpc_model.dart' as rpc_model;
+import 'package:cocoon_common/rpc_model.dart';
 
 import '../../cocoon_service.dart';
 import '../service/firestore/unified_check_run.dart';
@@ -38,7 +38,10 @@ final class GetPresubmitChecks extends RequestHandler {
 
   final FirestoreService _firestore;
 
+  /// The query parameter for the GitHub Check Run ID.
   static const String kCheckRunIdParam = 'check_run_id';
+
+  /// The query parameter for the build name.
   static const String kBuildNameParam = 'build_name';
 
   @override
@@ -60,33 +63,32 @@ final class GetPresubmitChecks extends RequestHandler {
       }, statusCode: HttpStatus.badRequest);
     }
 
-    final attempts = await UnifiedCheckRun.getPresubmitCheckDetails(
+    final checks = await UnifiedCheckRun.getPresubmitCheckDetails(
       firestoreService: _firestore,
       checkRunId: checkRunId,
       buildName: buildName,
     );
 
-    if (attempts.isEmpty) {
+    if (checks.isEmpty) {
       return Response.json({
         'error':
             'No attempts found for check_run_id $checkRunId and build_name $buildName',
       }, statusCode: HttpStatus.notFound);
     }
 
-    final rpcAttempts = attempts
-        .map(
-          (attempt) => rpc_model.PresubmitCheck(
-            attemptNumber: attempt.attemptNumber,
-            buildName: attempt.buildName,
-            creationTime: attempt.creationTime,
-            startTime: attempt.startTime,
-            endTime: attempt.endTime,
-            status: attempt.status.value,
-            summary: attempt.summary,
-          ),
-        )
-        .toList();
+    final rpcChecks = [
+      for (final check in checks)
+        PresubmitCheckResponse(
+          attemptNumber: check.attemptNumber,
+          buildName: check.buildName,
+          creationTime: check.creationTime,
+          startTime: check.startTime,
+          endTime: check.endTime,
+          status: check.status.value,
+          summary: check.summary,
+        ),
+    ];
 
-    return Response.json(rpcAttempts);
+    return Response.json(rpcChecks);
   }
 }

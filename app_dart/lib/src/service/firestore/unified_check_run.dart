@@ -264,7 +264,10 @@ final class UnifiedCheckRun {
     return [...documents.map(PresubmitGuard.fromDocument)];
   }
 
-  /// Returns detailed information for a specific presubmit check.
+  /// Returns detailed information for a specific presubmit check identified by
+  /// [checkRunId] and [buildName].
+  ///
+  /// The results are ordered by attempt number descending.
   static Future<List<PresubmitCheck>> getPresubmitCheckDetails({
     required FirestoreService firestoreService,
     required int checkRunId,

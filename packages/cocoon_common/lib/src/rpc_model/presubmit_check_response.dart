@@ -7,14 +7,14 @@ import 'package:meta/meta.dart';
 
 import 'base.dart';
 
-part 'presubmit_check.g.dart';
+part 'presubmit_check_response.g.dart';
 
 /// RPC model for a presubmit check attempt.
 @JsonSerializable(checked: true)
 @immutable
-final class PresubmitCheck extends Model {
-  /// Creates a [PresubmitCheck] with the given properties.
-  PresubmitCheck({
+final class PresubmitCheckResponse extends Model {
+  /// Creates a [PresubmitCheckResponse] with the given properties.
+  PresubmitCheckResponse({
     required this.attemptNumber,
     required this.buildName,
     required this.creationTime,
@@ -24,12 +24,12 @@ final class PresubmitCheck extends Model {
     this.summary,
   });
 
-  /// Creates a [PresubmitCheck] from [json] representation.
-  factory PresubmitCheck.fromJson(Map<String, Object?> json) {
+  /// Creates a [PresubmitCheckResponse] from [json] representation.
+  factory PresubmitCheckResponse.fromJson(Map<String, Object?> json) {
     try {
-      return _$PresubmitCheckFromJson(json);
+      return _$PresubmitCheckResponseFromJson(json);
     } on CheckedFromJsonException catch (e) {
-      throw FormatException('Invalid PresubmitCheck: $e', json);
+      throw FormatException('Invalid PresubmitCheckResponse: $e', json);
     }
   }
 
@@ -41,15 +41,15 @@ final class PresubmitCheck extends Model {
   @JsonKey(name: 'build_name')
   final String buildName;
 
-  /// The time the check was created.
+  /// The time the check was created in milliseconds since the epoch.
   @JsonKey(name: 'creation_time')
   final int creationTime;
 
-  /// The time the check started.
+  /// The time the check started in milliseconds since the epoch.
   @JsonKey(name: 'start_time')
   final int? startTime;
 
-  /// The time the check ended.
+  /// The time the check ended in milliseconds since the epoch.
   @JsonKey(name: 'end_time')
   final int? endTime;
 
@@ -62,5 +62,5 @@ final class PresubmitCheck extends Model {
   final String? summary;
 
   @override
-  Map<String, Object?> toJson() => _$PresubmitCheckToJson(this);
+  Map<String, Object?> toJson() => _$PresubmitCheckResponseToJson(this);
 }
