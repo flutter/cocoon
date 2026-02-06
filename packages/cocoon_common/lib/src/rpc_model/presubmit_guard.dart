@@ -14,7 +14,7 @@ part 'presubmit_guard.g.dart';
 ///
 /// Contains the aggregated status and stages of presubmit checks for a specific commit.
 @immutable
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 final class PresubmitGuardResponse {
   const PresubmitGuardResponse({
     required this.prNum,
@@ -25,11 +25,9 @@ final class PresubmitGuardResponse {
   });
 
   /// The pull request number.
-  @JsonKey(name: 'pr_num')
   final int prNum;
 
   /// The check run ID associated with the presubmit guard.
-  @JsonKey(name: 'check_run_id')
   final int checkRunId;
 
   /// The login name of the author of the commit or pull request.
@@ -39,7 +37,6 @@ final class PresubmitGuardResponse {
   final List<PresubmitGuardStage> stages;
 
   /// The overall status of the presubmit guard across all stages.
-  @JsonKey(name: 'guard_status')
   final GuardStatus guardStatus;
 
   /// Creates a [PresubmitGuardResponse] from a JSON map.
@@ -54,7 +51,7 @@ final class PresubmitGuardResponse {
 ///
 /// A stage groups related builds (tasks) together, for example, 'fusion' or 'engine'.
 @immutable
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 final class PresubmitGuardStage {
   const PresubmitGuardStage({
     required this.name,
@@ -66,7 +63,6 @@ final class PresubmitGuardStage {
   final String name;
 
   /// The creation timestamp of this stage in milliseconds since the epoch.
-  @JsonKey(name: 'created_at')
   final int createdAt;
 
   /// Map of build names to their current statuses.
