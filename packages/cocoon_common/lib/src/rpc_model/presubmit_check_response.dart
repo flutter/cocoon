@@ -9,7 +9,7 @@ import 'base.dart';
 
 part 'presubmit_check_response.g.dart';
 
-/// RPC model for a presubmit check attempt.
+/// RPC model for a presubmit check.
 @JsonSerializable(checked: true)
 @immutable
 final class PresubmitCheckResponse extends Model {

@@ -10,7 +10,7 @@ import 'package:cocoon_common/rpc_model.dart';
 import '../../cocoon_service.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Returns all attempts for a specific presubmit check.
+/// Returns all checks for a specific presubmit check run.
 ///
 /// GET: /api/get-presubmit-checks
 ///
@@ -72,7 +72,7 @@ final class GetPresubmitChecks extends RequestHandler {
     if (checks.isEmpty) {
       return Response.json({
         'error':
-            'No attempts found for check_run_id $checkRunId and build_name $buildName',
+            'No checks found for check_run_id $checkRunId and build_name $buildName',
       }, statusCode: HttpStatus.notFound);
     }
 

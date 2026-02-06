@@ -68,7 +68,7 @@ void main() {
       expect(response.statusCode, HttpStatus.badRequest);
     });
 
-    test('returns 404 when no attempts found', () async {
+    test('returns 404 when no checks found', () async {
       tester.request = FakeHttpRequest(
         queryParametersValue: {'check_run_id': '123', 'build_name': 'linux'},
       );
@@ -76,7 +76,7 @@ void main() {
       expect(response.statusCode, HttpStatus.notFound);
     });
 
-    test('returns attempts when found', () async {
+    test('returns checks when found', () async {
       final check = fs.PresubmitCheck(
         checkRunId: 123,
         buildName: 'linux',
@@ -104,7 +104,7 @@ void main() {
       expect(checks[0].status, 'Succeeded');
     });
 
-    test('returns multiple attempts in descending order', () async {
+    test('returns multiple checks in descending order', () async {
       final check1 = fs.PresubmitCheck(
         checkRunId: 123,
         buildName: 'linux',
