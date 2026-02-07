@@ -40,10 +40,7 @@ void main() {
         return null;
       }
       final jsonBody =
-          await utf8.decoder
-              .bind(response.body)
-              .transform(json.decoder)
-              .single
+          await utf8.decoder.bind(response.body).transform(json.decoder).single
               as List<dynamic>?;
       if (jsonBody == null) {
         return null;
