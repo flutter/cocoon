@@ -188,8 +188,11 @@ Server createServer({
     '/api/get-presubmit-guard': GetPresubmitGuard(
       config: config,
       authenticationProvider: authProvider,
+      firestore: firestore,
+    ),
     '/api/get-presubmit-checks': GetPresubmitChecks(
       config: config,
+      authenticationProvider: authProvider,
       firestore: firestore,
     ),
     '/api/update-suppressed-test': UpdateSuppressedTest(
