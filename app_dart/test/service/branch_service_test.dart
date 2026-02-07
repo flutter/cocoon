@@ -4,6 +4,7 @@
 
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -18,10 +19,7 @@ import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-import '../src/service/fake_gerrit_service.dart';
-import '../src/utilities/entity_generators.dart';
 import '../src/utilities/matchers.dart';
-import '../src/utilities/mocks.mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:appengine/appengine.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -18,9 +19,6 @@ import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
-
-import '../test/src/service/fake_content_aware_hash_service.dart';
-import '../test/src/service/fake_firestore_service.dart';
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);

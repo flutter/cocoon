@@ -3,13 +3,12 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/task_ref.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
-
-import '../src/model/ref_matcher.dart';
 
 void main() {
   useTestLoggerPerTest();

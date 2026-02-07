@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/build_status_snapshot.dart';
 import 'package:cocoon_service/src/request_handlers/update_discord_status.dart';
@@ -14,13 +15,7 @@ import 'package:cocoon_service/src/service/discord_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
-import '../src/model/firestore_matcher.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/service/fake_firestore_service.dart'
-    show FakeFirestoreService, existsInStorage;
-import '../src/utilities/entity_generators.dart';
-import '../src/utilities/mocks.mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

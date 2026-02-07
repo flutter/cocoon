@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/mocks.mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -17,12 +18,6 @@ import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/request_handling/fake_http.dart';
-import '../src/service/fake_firebase_jwt_validator.dart';
-import '../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

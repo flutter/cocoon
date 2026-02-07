@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:meta/meta.dart';
-
-import 'fake_http.dart';
 
 class RequestHandlerTester {
   RequestHandlerTester({FakeHttpRequest? request})

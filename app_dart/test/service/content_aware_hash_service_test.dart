@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -17,9 +18,6 @@ import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 import '../model/github/workflow_job_data.dart';
-import '../src/fake_config.dart';
-import '../src/service/fake_firestore_service.dart';
-import '../src/service/fake_github_service.dart';
 
 void main() {
   useTestLoggerPerTest();

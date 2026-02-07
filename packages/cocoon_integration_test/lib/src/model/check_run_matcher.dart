@@ -5,7 +5,7 @@
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
-const isTarget = CheckRunMatcher._(TypeMatcher());
+const isCheckRun = CheckRunMatcher._(TypeMatcher());
 
 final class CheckRunMatcher extends Matcher {
   const CheckRunMatcher._(this._delegate);

@@ -11,7 +11,8 @@
     - [x] Implement `fetchMergeQueueHooks` (GET `/api/merge_queue_hooks`) in `AppEngineCocoonService`.
     - [x] Implement `replayGitHubWebhook` (POST `/api/github-webhook-replay?id=...`) in `AppEngineCocoonService`.
     - [x] Ensure the `idToken` is included in the headers for both requests.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Service Layer Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Service Layer Integration' (Protocol in workflow.md)
+[checkpoint: ea18514]
 
 ## Phase 2: State Management
 - [ ] Task: Write Tests for `MergeQueueState`.

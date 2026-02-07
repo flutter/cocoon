@@ -5,19 +5,16 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
-
 import 'package:github/github.dart' as github;
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
-import '../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

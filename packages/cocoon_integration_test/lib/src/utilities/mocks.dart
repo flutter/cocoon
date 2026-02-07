@@ -26,7 +26,7 @@ import 'package:mockito/annotations.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:process/process.dart';
 
-import '../../service/cache_service_test.dart';
+import '../fakes/fake_entry.dart';
 
 export 'mocks.mocks.dart';
 
@@ -68,10 +68,11 @@ export 'mocks.mocks.dart';
     // ),
   ],
 )
-void main() {}
+
 
 // ignore: unreachable_from_main
 class ThrowingGitHub implements GitHub {
   @override
   dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
 }
+

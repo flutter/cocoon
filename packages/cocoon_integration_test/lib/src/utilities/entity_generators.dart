@@ -18,7 +18,7 @@ import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
 
-import '../service/fake_scheduler.dart';
+import '../fakes/fake_scheduler.dart';
 
 Task generateFirestoreTask(
   int i, {

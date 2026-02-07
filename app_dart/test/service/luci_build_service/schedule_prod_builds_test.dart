@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart';
@@ -19,12 +20,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/fake_config.dart';
-import '../../src/request_handling/fake_pubsub.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/service/fake_gerrit_service.dart';
-import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.mocks.dart';
 import '../../src/utilities/webhook_generators.dart';
 
 /// Tests [LuciBuildService] public API related to fetching prod-bot builds.

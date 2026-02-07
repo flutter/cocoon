@@ -11,7 +11,7 @@ class FakePubSub extends PubSub {
   int exceptionRepetition = 1;
 
   @override
-  Future<List<String>> publish(String topicName, dynamic json) async {
+  Future<List<String>> publish(String topic, dynamic json) async {
     if (exceptionFlag && exceptionRepetition > 0) {
       exceptionRepetition--;
       throw DetailedApiRequestError(500, 'test api error');
