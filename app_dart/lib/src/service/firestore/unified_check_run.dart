@@ -264,6 +264,22 @@ final class UnifiedCheckRun {
     return [...documents.map(PresubmitGuard.fromDocument)];
   }
 
+  /// Returns detailed information for a specific presubmit check identified by
+  /// [checkRunId] and [buildName].
+  ///
+  /// The results are ordered by attempt number descending.
+  static Future<List<PresubmitCheck>> getPresubmitCheckDetails({
+    required FirestoreService firestoreService,
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    return await _queryPresubmitChecks(
+      firestoreService: firestoreService,
+      checkRunId: checkRunId,
+      buildName: buildName,
+    );
+  }
+
   static Future<List<PresubmitCheck>> _queryPresubmitChecks({
     required FirestoreService firestoreService,
     required int checkRunId,
@@ -271,7 +287,7 @@ final class UnifiedCheckRun {
     TaskStatus? status,
     Transaction? transaction,
     int? attemptNumber,
-    // By default order by attempt number descending to get the latest check first.
+    // By default order by attempt number descending.
     Map<String, String>? orderMap = const {
       PresubmitCheck.fieldAttemptNumber: kQueryOrderDescending,
     },
