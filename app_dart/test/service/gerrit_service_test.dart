@@ -15,8 +15,6 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
 
-import '../src/utilities/matchers.dart';
-
 void main() {
   useTestLoggerPerTest();
 

@@ -19,8 +19,6 @@ import 'package:mockito/mockito.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
-import '../src/utilities/matchers.dart';
-
 void main() {
   useTestLoggerPerTest();
 

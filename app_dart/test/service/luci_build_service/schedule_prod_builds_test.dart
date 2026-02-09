@@ -20,8 +20,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/utilities/webhook_generators.dart';
-
 /// Tests [LuciBuildService] public API related to fetching prod-bot builds.
 ///
 /// Specifically:

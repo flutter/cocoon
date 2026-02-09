@@ -21,7 +21,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../src/request_handling/subscription_tester.dart';
-import '../src/utilities/build_bucket_messages.dart';
 
 void main() {
   useTestLoggerPerTest();

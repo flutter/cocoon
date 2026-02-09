@@ -1,4 +1,3 @@
-
 export 'src/fakes/fake_auth_client.dart';
 export 'src/fakes/fake_big_query_service.dart';
 export 'src/fakes/fake_build_bucket_client.dart';
@@ -27,5 +26,8 @@ export 'src/model/ci_yaml_matcher.dart';
 export 'src/model/firestore_matcher.dart';
 export 'src/model/ref_matcher.dart';
 
+export 'src/utilities/build_bucket_messages.dart';
 export 'src/utilities/entity_generators.dart';
+export 'src/utilities/matchers.dart';
 export 'src/utilities/mocks.dart';
+export 'src/utilities/webhook_generators.dart';

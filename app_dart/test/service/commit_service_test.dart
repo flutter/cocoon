@@ -11,8 +11,6 @@ import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/utilities/webhook_generators.dart';
-
 void main() {
   useTestLoggerPerTest();
 

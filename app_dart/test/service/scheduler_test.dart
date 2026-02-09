@@ -38,7 +38,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
-import '../src/utilities/webhook_generators.dart';
 import 'scheduler/ci_yaml_strings.dart';
 import 'scheduler/create_check_run.dart';
 
