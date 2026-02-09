@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('IntegrationServer starts', () async {
-    final server = await IntegrationServer.start();
+    final server = IntegrationServer();
     expect(server.server, isNotNull);
     expect(server.config, isNotNull);
   });
