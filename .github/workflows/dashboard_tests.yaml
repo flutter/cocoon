@@ -55,7 +55,7 @@ jobs:
       # have write access to the repository.
       - name: Upload Golden Failures
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: golden-failures
           path: 'dashboard/**/failures/*.png'
