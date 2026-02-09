@@ -1,3 +1,7 @@
+// Copyright 2026 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 export 'src/fakes/fake_auth_client.dart';
 export 'src/fakes/fake_big_query_service.dart';
 export 'src/fakes/fake_build_bucket_client.dart';
