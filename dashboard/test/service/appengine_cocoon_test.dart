@@ -604,10 +604,7 @@ void main() {
           return Response('', 200);
         }),
       );
-      final response = await service.replayGitHubWebhook(
-        idToken: '',
-        id: '1',
-      );
+      final response = await service.replayGitHubWebhook(idToken: '', id: '1');
       expect(
         response.error,
         allOf(<Matcher>[isNotNull, contains('Sign in to replay events')]),

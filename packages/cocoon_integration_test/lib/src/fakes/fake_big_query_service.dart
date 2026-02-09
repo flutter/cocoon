@@ -8,8 +8,6 @@ import 'package:cocoon_service/src/service/big_query.dart';
 import 'fake_tabledata_resource.dart';
 
 class FakeBigQueryService extends BigQueryService {
-  FakeBigQueryService() : super.forTesting(
-      FakeTabledataResource(),
-      MockJobsResource(),
-  );
+  FakeBigQueryService()
+    : super.forTesting(FakeTabledataResource(), MockJobsResource());
 }

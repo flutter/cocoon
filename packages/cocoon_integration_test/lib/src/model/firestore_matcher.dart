@@ -117,7 +117,12 @@ abstract final class ModelMatcher<T extends AppDocument<T>> extends Matcher {
 
   @override
   @nonVirtual
-  Description describeMismatch(Object? item, Description mismatchDescription, _, _) {
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    _,
+    _,
+  ) {
     // Not a document and not the wrapped type.
     if (item is! g.Document) {
       return mismatchDescription.add('not a Document');
@@ -131,7 +136,9 @@ abstract final class ModelMatcher<T extends AppDocument<T>> extends Matcher {
     // Not a document of the expected type.
     if (!_isPathTo(item.name!, metadata)) {
       final collection = p.posix.basename(p.posix.dirname(item.name!));
-      return mismatchDescription.add('not a $T, belongs to collection "$collection"');
+      return mismatchDescription.add(
+        'not a $T, belongs to collection "$collection"',
+      );
     }
 
     return _delegate.describeMismatch(item, mismatchDescription, {}, false);

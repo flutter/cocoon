@@ -27,23 +27,27 @@ class IntegrationServer {
     this.firestore = firestore ?? FakeFirestoreService();
     this.bigQuery = bigQuery ?? FakeBigQueryService();
     this.authProvider = authProvider ?? FakeDashboardAuthentication();
-    this.swarmingAuthProvider = swarmingAuthProvider ?? FakeDashboardAuthentication();
+    this.swarmingAuthProvider =
+        swarmingAuthProvider ?? FakeDashboardAuthentication();
     this.gerritService = gerritService ?? FakeGerritService();
     this.buildBucketClient = buildBucketClient ?? FakeBuildBucketClient();
-    this.luciBuildService = luciBuildService ?? FakeLuciBuildService(
-      config: this.config,
-      firestore: this.firestore,
-    );
-    this.scheduler = scheduler ?? FakeScheduler(
-      config: this.config,
-      firestore: this.firestore,
-      bigQuery: this.bigQuery,
-    );
+    this.luciBuildService =
+        luciBuildService ??
+        FakeLuciBuildService(config: this.config, firestore: this.firestore);
+    this.scheduler =
+        scheduler ??
+        FakeScheduler(
+          config: this.config,
+          firestore: this.firestore,
+          bigQuery: this.bigQuery,
+        );
     this.ciYamlFetcher = ciYamlFetcher ?? FakeCiYamlFetcher();
     this.buildStatusService = buildStatusService ?? FakeBuildStatusService();
-    this.contentAwareHashService = contentAwareHashService ?? FakeContentAwareHashService(config: this.config);
+    this.contentAwareHashService =
+        contentAwareHashService ??
+        FakeContentAwareHashService(config: this.config);
     cache = CacheService(inMemory: true);
-    
+
     server = createServer(
       config: this.config,
       firestore: this.firestore,
@@ -58,7 +62,10 @@ class IntegrationServer {
       buildBucketClient: this.buildBucketClient,
       luciBuildService: this.luciBuildService,
       githubChecksService: GithubChecksService(this.config),
-      commitService: CommitService(config: this.config, firestore: this.firestore),
+      commitService: CommitService(
+        config: this.config,
+        firestore: this.firestore,
+      ),
       gerritService: this.gerritService,
       scheduler: this.scheduler,
       ciYamlFetcher: this.ciYamlFetcher,

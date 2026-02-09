@@ -68,11 +68,8 @@ export 'mocks.mocks.dart';
     // ),
   ],
 )
-
-
 // ignore: unreachable_from_main
 class ThrowingGitHub implements GitHub {
   @override
   dynamic noSuchMethod(Invocation invocation) => throw AssertionError();
 }
-
