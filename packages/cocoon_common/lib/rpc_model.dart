@@ -36,6 +36,8 @@ export 'src/rpc_model/merge_group_hooks.dart'
     show MergeGroupHook, MergeGroupHooks;
 export 'src/rpc_model/presubmit_check_response.dart'
     show PresubmitCheckResponse;
+export 'src/rpc_model/presubmit_guard.dart'
+    show PresubmitGuardResponse, PresubmitGuardStage;
 export 'src/rpc_model/suppressed_test.dart'
     show SuppressedTest, SuppressionUpdate;
 export 'src/rpc_model/task.dart' show Task;

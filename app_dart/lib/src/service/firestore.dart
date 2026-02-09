@@ -16,6 +16,7 @@ import '../../cocoon_service.dart';
 import '../model/firestore/commit.dart';
 import '../model/firestore/github_build_status.dart';
 import '../model/firestore/github_gold_status.dart';
+
 import '../model/firestore/task.dart';
 import 'firestore/commit_and_tasks.dart';
 

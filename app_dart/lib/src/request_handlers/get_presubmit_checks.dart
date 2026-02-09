@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:cocoon_common/rpc_model.dart';
 
 import '../../cocoon_service.dart';
+import '../request_handling/api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
 /// Returns all checks for a specific presubmit check run.
@@ -30,9 +31,10 @@ import '../service/firestore/unified_check_run.dart';
 ///     "summary": "Check passed"
 ///   }
 /// ]
-final class GetPresubmitChecks extends RequestHandler {
+final class GetPresubmitChecks extends ApiRequestHandler {
   const GetPresubmitChecks({
     required super.config,
+    required super.authenticationProvider,
     required FirestoreService firestore,
   }) : _firestore = firestore;
 

@@ -5,9 +5,11 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_service/ci_yaml.dart';
+import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart';
 import 'package:cocoon_service/src/model/firestore/github_build_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/model/gerrit/commit.dart';
@@ -308,3 +310,28 @@ SuppressedTest generateSuppressedTest({
   issueLink: issueLink,
   createTimestamp: createTimestamp ?? DateTime.fromMillisecondsSinceEpoch(1),
 )..name = '$kDatabase/documents/${SuppressedTest.kCollectionId}/$name';
+
+PresubmitGuard generatePresubmitGuard({
+  github.RepositorySlug? slug,
+  int pullRequestId = 123,
+  github.CheckRun? checkRun,
+  CiStage stage = CiStage.fusionTests,
+  String commitSha = 'abc',
+  int creationTime = 1,
+  String author = 'dash',
+  int buildCount = 1,
+  Map<String, TaskStatus>? builds,
+}) {
+  return PresubmitGuard(
+    slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
+    pullRequestId: pullRequestId,
+    checkRun: checkRun ?? generateCheckRun(1),
+    stage: stage,
+    commitSha: commitSha,
+    creationTime: creationTime,
+    author: author,
+    remainingBuilds: buildCount,
+    failedBuilds: 0,
+    builds: builds,
+  );
+}

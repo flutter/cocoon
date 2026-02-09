@@ -230,6 +230,19 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
+  /// Queries for [PresubmitGuard] records by [slug] and [commitSha].
+  static Future<List<PresubmitGuard>> getPresubmitGuardsForCommitSha({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required String commitSha,
+  }) async {
+    return await _queryPresubmitGuards(
+      firestoreService: firestoreService,
+      slug: slug,
+      commitSha: commitSha,
+    );
+  }
+
   static Future<List<PresubmitGuard>> _queryPresubmitGuards({
     required FirestoreService firestoreService,
     Transaction? transaction,
@@ -246,10 +259,10 @@ final class UnifiedCheckRun {
     int? limit,
   }) async {
     final filterMap = {
-      '${PresubmitGuard.fieldSlug} =': ?slug,
+      '${PresubmitGuard.fieldSlug} =': ?slug?.fullName,
       '${PresubmitGuard.fieldPullRequestId} =': ?pullRequestId,
       '${PresubmitGuard.fieldCheckRunId} =': ?checkRunId,
-      '${PresubmitGuard.fieldStage} =': ?stage,
+      '${PresubmitGuard.fieldStage} =': ?stage?.name,
       '${PresubmitGuard.fieldCreationTime} =': ?creationTime,
       '${PresubmitGuard.fieldAuthor} =': ?author,
       '${PresubmitGuard.fieldCommitSha} =': ?commitSha,

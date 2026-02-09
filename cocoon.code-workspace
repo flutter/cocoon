@@ -2,7 +2,7 @@
 	"folders": [
 		{
 			"path": "analyze"
-		},	
+		},
 		{
 			"path": "app_dart"
 		},
@@ -29,6 +29,9 @@
 		},
 		{
 			"path": "tooling"
+		},
+		{
+			"path": "conductor"
 		}
 	],
 	"settings": {}

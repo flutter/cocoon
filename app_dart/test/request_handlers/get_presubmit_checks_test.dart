@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/request_handlers/get_presubmit_checks.dart';
 import 'package:test/test.dart';
 
 import '../src/fake_config.dart';
+import '../src/request_handling/fake_dashboard_authentication.dart';
 import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
 import '../src/service/fake_firestore_service.dart';
@@ -30,7 +31,11 @@ void main() {
       config = FakeConfig();
       tester = RequestHandlerTester();
       firestoreService = FakeFirestoreService();
-      handler = GetPresubmitChecks(config: config, firestore: firestoreService);
+      handler = GetPresubmitChecks(
+        config: config,
+        firestore: firestoreService,
+        authenticationProvider: FakeDashboardAuthentication(),
+      );
     });
 
     Future<List<PresubmitCheckResponse>?> getPresubmitCheckResponse(
