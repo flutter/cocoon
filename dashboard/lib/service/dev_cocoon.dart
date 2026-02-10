@@ -190,7 +190,7 @@ class DevelopmentCocoonService implements CocoonService {
         guardStatus: GuardStatus.inProgress,
         stages: [
           PresubmitGuardStage(
-            name: 'Engine',
+            name: 'engine',
             createdAt: now.millisecondsSinceEpoch,
             builds: {
               'Mac mac_host_engine': TaskStatus.failed,
@@ -199,10 +199,13 @@ class DevelopmentCocoonService implements CocoonService {
             },
           ),
           PresubmitGuardStage(
-            name: 'Framework',
+            name: 'fusion',
             createdAt: now.millisecondsSinceEpoch,
             builds: {
               'Linux framework_tests': TaskStatus.inProgress,
+              'Windows framework_tests': TaskStatus.waitingForBackfill,
+              'Mac framework_tests': TaskStatus.cancelled,
+              'Linux android framework_tests': TaskStatus.skipped,
             },
           ),
         ],
@@ -221,7 +224,7 @@ class DevelopmentCocoonService implements CocoonService {
         attemptNumber: 1,
         buildName: buildName,
         creationTime: now.millisecondsSinceEpoch,
-        status: 'Succeeded',
+        status: 'Failed',
         summary: 'Log attempt #1...',
       ),
       PresubmitCheckResponse(
@@ -229,7 +232,6 @@ class DevelopmentCocoonService implements CocoonService {
         buildName: buildName,
         creationTime: now.millisecondsSinceEpoch,
         status: 'In Progress',
-        summary: 'Log attempt #2...',
       ),
     ]);
   }
