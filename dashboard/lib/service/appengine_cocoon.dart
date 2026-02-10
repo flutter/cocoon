@@ -275,8 +275,8 @@ class AppEngineCocoonService implements CocoonService {
         'repository': repo,
         'testName': testName,
         'action': suppress ? 'SUPPRESS' : 'UNSUPPRESS',
-        'issueLink': ?issueLink,
-        'note': ?note,
+        if (issueLink != null) 'issueLink': issueLink,
+        if (note != null) 'note': note,
       }),
     );
     if (response.statusCode == HttpStatus.ok) {
@@ -286,6 +286,83 @@ class AppEngineCocoonService implements CocoonService {
       'HTTP Code: ${response.statusCode}, ${response.body}',
       statusCode: response.statusCode,
     );
+  }
+
+  @override
+  Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
+    required String repo,
+    required String sha,
+  }) async {
+    final queryParameters = <String, String?>{
+      'slug': 'flutter/$repo',
+      'sha': sha,
+    };
+    final getGuardUrl = apiEndpoint(
+      '/api/get-presubmit-guard',
+      queryParameters: queryParameters,
+    );
+
+    final response = await _client.get(getGuardUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/get-presubmit-guard returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      return CocoonResponse.data(
+        PresubmitGuardResponse.fromJson(
+          jsonDecode(response.body) as Map<String, Object?>,
+        ),
+      );
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<CocoonResponse<List<PresubmitCheckResponse>>>
+  fetchPresubmitCheckDetails({
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    final queryParameters = <String, String?>{
+      'check_run_id': checkRunId.toString(),
+      'build_name': buildName,
+    };
+    final getChecksUrl = apiEndpoint(
+      '/api/get-presubmit-checks',
+      queryParameters: queryParameters,
+    );
+
+    final response = await _client.get(getChecksUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/get-presubmit-checks returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
+      return CocoonResponse.data(
+        jsonResponse
+            .cast<Map<String, Object?>>()
+            .map(PresubmitCheckResponse.fromJson)
+            .toList(),
+      );
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
   }
 
   @override
@@ -302,7 +379,7 @@ class AppEngineCocoonService implements CocoonService {
       body: jsonEncode({
         'repo': repo,
         'passing': status == TreeStatus.success,
-        'reason': ?reason,
+        if (reason != null) 'reason': reason,
       }),
     );
     if (response.statusCode == HttpStatus.ok) {

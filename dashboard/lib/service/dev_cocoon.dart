@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 
@@ -174,6 +175,63 @@ class DevelopmentCocoonService implements CocoonService {
       list.removeWhere((t) => t.name == testName);
     }
     return const CocoonResponse.data(null);
+  }
+
+  @override
+  Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
+    required String repo,
+    required String sha,
+  }) async {
+    return CocoonResponse.data(
+      PresubmitGuardResponse(
+        prNum: 1234,
+        checkRunId: 456,
+        author: 'dash',
+        guardStatus: GuardStatus.inProgress,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: now.millisecondsSinceEpoch,
+            builds: {
+              'Mac mac_host_engine': TaskStatus.failed,
+              'Mac mac_ios_engine': TaskStatus.failed,
+              'Linux linux_android_aot_engine': TaskStatus.succeeded,
+            },
+          ),
+          PresubmitGuardStage(
+            name: 'Framework',
+            createdAt: now.millisecondsSinceEpoch,
+            builds: {
+              'Linux framework_tests': TaskStatus.inProgress,
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<CocoonResponse<List<PresubmitCheckResponse>>>
+  fetchPresubmitCheckDetails({
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    return CocoonResponse.data([
+      PresubmitCheckResponse(
+        attemptNumber: 1,
+        buildName: buildName,
+        creationTime: now.millisecondsSinceEpoch,
+        status: 'Succeeded',
+        summary: 'Log attempt #1...',
+      ),
+      PresubmitCheckResponse(
+        attemptNumber: 2,
+        buildName: buildName,
+        creationTime: now.millisecondsSinceEpoch,
+        status: 'In Progress',
+        summary: 'Log attempt #2...',
+      ),
+    ]);
   }
 
   @override

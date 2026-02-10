@@ -117,6 +117,19 @@ abstract class CocoonService {
     required String idToken,
     required String id,
   });
+
+  /// Gets the presubmit guard status for a given [repo] and commit [sha].
+  Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
+    required String repo,
+    required String sha,
+  });
+
+  /// Gets the details for a specific presubmit check.
+  Future<CocoonResponse<List<PresubmitCheckResponse>>>
+  fetchPresubmitCheckDetails({
+    required int checkRunId,
+    required String buildName,
+  });
 }
 
 /// Wrapper class for data this state serves.
