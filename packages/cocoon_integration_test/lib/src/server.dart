@@ -22,6 +22,7 @@ class IntegrationServer {
     FakeCiYamlFetcher? ciYamlFetcher,
     FakeBuildStatusService? buildStatusService,
     FakeContentAwareHashService? contentAwareHashService,
+    CacheService? cache,
   }) {
     this.config = config ?? FakeConfig(webhookKeyValue: 'fake-secret');
     this.firestore = firestore ?? FakeFirestoreService();
@@ -46,13 +47,13 @@ class IntegrationServer {
     this.contentAwareHashService =
         contentAwareHashService ??
         FakeContentAwareHashService(config: this.config);
-    cache = CacheService(inMemory: true);
+    this.cache = cache ?? FakeCacheService();
 
     server = createServer(
       config: this.config,
       firestore: this.firestore,
       bigQuery: this.bigQuery,
-      cache: cache,
+      cache: this.cache,
       authProvider: this.authProvider,
       swarmingAuthProvider: this.swarmingAuthProvider,
       branchService: BranchService(

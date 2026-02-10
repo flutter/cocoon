@@ -6,6 +6,7 @@ export 'src/fakes/fake_auth_client.dart';
 export 'src/fakes/fake_big_query_service.dart';
 export 'src/fakes/fake_build_bucket_client.dart';
 export 'src/fakes/fake_build_status_service.dart';
+export 'src/fakes/fake_cache_service.dart';
 export 'src/fakes/fake_ci_yaml_fetcher.dart';
 export 'src/fakes/fake_config.dart';
 export 'src/fakes/fake_content_aware_hash_service.dart';
@@ -25,6 +26,7 @@ export 'src/fakes/fake_request_handler.dart';
 export 'src/fakes/fake_scheduler.dart';
 export 'src/fakes/fake_tabledata_resource.dart';
 
+export 'src/integration_http_client.dart';
 export 'src/model/check_run_matcher.dart';
 export 'src/model/ci_yaml_matcher.dart';
 export 'src/model/firestore_matcher.dart';

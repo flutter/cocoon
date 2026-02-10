@@ -11,7 +11,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/google/firebase_jwt_claim.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
-import 'package:cocoon_service/src/request_handling/checkrun_authentication.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
