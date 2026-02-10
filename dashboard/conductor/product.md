@@ -11,6 +11,7 @@ The main objective of the dashboard is **monitoring the health and status of the
 
 ## Key Features
 *   **Commit Status Grid:** A comprehensive grid view displaying the status of various tasks across different commits, allowing for quick identification of regressions or flaky tests.
+*   **PreSubmit Monitoring:** A detailed view for specific Pull Requests or commit SHAs, allowing maintainers to inspect individual CI check statuses, view execution logs with attempt history, and re-run failed tasks.
 *   **Real-time Updates:** The dashboard provides real-time updates of build statuses, ensuring that developers have the most current information regarding the tree health.
 *   **Task Summary Popovers:** Clicking on a task in the grid opens a summary popover, providing immediate access to task details and direct links to full logs for deeper investigation.
 *   **Actionable UI:** Integration with backend services to allow authorized users to trigger re-runs of failed tasks directly from the dashboard interface.
