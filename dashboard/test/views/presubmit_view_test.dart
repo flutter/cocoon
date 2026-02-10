@@ -132,16 +132,40 @@ void main() {
     await tester.tap(find.text('Mac mac_host_engine'));
     await tester.pump();
 
-    // Verify log for attempt #1 (Succeeded in mock)
+    // Verify log for attempt #1
     expect(find.textContaining('All tests passed (452/452)'), findsOneWidget);
     expect(find.text('Status: Succeeded'), findsOneWidget);
 
-    // Switch to attempt #2 (Failed in mock)
+    // Switch to attempt #2
     await tester.tap(find.text('#2'));
     await tester.pump();
 
     expect(find.textContaining('Test failed: Unit Tests'), findsOneWidget);
     expect(find.text('Status: Failed'), findsOneWidget);
+  });
+
+  testWidgets('PreSubmitView SHA dropdown switches mock SHAs', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(2000, 1080);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(createPreSubmitView({'repo': 'flutter', 'pr': '1234'}));
+    await tester.pump();
+
+    // Find dropdown in AppBar actions and select mock_sha_2
+    expect(find.text('mock_sha_'), findsOneWidget);
+    await tester.tap(find.text('mock_sha_'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    
+    // Select the second one from the dropdown menu
+    await tester.tap(find.text('mock_sha_').at(1));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('mock_sha_'), findsOneWidget);
+    expect(find.text('Re-run failed'), findsOneWidget);
   });
 
   testWidgets('PreSubmitView functional sha route fetches check details', (WidgetTester tester) async {
@@ -185,8 +209,8 @@ void main() {
     await tester.pump();
 
     await tester.tap(find.text('Mac mac_host_engine'));
-    await tester.pump(); // Start details fetch
-    await tester.pump(); // Finish details fetch
+    await tester.pump();
+    await tester.pump();
 
     expect(find.text('Live log content'), findsOneWidget);
   });

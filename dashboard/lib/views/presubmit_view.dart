@@ -10,8 +10,10 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../dashboard_navigation_drawer.dart';
 import '../state/build.dart';
-import '../widgets/scaffold.dart';
+import '../widgets/app_bar.dart';
+import '../widgets/sha_selector.dart';
 
 /// A detailed monitoring view for a specific Pull Request (PR) or commit SHA.
 ///
@@ -45,38 +47,48 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     pr = params['pr'];
 
     if (pr != null && sha == null) {
-      // Mocked data for PR route
-      _guardResponse = PresubmitGuardResponse(
-        prNum: int.parse(pr!),
-        checkRunId: 456,
-        author: 'dash',
-        guardStatus: GuardStatus.inProgress,
-        stages: [
-          const PresubmitGuardStage(
-            name: 'Engine',
-            createdAt: 0,
-            builds: {
-              'Mac mac_host_engine': TaskStatus.failed,
-              'Mac mac_ios_engine': TaskStatus.failed,
-              'Linux linux_android_aot_engine': TaskStatus.succeeded,
-            },
-          ),
-          const PresubmitGuardStage(
-            name: 'Framework',
-            createdAt: 0,
-            builds: {
-              'Linux framework_tests': TaskStatus.inProgress,
-            },
-          ),
-        ],
-      );
+      // Use a default mock SHA for the PR route if none selected
+      sha = 'mock_sha_1';
+      _loadMockData();
     }
+  }
+
+  void _loadMockData() {
+    _guardResponse = PresubmitGuardResponse(
+      prNum: int.parse(pr!),
+      checkRunId: 456,
+      author: 'dash',
+      guardStatus: GuardStatus.inProgress,
+      stages: [
+        const PresubmitGuardStage(
+          name: 'Engine',
+          createdAt: 0,
+          builds: {
+            'Mac mac_host_engine': TaskStatus.failed,
+            'Mac mac_ios_engine': TaskStatus.failed,
+            'Linux linux_android_aot_engine': TaskStatus.succeeded,
+          },
+        ),
+        const PresubmitGuardStage(
+          name: 'Framework',
+          createdAt: 0,
+          builds: {
+            'Linux framework_tests': TaskStatus.inProgress,
+            'Mac framework_tests': TaskStatus.cancelled,
+            'Linux android framework_tests': TaskStatus.skipped,
+          },
+        ),
+      ],
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (sha != null && _guardResponse == null && !_isLoading) {
+    if (sha != null &&
+        _guardResponse == null &&
+        !_isLoading &&
+        !sha!.startsWith('mock_')) {
       unawaited(_fetchGuardStatus());
     }
   }
@@ -84,6 +96,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   Future<void> _fetchGuardStatus() async {
     setState(() {
       _isLoading = true;
+      _selectedCheck = null;
     });
     final buildState = Provider.of<BuildState>(context, listen: false);
     final response = await buildState.cocoonService.fetchPresubmitGuard(
@@ -102,73 +115,134 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final buildState = Provider.of<BuildState>(context);
+
+    final List<String> availableShas = pr != null
+        ? [
+            'mock_sha_1_long_hash_value',
+            'mock_sha_2_long_hash_value',
+            'mock_sha_3_long_hash_value',
+          ]
+        : buildState.statuses.map((s) => s.commit.sha).toList();
+
+    // Ensure current sha is in the list
+    if (sha != null && !availableShas.contains(sha)) {
+      availableShas.insert(0, sha!);
+    }
 
     final String title = _guardResponse != null
         ? 'PR #${_guardResponse!.prNum}: [${_guardResponse!.author}]'
-        : (pr != null ? 'PR #$pr: Feature Implementation' : 'PreSubmit: $repo @ $sha');
+        : (pr != null
+              ? 'PR #$pr: Feature Implementation'
+              : 'PreSubmit: $repo @ $sha');
 
-    final String statusText = _guardResponse?.guardStatus.value ?? (pr != null ? 'Pending' : 'Loading...');
+    final String statusText =
+        _guardResponse?.guardStatus.value ??
+        (pr != null ? 'Pending' : 'Loading...');
     final Color statusColor = _getStatusColor(statusText, isDark);
 
-    return CocoonScaffold(
-      title: Row(
-        children: [
-          Flexible(
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: statusColor.withOpacity(0.2)),
-            ),
-            child: Text(
-              statusText,
-              style: TextStyle(
-                color: statusColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+    return Scaffold(
+      appBar: CocoonAppBar(
+        title: Row(
+          children: [
+            Flexible(
+              child: SelectionArea(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
+            const SizedBox(width: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: statusColor.withOpacity(0.2)),
+              ),
+              child: SelectionArea(
+                child: Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: 150,
+            child: ShaSelector(
+              availableShas: availableShas,
+              selectedSha: sha,
+              onShaSelected: (newSha) {
+                setState(() {
+                  sha = newSha;
+                  _guardResponse = null;
+                });
+                if (sha!.startsWith('mock_')) {
+                  setState(() {
+                    _loadMockData();
+                  });
+                } else {
+                  unawaited(_fetchGuardStatus());
+                }
+              },
+            ),
           ),
+          const SizedBox(width: 8),
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Re-run failed'),
+            style: TextButton.styleFrom(
+              foregroundColor: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
+      drawer: const DashboardNavigationDrawer(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Row(
-              children: [
-                if (_guardResponse != null)
-                  _ChecksSidebar(
-                    guardResponse: _guardResponse!,
-                    selectedCheck: _selectedCheck,
-                    onCheckSelected: (name) {
-                      setState(() {
-                        _selectedCheck = name;
-                      });
-                    },
+          : SelectionArea(
+              child: Row(
+                children: [
+                  if (_guardResponse != null)
+                    _ChecksSidebar(
+                      guardResponse: _guardResponse!,
+                      selectedCheck: _selectedCheck,
+                      onCheckSelected: (name) {
+                        setState(() {
+                          _selectedCheck = name;
+                        });
+                      },
+                    ),
+                  const VerticalDivider(width: 1, thickness: 1),
+                  Expanded(
+                    child: _selectedCheck == null
+                        ? const Center(
+                            child: Text('Select a check to view logs'),
+                          )
+                        : _LogViewerPane(
+                            repo: repo,
+                            checkRunId: _guardResponse!.checkRunId,
+                            buildName: _selectedCheck!,
+                            isMocked: sha!.startsWith('mock_'),
+                          ),
                   ),
-                const VerticalDivider(width: 1, thickness: 1),
-                Expanded(
-                  child: _selectedCheck == null
-                      ? const Center(child: Text('Select a check to view logs'))
-                      : _LogViewerPane(
-                          repo: repo,
-                          checkRunId: _guardResponse!.checkRunId,
-                          buildName: _selectedCheck!,
-                          isMocked: pr != null && sha == null,
-                        ),
-                ),
-              ],
+                ],
+              ),
             ),
-      onUpdateNavigation: ({required branch, required repo}) {
-        // Handle navigation updates if needed.
-      },
     );
   }
 
@@ -218,7 +292,8 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
   @override
   void didUpdateWidget(_LogViewerPane oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.buildName != widget.buildName || oldWidget.checkRunId != widget.checkRunId) {
+    if (oldWidget.buildName != widget.buildName ||
+        oldWidget.checkRunId != widget.checkRunId) {
       _selectedAttemptIndex = 0;
       _fetchCheckDetails();
     }
@@ -233,14 +308,16 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
             buildName: widget.buildName,
             creationTime: 0,
             status: 'Succeeded',
-            summary: '[INFO] Starting task ${widget.buildName}...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
+            summary:
+                '[INFO] Starting task ${widget.buildName}...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
           ),
           PresubmitCheckResponse(
             attemptNumber: 2,
             buildName: widget.buildName,
             creationTime: 0,
             status: 'Failed',
-            summary: '[INFO] Starting task ${widget.buildName}...\n[ERROR] Test failed: Unit Tests',
+            summary:
+                '[INFO] Starting task ${widget.buildName}...\n[ERROR] Test failed: Unit Tests',
           ),
         ];
       });
@@ -267,7 +344,9 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFD1D5DB);
+    final borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFD1D5DB);
 
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -277,7 +356,10 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
       return const Center(child: Text('No details found for this check'));
     }
 
-    final selectedCheck = _checks![_selectedAttemptIndex < _checks!.length ? _selectedAttemptIndex : 0];
+    final selectedCheck =
+        _checks![_selectedAttemptIndex < _checks!.length
+            ? _selectedAttemptIndex
+            : 0];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,14 +371,19 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
             children: [
               Text(
                 '${widget.repo} / ${widget.buildName}',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Status: ${selectedCheck.status}',
                 style: TextStyle(
                   fontSize: 14,
-                  color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+                  color: isDark
+                      ? const Color(0xFF8B949E)
+                      : const Color(0xFF6B7280),
                 ),
               ),
             ],
@@ -306,7 +393,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 24),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFF3F4F6),
+            color: theme.scaffoldBackgroundColor,
             border: Border(bottom: BorderSide(color: borderColor)),
           ),
           child: Row(
@@ -323,7 +410,9 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                          color: isSelected
+                              ? const Color(0xFF3B82F6)
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -332,8 +421,14 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                       '#${check.attemptNumber}',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: isSelected ? (isDark ? Colors.white : Colors.black) : (isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280)),
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? (isDark ? Colors.white : Colors.black)
+                            : (isDark
+                                  ? const Color(0xFF8B949E)
+                                  : const Color(0xFF6B7280)),
                       ),
                     ),
                   ),
@@ -342,7 +437,12 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
               const Spacer(),
               const Text(
                 'BUILD HISTORY',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.0),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                  letterSpacing: 1.0,
+                ),
               ),
             ],
           ),
@@ -351,9 +451,15 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Row(
             children: [
-              const Text('Execution Log', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text(
+                'Execution Log',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
               const Spacer(),
-              const Text('Raw output', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const Text(
+                'Raw output',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
             ],
           ),
         ),
@@ -362,7 +468,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF9FAFB),
+              color: theme.scaffoldBackgroundColor,
               border: Border.all(color: borderColor),
               borderRadius: BorderRadius.circular(6),
             ),
@@ -385,13 +491,17 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                 Icon(
                   Icons.open_in_new,
                   size: 18,
-                  color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                  color: isDark
+                      ? const Color(0xFF58A6FF)
+                      : const Color(0xFF0969DA),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'View more details on LUCI UI',
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                    color: isDark
+                        ? const Color(0xFF58A6FF)
+                        : const Color(0xFF0969DA),
                     fontSize: 14,
                   ),
                 ),
@@ -419,55 +529,12 @@ class _ChecksSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFD1D5DB);
 
     return Container(
       width: 350,
-      color: isDark ? const Color(0xFF1F1F1F) : Colors.white,
+      color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: borderColor),
-                      borderRadius: BorderRadius.circular(6),
-                      color: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFF9FAFB),
-                    ),
-                    child: const Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'a1b2c3d4e (Latest)',
-                            style: TextStyle(fontFamily: 'monospace', fontSize: 13),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Icon(Icons.expand_more, size: 16),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('Re-run failed', style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF1F1F1F) : const Color(0xFFF3F4F6),
-                    foregroundColor: isDark ? Colors.white : Colors.black,
-                    elevation: 0,
-                    side: BorderSide(color: borderColor),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                  ),
-                ),
-              ],
-            ),
-          ),
           const Divider(height: 1),
           Expanded(
             child: ListView.builder(
@@ -479,14 +546,19 @@ class _ChecksSidebar extends StatelessWidget {
                   children: [
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF9FAFB),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      color: theme.scaffoldBackgroundColor,
                       child: Text(
                         stage.name.toUpperCase(),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+                          color: isDark
+                              ? const Color(0xFF8B949E)
+                              : const Color(0xFF6B7280),
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -531,17 +603,26 @@ class _CheckItem extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
         decoration: BoxDecoration(
-          color: isSelected ? (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFEFF6FF)) : Colors.transparent,
+          color: isSelected
+              ? (isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.05))
+              : Colors.transparent,
+
           border: Border(
             left: BorderSide(
               color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+
               width: 2,
             ),
           ),
         ),
+
         child: Row(
           children: [
             _getStatusIcon(status),
@@ -557,14 +638,17 @@ class _CheckItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (status == TaskStatus.failed || status == TaskStatus.infraFailure)
+            if (status == TaskStatus.failed ||
+                status == TaskStatus.infraFailure)
               TextButton(
                 onPressed: () {},
                 child: Text(
                   'Re-run',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                    color: isDark
+                        ? const Color(0xFF58A6FF)
+                        : const Color(0xFF0969DA),
                   ),
                 ),
               ),
@@ -577,10 +661,18 @@ class _CheckItem extends StatelessWidget {
   Widget _getStatusIcon(TaskStatus status) {
     switch (status) {
       case TaskStatus.succeeded:
-        return const Icon(Icons.check_circle_outline, color: Color(0xFF2DA44E), size: 18);
+        return const Icon(
+          Icons.check_circle_outline,
+          color: Color(0xFF2DA44E),
+          size: 18,
+        );
       case TaskStatus.failed:
       case TaskStatus.infraFailure:
-        return const Icon(Icons.error_outline, color: Color(0xFFF85149), size: 18);
+        return const Icon(
+          Icons.error_outline,
+          color: Color(0xFFF85149),
+          size: 18,
+        );
       case TaskStatus.inProgress:
         return const SizedBox(
           width: 14,
