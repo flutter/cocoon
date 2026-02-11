@@ -16,6 +16,13 @@ import '../request_handling/api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
 /// Request handler for retrieving all presubmit guards for a specific pull request.
+///
+/// GET: /api/get-presubmit-guard-summaries
+///
+/// Parameters:
+///   repo: (string in query) required. The repository name (e.g., 'flutter').
+///   pr: (int in query) required. The pull request number.
+///   owner: (string in query) optional. The repository owner (e.g., 'flutter').
 @immutable
 final class GetPresubmitGuardSummaries extends ApiRequestHandler {
   /// Defines the [GetPresubmitGuardSummaries] handler.

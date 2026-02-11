@@ -191,7 +191,7 @@ Server createServer({
       authenticationProvider: authProvider,
       firestore: firestore,
     ),
-    '/api/get-presubmit-guards': GetPresubmitGuardSummaries(
+    '/api/get-presubmit-guard-summaries': GetPresubmitGuardSummaries(
       config: config,
       authenticationProvider: authProvider,
       firestore: firestore,
