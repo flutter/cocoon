@@ -9,7 +9,7 @@ This plan outlines the steps to refactor `GuardStatus` logic and implement the `
 - [x] Task: Verify existing tests for `GetPresubmitGuard` pass.
 - [x] Task: Conductor - User Manual Verification 'Refactor GuardStatus Logic' (Protocol in workflow.md)
 
-## Phase 2: Implement `GetPresubmitGuards` Handler
+## Phase 2: Implement `GetPresubmitGuards` Handler [checkpoint: ab5947b]
 - [x] Task: Create failing tests for `GetPresubmitGuards` in `app_dart/test/request_handlers/`.
 - [x] Task: Implement `GetPresubmitGuards` class in `app_dart/lib/src/request_handlers/get_presubmit_guards.dart`.
 - [x] Task: Register the new handler in `app_dart/bin/server.dart`.
