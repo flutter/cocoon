@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_dashboard/service/appengine_cocoon.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,9 +23,7 @@ void main() {
           {
             'name': 'fusion',
             'created_at': 123456789,
-            'builds': {
-              'test1': 'Succeeded',
-            },
+            'builds': {'test1': 'Succeeded'},
           },
         ],
       };

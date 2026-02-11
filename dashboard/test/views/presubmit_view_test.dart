@@ -31,37 +31,38 @@ void main() {
     when(mockAuthService.user).thenReturn(null);
     when(mockAuthService.isAuthenticated).thenReturn(false);
 
-    when(mockCocoonService.fetchFlutterBranches()).thenAnswer(
-      (_) async => const CocoonResponse.data([]),
+    when(
+      mockCocoonService.fetchFlutterBranches(),
+    ).thenAnswer((_) async => const CocoonResponse.data([]));
+    when(
+      mockCocoonService.fetchRepos(),
+    ).thenAnswer((_) async => const CocoonResponse.data([]));
+    when(
+      mockCocoonService.fetchCommitStatuses(
+        branch: anyNamed('branch'),
+        repo: anyNamed('repo'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse.data([]));
+    when(
+      mockCocoonService.fetchTreeBuildStatus(
+        branch: anyNamed('branch'),
+        repo: anyNamed('repo'),
+      ),
+    ).thenAnswer(
+      (_) async => CocoonResponse.data(
+        BuildStatusResponse(buildStatus: BuildStatus.success, failingTasks: []),
+      ),
     );
-    when(mockCocoonService.fetchRepos()).thenAnswer(
-      (_) async => const CocoonResponse.data([]),
-    );
-    when(mockCocoonService.fetchCommitStatuses(
-      branch: anyNamed('branch'),
-      repo: anyNamed('repo'),
-    )).thenAnswer(
-      (_) async => const CocoonResponse.data([]),
-    );
-    when(mockCocoonService.fetchTreeBuildStatus(
-      branch: anyNamed('branch'),
-      repo: anyNamed('repo'),
-    )).thenAnswer(
-      (_) async => CocoonResponse.data(BuildStatusResponse(
-        buildStatus: BuildStatus.success,
-        failingTasks: [],
-      )),
-    );
-    when(mockCocoonService.fetchSuppressedTests(
-      repo: anyNamed('repo'),
-    )).thenAnswer(
-      (_) async => const CocoonResponse.data([]),
-    );
-    
-    when(mockCocoonService.fetchPresubmitGuard(
-      repo: anyNamed('repo'),
-      sha: anyNamed('sha'),
-    )).thenAnswer(
+    when(
+      mockCocoonService.fetchSuppressedTests(repo: anyNamed('repo')),
+    ).thenAnswer((_) async => const CocoonResponse.data([]));
+
+    when(
+      mockCocoonService.fetchPresubmitGuard(
+        repo: anyNamed('repo'),
+        sha: anyNamed('sha'),
+      ),
+    ).thenAnswer(
       (_) async => const CocoonResponse.error('Not found', statusCode: 404),
     );
 
@@ -83,51 +84,60 @@ void main() {
     );
   }
 
-  testWidgets('PreSubmitView displays correct title and status with repo and sha', (WidgetTester tester) async {
+  testWidgets(
+    'PreSubmitView displays correct title and status with repo and sha',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        checkRunId: 456,
+        author: 'dash',
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'Mac mac_host_engine': TaskStatus.succeeded},
+          ),
+        ],
+        guardStatus: GuardStatus.succeeded,
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc'),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('PR #123: [dash]'), findsOneWidget);
+      expect(find.text('Succeeded'), findsOneWidget);
+      expect(find.text('ENGINE'), findsOneWidget);
+      expect(find.text('Mac mac_host_engine'), findsOneWidget);
+    },
+  );
+
+  testWidgets('PreSubmitView displays mocked data and switches tabs', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(2000, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    const guardResponse = PresubmitGuardResponse(
-      prNum: 123,
-      checkRunId: 456,
-      author: 'dash',
-      stages: [
-        PresubmitGuardStage(
-          name: 'Engine',
-          createdAt: 0,
-          builds: {'Mac mac_host_engine': TaskStatus.succeeded},
-        ),
-      ],
-      guardStatus: GuardStatus.succeeded,
+    await tester.pumpWidget(
+      createPreSubmitView({'repo': 'flutter', 'pr': '1234'}),
     );
-
-    when(mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc')).thenAnswer(
-      (_) async => const CocoonResponse.data(guardResponse),
-    );
-
-    await tester.pumpWidget(createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}));
-    await tester.pump();
-    await tester.pump();
-
-    expect(find.text('PR #123: [dash]'), findsOneWidget);
-    expect(find.text('Succeeded'), findsOneWidget);
-    expect(find.text('ENGINE'), findsOneWidget);
-    expect(find.text('Mac mac_host_engine'), findsOneWidget);
-  });
-
-  testWidgets('PreSubmitView displays mocked data and switches tabs', (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(2000, 1080);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.pumpWidget(createPreSubmitView({'repo': 'flutter', 'pr': '1234'}));
     await tester.pump();
 
     expect(find.text('PR #1234: [dash]'), findsOneWidget);
-    
+
     // Select a check
     await tester.tap(find.text('Mac mac_host_engine'));
     await tester.pump();
@@ -144,13 +154,17 @@ void main() {
     expect(find.text('Status: Failed'), findsOneWidget);
   });
 
-  testWidgets('PreSubmitView SHA dropdown switches mock SHAs', (WidgetTester tester) async {
+  testWidgets('PreSubmitView SHA dropdown switches mock SHAs', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(2000, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createPreSubmitView({'repo': 'flutter', 'pr': '1234'}));
+    await tester.pumpWidget(
+      createPreSubmitView({'repo': 'flutter', 'pr': '1234'}),
+    );
     await tester.pump();
 
     // Find dropdown in AppBar actions and select mock_sha_2
@@ -158,7 +172,7 @@ void main() {
     await tester.tap(find.text('mock_sha_'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    
+
     // Select the second one from the dropdown menu
     await tester.tap(find.text('mock_sha_').at(1));
     await tester.pump();
@@ -168,7 +182,9 @@ void main() {
     expect(find.text('Re-run failed'), findsOneWidget);
   });
 
-  testWidgets('PreSubmitView functional sha route fetches check details', (WidgetTester tester) async {
+  testWidgets('PreSubmitView functional sha route fetches check details', (
+    WidgetTester tester,
+  ) async {
     tester.view.physicalSize = const Size(2000, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -188,11 +204,16 @@ void main() {
       guardStatus: GuardStatus.succeeded,
     );
 
-    when(mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc')).thenAnswer(
-      (_) async => const CocoonResponse.data(guardResponse),
-    );
+    when(
+      mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc'),
+    ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
-    when(mockCocoonService.fetchPresubmitCheckDetails(checkRunId: 456, buildName: 'Mac mac_host_engine')).thenAnswer(
+    when(
+      mockCocoonService.fetchPresubmitCheckDetails(
+        checkRunId: 456,
+        buildName: 'Mac mac_host_engine',
+      ),
+    ).thenAnswer(
       (_) async => CocoonResponse.data([
         PresubmitCheckResponse(
           attemptNumber: 1,
@@ -204,7 +225,9 @@ void main() {
       ]),
     );
 
-    await tester.pumpWidget(createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}));
+    await tester.pumpWidget(
+      createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
+    );
     await tester.pump();
     await tester.pump();
 
@@ -215,14 +238,18 @@ void main() {
     expect(find.text('Live log content'), findsOneWidget);
   });
 
-  testWidgets('PreSubmitView meets accessibility guidelines', (WidgetTester tester) async {
-    final SemanticsHandle handle = tester.ensureSemantics();
+  testWidgets('PreSubmitView meets accessibility guidelines', (
+    WidgetTester tester,
+  ) async {
+    final handle = tester.ensureSemantics();
     tester.view.physicalSize = const Size(2000, 1080);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createPreSubmitView({'repo': 'flutter', 'pr': '1234'}));
+    await tester.pumpWidget(
+      createPreSubmitView({'repo': 'flutter', 'pr': '1234'}),
+    );
     await tester.pump();
 
     // Verify text contrast

@@ -21,7 +21,9 @@ class ShaSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFD1D5DB);
+    final borderColor = isDark
+        ? const Color(0xFF333333)
+        : const Color(0xFFD1D5DB);
 
     return Container(
       height: 32,
@@ -51,7 +53,7 @@ class ShaSelector extends StatelessWidget {
             return DropdownMenuItem<String>(
               value: sha,
               child: Text(
-                sha.length > 9 ? sha.substring(0, 9) : sha,
+                sha.length > 20 ? '${sha.substring(0, 20)}...' : sha,
                 overflow: TextOverflow.ellipsis,
               ),
             );

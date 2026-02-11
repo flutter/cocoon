@@ -14,6 +14,7 @@ import '../dashboard_navigation_drawer.dart';
 import '../state/build.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/sha_selector.dart';
+import '../widgets/task_box.dart';
 
 /// A detailed monitoring view for a specific Pull Request (PR) or commit SHA.
 ///
@@ -46,37 +47,42 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     sha = params['sha'];
     pr = params['pr'];
 
-    if (pr != null && sha == null) {
+    if (pr == '123' || (sha != null && sha!.startsWith('mock_sha_'))) {
       // Use a default mock SHA for the PR route if none selected
-      sha = 'mock_sha_1';
-      _loadMockData();
+      sha ??= 'mock_sha_1_long_hash_value';
+      pr ??= '123';
+      _loadMockData(sha!);
     }
   }
 
-  void _loadMockData() {
+  void _loadMockData(String sha) {
+    // Extract the number from the mock SHA to determine which mock data to load
+    // sha aways start with `mock_sha_` for mocked data, so we can safely parse
+    // the number after second `_`
+    final num = sha.split('_')[2];
     _guardResponse = PresubmitGuardResponse(
       prNum: int.parse(pr!),
       checkRunId: 456,
       author: 'dash',
       guardStatus: GuardStatus.inProgress,
       stages: [
-        const PresubmitGuardStage(
+        PresubmitGuardStage(
           name: 'Engine',
           createdAt: 0,
           builds: {
-            'Mac mac_host_engine': TaskStatus.failed,
-            'Mac mac_ios_engine': TaskStatus.waitingForBackfill,
-            'Linux linux_android_aot_engine': TaskStatus.succeeded,
+            'Mac mac_host_engine $num': TaskStatus.failed,
+            'Mac mac_ios_engine $num': TaskStatus.waitingForBackfill,
+            'Linux linux_android_aot_engine $num': TaskStatus.succeeded,
           },
         ),
-        const PresubmitGuardStage(
+        PresubmitGuardStage(
           name: 'Framework',
           createdAt: 0,
           builds: {
-            'Linux framework_tests': TaskStatus.inProgress,
-            'Mac framework_tests': TaskStatus.cancelled,
-            'Linux android framework_tests': TaskStatus.skipped,
-            "Windows framework_tests": TaskStatus.infraFailure,
+            'Linux framework_tests $num': TaskStatus.inProgress,
+            'Mac framework_tests $num': TaskStatus.cancelled,
+            'Linux android framework_tests $num': TaskStatus.skipped,
+            'Windows framework_tests $num': TaskStatus.infraFailure,
           },
         ),
       ],
@@ -89,7 +95,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     if (sha != null &&
         _guardResponse == null &&
         !_isLoading &&
-        !sha!.startsWith('mock_')) {
+        !sha!.startsWith('mock_sha_')) {
       unawaited(_fetchGuardStatus());
     }
   }
@@ -118,11 +124,12 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     final isDark = theme.brightness == Brightness.dark;
     final buildState = Provider.of<BuildState>(context);
 
-    final List<String> availableShas = pr != null
+    final availableShas = pr != null
         ? [
             'mock_sha_1_long_hash_value',
             'mock_sha_2_long_hash_value',
             'mock_sha_3_long_hash_value',
+            'mock_sha_4_long_hash_value',
           ]
         : buildState.statuses.map((s) => s.commit.sha).toList();
 
@@ -131,16 +138,16 @@ class _PreSubmitViewState extends State<PreSubmitView> {
       availableShas.insert(0, sha!);
     }
 
-    final String title = _guardResponse != null
+    final title = _guardResponse != null
         ? 'PR #${_guardResponse!.prNum}: [${_guardResponse!.author}]'
         : (pr != null
               ? 'PR #$pr: Feature Implementation'
               : 'PreSubmit: $repo @ $sha');
 
-    final String statusText =
+    final statusText =
         _guardResponse?.guardStatus.value ??
         (pr != null ? 'Pending' : 'Loading...');
-    final Color statusColor = _getStatusColor(statusText, isDark);
+    final statusColor = _getStatusColor(statusText, isDark);
 
     return Scaffold(
       appBar: CocoonAppBar(
@@ -162,9 +169,9 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
+                color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: statusColor.withOpacity(0.2)),
+                border: Border.all(color: statusColor.withValues(alpha: 0.2)),
               ),
               child: SelectionArea(
                 child: Text(
@@ -190,10 +197,8 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                   sha = newSha;
                   _guardResponse = null;
                 });
-                if (sha!.startsWith('mock_')) {
-                  setState(() {
-                    _loadMockData();
-                  });
+                if (sha!.startsWith('mock_sha_')) {
+                  setState(() => _loadMockData(sha!));
                 } else {
                   unawaited(_fetchGuardStatus());
                 }
@@ -242,7 +247,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                                   repo: repo,
                                   checkRunId: _guardResponse!.checkRunId,
                                   buildName: _selectedCheck!,
-                                  isMocked: sha!.startsWith('mock_'),
+                                  isMocked: sha!.startsWith('mock_sha_'),
                                 ),
                         ),
                       ],
@@ -455,16 +460,16 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Row(
             children: [
-              const Text(
+              Text(
                 'Execution Log',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              const Spacer(),
-              const Text(
+              Spacer(),
+              Text(
                 'Raw output',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
@@ -634,8 +639,8 @@ class _CheckItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.black.withOpacity(0.05))
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05))
               : Colors.transparent,
 
           border: Border(
@@ -685,36 +690,52 @@ class _CheckItem extends StatelessWidget {
   Widget _getStatusIcon(TaskStatus status) {
     switch (status) {
       case TaskStatus.succeeded:
-        return const Icon(
+        return Icon(
           Icons.check_circle_outline,
-          color: Color(0xFF2DA44E),
+          color: TaskBox.statusColor[status],
           size: 18,
         );
       case TaskStatus.failed:
-        return const Icon(
+        return Icon(
           Icons.error_outline,
-          color: Color(0xFFF85149),
+          color: TaskBox.statusColor[status],
           size: 18,
         );
       case TaskStatus.infraFailure:
-        return const Icon(Icons.error_outline, color: Colors.purple, size: 18);
+        return Icon(
+          Icons.error_outline,
+          color: TaskBox.statusColor[status],
+          size: 18,
+        );
       case TaskStatus.waitingForBackfill:
-        return const Icon(
+        return Icon(
           Icons.not_started_outlined,
-          color: Color(0xFFD29922),
+          color: TaskBox.statusColor[status],
+          size: 18,
+        );
+      case TaskStatus.skipped:
+        return Icon(
+          Icons.do_not_disturb_on_outlined,
+          color: TaskBox.statusColor[status],
+          size: 18,
+        );
+      case TaskStatus.cancelled:
+        return Icon(
+          Icons.block_outlined,
+          color: TaskBox.statusColor[status],
           size: 18,
         );
       case TaskStatus.inProgress:
-        return const SizedBox(
+        return SizedBox(
           width: 14,
           height: 14,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD29922)),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              TaskBox.statusColor[status] ?? const Color(0xFFD29922),
+            ),
           ),
         );
-      default:
-        return const Icon(Icons.help_outline, color: Colors.grey, size: 18);
     }
   }
 }

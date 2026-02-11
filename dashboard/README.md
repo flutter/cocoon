@@ -16,7 +16,7 @@ It is possible to run a simulation of the UI locally with fake data:
 flutter run -d chrome --web-port=8080 --web-define=description=Dashboard --web-define=projectName=Dashboard
 
 # Starts a web server, bring your own browser instance
-flutter run -d web-server --web-port=8080 -web-define=description=Dashboard --web-define=projectName=Dashboard
+flutter run -d web-server --web-port=8080 --web-define=description=Dashboard --web-define=projectName=Dashboard
 ```
 
 NOTE: Must run on port 8080[^8080] for authentication to work.

@@ -275,8 +275,8 @@ class AppEngineCocoonService implements CocoonService {
         'repository': repo,
         'testName': testName,
         'action': suppress ? 'SUPPRESS' : 'UNSUPPRESS',
-        if (issueLink != null) 'issueLink': issueLink,
-        if (note != null) 'note': note,
+        'issueLink': ?issueLink,
+        'note': ?note,
       }),
     );
     if (response.statusCode == HttpStatus.ok) {
@@ -379,7 +379,7 @@ class AppEngineCocoonService implements CocoonService {
       body: jsonEncode({
         'repo': repo,
         'passing': status == TreeStatus.success,
-        if (reason != null) 'reason': reason,
+        'reason': ?reason,
       }),
     );
     if (response.statusCode == HttpStatus.ok) {
