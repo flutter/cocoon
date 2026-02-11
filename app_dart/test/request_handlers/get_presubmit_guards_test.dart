@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -28,7 +29,7 @@ void main() {
   late GetPresubmitGuards handler;
   late FakeFirestoreService firestore;
 
-  Future<List<dynamic>?> getResponse() async {
+  Future<rpc_model.PresubmitGuardsResponse?> getResponse() async {
     final response = await tester.get(handler);
     if (response.statusCode != HttpStatus.ok) {
       return null;
@@ -37,7 +38,9 @@ void main() {
         .bind(response.body as Stream<List<int>>)
         .transform(json.decoder)
         .single;
-    return responseBody as List<dynamic>?;
+    return rpc_model.PresubmitGuardsResponse.fromJson(
+      responseBody as Map<String, Object?>,
+    );
   }
 
   setUp(() {
@@ -103,16 +106,17 @@ void main() {
     );
 
     final result = (await getResponse())!;
-    expect(result.length, 2);
+    final guards = result.guards;
+    expect(guards.length, 2);
 
-    final item1 = result.firstWhere((g) => g['check_run_id'] == 1);
-    expect(item1['commit_sha'], 'sha1');
-    expect(item1['creation_time'], 100);
-    expect(item1['guard_status'], GuardStatus.succeeded.value);
+    final item1 = guards.firstWhere((g) => g.checkRunId == 1);
+    expect(item1.commitSha, 'sha1');
+    expect(item1.creationTime, 100);
+    expect(item1.guardStatus, GuardStatus.succeeded);
 
-    final item2 = result.firstWhere((g) => g['check_run_id'] == 2);
-    expect(item2['commit_sha'], 'sha2');
-    expect(item2['creation_time'], 200);
-    expect(item2['guard_status'], GuardStatus.failed.value);
+    final item2 = guards.firstWhere((g) => g.checkRunId == 2);
+    expect(item2.commitSha, 'sha2');
+    expect(item2.creationTime, 200);
+    expect(item2.guardStatus, GuardStatus.failed);
   });
 }

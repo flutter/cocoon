@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -55,18 +56,20 @@ final class GetPresubmitGuards extends ApiRequestHandler {
       }, statusCode: HttpStatus.notFound);
     }
 
-    final response = guards.map((g) {
-      return {
-        'commit_sha': g.commitSha,
-        'check_run_id': g.checkRunId,
-        'creation_time': g.creationTime,
-        'guard_status': GuardStatus.calculate(
-          failedBuilds: g.failedBuilds,
-          remainingBuilds: g.remainingBuilds,
-          totalBuilds: g.builds.length,
-        ).value,
-      };
-    }).toList();
+    final response = rpc_model.PresubmitGuardsResponse(
+      guards: guards.map((g) {
+        return rpc_model.PresubmitGuardItem(
+          commitSha: g.commitSha,
+          checkRunId: g.checkRunId,
+          creationTime: g.creationTime,
+          guardStatus: GuardStatus.calculate(
+            failedBuilds: g.failedBuilds,
+            remainingBuilds: g.remainingBuilds,
+            totalBuilds: g.builds.length,
+          ),
+        );
+      }).toList(),
+    );
 
     return Response.json(response);
   }
