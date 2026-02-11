@@ -1,8 +1,0 @@
-{
-  "track_id": "pr_dashboard_20260209",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-02-09T14:30:00Z",
-  "updated_at": "2026-02-09T14:30:00Z",
-  "description": "Implement a pull request dashboard view to monitor the status of pending PRs and their associated CI checks."
-}
