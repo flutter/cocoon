@@ -129,7 +129,6 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             'mock_sha_1_long_hash_value',
             'mock_sha_2_long_hash_value',
             'mock_sha_3_long_hash_value',
-            'mock_sha_4_long_hash_value',
           ]
         : buildState.statuses.map((s) => s.commit.sha).toList();
 

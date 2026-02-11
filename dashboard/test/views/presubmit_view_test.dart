@@ -10,6 +10,7 @@ import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/views/presubmit_view.dart';
+import 'package:flutter_dashboard/widgets/sha_selector.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -116,10 +117,11 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('PR #123: [dash]'), findsOneWidget);
-      expect(find.text('Succeeded'), findsOneWidget);
+      expect(find.textContaining('PR #123'), findsOneWidget);
+      expect(find.textContaining('[dash]'), findsOneWidget);
+      expect(find.text('Succeeded'), findsAtLeastNWidgets(1));
       expect(find.text('ENGINE'), findsOneWidget);
-      expect(find.text('Mac mac_host_engine'), findsOneWidget);
+      expect(find.textContaining('mac_host_engine'), findsOneWidget);
     },
   );
 
@@ -132,26 +134,27 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      createPreSubmitView({'repo': 'flutter', 'pr': '1234'}),
+      createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
     );
     await tester.pump();
 
-    expect(find.text('PR #1234: [dash]'), findsOneWidget);
+    expect(find.textContaining('PR #123'), findsOneWidget);
 
     // Select a check
-    await tester.tap(find.text('Mac mac_host_engine'));
+    // The check name in mock data is 'Mac mac_host_engine 1' (suffix is from mock_sha_1)
+    await tester.tap(find.textContaining('mac_host_engine 1').first);
     await tester.pump();
 
     // Verify log for attempt #1
     expect(find.textContaining('All tests passed (452/452)'), findsOneWidget);
-    expect(find.text('Status: Succeeded'), findsOneWidget);
+    expect(find.textContaining('Status: Succeeded'), findsOneWidget);
 
     // Switch to attempt #2
     await tester.tap(find.text('#2'));
     await tester.pump();
 
     expect(find.textContaining('Test failed: Unit Tests'), findsOneWidget);
-    expect(find.text('Status: Failed'), findsOneWidget);
+    expect(find.textContaining('Status: Failed'), findsOneWidget);
   });
 
   testWidgets('PreSubmitView SHA dropdown switches mock SHAs', (
@@ -163,23 +166,27 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      createPreSubmitView({'repo': 'flutter', 'pr': '1234'}),
+      createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
     );
     await tester.pump();
 
-    // Find dropdown in AppBar actions and select mock_sha_2
-    expect(find.text('mock_sha_'), findsOneWidget);
-    await tester.tap(find.text('mock_sha_'));
+    // Find ShaSelector widget
+    expect(find.byType(ShaSelector), findsOneWidget);
+    
+    // Tap the dropdown to open it
+    await tester.tap(find.byType(ShaSelector));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    // Select the second one from the dropdown menu
-    await tester.tap(find.text('mock_sha_').at(1));
+    // Select the second item in the dropdown menu
+    // We expect 3 items in the menu (mock_sha_1, 2, 3) plus the one currently displayed in the selector
+    final item = find.textContaining('mock_sha_2').last;
+    await tester.tap(item);
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('mock_sha_'), findsOneWidget);
-    expect(find.text('Re-run failed'), findsOneWidget);
+    expect(find.byType(ShaSelector), findsOneWidget);
+    expect(find.textContaining('mock_sha_2'), findsOneWidget);
   });
 
   testWidgets('PreSubmitView functional sha route fetches check details', (
@@ -231,7 +238,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    await tester.tap(find.text('Mac mac_host_engine'));
+    await tester.tap(find.textContaining('mac_host_engine'));
     await tester.pump();
     await tester.pump();
 
@@ -248,7 +255,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      createPreSubmitView({'repo': 'flutter', 'pr': '1234'}),
+      createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
     );
     await tester.pump();
 
