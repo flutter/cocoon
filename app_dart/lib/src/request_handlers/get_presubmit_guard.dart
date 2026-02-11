@@ -64,7 +64,10 @@ final class GetPresubmitGuard extends ApiRequestHandler {
     final first = guards.first;
 
     final totalFailed = guards.fold<int>(0, (sum, g) => sum + g.failedBuilds);
-    final totalRemaining = guards.fold<int>(0, (sum, g) => sum + g.remainingBuilds);
+    final totalRemaining = guards.fold<int>(
+      0,
+      (sum, g) => sum + g.remainingBuilds,
+    );
     final totalBuilds = guards.fold<int>(0, (sum, g) => sum + g.builds.length);
 
     final guardStatus = GuardStatus.calculate(

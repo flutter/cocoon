@@ -17,3 +17,17 @@ This plan outlines the steps to refactor `GuardStatus` logic and implement the `
 - [x] Task: Update `GetPresubmitGuards` to use the new RPC model.
 - [x] Task: Verify all tests pass and coverage is > 95%.
 - [x] Task: Conductor - User Manual Verification 'Implement GetPresubmitGuards Handler' (Protocol in workflow.md)
+
+## Phase 3: Group Guards by Commit SHA [checkpoint: c1e36b1]
+- [x] Task: Update `PresubmitGuardItem` in `packages/cocoon_common` to remove `checkRunId`.
+- [x] Task: Update `GetPresubmitGuards` in `app_dart` to group guards by `commitSha` and aggregate status.
+- [x] Task: Update `GetPresubmitGuards` tests to verify grouping logic.
+- [x] Task: Verify all tests pass.
+- [x] Task: Conductor - User Manual Verification 'Group Guards by Commit SHA' (Protocol in workflow.md)
+
+## Phase 4: Refactor to PresubmitGuardSummary
+- [x] Task: Rename `PresubmitGuardItem` to `PresubmitGuardSummary` and remove `PresubmitGuardsResponse` wrapper in `packages/cocoon_common`.
+- [x] Task: Update `GetPresubmitGuards` in `app_dart` to return `List<PresubmitGuardSummary>`.
+- [x] Task: Update `GetPresubmitGuards` tests for the new response format.
+- [x] Task: Verify all tests pass.
+- [x] Task: Conductor - User Manual Verification 'Refactor to PresubmitGuardSummary' (Protocol in workflow.md)

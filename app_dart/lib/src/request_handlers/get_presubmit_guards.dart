@@ -68,10 +68,23 @@ final class GetPresubmitGuards extends ApiRequestHandler {
       final sha = entry.key;
       final shaGuards = entry.value;
 
-      final totalFailed = shaGuards.fold<int>(0, (int sum, PresubmitGuard g) => sum + g.failedBuilds);
-      final totalRemaining = shaGuards.fold<int>(0, (int sum, PresubmitGuard g) => sum + g.remainingBuilds);
-      final totalBuilds = shaGuards.fold<int>(0, (int sum, PresubmitGuard g) => sum + g.builds.length);
-      final latestCreationTime = shaGuards.fold<int>(0, (int max, PresubmitGuard g) => g.creationTime > max ? g.creationTime : max);
+      final totalFailed = shaGuards.fold<int>(
+        0,
+        (int sum, PresubmitGuard g) => sum + g.failedBuilds,
+      );
+      final totalRemaining = shaGuards.fold<int>(
+        0,
+        (int sum, PresubmitGuard g) => sum + g.remainingBuilds,
+      );
+      final totalBuilds = shaGuards.fold<int>(
+        0,
+        (int sum, PresubmitGuard g) => sum + g.builds.length,
+      );
+      final latestCreationTime = shaGuards.fold<int>(
+        0,
+        (int max, PresubmitGuard g) =>
+            g.creationTime > max ? g.creationTime : max,
+      );
 
       responseGuards.add(
         rpc_model.PresubmitGuardSummary(

@@ -9,7 +9,7 @@ import '../../guard_status.dart';
 
 part 'presubmit_guard_summary.g.dart';
 
-/// Represents a summary of presubmit guards for a specific commit.
+/// Represents a summary of presubmit guard for a specific commit.
 @immutable
 @JsonSerializable(fieldRename: FieldRename.snake)
 final class PresubmitGuardSummary {

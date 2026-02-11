@@ -9,7 +9,6 @@ import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/request_handlers/get_presubmit_guards.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
@@ -39,9 +38,11 @@ void main() {
         .transform(json.decoder)
         .single;
     return (responseBody as List<dynamic>)
-        .map((e) => rpc_model.PresubmitGuardSummary.fromJson(
-              e as Map<String, Object?>,
-            ))
+        .map(
+          (e) => rpc_model.PresubmitGuardSummary.fromJson(
+            e as Map<String, Object?>,
+          ),
+        )
         .toList();
   }
 
