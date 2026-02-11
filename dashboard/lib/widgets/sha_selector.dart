@@ -24,6 +24,7 @@ class ShaSelector extends StatelessWidget {
     final borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFD1D5DB);
 
     return Container(
+      height: 32,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         border: Border.all(color: borderColor),
@@ -33,6 +34,7 @@ class ShaSelector extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
+          isDense: true,
           value: selectedSha,
           icon: const Icon(Icons.expand_more, size: 16),
           style: TextStyle(

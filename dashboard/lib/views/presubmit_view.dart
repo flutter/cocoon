@@ -65,7 +65,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
           createdAt: 0,
           builds: {
             'Mac mac_host_engine': TaskStatus.failed,
-            'Mac mac_ios_engine': TaskStatus.failed,
+            'Mac mac_ios_engine': TaskStatus.waitingForBackfill,
             'Linux linux_android_aot_engine': TaskStatus.succeeded,
           },
         ),
@@ -76,6 +76,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             'Linux framework_tests': TaskStatus.inProgress,
             'Mac framework_tests': TaskStatus.cancelled,
             'Linux android framework_tests': TaskStatus.skipped,
+            "Windows framework_tests": TaskStatus.infraFailure,
           },
         ),
       ],
@@ -180,7 +181,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
         ),
         actions: [
           SizedBox(
-            width: 150,
+            width: 250,
             child: ShaSelector(
               availableShas: availableShas,
               selectedSha: sha,
@@ -214,34 +215,41 @@ class _PreSubmitViewState extends State<PreSubmitView> {
       drawer: const DashboardNavigationDrawer(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SelectionArea(
-              child: Row(
-                children: [
-                  if (_guardResponse != null)
-                    _ChecksSidebar(
-                      guardResponse: _guardResponse!,
-                      selectedCheck: _selectedCheck,
-                      onCheckSelected: (name) {
-                        setState(() {
-                          _selectedCheck = name;
-                        });
-                      },
-                    ),
-                  const VerticalDivider(width: 1, thickness: 1),
-                  Expanded(
-                    child: _selectedCheck == null
-                        ? const Center(
-                            child: Text('Select a check to view logs'),
-                          )
-                        : _LogViewerPane(
-                            repo: repo,
-                            checkRunId: _guardResponse!.checkRunId,
-                            buildName: _selectedCheck!,
-                            isMocked: sha!.startsWith('mock_'),
+          : Column(
+              children: [
+                const Divider(height: 1, thickness: 1),
+                Expanded(
+                  child: SelectionArea(
+                    child: Row(
+                      children: [
+                        if (_guardResponse != null)
+                          _ChecksSidebar(
+                            guardResponse: _guardResponse!,
+                            selectedCheck: _selectedCheck,
+                            onCheckSelected: (name) {
+                              setState(() {
+                                _selectedCheck = name;
+                              });
+                            },
                           ),
+                        const VerticalDivider(width: 1, thickness: 1),
+                        Expanded(
+                          child: _selectedCheck == null
+                              ? const Center(
+                                  child: Text('Select a check to view logs'),
+                                )
+                              : _LogViewerPane(
+                                  repo: repo,
+                                  checkRunId: _guardResponse!.checkRunId,
+                                  buildName: _selectedCheck!,
+                                  isMocked: sha!.startsWith('mock_'),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }
@@ -514,7 +522,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
   }
 }
 
-class _ChecksSidebar extends StatelessWidget {
+class _ChecksSidebar extends StatefulWidget {
   const _ChecksSidebar({
     required this.guardResponse,
     this.selectedCheck,
@@ -526,6 +534,19 @@ class _ChecksSidebar extends StatelessWidget {
   final ValueChanged<String> onCheckSelected;
 
   @override
+  State<_ChecksSidebar> createState() => _ChecksSidebarState();
+}
+
+class _ChecksSidebarState extends State<_ChecksSidebar> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -535,46 +556,49 @@ class _ChecksSidebar extends StatelessWidget {
       color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
-          const Divider(height: 1),
           Expanded(
-            child: ListView.builder(
-              itemCount: guardResponse.stages.length,
-              itemBuilder: (context, stageIndex) {
-                final stage = guardResponse.stages[stageIndex];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      color: theme.scaffoldBackgroundColor,
-                      child: Text(
-                        stage.name.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? const Color(0xFF8B949E)
-                              : const Color(0xFF6B7280),
-                          letterSpacing: 1.2,
+            child: Scrollbar(
+              controller: _scrollController,
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: widget.guardResponse.stages.length,
+                itemBuilder: (context, stageIndex) {
+                  final stage = widget.guardResponse.stages[stageIndex];
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        color: theme.scaffoldBackgroundColor,
+                        child: Text(
+                          stage.name.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? const Color(0xFF8B949E)
+                                : const Color(0xFF6B7280),
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
-                    ),
-                    ...stage.builds.entries.map((entry) {
-                      final isSelected = selectedCheck == entry.key;
-                      return _CheckItem(
-                        name: entry.key,
-                        status: entry.value,
-                        isSelected: isSelected,
-                        onTap: () => onCheckSelected(entry.key),
-                      );
-                    }),
-                  ],
-                );
-              },
+                      ...stage.builds.entries.map((entry) {
+                        final isSelected = widget.selectedCheck == entry.key;
+                        return _CheckItem(
+                          name: entry.key,
+                          status: entry.value,
+                          isSelected: isSelected,
+                          onTap: () => widget.onCheckSelected(entry.key),
+                        );
+                      }),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -667,10 +691,17 @@ class _CheckItem extends StatelessWidget {
           size: 18,
         );
       case TaskStatus.failed:
-      case TaskStatus.infraFailure:
         return const Icon(
           Icons.error_outline,
           color: Color(0xFFF85149),
+          size: 18,
+        );
+      case TaskStatus.infraFailure:
+        return const Icon(Icons.error_outline, color: Colors.purple, size: 18);
+      case TaskStatus.waitingForBackfill:
+        return const Icon(
+          Icons.not_started_outlined,
+          color: Color(0xFFD29922),
           size: 18,
         );
       case TaskStatus.inProgress:
