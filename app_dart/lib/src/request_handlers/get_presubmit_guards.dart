@@ -63,7 +63,7 @@ final class GetPresubmitGuards extends ApiRequestHandler {
       groupedGuards.putIfAbsent(guard.commitSha, () => []).add(guard);
     }
 
-    final responseGuards = <rpc_model.PresubmitGuardItem>[];
+    final responseGuards = <rpc_model.PresubmitGuardSummary>[];
     for (final entry in groupedGuards.entries) {
       final sha = entry.key;
       final shaGuards = entry.value;
@@ -74,7 +74,7 @@ final class GetPresubmitGuards extends ApiRequestHandler {
       final latestCreationTime = shaGuards.fold<int>(0, (int max, PresubmitGuard g) => g.creationTime > max ? g.creationTime : max);
 
       responseGuards.add(
-        rpc_model.PresubmitGuardItem(
+        rpc_model.PresubmitGuardSummary(
           commitSha: sha,
           creationTime: latestCreationTime,
           guardStatus: GuardStatus.calculate(
@@ -86,6 +86,6 @@ final class GetPresubmitGuards extends ApiRequestHandler {
       );
     }
 
-    return Response.json(rpc_model.PresubmitGuardsResponse(guards: responseGuards));
+    return Response.json(responseGuards);
   }
 }

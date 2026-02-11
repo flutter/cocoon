@@ -29,7 +29,7 @@ void main() {
   late GetPresubmitGuards handler;
   late FakeFirestoreService firestore;
 
-  Future<rpc_model.PresubmitGuardsResponse?> getResponse() async {
+  Future<List<rpc_model.PresubmitGuardSummary>?> getResponse() async {
     final response = await tester.get(handler);
     if (response.statusCode != HttpStatus.ok) {
       return null;
@@ -38,9 +38,11 @@ void main() {
         .bind(response.body as Stream<List<int>>)
         .transform(json.decoder)
         .single;
-    return rpc_model.PresubmitGuardsResponse.fromJson(
-      responseBody as Map<String, Object?>,
-    );
+    return (responseBody as List<dynamic>)
+        .map((e) => rpc_model.PresubmitGuardSummary.fromJson(
+              e as Map<String, Object?>,
+            ))
+        .toList();
   }
 
   setUp(() {
@@ -119,14 +121,13 @@ void main() {
     );
 
     final result = (await getResponse())!;
-    final guards = result.guards;
-    expect(guards.length, 2);
+    expect(result.length, 2);
 
-    final item1 = guards.firstWhere((g) => g.commitSha == 'sha1');
+    final item1 = result.firstWhere((g) => g.commitSha == 'sha1');
     expect(item1.creationTime, 110); // latest
     expect(item1.guardStatus, GuardStatus.succeeded);
 
-    final item2 = guards.firstWhere((g) => g.commitSha == 'sha2');
+    final item2 = result.firstWhere((g) => g.commitSha == 'sha2');
     expect(item2.creationTime, 200);
     expect(item2.guardStatus, GuardStatus.failed);
   });
