@@ -10,8 +10,10 @@ This plan outlines the steps to refactor `GuardStatus` logic and implement the `
 - [x] Task: Conductor - User Manual Verification 'Refactor GuardStatus Logic' (Protocol in workflow.md)
 
 ## Phase 2: Implement `GetPresubmitGuards` Handler
-- [ ] Task: Create failing tests for `GetPresubmitGuards` in `app_dart/test/request_handlers/`.
-- [ ] Task: Implement `GetPresubmitGuards` class in `app_dart/lib/src/request_handlers/get_presubmit_guards.dart`.
-- [ ] Task: Register the new handler in `app_dart/bin/server.dart`.
-- [ ] Task: Verify all tests pass and coverage is > 95%.
-- [ ] Task: Conductor - User Manual Verification 'Implement GetPresubmitGuards Handler' (Protocol in workflow.md)
+- [x] Task: Create failing tests for `GetPresubmitGuards` in `app_dart/test/request_handlers/`.
+- [x] Task: Implement `GetPresubmitGuards` class in `app_dart/lib/src/request_handlers/get_presubmit_guards.dart`.
+- [x] Task: Register the new handler in `app_dart/bin/server.dart`.
+- [x] Task: Create RPC model `PresubmitGuardsResponse` in `packages/cocoon_common`.
+- [x] Task: Update `GetPresubmitGuards` to use the new RPC model.
+- [x] Task: Verify all tests pass and coverage is > 95%.
+- [x] Task: Conductor - User Manual Verification 'Implement GetPresubmitGuards Handler' (Protocol in workflow.md)
