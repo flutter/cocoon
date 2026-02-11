@@ -19,10 +19,7 @@ void main() {
           {
             'name': 'fusion',
             'created_at': 123456789,
-            'builds': {
-              'test1': 'Succeeded',
-              'test2': 'In Progress',
-            },
+            'builds': {'test1': 'Succeeded', 'test2': 'In Progress'},
           },
         ],
       };
