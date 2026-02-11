@@ -21,7 +21,8 @@ class Providers {
   /// Initializes the [ClientContext] provider.
   ///
   /// This must be called before [serviceScopeContext] is used.
-  static ClientContextProvider contextProvider = () => throw UnimplementedError('ClientContext provider not initialized');
+  static ClientContextProvider contextProvider = () =>
+      throw UnimplementedError('ClientContext provider not initialized');
 
   /// Default [ClientContext] provider.
   ///

@@ -40,9 +40,7 @@ class FakeAuthenticatedContext implements AuthenticatedContext {
 }
 
 class FakeClientContext implements ClientContext {
-  FakeClientContext({
-    this.isDevelopmentEnvironment = true,
-  });
+  FakeClientContext({this.isDevelopmentEnvironment = true});
 
   @override
   bool isDevelopmentEnvironment;
