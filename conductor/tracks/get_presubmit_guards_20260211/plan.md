@@ -2,7 +2,7 @@
 
 This plan outlines the steps to refactor `GuardStatus` logic and implement the `getPresubmitGuardsForPullRequest` request handler in `app_dart`.
 
-## Phase 1: Refactor GuardStatus Logic
+## Phase 1: Refactor GuardStatus Logic [checkpoint: 9cb5948]
 - [x] Task: Create failing tests for `GuardStatus.calculate` in `packages/cocoon_common`.
 - [x] Task: Implement `GuardStatus.calculate` in `packages/cocoon_common/lib/guard_status.dart`.
 - [x] Task: Update `GetPresubmitGuard` in `app_dart` to use the new `GuardStatus.calculate`.
