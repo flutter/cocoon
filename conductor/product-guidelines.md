@@ -9,6 +9,15 @@
 *   **Layered Complexity:** While the primary view should be dense and informative, use visual cues (like color-coding and iconography) to provide immediate high-level status (Red/Green/Yellow). Detailed logs and historical data should be easily accessible but secondary to the main grid.
 *   **Performance First:** Given the volume of data in Flutter's CI, the UI must remain responsive. Lazy loading, efficient data fetching, and minimal re-renders are critical for a smooth monitoring experience.
 
+## Visual Identity & UX
+*   **Design System:** Standard Material Design 3. The dashboard will strictly follow the latest Material Design specifications to ensure a modern, consistent, and recognizable Flutter user experience.
+*   **Layout:** Prioritize clarity and logical flow. Use Material components (Scaffolds, Cards, Buttons, etc.) to structure information predictably.
+
+## Accessibility (a11y)
+*   **Compliance:** Strict adherence to WCAG 2.1 Level AA standards.
+*   **Implementation:** All UI elements must have appropriate semantic labels, maintain high contrast ratios, and provide full support for screen readers.
+*   **Focus Management:** Ensure a logical focus order for keyboard navigation across all interactive elements.
+
 ## Reliability & Error Handling
 *   **Resilience through Automation:** The system must automatically handle transient failures (e.g., GitHub API timeouts or LUCI build-bucket flakes) using robust retry logic to maintain high data fidelity.
 *   **Graceful Degradation:** The dashboard must remain functional even if partial data is missing. If a specific service (like BigQuery or a specific LUCI project) is down, the UI should clearly indicate the limitation while still serving available information.
