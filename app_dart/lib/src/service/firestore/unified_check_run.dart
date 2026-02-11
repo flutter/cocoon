@@ -243,6 +243,19 @@ final class UnifiedCheckRun {
     );
   }
 
+  /// Queries for [PresubmitGuard] records by [slug] and [pullRequestId].
+  static Future<List<PresubmitGuard>> getPresubmitGuardsForPullRequest({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required int pullRequestId,
+  }) async {
+    return await _queryPresubmitGuards(
+      firestoreService: firestoreService,
+      slug: slug,
+      pullRequestId: pullRequestId,
+    );
+  }
+
   static Future<List<PresubmitGuard>> _queryPresubmitGuards({
     required FirestoreService firestoreService,
     Transaction? transaction,
