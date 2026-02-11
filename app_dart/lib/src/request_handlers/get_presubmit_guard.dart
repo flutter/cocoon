@@ -63,18 +63,15 @@ final class GetPresubmitGuard extends ApiRequestHandler {
     // Consolidate metadata from the first record.
     final first = guards.first;
 
-    final GuardStatus guardStatus;
-    if (guards.any((g) => g.failedBuilds > 0)) {
-      guardStatus = GuardStatus.failed;
-    } else if (guards.every(
-      (g) => g.failedBuilds == 0 && g.remainingBuilds == 0,
-    )) {
-      guardStatus = GuardStatus.succeeded;
-    } else if (guards.every((g) => g.remainingBuilds == g.builds.length)) {
-      guardStatus = GuardStatus.waitingForBackfill;
-    } else {
-      guardStatus = GuardStatus.inProgress;
-    }
+    final totalFailed = guards.fold<int>(0, (sum, g) => sum + g.failedBuilds);
+    final totalRemaining = guards.fold<int>(0, (sum, g) => sum + g.remainingBuilds);
+    final totalBuilds = guards.fold<int>(0, (sum, g) => sum + g.builds.length);
+
+    final guardStatus = GuardStatus.calculate(
+      failedBuilds: totalFailed,
+      remainingBuilds: totalRemaining,
+      totalBuilds: totalBuilds,
+    );
 
     final response = rpc_model.PresubmitGuardResponse(
       prNum: first.pullRequestId,
