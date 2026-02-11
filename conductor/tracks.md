@@ -7,5 +7,5 @@
 
 ---
 
-- [~] **Track: Implement getPresubmitGuardsForPullRequest request handler**
+- [x] **Track: Implement getPresubmitGuardsForPullRequest request handler**
 *Link: [./tracks/get_presubmit_guards_20260211/](./tracks/get_presubmit_guards_20260211/)*
