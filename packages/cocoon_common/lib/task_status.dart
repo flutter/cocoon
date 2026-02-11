@@ -30,8 +30,7 @@ enum TaskStatus {
   /// The task was skipped instead of being executed.
   skipped('Skipped');
 
-  const TaskStatus(this._schemaValue);
-  final String _schemaValue;
+  const TaskStatus(this.value);
 
   /// Returns the status represented by the provided [value].
   ///
@@ -50,7 +49,7 @@ enum TaskStatus {
   /// The canonical string value representing `this`.
   ///
   /// This is the inverse of [TaskStatus.from] or [TaskStatus.tryFrom].
-  String get value => _schemaValue;
+  final String value;
 
   /// Whether the status represents a completed task reaching a terminal state.
   bool get isComplete => _complete.contains(this);
@@ -87,8 +86,8 @@ enum TaskStatus {
   bool get isBuildCompleted => isBuildSuccessed || isBuildFailed;
 
   /// Returns the JSON representation of `this`.
-  Object? toJson() => _schemaValue;
+  Object? toJson() => value;
 
   @override
-  String toString() => _schemaValue;
+  String toString() => value;
 }
