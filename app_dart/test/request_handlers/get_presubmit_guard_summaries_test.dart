@@ -9,7 +9,7 @@ import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/request_handlers/get_presubmit_guards.dart';
+import 'package:cocoon_service/src/request_handlers/get_presubmit_guard_summaries.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -25,7 +25,7 @@ void main() {
   useTestLoggerPerTest();
 
   late RequestHandlerTester tester;
-  late GetPresubmitGuards handler;
+  late GetPresubmitGuardSummaries handler;
   late FakeFirestoreService firestore;
 
   Future<List<rpc_model.PresubmitGuardSummary>?> getResponse() async {
@@ -49,7 +49,7 @@ void main() {
   setUp(() {
     firestore = FakeFirestoreService();
     tester = RequestHandlerTester();
-    handler = GetPresubmitGuards(
+    handler = GetPresubmitGuardSummaries(
       config: FakeConfig(),
       authenticationProvider: FakeDashboardAuthentication(),
       firestore: firestore,
@@ -64,8 +64,8 @@ void main() {
   test('no guards found', () async {
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuards.kRepoParam: 'flutter',
-        GetPresubmitGuards.kPRParam: '123',
+        GetPresubmitGuardSummaries.kRepoParam: 'flutter',
+        GetPresubmitGuardSummaries.kPRParam: '123',
       },
     );
 
@@ -116,8 +116,8 @@ void main() {
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuards.kRepoParam: 'flutter',
-        GetPresubmitGuards.kPRParam: prNumber.toString(),
+        GetPresubmitGuardSummaries.kRepoParam: 'flutter',
+        GetPresubmitGuardSummaries.kPRParam: prNumber.toString(),
       },
     );
 

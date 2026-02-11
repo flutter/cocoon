@@ -17,9 +17,9 @@ import '../service/firestore/unified_check_run.dart';
 
 /// Request handler for retrieving all presubmit guards for a specific pull request.
 @immutable
-final class GetPresubmitGuards extends ApiRequestHandler {
-  /// Defines the [GetPresubmitGuards] handler.
-  const GetPresubmitGuards({
+final class GetPresubmitGuardSummaries extends ApiRequestHandler {
+  /// Defines the [GetPresubmitGuardSummaries] handler.
+  const GetPresubmitGuardSummaries({
     required super.config,
     required super.authenticationProvider,
     required FirestoreService firestore,

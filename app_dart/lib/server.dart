@@ -9,7 +9,7 @@ import 'cocoon_service.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/get_presubmit_checks.dart';
 import 'src/request_handlers/get_presubmit_guard.dart';
-import 'src/request_handlers/get_presubmit_guards.dart';
+import 'src/request_handlers/get_presubmit_guard_summaries.dart';
 import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/github_webhook_replay.dart';
 import 'src/request_handlers/lookup_hash.dart';
@@ -191,7 +191,7 @@ Server createServer({
       authenticationProvider: authProvider,
       firestore: firestore,
     ),
-    '/api/get-presubmit-guards': GetPresubmitGuards(
+    '/api/get-presubmit-guards': GetPresubmitGuardSummaries(
       config: config,
       authenticationProvider: authProvider,
       firestore: firestore,
