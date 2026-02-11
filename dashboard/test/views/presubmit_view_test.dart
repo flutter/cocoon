@@ -172,7 +172,7 @@ void main() {
 
     // Find ShaSelector widget
     expect(find.byType(ShaSelector), findsOneWidget);
-    
+
     // Tap the dropdown to open it
     await tester.tap(find.byType(ShaSelector));
     await tester.pump();
