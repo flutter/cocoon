@@ -11,6 +11,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/firestore/presubmit_guard.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
@@ -56,21 +57,35 @@ final class GetPresubmitGuards extends ApiRequestHandler {
       }, statusCode: HttpStatus.notFound);
     }
 
-    final response = rpc_model.PresubmitGuardsResponse(
-      guards: guards.map((g) {
-        return rpc_model.PresubmitGuardItem(
-          commitSha: g.commitSha,
-          checkRunId: g.checkRunId,
-          creationTime: g.creationTime,
-          guardStatus: GuardStatus.calculate(
-            failedBuilds: g.failedBuilds,
-            remainingBuilds: g.remainingBuilds,
-            totalBuilds: g.builds.length,
-          ),
-        );
-      }).toList(),
-    );
+    // Group guards by commitSha
+    final groupedGuards = <String, List<PresubmitGuard>>{};
+    for (final guard in guards) {
+      groupedGuards.putIfAbsent(guard.commitSha, () => []).add(guard);
+    }
 
-    return Response.json(response);
+    final responseGuards = <rpc_model.PresubmitGuardItem>[];
+    for (final entry in groupedGuards.entries) {
+      final sha = entry.key;
+      final shaGuards = entry.value;
+
+      final totalFailed = shaGuards.fold<int>(0, (int sum, PresubmitGuard g) => sum + g.failedBuilds);
+      final totalRemaining = shaGuards.fold<int>(0, (int sum, PresubmitGuard g) => sum + g.remainingBuilds);
+      final totalBuilds = shaGuards.fold<int>(0, (int sum, PresubmitGuard g) => sum + g.builds.length);
+      final latestCreationTime = shaGuards.fold<int>(0, (int max, PresubmitGuard g) => g.creationTime > max ? g.creationTime : max);
+
+      responseGuards.add(
+        rpc_model.PresubmitGuardItem(
+          commitSha: sha,
+          creationTime: latestCreationTime,
+          guardStatus: GuardStatus.calculate(
+            failedBuilds: totalFailed,
+            remainingBuilds: totalRemaining,
+            totalBuilds: totalBuilds,
+          ),
+        ),
+      );
+    }
+
+    return Response.json(rpc_model.PresubmitGuardsResponse(guards: responseGuards));
   }
 }

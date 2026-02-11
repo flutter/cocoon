@@ -34,16 +34,12 @@ final class PresubmitGuardsResponse {
 final class PresubmitGuardItem {
   const PresubmitGuardItem({
     required this.commitSha,
-    required this.checkRunId,
     required this.creationTime,
     required this.guardStatus,
   });
 
   /// The commit SHA.
   final String commitSha;
-
-  /// The check run ID.
-  final int checkRunId;
 
   /// The creation timestamp in microseconds since epoch.
   final int creationTime;

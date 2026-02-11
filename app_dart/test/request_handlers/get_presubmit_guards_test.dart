@@ -70,11 +70,12 @@ void main() {
     expect(response.statusCode, HttpStatus.notFound);
   });
 
-  test('returns multiple guards for a PR', () async {
+  test('returns multiple guards grouped by commitSha', () async {
     final slug = RepositorySlug('flutter', 'flutter');
     const prNumber = 123;
 
-    final guard1 = generatePresubmitGuard(
+    // SHA1: Two stages, both succeeded.
+    final guard1a = generatePresubmitGuard(
       slug: slug,
       pullRequestId: prNumber,
       commitSha: 'sha1',
@@ -82,21 +83,33 @@ void main() {
       creationTime: 100,
       builds: {'test1': TaskStatus.succeeded},
     );
-    guard1.failedBuilds = 0;
-    guard1.remainingBuilds = 0;
+    guard1a.failedBuilds = 0;
+    guard1a.remainingBuilds = 0;
 
+    final guard1b = generatePresubmitGuard(
+      slug: slug,
+      pullRequestId: prNumber,
+      commitSha: 'sha1',
+      checkRun: generateCheckRun(2),
+      creationTime: 110,
+      builds: {'test2': TaskStatus.succeeded},
+    );
+    guard1b.failedBuilds = 0;
+    guard1b.remainingBuilds = 0;
+
+    // SHA2: One stage, failed.
     final guard2 = generatePresubmitGuard(
       slug: slug,
       pullRequestId: prNumber,
       commitSha: 'sha2',
-      checkRun: generateCheckRun(2),
+      checkRun: generateCheckRun(3),
       creationTime: 200,
-      builds: {'test2': TaskStatus.failed},
+      builds: {'test3': TaskStatus.failed},
     );
     guard2.failedBuilds = 1;
     guard2.remainingBuilds = 0;
 
-    firestore.putDocuments([guard1, guard2]);
+    firestore.putDocuments([guard1a, guard1b, guard2]);
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {
@@ -109,13 +122,11 @@ void main() {
     final guards = result.guards;
     expect(guards.length, 2);
 
-    final item1 = guards.firstWhere((g) => g.checkRunId == 1);
-    expect(item1.commitSha, 'sha1');
-    expect(item1.creationTime, 100);
+    final item1 = guards.firstWhere((g) => g.commitSha == 'sha1');
+    expect(item1.creationTime, 110); // latest
     expect(item1.guardStatus, GuardStatus.succeeded);
 
-    final item2 = guards.firstWhere((g) => g.checkRunId == 2);
-    expect(item2.commitSha, 'sha2');
+    final item2 = guards.firstWhere((g) => g.commitSha == 'sha2');
     expect(item2.creationTime, 200);
     expect(item2.guardStatus, GuardStatus.failed);
   });

@@ -21,7 +21,6 @@ Map<String, dynamic> _$PresubmitGuardsResponseToJson(
 PresubmitGuardItem _$PresubmitGuardItemFromJson(Map<String, dynamic> json) =>
     PresubmitGuardItem(
       commitSha: json['commit_sha'] as String,
-      checkRunId: (json['check_run_id'] as num).toInt(),
       creationTime: (json['creation_time'] as num).toInt(),
       guardStatus: $enumDecode(_$GuardStatusEnumMap, json['guard_status']),
     );
@@ -29,7 +28,6 @@ PresubmitGuardItem _$PresubmitGuardItemFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$PresubmitGuardItemToJson(PresubmitGuardItem instance) =>
     <String, dynamic>{
       'commit_sha': instance.commitSha,
-      'check_run_id': instance.checkRunId,
       'creation_time': instance.creationTime,
       'guard_status': instance.guardStatus,
     };
