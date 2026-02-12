@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
@@ -87,16 +88,16 @@ final class GetPresubmitGuardSummaries extends ApiRequestHandler {
         0,
         (int sum, PresubmitGuard g) => sum + g.builds.length,
       );
-      final latestCreationTime = shaGuards.fold<int>(
-        0,
-        (int max, PresubmitGuard g) =>
-            g.creationTime > max ? g.creationTime : max,
+      final earliestCreationTime = shaGuards.fold<int>(
+        // assuming creation time is always in the past :)
+        DateTime.now().millisecondsSinceEpoch,
+        (int curr, PresubmitGuard g) => min(g.creationTime, curr),
       );
 
       responseGuards.add(
         rpc_model.PresubmitGuardSummary(
           commitSha: sha,
-          creationTime: latestCreationTime,
+          creationTime: earliestCreationTime,
           guardStatus: GuardStatus.calculate(
             failedBuilds: totalFailed,
             remainingBuilds: totalRemaining,

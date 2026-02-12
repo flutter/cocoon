@@ -85,9 +85,8 @@ void main() {
       checkRun: generateCheckRun(1),
       creationTime: 100,
       builds: {'test1': TaskStatus.succeeded},
+      remainingBuilds: 0,
     );
-    guard1a.failedBuilds = 0;
-    guard1a.remainingBuilds = 0;
 
     final guard1b = generatePresubmitGuard(
       slug: slug,
@@ -96,9 +95,8 @@ void main() {
       checkRun: generateCheckRun(2),
       creationTime: 110,
       builds: {'test2': TaskStatus.succeeded},
+      remainingBuilds: 0,
     );
-    guard1b.failedBuilds = 0;
-    guard1b.remainingBuilds = 0;
 
     // SHA2: One stage, failed.
     final guard2 = generatePresubmitGuard(
@@ -108,9 +106,9 @@ void main() {
       checkRun: generateCheckRun(3),
       creationTime: 200,
       builds: {'test3': TaskStatus.failed},
+      failedBuilds: 1,
+      remainingBuilds: 0,
     );
-    guard2.failedBuilds = 1;
-    guard2.remainingBuilds = 0;
 
     firestore.putDocuments([guard1a, guard1b, guard2]);
 
@@ -125,7 +123,7 @@ void main() {
     expect(result.length, 2);
 
     final item1 = result.firstWhere((g) => g.commitSha == 'sha1');
-    expect(item1.creationTime, 110); // latest
+    expect(item1.creationTime, 100); // earliest
     expect(item1.guardStatus, GuardStatus.succeeded);
 
     final item2 = result.firstWhere((g) => g.commitSha == 'sha2');

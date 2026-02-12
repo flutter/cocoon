@@ -319,7 +319,8 @@ PresubmitGuard generatePresubmitGuard({
   String commitSha = 'abc',
   int creationTime = 1,
   String author = 'dash',
-  int buildCount = 1,
+  int remainingBuilds = -1,
+  int failedBuilds = 0,
   Map<String, TaskStatus>? builds,
 }) {
   return PresubmitGuard(
@@ -330,8 +331,10 @@ PresubmitGuard generatePresubmitGuard({
     commitSha: commitSha,
     creationTime: creationTime,
     author: author,
-    remainingBuilds: buildCount,
-    failedBuilds: 0,
+    remainingBuilds: remainingBuilds >= 0
+        ? remainingBuilds
+        : (builds?.length ?? 0),
+    failedBuilds: failedBuilds,
     builds: builds,
   );
 }
