@@ -21,7 +21,7 @@ dependencies:
   collection: any # Match Flutter SDK
   firebase_auth: ^6.0.0
   firebase_core: 4.4.0 # Rolled by dependabot
-  firebase_crashlytics: 5.0.6 # Rolled by dependabot
+  firebase_crashlytics: 5.0.7 # Rolled by dependabot
   flutter:
     sdk: flutter
   flutter_app_icons: 0.1.1 # Rolled by dependabot
