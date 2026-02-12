@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -535,6 +537,92 @@ void main() {
       } else {
         expect(uri, '$baseApiUrl/test?key');
       }
+    });
+  });
+
+  group('AppEngine CocoonService fetchMergeQueueHooks', () {
+    late AppEngineCocoonService service;
+
+    test('should return list of MergeGroupHook', () async {
+      final expectedHooks = MergeGroupHooks(
+        hooks: [
+          MergeGroupHook(
+            id: '1',
+            timestamp: 123,
+            action: 'dequeued',
+            headRef: 'refs/heads/main',
+            headCommitId: 'sha',
+            headCommitMessage: 'msg',
+          ),
+        ],
+      );
+
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response(jsonEncode(expectedHooks.toJson()), 200);
+        }),
+      );
+
+      final response = await service.fetchMergeQueueHooks(idToken: 'token');
+      expect(response.error, isNull);
+      expect(response.data!.length, 1);
+      expect(response.data!.first.id, '1');
+    });
+
+    test('should return error on failure', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response('Internal Server Error', 500);
+        }),
+      );
+
+      final response = await service.fetchMergeQueueHooks(idToken: 'token');
+      expect(response.error, isNotNull);
+    });
+  });
+
+  group('AppEngine CocoonService replayGitHubWebhook', () {
+    late AppEngineCocoonService service;
+
+    test('should return true if request succeeds', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response('', 200);
+        }),
+      );
+
+      final response = await service.replayGitHubWebhook(
+        idToken: 'token',
+        id: '1',
+      );
+      expect(response.error, isNull);
+    });
+
+    test('should set error in response if ID token is null', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response('', 200);
+        }),
+      );
+      final response = await service.replayGitHubWebhook(idToken: '', id: '1');
+      expect(
+        response.error,
+        allOf(<Matcher>[isNotNull, contains('Sign in to replay events')]),
+      );
+    });
+
+    test('should return error on failure', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          return Response('Internal Server Error', 500);
+        }),
+      );
+
+      final response = await service.replayGitHubWebhook(
+        idToken: 'token',
+        id: '1',
+      );
+      expect(response.error, isNotNull);
     });
   });
 }

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/github_webhook_message.dart';
@@ -9,11 +10,7 @@ import 'package:cocoon_service/src/request_handlers/github_webhook_replay.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/request_handling/fake_pubsub.dart';
-import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();

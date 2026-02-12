@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/ci_yaml.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -16,10 +17,6 @@ import 'package:http/testing.dart';
 import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-
-import '../../src/fake_config.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();

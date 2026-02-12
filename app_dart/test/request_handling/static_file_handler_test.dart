@@ -4,6 +4,7 @@
 
 import 'dart:convert' show utf8;
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -11,7 +12,6 @@ import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {

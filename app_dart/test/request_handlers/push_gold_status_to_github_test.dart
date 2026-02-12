@@ -6,12 +6,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
     as fs;
+import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:github/github.dart';
@@ -21,13 +22,7 @@ import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/service/fake_firestore_service.dart';
-import '../src/service/fake_graphql_client.dart';
-import '../src/utilities/entity_generators.dart';
-import '../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

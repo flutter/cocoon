@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -15,8 +16,6 @@ import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
 
 void main() {
   useTestLoggerPerTest();

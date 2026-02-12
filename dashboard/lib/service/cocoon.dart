@@ -106,6 +106,17 @@ abstract class CocoonService {
     String? issueLink,
     String? note,
   });
+
+  /// Get the current list of merge queue hooks.
+  Future<CocoonResponse<List<MergeGroupHook>>> fetchMergeQueueHooks({
+    required String idToken,
+  });
+
+  /// Replay a GitHub webhook.
+  Future<CocoonResponse<void>> replayGitHubWebhook({
+    required String idToken,
+    required String id,
+  });
 }
 
 /// Wrapper class for data this state serves.

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
@@ -16,11 +17,7 @@ import 'package:collection/collection.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/fake_config.dart';
 import '../../src/request_handling/request_handler_tester.dart';
-import '../../src/service/fake_ci_yaml_fetcher.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();

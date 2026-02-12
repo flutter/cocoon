@@ -5,6 +5,7 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/rpc_model.dart' as rpc;
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
@@ -12,11 +13,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../../src/fake_config.dart';
 import '../../src/request_handling/request_handler_tester.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

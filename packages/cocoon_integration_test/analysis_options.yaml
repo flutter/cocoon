@@ -1,0 +1,8 @@
+include: ../../analysis_options.yaml
+
+analyzer:
+  errors:
+    duplicate_ignore: ignore
+    implementation_imports: ignore
+    invalid_use_of_internal_member: ignore
+    invalid_use_of_visible_for_testing_member: ignore

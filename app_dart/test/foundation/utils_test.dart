@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
@@ -17,9 +18,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:retry/retry.dart';
 import 'package:test/test.dart';
-
-import '../src/bigquery/fake_tabledata_resource.dart';
-import '../src/utilities/entity_generators.dart';
 
 const String branchRegExp = '''
       master

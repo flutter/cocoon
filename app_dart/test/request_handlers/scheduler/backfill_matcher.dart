@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/task_ref.dart';
 import 'package:cocoon_service/src/request_handlers/scheduler/backfill_grid.dart';
 import 'package:test/expect.dart';
-
-import '../../src/model/ci_yaml_matcher.dart';
 
 /// Returns a matcher that asserts the state of [BackfillGrid.eligibleTasks].
 Matcher hasGridTargetsMatching(

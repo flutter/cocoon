@@ -2,22 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:test/test.dart';
-
-import 'src/fake_config.dart';
-import 'src/request_handling/fake_dashboard_authentication.dart';
-import 'src/service/fake_build_bucket_client.dart';
-import 'src/service/fake_build_status_service.dart';
-import 'src/service/fake_ci_yaml_fetcher.dart';
-import 'src/service/fake_content_aware_hash_service.dart';
-import 'src/service/fake_firestore_service.dart';
-import 'src/service/fake_gerrit_service.dart';
-import 'src/service/fake_luci_build_service.dart';
-import 'src/service/fake_scheduler.dart';
-import 'src/utilities/mocks.dart';
 
 void main() {
   test('verify server can be created', () {

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
@@ -14,9 +15,6 @@ import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
 
 void main() {
   useTestLoggerPerTest();

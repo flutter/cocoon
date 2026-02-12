@@ -4,9 +4,7 @@
 
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
-import 'package:cocoon_service/src/request_handling/authentication.dart';
-import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 
 // ignore: must_be_immutable
@@ -42,50 +40,8 @@ class FakeAuthenticatedContext implements AuthenticatedContext {
 }
 
 class FakeClientContext implements ClientContext {
-  FakeClientContext({
-    this.isDevelopmentEnvironment = true,
-    this.isProductionEnvironment = false,
-    FakeAppEngineContext? applicationContext,
-  }) : applicationContext = applicationContext ?? FakeAppEngineContext();
-
-  @override
-  FakeAppEngineContext applicationContext;
+  FakeClientContext({this.isDevelopmentEnvironment = true});
 
   @override
   bool isDevelopmentEnvironment;
-
-  @override
-  bool isProductionEnvironment;
-
-  @override
-  late Services services;
-
-  @override
-  String? traceId;
-}
-
-class FakeAppEngineContext implements AppEngineContext {
-  @override
-  String applicationID = 'flutter-dashboard';
-
-  @override
-  late String fullQualifiedApplicationId;
-
-  @override
-  late String instance;
-
-  @override
-  String? instanceId;
-
-  @override
-  late bool isDevelopmentEnvironment;
-
-  @override
-  late String module;
-
-  @override
-  String partition = '[default]';
-
-  @override
-  late String version;
 }

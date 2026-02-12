@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/api_request_handler.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
@@ -11,7 +12,6 @@ import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:meta/meta.dart';
 
-import 'fake_dashboard_authentication.dart';
 import 'request_handler_tester.dart';
 
 class SubscriptionTester extends RequestHandlerTester {

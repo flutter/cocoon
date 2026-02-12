@@ -1,0 +1,8 @@
+{
+  "track_id": "merge_queue_dashboard_20260205",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-02-05T10:00:00Z",
+  "updated_at": "2026-02-05T10:00:00Z",
+  "description": "Build a Merge Queue Dashboard for rendering the @app_dart/lib/src/request_handlers/merge_queue_hooks.dart and providing an ability to resend merge queue events using the `/api/github-webhook-replay` API."
+}

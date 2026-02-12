@@ -4,6 +4,7 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
@@ -20,14 +21,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-
-import '../../src/fake_config.dart';
-import '../../src/model/ci_yaml_matcher.dart';
-import '../../src/request_handling/fake_pubsub.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/service/fake_gerrit_service.dart';
-import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.mocks.dart';
 
 /// Tests [LuciBuildService] public API related to fetching try-bot builds.
 ///

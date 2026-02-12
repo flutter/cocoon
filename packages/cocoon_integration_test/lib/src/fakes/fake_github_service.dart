@@ -143,8 +143,13 @@ class FakeGithubService implements GithubService {
     return <Issue>[];
   }
 
+  Future<Issue>? Function(RepositorySlug, {int? issueNumber})? getIssueMock;
+
   @override
   Future<Issue>? getIssue(RepositorySlug slug, {int? issueNumber}) {
+    if (getIssueMock != null) {
+      return getIssueMock!(slug, issueNumber: issueNumber);
+    }
     return null;
   }
 
