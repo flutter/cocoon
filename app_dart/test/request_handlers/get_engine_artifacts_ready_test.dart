@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/common/firestore_extensions.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -14,9 +15,7 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();

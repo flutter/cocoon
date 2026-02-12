@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -15,12 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/request_handling/fake_http.dart';
-import '../src/service/fake_ci_yaml_fetcher.dart';
-import '../src/utilities/mocks.dart';
 import 'update_existing_flaky_issues_test_data.dart';
 
 const String kThreshold = '0.02';

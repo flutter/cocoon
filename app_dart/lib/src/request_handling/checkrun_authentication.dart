@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -15,7 +14,6 @@ import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/google/token_info.dart';
 import '../service/firebase_jwt_validator.dart';
-import 'dashboard_authentication.dart';
 import 'exceptions.dart';
 
 /// Class capable of authenticating [HttpRequest]s from the Checkrun page.

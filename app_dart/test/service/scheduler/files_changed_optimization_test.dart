@@ -4,6 +4,7 @@
 
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart' as pb;
@@ -14,11 +15,6 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:cocoon_service/src/service/scheduler/files_changed_optimization.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
-
-import '../../src/fake_config.dart';
-import '../../src/service/fake_ci_yaml_fetcher.dart';
-import '../../src/service/fake_get_files_changed.dart';
-import '../../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();

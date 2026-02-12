@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:appengine/appengine.dart';
 import 'package:http/http.dart' as http;
+
+import 'context.dart';
 
 /// Signature for a function that returns an App Engine [ClientContext].
 ///

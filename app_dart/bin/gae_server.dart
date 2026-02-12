@@ -9,7 +9,8 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
-import 'package:cocoon_service/src/request_handling/dashboard_authentication.dart';
+import 'package:cocoon_service/src/foundation/appengine_utils.dart';
+import 'package:cocoon_service/src/foundation/providers.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
@@ -23,6 +24,8 @@ import 'package:logging/logging.dart';
 Future<void> main() async {
   await withAppEngineServices(() async {
     useLoggingPackageAdaptor();
+
+    Providers.contextProvider = () => AppEngineClientContext(context);
 
     // This is bad, and I should feel bad, but I won't because the logging system
     // is inherently bad. We're allocating the logger (or getting back one) and

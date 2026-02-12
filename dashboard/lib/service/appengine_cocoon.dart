@@ -395,6 +395,68 @@ class AppEngineCocoonService implements CocoonService {
     );
   }
 
+  @override
+  Future<CocoonResponse<List<MergeGroupHook>>> fetchMergeQueueHooks({
+    required String idToken,
+  }) async {
+    final getMergeQueueHooksUrl = apiEndpoint('/api/merge_queue_hooks');
+
+    final response = await _client.get(
+      getMergeQueueHooksUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+    );
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/merge_queue_hooks returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as Map<String, Object?>;
+      final hooks = MergeGroupHooks.fromJson(jsonResponse);
+      return CocoonResponse.data(hooks.hooks);
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<CocoonResponse<void>> replayGitHubWebhook({
+    required String idToken,
+    required String id,
+  }) async {
+    if (idToken.isEmpty) {
+      return const CocoonResponse.error(
+        'Sign in to replay events',
+        statusCode: 401,
+      );
+    }
+
+    final replayUrl = apiEndpoint(
+      '/api/github-webhook-replay',
+      queryParameters: {'id': id},
+    );
+
+    final response = await _client.post(
+      replayUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+    );
+
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
   /// Construct the API endpoint based on the priority of using a local endpoint
   /// before falling back to the production endpoint.
   ///

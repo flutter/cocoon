@@ -5,15 +5,13 @@
 import 'dart:convert';
 
 import 'package:cocoon_common/rpc_model.dart' show ContentHashLookup;
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dart';
 import 'package:cocoon_service/src/request_handlers/lookup_hash.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/service/fake_content_aware_hash_service.dart';
 
 void main() {
   useTestLoggerPerTest();

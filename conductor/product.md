@@ -15,7 +15,7 @@ Cocoon is the CI coordination and orchestration system for the Flutter project. 
 *   **Reliable Integration:** Seamlessly coordinate between GitHub webhooks, LUCI build bots, and Google Cloud services.
 
 ## Key Features
-*   **CI Orchestration:** Automates the scheduling and tracking of LUCI builds for the Flutter framework and engine.
+*   **Offline Integration Testing:** A dedicated testing environment that simulates all backend services (GitHub, Firestore, BigQuery, LUCI) with functional fakes, enabling deterministic, offline verification of frontend and backend logic.
 *   **Tree Status Dashboard:** A Flutter-based web application that provides a visual overview of build health across various commits and branches.
 *   **Presubmit Check Details:** APIs to retrieve detailed attempt history and status for specific presubmit checks, aiding in debugging and visibility.
 *   **Merge Queue Visibility:** APIs for querying and inspecting recent GitHub Merge Queue webhook events to diagnose integration issues.

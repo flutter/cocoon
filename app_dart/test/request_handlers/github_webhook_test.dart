@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/protos.dart';
@@ -14,11 +15,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
-import '../src/request_handling/fake_http.dart';
-import '../src/request_handling/fake_pubsub.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();

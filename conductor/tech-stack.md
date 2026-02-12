@@ -26,7 +26,9 @@
     *   `app_dart/`: Main CI orchestrator and backend API.
     *   `auto_submit/`: Automated PR management bot.
     *   `dashboard/`: Flutter Web frontend.
-    *   `packages/`: Shared libraries and internal SDKs (`cocoon_common`, `buildbucket-dart`).
+    *   `packages/`: Shared libraries and internal SDKs (`cocoon_common`, `buildbucket-dart`, `cocoon_integration_test`).
+*   **Testing Infrastructure:**
+    *   **Integration Testing:** `packages/cocoon_integration_test` provides an offline environment with functional fakes for all GCP and external services, allowing full-stack integration testing without live connections.
 *   **Code Generation:** 
     *   `build_runner` for `json_serializable` (DTOs/Database models).
     *   `package:protobuf` for internal configuration (`.ci.yaml`) and BuildBucket interactions.

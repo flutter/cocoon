@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+export 'src/foundation/context.dart';
 export 'src/foundation/utils.dart';
 export 'src/request_handlers/check_flaky_builders.dart';
 export 'src/request_handlers/create_branch.dart';
@@ -32,6 +33,8 @@ export 'src/request_handlers/update_existing_flaky_issues.dart';
 export 'src/request_handlers/vacuum_github_commits.dart';
 export 'src/request_handling/authentication.dart';
 export 'src/request_handling/cache_request_handler.dart';
+export 'src/request_handling/checkrun_authentication.dart';
+export 'src/request_handling/dashboard_authentication.dart';
 export 'src/request_handling/pubsub.dart';
 export 'src/request_handling/pubsub_authentication.dart';
 export 'src/request_handling/request_handler.dart';

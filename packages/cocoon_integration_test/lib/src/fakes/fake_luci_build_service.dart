@@ -9,10 +9,10 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/gerrit_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 
-import '../request_handling/fake_pubsub.dart';
 import '../utilities/mocks.dart';
 import 'fake_build_bucket_client.dart';
 import 'fake_gerrit_service.dart';
+import 'fake_pubsub.dart';
 
 /// Fake [LuciBuildService] for use in tests.
 class FakeLuciBuildService extends LuciBuildService {

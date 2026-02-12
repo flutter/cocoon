@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
@@ -12,13 +13,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as gh;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-
-import '../../src/fake_config.dart';
-import '../../src/request_handling/fake_pubsub.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/service/fake_gerrit_service.dart';
-import '../../src/utilities/entity_generators.dart';
-import '../../src/utilities/mocks.mocks.dart';
 
 /// Tests [LuciBuildService] public API related to fetching [bbv2.Build]s.
 ///

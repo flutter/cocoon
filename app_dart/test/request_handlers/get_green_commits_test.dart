@@ -5,16 +5,13 @@
 import 'dart:convert';
 
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/build_status_provider/commit_tasks_status.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
-import '../src/request_handling/fake_http.dart';
 import '../src/request_handling/request_handler_tester.dart';
-import '../src/service/fake_build_status_service.dart';
-import '../src/utilities/entity_generators.dart';
 
 void main() {
   useTestLoggerPerTest();

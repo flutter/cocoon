@@ -12,6 +12,7 @@ analyzer:
     avoid_dynamic_calls: ignore
     comment_references: ignore
     deprecated_member_use_from_same_package: ignore
+    duplicate_ignore: ignore
     lines_longer_than_80_chars: ignore
     only_throw_errors: ignore
   exclude:

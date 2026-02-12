@@ -547,6 +547,45 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
             ),
           )
           as _i8.Future<_i3.CocoonResponse<void>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<List<_i12.MergeGroupHook>>>
+  fetchMergeQueueHooks({required String? idToken}) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchMergeQueueHooks, [], {#idToken: idToken}),
+            returnValue:
+                _i8.Future<_i3.CocoonResponse<List<_i12.MergeGroupHook>>>.value(
+                  _FakeCocoonResponse_2<List<_i12.MergeGroupHook>>(
+                    this,
+                    Invocation.method(#fetchMergeQueueHooks, [], {
+                      #idToken: idToken,
+                    }),
+                  ),
+                ),
+          )
+          as _i8.Future<_i3.CocoonResponse<List<_i12.MergeGroupHook>>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<void>> replayGitHubWebhook({
+    required String? idToken,
+    required String? id,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#replayGitHubWebhook, [], {
+              #idToken: idToken,
+              #id: id,
+            }),
+            returnValue: _i8.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#replayGitHubWebhook, [], {
+                  #idToken: idToken,
+                  #id: id,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i3.CocoonResponse<void>>);
 }
 
 /// A class which mocks [BuildState].

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart' hide Response;
@@ -18,12 +19,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../../model/github/workflow_job_data.dart';
-import '../../src/fake_config.dart';
-import '../../src/service/fake_ci_yaml_fetcher.dart';
-import '../../src/service/fake_firestore_service.dart';
-import '../../src/service/fake_get_files_changed.dart';
-import '../../src/service/fake_github_service.dart';
-import '../../src/utilities/mocks.mocks.dart';
 import '../content_aware_hash_service_test.dart' show goodAnnotation;
 import 'ci_yaml_strings.dart';
 import 'create_check_run.dart';

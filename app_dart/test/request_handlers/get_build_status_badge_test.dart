@@ -3,13 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handlers/get_build_status_badge.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
-import '../src/service/fake_firestore_service.dart';
 
 void main() {
   useTestLoggerPerTest();

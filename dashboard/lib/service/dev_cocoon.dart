@@ -275,6 +275,21 @@ class DevelopmentCocoonService implements CocoonService {
     );
   }
 
+  @override
+  Future<CocoonResponse<List<MergeGroupHook>>> fetchMergeQueueHooks({
+    required String idToken,
+  }) async {
+    return const CocoonResponse<List<MergeGroupHook>>.data([]);
+  }
+
+  @override
+  Future<CocoonResponse<void>> replayGitHubWebhook({
+    required String idToken,
+    required String id,
+  }) async {
+    return const CocoonResponse<void>.data(null);
+  }
+
   static const int _commitGap = 2 * 60 * 1000; // 2 minutes between commits
 
   List<CommitStatus> _createFakeCommitStatuses(

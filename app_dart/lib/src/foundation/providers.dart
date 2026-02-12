@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:appengine/appengine.dart' as gae;
 import 'package:http/http.dart' as http;
 
+import 'context.dart';
 import 'typedefs.dart';
 
 /// Class that holds static default providers.
@@ -18,17 +18,16 @@ class Providers {
   ///  * [HttpClientProvider], which defines this interface.
   static http.Client freshHttpClient() => http.Client();
 
-  /// Default [gae.Logging] provider.
+  /// Initializes the [ClientContext] provider.
   ///
-  /// See also:
-  ///
-  ///  * [LoggingProvider], which defines this interface.
-  static gae.Logging serviceScopeLogger() => gae.loggingService;
+  /// This must be called before [serviceScopeContext] is used.
+  static ClientContextProvider contextProvider = () =>
+      throw UnimplementedError('ClientContext provider not initialized');
 
-  /// Default [gae.ClientContext] provider.
+  /// Default [ClientContext] provider.
   ///
   /// See also:
   ///
   ///  * [ClientContextProvider], which defines this interface.
-  static gae.ClientContext serviceScopeContext() => gae.context;
+  static ClientContext serviceScopeContext() => contextProvider();
 }

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/request_handling/pubsub_authentication.dart';
@@ -11,10 +12,6 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
-
-import '../src/fake_config.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/request_handling/fake_http.dart';
 
 void main() {
   useTestLoggerPerTest();

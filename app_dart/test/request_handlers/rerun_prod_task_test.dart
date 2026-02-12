@@ -4,6 +4,7 @@
 
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -13,14 +14,7 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../src/fake_config.dart';
 import '../src/request_handling/api_request_handler_tester.dart';
-import '../src/request_handling/fake_dashboard_authentication.dart';
-import '../src/service/fake_ci_yaml_fetcher.dart';
-import '../src/service/fake_firestore_service.dart';
-import '../src/service/fake_scheduler.dart';
-import '../src/utilities/entity_generators.dart';
-import '../src/utilities/mocks.dart';
 
 void main() {
   useTestLoggerPerTest();

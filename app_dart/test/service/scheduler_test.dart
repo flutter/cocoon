@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
@@ -37,19 +38,6 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import '../model/github/checks_test_data.dart';
-import '../src/fake_config.dart';
-import '../src/request_handling/fake_pubsub.dart';
-import '../src/service/fake_build_bucket_client.dart';
-import '../src/service/fake_ci_yaml_fetcher.dart';
-import '../src/service/fake_content_aware_hash_service.dart';
-import '../src/service/fake_firestore_service.dart';
-import '../src/service/fake_gerrit_service.dart';
-import '../src/service/fake_get_files_changed.dart';
-import '../src/service/fake_github_service.dart';
-import '../src/service/fake_luci_build_service.dart';
-import '../src/utilities/entity_generators.dart';
-import '../src/utilities/mocks.dart';
-import '../src/utilities/webhook_generators.dart';
 import 'scheduler/ci_yaml_strings.dart';
 import 'scheduler/create_check_run.dart';
 
