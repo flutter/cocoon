@@ -51,51 +51,13 @@ class _PreSubmitViewState extends State<PreSubmitView> {
       // Use a default mock SHA for the PR route if none selected
       sha ??= 'mock_sha_1_long_hash_value';
       pr ??= '123';
-      _loadMockData(sha!);
     }
-  }
-
-  void _loadMockData(String sha) {
-    // Extract the number from the mock SHA to determine which mock data to load
-    // sha aways start with `mock_sha_` for mocked data, so we can safely parse
-    // the number after second `_`
-    final num = sha.split('_')[2];
-    _guardResponse = PresubmitGuardResponse(
-      prNum: int.parse(pr!),
-      checkRunId: 456,
-      author: 'dash',
-      guardStatus: GuardStatus.inProgress,
-      stages: [
-        PresubmitGuardStage(
-          name: 'Engine',
-          createdAt: 0,
-          builds: {
-            'Mac mac_host_engine $num': TaskStatus.failed,
-            'Mac mac_ios_engine $num': TaskStatus.waitingForBackfill,
-            'Linux linux_android_aot_engine $num': TaskStatus.succeeded,
-          },
-        ),
-        PresubmitGuardStage(
-          name: 'Framework',
-          createdAt: 0,
-          builds: {
-            'Linux framework_tests $num': TaskStatus.inProgress,
-            'Mac framework_tests $num': TaskStatus.cancelled,
-            'Linux android framework_tests $num': TaskStatus.skipped,
-            'Windows framework_tests $num': TaskStatus.infraFailure,
-          },
-        ),
-      ],
-    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (sha != null &&
-        _guardResponse == null &&
-        !_isLoading &&
-        !sha!.startsWith('mock_sha_')) {
+    if (sha != null && _guardResponse == null && !_isLoading) {
       unawaited(_fetchGuardStatus());
     }
   }
@@ -106,6 +68,11 @@ class _PreSubmitViewState extends State<PreSubmitView> {
       _selectedCheck = null;
     });
     final buildState = Provider.of<BuildState>(context, listen: false);
+
+    // For mock SHAs, we don't need a real API call if we're in Development mode,
+    // but PreSubmitView currently unifies everything through cocoonService.
+    // If cocoonService is DevelopmentCocoonService, it will return mock data.
+
     final response = await buildState.cocoonService.fetchPresubmitGuard(
       repo: repo,
       sha: sha!,
@@ -196,11 +163,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                   sha = newSha;
                   _guardResponse = null;
                 });
-                if (sha!.startsWith('mock_sha_')) {
-                  setState(() => _loadMockData(sha!));
-                } else {
-                  unawaited(_fetchGuardStatus());
-                }
+                unawaited(_fetchGuardStatus());
               },
             ),
           ),

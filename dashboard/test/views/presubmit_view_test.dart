@@ -133,16 +133,64 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    const mockSha = 'mock_sha_1_long_hash_value';
+    const guardResponse = PresubmitGuardResponse(
+      prNum: 123,
+      checkRunId: 456,
+      author: 'dash',
+      stages: [
+        PresubmitGuardStage(
+          name: 'Engine',
+          createdAt: 0,
+          builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+        ),
+      ],
+      guardStatus: GuardStatus.inProgress,
+    );
+
+    when(
+      mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: mockSha),
+    ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
     await tester.pumpWidget(
       createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
     );
+    await tester.pump();
     await tester.pump();
 
     expect(find.textContaining('PR #123'), findsOneWidget);
 
     // Select a check
     // The check name in mock data is 'Mac mac_host_engine 1' (suffix is from mock_sha_1)
-    await tester.tap(find.textContaining('mac_host_engine 1').first);
+    final checkName = 'mac_host_engine 1';
+
+    // Stub the details fetch for the mock check
+    when(
+      mockCocoonService.fetchPresubmitCheckDetails(
+        checkRunId: anyNamed('checkRunId'),
+        buildName: argThat(contains('mac_host_engine'), named: 'buildName'),
+      ),
+    ).thenAnswer(
+      (_) async => CocoonResponse.data([
+        PresubmitCheckResponse(
+          attemptNumber: 1,
+          buildName: checkName,
+          creationTime: 0,
+          status: 'Succeeded',
+          summary: 'All tests passed (452/452)',
+        ),
+        PresubmitCheckResponse(
+          attemptNumber: 2,
+          buildName: checkName,
+          creationTime: 0,
+          status: 'Failed',
+          summary: 'Test failed: Unit Tests',
+        ),
+      ]),
+    );
+
+    await tester.tap(find.textContaining(checkName).first);
+    await tester.pump();
     await tester.pump();
 
     // Verify log for attempt #1
@@ -169,6 +217,7 @@ void main() {
       createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
     );
     await tester.pump();
+    await tester.pump();
 
     // Find ShaSelector widget
     expect(find.byType(ShaSelector), findsOneWidget);
@@ -178,15 +227,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    // Select the second item in the dropdown menu
-    // We expect 3 items in the menu (mock_sha_1, 2, 3) plus the one currently displayed in the selector
-    final item = find.textContaining('mock_sha_2').last;
-    await tester.tap(item);
+    // Select the second item in the dropdown menu (mock_sha_2...)
+    await tester.tap(find.textContaining('mock_sha_2').last);
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(ShaSelector), findsOneWidget);
     expect(find.textContaining('mock_sha_2'), findsOneWidget);
+    expect(find.text('Re-run failed'), findsOneWidget);
   });
 
   testWidgets('PreSubmitView functional sha route fetches check details', (
@@ -257,6 +305,7 @@ void main() {
     await tester.pumpWidget(
       createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
     );
+    await tester.pump();
     await tester.pump();
 
     // Verify text contrast

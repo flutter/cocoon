@@ -182,30 +182,34 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
     required String sha,
   }) async {
+    // Extract a number from the SHA if it's a mock SHA to provide varied data
+    final num = sha.contains('_') ? sha.split('_')[2] : '1';
+    final prNum = int.tryParse(num) ?? 123;
+
     return CocoonResponse.data(
       PresubmitGuardResponse(
-        prNum: 1234,
+        prNum: prNum,
         checkRunId: 456,
-        author: 'dash',
+        author: _authors[prNum % _authors.length],
         guardStatus: GuardStatus.inProgress,
         stages: [
           PresubmitGuardStage(
-            name: 'engine',
+            name: 'Engine',
             createdAt: now.millisecondsSinceEpoch,
             builds: {
-              'Mac mac_host_engine': TaskStatus.failed,
-              'Mac mac_ios_engine': TaskStatus.failed,
-              'Linux linux_android_aot_engine': TaskStatus.succeeded,
+              'Mac mac_host_engine $num': TaskStatus.failed,
+              'Mac mac_ios_engine $num': TaskStatus.waitingForBackfill,
+              'Linux linux_android_aot_engine $num': TaskStatus.succeeded,
             },
           ),
           PresubmitGuardStage(
-            name: 'fusion',
+            name: 'Framework',
             createdAt: now.millisecondsSinceEpoch,
             builds: {
-              'Linux framework_tests': TaskStatus.inProgress,
-              'Windows framework_tests': TaskStatus.waitingForBackfill,
-              'Mac framework_tests': TaskStatus.cancelled,
-              'Linux android framework_tests': TaskStatus.skipped,
+              'Linux framework_tests $num': TaskStatus.inProgress,
+              'Mac framework_tests $num': TaskStatus.cancelled,
+              'Linux android framework_tests $num': TaskStatus.skipped,
+              'Windows framework_tests $num': TaskStatus.infraFailure,
             },
           ),
         ],
@@ -223,15 +227,18 @@ class DevelopmentCocoonService implements CocoonService {
       PresubmitCheckResponse(
         attemptNumber: 1,
         buildName: buildName,
-        creationTime: now.millisecondsSinceEpoch,
-        status: 'Failed',
-        summary: 'Log attempt #1...',
+        creationTime: now.millisecondsSinceEpoch - 10000,
+        status: 'Succeeded',
+        summary:
+            '[INFO] Starting task $buildName...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
       ),
       PresubmitCheckResponse(
         attemptNumber: 2,
         buildName: buildName,
         creationTime: now.millisecondsSinceEpoch,
-        status: 'In Progress',
+        status: 'Failed',
+        summary:
+            '[INFO] Starting task $buildName...\n[ERROR] Test failed: Unit Tests',
       ),
     ]);
   }
