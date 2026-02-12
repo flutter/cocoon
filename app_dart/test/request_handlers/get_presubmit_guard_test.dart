@@ -78,9 +78,8 @@ void main() {
       commitSha: sha,
       stage: CiStage.fusionTests,
       builds: {'test1': TaskStatus.succeeded},
+      remainingBuilds: 0,
     );
-    guard1.failedBuilds = 0;
-    guard1.remainingBuilds = 0;
 
     final guard2 = generatePresubmitGuard(
       slug: slug,
@@ -88,8 +87,6 @@ void main() {
       stage: CiStage.fusionEngineBuild,
       builds: {'engine1': TaskStatus.inProgress},
     );
-    guard2.failedBuilds = 0;
-    guard2.remainingBuilds = 1;
 
     firestore.putDocuments([guard1, guard2]);
 
@@ -124,9 +121,9 @@ void main() {
       slug: slug,
       commitSha: sha,
       builds: {'test1': TaskStatus.failed},
+      failedBuilds: 1,
+      remainingBuilds: 0,
     );
-    guard.failedBuilds = 1;
-    guard.remainingBuilds = 0;
 
     firestore.putDocuments([guard]);
 
@@ -151,9 +148,8 @@ void main() {
         slug: slug,
         commitSha: sha,
         builds: {'test1': TaskStatus.succeeded},
+        remainingBuilds: 0,
       );
-      guard.failedBuilds = 0;
-      guard.remainingBuilds = 0;
 
       firestore.putDocuments([guard]);
 
@@ -178,8 +174,6 @@ void main() {
       commitSha: sha,
       builds: {'test1': TaskStatus.waitingForBackfill},
     );
-    guard.failedBuilds = 0;
-    guard.remainingBuilds = 1;
 
     firestore.putDocuments([guard]);
 

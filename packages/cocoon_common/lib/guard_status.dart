@@ -26,4 +26,21 @@ enum GuardStatus {
 
   /// Returns the JSON representation of `this`.
   Object? toJson() => value;
+
+  /// Calculates the [GuardStatus] based on build counts.
+  static GuardStatus calculate({
+    required int failedBuilds,
+    required int remainingBuilds,
+    required int totalBuilds,
+  }) {
+    if (failedBuilds > 0) {
+      return GuardStatus.failed;
+    } else if (failedBuilds == 0 && remainingBuilds == 0) {
+      return GuardStatus.succeeded;
+    } else if (remainingBuilds == totalBuilds) {
+      return GuardStatus.waitingForBackfill;
+    } else {
+      return GuardStatus.inProgress;
+    }
+  }
 }
