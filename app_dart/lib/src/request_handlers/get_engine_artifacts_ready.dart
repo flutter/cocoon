@@ -2,12 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:googleapis/firestore/v1.dart';
 
 import '../../cocoon_service.dart';
-import '../model/firestore/base.dart';
 import '../model/firestore/ci_staging.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/public_api_request_handler.dart';

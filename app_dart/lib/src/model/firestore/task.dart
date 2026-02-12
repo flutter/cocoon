@@ -12,7 +12,6 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
-import '../../service/firestore.dart';
 import '../bbv2_extension.dart';
 import '../ci_yaml/target.dart';
 import '../task_ref.dart';

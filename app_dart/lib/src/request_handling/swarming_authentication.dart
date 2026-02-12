@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
@@ -15,7 +14,7 @@ import '../foundation/typedefs.dart';
 import '../model/google/token_info.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s for infra endpoints.
+/// Class capable of authenticating [Request]s for infra endpoints.
 ///
 /// This class implements an ACL on a [RequestHandler] to ensure only automated
 /// systems can access the endpoints.
@@ -62,8 +61,8 @@ class SwarmingAuthenticationProvider implements AuthenticationProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final swarmingToken = request.headers.value(kSwarmingTokenHeader);
+  Future<AuthenticatedContext> authenticate(Request request) async {
+    final swarmingToken = request.header(kSwarmingTokenHeader);
 
     final clientContext = clientContextProvider();
 

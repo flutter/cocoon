@@ -2,13 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
-import 'package:cocoon_service/src/request_handling/swarming_authentication.dart';
-import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -34,7 +32,10 @@ void main() {
 
     test('fails for App Engine cronjobs', () async {
       request.headers.set('X-Appengine-Cron', 'true');
-      expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+      expect(
+        auth.authenticate(request.toRequest()),
+        throwsA(isA<Unauthenticated>()),
+      );
     });
 
     group('when access token is given', () {
@@ -66,7 +67,7 @@ void main() {
           'token',
         );
 
-        final result = await auth.authenticate(request);
+        final result = await auth.authenticate(request.toRequest());
         expect(result.clientContext, same(clientContext));
       });
 
@@ -87,7 +88,7 @@ void main() {
           'token',
         );
 
-        final result = await auth.authenticate(request);
+        final result = await auth.authenticate(request.toRequest());
         expect(result.clientContext, same(clientContext));
       });
 
@@ -107,7 +108,10 @@ void main() {
           'unauthenticated token',
         );
 
-        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(
+          auth.authenticate(request.toRequest()),
+          throwsA(isA<Unauthenticated>()),
+        );
       });
 
       test('auth fails with unauthenticated service account token', () async {
@@ -125,7 +129,10 @@ void main() {
           'unauthenticated token',
         );
 
-        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(
+          auth.authenticate(request.toRequest()),
+          throwsA(isA<Unauthenticated>()),
+        );
       });
     });
   });

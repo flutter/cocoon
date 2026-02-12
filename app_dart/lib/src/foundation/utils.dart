@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';

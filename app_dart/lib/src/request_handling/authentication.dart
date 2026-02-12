@@ -3,12 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:meta/meta.dart';
 
 import '../foundation/context.dart';
 import 'exceptions.dart';
+import 'request_handler.dart';
 
 @immutable
 abstract interface class AuthenticationProvider {
@@ -20,7 +20,7 @@ abstract interface class AuthenticationProvider {
   ///
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
-  Future<AuthenticatedContext> authenticate(HttpRequest request);
+  Future<AuthenticatedContext> authenticate(Request request);
 }
 
 /// Class that represents an authenticated request having been made, and any

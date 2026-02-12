@@ -11,6 +11,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/foundation/appengine_utils.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
@@ -143,7 +144,9 @@ Future<void> main() async {
     );
 
     return runAppEngine(
-      server,
+      (HttpRequest request) async {
+        await server(request.toRequest());
+      },
       onAcceptingConnections: (InternetAddress address, int port) {
         final host = address.isLoopback ? 'localhost' : address.host;
         print('Serving requests at http://$host:$port/');

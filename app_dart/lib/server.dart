@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:math';
 
 import 'cocoon_service.dart';
@@ -25,7 +24,7 @@ import 'src/service/content_aware_hash_service.dart';
 import 'src/service/discord_service.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
 
-typedef Server = Future<void> Function(HttpRequest);
+typedef Server = Future<void> Function(Request);
 
 /// Creates a service with the given dependencies.
 Server createServer({
@@ -404,7 +403,7 @@ Server createServer({
     '/readiness_check': ReadinessCheck(config: config),
   };
 
-  return (HttpRequest request) async {
+  return (Request request) async {
     if (handlers.containsKey(request.uri.path)) {
       final handler = handlers[request.uri.path]!;
       await handler.service(request);

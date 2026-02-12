@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/cache_request_handler.dart';
+import 'package:cocoon_service/src/request_handling/http_utils.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:test/test.dart';
@@ -61,7 +61,7 @@ void main() {
       body: Response.string(
         'hello!',
         statusCode: 400,
-        contentType: ContentType.json,
+        contentType: kContentTypeJson,
       ),
       config: FakeConfig(),
     );
@@ -76,11 +76,7 @@ void main() {
     expect(response.statusCode, 400);
     expect(
       response.contentType,
-      isA<ContentType>().having(
-        (c) => c.value,
-        'value',
-        ContentType.json.value,
-      ),
+      isA<MediaType>().having((c) => '$c', 'type', kContentTypeJson.toString()),
     );
   });
 

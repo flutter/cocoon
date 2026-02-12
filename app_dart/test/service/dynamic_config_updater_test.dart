@@ -9,7 +9,6 @@ import 'package:cocoon_server/logging.dart' show log;
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config_updater.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' show MockClient;

@@ -19,7 +19,6 @@ import '../../cocoon_service.dart';
 import '../foundation/github_checks_util.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
-import '../model/firestore/base.dart';
 import '../model/firestore/pr_check_runs.dart' as fs;
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;

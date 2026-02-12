@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
 import 'cocoon.dart';
+import 'scenarios.dart';
 
 /// CocoonService for interacting with flutter/flutter production build data.
 ///
@@ -21,6 +22,9 @@ class AppEngineCocoonService implements CocoonService {
   /// If a [client] is not specified, a new [http.Client] instance is created.
   AppEngineCocoonService({http.Client? client})
     : _client = client ?? http.Client();
+
+  @override
+  void resetScenario(Scenario scenario) {}
 
   /// Branch on flutter/flutter to default requests for.
   final String _defaultBranch = 'master';

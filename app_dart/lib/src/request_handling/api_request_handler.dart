@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:meta/meta.dart';
 
 import 'authentication.dart';
 import 'exceptions.dart';
+import 'http_utils.dart';
 import 'public_api_request_handler.dart';
 import 'request_handler.dart';
 
@@ -39,7 +39,7 @@ abstract base class ApiRequestHandler extends PublicApiRequestHandler {
 
   @override
   Future<void> service(
-    HttpRequest request, {
+    Request request, {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext context;
@@ -47,9 +47,8 @@ abstract base class ApiRequestHandler extends PublicApiRequestHandler {
       context = await authenticationProvider.authenticate(request);
     } on Unauthenticated catch (error) {
       final response = request.response;
-      response
-        ..statusCode = HttpStatus.unauthorized
-        ..write(error.message);
+      response.statusCode = HttpStatus.unauthorized;
+      await response.addStream(Stream.value(utf8.encode(error.message)));
       await response.flush();
       await response.close();
       return;
@@ -64,9 +63,6 @@ abstract base class ApiRequestHandler extends PublicApiRequestHandler {
 class ApiKey<T> extends RequestKey<T> {
   const ApiKey._(super.name);
 
-  static const ApiKey<Uint8List> requestBody = ApiKey<Uint8List>._(
-    'requestBody',
-  );
   static const ApiKey<AuthenticatedContext> authContext =
       ApiKey<AuthenticatedContext>._('authenticatedContext');
   static const ApiKey<Map<String, dynamic>> requestData =

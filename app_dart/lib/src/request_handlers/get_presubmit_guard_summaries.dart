@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_common/guard_status.dart';
@@ -12,7 +11,6 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/firestore/presubmit_guard.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 

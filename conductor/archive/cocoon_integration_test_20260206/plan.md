@@ -1,4 +1,4 @@
-# Implementation Plan: Cocoon Integration Test
+# Implementation Plan: Cocoon Integration Test [checkpoint: 5d0d05c]
 
 ## Phase 1: Package Setup & Fake Consolidation
 - [x] Task: Create `packages/cocoon_integration_test` structure.
@@ -22,4 +22,4 @@
 - [x] Task: Write a "Smoke Test".
     - [x] Create `packages/cocoon_integration_test/test/server_test.dart`.
     - [x] Verify the server starts and responds to a simple health check or API call.
-- [ ] Task: Conductor - User Manual Verification (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification (Protocol in workflow.md)

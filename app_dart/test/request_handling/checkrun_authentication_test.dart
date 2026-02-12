@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/mocks.mocks.dart';
@@ -12,6 +11,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/google/firebase_jwt_claim.dart';
 import 'package:cocoon_service/src/model/google/token_info.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -82,7 +82,7 @@ void main() {
 
         config.githubService = githubService;
         request.headers.set('X-Flutter-IdToken', 'trustmebro');
-        final result = await auth.authenticate(request);
+        final result = await auth.authenticate(request.toRequest());
         expect(result.email, email);
       },
     );
@@ -128,7 +128,10 @@ void main() {
 
         config.githubService = githubService;
         request.headers.set('X-Flutter-IdToken', 'trustmebro');
-        expect(auth.authenticate(request), throwsA(isA<Unauthenticated>()));
+        expect(
+          auth.authenticate(request.toRequest()),
+          throwsA(isA<Unauthenticated>()),
+        );
       },
     );
   });

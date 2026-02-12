@@ -6,13 +6,11 @@
 /// @docImport 'dynamic_config_updater.dart';
 library;
 
-import 'dart:io' as io;
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import '../../generated_config.dart';
 import 'ci_yaml_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
@@ -126,26 +124,9 @@ final class DynamicConfig {
     return DynamicConfigUpdater().fetchDynamicConfig();
   }
 
-  /// Returns the latest copy of [DynamicConfig] fetched from the repository.
-  static Future<DynamicConfig> fromLocalFileSystem() async {
-    final execPath = io.Platform.resolvedExecutable;
-
-    // Walk backwards until the root of the Cocoon repository is found.
-    var dir = io.File(execPath).parent;
-    while (dir.path != dir.parent.path) {
-      final gitDir = io.Directory(p.join(dir.path, '.git'));
-      if (await gitDir.exists()) {
-        break;
-      }
-      dir = dir.parent;
-    }
-
-    final configPath = io.File(p.join(dir.path, 'app_dart', 'config.yaml'));
-    if (!await configPath.exists()) {
-      throw StateError('Could not find config.yaml at ${configPath.path}');
-    }
-
-    final yaml = loadYaml(await configPath.readAsString()) as YamlMap;
+  /// Returns the copy of [DynamicConfig] that was created at build time.
+  static DynamicConfig fromLocalFileSystem() {
+    final yaml = loadYaml(configFileContent) as YamlMap;
     return DynamicConfig.fromYaml(yaml);
   }
 

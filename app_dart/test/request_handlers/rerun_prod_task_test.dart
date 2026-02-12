@@ -9,7 +9,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
-import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_server/logging.dart';
@@ -15,6 +14,7 @@ import '../service/cache_service.dart';
 import 'api_request_handler.dart';
 import 'authentication.dart';
 import 'exceptions.dart';
+import 'http_utils.dart';
 import 'pubsub_authentication.dart';
 import 'request_handler.dart';
 
@@ -56,7 +56,7 @@ abstract base class SubscriptionHandler extends RequestHandler {
 
   @override
   Future<void> service(
-    HttpRequest request, {
+    Request request, {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     AuthenticatedContext authContext;
@@ -65,22 +65,20 @@ abstract base class SubscriptionHandler extends RequestHandler {
       authContext = await auth.authenticate(request);
     } on Unauthenticated catch (error) {
       final response = request.response;
-      response
-        ..statusCode = HttpStatus.unauthorized
-        ..write(error.message);
+      response.statusCode = HttpStatus.unauthorized;
+      await response.addStream(Stream.value(utf8.encode(error.message)));
       await response.flush();
       await response.close();
       return;
     }
 
-    List<int> body;
+    Uint8List body;
     try {
-      body = await request.expand<int>((List<int> chunk) => chunk).toList();
+      body = await request.readBodyAsBytes();
     } catch (error) {
       final response = request.response;
-      response
-        ..statusCode = HttpStatus.internalServerError
-        ..write('$error');
+      response.statusCode = HttpStatus.internalServerError;
+      await response.addStream(Stream.value(utf8.encode('$error')));
       await response.flush();
       await response.close();
       return;
@@ -94,9 +92,8 @@ abstract base class SubscriptionHandler extends RequestHandler {
         pubSubPushMessage = PubSubPushMessage.fromJson(json);
       } catch (error) {
         final response = request.response;
-        response
-          ..statusCode = HttpStatus.internalServerError
-          ..write('$error');
+        response.statusCode = HttpStatus.internalServerError;
+        await response.addStream(Stream.value(utf8.encode('$error')));
         await response.flush();
         await response.close();
         return;
@@ -119,9 +116,11 @@ abstract base class SubscriptionHandler extends RequestHandler {
     if (messageLock != null) {
       // No-op - There's already a write lock for this message
       log.info('Ignoring $messageId, we already are/were writing a message');
-      final response = request.response
-        ..statusCode = HttpStatus.ok
-        ..write('$messageId was already processed');
+      final response = request.response;
+      response.statusCode = HttpStatus.ok;
+      await response.addStream(
+        Stream.value(utf8.encode('$messageId was already processed')),
+      );
       await response.flush();
       await response.close();
       return;

@@ -12,6 +12,7 @@ import 'package:flutter_app_icons/flutter_app_icons.dart';
 import '../logic/brooks.dart';
 import '../service/cocoon.dart';
 import '../service/firebase_auth.dart';
+import '../service/scenarios.dart';
 
 /// State for the Flutter Build Dashboard.
 class BuildState extends ChangeNotifier {
@@ -92,6 +93,18 @@ class BuildState extends ChangeNotifier {
   @visibleForTesting
   static const String errorMessageRefreshGitHubCommits =
       'An error occurred refreshing GitHub commits.';
+
+  /// Resets the data scenario for the dashboard.
+  ///
+  /// Only effective in debug mode when using fake data.
+  Future<void> resetScenario(Scenario scenario) async {
+    cocoonService.resetScenario(scenario);
+    _moreStatusesExist = true;
+    _isTreeBuilding = null;
+    _failingTasks = <String>[];
+    _statuses = <CommitStatus>[];
+    await _fetchStatusUpdates();
+  }
 
   /// How often to query the Cocoon backend for the current build state.
   @visibleForTesting

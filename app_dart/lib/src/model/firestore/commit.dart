@@ -5,15 +5,12 @@
 /// @docImport 'task.dart';
 library;
 
-import 'dart:io';
-
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:path/path.dart' as p;
 import 'package:truncate/truncate.dart';
 
 import '../../../cocoon_service.dart';
-import '../../service/firestore.dart';
 import '../commit_ref.dart';
 import 'base.dart';
 

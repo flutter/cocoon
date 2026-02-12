@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
+import 'http_utils.dart';
 
 /// An exception that may be thrown by a [RequestHandler] to trigger an error
 /// HTTP response.

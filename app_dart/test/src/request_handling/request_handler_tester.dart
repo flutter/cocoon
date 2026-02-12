@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_integration_test/testing.dart';
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/request_handling/request_handler.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:meta/meta.dart';
@@ -19,7 +20,7 @@ class RequestHandlerTester {
   Future<Response> get(RequestHandler handler) {
     return run(() {
       // ignore: invalid_use_of_protected_member
-      return handler.get(Request.fromHttpRequest(request));
+      return handler.get(request.toRequest());
     });
   }
 
@@ -27,7 +28,7 @@ class RequestHandlerTester {
   Future<Response> post(RequestHandler handler) {
     return run(() {
       // ignore: invalid_use_of_protected_member
-      return handler.post(Request.fromHttpRequest(request));
+      return handler.post(request.toRequest());
     });
   }
 

@@ -4,10 +4,12 @@
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:flutter/foundation.dart';
 
 import 'appengine_cocoon.dart';
-import 'dev_cocoon.dart';
+import 'integration_server_adapter.dart';
+import 'scenarios.dart';
 
 /// Service class for interacting with flutter/flutter build data.
 ///
@@ -23,10 +25,7 @@ abstract class CocoonService {
     if (useProductionService) {
       return AppEngineCocoonService();
     }
-    return DevelopmentCocoonService(
-      DateTime.now(),
-      simulateLoadingDelays: true,
-    );
+    return IntegrationServerAdapter(IntegrationServer(), now: DateTime.now());
   }
 
   /// Gets build information on the most recent commits.
@@ -134,6 +133,11 @@ abstract class CocoonService {
   /// Gets the presubmit guard summaries for a given [repo] and [pr].
   Future<CocoonResponse<List<PresubmitGuardSummary>>>
   fetchPresubmitGuardSummaries({required String repo, required String pr});
+
+  /// Resets the data scenario for fake implementations.
+  ///
+  /// No-op for production services.
+  void resetScenario(Scenario scenario) {}
 }
 
 /// Wrapper class for data this state serves.

@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 
@@ -18,7 +16,7 @@ class FakeDashboardAuthentication implements DashboardAuthentication {
   FakeClientContext clientContext;
 
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+  Future<AuthenticatedContext> authenticate(Request request) async {
     if (authenticated) {
       return FakeAuthenticatedContext(clientContext: clientContext);
     } else {

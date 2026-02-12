@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dashboard/logic/brooks.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/service/firebase_auth.dart';
+import 'package:flutter_dashboard/service/scenarios.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/task_overlay.dart';
 
@@ -44,6 +45,9 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   @override
   Future<bool> refreshGitHubCommits() async => false;
+
+  @override
+  Future<void> resetScenario(Scenario scenario) async {}
 
   @override
   Future<bool> rerunTask(Task task, Commit commit) async {

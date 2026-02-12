@@ -6,12 +6,13 @@ import 'dart:typed_data';
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/logic/task_grid_filter.dart';
-import 'package:flutter_dashboard/service/dev_cocoon.dart';
+import 'package:flutter_dashboard/service/integration_server_adapter.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
 import 'package:flutter_dashboard/widgets/lattice.dart';
@@ -51,11 +52,11 @@ void main() {
     },
   );
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService', (
+  testWidgets('TaskGridContainer with IntegrationServerAdapter', (
     WidgetTester tester,
   ) async {
     await precacheTaskIcons(tester);
-    final service = DevelopmentCocoonService(DateTime.utc(2020));
+    final service = IntegrationServerAdapter(IntegrationServer());
     final buildState = BuildState(
       cocoonService: service,
       authService: MockFirebaseAuthService(),
@@ -122,7 +123,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await precacheTaskIcons(tester);
-    final service = DevelopmentCocoonService(DateTime.utc(2020));
+    final service = IntegrationServerAdapter(IntegrationServer());
     final buildState = BuildState(
       cocoonService: service,
       authService: MockFirebaseAuthService(),
@@ -208,11 +209,11 @@ void main() {
     buildState.dispose();
   });
 
-  testWidgets('TaskGridContainer with DevelopmentCocoonService - dark', (
+  testWidgets('TaskGridContainer with IntegrationServerAdapter - dark', (
     WidgetTester tester,
   ) async {
     await precacheTaskIcons(tester);
-    final service = DevelopmentCocoonService(DateTime.utc(2020));
+    final service = IntegrationServerAdapter(IntegrationServer());
     final buildState = BuildState(
       cocoonService: service,
       authService: MockFirebaseAuthService(),
@@ -282,7 +283,7 @@ void main() {
     int cols,
   ) async {
     final buildState = BuildState(
-      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      cocoonService: IntegrationServerAdapter(IntegrationServer()),
       authService: MockFirebaseAuthService(),
     );
     void listener1() {}
@@ -334,7 +335,7 @@ void main() {
     await testGrid(
       tester,
       TaskGridFilter()..authorFilter = RegExp('yegor'),
-      8,
+      4,
       100,
     );
     await testGrid(
@@ -346,8 +347,8 @@ void main() {
     await testGrid(
       tester,
       TaskGridFilter()
-        ..hashFilter = RegExp('2d22b5e85f986f3fa2cf1bfaf085905c2182c270'),
-      4,
+        ..hashFilter = RegExp('fb75b2b671c7702b549a80a420144097f4fab5a9'),
+      2, // codefu: these are magic numbers and this test is bad.
       100,
     );
   });

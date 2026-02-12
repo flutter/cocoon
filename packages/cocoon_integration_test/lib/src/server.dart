@@ -4,7 +4,9 @@
 
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
+import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:retry/retry.dart';
 
 import '../testing.dart';
 
@@ -20,7 +22,7 @@ class IntegrationServer {
     FakeLuciBuildService? luciBuildService,
     FakeScheduler? scheduler,
     FakeCiYamlFetcher? ciYamlFetcher,
-    FakeBuildStatusService? buildStatusService,
+    BuildStatusService? buildStatusService,
     FakeContentAwareHashService? contentAwareHashService,
     CacheService? cache,
   }) {
@@ -43,7 +45,9 @@ class IntegrationServer {
           bigQuery: this.bigQuery,
         );
     this.ciYamlFetcher = ciYamlFetcher ?? FakeCiYamlFetcher();
-    this.buildStatusService = buildStatusService ?? FakeBuildStatusService();
+    this.buildStatusService =
+        buildStatusService ??
+        BuildStatusService(firestore: this.firestore, config: this.config);
     this.contentAwareHashService =
         contentAwareHashService ??
         FakeContentAwareHashService(config: this.config);
@@ -59,6 +63,7 @@ class IntegrationServer {
       branchService: BranchService(
         config: this.config,
         gerritService: this.gerritService,
+        retryOptions: const RetryOptions(maxAttempts: 1),
       ),
       buildBucketClient: this.buildBucketClient,
       luciBuildService: this.luciBuildService,
@@ -86,7 +91,7 @@ class IntegrationServer {
   late final FakeLuciBuildService luciBuildService;
   late final FakeScheduler scheduler;
   late final FakeCiYamlFetcher ciYamlFetcher;
-  late final FakeBuildStatusService buildStatusService;
+  late final BuildStatusService buildStatusService;
   late final FakeContentAwareHashService contentAwareHashService;
   late final CacheService cache;
 }

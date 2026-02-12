@@ -3,10 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
+
+import 'http_utils.dart';
 
 /// An HTTP response returned by a request handler.
 ///
@@ -26,19 +27,19 @@ abstract final class Response {
 
   /// Creates an UTF-8 string response of [content].
   ///
-  /// By default, uses [ContentType.text] and [HttpStatus.ok].
+  /// By default, uses [kContentTypeText] and [HttpStatus.ok].
   factory Response.string(
     String content, { //
-    ContentType? contentType,
+    MediaType? contentType,
     int statusCode,
   }) = _StringBody;
 
   /// Creates a byte-encoded stream of [content].
   ///
-  /// By default, uses [ContentType.binary] and [HttpStatus.ok].
+  /// By default, uses [kContentTypeBinary] and [HttpStatus.ok].
   factory Response.stream(
     Stream<Uint8List> content, { //
-    ContentType? contentType,
+    MediaType? contentType,
     int statusCode,
   }) = _StreamBody;
 
@@ -48,14 +49,14 @@ abstract final class Response {
   /// that defines a `toJson()` method that returns a JSON type, or a [List] or
   /// [Map] of other JSON types).
   ///
-  /// By default, uses [ContentType.json] and [HttpStatus.ok].
+  /// By default, uses [kContentTypeJson] and [HttpStatus.ok].
   factory Response.json(Object? value, {int statusCode}) = _JsonBody;
 
   /// A [Response] with an _empty_ [body] and [HttpStatus.ok].
   static const Response emptyOk = _EmptyBody();
 
   /// Format of the body.
-  ContentType? get contentType;
+  MediaType? get contentType;
 
   /// Status code of the response.
   final int statusCode;
@@ -71,7 +72,7 @@ final class _EmptyBody extends Response {
   const _EmptyBody();
 
   @override
-  ContentType? get contentType => null;
+  MediaType? get contentType => null;
 
   @override
   Stream<Uint8List> get body => const Stream<Uint8List>.empty();
@@ -81,14 +82,14 @@ final class _StringBody extends Response {
   const _StringBody(
     this._content, { //
     super.statusCode,
-    ContentType? contentType,
+    MediaType? contentType,
   }) : _contentType = contentType;
 
   final String _content;
 
   @override
-  ContentType get contentType => _contentType ?? ContentType.text;
-  final ContentType? _contentType;
+  MediaType get contentType => _contentType ?? kContentTypeText;
+  final MediaType? _contentType;
 
   @override
   Stream<Uint8List> get body {
@@ -106,7 +107,7 @@ final class _JsonBody extends Response {
   final Object? _content;
 
   @override
-  ContentType get contentType => ContentType.json;
+  MediaType get contentType => kContentTypeJson;
   static final _utf8JsonEncoder = JsonUtf8Encoder();
 
   @override
@@ -126,12 +127,12 @@ final class _StreamBody extends Response {
   const _StreamBody(
     this._stream, { //
     super.statusCode,
-    ContentType? contentType,
+    MediaType? contentType,
   }) : _contentType = contentType;
 
   @override
-  ContentType get contentType => _contentType ?? ContentType.binary;
-  final ContentType? _contentType;
+  MediaType get contentType => _contentType ?? kContentTypeBinary;
+  final MediaType? _contentType;
 
   final Stream<Uint8List> _stream;
 

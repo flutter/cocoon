@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
@@ -77,7 +77,9 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
     log.debug('Updating buildId=${build.id} for result=${build.status}');
 
     // Add build fields that are stored in a separate compressed buffer.
-    build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
+    build.mergeFromBuffer(
+      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
+    );
     log.info('build ${build.toProto3Json()}');
 
     final fsTask = await fs.Task.fromFirestore(_firestore, userData.taskId);

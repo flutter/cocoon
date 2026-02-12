@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 
@@ -80,7 +80,9 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     var build = buildsPubSub.build;
 
     // Add build fields that are stored in a separate compressed buffer.
-    build.mergeFromBuffer(ZLibCodec().decode(buildsPubSub.buildLargeFields));
+    build.mergeFromBuffer(
+      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
+    );
 
     final builderName = build.builder.builder;
     final tagSet = BuildTags.fromStringPairs(build.tags);

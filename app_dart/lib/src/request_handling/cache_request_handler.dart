@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_common/core_extensions.dart';
@@ -12,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../request_handling/request_handler.dart';
 import '../service/cache_service.dart';
+import 'http_utils.dart';
 import 'response.dart';
 
 /// A [RequestHandler] for serving cached responses.
@@ -124,7 +124,7 @@ final class _CachedHttpResponse {
     return _CachedHttpResponse._(
       decoded['statusCode'] as int,
       base64.decode(decoded['body'] as String),
-      contentType != null ? ContentType.parse(contentType) : null,
+      contentType != null ? MediaType.parse(contentType) : null,
     );
   }
 
@@ -132,7 +132,7 @@ final class _CachedHttpResponse {
 
   final int statusCode;
   final Uint8List body;
-  final ContentType? contentType;
+  final MediaType? contentType;
 
   /// Returns a binary encoding of the HTTP response.
   Uint8List toBytes() {
@@ -140,8 +140,7 @@ final class _CachedHttpResponse {
       json.encode({
         'statusCode': statusCode,
         'body': base64.encode(body),
-        if (contentType case final contentType?)
-          'contentType': contentType.value,
+        if (contentType case final contentType?) 'contentType': '$contentType',
       }),
     );
 

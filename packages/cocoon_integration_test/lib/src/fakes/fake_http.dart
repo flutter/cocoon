@@ -61,7 +61,7 @@ abstract class FakeTransport {
 }
 
 // TODO(tvolkert): `implements Stream<Uint8List>` once HttpClientResponse does the same
-abstract class FakeInbound extends FakeTransport {
+abstract class FakeInbound extends FakeTransport implements Stream<Uint8List> {
   FakeInbound(String? body)
     : _body = body == null ? _Body.empty() : _Body.utf8(body);
 
@@ -122,6 +122,7 @@ abstract class FakeInbound extends FakeTransport {
     _body = _Body.rawBytes(value);
   }
 
+  @override
   StreamSubscription<Uint8List> listen(
     void Function(Uint8List event)? onData, {
     Function? onError,
@@ -137,11 +138,13 @@ abstract class FakeInbound extends FakeTransport {
     );
   }
 
+  @override
   Future<bool> any(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.any(test);
   }
 
+  @override
   Stream<Uint8List> asBroadcastStream({
     void Function(StreamSubscription<Uint8List> subscription)? onListen,
     void Function(StreamSubscription<Uint8List> subscription)? onCancel,
@@ -153,26 +156,31 @@ abstract class FakeInbound extends FakeTransport {
     );
   }
 
+  @override
   Stream<E> asyncExpand<E>(Stream<E>? Function(Uint8List event) convert) {
     _isStreamExposed = true;
     return _body.stream.asyncExpand<E>(convert);
   }
 
+  @override
   Stream<E> asyncMap<E>(FutureOr<E> Function(Uint8List event) convert) {
     _isStreamExposed = true;
     return _body.stream.asyncMap<E>(convert);
   }
 
+  @override
   Stream<R> cast<R>() {
     _isStreamExposed = true;
     return _body.stream.cast<R>();
   }
 
+  @override
   Future<bool> contains(Object? needle) {
     _isStreamExposed = true;
     return _body.stream.contains(needle);
   }
 
+  @override
   Stream<Uint8List> distinct([
     bool Function(Uint8List previous, Uint8List next)? equals,
   ]) {
@@ -180,42 +188,46 @@ abstract class FakeInbound extends FakeTransport {
     return _body.stream.distinct(equals);
   }
 
+  @override
   Future<E> drain<E>([E? futureValue]) {
     _isStreamExposed = true;
     return _body.stream.drain<E>(futureValue);
   }
 
+  @override
   Future<Uint8List> elementAt(int index) {
     _isStreamExposed = true;
     return _body.stream.elementAt(index);
   }
 
+  @override
   Future<bool> every(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.every(test);
   }
 
+  @override
   Stream<S> expand<S>(Iterable<S> Function(Uint8List element) convert) {
     _isStreamExposed = true;
     return _body.stream.expand(convert);
   }
 
+  @override
   Future<Uint8List> get first {
     _isStreamExposed = true;
     return _body.stream.first;
   }
 
+  @override
   Future<Uint8List> firstWhere(
     bool Function(Uint8List element) test, {
-    List<int> Function()? orElse,
+    Uint8List Function()? orElse,
   }) {
     _isStreamExposed = true;
-    return _body.stream.firstWhere(
-      test,
-      orElse: () => Uint8List.fromList(orElse!()),
-    );
+    return _body.stream.firstWhere(test, orElse: orElse);
   }
 
+  @override
   Future<S> fold<S>(
     S initialValue,
     S Function(S previous, Uint8List element) combine,
@@ -224,11 +236,13 @@ abstract class FakeInbound extends FakeTransport {
     return _body.stream.fold<S>(initialValue, combine);
   }
 
+  @override
   Future<dynamic> forEach(void Function(Uint8List element) action) {
     _isStreamExposed = true;
     return _body.stream.forEach(action);
   }
 
+  @override
   Stream<Uint8List> handleError(
     Function onError, {
     bool Function(dynamic error)? test,
@@ -237,100 +251,105 @@ abstract class FakeInbound extends FakeTransport {
     return _body.stream.handleError(onError, test: test);
   }
 
+  @override
   bool get isBroadcast {
     _isStreamExposed = true;
     return _body.stream.isBroadcast;
   }
 
+  @override
   Future<bool> get isEmpty {
     _isStreamExposed = true;
     return _body.stream.isEmpty;
   }
 
+  @override
   Future<String> join([String separator = '']) {
     _isStreamExposed = true;
     return _body.stream.join(separator);
   }
 
+  @override
   Future<Uint8List> get last {
     _isStreamExposed = true;
     return _body.stream.last;
   }
 
+  @override
   Future<Uint8List> lastWhere(
     bool Function(Uint8List element) test, {
     Uint8List Function()? orElse,
   }) {
     _isStreamExposed = true;
-    return _body.stream.lastWhere(
-      test,
-      orElse: () => Uint8List.fromList(orElse!()),
-    );
+    return _body.stream.lastWhere(test, orElse: orElse);
   }
 
+  @override
   Future<int> get length {
     _isStreamExposed = true;
     return _body.stream.length;
   }
 
+  @override
   Stream<S> map<S>(S Function(Uint8List event) convert) {
     _isStreamExposed = true;
     return _body.stream.map<S>(convert);
   }
 
+  @override
   Future<dynamic> pipe(StreamConsumer<Uint8List> streamConsumer) {
     _isStreamExposed = true;
-    return _body.stream
-        .map((Uint8List list) => list.toList())
-        .pipe(streamConsumer);
+    return _body.stream.pipe(streamConsumer);
   }
 
+  @override
   Future<Uint8List> reduce(
-    List<int> Function(Uint8List previous, Uint8List element) combine,
+    Uint8List Function(Uint8List previous, Uint8List element) combine,
   ) {
     _isStreamExposed = true;
-    return _body.stream.reduce(
-      (Uint8List previous, Uint8List element) =>
-          Uint8List.fromList(combine(previous, element)),
-    );
+    return _body.stream.reduce(combine);
   }
 
+  @override
   Future<Uint8List> get single {
     _isStreamExposed = true;
     return _body.stream.single;
   }
 
+  @override
   Future<Uint8List> singleWhere(
     bool Function(Uint8List element) test, {
-    List<int> Function()? orElse,
+    Uint8List Function()? orElse,
   }) {
     _isStreamExposed = true;
-    return _body.stream.singleWhere(
-      test,
-      orElse: () => Uint8List.fromList(orElse!()),
-    );
+    return _body.stream.singleWhere(test, orElse: orElse);
   }
 
+  @override
   Stream<Uint8List> skip(int count) {
     _isStreamExposed = true;
     return _body.stream.skip(count);
   }
 
+  @override
   Stream<Uint8List> skipWhile(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.skipWhile(test);
   }
 
+  @override
   Stream<Uint8List> take(int count) {
     _isStreamExposed = true;
     return _body.stream.take(count);
   }
 
+  @override
   Stream<Uint8List> takeWhile(bool Function(Uint8List element) test) {
     _isStreamExposed = true;
     return _body.stream.takeWhile(test);
   }
 
+  @override
   Stream<Uint8List> timeout(
     Duration timeLimit, {
     void Function(EventSink<Uint8List> sink)? onTimeout,
@@ -339,23 +358,25 @@ abstract class FakeInbound extends FakeTransport {
     return _body.stream.timeout(timeLimit, onTimeout: onTimeout);
   }
 
+  @override
   Future<List<Uint8List>> toList() {
     _isStreamExposed = true;
     return _body.stream.toList();
   }
 
+  @override
   Future<Set<Uint8List>> toSet() {
     _isStreamExposed = true;
     return _body.stream.toSet();
   }
 
-  Stream<S> transform<S>(StreamTransformer<List<int>, S> streamTransformer) {
+  @override
+  Stream<S> transform<S>(StreamTransformer<Uint8List, S> streamTransformer) {
     _isStreamExposed = true;
-    return _body.stream
-        .map((Uint8List list) => list.toList())
-        .transform<S>(streamTransformer);
+    return _body.stream.transform<S>(streamTransformer);
   }
 
+  @override
   Stream<Uint8List> where(bool Function(Uint8List event) test) {
     _isStreamExposed = true;
     return _body.stream.where(test);

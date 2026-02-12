@@ -12,8 +12,6 @@ import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
-import '../model/firestore/suppressed_test.dart';
-import '../model/firestore/tree_status_change.dart';
 import 'build_status_provider/commit_tasks_status.dart';
 
 /// Class that calculates the current build status.

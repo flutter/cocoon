@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:core';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
+import '../request_handling/http_utils.dart';
 import '../service/config.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify

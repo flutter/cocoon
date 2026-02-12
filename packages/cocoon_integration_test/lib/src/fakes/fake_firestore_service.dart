@@ -26,6 +26,14 @@ abstract base class _FakeInMemoryFirestoreService
   Iterable<Document> get documents => _documents.values;
   final _documents = <String, Document>{};
 
+  void reset() {
+    _documents.clear();
+    _transactions.clear();
+    _failOnWriteDocument.clear();
+    _failOnWriteCollection.clear();
+    rollbacks.clear();
+  }
+
   @protected
   String get expectedProjectId => Config.flutterGcpProjectId;
 
@@ -499,7 +507,11 @@ abstract base class _FakeInMemoryFirestoreService
     Transaction? transaction,
   }) async {
     var results = documents.where((document) {
-      final collection = p.basename(p.dirname(document.name!));
+      // Manual parsing of the collection ID from the document name.
+      // Expected format: projects/.../databases/.../documents/<collectionId>/<documentId>
+      final parts = document.name!.split('/');
+      if (parts.length < 2) return false;
+      final collection = parts[parts.length - 2];
       return collectionId == collection;
     });
 

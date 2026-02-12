@@ -15,16 +15,12 @@ import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
-import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
-import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
@@ -3202,6 +3198,9 @@ targets:
             // tabledataResource: tabledataResource,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
+            dynamicConfig: DynamicConfig.fromJson({
+              'contentAwareHashing': {'waitOnContentHash': false},
+            }),
           ),
           githubChecksService: GithubChecksService(
             config,
@@ -3470,6 +3469,9 @@ targets:
             // tabledataResource: tabledataResource,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
+            dynamicConfig: DynamicConfig.fromJson({
+              'contentAwareHashing': {'waitOnContentHash': false},
+            }),
           ),
           githubChecksService: GithubChecksService(
             config,
@@ -3590,6 +3592,9 @@ targets:
             // tabledataResource: tabledataResource,
             githubService: mockGithubService,
             githubClient: MockGitHub(),
+            dynamicConfig: DynamicConfig.fromJson({
+              'contentAwareHashing': {'waitOnContentHash': false},
+            }),
           ),
           githubChecksService: GithubChecksService(
             config,

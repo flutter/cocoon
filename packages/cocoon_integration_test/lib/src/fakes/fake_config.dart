@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
@@ -53,8 +52,7 @@ class FakeConfig implements Config {
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
     DynamicConfig? dynamicConfig,
-  }) : dynamicConfig =
-           dynamicConfig ?? DynamicConfig.fromJson(<String, Object?>{});
+  }) : dynamicConfig = dynamicConfig ?? DynamicConfig.fromLocalFileSystem();
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
@@ -235,10 +233,13 @@ class FakeConfig implements Config {
   CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');
 
   @override
-  List<String> get releaseBranches => releaseBranchesValue!;
+  List<String> get releaseBranches =>
+      releaseBranchesValue ?? const <String>['beta', 'stable'];
 
   @override
-  String get releaseCandidateBranchPath => releaseCandidateBranchPathValue!;
+  String get releaseCandidateBranchPath =>
+      releaseCandidateBranchPathValue ??
+      'bin/internal/release-candidate-branch.version';
 
   @override
   Future<List<String>> get releaseAccounts async => <String>[

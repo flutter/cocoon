@@ -8,7 +8,6 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/firestore/suppressed_test.dart';
 import '../request_handling/public_api_request_handler.dart';
 
 /// Request handler to get a list of suppressed tests.

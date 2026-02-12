@@ -2,11 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:path/path.dart' as p;
 
+import '../../request_handling/http_utils.dart';
 import '../../service/firestore.dart';
 import 'base.dart';
 

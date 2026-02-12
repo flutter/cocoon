@@ -3,11 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -30,7 +27,7 @@ abstract base class RequestHandler {
   /// should override one of [get] or [post], depending on which methods
   /// they support.
   Future<void> service(
-    HttpRequest request, {
+    Request request, {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
     final response = request.response;
@@ -39,10 +36,10 @@ abstract base class RequestHandler {
         Response body;
         switch (request.method) {
           case 'GET':
-            body = await get(Request.fromHttpRequest(request));
+            body = await get(request);
             break;
           case 'POST':
-            body = await post(Request.fromHttpRequest(request));
+            body = await post(request);
             break;
           default:
             throw MethodNotAllowed(request.method);
@@ -69,8 +66,8 @@ abstract base class RequestHandler {
   /// Responds (using [response]).
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond(HttpResponse response, Response body) async {
-    response.headers.contentType = body.contentType;
+  Future<void> _respond(RequestResponse response, Response body) async {
+    response.contentType = body.contentType;
     response.statusCode = body.statusCode;
     await response.addStream(body.body);
     await response.flush();
@@ -113,12 +110,15 @@ abstract base class RequestHandler {
 }
 
 /// A request received on a [RequestHandler].
-abstract mixin class Request {
-  /// Creates a [Request] by wrapping an existing [HttpRequest].
-  factory Request.fromHttpRequest(HttpRequest request) = _HttpRequest;
-
+abstract class Request {
   /// URL the request was served to, including query parameters.
   Uri get uri;
+
+  /// The HTTP method of the request.
+  String get method;
+
+  /// The response that will be sent to the client.
+  RequestResponse get response;
 
   /// Returns the value for the header with the given [name].
   ///
@@ -133,46 +133,25 @@ abstract mixin class Request {
   Future<Uint8List> readBodyAsBytes();
 
   /// Reads the body as a UTF-8 string.
-  Future<String> readBodyAsString() async {
-    return utf8.decode(await readBodyAsBytes());
-  }
+  Future<String> readBodyAsString();
 
   /// Reads the body as a JSON object.
-  Future<Map<String, Object?>> readBodyAsJson() async {
-    final bytes = await readBodyAsBytes();
-    return bytes.isEmpty ? {} : bytes.parseAsJsonObject();
-  }
+  Future<Map<String, Object?>> readBodyAsJson();
 }
 
-/// A request that is backed by an [HttpRequest].
-final class _HttpRequest with Request {
-  _HttpRequest(this._request);
-  final HttpRequest _request;
+abstract interface class RequestResponse {
+  int get statusCode;
+  set statusCode(int value);
 
-  @override
-  Uri get uri => _request.uri;
+  set contentType(MediaType? value);
 
-  @override
-  String? header(String name) {
-    return _request.headers.value(name);
-  }
-
-  @override
-  Future<Uint8List> readBodyAsBytes() async {
-    if (_bodyAsBytes case final previousCall?) {
-      return previousCall;
-    }
-    final builder = await _request.fold(BytesBuilder(copy: false), (
-      builder,
-      data,
-    ) {
-      builder.add(data);
-      return builder;
-    });
-    return _bodyAsBytes = builder.takeBytes();
-  }
-
-  Uint8List? _bodyAsBytes;
+  Future<void> addStream(Stream<Uint8List> stream);
+  Future<void> flush();
+  Future<void> close();
+  Future<dynamic> redirect(
+    Uri location, {
+    int status = HttpStatus.movedTemporarily,
+  });
 }
 
 /// A key that can be used to index a value within the request context.
@@ -184,13 +163,6 @@ class RequestKey<T> {
   const RequestKey(this.name);
 
   final String name;
-
-  static const RequestKey<HttpRequest> request = RequestKey<HttpRequest>(
-    'request',
-  );
-  static const RequestKey<HttpResponse> response = RequestKey<HttpResponse>(
-    'response',
-  );
 
   @override
   String toString() => '$runtimeType($name)';

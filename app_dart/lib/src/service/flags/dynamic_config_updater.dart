@@ -11,7 +11,6 @@ import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 import '../../../cocoon_service.dart';
 import '../../foundation/providers.dart' show Providers;
 import '../../foundation/typedefs.dart' show HttpClientProvider;
-import 'dynamic_config.dart';
 
 /// Responsibly polls for configuration changes to our service config.
 ///

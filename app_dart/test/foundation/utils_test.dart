@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_common/cocoon_common.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
@@ -12,6 +11,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/foundation/utils.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/request_handling/http_utils.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;

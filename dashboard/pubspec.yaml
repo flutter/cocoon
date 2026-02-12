@@ -17,8 +17,11 @@ dependencies:
   cached_network_image_platform_interface: ^4.1.1
   cocoon_common:
     path: ../packages/cocoon_common
+  cocoon_integration_test:
+    path: ../packages/cocoon_integration_test
   cocoon_service: ^0.0.0
   collection: any # Match Flutter SDK
+  crypto: ^3.0.7
   firebase_auth: ^6.0.0
   firebase_core: ^4.4.0 # Rolled by dependabot
   firebase_crashlytics: 5.0.6 # Rolled by dependabot
@@ -29,6 +32,7 @@ dependencies:
   google_sign_in: ^7.0.0
   google_sign_in_platform_interface: ^3.0.0
   google_sign_in_web: ^1.0.0
+  googleapis: ^14.0.0
   http: 1.6.0 # Rolled by dependabot
   intl: ^0.20.2
   json_annotation: ^4.9.0
@@ -42,8 +46,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^2.4.15 # Rolled by dependabot
-  cocoon_integration_test:
-    path: ../packages/cocoon_integration_test
+  cocoon_server_test: ^0.0.0
   dart_flutter_team_lints: 3.5.2
   flutter_test:
     sdk: flutter

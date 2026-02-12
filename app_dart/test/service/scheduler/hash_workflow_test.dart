@@ -12,7 +12,6 @@ import 'package:cocoon_service/src/model/firestore/content_aware_hash_builds.dar
 import 'package:cocoon_service/src/model/github/workflow_job.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
-import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart';
 import 'package:mockito/mockito.dart';
@@ -127,12 +126,14 @@ void main() {
   });
 
   test('only processes workflow events !waitOnContentHash', () async {
-    final job = workflowJobTemplate().toWorkflowJob();
-    // fakeContentAwareHash.nextStatusReturn = MergeQueueHashStatus.build;
+    config.dynamicConfig = DynamicConfig.fromJson({
+      ...config.dynamicConfig.toJson(),
+      'contentAwareHashing': {'waitOnContentHash': false},
+    });
 
+    final job = workflowJobTemplate().toWorkflowJob();
     await scheduler.processWorkflowJob(job);
 
-    // expect(fakeContentAwareHash.processWorkflowJobs, [job]);
     expect(firestore.documents, isNotEmpty);
     expect(
       firestore,

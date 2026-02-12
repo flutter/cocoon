@@ -13,7 +13,6 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
-import '../../service/firestore.dart';
 import 'base.dart';
 
 final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {

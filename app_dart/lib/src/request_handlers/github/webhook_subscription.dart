@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -16,7 +15,7 @@ import '../model/google/token_info.dart';
 import '../service/firebase_jwt_validator.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s from the Checkrun page.
+/// Class capable of authenticating [Request]s from the Checkrun page.
 ///
 /// There are two types of authentication this class supports:
 ///
@@ -77,7 +76,7 @@ interface class CheckrunAuthentication implements AuthenticationProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+  Future<AuthenticatedContext> authenticate(Request request) async {
     /// Walk through the providers
     for (final provider in _authenticationChain) {
       try {
@@ -90,7 +89,7 @@ interface class CheckrunAuthentication implements AuthenticationProvider {
   }
 }
 
-/// Class capable of authenticating [HttpRequest]s from the Checkrun page.
+/// Class capable of authenticating [Request]s from the Checkrun page.
 class GithubAuthentication implements AuthenticationProvider {
   GithubAuthentication({
     required CacheService cache,
@@ -118,10 +117,9 @@ class GithubAuthentication implements AuthenticationProvider {
   /// Attempt to validate a JWT as a Firebase token.
   /// And then validate whether the token has flutter repo write permissions.
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+  Future<AuthenticatedContext> authenticate(Request request) async {
     try {
-      if (request.headers.value('X-Flutter-IdToken')
-          case final idTokenFromHeader?) {
+      if (request.header('X-Flutter-IdToken') case final idTokenFromHeader?) {
         final token = await _validator.decodeAndVerify(idTokenFromHeader);
         log.info('authing with github.com');
         return authenticateGithub(

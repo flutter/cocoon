@@ -6,11 +6,12 @@ import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
-import 'package:flutter_dashboard/service/dev_cocoon.dart';
 import 'package:flutter_dashboard/service/firebase_auth.dart';
+import 'package:flutter_dashboard/service/integration_server_adapter.dart';
 import 'package:flutter_dashboard/state/build.dart';
 import 'package:flutter_dashboard/views/build_dashboard_page.dart';
 import 'package:flutter_dashboard/widgets/commit_box.dart';
@@ -552,10 +553,9 @@ void main() {
   testWidgets('TaskGridContainer with default Settings property sheet', (
     WidgetTester tester,
   ) async {
-    configureView(tester.view);
     await precacheTaskIcons(tester);
     final buildState = BuildState(
-      cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+      cocoonService: IntegrationServerAdapter(IntegrationServer()),
       authService: fakeAuthService,
     );
     void listener1() {}
@@ -593,7 +593,7 @@ void main() {
       configureView(tester.view);
       await precacheTaskIcons(tester);
       final buildState = BuildState(
-        cocoonService: DevelopmentCocoonService(DateTime.utc(2020)),
+        cocoonService: IntegrationServerAdapter(IntegrationServer()),
         authService: fakeAuthService,
       );
       void listener1() {}

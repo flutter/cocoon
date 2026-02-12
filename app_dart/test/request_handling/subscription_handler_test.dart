@@ -10,6 +10,7 @@ import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:cocoon_service/src/request_handling/subscription_handler.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -34,7 +35,7 @@ void main() {
       server.listen((HttpRequest request) {
         runZoned<dynamic>(() {
           return ss.fork(() {
-            return subscription.service(request);
+            return subscription.service(request.toRequest());
           });
         });
       });

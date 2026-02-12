@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -14,6 +13,7 @@ import 'package:meta/meta.dart';
 
 import '../model/gerrit/commit.dart';
 import '../request_handling/exceptions.dart';
+import '../request_handling/http_utils.dart';
 import 'config.dart';
 
 /// Communicates with gerrit APIs https://gerrit-review.googlesource.com/Documentation/rest-api-projects.html

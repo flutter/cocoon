@@ -5,11 +5,10 @@
 /// @docImport 'package:cocoon_service/src/service/scheduler.dart';
 library;
 
-import 'dart:io';
-
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
+import '../../request_handling/http_utils.dart';
 import '../../request_handling/response.dart';
 
 /// Possible results for [Scheduler.processCheckRun].

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:cocoon_common/task_status.dart';
@@ -34,6 +33,7 @@ import '../model/github/checks.dart' as cocoon_checks;
 import '../model/github/checks.dart' show MergeGroup;
 import '../model/github/workflow_job.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
+import '../request_handling/http_utils.dart';
 import 'big_query.dart';
 import 'cache_service.dart';
 import 'config.dart';

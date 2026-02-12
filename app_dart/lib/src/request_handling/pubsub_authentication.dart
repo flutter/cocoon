@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:googleapis/oauth2/v2.dart';
@@ -14,7 +13,7 @@ import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s for PubSub messages.
+/// Class capable of authenticating [Request]s for PubSub messages.
 ///
 /// This class implements an ACL on a [RequestHandler] to ensure only automated
 /// systems can access the endpoints.
@@ -58,8 +57,8 @@ class PubsubAuthenticationProvider implements AuthenticationProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    final idToken = request.headers.value(HttpHeaders.authorizationHeader);
+  Future<AuthenticatedContext> authenticate(Request request) async {
+    final idToken = request.header(HttpHeaders.authorizationHeader);
 
     final clientContext = clientContextProvider();
 

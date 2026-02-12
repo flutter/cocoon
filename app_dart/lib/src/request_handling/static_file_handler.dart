@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show ContentType;
 import 'dart:typed_data';
 
 import 'package:file/file.dart';
@@ -54,7 +53,7 @@ final class StaticFileHandler extends RequestHandler {
           'application/octet-stream';
       return Response.stream(
         file.openRead().cast<Uint8List>(),
-        contentType: ContentType.parse(mimeType),
+        contentType: MediaType.parse(mimeType),
       );
     } else {
       throw NotFoundException(resultPath);

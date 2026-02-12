@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:http/http.dart' as http;
 
 import '../testing.dart';
@@ -32,7 +33,7 @@ class IntegrationHttpClient extends http.BaseClient {
       fakeRequest.headers.add(key, value);
     });
 
-    await server.server(fakeRequest);
+    await server.server(fakeRequest.toRequest());
 
     final responseHeaders = <String, String>{};
     fakeResponse.headers.forEach((name, values) {

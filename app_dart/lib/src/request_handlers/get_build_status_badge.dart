@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
 import 'package:meta/meta.dart';
 
+import '../request_handling/http_utils.dart';
 import '../request_handling/request_handler.dart';
 import '../request_handling/response.dart';
 import 'get_build_status.dart';
@@ -48,11 +48,9 @@ final class GetBuildStatusBadge extends GetBuildStatus {
   Future<Response> get(Request request) async {
     return Response.string(
       generateSVG(await super.createResponse(request)),
-      contentType: _imageSvgXml,
+      contentType: kImageSvgXml,
     );
   }
-
-  static final _imageSvgXml = ContentType.parse('image/svg+xml');
 
   @visibleForTesting
   String generateSVG(rpc_model.BuildStatusResponse response) {

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
@@ -16,7 +15,7 @@ import '../model/google/token_info.dart';
 import '../service/firebase_jwt_validator.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [HttpRequest]s from the Dashboard
+/// Class capable of authenticating [Request]s from the Dashboard
 ///
 /// There are two types of authentication this class supports:
 ///
@@ -76,7 +75,7 @@ interface class DashboardAuthentication implements AuthenticationProvider {
   /// This will throw an [Unauthenticated] exception if the request is
   /// unauthenticated.
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+  Future<AuthenticatedContext> authenticate(Request request) async {
     /// Walk through the providers
     for (final provider in _authenticationChain) {
       try {
@@ -116,10 +115,9 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
   /// NOTE: Until we fully switch over to Firebase; we could have a mix of JWT
   /// coming into cocoon. This should not be fatal.
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
+  Future<AuthenticatedContext> authenticate(Request request) async {
     try {
-      if (request.headers.value('X-Flutter-IdToken')
-          case final idTokenFromHeader?) {
+      if (request.header('X-Flutter-IdToken') case final idTokenFromHeader?) {
         final token = await _validator.decodeAndVerify(idTokenFromHeader);
         log.info('authed with firebase: ${token.email}');
         return authenticateFirebase(
@@ -182,8 +180,8 @@ class DashboardCronAuthentication implements AuthenticationProvider {
   final ClientContextProvider _clientContextProvider;
 
   @override
-  Future<AuthenticatedContext> authenticate(HttpRequest request) async {
-    if (request.headers.value('X-Appengine-Cron') == 'true') {
+  Future<AuthenticatedContext> authenticate(Request request) async {
+    if (request.header('X-Appengine-Cron') == 'true') {
       return AuthenticatedContext(
         clientContext: _clientContextProvider(),
         email: 'CRON_JOB',
