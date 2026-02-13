@@ -24,7 +24,7 @@ This phase focuses on updating the internal and external data models to support 
 
 This phase integrates the new field into the core logic and ensures it is returned by the API.
 
-- [ ] Task: Update `UnifiedCheckRun.markConclusion` Logic
+- [x] Task: Update `UnifiedCheckRun.markConclusion` Logic
     - [ ] Update `markConclusion` in `app_dart/lib/src/service/firestore/unified_check_run.dart` to assign `state.buildNumber` to `presubmitCheck.buildNumber`.
     - [ ] Add/update tests in `app_dart/test/service/firestore/unified_check_run_test.dart` to verify the build number is correctly saved to Firestore.
 - [ ] Task: Update `GetPresubmitChecks` API Handler
