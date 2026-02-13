@@ -150,6 +150,11 @@ class _PreSubmitViewState extends State<PreSubmitView> {
         (pr != null ? 'Pending' : 'Loading...');
     final statusColor = _getStatusColor(statusText, isDark);
 
+    final isLatestSha =
+        pr != null &&
+        _availableSummaries.isNotEmpty &&
+        sha == _availableSummaries.first.commitSha;
+
     return Scaffold(
       appBar: CocoonAppBar(
         title: Row(
@@ -203,15 +208,17 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             ),
           ),
           const SizedBox(width: 8),
-          TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Re-run failed'),
-            style: TextButton.styleFrom(
-              foregroundColor: isDark ? Colors.white : Colors.black87,
+          if (isLatestSha) ...[
+            TextButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Re-run failed'),
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? Colors.white : Colors.black87,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
+            const SizedBox(width: 8),
+          ],
         ],
       ),
       drawer: const DashboardNavigationDrawer(),
@@ -228,6 +235,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                           _ChecksSidebar(
                             guardResponse: _guardResponse!,
                             selectedCheck: _selectedCheck,
+                            isLatestSha: isLatestSha,
                             onCheckSelected: (name) {
                               setState(() {
                                 _selectedCheck = name;
@@ -528,11 +536,13 @@ class _ChecksSidebar extends StatefulWidget {
   const _ChecksSidebar({
     required this.guardResponse,
     this.selectedCheck,
+    this.isLatestSha = false,
     required this.onCheckSelected,
   });
 
   final PresubmitGuardResponse guardResponse;
   final String? selectedCheck;
+  final bool isLatestSha;
   final ValueChanged<String> onCheckSelected;
 
   @override
@@ -594,6 +604,7 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                           name: entry.key,
                           status: entry.value,
                           isSelected: isSelected,
+                          isLatestSha: widget.isLatestSha,
                           onTap: () => widget.onCheckSelected(entry.key),
                         );
                       }),
@@ -614,12 +625,14 @@ class _CheckItem extends StatelessWidget {
     required this.name,
     required this.status,
     required this.isSelected,
+    this.isLatestSha = false,
     required this.onTap,
   });
 
   final String name;
   final TaskStatus status;
   final bool isSelected;
+  final bool isLatestSha;
   final VoidCallback onTap;
 
   @override
@@ -664,8 +677,9 @@ class _CheckItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (status == TaskStatus.failed ||
-                status == TaskStatus.infraFailure)
+            if (isLatestSha &&
+                (status == TaskStatus.failed ||
+                    status == TaskStatus.infraFailure))
               TextButton(
                 onPressed: () {},
                 child: Text(

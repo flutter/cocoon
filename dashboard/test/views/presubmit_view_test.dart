@@ -228,6 +228,10 @@ void main() {
 
     expect(find.textContaining('Test failed: Unit Tests'), findsOneWidget);
     expect(find.textContaining('Status: Failed'), findsOneWidget);
+
+    // Verify rerun buttons are visible for latest SHA
+    expect(find.text('Re-run failed'), findsOneWidget);
+    expect(find.text('Re-run'), findsOneWidget);
   });
 
   testWidgets('PreSubmitView SHA dropdown switches mock SHAs', (
@@ -265,7 +269,9 @@ void main() {
 
     expect(find.byType(ShaSelector), findsOneWidget);
     expect(find.textContaining('2_face5'), findsOneWidget);
-    expect(find.text('Re-run failed'), findsOneWidget);
+    // Button should be hidden for older SHAs
+    expect(find.text('Re-run failed'), findsNothing);
+    expect(find.text('Re-run'), findsNothing);
   });
 
   testWidgets('PreSubmitView functional sha route fetches check details', (
