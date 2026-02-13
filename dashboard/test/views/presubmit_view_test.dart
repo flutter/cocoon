@@ -64,7 +64,7 @@ void main() {
         pr: anyNamed('pr'),
       ),
     ).thenAnswer(
-      (_) async => CocoonResponse.data([
+      (_) async => const CocoonResponse.data([
         PresubmitGuardSummary(
           commitSha: 'mock_sha_1_decaf',
           creationTime: 123456789,

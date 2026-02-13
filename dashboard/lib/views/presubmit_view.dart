@@ -116,13 +116,14 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     final isDark = theme.brightness == Brightness.dark;
     final buildState = Provider.of<BuildState>(context);
 
-    List<PresubmitGuardSummary> availableSummaries = pr != null
+    var availableSummaries = pr != null
         ? _availableSummaries
         : buildState.statuses.map((s) {
             return PresubmitGuardSummary(
               commitSha: s.commit.sha,
               creationTime: s.commit.timestamp.toInt(),
-              guardStatus: GuardStatus.waitingForBackfill, // Commits don't have guard status in status view
+              guardStatus: GuardStatus
+                  .waitingForBackfill, // Commits don't have guard status in status view
             );
           }).toList();
 

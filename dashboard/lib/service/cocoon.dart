@@ -133,10 +133,7 @@ abstract class CocoonService {
 
   /// Gets the presubmit guard summaries for a given [repo] and [pr].
   Future<CocoonResponse<List<PresubmitGuardSummary>>>
-  fetchPresubmitGuardSummaries({
-    required String repo,
-    required String pr,
-  });
+  fetchPresubmitGuardSummaries({required String repo, required String pr});
 }
 
 /// Wrapper class for data this state serves.
