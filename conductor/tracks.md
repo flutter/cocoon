@@ -12,6 +12,6 @@
 
 ---
 
-- [~] **Track: Add optional buildNumber to presubmitCheck and fill it on processing checkrun completed**
+- [x] **Track: Add optional buildNumber to presubmitCheck and fill it on processing checkrun completed**
 *Link: [./tracks/add_build_number_20260212/](./tracks/add_build_number_20260212/)*
 
