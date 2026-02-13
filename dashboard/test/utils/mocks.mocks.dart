@@ -635,6 +635,29 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
                 ),
           )
           as _i8.Future<_i3.CocoonResponse<List<_i12.PresubmitCheckResponse>>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<List<_i12.PresubmitGuardSummary>>>
+  fetchPresubmitGuardSummaries({required String? repo, required String? pr}) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchPresubmitGuardSummaries, [], {
+              #repo: repo,
+              #pr: pr,
+            }),
+            returnValue:
+                _i8.Future<
+                  _i3.CocoonResponse<List<_i12.PresubmitGuardSummary>>
+                >.value(
+                  _FakeCocoonResponse_2<List<_i12.PresubmitGuardSummary>>(
+                    this,
+                    Invocation.method(#fetchPresubmitGuardSummaries, [], {
+                      #repo: repo,
+                      #pr: pr,
+                    }),
+                  ),
+                ),
+          )
+          as _i8.Future<_i3.CocoonResponse<List<_i12.PresubmitGuardSummary>>>);
 }
 
 /// A class which mocks [BuildState].
@@ -801,6 +824,20 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
             returnValue: _i8.Future<bool>.value(false),
           )
           as _i8.Future<bool>);
+
+  @override
+  _i8.Future<List<_i12.PresubmitGuardSummary>?> fetchPresubmitGuardSummaries({
+    required String? repo,
+    required String? pr,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchPresubmitGuardSummaries, [], {
+              #repo: repo,
+              #pr: pr,
+            }),
+            returnValue: _i8.Future<List<_i12.PresubmitGuardSummary>?>.value(),
+          )
+          as _i8.Future<List<_i12.PresubmitGuardSummary>?>);
 
   @override
   _i8.Future<bool> updateTestSuppression({

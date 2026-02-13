@@ -38,6 +38,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   PresubmitGuardResponse? _guardResponse;
   bool _isLoading = false;
   String? _selectedCheck;
+  List<String> _availableShas = [];
 
   @override
   void initState() {
@@ -46,19 +47,43 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     repo = params['repo'] ?? 'flutter';
     sha = params['sha'];
     pr = params['pr'];
-
-    if (pr == '123' || (sha != null && sha!.startsWith('mock_sha_'))) {
-      // Use a default mock SHA for the PR route if none selected
-      sha ??= 'mock_sha_1_long_hash_value';
-      pr ??= '123';
-    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (sha != null && _guardResponse == null && !_isLoading) {
+    if (pr != null && _availableShas.isEmpty && !_isLoading) {
+      unawaited(_fetchAvailableShas());
+    } else if (sha != null && _guardResponse == null && !_isLoading) {
       unawaited(_fetchGuardStatus());
+    }
+  }
+
+  Future<void> _fetchAvailableShas() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final buildState = Provider.of<BuildState>(context, listen: false);
+    final summaries = await buildState.fetchPresubmitGuardSummaries(
+      repo: repo,
+      pr: pr!,
+    );
+    if (mounted && summaries != null) {
+      setState(() {
+        _availableShas = summaries.map((s) => s.commitSha).toList();
+        // If no SHA was specified, default to the latest one
+        if (sha == null && _availableShas.isNotEmpty) {
+          sha = _availableShas.first;
+        }
+        _isLoading = false;
+      });
+      if (sha != null) {
+        unawaited(_fetchGuardStatus());
+      }
+    } else if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -91,17 +116,13 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     final isDark = theme.brightness == Brightness.dark;
     final buildState = Provider.of<BuildState>(context);
 
-    final availableShas = pr != null
-        ? [
-            'mock_sha_1_long_hash_value',
-            'mock_sha_2_long_hash_value',
-            'mock_sha_3_long_hash_value',
-          ]
+    List<String> availableShas = pr != null
+        ? _availableShas
         : buildState.statuses.map((s) => s.commit.sha).toList();
 
     // Ensure current sha is in the list
     if (sha != null && !availableShas.contains(sha)) {
-      availableShas.insert(0, sha!);
+      availableShas = [sha!, ...availableShas];
     }
 
     final title = _guardResponse != null

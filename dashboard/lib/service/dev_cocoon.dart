@@ -244,6 +244,31 @@ class DevelopmentCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<PresubmitGuardSummary>>>
+  fetchPresubmitGuardSummaries({
+    required String repo,
+    required String pr,
+  }) async {
+    return CocoonResponse.data([
+      PresubmitGuardSummary(
+        commitSha: 'mock_sha_1_long_hash_value',
+        creationTime: now.millisecondsSinceEpoch,
+        guardStatus: GuardStatus.succeeded,
+      ),
+      PresubmitGuardSummary(
+        commitSha: 'mock_sha_2_long_hash_value',
+        creationTime: now.millisecondsSinceEpoch,
+        guardStatus: GuardStatus.failed,
+      ),
+      PresubmitGuardSummary(
+        commitSha: 'mock_sha_3_long_hash_value',
+        creationTime: now.millisecondsSinceEpoch,
+        guardStatus: GuardStatus.inProgress,
+      ),
+    ]);
+  }
+
+  @override
   Future<CocoonResponse<void>> updateTreeStatus({
     required String idToken,
     required String repo,

@@ -59,6 +59,31 @@ void main() {
     ).thenAnswer((_) async => const CocoonResponse.data([]));
 
     when(
+      mockCocoonService.fetchPresubmitGuardSummaries(
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+      ),
+    ).thenAnswer(
+      (_) async => CocoonResponse.data([
+        PresubmitGuardSummary(
+          commitSha: 'mock_sha_1_long_hash_value',
+          creationTime: 0,
+          guardStatus: GuardStatus.succeeded,
+        ),
+        PresubmitGuardSummary(
+          commitSha: 'mock_sha_2_long_hash_value',
+          creationTime: 0,
+          guardStatus: GuardStatus.failed,
+        ),
+        PresubmitGuardSummary(
+          commitSha: 'mock_sha_3_long_hash_value',
+          creationTime: 0,
+          guardStatus: GuardStatus.inProgress,
+        ),
+      ]),
+    );
+
+    when(
       mockCocoonService.fetchPresubmitGuard(
         repo: anyNamed('repo'),
         sha: anyNamed('sha'),

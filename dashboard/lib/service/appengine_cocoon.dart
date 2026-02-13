@@ -366,6 +366,43 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<List<PresubmitGuardSummary>>>
+  fetchPresubmitGuardSummaries({
+    required String repo,
+    required String pr,
+  }) async {
+    final queryParameters = <String, String?>{'repo': repo, 'pr': pr};
+    final getSummariesUrl = apiEndpoint(
+      '/api/get-presubmit-guard-summaries',
+      queryParameters: queryParameters,
+    );
+
+    final response = await _client.get(getSummariesUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/get-presubmit-guard-summaries returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
+      return CocoonResponse.data(
+        jsonResponse
+            .cast<Map<String, Object?>>()
+            .map(PresubmitGuardSummary.fromJson)
+            .toList(),
+      );
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
   Future<CocoonResponse<void>> updateTreeStatus({
     required String idToken,
     required String repo,
