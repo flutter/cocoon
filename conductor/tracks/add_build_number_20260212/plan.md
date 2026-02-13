@@ -14,7 +14,7 @@ This phase focuses on updating the internal and external data models to support 
     - [ ] Add `fieldBuildNumber` constant and `buildNumber` getter/setter to `PresubmitCheck` in `app_dart/lib/src/model/firestore/presubmit_check.dart`.
     - [ ] Update `fromDocument`, `init`, and `toJson` (or equivalent) to handle the new field.
     - [ ] Add unit tests for serialization/deserialization of `buildNumber`.
-- [ ] Task: Update `PresubmitCheckResponse` RPC Model
+- [x] Task: Update `PresubmitCheckResponse` RPC Model
     - [ ] Add `int? buildNumber` to `PresubmitCheckResponse` in `packages/cocoon_common/lib/src/rpc_model/presubmit_check_response.dart`.
     - [ ] Run `dart run build_runner build --delete-conflicting-outputs` in `packages/cocoon_common/` to regenerate JSON serialization code.
     - [ ] Add unit tests for the RPC model.

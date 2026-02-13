@@ -10,7 +10,11 @@ import 'base.dart';
 part 'presubmit_check_response.g.dart';
 
 /// RPC model for a presubmit check.
-@JsonSerializable(checked: true, fieldRename: FieldRename.snake)
+@JsonSerializable(
+  checked: true,
+  fieldRename: FieldRename.snake,
+  includeIfNull: false,
+)
 @immutable
 final class PresubmitCheckResponse extends Model {
   /// Creates a [PresubmitCheckResponse] with the given properties.
@@ -22,6 +26,7 @@ final class PresubmitCheckResponse extends Model {
     this.endTime,
     required this.status,
     this.summary,
+    this.buildNumber,
   });
 
   /// Creates a [PresubmitCheckResponse] from [json] representation.
@@ -53,6 +58,9 @@ final class PresubmitCheckResponse extends Model {
 
   /// A brief summary of the check result or link to logs.
   final String? summary;
+
+  /// The LUCI build number.
+  final int? buildNumber;
 
   @override
   Map<String, Object?> toJson() => _$PresubmitCheckResponseToJson(this);
