@@ -169,5 +169,19 @@ void main() {
 
       expect(check.status, TaskStatus.succeeded);
     });
+
+    test('buildNumber setter updates fields', () {
+      final check = PresubmitCheck.init(
+        buildName: 'linux',
+        checkRunId: 123,
+        creationTime: 1000,
+      );
+
+      check.buildNumber = 789;
+      expect(check.buildNumber, 789);
+
+      check.buildNumber = null;
+      expect(check.buildNumber, isNull);
+    });
   });
 }

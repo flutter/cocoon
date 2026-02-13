@@ -172,6 +172,7 @@ void main() {
           attemptNumber: 1,
           startTime: 2000,
           endTime: 3000,
+          buildNumber: 456,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -194,6 +195,7 @@ void main() {
         );
         expect(checkDoc.status, TaskStatus.succeeded);
         expect(checkDoc.endTime, 3000);
+        expect(checkDoc.buildNumber, 456);
       });
 
       test(

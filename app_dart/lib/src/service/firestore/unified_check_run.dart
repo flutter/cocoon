@@ -475,6 +475,7 @@ final class UnifiedCheckRun {
         presubmitGuard.failedBuilds = failed;
         presubmitCheck.endTime = state.endTime!;
         presubmitCheck.summary = state.summary;
+        presubmitCheck.buildNumber = state.buildNumber;
       }
       builds[state.buildName] = status;
       presubmitGuard.builds = builds;

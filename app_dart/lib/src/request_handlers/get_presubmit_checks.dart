@@ -88,6 +88,7 @@ final class GetPresubmitChecks extends ApiRequestHandler {
           endTime: check.endTime,
           status: check.status.value,
           summary: check.summary,
+          buildNumber: check.buildNumber,
         ),
     ];
 

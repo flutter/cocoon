@@ -85,6 +85,7 @@ void main() {
         startTime: 110,
         endTime: 120,
         summary: 'all good',
+        buildNumber: 456,
       );
       await firestoreService.writeViaTransaction(
         documentsToWrites([check], exists: false),
@@ -101,6 +102,7 @@ void main() {
       expect(checks[0].attemptNumber, 1);
       expect(checks[0].buildName, 'linux');
       expect(checks[0].status, 'Succeeded');
+      expect(checks[0].buildNumber, 456);
     });
 
     test('returns multiple checks in descending order', () async {

@@ -233,6 +233,14 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     fields[fieldEndTime] = endTime.toValue();
   }
 
+  set buildNumber(int? buildNumber) {
+    if (buildNumber == null) {
+      fields.remove(fieldBuildNumber);
+    } else {
+      fields[fieldBuildNumber] = buildNumber.toValue();
+    }
+  }
+
   set summary(String? summary) {
     if (summary == null) {
       fields.remove(fieldSummary);

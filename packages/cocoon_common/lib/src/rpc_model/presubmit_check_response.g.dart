@@ -23,6 +23,7 @@ PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
       endTime: $checkedConvert('end_time', (v) => (v as num?)?.toInt()),
       status: $checkedConvert('status', (v) => v as String),
       summary: $checkedConvert('summary', (v) => v as String?),
+      buildNumber: $checkedConvert('build_number', (v) => (v as num?)?.toInt()),
     );
     return val;
   },
@@ -32,6 +33,7 @@ PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
     'creationTime': 'creation_time',
     'startTime': 'start_time',
     'endTime': 'end_time',
+    'buildNumber': 'build_number',
   },
 );
 
@@ -41,8 +43,9 @@ Map<String, dynamic> _$PresubmitCheckResponseToJson(
   'attempt_number': instance.attemptNumber,
   'build_name': instance.buildName,
   'creation_time': instance.creationTime,
-  'start_time': instance.startTime,
-  'end_time': instance.endTime,
+  'start_time': ?instance.startTime,
+  'end_time': ?instance.endTime,
   'status': instance.status,
-  'summary': instance.summary,
+  'summary': ?instance.summary,
+  'build_number': ?instance.buildNumber,
 };
