@@ -27,7 +27,7 @@ This phase integrates the new field into the core logic and ensures it is return
 - [x] Task: Update `UnifiedCheckRun.markConclusion` Logic
     - [ ] Update `markConclusion` in `app_dart/lib/src/service/firestore/unified_check_run.dart` to assign `state.buildNumber` to `presubmitCheck.buildNumber`.
     - [ ] Add/update tests in `app_dart/test/service/firestore/unified_check_run_test.dart` to verify the build number is correctly saved to Firestore.
-- [ ] Task: Update `GetPresubmitChecks` API Handler
+- [x] Task: Update `GetPresubmitChecks` API Handler
     - [ ] Update `GetPresubmitChecks` in `app_dart/lib/src/request_handlers/get_presubmit_checks.dart` to map `PresubmitCheck.buildNumber` to `PresubmitCheckResponse.buildNumber`.
     - [ ] Update handler tests to verify the API response contains the build number.
 - [ ] Task: Conductor - User Manual Verification 'Backend Logic and API Updates' (Protocol in workflow.md)
