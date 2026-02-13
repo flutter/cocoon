@@ -30,4 +30,4 @@ This phase integrates the new field into the core logic and ensures it is return
 - [x] Task: Update `GetPresubmitChecks` API Handler
     - [ ] Update `GetPresubmitChecks` in `app_dart/lib/src/request_handlers/get_presubmit_checks.dart` to map `PresubmitCheck.buildNumber` to `PresubmitCheckResponse.buildNumber`.
     - [ ] Update handler tests to verify the API response contains the build number.
-- [ ] Task: Conductor - User Manual Verification 'Backend Logic and API Updates' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Backend Logic and API Updates' (Protocol in workflow.md)
