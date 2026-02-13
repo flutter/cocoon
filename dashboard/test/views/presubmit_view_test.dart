@@ -66,18 +66,18 @@ void main() {
     ).thenAnswer(
       (_) async => CocoonResponse.data([
         PresubmitGuardSummary(
-          commitSha: 'mock_sha_1_long_hash_value',
-          creationTime: 0,
+          commitSha: 'mock_sha_1_decaf',
+          creationTime: 123456789,
           guardStatus: GuardStatus.succeeded,
         ),
         PresubmitGuardSummary(
-          commitSha: 'mock_sha_2_long_hash_value',
-          creationTime: 0,
+          commitSha: 'mock_sha_2_face5',
+          creationTime: 123456789,
           guardStatus: GuardStatus.failed,
         ),
         PresubmitGuardSummary(
-          commitSha: 'mock_sha_3_long_hash_value',
-          creationTime: 0,
+          commitSha: 'mock_sha_3_cafe5',
+          creationTime: 123456789,
           guardStatus: GuardStatus.inProgress,
         ),
       ]),
@@ -158,7 +158,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    const mockSha = 'mock_sha_1_long_hash_value';
+    const mockSha = 'mock_sha_1_decaf';
     const guardResponse = PresubmitGuardResponse(
       prNum: 123,
       checkRunId: 456,
@@ -253,12 +253,18 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     // Select the second item in the dropdown menu (mock_sha_2...)
-    await tester.tap(find.textContaining('mock_sha_2').last);
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is DropdownMenuItem<String> &&
+            widget.value == 'mock_sha_2_face5',
+      ),
+    );
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(ShaSelector), findsOneWidget);
-    expect(find.textContaining('mock_sha_2'), findsOneWidget);
+    expect(find.textContaining('2_face5'), findsOneWidget);
     expect(find.text('Re-run failed'), findsOneWidget);
   });
 

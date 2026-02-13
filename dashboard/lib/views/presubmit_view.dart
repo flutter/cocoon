@@ -38,7 +38,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   PresubmitGuardResponse? _guardResponse;
   bool _isLoading = false;
   String? _selectedCheck;
-  List<String> _availableShas = [];
+  List<PresubmitGuardSummary> _availableSummaries = [];
 
   @override
   void initState() {
@@ -52,7 +52,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (pr != null && _availableShas.isEmpty && !_isLoading) {
+    if (pr != null && _availableSummaries.isEmpty && !_isLoading) {
       unawaited(_fetchAvailableShas());
     } else if (sha != null && _guardResponse == null && !_isLoading) {
       unawaited(_fetchGuardStatus());
@@ -70,10 +70,10 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     );
     if (mounted && summaries != null) {
       setState(() {
-        _availableShas = summaries.map((s) => s.commitSha).toList();
+        _availableSummaries = summaries;
         // If no SHA was specified, default to the latest one
-        if (sha == null && _availableShas.isNotEmpty) {
-          sha = _availableShas.first;
+        if (sha == null && _availableSummaries.isNotEmpty) {
+          sha = _availableSummaries.first.commitSha;
         }
         _isLoading = false;
       });
@@ -116,13 +116,26 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     final isDark = theme.brightness == Brightness.dark;
     final buildState = Provider.of<BuildState>(context);
 
-    List<String> availableShas = pr != null
-        ? _availableShas
-        : buildState.statuses.map((s) => s.commit.sha).toList();
+    List<PresubmitGuardSummary> availableSummaries = pr != null
+        ? _availableSummaries
+        : buildState.statuses.map((s) {
+            return PresubmitGuardSummary(
+              commitSha: s.commit.sha,
+              creationTime: s.commit.timestamp.toInt(),
+              guardStatus: GuardStatus.waitingForBackfill, // Commits don't have guard status in status view
+            );
+          }).toList();
 
     // Ensure current sha is in the list
-    if (sha != null && !availableShas.contains(sha)) {
-      availableShas = [sha!, ...availableShas];
+    if (sha != null && !availableSummaries.any((s) => s.commitSha == sha)) {
+      availableSummaries = [
+        PresubmitGuardSummary(
+          commitSha: sha!,
+          creationTime: 0,
+          guardStatus: GuardStatus.waitingForBackfill,
+        ),
+        ...availableSummaries,
+      ];
     }
 
     final title = _guardResponse != null
@@ -177,7 +190,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
           SizedBox(
             width: 250,
             child: ShaSelector(
-              availableShas: availableShas,
+              availableShas: availableSummaries,
               selectedSha: sha,
               onShaSelected: (newSha) {
                 setState(() {

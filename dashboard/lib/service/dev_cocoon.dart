@@ -251,18 +251,18 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     return CocoonResponse.data([
       PresubmitGuardSummary(
-        commitSha: 'mock_sha_1_long_hash_value',
+        commitSha: 'mock_sha_1_decaf',
         creationTime: now.millisecondsSinceEpoch,
         guardStatus: GuardStatus.succeeded,
       ),
       PresubmitGuardSummary(
-        commitSha: 'mock_sha_2_long_hash_value',
-        creationTime: now.millisecondsSinceEpoch,
+        commitSha: 'mock_sha_2_face5',
+        creationTime: now.millisecondsSinceEpoch - 100000,
         guardStatus: GuardStatus.failed,
       ),
       PresubmitGuardSummary(
-        commitSha: 'mock_sha_3_long_hash_value',
-        creationTime: now.millisecondsSinceEpoch,
+        commitSha: 'mock_sha_3_cafe5',
+        creationTime: now.millisecondsSinceEpoch - 200000,
         guardStatus: GuardStatus.inProgress,
       ),
     ]);
