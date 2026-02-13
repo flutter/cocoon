@@ -19,6 +19,7 @@ class PresubmitCheckState {
   final int? startTime;
   final int? endTime;
   final String? summary;
+  final int? buildNumber;
 
   const PresubmitCheckState({
     required this.buildName,
@@ -27,6 +28,7 @@ class PresubmitCheckState {
     this.startTime,
     this.endTime,
     this.summary,
+    this.buildNumber,
   });
 }
 
@@ -38,5 +40,6 @@ extension BuildToPresubmitCheckState on bbv2.Build {
     startTime: startTime.toDateTime().microsecondsSinceEpoch,
     endTime: endTime.toDateTime().microsecondsSinceEpoch,
     summary: summaryMarkdown,
+    buildNumber: number,
   );
 }
