@@ -18,7 +18,7 @@ This phase focuses on updating the internal and external data models to support 
     - [ ] Add `int? buildNumber` to `PresubmitCheckResponse` in `packages/cocoon_common/lib/src/rpc_model/presubmit_check_response.dart`.
     - [ ] Run `dart run build_runner build --delete-conflicting-outputs` in `packages/cocoon_common/` to regenerate JSON serialization code.
     - [ ] Add unit tests for the RPC model.
-- [ ] Task: Conductor - User Manual Verification 'Model Updates' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Model Updates' (Protocol in workflow.md)
 
 ## Phase 2: Backend Logic and API Updates
 
