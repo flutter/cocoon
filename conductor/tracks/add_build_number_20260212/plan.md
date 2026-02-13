@@ -10,7 +10,7 @@ This phase focuses on updating the internal and external data models to support 
     - [ ] Add `int? buildNumber` to `PresubmitCheckState` class in `app_dart/lib/src/model/common/presubmit_check_state.dart`.
     - [ ] Update `BuildToPresubmitCheckState` extension to map `number` from `bbv2.Build` to `buildNumber`.
     - [ ] Update existing tests to reflect constructor changes.
-- [ ] Task: Update `PresubmitCheck` Firestore Model
+- [x] Task: Update `PresubmitCheck` Firestore Model
     - [ ] Add `fieldBuildNumber` constant and `buildNumber` getter/setter to `PresubmitCheck` in `app_dart/lib/src/model/firestore/presubmit_check.dart`.
     - [ ] Update `fromDocument`, `init`, and `toJson` (or equivalent) to handle the new field.
     - [ ] Add unit tests for serialization/deserialization of `buildNumber`.
