@@ -4,11 +4,13 @@
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/common/presubmit_check_state.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
   group('PresubmitCheckState', () {
     test('BuildToPresubmitCheckState extension maps build number', () {
       final build = bbv2.Build(
