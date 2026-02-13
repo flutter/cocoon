@@ -20,14 +20,14 @@ This phase focuses on updating the internal and external data models to support 
     - [x] Add unit tests for the RPC model.
 - [x] Task: Conductor - User Manual Verification 'Model Updates' (Protocol in workflow.md)
 
-## Phase 2: Backend Logic and API Updates
+## Phase 2: Backend Logic and API Updates [checkpoint: ead405d]
 
 This phase integrates the new field into the core logic and ensures it is returned by the API.
 
 - [x] Task: Update `UnifiedCheckRun.markConclusion` Logic
-    - [ ] Update `markConclusion` in `app_dart/lib/src/service/firestore/unified_check_run.dart` to assign `state.buildNumber` to `presubmitCheck.buildNumber`.
-    - [ ] Add/update tests in `app_dart/test/service/firestore/unified_check_run_test.dart` to verify the build number is correctly saved to Firestore.
+    - [x] Update `markConclusion` in `app_dart/lib/src/service/firestore/unified_check_run.dart` to assign `state.buildNumber` to `presubmitCheck.buildNumber`.
+    - [x] Add/update tests in `app_dart/test/service/firestore/unified_check_run_test.dart` to verify the build number is correctly saved to Firestore.
 - [x] Task: Update `GetPresubmitChecks` API Handler
-    - [ ] Update `GetPresubmitChecks` in `app_dart/lib/src/request_handlers/get_presubmit_checks.dart` to map `PresubmitCheck.buildNumber` to `PresubmitCheckResponse.buildNumber`.
-    - [ ] Update handler tests to verify the API response contains the build number.
-- [~] Task: Conductor - User Manual Verification 'Backend Logic and API Updates' (Protocol in workflow.md)
+    - [x] Update `GetPresubmitChecks` in `app_dart/lib/src/request_handlers/get_presubmit_checks.dart` to map `PresubmitCheck.buildNumber` to `PresubmitCheckResponse.buildNumber`.
+    - [x] Update handler tests to verify the API response contains the build number.
+- [x] Task: Conductor - User Manual Verification 'Backend Logic and API Updates' (Protocol in workflow.md)
