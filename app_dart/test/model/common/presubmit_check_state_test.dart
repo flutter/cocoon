@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_service/src/model/common/presubmit_check_state.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_service/src/model/common/presubmit_check_state.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:test/test.dart';
 
@@ -18,9 +18,7 @@ void main() {
         startTime: bbv2.Timestamp(seconds: Int64(1000)),
         endTime: bbv2.Timestamp(seconds: Int64(2000)),
         summaryMarkdown: 'Summary',
-        tags: [
-          bbv2.StringPair(key: 'github_checkrun', value: '123'),
-        ],
+        tags: [bbv2.StringPair(key: 'github_checkrun', value: '123')],
       );
 
       final state = build.toPresubmitCheckState();
