@@ -193,6 +193,17 @@ class _PreSubmitViewState extends State<PreSubmitView> {
           ],
         ),
         actions: [
+          if (isLatestSha) ...[
+            TextButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Re-run failed'),
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
           SizedBox(
             width: 250,
             child: ShaSelector(
@@ -208,17 +219,6 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             ),
           ),
           const SizedBox(width: 8),
-          if (isLatestSha) ...[
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Re-run failed'),
-              style: TextButton.styleFrom(
-                foregroundColor: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
         ],
       ),
       drawer: const DashboardNavigationDrawer(),
