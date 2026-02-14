@@ -191,7 +191,12 @@ class DevelopmentCocoonService implements CocoonService {
         prNum: prNum,
         checkRunId: 456,
         author: _authors[prNum % _authors.length],
-        guardStatus: GuardStatus.inProgress,
+        guardStatus: switch (num) {
+          // ignore: constant_pattern_never_matches_value_type
+          '1' => GuardStatus.succeeded,
+          '2' => GuardStatus.failed,
+          _ => GuardStatus.inProgress,
+        },
         stages: [
           PresubmitGuardStage(
             name: 'Engine',

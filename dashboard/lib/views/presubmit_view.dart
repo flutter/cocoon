@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import '../dashboard_navigation_drawer.dart';
 import '../state/build.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/guard_status.dart' as pw;
 import '../widgets/sha_selector.dart';
 import '../widgets/task_box.dart';
 
@@ -145,10 +146,23 @@ class _PreSubmitViewState extends State<PreSubmitView> {
               ? 'PR #$pr: Feature Implementation'
               : 'PreSubmit: $repo @ $sha');
 
-    final statusText =
-        _guardResponse?.guardStatus.value ??
-        (pr != null ? 'Pending' : 'Loading...');
-    final statusColor = _getStatusColor(statusText, isDark);
+    // Use the guard status from the summary if available, otherwise fallback to "Pending" or "Loading..."
+    String statusText = (pr != null ? 'Pending' : 'Loading...');
+    if (_guardResponse != null) {
+      statusText = _guardResponse!.guardStatus.value;
+    } else if (sha != null) {
+      final summary = _availableSummaries.firstWhere(
+        (s) => s.commitSha == sha,
+        orElse: () => const PresubmitGuardSummary(
+          commitSha: '',
+          creationTime: 0,
+          guardStatus: GuardStatus.waitingForBackfill,
+        ),
+      );
+      if (summary.commitSha.isNotEmpty) {
+        statusText = summary.guardStatus.value;
+      }
+    }
 
     final isLatestSha =
         pr != null &&
@@ -172,24 +186,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
               ),
             ),
             const SizedBox(width: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: statusColor.withValues(alpha: 0.2)),
-              ),
-              child: SelectionArea(
-                child: Text(
-                  statusText,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
+            pw.GuardStatus(status: statusText),
           ],
         ),
         actions: [
@@ -205,7 +202,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             const SizedBox(width: 8),
           ],
           SizedBox(
-            width: 250,
+            width: 300,
             child: ShaSelector(
               availableShas: availableSummaries,
               selectedSha: sha,
@@ -262,20 +259,6 @@ class _PreSubmitViewState extends State<PreSubmitView> {
               ],
             ),
     );
-  }
-
-  Color _getStatusColor(String status, bool isDark) {
-    switch (status) {
-      case 'Succeeded':
-        return const Color(0xFF2DA44E);
-      case 'Failed':
-        return const Color(0xFFF85149);
-      case 'In Progress':
-      case 'Pending':
-        return const Color(0xFFD29922);
-      default:
-        return isDark ? Colors.grey[400]! : Colors.grey[600]!;
-    }
   }
 }
 

@@ -253,10 +253,9 @@ void main() {
 
     // Tap the dropdown to open it
     await tester.tap(find.byType(ShaSelector));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
 
-    // Select the second item in the dropdown menu (mock_sha_2...)
+    // Select the second item in the dropdown menu (mock_sha_2_face5)
     await tester.tap(
       find.byWidgetPredicate(
         (widget) =>
@@ -264,7 +263,7 @@ void main() {
             widget.value == 'mock_sha_2_face5',
       ),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(ShaSelector), findsOneWidget);

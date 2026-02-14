@@ -2,13 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
-import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'task_box.dart';
+import 'guard_status.dart';
 
 /// A dropdown widget for selecting a commit SHA.
 class ShaSelector extends StatelessWidget {
@@ -61,14 +59,13 @@ class ShaSelector extends StatelessWidget {
             final creationTime = DateTime.fromMillisecondsSinceEpoch(
               summary.creationTime,
             ).toLocal();
-            final timeStr = DateFormat.yMd().add_Hm().format(creationTime);
+            final dateStr = DateFormat.yMd().format(creationTime);
+            final timeStr = DateFormat.Hm().format(creationTime);
 
             return DropdownMenuItem<String>(
               value: sha,
               child: Row(
                 children: [
-                  _getStatusIcon(status),
-                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       sha.length > 7
@@ -77,12 +74,35 @@ class ShaSelector extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text(
-                    timeStr,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      dateStr,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 40,
+                    child: Text(
+                      timeStr,
+                      //textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 80,
+                    height: 20,
+                    child: GuardStatus(status: status.value),
                   ),
                 ],
               ),
@@ -91,33 +111,5 @@ class ShaSelector extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _getStatusIcon(GuardStatus status) {
-    switch (status) {
-      case GuardStatus.succeeded:
-        return Icon(
-          Icons.check_circle_outline,
-          color: TaskBox.statusColor[TaskStatus.succeeded],
-          size: 14,
-        );
-      case GuardStatus.failed:
-        return Icon(
-          Icons.error_outline,
-          color: TaskBox.statusColor[TaskStatus.failed],
-          size: 14,
-        );
-      case GuardStatus.inProgress:
-        return const SizedBox(
-          width: 12,
-          height: 12,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFD29922)),
-          ),
-        );
-      default:
-        return const Icon(Icons.help_outline, size: 14, color: Colors.grey);
-    }
   }
 }
