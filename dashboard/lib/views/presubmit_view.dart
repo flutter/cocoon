@@ -147,7 +147,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
               : 'PreSubmit: $repo @ $sha');
 
     // Use the guard status from the summary if available, otherwise fallback to "Pending" or "Loading..."
-    String statusText = (pr != null ? 'Pending' : 'Loading...');
+    var statusText = (pr != null ? 'Pending' : 'Loading...');
     if (_guardResponse != null) {
       statusText = _guardResponse!.guardStatus.value;
     } else if (sha != null) {
