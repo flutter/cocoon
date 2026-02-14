@@ -15,6 +15,7 @@ import 'service/cocoon.dart';
 import 'service/firebase_auth.dart';
 import 'state/build.dart';
 import 'views/build_dashboard_page.dart';
+import 'views/presubmit_view.dart';
 import 'views/tree_status_page.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
@@ -130,6 +131,15 @@ class MyApp extends StatelessWidget {
                 settings: settings,
                 builder: (_) {
                   return TreeStatusPage(
+                    queryParameters: uriData.queryParameters,
+                  );
+                },
+              );
+            case PreSubmitView.routeSegment:
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (_) {
+                  return PreSubmitView(
                     queryParameters: uriData.queryParameters,
                   );
                 },

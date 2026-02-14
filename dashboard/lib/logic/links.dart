@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../views/build_dashboard_page.dart';
+import '../views/presubmit_view.dart';
 import '../views/tree_status_page.dart';
 
 /// List of links that are shown in the [DashboardNavigationDrawer].
@@ -20,6 +21,14 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
           context,
           BuildDashboardPage.routeName,
         );
+      },
+    ),
+    CocoonLink(
+      name: 'PreSubmit',
+      route: PreSubmitView.routeName,
+      icon: const Icon(Icons.playlist_add_check),
+      action: () async {
+        await Navigator.pushReplacementNamed(context, PreSubmitView.routeName);
       },
     ),
     CocoonLink(
