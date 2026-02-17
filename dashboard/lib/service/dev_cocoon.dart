@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 
@@ -174,6 +175,101 @@ class DevelopmentCocoonService implements CocoonService {
       list.removeWhere((t) => t.name == testName);
     }
     return const CocoonResponse.data(null);
+  }
+
+  @override
+  Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
+    required String repo,
+    required String sha,
+  }) async {
+    // Extract a number from the SHA if it's a mock SHA to provide varied data
+    final num = sha.contains('_') ? sha.split('_')[2] : '1';
+    final prNum = int.tryParse(num) ?? 123;
+
+    return CocoonResponse.data(
+      PresubmitGuardResponse(
+        prNum: prNum,
+        checkRunId: 456,
+        author: _authors[prNum % _authors.length],
+        guardStatus: switch (num) {
+          '1' => GuardStatus.succeeded,
+          '2' => GuardStatus.failed,
+          _ => GuardStatus.inProgress,
+        },
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: now.millisecondsSinceEpoch,
+            builds: {
+              'Mac mac_host_engine $num': TaskStatus.failed,
+              'Mac mac_ios_engine $num': TaskStatus.waitingForBackfill,
+              'Linux linux_android_aot_engine $num': TaskStatus.succeeded,
+            },
+          ),
+          PresubmitGuardStage(
+            name: 'Framework',
+            createdAt: now.millisecondsSinceEpoch,
+            builds: {
+              'Linux framework_tests $num': TaskStatus.inProgress,
+              'Mac framework_tests $num': TaskStatus.cancelled,
+              'Linux android framework_tests $num': TaskStatus.skipped,
+              'Windows framework_tests $num': TaskStatus.infraFailure,
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<CocoonResponse<List<PresubmitCheckResponse>>>
+  fetchPresubmitCheckDetails({
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    return CocoonResponse.data([
+      PresubmitCheckResponse(
+        attemptNumber: 1,
+        buildName: buildName,
+        creationTime: now.millisecondsSinceEpoch - 10000,
+        status: 'Succeeded',
+        summary:
+            '[INFO] Starting task $buildName...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
+      ),
+      PresubmitCheckResponse(
+        attemptNumber: 2,
+        buildName: buildName,
+        creationTime: now.millisecondsSinceEpoch,
+        status: 'Failed',
+        summary:
+            '[INFO] Starting task $buildName...\n[ERROR] Test failed: Unit Tests',
+      ),
+    ]);
+  }
+
+  @override
+  Future<CocoonResponse<List<PresubmitGuardSummary>>>
+  fetchPresubmitGuardSummaries({
+    required String repo,
+    required String pr,
+  }) async {
+    return CocoonResponse.data([
+      PresubmitGuardSummary(
+        commitSha: 'mock_sha_1_decaf',
+        creationTime: now.millisecondsSinceEpoch,
+        guardStatus: GuardStatus.succeeded,
+      ),
+      PresubmitGuardSummary(
+        commitSha: 'mock_sha_2_face5',
+        creationTime: now.millisecondsSinceEpoch - 100000,
+        guardStatus: GuardStatus.failed,
+      ),
+      PresubmitGuardSummary(
+        commitSha: 'mock_sha_3_cafe5',
+        creationTime: now.millisecondsSinceEpoch - 200000,
+        guardStatus: GuardStatus.inProgress,
+      ),
+    ]);
   }
 
   @override

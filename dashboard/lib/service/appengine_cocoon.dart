@@ -289,6 +289,120 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
+    required String repo,
+    required String sha,
+  }) async {
+    final queryParameters = <String, String?>{
+      'slug': 'flutter/$repo',
+      'sha': sha,
+    };
+    final getGuardUrl = apiEndpoint(
+      '/api/get-presubmit-guard',
+      queryParameters: queryParameters,
+    );
+
+    final response = await _client.get(getGuardUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/get-presubmit-guard returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      return CocoonResponse.data(
+        PresubmitGuardResponse.fromJson(
+          jsonDecode(response.body) as Map<String, Object?>,
+        ),
+      );
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<CocoonResponse<List<PresubmitCheckResponse>>>
+  fetchPresubmitCheckDetails({
+    required int checkRunId,
+    required String buildName,
+  }) async {
+    final queryParameters = <String, String?>{
+      'check_run_id': checkRunId.toString(),
+      'build_name': buildName,
+    };
+    final getChecksUrl = apiEndpoint(
+      '/api/get-presubmit-checks',
+      queryParameters: queryParameters,
+    );
+
+    final response = await _client.get(getChecksUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/get-presubmit-checks returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
+      return CocoonResponse.data(
+        jsonResponse
+            .cast<Map<String, Object?>>()
+            .map(PresubmitCheckResponse.fromJson)
+            .toList(),
+      );
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<CocoonResponse<List<PresubmitGuardSummary>>>
+  fetchPresubmitGuardSummaries({
+    required String repo,
+    required String pr,
+  }) async {
+    final queryParameters = <String, String?>{'repo': repo, 'pr': pr};
+    final getSummariesUrl = apiEndpoint(
+      '/api/get-presubmit-guard-summaries',
+      queryParameters: queryParameters,
+    );
+
+    final response = await _client.get(getSummariesUrl);
+
+    if (response.statusCode != HttpStatus.ok) {
+      return CocoonResponse.error(
+        '/api/get-presubmit-guard-summaries returned ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+
+    try {
+      final jsonResponse = jsonDecode(response.body) as List<Object?>;
+      return CocoonResponse.data(
+        jsonResponse
+            .cast<Map<String, Object?>>()
+            .map(PresubmitGuardSummary.fromJson)
+            .toList(),
+      );
+    } catch (error) {
+      return CocoonResponse.error(
+        error.toString(),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  @override
   Future<CocoonResponse<void>> updateTreeStatus({
     required String idToken,
     required String repo,
