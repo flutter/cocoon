@@ -18,6 +18,6 @@ This phase focuses on the core logic and UI changes for displaying the short SHA
 
 ## Phase 2: Final Verification and Cleanup
 
-- [ ] Task: Comprehensive Dashboard Test Suite Execution
-    - [ ] Run all dashboard tests to ensure no regressions: `flutter test` in `dashboard/`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Final Verification and Cleanup' (Protocol in workflow.md)
+- [x] Task: Comprehensive Dashboard Test Suite Execution
+    - [x] Run all dashboard tests to ensure no regressions: `flutter test` in `dashboard/`.
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Final Verification and Cleanup' (Protocol in workflow.md)
