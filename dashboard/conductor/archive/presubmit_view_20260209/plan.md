@@ -5,7 +5,7 @@
     - [x] Write Tests: Create unit tests for the new models, ensuring correct JSON deserialization based on the Cocoon API structure. (3c968d9)
     - [x] Implement: Reuse model classes from `cocoon_common`. (3c968d9)
 - [x] Task: Integrate the new endpoints into `CocoonService`. (3c968d9)
-    - [x] Write Tests: Mock the `/api/get-presubmit-guard` and `/api/get-presubmit-checks` endpoints and verify the service correctly fetches and parses the data. (3c968d9)
+    - [x] Write Tests: Mock the `/dashboard/api/get-presubmit-guard` and `/dashboard/api/get-presubmit-checks` endpoints and verify the service correctly fetches and parses the data. (3c968d9)
     - [x] Implement: Add `fetchPresubmitGuard` and `fetchPresubmitCheckDetails` methods to `CocoonService` and its implementations. (3c968d9)
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Data Model' (Protocol in workflow.md) (085b744)
 

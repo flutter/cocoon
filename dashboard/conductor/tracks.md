@@ -4,5 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+# Archived Tracks
+
 - [x] **Track: Implement pr_dashboard_page.dart view in Flutter Dashboard (renamed to PreSubmitView)**
-  *Link: [./tracks/presubmit_view_20260209/](./tracks/presubmit_view_20260209/)*
+  *Link: [./archive/presubmit_view_20260209/](./archive/presubmit_view_20260209/)*
