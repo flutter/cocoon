@@ -142,8 +142,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.textContaining('PR #123'), findsOneWidget);
-      expect(find.textContaining('[dash]'), findsOneWidget);
+      expect(find.textContaining('PR #123 by dash (abc)'), findsOneWidget);
       expect(find.text('Succeeded'), findsAtLeastNWidgets(1));
       expect(find.text('ENGINE'), findsOneWidget);
       expect(find.textContaining('mac_host_engine'), findsOneWidget);
@@ -348,5 +347,52 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
 
     handle.dispose();
+  });
+
+  group('PreSubmitView Header Text', () {
+    testWidgets('displays loading text when navigated via PR', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+      );
+      // No pump() here to stay in loading state
+      expect(find.text('PR #123'), findsOneWidget);
+      expect(find.textContaining('Feature Implementation'), findsNothing);
+    });
+
+    testWidgets('displays loading text when navigated via SHA', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'sha': 'abcdef123456'}),
+      );
+      // No pump() here to stay in loading state
+      expect(find.text('(abcdef1)'), findsOneWidget);
+    });
+
+    testWidgets('displays full header text when loaded', (
+      WidgetTester tester,
+    ) async {
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        checkRunId: 456,
+        author: 'dash',
+        stages: [],
+        guardStatus: GuardStatus.succeeded,
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abcdef123456'),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'sha': 'abcdef123456'}),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('PR #123 by dash (abcdef1)'), findsOneWidget);
+    });
   });
 }
