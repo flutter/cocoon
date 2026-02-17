@@ -16,7 +16,7 @@ This phase focuses on the core logic and UI changes for displaying the short SHA
     - [x] Task: Verify that code coverage for `dashboard/lib/views/presubmit_view.dart` meets the >95% requirement.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Implementation of SHA Header' (Protocol in workflow.md)
 
-## Phase 2: Final Verification and Cleanup
+## Phase 2: Final Verification and Cleanup [checkpoint: 38c45f7]
 
 - [x] Task: Comprehensive Dashboard Test Suite Execution
     - [x] Run all dashboard tests to ensure no regressions: `flutter test` in `dashboard/`.
