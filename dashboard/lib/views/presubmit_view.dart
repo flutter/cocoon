@@ -140,12 +140,12 @@ class _PreSubmitViewState extends State<PreSubmitView> {
       ];
     }
 
-    final shortSha =
-        (sha != null && sha!.length > 7) ? sha!.substring(0, 7) : sha;
-    final title =
-        _guardResponse != null
-            ? 'PR #${_guardResponse!.prNum} by ${_guardResponse!.author} ($shortSha)'
-            : (pr != null ? 'PR #$pr' : '($shortSha)');
+    final shortSha = (sha != null && sha!.length > 7)
+        ? sha!.substring(sha!.length - 7)
+        : sha;
+    final title = _guardResponse != null
+        ? 'PR #${_guardResponse!.prNum} by ${_guardResponse!.author} ($shortSha)'
+        : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
 
     // Use the guard status from the summary if available, otherwise fallback to "Pending" or "Loading..."
     var statusText = (pr != null ? 'Pending' : 'Loading...');

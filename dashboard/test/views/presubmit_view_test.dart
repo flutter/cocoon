@@ -361,6 +361,14 @@ void main() {
       expect(find.textContaining('Feature Implementation'), findsNothing);
     });
 
+    testWidgets(
+      'displays empty header text when neither PR nor SHA is provided',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createPreSubmitView({'repo': 'flutter'}));
+        expect(find.text(''), findsOneWidget);
+      },
+    );
+
     testWidgets('displays loading text when navigated via SHA', (
       WidgetTester tester,
     ) async {
@@ -368,7 +376,7 @@ void main() {
         createPreSubmitView({'repo': 'flutter', 'sha': 'abcdef123456'}),
       );
       // No pump() here to stay in loading state
-      expect(find.text('(abcdef1)'), findsOneWidget);
+      expect(find.text('(f123456)'), findsOneWidget);
     });
 
     testWidgets('displays full header text when loaded', (
@@ -383,7 +391,10 @@ void main() {
       );
 
       when(
-        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abcdef123456'),
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'abcdef123456',
+        ),
       ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
       await tester.pumpWidget(
@@ -392,7 +403,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('PR #123 by dash (abcdef1)'), findsOneWidget);
+      expect(find.text('PR #123 by dash (f123456)'), findsOneWidget);
     });
   });
 }

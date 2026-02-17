@@ -4,11 +4,12 @@
 This track aims to improve the visibility of the specific commit being inspected in the `PreSubmitView` by displaying its short SHA in the header. This helps developers quickly identify which version of the code the CI results pertain to, especially when multiple SHAs are available for a single Pull Request.
 
 ## Functional Requirements
-- **Display short SHA:** Show the first 7 characters of the commit SHA in the header of the `PreSubmitView`.
+- **Display short SHA:** Show the last 7 characters of the commit SHA in the header of the `PreSubmitView`.
 - **Header Formatting (Loaded):** When PR details (PR number and author) are available, the header should follow the format: `PR #[pr_number] by [author] ([short_sha])`.
 - **Header Formatting (Loading):**
     - If navigated via PR number: The header should show `PR #[pr_number]`.
     - If navigated via SHA: The header should show `([short_sha])`.
+    - If neither PR nor SHA is provided: The header should be empty.
 - **Plain Text:** The SHA should be displayed as plain text and does not need to be a hyperlink.
 
 ## Non-Functional Requirements
