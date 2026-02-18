@@ -333,7 +333,18 @@ class Scheduler {
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
     // the PR and to the merge group, and so it must be completed in both cases.
-    final lock = await lockMergeGroupChecks(slug, pullRequest.head!.sha!);
+    final lock = await lockMergeGroupChecks(
+      slug,
+      pullRequest.head!.sha!,
+      // Override details url of merge queue guard check for users with unified
+      // check run flow enabled
+      detailsUrl:
+          _config.flags.isUnifiedCheckRunFlowEnabledForUser(
+            pullRequest.user!.login!,
+          )
+          ? 'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=${pullRequest.head!.sha}'
+          : null,
+    );
 
     // Track if we should unlock the merge group lock in case of non-fusion or
     // revert bots.
@@ -812,8 +823,9 @@ $s
   /// check is "required".
   Future<CheckRun> lockMergeGroupChecks(
     RepositorySlug slug,
-    String headSha,
-  ) async {
+    String headSha, {
+    String? detailsUrl,
+  }) async {
     return _githubChecksService.githubChecksUtil.createCheckRun(
       _config,
       slug,
@@ -1097,7 +1109,7 @@ detailsUrl: $detailsUrl
       } else if (check.isUnifiedCheckRun) {
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         final detailsUrl =
-            'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&checkrun=${check.guardId.checkRunId}';
+            'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
         await _requireActionForGuard(
           slug: check.slug,
           lock: guard,

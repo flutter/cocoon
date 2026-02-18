@@ -124,6 +124,7 @@ class GithubChecksUtil {
     String name, {
     github.CheckRunOutput? output,
     github.CheckRunConclusion? conclusion,
+    String? detailsUrl,
   }) async {
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
@@ -135,6 +136,7 @@ class GithubChecksUtil {
           name,
           output: output,
           conclusion: conclusion,
+          detailsUrl: detailsUrl,
         );
       },
       retryIf: (_) => true,
@@ -154,6 +156,7 @@ class GithubChecksUtil {
     String name, {
     github.CheckRunOutput? output,
     github.CheckRunConclusion? conclusion,
+    String? detailsUrl,
   }) async {
     final gitHubClient = await config.createGitHubClient(slug: slug);
     return gitHubClient.checks.checkRuns.createCheckRun(
@@ -162,6 +165,7 @@ class GithubChecksUtil {
       headSha: sha,
       output: output,
       conclusion: conclusion,
+      detailsUrl: detailsUrl,
     );
   }
 }
