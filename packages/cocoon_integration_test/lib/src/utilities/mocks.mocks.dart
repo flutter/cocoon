@@ -2068,7 +2068,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
     String? name, {
     _i7.CheckRunOutput? output,
     _i7.CheckRunConclusion? conclusion,
-    String? detailsUrl,  
+    String? detailsUrl,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
