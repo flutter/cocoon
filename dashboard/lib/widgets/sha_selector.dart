@@ -68,9 +68,7 @@ class ShaSelector extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      sha.length > 7
-                          ? sha.substring(sha.length - 7, sha.length)
-                          : sha,
+                      sha.length > 7 ? sha.substring(0, 7) : sha,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

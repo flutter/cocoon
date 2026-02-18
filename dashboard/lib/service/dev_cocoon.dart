@@ -182,8 +182,12 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
     required String sha,
   }) async {
-    // Extract a number from the SHA if it's a mock SHA to provide varied data
-    final num = sha.contains('_') ? sha.split('_')[2] : '1';
+    // Extract a number from the SHA if it's a mock SHA to provide varied data.
+    // Format: ..._#_mock_sha
+    final parts = sha.split('_');
+    final num = (sha.endsWith('_mock_sha') && parts.length > 2)
+        ? parts[parts.length - 3]
+        : '1';
     final prNum = int.tryParse(num) ?? 123;
 
     return CocoonResponse.data(
@@ -255,17 +259,17 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     return CocoonResponse.data([
       PresubmitGuardSummary(
-        commitSha: 'mock_sha_1_decaf',
+        commitSha: 'decaf_1_mock_sha',
         creationTime: now.millisecondsSinceEpoch,
         guardStatus: GuardStatus.succeeded,
       ),
       PresubmitGuardSummary(
-        commitSha: 'mock_sha_2_face5',
+        commitSha: 'face5_2_mock_sha',
         creationTime: now.millisecondsSinceEpoch - 100000,
         guardStatus: GuardStatus.failed,
       ),
       PresubmitGuardSummary(
-        commitSha: 'mock_sha_3_cafe5',
+        commitSha: 'cafe5_3_mock_sha',
         creationTime: now.millisecondsSinceEpoch - 200000,
         guardStatus: GuardStatus.inProgress,
       ),
