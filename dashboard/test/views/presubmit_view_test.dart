@@ -66,17 +66,17 @@ void main() {
     ).thenAnswer(
       (_) async => const CocoonResponse.data([
         PresubmitGuardSummary(
-          commitSha: 'mock_sha_1_decaf',
+          commitSha: 'decaf_1_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.succeeded,
         ),
         PresubmitGuardSummary(
-          commitSha: 'mock_sha_2_face5',
+          commitSha: 'face5_2_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.failed,
         ),
         PresubmitGuardSummary(
-          commitSha: 'mock_sha_3_cafe5',
+          commitSha: 'cafe5_3_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.inProgress,
         ),
@@ -142,8 +142,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.textContaining('PR #123'), findsOneWidget);
-      expect(find.textContaining('[dash]'), findsOneWidget);
+      expect(find.textContaining('PR #123 by dash (abc)'), findsOneWidget);
       expect(find.text('Succeeded'), findsAtLeastNWidgets(1));
       expect(find.text('ENGINE'), findsOneWidget);
       expect(find.textContaining('mac_host_engine'), findsOneWidget);
@@ -158,7 +157,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    const mockSha = 'mock_sha_1_decaf';
+    const mockSha = 'decaf_1_mock_sha';
     const guardResponse = PresubmitGuardResponse(
       prNum: 123,
       checkRunId: 456,
@@ -186,7 +185,7 @@ void main() {
     expect(find.textContaining('PR #123'), findsOneWidget);
 
     // Select a check
-    // The check name in mock data is 'Mac mac_host_engine 1' (suffix is from mock_sha_1)
+    // The check name in mock data is 'Mac mac_host_engine 1' (suffix is from decaf_1)
     final checkName = 'mac_host_engine 1';
 
     // Stub the details fetch for the mock check
@@ -255,19 +254,19 @@ void main() {
     await tester.tap(find.byType(ShaSelector));
     await tester.pumpAndSettle();
 
-    // Select the second item in the dropdown menu (mock_sha_2_face5)
+    // Select the second item in the dropdown menu (face5_2_mock_sha)
     await tester.tap(
       find.byWidgetPredicate(
         (widget) =>
             widget is DropdownMenuItem<String> &&
-            widget.value == 'mock_sha_2_face5',
+            widget.value == 'face5_2_mock_sha',
       ),
     );
     await tester.pumpAndSettle();
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(ShaSelector), findsOneWidget);
-    expect(find.textContaining('2_face5'), findsOneWidget);
+    expect(find.textContaining('face5_2'), findsOneWidget);
     // Button should be hidden for older SHAs
     expect(find.text('Re-run failed'), findsNothing);
     expect(find.text('Re-run'), findsNothing);
@@ -348,5 +347,63 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
 
     handle.dispose();
+  });
+
+  group('PreSubmitView Header Text', () {
+    testWidgets('displays loading text when navigated via PR', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+      );
+      // No pump() here to stay in loading state
+      expect(find.text('PR #123'), findsOneWidget);
+      expect(find.textContaining('Feature Implementation'), findsNothing);
+    });
+
+    testWidgets(
+      'displays empty header text when neither PR nor SHA is provided',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createPreSubmitView({'repo': 'flutter'}));
+        expect(find.text(''), findsOneWidget);
+      },
+    );
+
+    testWidgets('displays loading text when navigated via SHA', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'sha': 'abcdef123456'}),
+      );
+      // No pump() here to stay in loading state
+      expect(find.text('(abcdef1)'), findsOneWidget);
+    });
+
+    testWidgets('displays full header text when loaded', (
+      WidgetTester tester,
+    ) async {
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        checkRunId: 456,
+        author: 'dash',
+        stages: [],
+        guardStatus: GuardStatus.succeeded,
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'abcdef123456',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'sha': 'abcdef123456'}),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('PR #123 by dash (abcdef1)'), findsOneWidget);
+    });
   });
 }
