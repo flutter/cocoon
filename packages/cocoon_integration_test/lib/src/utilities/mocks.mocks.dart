@@ -2068,6 +2068,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
     String? name, {
     _i7.CheckRunOutput? output,
     _i7.CheckRunConclusion? conclusion,
+    String? detailsUrl,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -2081,7 +2082,11 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
                 Invocation.method(
                   #createCheckRun,
                   [config, slug, sha, name],
-                  {#output: output, #conclusion: conclusion},
+                  {
+                    #output: output,
+                    #conclusion: conclusion,
+                    #detailsUrl: detailsUrl,
+                  },
                 ),
               ),
             ),
@@ -5611,10 +5616,15 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
   @override
   _i13.Future<_i7.CheckRun> lockMergeGroupChecks(
     _i7.RepositorySlug? slug,
-    String? headSha,
-  ) =>
+    String? headSha, {
+    String? detailsUrl,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#lockMergeGroupChecks, [slug, headSha]),
+            Invocation.method(
+              #lockMergeGroupChecks,
+              [slug, headSha],
+              {#detailsUrl: detailsUrl},
+            ),
             returnValue: _i13.Future<_i7.CheckRun>.value(
               _FakeCheckRun_20(
                 this,
