@@ -5,6 +5,9 @@
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
 FROM dart:stable
 
+# The pubspec.yaml file is needed to resolve dependencies, and must be copied before the packages.
+COPY pubspec.yaml /
+
 # Packages are PATH dependencies of app_dart, and need to be copied/accessible.
 WORKDIR /packages
 COPY packages .
