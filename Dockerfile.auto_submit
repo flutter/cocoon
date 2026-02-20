@@ -3,18 +3,33 @@
 # found in the LICENSE file.
 
 # Dart Docker official images can be found here: https://hub.docker.com/_/dart
-FROM dart:stable
+FROM us-docker.pkg.dev/flutter-dashboard/flutter/flutter
+
+ENTRYPOINT []
+
+# The pubspec.yaml file is needed to resolve dependencies, and must be copied before the packages.
+WORKDIR /app
+COPY pubspec.yaml .
 
 # Packages are PATH dependencies of app_dart, and need to be copied/accessible.
-WORKDIR /packages
+WORKDIR /app/packages
 COPY packages .
 
-WORKDIR /app
+WORKDIR /app/app_dart
+COPY app_dart .
+WORKDIR /app/dashboard
+COPY dashboard .
+WORKDIR /app/analyze
+COPY analyze .
+WORKDIR /app/licenses
+COPY licenses .
+WORKDIR /app/dev
+COPY dev .
 
-# Copy app source code (except anything in .dockerignore).
+WORKDIR /app/auto_submit
 COPY auto_submit .
-RUN dart pub get
+RUN flutter pub get
 
 # Start server.
 EXPOSE 8080
-CMD ["/usr/lib/dart/bin/dart", "/app/bin/server.dart"]
+CMD ["/opt/flutter/bin/dart", "/app/auto_submit/bin/server.dart"]
