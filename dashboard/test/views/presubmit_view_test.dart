@@ -66,7 +66,7 @@ void main() {
     ).thenAnswer(
       (_) async => const CocoonResponse.data([
         PresubmitGuardSummary(
-          commitSha: 'decaf_1_mock_sha',
+          commitSha: 'decaf_3_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.succeeded,
         ),
@@ -76,7 +76,7 @@ void main() {
           guardStatus: GuardStatus.failed,
         ),
         PresubmitGuardSummary(
-          commitSha: 'cafe5_3_mock_sha',
+          commitSha: 'cafe5_1_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.inProgress,
         ),
@@ -157,7 +157,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    const mockSha = 'decaf_1_mock_sha';
+    const mockSha = 'decaf_3_mock_sha';
     const guardResponse = PresubmitGuardResponse(
       prNum: 123,
       checkRunId: 456,
@@ -185,7 +185,7 @@ void main() {
     expect(find.textContaining('PR #123'), findsOneWidget);
 
     // Select a check
-    // The check name in mock data is 'Mac mac_host_engine 1' (suffix is from decaf_1)
+    // The check name in mock data is 'Mac mac_host_engine 1' (suffix is from decaf_3)
     final checkName = 'mac_host_engine 1';
 
     // Stub the details fetch for the mock check

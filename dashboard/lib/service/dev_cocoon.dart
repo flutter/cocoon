@@ -182,46 +182,90 @@ class DevelopmentCocoonService implements CocoonService {
     required String repo,
     required String sha,
   }) async {
-    // Extract a number from the SHA if it's a mock SHA to provide varied data.
-    // Format: ..._#_mock_sha
-    final parts = sha.split('_');
-    final num = (sha.endsWith('_mock_sha') && parts.length > 2)
-        ? parts[parts.length - 3]
-        : '1';
-    final prNum = int.tryParse(num) ?? 123;
-
-    return CocoonResponse.data(
-      PresubmitGuardResponse(
-        prNum: prNum,
-        checkRunId: 456,
-        author: _authors[prNum % _authors.length],
-        guardStatus: switch (num) {
-          '1' => GuardStatus.succeeded,
-          '2' => GuardStatus.failed,
-          _ => GuardStatus.inProgress,
-        },
-        stages: [
-          PresubmitGuardStage(
-            name: 'Engine',
-            createdAt: now.millisecondsSinceEpoch,
-            builds: {
-              'Mac mac_host_engine $num': TaskStatus.failed,
-              'Mac mac_ios_engine $num': TaskStatus.waitingForBackfill,
-              'Linux linux_android_aot_engine $num': TaskStatus.succeeded,
-            },
-          ),
-          PresubmitGuardStage(
-            name: 'Framework',
-            createdAt: now.millisecondsSinceEpoch,
-            builds: {
-              'Linux framework_tests $num': TaskStatus.inProgress,
-              'Mac framework_tests $num': TaskStatus.cancelled,
-              'Linux android framework_tests $num': TaskStatus.skipped,
-              'Windows framework_tests $num': TaskStatus.infraFailure,
-            },
-          ),
-        ],
-      ),
+    if (sha == 'cafe5_1_mock_sha') {
+      return CocoonResponse.data(
+        PresubmitGuardResponse(
+          prNum: 123,
+          checkRunId: 456,
+          author: _authors[0],
+          guardStatus: GuardStatus.failed,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Mac mac_host_engine': TaskStatus.infraFailure,
+                'Mac mac_ios_engine': TaskStatus.cancelled,
+                'Linux linux_android_aot_engine': TaskStatus.infraFailure,
+              },
+            ),
+          ],
+        ),
+      );
+    } else if (sha == 'face5_2_mock_sha') {
+      return CocoonResponse.data(
+        PresubmitGuardResponse(
+          prNum: 123,
+          checkRunId: 789,
+          author: _authors[1],
+          guardStatus: GuardStatus.failed,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Mac mac_host_engine': TaskStatus.succeeded,
+                'Mac mac_ios_engine': TaskStatus.cancelled,
+                'Linux linux_android_aot_engine': TaskStatus.succeeded,
+              },
+            ),
+            PresubmitGuardStage(
+              name: 'Framework',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Linux framework_tests': TaskStatus.succeeded,
+                'Mac framework_tests': TaskStatus.failed,
+                'Linux android framework_tests': TaskStatus.skipped,
+                'Windows framework_tests': TaskStatus.failed,
+              },
+            ),
+          ],
+        ),
+      );
+    } else if (sha == 'decaf_3_mock_sha') {
+      return CocoonResponse.data(
+        PresubmitGuardResponse(
+          prNum: 123,
+          checkRunId: 1011,
+          author: _authors[2],
+          guardStatus: GuardStatus.inProgress,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Mac mac_host_engine': TaskStatus.succeeded,
+                'Mac mac_ios_engine': TaskStatus.cancelled,
+                'Linux linux_android_aot_engine': TaskStatus.succeeded,
+              },
+            ),
+            PresubmitGuardStage(
+              name: 'Framework',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Linux framework_tests': TaskStatus.succeeded,
+                'Mac framework_tests': TaskStatus.waitingForBackfill,
+                'Linux android framework_tests': TaskStatus.skipped,
+                'Windows framework_tests': TaskStatus.inProgress,
+              },
+            ),
+          ],
+        ),
+      );
+    }
+    return CocoonResponse.error(
+      'No presubmit guard data for sha $sha',
+      statusCode: 404,
     );
   }
 
@@ -259,19 +303,19 @@ class DevelopmentCocoonService implements CocoonService {
   }) async {
     return CocoonResponse.data([
       PresubmitGuardSummary(
-        commitSha: 'decaf_1_mock_sha',
+        commitSha: 'decaf_3_mock_sha',
         creationTime: now.millisecondsSinceEpoch,
-        guardStatus: GuardStatus.succeeded,
+        guardStatus: GuardStatus.inProgress,
       ),
       PresubmitGuardSummary(
         commitSha: 'face5_2_mock_sha',
         creationTime: now.millisecondsSinceEpoch - 100000,
-        guardStatus: GuardStatus.failed,
+        guardStatus: GuardStatus.succeeded,
       ),
       PresubmitGuardSummary(
-        commitSha: 'cafe5_3_mock_sha',
+        commitSha: 'cafe5_1_mock_sha',
         creationTime: now.millisecondsSinceEpoch - 200000,
-        guardStatus: GuardStatus.inProgress,
+        guardStatus: GuardStatus.failed,
       ),
     ]);
   }
