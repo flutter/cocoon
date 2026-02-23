@@ -106,5 +106,80 @@ void main() {
       expect(presubmitState.isLoading, isFalse);
       expect(notified, isTrue);
     });
+
+    test('update does not notify if values are the same', () {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+        repo: 'flutter',
+        pr: '123',
+        sha: 'abc',
+      );
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
+
+      presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
+
+      expect(notified, isFalse);
+    });
+
+    test('fetchAvailableShas returns early if pr is null', () async {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+      );
+      presubmitState.pr = null;
+
+      await presubmitState.fetchAvailableShas();
+
+      expect(presubmitState.isLoading, isFalse);
+      verifyNever(mockCocoonService.fetchPresubmitGuardSummaries(
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+      ));
+    });
+
+    test('fetchAvailableShas defaults sha to latest if sha is null', () async {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+      );
+      presubmitState.repo = 'flutter';
+      presubmitState.pr = '123';
+      presubmitState.sha = null;
+
+      final mockSummaries = [
+        PresubmitGuardSummary(
+          commitSha: 'sha1',
+          creationTime: 123,
+          guardStatus: GuardStatus.succeeded,
+        ),
+      ];
+
+      when(mockCocoonService.fetchPresubmitGuardSummaries(
+        repo: 'flutter',
+        pr: '123',
+      )).thenAnswer((_) async => CocoonResponse<List<PresubmitGuardSummary>>.data(mockSummaries));
+
+      await presubmitState.fetchAvailableShas();
+
+      expect(presubmitState.sha, 'sha1');
+    });
+
+    test('fetchGuardStatus returns early if sha is null', () async {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+      );
+      presubmitState.sha = null;
+
+      await presubmitState.fetchGuardStatus();
+
+      expect(presubmitState.isLoading, isFalse);
+      verifyNever(mockCocoonService.fetchPresubmitGuard(
+        repo: anyNamed('repo'),
+        sha: anyNamed('sha'),
+      ));
+    });
   });
 }
