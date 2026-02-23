@@ -2,8 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/rpc_model.dart';
+import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 
 import '../utils/mocks.dart';
 
@@ -38,6 +42,68 @@ void main() {
       expect(presubmitState.repo, 'cocoon');
       expect(presubmitState.pr, '123');
       expect(presubmitState.sha, 'abc');
+      expect(notified, isTrue);
+    });
+
+    test('fetchAvailableShas updates availableSummaries and notifies listeners', () async {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+      );
+      presubmitState.repo = 'flutter';
+      presubmitState.pr = '123';
+
+      final mockSummaries = [
+        PresubmitGuardSummary(
+          commitSha: 'sha1',
+          creationTime: 123,
+          guardStatus: GuardStatus.succeeded,
+        ),
+      ];
+
+      when(mockCocoonService.fetchPresubmitGuardSummaries(
+        repo: 'flutter',
+        pr: '123',
+      )).thenAnswer((_) async => CocoonResponse<List<PresubmitGuardSummary>>.data(mockSummaries));
+
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
+
+      await presubmitState.fetchAvailableShas();
+
+      expect(presubmitState.availableSummaries, mockSummaries);
+      expect(presubmitState.isLoading, isFalse);
+      expect(notified, isTrue);
+    });
+
+    test('fetchGuardStatus updates guardResponse and notifies listeners', () async {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+      );
+      presubmitState.repo = 'flutter';
+      presubmitState.sha = 'sha1';
+
+      final mockResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'author1',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [],
+      );
+
+      when(mockCocoonService.fetchPresubmitGuard(
+        repo: 'flutter',
+        sha: 'sha1',
+      )).thenAnswer((_) async => CocoonResponse<PresubmitGuardResponse>.data(mockResponse));
+
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
+
+      await presubmitState.fetchGuardStatus();
+
+      expect(presubmitState.guardResponse, mockResponse);
+      expect(presubmitState.isLoading, isFalse);
       expect(notified, isTrue);
     });
   });
