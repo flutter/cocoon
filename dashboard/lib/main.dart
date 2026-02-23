@@ -14,6 +14,7 @@ import 'firebase_options.dart';
 import 'service/cocoon.dart';
 import 'service/firebase_auth.dart';
 import 'state/build.dart';
+import 'state/presubmit.dart';
 import 'views/build_dashboard_page.dart';
 import 'views/presubmit_view.dart';
 import 'views/tree_status_page.dart';
@@ -70,6 +71,10 @@ void main([List<String> args = const <String>[]]) async {
     StateProvider(
       signInService: authService,
       buildState: BuildState(
+        authService: authService,
+        cocoonService: cocoonService,
+      ),
+      presubmitState: PresubmitState(
         authService: authService,
         cocoonService: cocoonService,
       ),

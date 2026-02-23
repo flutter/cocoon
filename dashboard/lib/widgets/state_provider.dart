@@ -7,18 +7,22 @@ import 'package:provider/provider.dart';
 
 import '../service/firebase_auth.dart';
 import '../state/build.dart';
+import '../state/presubmit.dart';
 
 class StateProvider extends StatelessWidget {
   const StateProvider({
     super.key,
     this.signInService,
     this.buildState,
+    this.presubmitState,
     this.child,
   });
 
   final FirebaseAuthService? signInService;
 
   final BuildState? buildState;
+
+  final PresubmitState? presubmitState;
 
   final Widget? child;
 
@@ -28,6 +32,7 @@ class StateProvider extends StatelessWidget {
       providers: <ValueProvider<Object?>>[
         ValueProvider<FirebaseAuthService?>(value: signInService),
         ValueProvider<BuildState?>(value: buildState),
+        ValueProvider<PresubmitState?>(value: presubmitState),
       ],
       child: child,
     );
