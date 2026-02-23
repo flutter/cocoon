@@ -31,4 +31,17 @@ class PresubmitState extends ChangeNotifier {
 
   /// The current commit SHA.
   String? sha;
+
+  /// Update the current state and notify listeners.
+  void update({String? repo, String? pr, String? sha}) {
+    if (this.repo == repo && this.pr == pr && this.sha == sha) {
+      return;
+    }
+    if (repo != null) {
+      this.repo = repo;
+    }
+    this.pr = pr;
+    this.sha = sha;
+    notifyListeners();
+  }
 }

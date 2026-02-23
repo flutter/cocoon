@@ -24,5 +24,21 @@ void main() {
       expect(presubmitState.pr, isNull);
       expect(presubmitState.sha, isNull);
     });
+
+    test('update method updates properties and notifies listeners', () {
+      final presubmitState = PresubmitState(
+        authService: MockFirebaseAuthService(),
+        cocoonService: mockCocoonService,
+      );
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
+
+      presubmitState.update(repo: 'cocoon', pr: '123', sha: 'abc');
+
+      expect(presubmitState.repo, 'cocoon');
+      expect(presubmitState.pr, '123');
+      expect(presubmitState.sha, 'abc');
+      expect(notified, isTrue);
+    });
   });
 }
