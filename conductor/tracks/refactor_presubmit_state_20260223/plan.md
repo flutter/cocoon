@@ -1,13 +1,13 @@
 # Implementation Plan - Refactor PreSubmitView State Management
 
-## Phase 1: Foundation - Create PresubmitState
+## Phase 1: Foundation - Create PresubmitState [checkpoint: 584afaa]
 This phase focuses on creating the new `PresubmitState` class and migrating the core data fetching logic.
 
-- [ ] Task: Create `dashboard/lib/state/presubmit.dart` with `PresubmitState` class, including `repo`, `pr`, and `sha` properties.
-- [ ] Task: Implement initialization and update methods for `repo`, `pr`, and `sha` in `PresubmitState`.
-- [ ] Task: Implement `fetchAvailableShas` and `fetchGuardStatus` in `PresubmitState`.
-- [ ] Task: Write unit tests for `PresubmitState` in `dashboard/test/state/presubmit_test.dart`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md)
+- [x] Task: Create `dashboard/lib/state/presubmit.dart` with `PresubmitState` class, including `repo`, `pr`, and `sha` properties.
+- [x] Task: Implement initialization and update methods for `repo`, `pr`, and `sha` in `PresubmitState`.
+- [x] Task: Implement `fetchAvailableShas` and `fetchGuardStatus` in `PresubmitState`.
+- [x] Task: Write unit tests for `PresubmitState` in `dashboard/test/state/presubmit_test.dart`.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md)
 
 ## Phase 2: Refactor PreSubmitView
 This phase integrates `PresubmitState` into the main `PreSubmitView` widget and removes its local state.
