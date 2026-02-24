@@ -30,9 +30,9 @@ class GuardStatus extends StatelessWidget {
         vertical: isDense ? 1 : 2,
       ),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
+        color: statusColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+        border: Border.all(color: statusColor.withOpacity(0.2)),
       ),
       child: showText
           ? Text(

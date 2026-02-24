@@ -53,15 +53,18 @@ class PresubmitState extends ChangeNotifier {
   List<PresubmitCheckResponse>? get checks => _checks;
   List<PresubmitCheckResponse>? _checks;
 
+  /// Track if we have already attempted to fetch summaries for the current [pr].
+  String? _lastFetchedPr;
+
+  /// Track if we have already attempted to fetch guard status for the current [sha].
+  String? _lastFetchedSha;
+
   /// Update the current parameters and trigger fetches if needed.
-  ///
-  /// This method is idempotent and safe to call during build (it uses Future.microtask
-  /// internally if notifyListeners is needed).
   void update({String? repo, String? pr, String? sha}) {
     if (_syncParameters(repo: repo, pr: pr, sha: sha)) {
       notifyListeners();
     }
-    _fetchIfNeeded();
+    fetchIfNeeded();
   }
 
   /// Synchronously update parameters without notifying.
@@ -73,17 +76,19 @@ class PresubmitState extends ChangeNotifier {
       this.repo = repo;
       changed = true;
     }
-    if (this.pr != pr) {
+    if (pr != this.pr) {
       this.pr = pr;
       changed = true;
       _availableSummaries = [];
+      _lastFetchedPr = null;
     }
-    if (this.sha != sha) {
+    if (sha != this.sha) {
       this.sha = sha;
       changed = true;
       _guardResponse = null;
       _selectedCheck = null;
       _checks = null;
+      _lastFetchedSha = null;
     }
     return changed;
   }
@@ -106,21 +111,26 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
-  void _fetchIfNeeded() {
-    if (pr != null && _availableSummaries.isEmpty && !_isLoading) {
+  /// Trigger data fetching if parameters were updated but data is missing.
+  void fetchIfNeeded() {
+    if (_isLoading) {
+      return;
+    }
+    if (pr != null && _availableSummaries.isEmpty && _lastFetchedPr != pr) {
       fetchAvailableShas();
-    } else if (sha != null && _guardResponse == null && !_isLoading) {
+    } else if (sha != null && _guardResponse == null && _lastFetchedSha != sha) {
       fetchGuardStatus();
     }
   }
 
   /// Request the latest available SHAs for the current [pr] from [CocoonService].
   Future<void> fetchAvailableShas() async {
-    if (pr == null) {
+    if (pr == null || _isLoading) {
       return;
     }
     _isLoading = true;
-    // We don't notify here to allow calling from build/didChangeDependencies
+    _lastFetchedPr = pr;
+    notifyListeners();
 
     final response = await cocoonService.fetchPresubmitGuardSummaries(
       repo: repo,
@@ -138,15 +148,18 @@ class PresubmitState extends ChangeNotifier {
     }
     _isLoading = false;
     notifyListeners();
+    fetchIfNeeded(); // Proceed to fetch guard status for the new SHA
   }
 
   /// Request the guard status for the current [sha] from [CocoonService].
   Future<void> fetchGuardStatus() async {
-    if (sha == null) {
+    if (sha == null || _isLoading) {
       return;
     }
     _isLoading = true;
-    // We don't notify here to allow calling from build/didChangeDependencies
+    _lastFetchedSha = sha;
+    _guardResponse = null;
+    notifyListeners();
 
     final response = await cocoonService.fetchPresubmitGuard(
       repo: repo,
@@ -164,12 +177,12 @@ class PresubmitState extends ChangeNotifier {
 
   /// Request check details for the current [selectedCheck] and [guardResponse].
   Future<void> fetchCheckDetails() async {
-    if (selectedCheck == null || guardResponse == null) {
+    if (selectedCheck == null || guardResponse == null || _isLoading) {
       return;
     }
 
     // Handle mock SHAs
-    if (sha?.startsWith('mock_sha_') ?? false) {
+    if (sha?.contains('mock_sha') ?? false) {
       _checks = [
         PresubmitCheckResponse(
           attemptNumber: 1,

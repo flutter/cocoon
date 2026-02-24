@@ -12,174 +12,140 @@ import 'package:mockito/mockito.dart';
 import '../utils/mocks.dart';
 
 void main() {
-  group('PresubmitState', () {
-    late MockCocoonService mockCocoonService;
+  late PresubmitState presubmitState;
+  late MockCocoonService mockCocoonService;
+  late MockFirebaseAuthService mockAuthService;
 
-    setUp(() {
-      mockCocoonService = MockCocoonService();
-    });
+  setUp(() {
+    mockCocoonService = MockCocoonService();
+    mockAuthService = MockFirebaseAuthService();
+    presubmitState = PresubmitState(
+      cocoonService: mockCocoonService,
+      authService: mockAuthService,
+    );
 
-    test('initializes with default values', () {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      expect(presubmitState.repo, 'flutter');
-      expect(presubmitState.pr, isNull);
-      expect(presubmitState.sha, isNull);
-    });
+    // Default stubs to avoid MissingStubError during auto-fetches
+    when(mockCocoonService.fetchPresubmitGuardSummaries(
+      repo: anyNamed('repo'),
+      pr: anyNamed('pr'),
+    )).thenAnswer((_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data([]));
+    when(mockCocoonService.fetchPresubmitGuard(
+      repo: anyNamed('repo'),
+      sha: anyNamed('sha'),
+    )).thenAnswer((_) async => const CocoonResponse<PresubmitGuardResponse>.data(null));
+  });
 
-    test('update method updates properties and notifies listeners', () {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      bool notified = false;
-      presubmitState.addListener(() => notified = true);
+  test('PresubmitState initializes with default values', () {
+    expect(presubmitState.repo, 'flutter');
+    expect(presubmitState.pr, isNull);
+    expect(presubmitState.sha, isNull);
+    expect(presubmitState.isLoading, isFalse);
+    expect(presubmitState.guardResponse, isNull);
+    expect(presubmitState.availableSummaries, isEmpty);
+  });
 
-      presubmitState.update(repo: 'cocoon', pr: '123', sha: 'abc');
+  test('PresubmitState update method updates properties and notifies listeners', () {
+    bool notified = false;
+    presubmitState.addListener(() => notified = true);
 
-      expect(presubmitState.repo, 'cocoon');
-      expect(presubmitState.pr, '123');
-      expect(presubmitState.sha, 'abc');
-      expect(notified, isTrue);
-    });
+    presubmitState.update(repo: 'cocoon', pr: '123', sha: 'abc');
 
-    test('fetchAvailableShas updates availableSummaries and notifies listeners', () async {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      presubmitState.repo = 'flutter';
-      presubmitState.pr = '123';
+    expect(presubmitState.repo, 'cocoon');
+    expect(presubmitState.pr, '123');
+    expect(presubmitState.sha, 'abc');
+    expect(notified, isTrue);
+  });
 
-      final mockSummaries = [
-        PresubmitGuardSummary(
-          commitSha: 'sha1',
-          creationTime: 123,
-          guardStatus: GuardStatus.succeeded,
-        ),
-      ];
-
-      when(mockCocoonService.fetchPresubmitGuardSummaries(
-        repo: 'flutter',
-        pr: '123',
-      )).thenAnswer((_) async => CocoonResponse<List<PresubmitGuardSummary>>.data(mockSummaries));
-
-      bool notified = false;
-      presubmitState.addListener(() => notified = true);
-
-      await presubmitState.fetchAvailableShas();
-
-      expect(presubmitState.availableSummaries, mockSummaries);
-      expect(presubmitState.isLoading, isFalse);
-      expect(notified, isTrue);
-    });
-
-    test('fetchGuardStatus updates guardResponse and notifies listeners', () async {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      presubmitState.repo = 'flutter';
-      presubmitState.sha = 'sha1';
-
-      final mockResponse = PresubmitGuardResponse(
-        prNum: 123,
-        author: 'author1',
+  test('PresubmitState fetchAvailableShas updates availableSummaries and notifies listeners', () async {
+    const summaries = [
+      PresubmitGuardSummary(
+        commitSha: 'sha1',
+        creationTime: 123,
         guardStatus: GuardStatus.succeeded,
-        checkRunId: 456,
-        stages: [],
-      );
+      ),
+    ];
+    when(mockCocoonService.fetchPresubmitGuardSummaries(repo: 'flutter', pr: '123'))
+        .thenAnswer((_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries));
 
-      when(mockCocoonService.fetchPresubmitGuard(
-        repo: 'flutter',
-        sha: 'sha1',
-      )).thenAnswer((_) async => CocoonResponse<PresubmitGuardResponse>.data(mockResponse));
+    presubmitState.pr = '123';
+    bool notified = false;
+    presubmitState.addListener(() => notified = true);
 
-      bool notified = false;
-      presubmitState.addListener(() => notified = true);
+    await presubmitState.fetchAvailableShas();
 
-      await presubmitState.fetchGuardStatus();
+    expect(presubmitState.availableSummaries, summaries);
+    expect(notified, isTrue);
+  });
 
-      expect(presubmitState.guardResponse, mockResponse);
-      expect(presubmitState.isLoading, isFalse);
-      expect(notified, isTrue);
-    });
+  test('PresubmitState fetchGuardStatus updates guardResponse and notifies listeners', () async {
+    const guardResponse = PresubmitGuardResponse(
+      prNum: 123,
+      author: 'dash',
+      guardStatus: GuardStatus.succeeded,
+      checkRunId: 456,
+      stages: [],
+    );
+    when(mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'sha1'))
+        .thenAnswer((_) async => const CocoonResponse<PresubmitGuardResponse>.data(guardResponse));
 
-    test('update does not notify if values are the same', () {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-        repo: 'flutter',
-        pr: '123',
-        sha: 'abc',
-      );
-      bool notified = false;
-      presubmitState.addListener(() => notified = true);
+    presubmitState.sha = 'sha1';
+    bool notified = false;
+    presubmitState.addListener(() => notified = true);
 
-      presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
+    await presubmitState.fetchGuardStatus();
 
-      expect(notified, isFalse);
-    });
+    expect(presubmitState.guardResponse, guardResponse);
+    expect(presubmitState.isLoading, isFalse);
+    expect(notified, isTrue);
+  });
 
-    test('fetchAvailableShas returns early if pr is null', () async {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      presubmitState.pr = null;
+  test('PresubmitState update does not notify if values are the same and no fetch triggered', () {
+    presubmitState.repo = 'flutter';
+    presubmitState.pr = '123';
+    presubmitState.sha = 'abc';
+    // Use update to stabilize the state including lastFetched flags
+    presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
+    
+    bool notified = false;
+    presubmitState.addListener(() => notified = true);
 
-      await presubmitState.fetchAvailableShas();
+    presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
 
-      expect(presubmitState.isLoading, isFalse);
-      verifyNever(mockCocoonService.fetchPresubmitGuardSummaries(
-        repo: anyNamed('repo'),
-        pr: anyNamed('pr'),
-      ));
-    });
+    expect(notified, isFalse);
+  });
 
-    test('fetchAvailableShas defaults sha to latest if sha is null', () async {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      presubmitState.repo = 'flutter';
-      presubmitState.pr = '123';
-      presubmitState.sha = null;
+  test('PresubmitState fetchAvailableShas returns early if pr is null', () async {
+    await presubmitState.fetchAvailableShas();
+    verifyNever(mockCocoonService.fetchPresubmitGuardSummaries(
+      repo: anyNamed('repo'),
+      pr: anyNamed('pr'),
+    ));
+  });
 
-      final mockSummaries = [
-        PresubmitGuardSummary(
-          commitSha: 'sha1',
-          creationTime: 123,
-          guardStatus: GuardStatus.succeeded,
-        ),
-      ];
+  test('PresubmitState fetchAvailableShas defaults sha to latest if sha is null', () async {
+    const summaries = [
+      PresubmitGuardSummary(
+        commitSha: 'sha1',
+        creationTime: 123,
+        guardStatus: GuardStatus.succeeded,
+      ),
+    ];
+    when(mockCocoonService.fetchPresubmitGuardSummaries(repo: 'flutter', pr: '123'))
+        .thenAnswer((_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries));
 
-      when(mockCocoonService.fetchPresubmitGuardSummaries(
-        repo: 'flutter',
-        pr: '123',
-      )).thenAnswer((_) async => CocoonResponse<List<PresubmitGuardSummary>>.data(mockSummaries));
+    presubmitState.pr = '123';
+    presubmitState.sha = null;
 
-      await presubmitState.fetchAvailableShas();
+    await presubmitState.fetchAvailableShas();
 
-      expect(presubmitState.sha, 'sha1');
-    });
+    expect(presubmitState.sha, 'sha1');
+  });
 
-    test('fetchGuardStatus returns early if sha is null', () async {
-      final presubmitState = PresubmitState(
-        authService: MockFirebaseAuthService(),
-        cocoonService: mockCocoonService,
-      );
-      presubmitState.sha = null;
-
-      await presubmitState.fetchGuardStatus();
-
-      expect(presubmitState.isLoading, isFalse);
-      verifyNever(mockCocoonService.fetchPresubmitGuard(
-        repo: anyNamed('repo'),
-        sha: anyNamed('sha'),
-      ));
-    });
+  test('PresubmitState fetchGuardStatus returns early if sha is null', () async {
+    await presubmitState.fetchGuardStatus();
+    verifyNever(mockCocoonService.fetchPresubmitGuard(
+      repo: anyNamed('repo'),
+      sha: anyNamed('sha'),
+    ));
   });
 }

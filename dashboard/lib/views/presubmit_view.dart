@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 
 import '../dashboard_navigation_drawer.dart';
 import '../state/build.dart';
+import '../state/presubmit.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/guard_status.dart' as pw;
 import '../widgets/sha_selector.dart';
@@ -33,82 +34,34 @@ final class PreSubmitView extends StatefulWidget {
 }
 
 class _PreSubmitViewState extends State<PreSubmitView> {
-  late String repo;
-  String? sha;
-  String? pr;
-  PresubmitGuardResponse? _guardResponse;
-  bool _isLoading = false;
-  String? _selectedCheck;
-  List<PresubmitGuardSummary> _availableSummaries = [];
-
-  @override
-  void initState() {
-    super.initState();
-    final params = widget.queryParameters ?? {};
-    repo = params['repo'] ?? 'flutter';
-    sha = params['sha'];
-    pr = params['pr'];
-  }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (pr != null && _availableSummaries.isEmpty && !_isLoading) {
-      unawaited(_fetchAvailableShas());
-    } else if (sha != null && _guardResponse == null && !_isLoading) {
-      unawaited(_fetchGuardStatus());
+    _triggerUpdate();
+  }
+
+  @override
+  void didUpdateWidget(PreSubmitView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.queryParameters != oldWidget.queryParameters) {
+      _triggerUpdate();
     }
   }
 
-  Future<void> _fetchAvailableShas() async {
-    setState(() {
-      _isLoading = true;
+  void _triggerUpdate() {
+    final params = widget.queryParameters ?? {};
+    final repo = params['repo'] ?? 'flutter';
+    final sha = params['sha'];
+    final pr = params['pr'];
+
+    final state = Provider.of<PresubmitState>(context, listen: false);
+    state.syncUpdate(repo: repo, pr: pr, sha: sha);
+    
+    // Schedule fetch outside of build phase to avoid notify-during-build
+    Future.microtask(() {
+      if (!mounted) return;
+      state.fetchIfNeeded();
     });
-    final buildState = Provider.of<BuildState>(context, listen: false);
-    final summaries = await buildState.fetchPresubmitGuardSummaries(
-      repo: repo,
-      pr: pr!,
-    );
-    if (mounted && summaries != null) {
-      setState(() {
-        _availableSummaries = summaries;
-        // If no SHA was specified, default to the latest one
-        if (sha == null && _availableSummaries.isNotEmpty) {
-          sha = _availableSummaries.first.commitSha;
-        }
-        _isLoading = false;
-      });
-      if (sha != null) {
-        unawaited(_fetchGuardStatus());
-      }
-    } else if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _fetchGuardStatus() async {
-    setState(() {
-      _isLoading = true;
-      _selectedCheck = null;
-    });
-    final buildState = Provider.of<BuildState>(context, listen: false);
-
-    // For mock SHAs, we don't need a real API call if we're in Development mode,
-    // but PreSubmitView currently unifies everything through cocoonService.
-    // If cocoonService is DevelopmentCocoonService, it will return mock data.
-
-    final response = await buildState.cocoonService.fetchPresubmitGuard(
-      repo: repo,
-      sha: sha!,
-    );
-    if (mounted) {
-      setState(() {
-        _guardResponse = response.data;
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -116,402 +69,330 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final buildState = Provider.of<BuildState>(context);
+    final presubmitState = Provider.of<PresubmitState>(context);
 
-    var availableSummaries = pr != null
-        ? _availableSummaries
-        : buildState.statuses.map((s) {
-            return PresubmitGuardSummary(
-              commitSha: s.commit.sha,
-              creationTime: s.commit.timestamp.toInt(),
-              guardStatus: GuardStatus
-                  .waitingForBackfill, // Commits don't have guard status in status view
-            );
-          }).toList();
+    return AnimatedBuilder(
+      animation: Listenable.merge([buildState, presubmitState]),
+      builder: (context, _) {
+        final params = widget.queryParameters ?? {};
+        final pr = presubmitState.pr ?? params['pr'];
+        final sha = presubmitState.sha ?? params['sha'];
+        final repo = presubmitState.repo;
+        
+        final guardResponse = presubmitState.guardResponse;
+        final isLoading = presubmitState.isLoading;
+        final selectedCheck = presubmitState.selectedCheck;
 
-    // Ensure current sha is in the list
-    if (sha != null && !availableSummaries.any((s) => s.commitSha == sha)) {
-      availableSummaries = [
-        PresubmitGuardSummary(
-          commitSha: sha!,
-          creationTime: 0,
-          guardStatus: GuardStatus.waitingForBackfill,
-        ),
-        ...availableSummaries,
-      ];
-    }
+        var availableSummaries = pr != null
+            ? presubmitState.availableSummaries
+            : buildState.statuses.map((s) {
+                return PresubmitGuardSummary(
+                  commitSha: s.commit.sha,
+                  creationTime: s.commit.timestamp.toInt(),
+                  guardStatus: GuardStatus.waitingForBackfill,
+                );
+              }).toList();
 
-    final shortSha = (sha != null && sha!.length > 7)
-        ? sha!.substring(0, 7)
-        : sha;
-    final title = _guardResponse != null
-        ? 'PR #${_guardResponse!.prNum} by ${_guardResponse!.author} ($shortSha)'
-        : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
-
-    // Use the guard status from the summary if available, otherwise fallback to "Pending" or "Loading..."
-    var statusText = (pr != null ? 'Pending' : 'Loading...');
-    if (_guardResponse != null) {
-      statusText = _guardResponse!.guardStatus.value;
-    } else if (sha != null) {
-      final summary = _availableSummaries.firstWhere(
-        (s) => s.commitSha == sha,
-        orElse: () => const PresubmitGuardSummary(
-          commitSha: '',
-          creationTime: 0,
-          guardStatus: GuardStatus.waitingForBackfill,
-        ),
-      );
-      if (summary.commitSha.isNotEmpty) {
-        statusText = summary.guardStatus.value;
-      }
-    }
-
-    final isLatestSha =
-        pr != null &&
-        _availableSummaries.isNotEmpty &&
-        sha == _availableSummaries.first.commitSha;
-
-    return Scaffold(
-      appBar: CocoonAppBar(
-        title: Row(
-          children: [
-            Flexible(
-              child: SelectionArea(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+        if (sha != null && !availableSummaries.any((s) => s.commitSha == sha)) {
+          availableSummaries = [
+            PresubmitGuardSummary(
+              commitSha: sha,
+              creationTime: 0,
+              guardStatus: GuardStatus.waitingForBackfill,
             ),
-            const SizedBox(width: 16),
-            pw.GuardStatus(status: statusText),
-          ],
-        ),
-        actions: [
-          if (isLatestSha) ...[
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Re-run failed'),
-              style: TextButton.styleFrom(
-                foregroundColor: isDark ? Colors.white : Colors.black87,
-              ),
+            ...availableSummaries,
+          ];
+        }
+
+        final shortSha = (sha != null && sha.length > 7) ? sha.substring(0, 7) : sha;
+        final title = guardResponse != null
+            ? 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)'
+            : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
+
+        var statusText = (pr != null ? 'Pending' : 'Loading...');
+        if (guardResponse != null) {
+          statusText = guardResponse.guardStatus.value;
+        } else if (sha != null) {
+          final summary = presubmitState.availableSummaries.firstWhere(
+            (s) => s.commitSha == sha,
+            orElse: () => const PresubmitGuardSummary(
+              commitSha: '',
+              creationTime: 0,
+              guardStatus: GuardStatus.waitingForBackfill,
             ),
-            const SizedBox(width: 8),
-          ],
-          SizedBox(
-            width: 300,
-            child: ShaSelector(
-              availableShas: availableSummaries,
-              selectedSha: sha,
-              onShaSelected: (newSha) {
-                setState(() {
-                  sha = newSha;
-                  _guardResponse = null;
-                });
-                unawaited(_fetchGuardStatus());
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      drawer: const DashboardNavigationDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+          );
+          if (summary.commitSha.isNotEmpty) {
+            statusText = summary.guardStatus.value;
+          }
+        }
+
+        final isLatestSha = pr != null &&
+            presubmitState.availableSummaries.isNotEmpty &&
+            sha == presubmitState.availableSummaries.first.commitSha;
+
+        return Scaffold(
+          appBar: CocoonAppBar(
+            title: Row(
               children: [
-                const Divider(height: 1, thickness: 1),
-                Expanded(
+                Flexible(
                   child: SelectionArea(
-                    child: Row(
-                      children: [
-                        if (_guardResponse != null)
-                          _ChecksSidebar(
-                            guardResponse: _guardResponse!,
-                            selectedCheck: _selectedCheck,
-                            isLatestSha: isLatestSha,
-                            onCheckSelected: (name) {
-                              setState(() {
-                                _selectedCheck = name;
-                              });
-                            },
-                          ),
-                        const VerticalDivider(width: 1, thickness: 1),
-                        Expanded(
-                          child: _selectedCheck == null
-                              ? const Center(
-                                  child: Text('Select a check to view logs'),
-                                )
-                              : _LogViewerPane(
-                                  repo: repo,
-                                  checkRunId: _guardResponse!.checkRunId,
-                                  buildName: _selectedCheck!,
-                                  isMocked: sha!.startsWith('mock_sha_'),
-                                ),
-                        ),
-                      ],
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
+                const SizedBox(width: 16),
+                pw.GuardStatus(status: statusText),
               ],
             ),
+            actions: [
+              if (isLatestSha) ...[
+                TextButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Re-run failed'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              SizedBox(
+                width: 300,
+                child: ShaSelector(
+                  availableShas: availableSummaries,
+                  selectedSha: sha,
+                  onShaSelected: (newSha) {
+                    presubmitState.update(repo: repo, pr: pr, sha: newSha);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          drawer: const DashboardNavigationDrawer(),
+          body: isLoading && guardResponse == null
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    const Divider(height: 1, thickness: 1),
+                    Expanded(
+                      child: SelectionArea(
+                        child: Row(
+                          children: [
+                            if (guardResponse != null)
+                              _ChecksSidebar(
+                                guardResponse: guardResponse,
+                                selectedCheck: selectedCheck,
+                                isLatestSha: isLatestSha,
+                                onCheckSelected: (name) {
+                                  presubmitState.selectCheck(name);
+                                },
+                              ),
+                            const VerticalDivider(width: 1, thickness: 1),
+                            Expanded(
+                              child: (selectedCheck == null || guardResponse == null)
+                                  ? const Center(
+                                      child: Text('Select a check to view logs'),
+                                    )
+                                  : const _LogViewerPane(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }
 
 class _LogViewerPane extends StatefulWidget {
-  const _LogViewerPane({
-    required this.repo,
-    required this.checkRunId,
-    required this.buildName,
-    this.isMocked = false,
-  });
-
-  final String repo;
-  final int checkRunId;
-  final String buildName;
-  final bool isMocked;
+  const _LogViewerPane();
 
   @override
   State<_LogViewerPane> createState() => _LogViewerPaneState();
 }
 
 class _LogViewerPaneState extends State<_LogViewerPane> {
-  List<PresubmitCheckResponse>? _checks;
-  bool _isLoading = false;
   int _selectedAttemptIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchCheckDetails();
-  }
-
-  @override
-  void didUpdateWidget(_LogViewerPane oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.buildName != widget.buildName ||
-        oldWidget.checkRunId != widget.checkRunId) {
-      _selectedAttemptIndex = 0;
-      _fetchCheckDetails();
-    }
-  }
-
-  Future<void> _fetchCheckDetails() async {
-    if (widget.isMocked) {
-      setState(() {
-        _checks = [
-          PresubmitCheckResponse(
-            attemptNumber: 1,
-            buildName: widget.buildName,
-            creationTime: 0,
-            status: 'Succeeded',
-            summary:
-                '[INFO] Starting task ${widget.buildName}...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
-          ),
-          PresubmitCheckResponse(
-            attemptNumber: 2,
-            buildName: widget.buildName,
-            creationTime: 0,
-            status: 'Failed',
-            summary:
-                '[INFO] Starting task ${widget.buildName}...\n[ERROR] Test failed: Unit Tests',
-          ),
-        ];
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-    final buildState = Provider.of<BuildState>(context, listen: false);
-    final response = await buildState.cocoonService.fetchPresubmitCheckDetails(
-      checkRunId: widget.checkRunId,
-      buildName: widget.buildName,
-    );
-    if (mounted) {
-      setState(() {
-        _checks = response.data;
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark
-        ? const Color(0xFF333333)
-        : const Color(0xFFD1D5DB);
+    final presubmitState = Provider.of<PresubmitState>(context);
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return AnimatedBuilder(
+      animation: presubmitState,
+      builder: (context, _) {
+        final repo = presubmitState.repo;
+        final buildName = presubmitState.selectedCheck;
+        final checks = presubmitState.checks;
+        final isLoading = presubmitState.isLoading;
 
-    if (_checks == null || _checks!.isEmpty) {
-      return const Center(child: Text('No details found for this check'));
-    }
+        final borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFD1D5DB);
 
-    final selectedCheck =
-        _checks![_selectedAttemptIndex < _checks!.length
-            ? _selectedAttemptIndex
-            : 0];
+        if (isLoading && (checks == null || checks.isEmpty)) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${widget.repo} / ${widget.buildName}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+        if (checks == null || checks.isEmpty) {
+          return const Center(child: Text('No details found for this check'));
+        }
+
+        if (_selectedAttemptIndex >= checks.length) {
+          _selectedAttemptIndex = 0;
+        }
+
+        final selectedCheck = checks[_selectedAttemptIndex];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$repo / $buildName',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Status: ${selectedCheck.status}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Status: ${selectedCheck.status}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark
-                      ? const Color(0xFF8B949E)
-                      : const Color(0xFF6B7280),
-                ),
+            ),
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                border: Border(bottom: BorderSide(color: borderColor)),
               ),
-            ],
-          ),
-        ),
-        Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          decoration: BoxDecoration(
-            color: theme.scaffoldBackgroundColor,
-            border: Border(bottom: BorderSide(color: borderColor)),
-          ),
-          child: Row(
-            children: [
-              ..._checks!.asMap().entries.map((entry) {
-                final index = entry.key;
-                final check = entry.value;
-                final isSelected = _selectedAttemptIndex == index;
-                return InkWell(
-                  onTap: () => setState(() => _selectedAttemptIndex = index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: isSelected
-                              ? const Color(0xFF3B82F6)
-                              : Colors.transparent,
-                          width: 2,
+              child: Row(
+                children: [
+                  ...checks.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final check = entry.value;
+                    final isSelected = _selectedAttemptIndex == index;
+                    return InkWell(
+                      onTap: () => setState(() => _selectedAttemptIndex = index),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          '#${check.attemptNumber}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            color: isSelected
+                                ? (isDark ? Colors.white : Colors.black)
+                                : (isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280)),
+                          ),
                         ),
                       ),
+                    );
+                  }),
+                  const Spacer(),
+                  const Text(
+                    'BUILD HISTORY',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      letterSpacing: 1.0,
                     ),
-                    child: Text(
-                      '#${check.attemptNumber}',
+                  ),
+                ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Row(
+                children: [
+                  Text(
+                    'Execution Log',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Spacer(),
+                  Text(
+                    'Raw output',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.scaffoldBackgroundColor,
+                  border: Border.all(color: borderColor),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                width: double.infinity,
+                child: SingleChildScrollView(
+                  child: Text(
+                    selectedCheck.summary ?? 'No log summary available',
+                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: InkWell(
+                onTap: () {},
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.open_in_new,
+                      size: 18,
+                      color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'View more details on LUCI UI',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                        color: isSelected
-                            ? (isDark ? Colors.white : Colors.black)
-                            : (isDark
-                                  ? const Color(0xFF8B949E)
-                                  : const Color(0xFF6B7280)),
+                        color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                        fontSize: 14,
                       ),
                     ),
-                  ),
-                );
-              }),
-              const Spacer(),
-              const Text(
-                'BUILD HISTORY',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                  letterSpacing: 1.0,
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Row(
-            children: [
-              Text(
-                'Execution Log',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              Spacer(),
-              Text(
-                'Raw output',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              border: Border.all(color: borderColor),
-              borderRadius: BorderRadius.circular(6),
             ),
-            width: double.infinity,
-            child: SingleChildScrollView(
-              child: Text(
-                selectedCheck.summary ?? 'No log summary available',
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: InkWell(
-            onTap: () {},
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.open_in_new,
-                  size: 18,
-                  color: isDark
-                      ? const Color(0xFF58A6FF)
-                      : const Color(0xFF0969DA),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'View more details on LUCI UI',
-                  style: TextStyle(
-                    color: isDark
-                        ? const Color(0xFF58A6FF)
-                        : const Color(0xFF0969DA),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -575,9 +456,7 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isDark
-                                ? const Color(0xFF8B949E)
-                                : const Color(0xFF6B7280),
+                            color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
                             letterSpacing: 1.2,
                           ),
                         ),
@@ -626,26 +505,21 @@ class _CheckItem extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05))
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.05))
               : Colors.transparent,
-
           border: Border(
             left: BorderSide(
               color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
-
               width: 2,
             ),
           ),
         ),
-
         child: Row(
           children: [
             _getStatusIcon(status),
@@ -661,18 +535,14 @@ class _CheckItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (isLatestSha &&
-                (status == TaskStatus.failed ||
-                    status == TaskStatus.infraFailure))
+            if (isLatestSha && (status == TaskStatus.failed || status == TaskStatus.infraFailure))
               TextButton(
                 onPressed: () {},
                 child: Text(
                   'Re-run',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark
-                        ? const Color(0xFF58A6FF)
-                        : const Color(0xFF0969DA),
+                    color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
                   ),
                 ),
               ),
