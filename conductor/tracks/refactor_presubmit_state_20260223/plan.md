@@ -12,8 +12,8 @@ This phase focuses on creating the new `PresubmitState` class and migrating the 
 ## Phase 2: Refactor PreSubmitView
 This phase integrates `PresubmitState` into the main `PreSubmitView` widget and removes its local state.
 
-- [ ] Task: Update `dashboard/lib/main.dart` or the relevant state provider to instantiate and provide `PresubmitState`.
-- [ ] Task: Refactor `_PreSubmitViewState` to use `PresubmitState` for context management (repo, pr, sha) and data fetching.
+- [x] Task: Update `dashboard/lib/main.dart` or the relevant state provider to instantiate and provide `PresubmitState`.
+- [~] Task: Refactor `_PreSubmitViewState` to use `PresubmitState` for context management (repo, pr, sha) and data fetching.
 - [ ] Task: Update `dashboard/test/views/presubmit_view_test.dart` to ensure compatibility with the new state management.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Refactor PreSubmitView' (Protocol in workflow.md)
 

@@ -188,7 +188,7 @@ class DevelopmentCocoonService implements CocoonService {
           prNum: 123,
           checkRunId: 456,
           author: _authors[0],
-          guardStatus: GuardStatus.failed,
+          guardStatus: GuardStatus.inProgress,
           stages: [
             PresubmitGuardStage(
               name: 'Engine',
@@ -238,7 +238,7 @@ class DevelopmentCocoonService implements CocoonService {
           prNum: 123,
           checkRunId: 1011,
           author: _authors[2],
-          guardStatus: GuardStatus.inProgress,
+          guardStatus: GuardStatus.failed,
           stages: [
             PresubmitGuardStage(
               name: 'Engine',
@@ -257,6 +257,36 @@ class DevelopmentCocoonService implements CocoonService {
                 'Mac framework_tests': TaskStatus.waitingForBackfill,
                 'Linux android framework_tests': TaskStatus.skipped,
                 'Windows framework_tests': TaskStatus.inProgress,
+              },
+            ),
+          ],
+        ),
+      );
+    } else if (sha == 'deafcab_mock_sha') {
+      return CocoonResponse.data(
+        PresubmitGuardResponse(
+          prNum: 123,
+          checkRunId: 369,
+          author: _authors[3],
+          guardStatus: GuardStatus.succeeded,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Mac mac_host_engine': TaskStatus.succeeded,
+                'Mac mac_ios_engine': TaskStatus.cancelled,
+                'Linux linux_android_aot_engine': TaskStatus.succeeded,
+              },
+            ),
+            PresubmitGuardStage(
+              name: 'Framework',
+              createdAt: now.millisecondsSinceEpoch,
+              builds: {
+                'Linux framework_tests': TaskStatus.succeeded,
+                'Mac framework_tests': TaskStatus.succeeded,
+                'Linux android framework_tests': TaskStatus.skipped,
+                'Windows framework_tests': TaskStatus.succeeded,
               },
             ),
           ],
@@ -310,12 +340,17 @@ class DevelopmentCocoonService implements CocoonService {
       PresubmitGuardSummary(
         commitSha: 'face5_2_mock_sha',
         creationTime: now.millisecondsSinceEpoch - 100000,
-        guardStatus: GuardStatus.succeeded,
+        guardStatus: GuardStatus.failed,
       ),
       PresubmitGuardSummary(
         commitSha: 'cafe5_1_mock_sha',
         creationTime: now.millisecondsSinceEpoch - 200000,
         guardStatus: GuardStatus.failed,
+      ),
+      PresubmitGuardSummary(
+        commitSha: 'deafcab_mock_sha',
+        creationTime: now.millisecondsSinceEpoch - 300000,
+        guardStatus: GuardStatus.succeeded,
       ),
     ]);
   }

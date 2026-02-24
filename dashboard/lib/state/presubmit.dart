@@ -45,17 +45,73 @@ class PresubmitState extends ChangeNotifier {
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
   List<PresubmitGuardSummary> _availableSummaries = [];
 
-  /// Update the current state and notify listeners.
+  /// The currently selected check name.
+  String? get selectedCheck => _selectedCheck;
+  String? _selectedCheck;
+
+  /// The checks/logs for the current [selectedCheck].
+  List<PresubmitCheckResponse>? get checks => _checks;
+  List<PresubmitCheckResponse>? _checks;
+
+  /// Update the current parameters and trigger fetches if needed.
+  ///
+  /// This method is idempotent and safe to call during build (it uses Future.microtask
+  /// internally if notifyListeners is needed).
   void update({String? repo, String? pr, String? sha}) {
-    if (this.repo == repo && this.pr == pr && this.sha == sha) {
+    if (_syncParameters(repo: repo, pr: pr, sha: sha)) {
+      notifyListeners();
+    }
+    _fetchIfNeeded();
+  }
+
+  /// Synchronously update parameters without notifying.
+  ///
+  /// Returns true if anything changed.
+  bool _syncParameters({String? repo, String? pr, String? sha}) {
+    bool changed = false;
+    if (repo != null && this.repo != repo) {
+      this.repo = repo;
+      changed = true;
+    }
+    if (this.pr != pr) {
+      this.pr = pr;
+      changed = true;
+      _availableSummaries = [];
+    }
+    if (this.sha != sha) {
+      this.sha = sha;
+      changed = true;
+      _guardResponse = null;
+      _selectedCheck = null;
+      _checks = null;
+    }
+    return changed;
+  }
+
+  /// Synchronously update state without notifying.
+  void syncUpdate({String? repo, String? pr, String? sha}) {
+    _syncParameters(repo: repo, pr: pr, sha: sha);
+  }
+
+  /// Select a check and fetch its details.
+  void selectCheck(String? name) {
+    if (_selectedCheck == name) {
       return;
     }
-    if (repo != null) {
-      this.repo = repo;
-    }
-    this.pr = pr;
-    this.sha = sha;
+    _selectedCheck = name;
+    _checks = null;
     notifyListeners();
+    if (_selectedCheck != null) {
+      fetchCheckDetails();
+    }
+  }
+
+  void _fetchIfNeeded() {
+    if (pr != null && _availableSummaries.isEmpty && !_isLoading) {
+      fetchAvailableShas();
+    } else if (sha != null && _guardResponse == null && !_isLoading) {
+      fetchGuardStatus();
+    }
   }
 
   /// Request the latest available SHAs for the current [pr] from [CocoonService].
@@ -64,7 +120,7 @@ class PresubmitState extends ChangeNotifier {
       return;
     }
     _isLoading = true;
-    notifyListeners();
+    // We don't notify here to allow calling from build/didChangeDependencies
 
     final response = await cocoonService.fetchPresubmitGuardSummaries(
       repo: repo,
@@ -90,8 +146,7 @@ class PresubmitState extends ChangeNotifier {
       return;
     }
     _isLoading = true;
-    _guardResponse = null;
-    notifyListeners();
+    // We don't notify here to allow calling from build/didChangeDependencies
 
     final response = await cocoonService.fetchPresubmitGuard(
       repo: repo,
@@ -102,6 +157,53 @@ class PresubmitState extends ChangeNotifier {
       // TODO: Handle error
     } else {
       _guardResponse = response.data;
+    }
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Request check details for the current [selectedCheck] and [guardResponse].
+  Future<void> fetchCheckDetails() async {
+    if (selectedCheck == null || guardResponse == null) {
+      return;
+    }
+
+    // Handle mock SHAs
+    if (sha?.startsWith('mock_sha_') ?? false) {
+      _checks = [
+        PresubmitCheckResponse(
+          attemptNumber: 1,
+          buildName: selectedCheck!,
+          creationTime: 0,
+          status: 'Succeeded',
+          summary:
+              '[INFO] Starting task $selectedCheck...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
+        ),
+        PresubmitCheckResponse(
+          attemptNumber: 2,
+          buildName: selectedCheck!,
+          creationTime: 0,
+          status: 'Failed',
+          summary:
+              '[INFO] Starting task $selectedCheck...\n[ERROR] Test failed: Unit Tests',
+        ),
+      ];
+      notifyListeners();
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    final response = await cocoonService.fetchPresubmitCheckDetails(
+      checkRunId: guardResponse!.checkRunId,
+      buildName: selectedCheck!,
+    );
+
+    if (response.error != null) {
+      // TODO: Handle error
+    } else {
+      _checks = response.data;
     }
     _isLoading = false;
     notifyListeners();
