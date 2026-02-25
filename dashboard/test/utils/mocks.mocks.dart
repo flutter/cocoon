@@ -826,20 +826,6 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
           as _i8.Future<bool>);
 
   @override
-  _i8.Future<List<_i12.PresubmitGuardSummary>?> fetchPresubmitGuardSummaries({
-    required String? repo,
-    required String? pr,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#fetchPresubmitGuardSummaries, [], {
-              #repo: repo,
-              #pr: pr,
-            }),
-            returnValue: _i8.Future<List<_i12.PresubmitGuardSummary>?>.value(),
-          )
-          as _i8.Future<List<_i12.PresubmitGuardSummary>?>);
-
-  @override
   _i8.Future<bool> updateTestSuppression({
     required String? testName,
     required bool? suppress,

@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/foundation.dart';
 
@@ -38,8 +41,12 @@ class PresubmitState extends ChangeNotifier {
   PresubmitGuardResponse? _guardResponse;
 
   /// Whether data is currently being fetched.
-  bool get isLoading => _isLoading;
-  bool _isLoading = false;
+  bool get isLoading =>
+      _isSummariesLoading || _isGuardLoading || _isChecksLoading;
+
+  bool _isSummariesLoading = false;
+  bool _isGuardLoading = false;
+  bool _isChecksLoading = false;
 
   /// The available SHAs for the current [pr].
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
@@ -59,6 +66,73 @@ class PresubmitState extends ChangeNotifier {
   /// Track if we have already attempted to fetch guard status for the current [sha].
   String? _lastFetchedSha;
 
+  /// How often to query the Cocoon backend for updates.
+  @visibleForTesting
+  final Duration refreshRate = const Duration(seconds: 30);
+
+  /// Timer that calls [_fetchRefreshUpdate] on a set interval.
+  @visibleForTesting
+  Timer? refreshTimer;
+
+  bool _active = true;
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (!hasListeners) {
+      _startTimer();
+      assert(refreshTimer != null);
+    }
+    super.addListener(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    super.removeListener(listener);
+    if (!hasListeners) {
+      _stopTimer();
+    }
+  }
+
+  void _startTimer() {
+    refreshTimer?.cancel();
+    refreshTimer = Timer.periodic(refreshRate, _fetchRefreshUpdate);
+  }
+
+  void _stopTimer() {
+    refreshTimer?.cancel();
+    refreshTimer = null;
+  }
+
+  Future<void> _fetchRefreshUpdate([Timer? timer]) async {
+    if (!_active || isLoading) {
+      return;
+    }
+
+    final refreshes = <Future<void>>[];
+
+    if (pr != null) {
+      refreshes.add(fetchAvailableShas(refresh: true));
+    } else {
+      refreshes.add(fetchRecentCommits(refresh: true));
+    }
+
+    if (sha != null) {
+      // final isInProgress =
+      //     _availableSummaries.first.guardStatus == GuardStatus.inProgress;
+
+      // if (isInProgress) {
+      refreshes.add(fetchGuardStatus(refresh: true));
+      if (selectedCheck != null) {
+        refreshes.add(fetchCheckDetails(refresh: true));
+      }
+      // }
+    }
+
+    if (refreshes.isNotEmpty) {
+      await Future.wait(refreshes);
+    }
+  }
+
   /// Update the current parameters and trigger fetches if needed.
   void update({String? repo, String? pr, String? sha}) {
     if (_syncParameters(repo: repo, pr: pr, sha: sha)) {
@@ -71,10 +145,12 @@ class PresubmitState extends ChangeNotifier {
   ///
   /// Returns true if anything changed.
   bool _syncParameters({String? repo, String? pr, String? sha}) {
-    bool changed = false;
+    var changed = false;
     if (repo != null && this.repo != repo) {
       this.repo = repo;
       changed = true;
+      _availableSummaries = [];
+      _lastFetchedPr = null;
     }
     if (pr != this.pr) {
       this.pr = pr;
@@ -113,22 +189,30 @@ class PresubmitState extends ChangeNotifier {
 
   /// Trigger data fetching if parameters were updated but data is missing.
   void fetchIfNeeded() {
-    if (_isLoading) {
+    if (isLoading) {
       return;
     }
-    if (pr != null && _availableSummaries.isEmpty && _lastFetchedPr != pr) {
-      fetchAvailableShas();
-    } else if (sha != null && _guardResponse == null && _lastFetchedSha != sha) {
+    if (pr != null) {
+      if (_availableSummaries.isEmpty && _lastFetchedPr != pr) {
+        fetchAvailableShas();
+      }
+    } else {
+      if (_availableSummaries.isEmpty && _lastFetchedPr != 'NO_PR') {
+        fetchRecentCommits();
+      }
+    }
+
+    if (sha != null && _guardResponse == null && _lastFetchedSha != sha) {
       fetchGuardStatus();
     }
   }
 
   /// Request the latest available SHAs for the current [pr] from [CocoonService].
-  Future<void> fetchAvailableShas() async {
-    if (pr == null || _isLoading) {
+  Future<void> fetchAvailableShas({bool refresh = false}) async {
+    if (pr == null || _isSummariesLoading) {
       return;
     }
-    _isLoading = true;
+    _isSummariesLoading = true;
     _lastFetchedPr = pr;
     notifyListeners();
 
@@ -146,19 +230,50 @@ class PresubmitState extends ChangeNotifier {
         sha = _availableSummaries.first.commitSha;
       }
     }
-    _isLoading = false;
+    _isSummariesLoading = false;
     notifyListeners();
     fetchIfNeeded(); // Proceed to fetch guard status for the new SHA
   }
 
-  /// Request the guard status for the current [sha] from [CocoonService].
-  Future<void> fetchGuardStatus() async {
-    if (sha == null || _isLoading) {
+  /// Request recent commits for the current [repo] from [CocoonService].
+  Future<void> fetchRecentCommits({bool refresh = false}) async {
+    if (_isSummariesLoading) {
       return;
     }
-    _isLoading = true;
+    _isSummariesLoading = true;
+    _lastFetchedPr = 'NO_PR'; // Special value for "no PR"
+    if (!refresh) {
+      _availableSummaries = [];
+    }
+    notifyListeners();
+
+    final response = await cocoonService.fetchCommitStatuses(repo: repo);
+
+    if (response.error != null) {
+      // TODO: Handle error
+    } else {
+      _availableSummaries = response.data!.map((s) {
+        return PresubmitGuardSummary(
+          commitSha: s.commit.sha,
+          creationTime: s.commit.timestamp.toInt(),
+          guardStatus: GuardStatus.waitingForBackfill,
+        );
+      }).toList();
+    }
+    _isSummariesLoading = false;
+    notifyListeners();
+  }
+
+  /// Request the guard status for the current [sha] from [CocoonService].
+  Future<void> fetchGuardStatus({bool refresh = false}) async {
+    if (sha == null || _isGuardLoading) {
+      return;
+    }
+    _isGuardLoading = true;
     _lastFetchedSha = sha;
-    _guardResponse = null;
+    if (!refresh) {
+      _guardResponse = null;
+    }
     notifyListeners();
 
     final response = await cocoonService.fetchPresubmitGuard(
@@ -171,41 +286,20 @@ class PresubmitState extends ChangeNotifier {
     } else {
       _guardResponse = response.data;
     }
-    _isLoading = false;
+    _isGuardLoading = false;
     notifyListeners();
   }
 
   /// Request check details for the current [selectedCheck] and [guardResponse].
-  Future<void> fetchCheckDetails() async {
-    if (selectedCheck == null || guardResponse == null || _isLoading) {
+  Future<void> fetchCheckDetails({bool refresh = false}) async {
+    if (selectedCheck == null || guardResponse == null || _isChecksLoading) {
       return;
     }
 
-    // Handle mock SHAs
-    if (sha?.contains('mock_sha') ?? false) {
-      _checks = [
-        PresubmitCheckResponse(
-          attemptNumber: 1,
-          buildName: selectedCheck!,
-          creationTime: 0,
-          status: 'Succeeded',
-          summary:
-              '[INFO] Starting task $selectedCheck...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
-        ),
-        PresubmitCheckResponse(
-          attemptNumber: 2,
-          buildName: selectedCheck!,
-          creationTime: 0,
-          status: 'Failed',
-          summary:
-              '[INFO] Starting task $selectedCheck...\n[ERROR] Test failed: Unit Tests',
-        ),
-      ];
-      notifyListeners();
-      return;
+    _isChecksLoading = true;
+    if (!refresh) {
+      _checks = null;
     }
-
-    _isLoading = true;
     notifyListeners();
 
     final response = await cocoonService.fetchPresubmitCheckDetails(
@@ -218,7 +312,14 @@ class PresubmitState extends ChangeNotifier {
     } else {
       _checks = response.data;
     }
-    _isLoading = false;
+    _isChecksLoading = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _active = false;
+    refreshTimer?.cancel();
+    super.dispose();
   }
 }

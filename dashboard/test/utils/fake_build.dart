@@ -133,12 +133,4 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
     ));
     return updateTestSuppressionResult;
   }
-
-  @override
-  Future<List<PresubmitGuardSummary>?> fetchPresubmitGuardSummaries({
-    required String repo,
-    required String pr,
-  }) async {
-    return null;
-  }
 }

@@ -12,7 +12,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../dashboard_navigation_drawer.dart';
-import '../state/build.dart';
 import '../state/presubmit.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/guard_status.dart' as pw;
@@ -72,7 +71,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     if (!mounted || !widget.syncNavigation) return;
     final state = _presubmitState!;
     final params = widget.queryParameters ?? {};
-    
+
     // If the state has a SHA that is different from the URL, update the URL.
     if (state.sha != null && state.sha != params['sha']) {
       _updateNavigation();
@@ -86,16 +85,10 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     if (state.pr != null) params['pr'] = state.pr!;
     if (state.sha != null) params['sha'] = state.sha!;
 
-    final uri = Uri(
-      path: PreSubmitView.routeName,
-      queryParameters: params,
-    );
+    final uri = Uri(path: PreSubmitView.routeName, queryParameters: params);
 
     // Update the URL without triggering a full navigation/rebuild cycle.
-    SystemNavigator.routeInformationUpdated(
-      location: uri.toString(),
-      replace: true,
-    );
+    SystemNavigator.routeInformationUpdated(uri: uri, replace: true);
   }
 
   void _triggerUpdate() {
@@ -106,7 +99,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
 
     final state = Provider.of<PresubmitState>(context, listen: false);
     state.syncUpdate(repo: repo, pr: pr, sha: sha);
-    
+
     // Schedule fetch outside of build phase to avoid notify-during-build
     Future.microtask(() {
       if (!mounted) return;
@@ -118,30 +111,21 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final buildState = Provider.of<BuildState>(context);
     final presubmitState = Provider.of<PresubmitState>(context);
 
     return AnimatedBuilder(
-      animation: Listenable.merge([buildState, presubmitState]),
+      animation: presubmitState,
       builder: (context, _) {
         final params = widget.queryParameters ?? {};
         final pr = presubmitState.pr ?? params['pr'];
         final sha = presubmitState.sha ?? params['sha'];
         final repo = presubmitState.repo;
-        
+
         final guardResponse = presubmitState.guardResponse;
         final isLoading = presubmitState.isLoading;
         final selectedCheck = presubmitState.selectedCheck;
 
-        var availableSummaries = pr != null
-            ? presubmitState.availableSummaries
-            : buildState.statuses.map((s) {
-                return PresubmitGuardSummary(
-                  commitSha: s.commit.sha,
-                  creationTime: s.commit.timestamp.toInt(),
-                  guardStatus: GuardStatus.waitingForBackfill,
-                );
-              }).toList();
+        var availableSummaries = presubmitState.availableSummaries;
 
         if (sha != null && !availableSummaries.any((s) => s.commitSha == sha)) {
           availableSummaries = [
@@ -154,7 +138,9 @@ class _PreSubmitViewState extends State<PreSubmitView> {
           ];
         }
 
-        final shortSha = (sha != null && sha.length > 7) ? sha.substring(0, 7) : sha;
+        final shortSha = (sha != null && sha.length > 7)
+            ? sha.substring(0, 7)
+            : sha;
         final title = guardResponse != null
             ? 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)'
             : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
@@ -176,7 +162,8 @@ class _PreSubmitViewState extends State<PreSubmitView> {
           }
         }
 
-        final isLatestSha = pr != null &&
+        final isLatestSha =
+            pr != null &&
             presubmitState.availableSummaries.isNotEmpty &&
             sha == presubmitState.availableSummaries.first.commitSha;
 
@@ -240,15 +227,17 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                                 guardResponse: guardResponse,
                                 selectedCheck: selectedCheck,
                                 isLatestSha: isLatestSha,
-                                onCheckSelected: (name) {
-                                  presubmitState.selectCheck(name);
-                                },
+                                onCheckSelected: presubmitState.selectCheck,
                               ),
                             const VerticalDivider(width: 1, thickness: 1),
                             Expanded(
-                              child: (selectedCheck == null || guardResponse == null)
+                              child:
+                                  (selectedCheck == null ||
+                                      guardResponse == null)
                                   ? const Center(
-                                      child: Text('Select a check to view logs'),
+                                      child: Text(
+                                        'Select a check to view logs',
+                                      ),
                                     )
                                   : const _LogViewerPane(),
                             ),
@@ -288,7 +277,9 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
         final checks = presubmitState.checks;
         final isLoading = presubmitState.isLoading;
 
-        final borderColor = isDark ? const Color(0xFF333333) : const Color(0xFFD1D5DB);
+        final borderColor = isDark
+            ? const Color(0xFF333333)
+            : const Color(0xFFD1D5DB);
 
         if (isLoading && (checks == null || checks.isEmpty)) {
           return const Center(child: CircularProgressIndicator());
@@ -324,7 +315,9 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     'Status: ${selectedCheck.status}',
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+                      color: isDark
+                          ? const Color(0xFF8B949E)
+                          : const Color(0xFF6B7280),
                     ),
                   ),
                 ],
@@ -344,14 +337,17 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     final check = entry.value;
                     final isSelected = _selectedAttemptIndex == index;
                     return InkWell(
-                      onTap: () => setState(() => _selectedAttemptIndex = index),
+                      onTap: () =>
+                          setState(() => _selectedAttemptIndex = index),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                              color: isSelected
+                                  ? const Color(0xFF3B82F6)
+                                  : Colors.transparent,
                               width: 2,
                             ),
                           ),
@@ -360,10 +356,14 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                           '#${check.attemptNumber}',
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                             color: isSelected
                                 ? (isDark ? Colors.white : Colors.black)
-                                : (isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280)),
+                                : (isDark
+                                      ? const Color(0xFF8B949E)
+                                      : const Color(0xFF6B7280)),
                           ),
                         ),
                       ),
@@ -411,7 +411,10 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                 child: SingleChildScrollView(
                   child: Text(
                     selectedCheck.summary ?? 'No log summary available',
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ),
@@ -426,13 +429,17 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     Icon(
                       Icons.open_in_new,
                       size: 18,
-                      color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                      color: isDark
+                          ? const Color(0xFF58A6FF)
+                          : const Color(0xFF0969DA),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'View more details on LUCI UI',
                       style: TextStyle(
-                        color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                        color: isDark
+                            ? const Color(0xFF58A6FF)
+                            : const Color(0xFF0969DA),
                         fontSize: 14,
                       ),
                     ),
@@ -506,7 +513,9 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+                            color: isDark
+                                ? const Color(0xFF8B949E)
+                                : const Color(0xFF6B7280),
                             letterSpacing: 1.2,
                           ),
                         ),
@@ -560,8 +569,8 @@ class _CheckItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.05))
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05))
               : Colors.transparent,
           border: Border(
             left: BorderSide(
@@ -585,14 +594,18 @@ class _CheckItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (isLatestSha && (status == TaskStatus.failed || status == TaskStatus.infraFailure))
+            if (isLatestSha &&
+                (status == TaskStatus.failed ||
+                    status == TaskStatus.infraFailure))
               TextButton(
                 onPressed: () {},
                 child: Text(
                   'Re-run',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? const Color(0xFF58A6FF) : const Color(0xFF0969DA),
+                    color: isDark
+                        ? const Color(0xFF58A6FF)
+                        : const Color(0xFF0969DA),
                   ),
                 ),
               ),

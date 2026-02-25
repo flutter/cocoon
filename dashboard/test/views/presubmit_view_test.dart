@@ -118,47 +118,51 @@ void main() {
         presubmitState: presubmitState,
         signInService: mockAuthService,
         child: MaterialApp(
-          home: PreSubmitView(queryParameters: queryParameters, syncNavigation: false),
+          home: PreSubmitView(
+            queryParameters: queryParameters,
+            syncNavigation: false,
+          ),
         ),
       ),
     );
   }
 
-  testWidgets('PreSubmitView displays correct title and status with repo and sha', (
-    WidgetTester tester,
-  ) async {
-    tester.view.physicalSize = const Size(2000, 1080);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'PreSubmitView displays correct title and status with repo and sha',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    const guardResponse = PresubmitGuardResponse(
-      prNum: 123,
-      author: 'dash',
-      guardStatus: GuardStatus.succeeded,
-      checkRunId: 456,
-      stages: [],
-    );
-
-    when(
-      mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc'),
-    ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [],
       );
-      for (int i = 0; i < 50; i++) {
-        await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
-        if (find.textContaining('by dash').evaluate().isNotEmpty) break;
-      }
-    });
-    await tester.pumpAndSettle();
 
-    expect(find.textContaining('PR #123 by dash (abc)'), findsOneWidget);
-    expect(find.textContaining('Succeeded'), findsOneWidget);
-  });
+      when(
+        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc'),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('by dash').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('PR #123 by dash (abc)'), findsOneWidget);
+      expect(find.textContaining('Succeeded'), findsOneWidget);
+    },
+  );
 
   testWidgets('PreSubmitView displays mocked data and switches tabs', (
     WidgetTester tester,
@@ -218,7 +222,7 @@ void main() {
       await tester.pumpWidget(
         createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
       );
-      for (int i = 0; i < 50; i++) {
+      for (var i = 0; i < 50; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
         if (find.textContaining('by dash').evaluate().isNotEmpty) break;
@@ -230,10 +234,12 @@ void main() {
 
     await tester.tap(find.textContaining('mac_host_engine').first);
     await tester.runAsync(() async {
-      for (int i = 0; i < 50; i++) {
+      for (var i = 0; i < 50; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
-        if (find.textContaining('All tests passed').evaluate().isNotEmpty) break;
+        if (find.textContaining('All tests passed').evaluate().isNotEmpty) {
+          break;
+        }
       }
     });
     await tester.pumpAndSettle();
@@ -248,55 +254,62 @@ void main() {
     expect(find.textContaining('Status: Failed'), findsOneWidget);
   });
 
-  testWidgets('PreSubmitView automatically selects latest SHA and updates sidebar when opened with PR only', (
-    WidgetTester tester,
-  ) async {
-    tester.view.physicalSize = const Size(2000, 1080);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'PreSubmitView automatically selects latest SHA and updates sidebar when opened with PR only',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    const latestSha = 'decaf_3_real_sha';
-    const guardResponse = PresubmitGuardResponse(
-      prNum: 123,
-      author: 'dash',
-      guardStatus: GuardStatus.failed,
-      checkRunId: 456,
-      stages: [
-        PresubmitGuardStage(
-          name: 'Engine',
-          createdAt: 0,
-          builds: {'Mac mac_host_engine 1': TaskStatus.failed},
-        ),
-      ],
-    );
-
-    when(
-      mockCocoonService.fetchPresubmitGuard(
-        repo: anyNamed('repo'),
-        sha: latestSha,
-      ),
-    ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+      const latestSha = 'decaf_3_real_sha';
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+          ),
+        ],
       );
-      // Wait for summaries, then latest SHA selection, then guard status fetch
-      for (int i = 0; i < 50; i++) {
-        await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
-        final state = Provider.of<PresubmitState>(tester.element(find.byType(PreSubmitView)), listen: false);
-        if (state.guardResponse != null) break;
-      }
-    });
-    await tester.pumpAndSettle();
 
-    final state = Provider.of<PresubmitState>(tester.element(find.byType(PreSubmitView)), listen: false);
-    expect(state.sha, latestSha);
-    expect(find.textContaining('by dash'), findsOneWidget);
-    expect(find.textContaining('mac_host_engine'), findsOneWidget);
-  });
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: latestSha,
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+        );
+        // Wait for summaries, then latest SHA selection, then guard status fetch
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future.delayed(const Duration(milliseconds: 50));
+          final state = Provider.of<PresubmitState>(
+            tester.element(find.byType(PreSubmitView)),
+            listen: false,
+          );
+          if (state.guardResponse != null) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      final state = Provider.of<PresubmitState>(
+        tester.element(find.byType(PreSubmitView)),
+        listen: false,
+      );
+      expect(state.sha, latestSha);
+      expect(find.textContaining('by dash'), findsOneWidget);
+      expect(find.textContaining('mac_host_engine'), findsOneWidget);
+    },
+  );
 
   testWidgets('PreSubmitView SHA dropdown switches mock SHAs', (
     WidgetTester tester,
@@ -310,7 +323,7 @@ void main() {
       await tester.pumpWidget(
         createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
       );
-      for (int i = 0; i < 20; i++) {
+      for (var i = 0; i < 20; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
         if (find.byType(ShaSelector).evaluate().isNotEmpty) break;
@@ -385,7 +398,7 @@ void main() {
       await tester.pumpWidget(
         createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
       );
-      for (int i = 0; i < 20; i++) {
+      for (var i = 0; i < 20; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
         if (find.textContaining('by dash').evaluate().isNotEmpty) break;
@@ -395,10 +408,11 @@ void main() {
 
     await tester.tap(find.textContaining('mac_host_engine'));
     await tester.runAsync(() async {
-      for (int i = 0; i < 20; i++) {
+      for (var i = 0; i < 20; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
-        if (find.textContaining('Live log content').evaluate().isNotEmpty) break;
+        if (find.textContaining('Live log content').evaluate().isNotEmpty)
+          break;
       }
     });
     await tester.pumpAndSettle();
@@ -493,7 +507,7 @@ void main() {
         await tester.pumpWidget(
           createPreSubmitView({'repo': 'flutter', 'sha': 'abcdef123456'}),
         );
-        for (int i = 0; i < 20; i++) {
+        for (var i = 0; i < 20; i++) {
           await tester.pump();
           await Future.delayed(const Duration(milliseconds: 50));
           if (find.textContaining('by dash').evaluate().isNotEmpty) break;

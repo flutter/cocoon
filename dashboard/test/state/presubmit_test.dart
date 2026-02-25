@@ -25,14 +25,30 @@ void main() {
     );
 
     // Default stubs to avoid MissingStubError during auto-fetches
-    when(mockCocoonService.fetchPresubmitGuardSummaries(
-      repo: anyNamed('repo'),
-      pr: anyNamed('pr'),
-    )).thenAnswer((_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data([]));
-    when(mockCocoonService.fetchPresubmitGuard(
-      repo: anyNamed('repo'),
-      sha: anyNamed('sha'),
-    )).thenAnswer((_) async => const CocoonResponse<PresubmitGuardResponse>.data(null));
+    when(
+      mockCocoonService.fetchPresubmitGuardSummaries(
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+      ),
+    ).thenAnswer(
+      (_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data([]),
+    );
+    when(
+      mockCocoonService.fetchPresubmitGuard(
+        repo: anyNamed('repo'),
+        sha: anyNamed('sha'),
+      ),
+    ).thenAnswer(
+      (_) async => const CocoonResponse<PresubmitGuardResponse>.data(null),
+    );
+    when(
+      mockCocoonService.fetchCommitStatuses(
+        repo: anyNamed('repo'),
+        branch: anyNamed('branch'),
+      ),
+    ).thenAnswer(
+      (_) async => const CocoonResponse<List<CommitStatus>>.data([]),
+    );
   });
 
   test('PresubmitState initializes with default values', () {
@@ -44,108 +60,162 @@ void main() {
     expect(presubmitState.availableSummaries, isEmpty);
   });
 
-  test('PresubmitState update method updates properties and notifies listeners', () {
-    bool notified = false;
-    presubmitState.addListener(() => notified = true);
+  test(
+    'PresubmitState update method updates properties and notifies listeners',
+    () {
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
 
-    presubmitState.update(repo: 'cocoon', pr: '123', sha: 'abc');
+      presubmitState.update(repo: 'cocoon', pr: '123', sha: 'abc');
 
-    expect(presubmitState.repo, 'cocoon');
-    expect(presubmitState.pr, '123');
-    expect(presubmitState.sha, 'abc');
-    expect(notified, isTrue);
-  });
+      expect(presubmitState.repo, 'cocoon');
+      expect(presubmitState.pr, '123');
+      expect(presubmitState.sha, 'abc');
+      expect(notified, isTrue);
+    },
+  );
 
-  test('PresubmitState fetchAvailableShas updates availableSummaries and notifies listeners', () async {
-    const summaries = [
-      PresubmitGuardSummary(
-        commitSha: 'sha1',
-        creationTime: 123,
+  test(
+    'PresubmitState fetchAvailableShas updates availableSummaries and notifies listeners',
+    () async {
+      const summaries = [
+        PresubmitGuardSummary(
+          commitSha: 'sha1',
+          creationTime: 123,
+          guardStatus: GuardStatus.succeeded,
+        ),
+      ];
+      when(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: 'flutter',
+          pr: '123',
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
+      );
+
+      presubmitState.pr = '123';
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
+
+      await presubmitState.fetchAvailableShas();
+
+      expect(presubmitState.availableSummaries, summaries);
+      expect(notified, isTrue);
+    },
+  );
+
+  test(
+    'PresubmitState fetchGuardStatus updates guardResponse and notifies listeners',
+    () async {
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
         guardStatus: GuardStatus.succeeded,
-      ),
-    ];
-    when(mockCocoonService.fetchPresubmitGuardSummaries(repo: 'flutter', pr: '123'))
-        .thenAnswer((_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries));
+        checkRunId: 456,
+        stages: [],
+      );
+      when(
+        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'sha1'),
+      ).thenAnswer(
+        (_) async =>
+            const CocoonResponse<PresubmitGuardResponse>.data(guardResponse),
+      );
 
-    presubmitState.pr = '123';
-    bool notified = false;
-    presubmitState.addListener(() => notified = true);
+      presubmitState.sha = 'sha1';
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
 
-    await presubmitState.fetchAvailableShas();
+      await presubmitState.fetchGuardStatus();
 
-    expect(presubmitState.availableSummaries, summaries);
-    expect(notified, isTrue);
-  });
+      expect(presubmitState.guardResponse, guardResponse);
+      expect(presubmitState.isLoading, isFalse);
+      expect(notified, isTrue);
+    },
+  );
 
-  test('PresubmitState fetchGuardStatus updates guardResponse and notifies listeners', () async {
-    const guardResponse = PresubmitGuardResponse(
-      prNum: 123,
-      author: 'dash',
-      guardStatus: GuardStatus.succeeded,
-      checkRunId: 456,
-      stages: [],
-    );
-    when(mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'sha1'))
-        .thenAnswer((_) async => const CocoonResponse<PresubmitGuardResponse>.data(guardResponse));
+  test(
+    'PresubmitState update does not notify if values are the same and no fetch triggered',
+    () {
+      presubmitState.repo = 'flutter';
+      presubmitState.pr = '123';
+      presubmitState.sha = 'abc';
+      // Use update to stabilize the state including lastFetched flags
+      presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
 
-    presubmitState.sha = 'sha1';
-    bool notified = false;
-    presubmitState.addListener(() => notified = true);
+      bool notified = false;
+      presubmitState.addListener(() => notified = true);
 
-    await presubmitState.fetchGuardStatus();
+      presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
 
-    expect(presubmitState.guardResponse, guardResponse);
-    expect(presubmitState.isLoading, isFalse);
-    expect(notified, isTrue);
-  });
+      expect(notified, isFalse);
+    },
+  );
 
-  test('PresubmitState update does not notify if values are the same and no fetch triggered', () {
-    presubmitState.repo = 'flutter';
-    presubmitState.pr = '123';
-    presubmitState.sha = 'abc';
-    // Use update to stabilize the state including lastFetched flags
-    presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
-    
-    bool notified = false;
-    presubmitState.addListener(() => notified = true);
+  test(
+    'PresubmitState fetchAvailableShas returns early if pr is null',
+    () async {
+      await presubmitState.fetchAvailableShas();
+      verifyNever(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      );
+    },
+  );
 
-    presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
+  test(
+    'PresubmitState fetchAvailableShas defaults sha to latest if sha is null',
+    () async {
+      const summaries = [
+        PresubmitGuardSummary(
+          commitSha: 'sha1',
+          creationTime: 123,
+          guardStatus: GuardStatus.succeeded,
+        ),
+      ];
+      when(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: 'flutter',
+          pr: '123',
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
+      );
 
-    expect(notified, isFalse);
-  });
+      presubmitState.pr = '123';
+      presubmitState.sha = null;
 
-  test('PresubmitState fetchAvailableShas returns early if pr is null', () async {
-    await presubmitState.fetchAvailableShas();
-    verifyNever(mockCocoonService.fetchPresubmitGuardSummaries(
-      repo: anyNamed('repo'),
-      pr: anyNamed('pr'),
-    ));
-  });
+      await presubmitState.fetchAvailableShas();
 
-  test('PresubmitState fetchAvailableShas defaults sha to latest if sha is null', () async {
-    const summaries = [
-      PresubmitGuardSummary(
-        commitSha: 'sha1',
-        creationTime: 123,
-        guardStatus: GuardStatus.succeeded,
-      ),
-    ];
-    when(mockCocoonService.fetchPresubmitGuardSummaries(repo: 'flutter', pr: '123'))
-        .thenAnswer((_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries));
+      expect(presubmitState.sha, 'sha1');
+    },
+  );
 
-    presubmitState.pr = '123';
-    presubmitState.sha = null;
+  test(
+    'PresubmitState fetchGuardStatus returns early if sha is null',
+    () async {
+      await presubmitState.fetchGuardStatus();
+      verifyNever(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: anyNamed('sha'),
+        ),
+      );
+    },
+  );
 
-    await presubmitState.fetchAvailableShas();
+  test('PresubmitState refresh timer management', () {
+    expect(presubmitState.refreshTimer, isNull);
 
-    expect(presubmitState.sha, 'sha1');
-  });
+    void listener() {}
+    presubmitState.addListener(listener);
+    expect(presubmitState.refreshTimer, isNotNull);
 
-  test('PresubmitState fetchGuardStatus returns early if sha is null', () async {
-    await presubmitState.fetchGuardStatus();
-    verifyNever(mockCocoonService.fetchPresubmitGuard(
-      repo: anyNamed('repo'),
-      sha: anyNamed('sha'),
-    ));
+    presubmitState.removeListener(listener);
+    expect(presubmitState.refreshTimer, isNull);
   });
 }

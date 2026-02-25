@@ -420,22 +420,6 @@ class BuildState extends ChangeNotifier {
     return true;
   }
 
-  /// Gets the presubmit guard summaries for a given [repo] and [pr].
-  Future<List<PresubmitGuardSummary>?> fetchPresubmitGuardSummaries({
-    required String repo,
-    required String pr,
-  }) async {
-    final response = await cocoonService.fetchPresubmitGuardSummaries(
-      repo: repo,
-      pr: pr,
-    );
-    if (response.error != null) {
-      _errors.send('Failed to fetch guard summaries: ${response.error}');
-      return null;
-    }
-    return response.data;
-  }
-
   /// Updates the suppression status of a test.
   ///
   /// Returns true if the update was successful.

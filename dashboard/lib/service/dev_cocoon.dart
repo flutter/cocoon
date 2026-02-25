@@ -305,6 +305,8 @@ class DevelopmentCocoonService implements CocoonService {
     required int checkRunId,
     required String buildName,
   }) async {
+    final passed = _random.nextInt(100);
+    final of = passed + _random.nextInt(100);
     return CocoonResponse.data([
       PresubmitCheckResponse(
         attemptNumber: 1,
@@ -312,7 +314,12 @@ class DevelopmentCocoonService implements CocoonService {
         creationTime: now.millisecondsSinceEpoch - 10000,
         status: 'Succeeded',
         summary:
-            '[INFO] Starting task $buildName...\n[SUCCESS] Dependencies installed.\n[INFO] Running build script...\n[SUCCESS] All tests passed (452/452)',
+            '''
+[INFO] Starting task $buildName...
+[SUCCESS] Dependencies installed.
+[INFO] Running build script...
+[SUCCESS] Tests passed ($passed/$of)
+''',
       ),
       PresubmitCheckResponse(
         attemptNumber: 2,
