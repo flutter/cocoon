@@ -17,6 +17,6 @@
 
 ---
 
-- [~] **Track: For PreSubmitView move all state change logic to PresubmitState similarly to how BuildDashboardPage use BuildState**
-*Link: [./tracks/refactor_presubmit_state_20260223/](./tracks/refactor_presubmit_state_20260223/)*
+- [x] **Track: For PreSubmitView move all state change logic to PresubmitState similarly to how BuildDashboardPage use BuildState**
+*Link: [./archive/refactor_presubmit_state_20260223/](./archive/refactor_presubmit_state_20260223/)*
 
