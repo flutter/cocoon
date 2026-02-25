@@ -5,7 +5,7 @@
 
 # Build flutter build dashboard.
 
-pushd app/dashboard > /dev/null
+pushd dashboard > /dev/null
 set -e
 rm -rf build
 flutter doctor -v
