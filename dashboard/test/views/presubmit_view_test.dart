@@ -153,7 +153,7 @@ void main() {
         );
         for (var i = 0; i < 50; i++) {
           await tester.pump();
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           if (find.textContaining('by dash').evaluate().isNotEmpty) break;
         }
       });
@@ -224,7 +224,7 @@ void main() {
       );
       for (var i = 0; i < 50; i++) {
         await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         if (find.textContaining('by dash').evaluate().isNotEmpty) break;
       }
     });
@@ -236,7 +236,7 @@ void main() {
     await tester.runAsync(() async {
       for (var i = 0; i < 50; i++) {
         await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         if (find.textContaining('All tests passed').evaluate().isNotEmpty) {
           break;
         }
@@ -291,7 +291,7 @@ void main() {
         // Wait for summaries, then latest SHA selection, then guard status fetch
         for (var i = 0; i < 50; i++) {
           await tester.pump();
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           final state = Provider.of<PresubmitState>(
             tester.element(find.byType(PreSubmitView)),
             listen: false,
@@ -325,7 +325,7 @@ void main() {
       );
       for (var i = 0; i < 20; i++) {
         await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         if (find.byType(ShaSelector).evaluate().isNotEmpty) break;
       }
     });
@@ -400,7 +400,7 @@ void main() {
       );
       for (var i = 0; i < 20; i++) {
         await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         if (find.textContaining('by dash').evaluate().isNotEmpty) break;
       }
     });
@@ -410,9 +410,10 @@ void main() {
     await tester.runAsync(() async {
       for (var i = 0; i < 20; i++) {
         await tester.pump();
-        await Future.delayed(const Duration(milliseconds: 50));
-        if (find.textContaining('Live log content').evaluate().isNotEmpty)
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find.textContaining('Live log content').evaluate().isNotEmpty) {
           break;
+        }
       }
     });
     await tester.pumpAndSettle();
@@ -509,7 +510,7 @@ void main() {
         );
         for (var i = 0; i < 20; i++) {
           await tester.pump();
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           if (find.textContaining('by dash').evaluate().isNotEmpty) break;
         }
       });

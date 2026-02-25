@@ -63,7 +63,7 @@ void main() {
   test(
     'PresubmitState update method updates properties and notifies listeners',
     () {
-      bool notified = false;
+      var notified = false;
       presubmitState.addListener(() => notified = true);
 
       presubmitState.update(repo: 'cocoon', pr: '123', sha: 'abc');
@@ -96,7 +96,7 @@ void main() {
       );
 
       presubmitState.pr = '123';
-      bool notified = false;
+      var notified = false;
       presubmitState.addListener(() => notified = true);
 
       await presubmitState.fetchAvailableShas();
@@ -124,7 +124,7 @@ void main() {
       );
 
       presubmitState.sha = 'sha1';
-      bool notified = false;
+      var notified = false;
       presubmitState.addListener(() => notified = true);
 
       await presubmitState.fetchGuardStatus();
@@ -144,7 +144,7 @@ void main() {
       // Use update to stabilize the state including lastFetched flags
       presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
 
-      bool notified = false;
+      var notified = false;
       presubmitState.addListener(() => notified = true);
 
       presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
