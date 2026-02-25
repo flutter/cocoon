@@ -4,12 +4,14 @@
 
 import 'dart:async';
 
+import 'package:cocoon_common/build_log_url.dart';
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../dashboard_navigation_drawer.dart';
 import '../state/presubmit.dart';
@@ -422,24 +424,37 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: InkWell(
-                onTap: () {},
+                onTap: selectedCheck.buildNumber == null
+                    ? null
+                    : () => launchUrl(
+                        Uri.parse(
+                          generateBuildLogUrl(
+                            buildName: selectedCheck.buildName,
+                            buildNumber: selectedCheck.buildNumber!,
+                          ),
+                        ),
+                      ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.open_in_new,
                       size: 18,
-                      color: isDark
-                          ? const Color(0xFF58A6FF)
-                          : const Color(0xFF0969DA),
+                      color: selectedCheck.buildNumber == null
+                          ? Colors.grey
+                          : (isDark
+                                ? const Color(0xFF58A6FF)
+                                : const Color(0xFF0969DA)),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'View more details on LUCI UI',
                       style: TextStyle(
-                        color: isDark
-                            ? const Color(0xFF58A6FF)
-                            : const Color(0xFF0969DA),
+                        color: selectedCheck.buildNumber == null
+                            ? Colors.grey
+                            : (isDark
+                                  ? const Color(0xFF58A6FF)
+                                  : const Color(0xFF0969DA)),
                         fontSize: 14,
                       ),
                     ),

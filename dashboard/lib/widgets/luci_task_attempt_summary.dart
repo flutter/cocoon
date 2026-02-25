@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:cocoon_common/is_dart_internal.dart';
+import 'package:cocoon_common/build_log_url.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,42 +17,23 @@ class LuciTaskAttemptSummary extends StatelessWidget {
   /// The task to show information from.
   final Task task;
 
-  @visibleForTesting
-  static const String luciProdLogBase =
-      'https://ci.chromium.org/p/flutter/builders';
-
-  @visibleForTesting
-  static const String dartInternalLogBase =
-      'https://ci.chromium.org/p/dart-internal/builders';
-
   @override
   Widget build(BuildContext context) {
     return ListBody(
       children: List<Widget>.generate(task.buildNumberList.length, (int i) {
+        final buildNumber = task.buildNumberList[i];
         return ElevatedButton(
-          child: Text('OPEN LOG FOR BUILD #${task.buildNumberList[i]}'),
+          child: Text('OPEN LOG FOR BUILD #$buildNumber'),
           onPressed: () async {
-            if (isTaskFromDartInternalBuilder(builderName: task.builderName)) {
-              await launchUrl(
-                _dartInternalLogUrl(task.builderName, task.buildNumberList[i]),
-              );
-            } else {
-              await launchUrl(
-                _luciProdLogUrl(task.builderName, task.buildNumberList[i]),
-              );
-            }
+            final url = generateBuildLogUrl(
+              buildName: task.builderName,
+              buildNumber: buildNumber,
+              isBringup: task.isBringup,
+            );
+            await launchUrl(Uri.parse(url));
           },
         );
       }),
     );
-  }
-
-  Uri _luciProdLogUrl(String builderName, int buildNumber) {
-    final pool = task.isBringup ? 'staging' : 'prod';
-    return Uri.parse('$luciProdLogBase/$pool/$builderName/$buildNumber');
-  }
-
-  Uri _dartInternalLogUrl(String builderName, int buildNumber) {
-    return Uri.parse('$dartInternalLogBase/flutter/$builderName/$buildNumber');
   }
 }

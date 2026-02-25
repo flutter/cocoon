@@ -313,6 +313,7 @@ class DevelopmentCocoonService implements CocoonService {
         buildName: buildName,
         creationTime: now.millisecondsSinceEpoch - 10000,
         status: 'Succeeded',
+        buildNumber: 12345,
         summary:
             '''
 [INFO] Starting task $buildName...
@@ -326,6 +327,7 @@ class DevelopmentCocoonService implements CocoonService {
         buildName: buildName,
         creationTime: now.millisecondsSinceEpoch,
         status: 'Failed',
+        buildNumber: 67890,
         summary:
             '[INFO] Starting task $buildName...\n[ERROR] Test failed: Unit Tests',
       ),

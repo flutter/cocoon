@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/build_log_url.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_dashboard/widgets/luci_task_attempt_summary.dart';
@@ -137,10 +138,7 @@ void main() {
         await tester.pump();
 
         expect(urlLauncher.launches, isNotEmpty);
-        expect(
-          urlLauncher.launches.single,
-          '${LuciTaskAttemptSummary.luciProdLogBase}/prod/Linux/456',
-        );
+        expect(urlLauncher.launches.single, '$luciProdLogBase/prod/Linux/456');
       },
     );
 
@@ -173,7 +171,7 @@ void main() {
       expect(urlLauncher.launches, isNotEmpty);
       expect(
         urlLauncher.launches.single,
-        '${LuciTaskAttemptSummary.dartInternalLogBase}/flutter/Linux%20flutter_release_builder/123',
+        '$dartInternalLogBase/flutter/Linux%20flutter_release_builder/123',
       );
     });
   });
