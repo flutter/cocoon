@@ -8,6 +8,7 @@ import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../dashboard_navigation_drawer.dart';
@@ -22,22 +23,41 @@ import '../widgets/task_box.dart';
 ///
 /// This view displays CI check statuses and execution logs.
 final class PreSubmitView extends StatefulWidget {
-  const PreSubmitView({super.key, this.queryParameters});
+  const PreSubmitView({
+    super.key,
+    this.queryParameters,
+    this.syncNavigation = true,
+  });
 
   static const String routeSegment = 'presubmit';
   static const String routeName = '/$routeSegment';
 
   final Map<String, String>? queryParameters;
+  final bool syncNavigation;
 
   @override
   State<PreSubmitView> createState() => _PreSubmitViewState();
 }
 
 class _PreSubmitViewState extends State<PreSubmitView> {
+  PresubmitState? _presubmitState;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final newState = Provider.of<PresubmitState>(context);
+    if (_presubmitState != newState) {
+      _presubmitState?.removeListener(_onStateChanged);
+      _presubmitState = newState;
+      _presubmitState?.addListener(_onStateChanged);
+    }
     _triggerUpdate();
+  }
+
+  @override
+  void dispose() {
+    _presubmitState?.removeListener(_onStateChanged);
+    super.dispose();
   }
 
   @override
@@ -46,6 +66,36 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     if (widget.queryParameters != oldWidget.queryParameters) {
       _triggerUpdate();
     }
+  }
+
+  void _onStateChanged() {
+    if (!mounted || !widget.syncNavigation) return;
+    final state = _presubmitState!;
+    final params = widget.queryParameters ?? {};
+    
+    // If the state has a SHA that is different from the URL, update the URL.
+    if (state.sha != null && state.sha != params['sha']) {
+      _updateNavigation();
+    }
+  }
+
+  void _updateNavigation() {
+    final state = _presubmitState!;
+    final params = Map<String, String>.from(widget.queryParameters ?? {});
+    params['repo'] = state.repo;
+    if (state.pr != null) params['pr'] = state.pr!;
+    if (state.sha != null) params['sha'] = state.sha!;
+
+    final uri = Uri(
+      path: PreSubmitView.routeName,
+      queryParameters: params,
+    );
+
+    // Update the URL without triggering a full navigation/rebuild cycle.
+    SystemNavigator.routeInformationUpdated(
+      location: uri.toString(),
+      replace: true,
+    );
   }
 
   void _triggerUpdate() {

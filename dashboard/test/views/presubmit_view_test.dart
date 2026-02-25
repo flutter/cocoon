@@ -118,7 +118,7 @@ void main() {
         presubmitState: presubmitState,
         signInService: mockAuthService,
         child: MaterialApp(
-          home: PreSubmitView(queryParameters: queryParameters),
+          home: PreSubmitView(queryParameters: queryParameters, syncNavigation: false),
         ),
       ),
     );
@@ -228,11 +228,24 @@ void main() {
 
     expect(find.textContaining('PR #123'), findsOneWidget);
 
-    await tester.tap(find.byType(InkWell).at(1));
+    await tester.tap(find.textContaining('mac_host_engine').first);
+    await tester.runAsync(() async {
+      for (int i = 0; i < 50; i++) {
+        await tester.pump();
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (find.textContaining('All tests passed').evaluate().isNotEmpty) break;
+      }
+    });
     await tester.pumpAndSettle();
-    
-    // We skip log verification in this test due to frame timing issues in integration, 
-    // but the sidebar and title logic is verified above.
+
+    expect(find.textContaining('All tests passed'), findsOneWidget);
+    expect(find.textContaining('Status: Succeeded'), findsOneWidget);
+
+    await tester.tap(find.text('#2'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Test failed: Unit Tests'), findsOneWidget);
+    expect(find.textContaining('Status: Failed'), findsOneWidget);
   });
 
   testWidgets('PreSubmitView automatically selects latest SHA and updates sidebar when opened with PR only', (
@@ -273,12 +286,14 @@ void main() {
       for (int i = 0; i < 50; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
-        if (presubmitState.guardResponse != null) break;
+        final state = Provider.of<PresubmitState>(tester.element(find.byType(PreSubmitView)), listen: false);
+        if (state.guardResponse != null) break;
       }
     });
     await tester.pumpAndSettle();
 
-    expect(presubmitState.sha, latestSha);
+    final state = Provider.of<PresubmitState>(tester.element(find.byType(PreSubmitView)), listen: false);
+    expect(state.sha, latestSha);
     expect(find.textContaining('by dash'), findsOneWidget);
     expect(find.textContaining('mac_host_engine'), findsOneWidget);
   });
@@ -370,7 +385,7 @@ void main() {
       await tester.pumpWidget(
         createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
       );
-      for (int i = 0; i < 50; i++) {
+      for (int i = 0; i < 20; i++) {
         await tester.pump();
         await Future.delayed(const Duration(milliseconds: 50));
         if (find.textContaining('by dash').evaluate().isNotEmpty) break;
