@@ -1,0 +1,60 @@
+# Copyright 2022 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Flutter (https://flutter.io) Developement Environment for Linux
+# ===============================================================
+#
+# This environment passes all Linux Flutter Doctor checks and is sufficient
+# for building Android applications and running Flutter tests.
+#
+# To build iOS applications, a Mac development environment is necessary.
+#
+
+# ====================================================================
+# This is used to build the dashboard, app_dart, and auto_submit bots
+# ====================================================================
+FROM debian:trixie-slim
+
+# Install Dependencies.
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        dnsutils \
+        git \
+        openssh-client \
+        unzip \
+    ; \
+    rm -rf /var/lib/apt/lists/*
+
+
+# Install Flutter.
+ENV FLUTTER_ROOT="/opt/flutter"
+RUN git clone https://github.com/flutter/flutter "${FLUTTER_ROOT}"
+ENV PATH="${FLUTTER_ROOT}/bin:${PATH}"
+
+WORKDIR "$FLUTTER_ROOT"
+
+# Switch to stable channel
+RUN git switch stable
+
+# Disable analytics and crash reporting on the builder.
+RUN flutter config              \
+    --no-analytics              \
+    --enable-web                \
+    --no-enable-linux-desktop   \
+    --no-enable-macos-desktop   \
+    --no-enable-windows-desktop \
+    --no-enable-android         \
+    --no-enable-ios             \
+    --no-enable-fuchsia         
+
+# Only download the websdk; cocoon dashboard only builds for that.
+RUN flutter precache --web
+
+# Perform a doctor run.
+RUN flutter doctor -v
+
+ENTRYPOINT [ "flutter" ]

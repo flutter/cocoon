@@ -1,0 +1,10 @@
+# Builds a new flutter image, which is used to build cocoon dashboard.
+
+steps:
+  - name: 'us-docker.pkg.dev/cloud-builders/ga/v1/docker'
+    args: ['build', '-t', 'us-docker.pkg.dev/$PROJECT_ID/flutter/flutter', 'Dockerfile.flutter']
+
+timeout: 1200s
+
+images: ['us-docker.pkg.dev/$PROJECT_ID/flutter/flutter']
+tags: ['cloud-builders-community']
