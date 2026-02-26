@@ -34,11 +34,10 @@ export 'src/rpc_model/commit_status.dart' show CommitStatus;
 export 'src/rpc_model/content_hash_lookup.dart' show ContentHashLookup;
 export 'src/rpc_model/merge_group_hooks.dart'
     show MergeGroupHook, MergeGroupHooks;
-export 'src/rpc_model/presubmit_check_response.dart'
-    show PresubmitCheckResponse;
 export 'src/rpc_model/presubmit_guard.dart'
     show PresubmitGuardResponse, PresubmitGuardStage;
 export 'src/rpc_model/presubmit_guard_summary.dart' show PresubmitGuardSummary;
+export 'src/rpc_model/presubmit_job_response.dart' show PresubmitJobResponse;
 export 'src/rpc_model/suppressed_test.dart'
     show SuppressedTest, SuppressionUpdate;
 export 'src/rpc_model/task.dart' show Task;

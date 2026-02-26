@@ -6,7 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
@@ -14,31 +14,25 @@ import 'package:test/test.dart';
 void main() {
   useTestLoggerPerTest();
 
-  group('PresubmitCheckId', () {
+  group('PresubmitJobId', () {
     test('validates checkRunId', () {
       expect(
-        () => PresubmitCheckId(
-          checkRunId: 0,
-          buildName: 'linux',
-          attemptNumber: 1,
-        ),
+        () =>
+            PresubmitJobId(checkRunId: 0, buildName: 'linux', attemptNumber: 1),
         throwsA(isA<RangeError>()),
       );
     });
 
     test('validates attemptNumber', () {
       expect(
-        () => PresubmitCheckId(
-          checkRunId: 1,
-          buildName: 'linux',
-          attemptNumber: 0,
-        ),
+        () =>
+            PresubmitJobId(checkRunId: 1, buildName: 'linux', attemptNumber: 0),
         throwsA(isA<RangeError>()),
       );
     });
 
     test('generates correct documentId', () {
-      final id = PresubmitCheckId(
+      final id = PresubmitJobId(
         checkRunId: 123,
         buildName: 'linux_test',
         attemptNumber: 2,
@@ -47,19 +41,19 @@ void main() {
     });
 
     test('parses valid documentName', () {
-      final id = PresubmitCheckId.parse('123_linux_test_2');
+      final id = PresubmitJobId.parse('123_linux_test_2');
       expect(id.checkRunId, 123);
       expect(id.buildName, 'linux_test');
       expect(id.attemptNumber, 2);
     });
 
     test('tryParse returns null for invalid format', () {
-      expect(PresubmitCheckId.tryParse('invalid'), isNull);
-      expect(PresubmitCheckId.tryParse('123_linux'), isNull);
+      expect(PresubmitJobId.tryParse('invalid'), isNull);
+      expect(PresubmitJobId.tryParse('123_linux'), isNull);
     });
   });
 
-  group('PresubmitCheck', () {
+  group('PresubmitJob', () {
     late FakeFirestoreService firestoreService;
 
     setUp(() {
@@ -67,25 +61,25 @@ void main() {
     });
 
     test('init creates correct initial state', () {
-      final check = PresubmitCheck.init(
+      final job = PresubmitJob.init(
         buildName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );
 
-      expect(check.buildName, 'linux');
-      expect(check.checkRunId, 123);
-      expect(check.creationTime, 1000);
-      expect(check.attemptNumber, 1);
-      expect(check.status, TaskStatus.waitingForBackfill);
-      expect(check.buildNumber, isNull);
-      expect(check.startTime, isNull);
-      expect(check.endTime, isNull);
-      expect(check.summary, isNull);
+      expect(job.buildName, 'linux');
+      expect(job.checkRunId, 123);
+      expect(job.creationTime, 1000);
+      expect(job.attemptNumber, 1);
+      expect(job.status, TaskStatus.waitingForBackfill);
+      expect(job.buildNumber, isNull);
+      expect(job.startTime, isNull);
+      expect(job.endTime, isNull);
+      expect(job.summary, isNull);
     });
 
     test('fromFirestore loads document correctly', () async {
-      final check = PresubmitCheck(
+      final job = PresubmitJob(
         checkRunId: 123,
         buildName: 'linux',
         status: TaskStatus.succeeded,
@@ -98,37 +92,35 @@ void main() {
       );
 
       // Use the helper to get the correct document name
-      final docName = PresubmitCheck.documentNameFor(
+      final docName = PresubmitJob.documentNameFor(
         checkRunId: 123,
         buildName: 'linux',
         attemptNumber: 1,
       );
 
       // Manually ensuring the name is set for the fake service, usually done by `putDocument`
-      // but we should verify the `PresubmitCheck` object has it right via the factory or init.
-      // Actually `PresubmitCheck` constructor sets name.
-      firestoreService.putDocument(
-        Document(name: docName, fields: check.fields),
-      );
+      // but we should verify the `PresubmitJob` object has it right via the factory or init.
+      // Actually `PresubmitJob` constructor sets name.
+      firestoreService.putDocument(Document(name: docName, fields: job.fields));
 
-      final loadedCheck = await PresubmitCheck.fromFirestore(
+      final loadedJob = await PresubmitJob.fromFirestore(
         firestoreService,
-        PresubmitCheckId(checkRunId: 123, buildName: 'linux', attemptNumber: 1),
+        PresubmitJobId(checkRunId: 123, buildName: 'linux', attemptNumber: 1),
       );
 
-      expect(loadedCheck.checkRunId, 123);
-      expect(loadedCheck.buildName, 'linux');
-      expect(loadedCheck.status, TaskStatus.succeeded);
-      expect(loadedCheck.attemptNumber, 1);
-      expect(loadedCheck.creationTime, 1000);
-      expect(loadedCheck.buildNumber, 456);
-      expect(loadedCheck.startTime, 2000);
-      expect(loadedCheck.endTime, 3000);
-      expect(loadedCheck.summary, 'Success');
+      expect(loadedJob.checkRunId, 123);
+      expect(loadedJob.buildName, 'linux');
+      expect(loadedJob.status, TaskStatus.succeeded);
+      expect(loadedJob.attemptNumber, 1);
+      expect(loadedJob.creationTime, 1000);
+      expect(loadedJob.buildNumber, 456);
+      expect(loadedJob.startTime, 2000);
+      expect(loadedJob.endTime, 3000);
+      expect(loadedJob.summary, 'Success');
     });
 
     test('updateFromBuild updates fields', () {
-      final check = PresubmitCheck.init(
+      final job = PresubmitJob.init(
         buildName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
@@ -142,22 +134,22 @@ void main() {
         status: bbv2.Status.SUCCESS,
       );
 
-      check.updateFromBuild(build);
+      job.updateFromBuild(build);
 
-      expect(check.buildNumber, 456);
-      expect(check.creationTime, 2000000); // seconds to millis
-      expect(check.startTime, 2100000);
-      expect(check.endTime, 2200000);
-      expect(check.status, TaskStatus.succeeded);
+      expect(job.buildNumber, 456);
+      expect(job.creationTime, 2000000); // seconds to millis
+      expect(job.startTime, 2100000);
+      expect(job.endTime, 2200000);
+      expect(job.status, TaskStatus.succeeded);
     });
 
     test('updateFromBuild does not update status if already complete', () {
-      final check = PresubmitCheck.init(
+      final job = PresubmitJob.init(
         buildName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );
-      check.status = TaskStatus.succeeded;
+      job.status = TaskStatus.succeeded;
 
       final build = bbv2.Build(
         number: 456,
@@ -165,23 +157,23 @@ void main() {
         status: bbv2.Status.STARTED,
       );
 
-      check.updateFromBuild(build);
+      job.updateFromBuild(build);
 
-      expect(check.status, TaskStatus.succeeded);
+      expect(job.status, TaskStatus.succeeded);
     });
 
     test('buildNumber setter updates fields', () {
-      final check = PresubmitCheck.init(
+      final job = PresubmitJob.init(
         buildName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );
 
-      check.buildNumber = 789;
-      expect(check.buildNumber, 789);
+      job.buildNumber = 789;
+      expect(job.buildNumber, 789);
 
-      check.buildNumber = null;
-      expect(check.buildNumber, isNull);
+      job.buildNumber = null;
+      expect(job.buildNumber, isNull);
     });
   });
 }

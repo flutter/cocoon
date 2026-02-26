@@ -15,7 +15,7 @@ import '../firestore/base.dart';
 import '../firestore/presubmit_guard.dart';
 import '../github/checks.dart' as cocoon_checks;
 import 'checks_extension.dart';
-import 'presubmit_check_state.dart';
+import 'presubmit_job_state.dart';
 
 /// Unified representation of a completed presubmit check.
 ///
@@ -134,8 +134,8 @@ class PresubmitCompletedCheck {
     );
   }
 
-  PresubmitCheckState get state {
-    return PresubmitCheckState(
+  PresubmitJobState get state {
+    return PresubmitJobState(
       buildName: name,
       status: status,
       attemptNumber: attempt,

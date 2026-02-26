@@ -7,18 +7,18 @@ import 'package:meta/meta.dart';
 
 import 'base.dart';
 
-part 'presubmit_check_response.g.dart';
+part 'presubmit_job_response.g.dart';
 
-/// RPC model for a presubmit check.
+/// RPC model for a presubmit job.
 @JsonSerializable(
   checked: true,
   fieldRename: FieldRename.snake,
   includeIfNull: false,
 )
 @immutable
-final class PresubmitCheckResponse extends Model {
-  /// Creates a [PresubmitCheckResponse] with the given properties.
-  PresubmitCheckResponse({
+final class PresubmitJobResponse extends Model {
+  /// Creates a [PresubmitJobResponse] with the given properties.
+  PresubmitJobResponse({
     required this.attemptNumber,
     required this.buildName,
     required this.creationTime,
@@ -29,39 +29,39 @@ final class PresubmitCheckResponse extends Model {
     this.buildNumber,
   });
 
-  /// Creates a [PresubmitCheckResponse] from [json] representation.
-  factory PresubmitCheckResponse.fromJson(Map<String, Object?> json) {
+  /// Creates a [PresubmitJobResponse] from [json] representation.
+  factory PresubmitJobResponse.fromJson(Map<String, Object?> json) {
     try {
-      return _$PresubmitCheckResponseFromJson(json);
+      return _$PresubmitJobResponseFromJson(json);
     } on CheckedFromJsonException catch (e) {
-      throw FormatException('Invalid PresubmitCheckResponse: $e', json);
+      throw FormatException('Invalid PresubmitJobResponse: $e', json);
     }
   }
 
-  /// The attempt number for this check.
+  /// The attempt number for this job.
   final int attemptNumber;
 
   /// The name of the build.
   final String buildName;
 
-  /// The time the check was created in milliseconds since the epoch.
+  /// The time the job was created in milliseconds since the epoch.
   final int creationTime;
 
-  /// The time the check started in milliseconds since the epoch.
+  /// The time the job started in milliseconds since the epoch.
   final int? startTime;
 
-  /// The time the check ended in milliseconds since the epoch.
+  /// The time the job ended in milliseconds since the epoch.
   final int? endTime;
 
-  /// The status of the check.
+  /// The status of the job.
   final String status;
 
-  /// A brief summary of the check result or link to logs.
+  /// A brief summary of the job result or link to logs.
   final String? summary;
 
   /// The LUCI build number.
   final int? buildNumber;
 
   @override
-  Map<String, Object?> toJson() => _$PresubmitCheckResponseToJson(this);
+  Map<String, Object?> toJson() => _$PresubmitJobResponseToJson(this);
 }

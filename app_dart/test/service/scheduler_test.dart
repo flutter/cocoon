@@ -19,8 +19,8 @@ import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
@@ -1176,7 +1176,7 @@ targets:
           remainingBuilds: 0,
         );
 
-        final check = PresubmitCheck(
+        final check = PresubmitJob(
           buildName: 'Linux A',
           checkRunId: 1,
           creationTime: 1000,
@@ -1316,7 +1316,7 @@ targets:
           remainingBuilds: 0,
         );
 
-        final check = PresubmitCheck(
+        final check = PresubmitJob(
           buildName: 'Linux A',
           checkRunId: 1,
           creationTime: 2000,
@@ -3864,7 +3864,7 @@ targets:
 
         // Initialize check run for the task
         firestore.putDocument(
-          PresubmitCheck.init(
+          PresubmitJob.init(
             buildName: 'Linux engine_build',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -3954,7 +3954,7 @@ targets:
 
           // Initialize check run for the task
           firestore.putDocument(
-            PresubmitCheck.init(
+            PresubmitJob.init(
               buildName: 'Linux test',
               checkRunId: checkRunGuard.id!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -4037,7 +4037,7 @@ targets:
 
         // Initialize check run for the task
         firestore.putDocument(
-          PresubmitCheck.init(
+          PresubmitJob.init(
             buildName: 'Linux test',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,

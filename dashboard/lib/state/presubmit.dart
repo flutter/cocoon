@@ -42,11 +42,11 @@ class PresubmitState extends ChangeNotifier {
 
   /// Whether data is currently being fetched.
   bool get isLoading =>
-      _isSummariesLoading || _isGuardLoading || _isChecksLoading;
+      _isSummariesLoading || _isGuardLoading || _isJobsLoading;
 
   bool _isSummariesLoading = false;
   bool _isGuardLoading = false;
-  bool _isChecksLoading = false;
+  bool _isJobsLoading = false;
 
   /// The available SHAs for the current [pr].
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
@@ -57,8 +57,8 @@ class PresubmitState extends ChangeNotifier {
   String? _selectedCheck;
 
   /// The checks/logs for the current [selectedCheck].
-  List<PresubmitCheckResponse>? get checks => _checks;
-  List<PresubmitCheckResponse>? _checks;
+  List<PresubmitJobResponse>? get checks => _checks;
+  List<PresubmitJobResponse>? _checks;
 
   /// Track if we have already attempted to fetch summaries for the current [pr].
   String? _lastFetchedPr;
@@ -123,7 +123,7 @@ class PresubmitState extends ChangeNotifier {
       // if (isInProgress) {
       refreshes.add(fetchGuardStatus(refresh: true));
       if (selectedCheck != null) {
-        refreshes.add(fetchCheckDetails(refresh: true));
+        refreshes.add(fetchJobDetails(refresh: true));
       }
       // }
     }
@@ -183,7 +183,7 @@ class PresubmitState extends ChangeNotifier {
     _checks = null;
     notifyListeners();
     if (_selectedCheck != null) {
-      fetchCheckDetails();
+      fetchJobDetails();
     }
   }
 
@@ -290,19 +290,19 @@ class PresubmitState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Request check details for the current [selectedCheck] and [guardResponse].
-  Future<void> fetchCheckDetails({bool refresh = false}) async {
-    if (selectedCheck == null || guardResponse == null || _isChecksLoading) {
+  /// Request job details for the current [selectedCheck] and [guardResponse].
+  Future<void> fetchJobDetails({bool refresh = false}) async {
+    if (selectedCheck == null || guardResponse == null || _isJobsLoading) {
       return;
     }
 
-    _isChecksLoading = true;
+    _isJobsLoading = true;
     if (!refresh) {
       _checks = null;
     }
     notifyListeners();
 
-    final response = await cocoonService.fetchPresubmitCheckDetails(
+    final response = await cocoonService.fetchPresubmitJobDetails(
       checkRunId: guardResponse!.checkRunId,
       buildName: selectedCheck!,
     );
@@ -312,7 +312,7 @@ class PresubmitState extends ChangeNotifier {
     } else {
       _checks = response.data;
     }
-    _isChecksLoading = false;
+    _isJobsLoading = false;
     notifyListeners();
   }
 

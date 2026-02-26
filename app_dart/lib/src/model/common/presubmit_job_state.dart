@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-/// @docImport 'presubmit_check_state.dart';
+/// @docImport 'presubmit_job_state.dart';
 library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
@@ -12,7 +12,7 @@ import '../../service/luci_build_service/build_tags.dart';
 import '../bbv2_extension.dart';
 
 /// Represents the current state of a check run.
-class PresubmitCheckState {
+class PresubmitJobState {
   final String buildName;
   final TaskStatus status;
   final int attemptNumber; //static int _currentAttempt(BuildTags buildTags)
@@ -21,7 +21,7 @@ class PresubmitCheckState {
   final String? summary;
   final int? buildNumber;
 
-  const PresubmitCheckState({
+  const PresubmitJobState({
     required this.buildName,
     required this.status,
     required this.attemptNumber,
@@ -32,8 +32,8 @@ class PresubmitCheckState {
   });
 }
 
-extension BuildToPresubmitCheckState on bbv2.Build {
-  PresubmitCheckState toPresubmitCheckState() => PresubmitCheckState(
+extension BuildToPresubmitJobState on bbv2.Build {
+  PresubmitJobState toPresubmitJobState() => PresubmitJobState(
     buildName: builder.builder,
     status: status.toTaskStatus(),
     attemptNumber: BuildTags.fromStringPairs(tags).currentAttempt,

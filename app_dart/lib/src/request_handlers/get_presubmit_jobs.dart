@@ -11,13 +11,13 @@ import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Returns all checks for a specific presubmit check run.
+/// Returns all job run attempts for a specific presubmit job.
 ///
-/// GET: /api/get-presubmit-checks
+/// GET: /api/get-presubmit-jobs
 ///
 /// Parameters:
 ///   check_run_id: (int in query) mandatory. The GitHub Check Run ID.
-///   build_name: (string in query) mandatory. The name of the check/build.
+///   build_name: (string in query) mandatory. The name of the job/build.
 ///
 /// Response: Status 200 OK
 /// [
@@ -28,11 +28,11 @@ import '../service/firestore/unified_check_run.dart';
 ///     "start_time": 1620134240000,
 ///     "end_time": 1620134250000,
 ///     "status": "Succeeded",
-///     "summary": "Check passed"
+///     "summary": "Job passed"
 ///   }
 /// ]
-final class GetPresubmitChecks extends ApiRequestHandler {
-  const GetPresubmitChecks({
+final class GetPresubmitJobs extends ApiRequestHandler {
+  const GetPresubmitJobs({
     required super.config,
     required super.authenticationProvider,
     required FirestoreService firestore,
@@ -65,33 +65,33 @@ final class GetPresubmitChecks extends ApiRequestHandler {
       }, statusCode: HttpStatus.badRequest);
     }
 
-    final checks = await UnifiedCheckRun.getPresubmitCheckDetails(
+    final jobs = await UnifiedCheckRun.getPresubmitJobDetails(
       firestoreService: _firestore,
       checkRunId: checkRunId,
       buildName: buildName,
     );
 
-    if (checks.isEmpty) {
+    if (jobs.isEmpty) {
       return Response.json({
         'error':
-            'No checks found for check_run_id $checkRunId and build_name $buildName',
+            'No jobs found for check_run_id $checkRunId and build_name $buildName',
       }, statusCode: HttpStatus.notFound);
     }
 
-    final rpcChecks = [
-      for (final check in checks)
-        PresubmitCheckResponse(
-          attemptNumber: check.attemptNumber,
-          buildName: check.buildName,
-          creationTime: check.creationTime,
-          startTime: check.startTime,
-          endTime: check.endTime,
-          status: check.status.value,
-          summary: check.summary,
-          buildNumber: check.buildNumber,
+    final rpcJobs = [
+      for (final job in jobs)
+        PresubmitJobResponse(
+          attemptNumber: job.attemptNumber,
+          buildName: job.buildName,
+          creationTime: job.creationTime,
+          startTime: job.startTime,
+          endTime: job.endTime,
+          status: job.status.value,
+          summary: job.summary,
+          buildNumber: job.buildNumber,
         ),
     ];
 
-    return Response.json(rpcChecks);
+    return Response.json(rpcJobs);
   }
 }

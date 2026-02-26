@@ -5,14 +5,14 @@
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/common/presubmit_check_state.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:test/test.dart';
 
 void main() {
   useTestLoggerPerTest();
-  group('PresubmitCheckState', () {
-    test('BuildToPresubmitCheckState extension maps build number', () {
+  group('PresubmitJobState', () {
+    test('BuildToPresubmitJobState extension maps build number', () {
       final build = bbv2.Build(
         builder: bbv2.BuilderID(builder: 'linux_test'),
         status: bbv2.Status.SUCCESS,
@@ -23,7 +23,7 @@ void main() {
         tags: [bbv2.StringPair(key: 'github_checkrun', value: '123')],
       );
 
-      final state = build.toPresubmitCheckState();
+      final state = build.toPresubmitJobState();
       expect(state.buildName, 'linux_test');
       expect(state.status, TaskStatus.succeeded);
       expect(state.buildNumber, 12345);

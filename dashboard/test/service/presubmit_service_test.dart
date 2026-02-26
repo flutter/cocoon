@@ -58,10 +58,10 @@ void main() {
     });
   });
 
-  group('AppEngine CocoonService fetchPresubmitCheckDetails', () {
+  group('AppEngine CocoonService fetchPresubmitJobDetails', () {
     late AppEngineCocoonService service;
 
-    test('should return expected List<PresubmitCheckResponse>', () async {
+    test('should return expected List<PresubmitJobResponse>', () async {
       final checkData = [
         {
           'attempt_number': 1,
@@ -78,7 +78,7 @@ void main() {
         }),
       );
 
-      final response = await service.fetchPresubmitCheckDetails(
+      final response = await service.fetchPresubmitJobDetails(
         checkRunId: 456,
         buildName: 'test1',
       );

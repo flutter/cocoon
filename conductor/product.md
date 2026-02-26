@@ -17,9 +17,9 @@ Cocoon is the CI coordination and orchestration system for the Flutter project. 
 ## Key Features
 *   **Offline Integration Testing:** A dedicated testing environment that simulates all backend services (GitHub, Firestore, BigQuery, LUCI) with functional fakes, enabling deterministic, offline verification of frontend and backend logic.
 *   **Tree Status Dashboard:** A Flutter-based web application that provides a visual overview of build health across various commits and branches.
-*   **Presubmit Check Details:** Backend APIs to retrieve detailed attempt history and status for specific presubmit checks, aiding in debugging and visibility.
-*   **Presubmit Guard Summaries:** Backend APIs to retrieve summaries of all presubmit checks (Presubmit Guards) of the provided pull request to the dashboard.
-*   **Presubmit Guard Details:** Displays detailed information and CI check statuses for a specific presubmit check (Presubmit Guard), including the commit SHA in the view header for precise version tracking.
+*   **Presubmit Job Details:** Backend APIs to retrieve detailed attempt history and status for specific presubmit jobs, aiding in debugging and visibility.
+*   **Presubmit Guard Summaries:** Backend APIs to retrieve summaries of all presubmit jobs (Presubmit Guards) of the provided pull request to the dashboard.
+*   **Presubmit Guard Details:** Displays detailed information and CI statuses for a specific presubmit job (Presubmit Guard), including the commit SHA in the view header for precise version tracking.
 *   **Merge Queue Visibility:** APIs for querying and inspecting recent GitHub Merge Queue webhook events to diagnose integration issues.
 *   **Auto-submit Bot:** Handles automated pull request management, including label-based merges, reverts, and validation checks.
 *   **GitHub Integration:** Robust handling of GitHub webhooks to sync commits, manage check runs, and report build statuses back to PRs.

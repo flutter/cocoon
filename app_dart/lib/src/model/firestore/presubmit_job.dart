@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-/// @docImport 'presubmit_check.dart';
+/// @docImport 'presubmit_job.dart';
 library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
@@ -16,8 +16,8 @@ import '../bbv2_extension.dart';
 import 'base.dart';
 
 @immutable
-final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
-  PresubmitCheckId({
+final class PresubmitJobId extends AppDocumentId<PresubmitJob> {
+  PresubmitJobId({
     required this.checkRunId,
     required this.buildName,
     required this.attemptNumber,
@@ -33,27 +33,27 @@ final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
     }
   }
 
-  /// Parse the inverse of [PresubmitCheckId.documentName].
-  factory PresubmitCheckId.parse(String documentName) {
+  /// Parse the inverse of [PresubmitJobId.documentName].
+  factory PresubmitJobId.parse(String documentName) {
     final result = tryParse(documentName);
     if (result == null) {
       throw FormatException(
-        'Unexpected firestore presubmit check document name: "$documentName"',
+        'Unexpected firestore presubmit job document name: "$documentName"',
       );
     }
     return result;
   }
 
-  /// Tries to parse the inverse of [PresubmitCheckId.documentName].
+  /// Tries to parse the inverse of [PresubmitJobId.documentName].
   ///
   /// If could not be parsed, returns `null`.
-  static PresubmitCheckId? tryParse(String documentName) {
+  static PresubmitJobId? tryParse(String documentName) {
     if (_parseDocumentName.matchAsPrefix(documentName) case final match?) {
       final checkRunId = int.tryParse(match.group(1)!);
       final buildName = match.group(2)!;
       final attemptNumber = int.tryParse(match.group(3)!);
       if (checkRunId != null && attemptNumber != null) {
-        return PresubmitCheckId(
+        return PresubmitJobId(
           checkRunId: checkRunId,
           buildName: buildName,
           attemptNumber: attemptNumber,
@@ -80,12 +80,12 @@ final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
   }
 
   @override
-  AppDocumentMetadata<PresubmitCheck> get runtimeMetadata =>
-      PresubmitCheck.metadata;
+  AppDocumentMetadata<PresubmitJob> get runtimeMetadata =>
+      PresubmitJob.metadata;
 }
 
-final class PresubmitCheck extends AppDocument<PresubmitCheck> {
-  static const collectionId = 'presubmit_checks';
+final class PresubmitJob extends AppDocument<PresubmitJob> {
+  static const collectionId = 'presubmit_jobs';
   static const fieldCheckRunId = 'checkRunId';
   static const fieldBuildName = 'buildName';
   static const fieldBuildNumber = 'buildNumber';
@@ -96,12 +96,12 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   static const fieldEndTime = 'endTime';
   static const fieldSummary = 'summary';
 
-  static AppDocumentId<PresubmitCheck> documentIdFor({
+  static AppDocumentId<PresubmitJob> documentIdFor({
     required int checkRunId,
     required String buildName,
     required int attemptNumber,
   }) {
-    return PresubmitCheckId(
+    return PresubmitJobId(
       checkRunId: checkRunId,
       buildName: buildName,
       attemptNumber: attemptNumber,
@@ -124,24 +124,24 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   }
 
   @override
-  AppDocumentMetadata<PresubmitCheck> get runtimeMetadata => metadata;
+  AppDocumentMetadata<PresubmitJob> get runtimeMetadata => metadata;
 
-  static final metadata = AppDocumentMetadata<PresubmitCheck>(
+  static final metadata = AppDocumentMetadata<PresubmitJob>(
     collectionId: collectionId,
-    fromDocument: PresubmitCheck.fromDocument,
+    fromDocument: PresubmitJob.fromDocument,
   );
 
-  static Future<PresubmitCheck> fromFirestore(
+  static Future<PresubmitJob> fromFirestore(
     FirestoreService firestoreService,
-    AppDocumentId<PresubmitCheck> id,
+    AppDocumentId<PresubmitJob> id,
   ) async {
     final document = await firestoreService.getDocument(
       p.posix.join(kDatabase, 'documents', collectionId, id.documentId),
     );
-    return PresubmitCheck.fromDocument(document);
+    return PresubmitJob.fromDocument(document);
   }
 
-  factory PresubmitCheck({
+  factory PresubmitJob({
     required int checkRunId,
     required String buildName,
     required TaskStatus status,
@@ -152,7 +152,7 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     int? endTime,
     String? summary,
   }) {
-    return PresubmitCheck._(
+    return PresubmitJob._(
       {
         fieldCheckRunId: checkRunId.toValue(),
         fieldBuildName: buildName.toValue(),
@@ -172,17 +172,17 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     );
   }
 
-  factory PresubmitCheck.fromDocument(Document document) {
-    return PresubmitCheck._(document.fields!, name: document.name!);
+  factory PresubmitJob.fromDocument(Document document) {
+    return PresubmitJob._(document.fields!, name: document.name!);
   }
 
-  factory PresubmitCheck.init({
+  factory PresubmitJob.init({
     required String buildName,
     required int checkRunId,
     required int creationTime,
     int? attemptNumber,
   }) {
-    return PresubmitCheck(
+    return PresubmitJob(
       buildName: buildName,
       attemptNumber: attemptNumber ?? 1,
       checkRunId: checkRunId,
@@ -195,7 +195,7 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     );
   }
 
-  PresubmitCheck._(Map<String, Value> fields, {required String name}) {
+  PresubmitJob._(Map<String, Value> fields, {required String name}) {
     this
       ..fields = fields
       ..name = name;

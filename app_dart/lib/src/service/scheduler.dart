@@ -21,9 +21,9 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../model/common/checks_extension.dart';
-import '../model/common/presubmit_check_state.dart';
 import '../model/common/presubmit_completed_check.dart';
 import '../model/common/presubmit_guard_conclusion.dart';
+import '../model/common/presubmit_job_state.dart';
 import '../model/firestore/base.dart';
 import '../model/firestore/ci_staging.dart';
 import '../model/firestore/commit.dart' as fs;
@@ -1457,7 +1457,7 @@ $stacktrace
 
   Future<PresubmitGuardConclusion> _markUnifiedCheckRunConclusion({
     required PresubmitGuardId guardId,
-    required PresubmitCheckState state,
+    required PresubmitJobState state,
   }) async {
     final logCrumb =
         'checkCompleted(${state.buildName}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
@@ -1710,15 +1710,14 @@ $stacktrace
       checkRunEvent.checkRun!.headSha!,
       checkRunEvent.checkRun!.checkSuite!.id!,
     );
-
-    final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+    final failedJobs = await UnifiedCheckRun.reInitializeFailedJobs(
       firestoreService: _firestore,
       slug: slug,
       pullRequestId: pullRequest!.number!,
       checkRunId: checkRunEvent.checkRun!.id!,
     );
 
-    if (failedChecks == null) {
+    if (failedJobs == null) {
       log.error('$logCrumb: No failed targets found');
       return const ProcessCheckRunResult.missingEntity(
         'No failed targets found',
@@ -1731,9 +1730,9 @@ $stacktrace
     );
 
     final failedTargets = targets
-        .where((target) => failedChecks.checkNames.contains(target.name))
+        .where((target) => failedJobs.checkNames.contains(target.name))
         .toList();
-    if (failedTargets.length != failedChecks.checkNames.length) {
+    if (failedTargets.length != failedJobs.checkNames.length) {
       log.error(
         '$logCrumb: Failed to find all failed targets in presubmit targets',
       );
@@ -1746,8 +1745,8 @@ $stacktrace
       targets: failedTargets,
       pullRequest: pullRequest,
       engineArtifacts: artifacts,
-      checkRunGuard: failedChecks.checkRunGuard,
-      stage: failedChecks.stage,
+      checkRunGuard: failedJobs.checkRunGuard,
+      stage: failedJobs.stage,
     );
 
     log.info(

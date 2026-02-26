@@ -1,18 +1,18 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'presubmit_check_response.dart';
+part of 'presubmit_job_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
+PresubmitJobResponse _$PresubmitJobResponseFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate(
-  'PresubmitCheckResponse',
+  'PresubmitJobResponse',
   json,
   ($checkedConvert) {
-    final val = PresubmitCheckResponse(
+    final val = PresubmitJobResponse(
       attemptNumber: $checkedConvert(
         'attempt_number',
         (v) => (v as num).toInt(),
@@ -37,8 +37,8 @@ PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
   },
 );
 
-Map<String, dynamic> _$PresubmitCheckResponseToJson(
-  PresubmitCheckResponse instance,
+Map<String, dynamic> _$PresubmitJobResponseToJson(
+  PresubmitJobResponse instance,
 ) => <String, dynamic>{
   'attempt_number': instance.attemptNumber,
   'build_name': instance.buildName,

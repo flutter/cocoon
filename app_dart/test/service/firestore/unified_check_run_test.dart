@@ -5,11 +5,11 @@
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/common/presubmit_check_state.dart';
 import 'package:cocoon_service/src/model/common/presubmit_guard_conclusion.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
@@ -45,7 +45,7 @@ void main() {
     const sha = 'sha';
 
     group('initializeCiStagingDocument', () {
-      test('creates PresubmitGuard and Checks when enabled for user', () async {
+      test('creates PresubmitGuard and Jobs when enabled for user', () async {
         config.dynamicConfig = DynamicConfig.fromJson({
           'unifiedCheckRunFlow': {
             'useForUsers': ['dash'],
@@ -74,15 +74,15 @@ void main() {
         );
         expect(guardDoc.name, endsWith(guardId.documentId));
 
-        final checkId = PresubmitCheck.documentIdFor(
+        final jobId = PresubmitJob.documentIdFor(
           checkRunId: 123,
           buildName: 'linux',
           attemptNumber: 1,
         );
-        final checkDoc = await firestoreService.getDocument(
-          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_checks/${checkId.documentId}',
+        final jobDoc = await firestoreService.getDocument(
+          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_jobs/${jobId.documentId}',
         );
-        expect(checkDoc.name, endsWith(checkId.documentId));
+        expect(jobDoc.name, endsWith(jobId.documentId));
       });
 
       test('initializes CiStagingDocument when NOT enabled for user', () async {
@@ -145,12 +145,12 @@ void main() {
           failedBuilds: 0,
         );
 
-        final check1 = PresubmitCheck.init(
+        final job1 = PresubmitJob.init(
           buildName: 'linux',
           checkRunId: guardId.checkRunId,
           creationTime: 1000,
         );
-        final check2 = PresubmitCheck.init(
+        final job2 = PresubmitJob.init(
           buildName: 'mac',
           checkRunId: guardId.checkRunId,
           creationTime: 1000,
@@ -159,14 +159,14 @@ void main() {
         await firestoreService.writeViaTransaction(
           documentsToWrites([
             Document(name: guard.name, fields: guard.fields),
-            Document(name: check1.name, fields: check1.fields),
-            Document(name: check2.name, fields: check2.fields),
+            Document(name: job1.name, fields: job1.fields),
+            Document(name: job2.name, fields: job2.fields),
           ], exists: false),
         );
       });
 
-      test('updates check status and remaining count on success', () async {
-        final state = const PresubmitCheckState(
+      test('updates job status and remaining count on success', () async {
+        final state = const PresubmitJobState(
           buildName: 'linux',
           status: TaskStatus.succeeded,
           attemptNumber: 1,
@@ -185,26 +185,22 @@ void main() {
         expect(result.remaining, 1);
         expect(result.failed, 0);
 
-        final checkDoc = await PresubmitCheck.fromFirestore(
+        final jobDoc = await PresubmitJob.fromFirestore(
           firestoreService,
-          PresubmitCheckId(
-            checkRunId: 123,
-            buildName: 'linux',
-            attemptNumber: 1,
-          ),
+          PresubmitJobId(checkRunId: 123, buildName: 'linux', attemptNumber: 1),
         );
-        expect(checkDoc.status, TaskStatus.succeeded);
-        expect(checkDoc.endTime, 3000);
-        expect(checkDoc.buildNumber, 456);
+        expect(jobDoc.status, TaskStatus.succeeded);
+        expect(jobDoc.endTime, 3000);
+        expect(jobDoc.buildNumber, 456);
       });
 
       test(
-        'update all check status to succeeded lead to complete guard',
+        'update all job status to succeeded lead to complete guard',
         () async {
           final result1 = await UnifiedCheckRun.markConclusion(
             firestoreService: firestoreService,
             guardId: guardId,
-            state: const PresubmitCheckState(
+            state: const PresubmitJobState(
               buildName: 'linux',
               status: TaskStatus.succeeded,
               attemptNumber: 1,
@@ -222,7 +218,7 @@ void main() {
           final result2 = await UnifiedCheckRun.markConclusion(
             firestoreService: firestoreService,
             guardId: guardId,
-            state: const PresubmitCheckState(
+            state: const PresubmitJobState(
               buildName: 'mac',
               status: TaskStatus.succeeded,
               attemptNumber: 1,
@@ -237,21 +233,21 @@ void main() {
           expect(result2.isComplete, true);
           expect(result2.isPending, false);
 
-          final checkDoc = await PresubmitCheck.fromFirestore(
+          final jobDoc = await PresubmitJob.fromFirestore(
             firestoreService,
-            PresubmitCheckId(
+            PresubmitJobId(
               checkRunId: 123,
               buildName: 'linux',
               attemptNumber: 1,
             ),
           );
-          expect(checkDoc.status, TaskStatus.succeeded);
-          expect(checkDoc.endTime, 3000);
+          expect(jobDoc.status, TaskStatus.succeeded);
+          expect(jobDoc.endTime, 3000);
         },
       );
 
-      test('updates check status and failed count on failure', () async {
-        final state = const PresubmitCheckState(
+      test('updates job status and failed count on failure', () async {
+        final state = const PresubmitJobState(
           buildName: 'linux',
           status: TaskStatus.failed,
           attemptNumber: 1,
@@ -270,8 +266,8 @@ void main() {
         expect(result.failed, 1);
       });
 
-      test('handles missing check gracefully', () async {
-        final state = const PresubmitCheckState(
+      test('handles missing job gracefully', () async {
+        final state = const PresubmitJobState(
           buildName: 'windows', // Missing
           status: TaskStatus.succeeded,
           attemptNumber: 1,
@@ -286,7 +282,7 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.missing);
       });
     });
-    group('reInitializeFailedChecks', () {
+    group('reInitializeFailedJobs', () {
       late PresubmitGuardId fusionGuardId;
 
       setUp(() async {
@@ -311,7 +307,7 @@ void main() {
           failedBuilds: 1,
         );
 
-        final check1 = PresubmitCheck(
+        final job1 = PresubmitJob(
           buildName: 'linux',
           checkRunId: fusionGuardId.checkRunId,
           creationTime: 1000,
@@ -319,7 +315,7 @@ void main() {
           attemptNumber: 1,
         );
 
-        final check2 = PresubmitCheck(
+        final job2 = PresubmitJob(
           buildName: 'mac',
           checkRunId: fusionGuardId.checkRunId,
           creationTime: 1000,
@@ -330,14 +326,14 @@ void main() {
         await firestoreService.writeViaTransaction(
           documentsToWrites([
             Document(name: guard.name, fields: guard.fields),
-            Document(name: check1.name, fields: check1.fields),
-            Document(name: check2.name, fields: check2.fields),
+            Document(name: job1.name, fields: job1.fields),
+            Document(name: job2.name, fields: job2.fields),
           ], exists: false),
         );
       });
 
-      test('updates fusion failed checks and remaining count', () async {
-        final result = await UnifiedCheckRun.reInitializeFailedChecks(
+      test('updates fusion failed jobs and remaining count', () async {
+        final result = await UnifiedCheckRun.reInitializeFailedJobs(
           firestoreService: firestoreService,
           slug: slug,
           pullRequestId: pullRequest.number!,
@@ -358,17 +354,13 @@ void main() {
         expect(guard.builds['linux'], TaskStatus.waitingForBackfill);
         expect(guard.builds['mac'], TaskStatus.succeeded);
 
-        // Verify new check document created with incremented attempt number
-        final checkDoc = await PresubmitCheck.fromFirestore(
+        // Verify new job document created with incremented attempt number
+        final jobDoc = await PresubmitJob.fromFirestore(
           firestoreService,
-          PresubmitCheckId(
-            checkRunId: 123,
-            buildName: 'linux',
-            attemptNumber: 2,
-          ),
+          PresubmitJobId(checkRunId: 123, buildName: 'linux', attemptNumber: 2),
         );
-        expect(checkDoc.status, TaskStatus.waitingForBackfill);
-        expect(checkDoc.attemptNumber, 2);
+        expect(jobDoc.status, TaskStatus.waitingForBackfill);
+        expect(jobDoc.attemptNumber, 2);
       });
 
       test('properly handle if engine and fusion guards are present', () async {
@@ -393,7 +385,7 @@ void main() {
           failedBuilds: 0,
         );
 
-        final check1 = PresubmitCheck(
+        final job1 = PresubmitJob(
           buildName: 'win',
           checkRunId: engineGuardId.checkRunId,
           creationTime: 1000,
@@ -401,7 +393,7 @@ void main() {
           attemptNumber: 1,
         );
 
-        final check2 = PresubmitCheck(
+        final job2 = PresubmitJob(
           buildName: 'ios',
           checkRunId: engineGuardId.checkRunId,
           creationTime: 1000,
@@ -412,12 +404,12 @@ void main() {
         await firestoreService.writeViaTransaction(
           documentsToWrites([
             Document(name: guard.name, fields: guard.fields),
-            Document(name: check1.name, fields: check1.fields),
-            Document(name: check2.name, fields: check2.fields),
+            Document(name: job1.name, fields: job1.fields),
+            Document(name: job2.name, fields: job2.fields),
           ], exists: false),
         );
 
-        final result = await UnifiedCheckRun.reInitializeFailedChecks(
+        final result = await UnifiedCheckRun.reInitializeFailedJobs(
           firestoreService: firestoreService,
           slug: slug,
           pullRequestId: pullRequest.number!,
@@ -438,21 +430,17 @@ void main() {
         expect(restartedGuard.builds['linux'], TaskStatus.waitingForBackfill);
         expect(restartedGuard.builds['mac'], TaskStatus.succeeded);
 
-        // Verify new check document created with incremented attempt number
-        final checkDoc = await PresubmitCheck.fromFirestore(
+        // Verify new job document created with incremented attempt number
+        final jobDoc = await PresubmitJob.fromFirestore(
           firestoreService,
-          PresubmitCheckId(
-            checkRunId: 123,
-            buildName: 'linux',
-            attemptNumber: 2,
-          ),
+          PresubmitJobId(checkRunId: 123, buildName: 'linux', attemptNumber: 2),
         );
-        expect(checkDoc.status, TaskStatus.waitingForBackfill);
-        expect(checkDoc.attemptNumber, 2);
+        expect(jobDoc.status, TaskStatus.waitingForBackfill);
+        expect(jobDoc.attemptNumber, 2);
       });
 
-      test('returns null when no failed checks', () async {
-        // Update setup to have no failed checks
+      test('returns null when no failed jobs', () async {
+        // Update setup to have no failed jobs
         var guardDoc = await firestoreService.getDocument(
           'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${fusionGuardId.documentId}',
         );
@@ -465,7 +453,7 @@ void main() {
           documentsToWrites([guard], exists: true),
         );
 
-        final result = await UnifiedCheckRun.reInitializeFailedChecks(
+        final result = await UnifiedCheckRun.reInitializeFailedJobs(
           firestoreService: firestoreService,
           slug: slug,
           pullRequestId: pullRequest.number!,
@@ -538,8 +526,8 @@ void main() {
       expect(guard.checkRunId, 123);
     });
 
-    test('getPresubmitCheckDetails returns all attempts sorted', () async {
-      final check1 = PresubmitCheck(
+    test('getPresubmitJobDetails returns all attempts sorted', () async {
+      final job1 = PresubmitJob(
         checkRunId: 1234,
         buildName: 'linux_test',
         status: TaskStatus.succeeded,
@@ -549,7 +537,7 @@ void main() {
         endTime: 120,
         summary: 'attempt 1',
       );
-      final check2 = PresubmitCheck(
+      final job2 = PresubmitJob(
         checkRunId: 1234,
         buildName: 'linux_test',
         status: TaskStatus.failed,
@@ -560,10 +548,10 @@ void main() {
         summary: 'attempt 2',
       );
       await firestoreService.writeViaTransaction(
-        documentsToWrites([check1, check2], exists: false),
+        documentsToWrites([job1, job2], exists: false),
       );
 
-      final attempts = await UnifiedCheckRun.getPresubmitCheckDetails(
+      final attempts = await UnifiedCheckRun.getPresubmitJobDetails(
         firestoreService: firestoreService,
         checkRunId: 1234,
         buildName: 'linux_test',
