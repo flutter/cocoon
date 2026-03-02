@@ -39,6 +39,7 @@ class PresubmitCompletedCheck {
   final int? startTime;
   final int? endTime;
   final String? summary;
+  final int? buildNumber;
 
   const PresubmitCompletedCheck({
     required this.name,
@@ -56,6 +57,7 @@ class PresubmitCompletedCheck {
     this.startTime,
     this.endTime,
     this.summary,
+    this.buildNumber,
   });
 
   /// Creates a [PresubmitCompletedCheck] from a GitHub [CheckRun].
@@ -77,6 +79,7 @@ class PresubmitCompletedCheck {
       startTime: null,
       endTime: null,
       summary: null,
+      buildNumber: null,
     );
   }
 
@@ -101,6 +104,7 @@ class PresubmitCompletedCheck {
       startTime: build.startTime.toDateTime().microsecondsSinceEpoch,
       endTime: build.endTime.toDateTime().microsecondsSinceEpoch,
       summary: build.summaryMarkdown,
+      buildNumber: build.number,
     );
   }
 
@@ -142,6 +146,7 @@ class PresubmitCompletedCheck {
       startTime: startTime,
       endTime: endTime,
       summary: summary,
+      buildNumber: buildNumber,
     );
   }
 

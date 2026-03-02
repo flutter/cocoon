@@ -72,12 +72,14 @@ void main() {
       expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
       expect(check.isUnifiedCheckRun, true);
       expect(check.checkRun.name, 'Merge Queue Guard');
+      expect(check.buildNumber, 0);
     });
 
     test('fromBuild creates correct legacy check', () {
       final build = Build(
         builder: BuilderID(builder: 'test_builder'),
         status: Status.SUCCESS,
+        number: 1234,
       );
 
       final userData = PresubmitUserData(
@@ -104,6 +106,7 @@ void main() {
       expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
       expect(check.isUnifiedCheckRun, false);
       expect(check.checkRun.name, 'test_builder');
+      expect(check.buildNumber, 1234);
     });
   });
 }
