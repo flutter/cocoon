@@ -33,9 +33,17 @@ Future<void> main() async {
   // the default FakeConfig service did before refactoring.
   // https://github.com/flutter/cocoon/blob/2995f3a4b8c778bf41df5cd1a42dce966202a6b9/app_dart/lib/src/service/config.dart#L505-L507
   final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
+
+  final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
   final dashboardAuthProvider = DashboardAuthentication(
     cache: cache,
-    firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+    firebaseJwtValidator: firebaseJwtValidator,
+    firestore: firestore,
+  );
+  final presubmitAuthProvider = PresubmitAuthentication(
+    cache: cache,
+    config: config,
+    firebaseJwtValidator: firebaseJwtValidator,
     firestore: firestore,
   );
   final AuthenticationProvider swarmingAuthProvider =
@@ -96,13 +104,6 @@ Future<void> main() async {
   final buildStatusService = BuildStatusService(
     firestore: firestore,
     config: config,
-  );
-
-  final presubmitAuthProvider = PresubmitAuthentication(
-    cache: cache,
-    config: config,
-    firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
-    firestore: firestore,
   );
 
   final server = createServer(

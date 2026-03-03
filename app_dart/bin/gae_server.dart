@@ -58,9 +58,16 @@ Future<void> main() async {
     // every ~1 minute.
     configUpdater.startUpdateLoop(config);
 
+    final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
     final dashboardAuthProvider = DashboardAuthentication(
       cache: cache,
-      firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+      firebaseJwtValidator: firebaseJwtValidator,
+      firestore: firestore,
+    );
+    final presubmitAuthProvider = PresubmitAuthentication(
+      cache: cache,
+      config: config,
+      firebaseJwtValidator: firebaseJwtValidator,
       firestore: firestore,
     );
     final AuthenticationProvider swarmingAuthProvider =
@@ -125,13 +132,6 @@ Future<void> main() async {
     final buildStatusService = BuildStatusService(
       firestore: firestore,
       config: config,
-    );
-
-    final presubmitAuthProvider = PresubmitAuthentication(
-      cache: cache,
-      config: config,
-      firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
-      firestore: firestore,
     );
 
     final server = createServer(
