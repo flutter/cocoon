@@ -100,11 +100,14 @@ Future<void> main() async {
       firestore: firestore,
     );
 
+    final githubService = await config.createDefaultGitHubService();
+
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final scheduler = Scheduler(
       cache: cache,
       config: config,
       githubChecksService: githubChecksService,
+      githubService: githubService,
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,

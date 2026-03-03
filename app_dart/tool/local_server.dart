@@ -76,6 +76,7 @@ Future<void> main() async {
     cache: cache,
     config: config,
     githubChecksService: githubChecksService,
+    githubService: await config.createDefaultGitHubService(),
     getFilesChanged: GithubApiGetFilesChanged(config),
     luciBuildService: luciBuildService,
     ciYamlFetcher: ciYamlFetcher,

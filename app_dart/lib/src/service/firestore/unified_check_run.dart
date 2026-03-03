@@ -83,81 +83,164 @@ final class UnifiedCheckRun {
     }
   }
 
+  /// Re-initializes all failed checks for the specified [guardCheckRunId].
   static Future<FailedChecksForRerun?> reInitializeFailedChecks({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
     required int pullRequestId,
-    required int checkRunId,
+    required int guardCheckRunId,
     @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
-    final logCrumb =
-        'reInitializeFailedChecks(${slug.fullName}, $pullRequestId, $checkRunId)';
-
-    log.info('$logCrumb Re-Running failed checks.');
-    final transaction = await firestoreService.beginTransaction();
-
-    // New guard created only if previous is succeeded so failed checks might be
-    // only in latest guard.
     final guard = await getLatestPresubmitGuardForCheckRun(
       firestoreService: firestoreService,
       slug: slug,
       pullRequestId: pullRequestId,
-      checkRunId: checkRunId,
-      transaction: transaction,
+      checkRunId: guardCheckRunId,
     );
 
     if (guard == null) {
       return null;
     }
 
-    // Copy the failed build names to a local variable to avoid losing the
-    // failed build names after resetting the failed guard.builds.
+    final logCrumb =
+        'reInitializeFailedChecks(${slug.fullName}, $pullRequestId, $guardCheckRunId)';
+
+    log.info('$logCrumb Re-Running failed checks.');
+    final transaction = await firestoreService.beginTransaction();
+
+    // New guard created only if previous is succeeded so failed checks might be
+    // only in latest guard.
+    final latestGuard = await getLatestPresubmitGuardForCheckRun(
+      firestoreService: firestoreService,
+      slug: slug,
+      pullRequestId: pullRequestId,
+      checkRunId: guardCheckRunId,
+      transaction: transaction,
+    );
+
+    if (latestGuard == null) {
+      await firestoreService.rollback(transaction);
+      return null;
+    }
+
     final creationTime = utcNow().microsecondsSinceEpoch;
-    final failedBuildNames = guard.failedBuildNames;
+    final failedBuildNames = latestGuard.failedBuildNames;
     if (failedBuildNames.isNotEmpty) {
-      guard.failedBuilds = 0;
-      guard.remainingBuilds = failedBuildNames.length;
-      final builds = guard.builds;
+      latestGuard.failedBuilds = 0;
+      latestGuard.remainingBuilds = failedBuildNames.length;
+      final builds = latestGuard.builds;
       for (final buildName in failedBuildNames) {
         builds[buildName] = TaskStatus.waitingForBackfill;
       }
-      guard.builds = builds;
-      final checks = [
-        for (final buildName in failedBuildNames)
+      latestGuard.builds = builds;
+      final checks = <PresubmitCheck>[];
+      for (final buildName in failedBuildNames) {
+        final latestCheck = await getLatestPresubmitCheck(
+          firestoreService: firestoreService,
+          checkRunId: guardCheckRunId,
+          buildName: buildName,
+          transaction: transaction,
+        );
+        checks.add(
           PresubmitCheck.init(
             buildName: buildName,
-            checkRunId: checkRunId,
+            checkRunId: guardCheckRunId,
             creationTime: creationTime,
-            attemptNumber:
-                ((await getLatestPresubmitCheck(
-                      firestoreService: firestoreService,
-                      checkRunId: checkRunId,
-                      buildName: buildName,
-                      transaction: transaction,
-                    ))?.attemptNumber ??
-                    0) +
-                1, // Increment the latest attempt number.
+            attemptNumber: (latestCheck?.attemptNumber ?? 0) + 1,
           ),
-      ];
+        );
+      }
       try {
         final response = await firestoreService.commit(
           transaction,
-          documentsToWrites([...checks, guard]),
+          documentsToWrites([...checks, latestGuard]),
         );
         log.info(
           '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
         );
         return FailedChecksForRerun(
-          checkRunGuard: guard.checkRun,
+          checkRunGuard: latestGuard.checkRun,
           checkNames: failedBuildNames,
-          stage: guard.stage,
+          stage: latestGuard.stage,
         );
       } catch (e) {
         log.info('$logCrumb: failed to update presubmit check', e);
         rethrow;
       }
     }
+    await firestoreService.rollback(transaction);
     return null;
+  }
+
+  /// Re-initializes a specific failed check for the specified [guardCheckRunId] and [buildName].
+  static Future<FailedChecksForRerun?> reInitializeFailedJob({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required int pullRequestId,
+    required int guardCheckRunId,
+    required String buildName,
+    @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
+  }) async {
+    final logCrumb =
+        'reInitializeFailedJob(${slug.fullName}, $pullRequestId, $guardCheckRunId, $buildName)';
+
+    log.info('$logCrumb Re-Running failed job.');
+    final transaction = await firestoreService.beginTransaction();
+
+    final guard = await getLatestPresubmitGuardForCheckRun(
+      firestoreService: firestoreService,
+      slug: slug,
+      pullRequestId: pullRequestId,
+      checkRunId: guardCheckRunId,
+      transaction: transaction,
+    );
+
+    if (guard == null || !guard.builds.containsKey(buildName)) {
+      await firestoreService.rollback(transaction);
+      return null;
+    }
+
+    final creationTime = utcNow().microsecondsSinceEpoch;
+    final builds = guard.builds;
+    final currentStatus = builds[buildName]!;
+
+    if (currentStatus.isBuildCompleted) {
+      guard.remainingBuilds += 1;
+    }
+    builds[buildName] = TaskStatus.waitingForBackfill;
+    guard.builds = builds;
+
+    final latestCheck = await getLatestPresubmitCheck(
+      firestoreService: firestoreService,
+      checkRunId: guardCheckRunId,
+      buildName: buildName,
+      transaction: transaction,
+    );
+
+    final check = PresubmitCheck.init(
+      buildName: buildName,
+      checkRunId: guardCheckRunId,
+      creationTime: creationTime,
+      attemptNumber: (latestCheck?.attemptNumber ?? 0) + 1,
+    );
+
+    try {
+      final response = await firestoreService.commit(
+        transaction,
+        documentsToWrites([check, guard]),
+      );
+      log.info(
+        '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
+      );
+      return FailedChecksForRerun(
+        checkRunGuard: guard.checkRun,
+        checkNames: [buildName],
+        stage: guard.stage,
+      );
+    } catch (e) {
+      log.info('$logCrumb: failed to update presubmit check', e);
+      rethrow;
+    }
   }
 
   /// Returns _all_ checks running against the specified github [checkRunId].
@@ -225,6 +308,65 @@ final class UnifiedCheckRun {
     return (await _queryPresubmitGuards(
       firestoreService: firestoreService,
       checkRunId: checkRunId,
+      transaction: transaction,
+      limit: 1,
+    )).firstOrNull;
+  }
+
+  /// Returns the latest [PresubmitCheck] for each build in the specified github [checkRunId].
+  static Future<List<PresubmitCheck>> getLatestFailedChecks({
+    required FirestoreService firestoreService,
+    required int checkRunId,
+  }) async {
+    final filterMap = <String, Object>{
+      PresubmitCheck.fieldCheckRunId: checkRunId,
+    };
+    final docs = await firestoreService.query(
+      PresubmitCheck.collectionId,
+      filterMap,
+    );
+    final allChecks = docs.map(PresubmitCheck.fromDocument).toList();
+
+    // Group by buildName and find the latest attempt.
+    final latestChecks = <String, PresubmitCheck>{};
+    for (final check in allChecks) {
+      final currentLatest = latestChecks[check.buildName];
+      if (currentLatest == null ||
+          check.attemptNumber > currentLatest.attemptNumber) {
+        latestChecks[check.buildName] = check;
+      }
+    }
+
+    return latestChecks.values
+        .where((check) => check.status.isFailure)
+        .toList();
+  }
+
+  /// Returns the latest [PresubmitGuard] for the specified github [checkRunId].
+  static Future<PresubmitGuard?> getLatestPresubmitGuardByCheckRunId({
+    required FirestoreService firestoreService,
+    required int checkRunId,
+    Transaction? transaction,
+  }) async {
+    return (await _queryPresubmitGuards(
+      firestoreService: firestoreService,
+      checkRunId: checkRunId,
+      transaction: transaction,
+      limit: 1,
+    )).firstOrNull;
+  }
+
+  /// Returns the latest [PresubmitGuard] for the specified [slug] and [pullRequestNum].
+  static Future<PresubmitGuard?> getLatestPresubmitGuardByPullRequestNum({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required int pullRequestNum,
+    Transaction? transaction,
+  }) async {
+    return (await _queryPresubmitGuards(
+      firestoreService: firestoreService,
+      slug: slug,
+      pullRequestId: pullRequestNum,
       transaction: transaction,
       limit: 1,
     )).firstOrNull;

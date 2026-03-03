@@ -35,6 +35,7 @@ class AuthenticatedContext {
   const AuthenticatedContext({
     required this.clientContext,
     required this.email,
+    this.githubLogin,
   });
 
   /// The App Engine [ClientContext] of the current request.
@@ -44,4 +45,7 @@ class AuthenticatedContext {
 
   /// The email address associated with this authenticated context.
   final String email; // maybe TokenInfo
+
+  /// The GitHub login associated with this authenticated context, if any.
+  final String? githubLogin;
 }

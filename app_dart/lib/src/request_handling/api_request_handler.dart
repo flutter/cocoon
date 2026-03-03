@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import 'authentication.dart';
@@ -57,6 +58,42 @@ abstract base class ApiRequestHandler extends PublicApiRequestHandler {
     await runZoned<Future<void>>(() async {
       await super.service(request);
     }, zoneValues: <ApiKey<dynamic>, Object?>{ApiKey.authContext: context});
+  }
+
+  /// Checks whether the current user has write permissions to the specified
+  /// repository.
+  ///
+  /// If the user is authenticated via a @google.com account, they are assumed
+  /// to have write access.
+  ///
+  /// Otherwise, if the user is authenticated via GitHub, their permissions are
+  /// checked via the GitHub API.
+  ///
+  /// Throws [Forbidden] if the user does not have write access.
+  Future<void> checkWritePermissions(RepositorySlug slug) async {
+    if (isUserGoogleEmployee) {
+      return;
+    }
+    if (await hasUserGithubWritePermission(slug)) {
+      return;
+    }
+    throw Forbidden(
+      'User ${authContext!.githubLogin ?? authContext!.email} does not have write access to ${slug.fullName}',
+    );
+  }
+
+  /// Whether the current user is a Google employee (authenticated via @google.com).
+  bool get isUserGoogleEmployee => authContext!.email.endsWith('@google.com');
+
+  /// Whether the current user has write permissions to the specified
+  /// repository via GitHub.
+  Future<bool> hasUserGithubWritePermission(RepositorySlug slug) async {
+    final githubLogin = authContext!.githubLogin;
+    if (githubLogin == null) {
+      return false;
+    }
+    final githubService = await config.createGithubService(slug);
+    return githubService.hasUserWritePermissions(slug, githubLogin);
   }
 }
 

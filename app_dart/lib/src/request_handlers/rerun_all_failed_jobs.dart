@@ -1,0 +1,112 @@
+// Copyright 2025 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:async';
+
+import 'package:github/github.dart';
+
+import '../../cocoon_service.dart';
+import '../request_handling/api_request_handler.dart';
+import '../request_handling/exceptions.dart';
+import '../service/firestore/unified_check_run.dart';
+
+/// Re-runs all failed jobs for a unified check run.
+///
+/// POST: /api/rerun-all-failed-jobs
+///
+/// Parameters:
+///   owner: (string in body) mandatory. The GitHub repository owner.
+///   repo: (string in body) mandatory. The GitHub repository name.
+///   pr: (int in body) mandatory. The Pull Request number.
+final class RerunAllFailedJobs extends ApiRequestHandler {
+  const RerunAllFailedJobs({
+    required super.config,
+    required super.authenticationProvider,
+    required Scheduler scheduler,
+    required LuciBuildService luciBuildService,
+    required FirestoreService firestore,
+  }) : _scheduler = scheduler,
+       _luciBuildService = luciBuildService,
+       _firestore = firestore;
+
+  final Scheduler _scheduler;
+  final LuciBuildService _luciBuildService;
+  final FirestoreService _firestore;
+
+  static const String kOwnerParam = 'owner';
+  static const String kRepoParam = 'repo';
+  static const String kPrParam = 'pr';
+
+  @override
+  Future<Response> post(Request request) async {
+    final requestData = await request.readBodyAsJson();
+    checkRequiredParameters(requestData, [kPrParam]);
+
+    final owner = requestData[kOwnerParam] as String? ?? 'flutter';
+    final repo = requestData[kRepoParam] as String? ?? 'flutter';
+    final prNumber = requestData[kPrParam] as int;
+
+    final slug = RepositorySlug(owner, repo);
+
+    final guard = await UnifiedCheckRun.getLatestPresubmitGuardByPullRequestNum(
+      firestoreService: _firestore,
+      slug: slug,
+      pullRequestNum: prNumber,
+    );
+    if (guard == null) {
+      throw NotFoundException(
+        'No PresubmitGuard found for PR $slug/$prNumber',
+      );
+    }
+
+    await checkWritePermissions(slug);
+
+    final pullRequest = await _scheduler.findPullRequestCachedForPullRequestNum(
+      slug,
+      prNumber,
+    );
+
+    if (pullRequest == null) {
+      throw NotFoundException(
+        'No pull request found for PR $slug/$prNumber',
+      );
+    }
+
+    final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+      firestoreService: _firestore,
+      slug: slug,
+      pullRequestId: prNumber,
+      guardCheckRunId: guard.checkRunId,
+    );
+
+    if (failedChecks == null) {
+      return Response.json({'message': 'No failed jobs found to re-run'});
+    }
+
+    final (targets, artifacts) = await _scheduler.getAllTargetsForPullRequest(
+      slug,
+      pullRequest,
+    );
+
+    final failedTargets =
+        targets
+            .where((target) => failedChecks.checkNames.contains(target.name))
+            .toList();
+
+    await _luciBuildService.scheduleTryBuilds(
+      targets: failedTargets,
+      pullRequest: pullRequest,
+      engineArtifacts: artifacts,
+      checkRunGuard: failedChecks.checkRunGuard,
+      stage: failedChecks.stage,
+    );
+
+    return Response.json({
+      'results':
+          failedTargets
+              .map((t) => {'builder': t.name, 'status': 'rescheduled'})
+              .toList(),
+    });
+  }
+}

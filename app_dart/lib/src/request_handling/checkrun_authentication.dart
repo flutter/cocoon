@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -138,12 +139,17 @@ class GithubAuthentication implements AuthenticationProvider {
     TokenInfo token, {
     required ClientContext clientContext,
   }) async {
+    final githubLogin = await _getGithubLoginCached(
+      token.firebase?.identities?['github.com']?.first,
+    );
     if (await _isGithubAllowedCached(
       token.firebase?.identities?['github.com']?.first,
+      githubLogin,
     )) {
       return AuthenticatedContext(
         clientContext: clientContext,
         email: token.email!,
+        githubLogin: githubLogin,
       );
     }
     throw Unauthenticated(
@@ -151,28 +157,52 @@ class GithubAuthentication implements AuthenticationProvider {
     );
   }
 
-  Future<bool> _isGithubAllowed(String? accountId) async {
+  Future<String?> _getGithubLogin(String? accountId) async {
     if (accountId == null) {
-      return false;
+      return null;
     }
     final ghService = _config.createGithubServiceWithToken(
       await _config.githubOAuthToken,
     );
     final user = await ghService.getUserByAccountId(accountId);
-    if (user.login == null) {
+    return user.login;
+  }
+
+  Future<String?> _getGithubLoginCached(String? accountId) async {
+    final bytes = await _cache.getOrCreateWithLocking(
+      'github_account_login',
+      accountId ?? 'null_accountId',
+      createFn: () async => Uint8List.fromList(
+        (await _getGithubLogin(accountId))?.codeUnits ?? [],
+      ),
+    );
+    final login = String.fromCharCodes(bytes!);
+    return login.isEmpty ? null : login;
+  }
+
+  Future<bool> _isGithubAllowed(String? accountId, String? githubLogin) async {
+    final login = githubLogin ?? await _getGithubLogin(accountId);
+    if (login == null) {
       return false;
     }
+    final ghService = _config.createGithubServiceWithToken(
+      await _config.githubOAuthToken,
+    );
     return await ghService.hasUserWritePermissions(
       RepositorySlug('flutter', 'flutter'),
-      user.login!,
+      login,
     );
   }
 
-  Future<bool> _isGithubAllowedCached(String? accountId) async {
+  Future<bool> _isGithubAllowedCached(
+    String? accountId,
+    String? githubLogin,
+  ) async {
     final bytes = await _cache.getOrCreateWithLocking(
       'github_account_allowed',
       accountId ?? 'null_accountId',
-      createFn: () async => (await _isGithubAllowed(accountId)).toUint8List(),
+      createFn: () async =>
+          (await _isGithubAllowed(accountId, githubLogin)).toUint8List(),
     );
     return bytes?.toBool() ?? false;
   }

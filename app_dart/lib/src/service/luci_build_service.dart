@@ -572,6 +572,24 @@ class LuciBuildService {
     return _buildBucketClient.getBuild(request);
   }
 
+  /// Reschedules a presubmit build by its [buildId] and [userData].
+  Future<bbv2.Build> rescheduleBuildById({
+    required Int64 buildId,
+    required PresubmitUserData userData,
+  }) async {
+    final build = await getBuildById(
+      buildId,
+      buildMask: bbv2.BuildMask(allFields: true),
+    );
+    final tagSet = BuildTags.fromStringPairs(build.tags);
+    return reschedulePresubmitBuild(
+      builderName: build.builder.builder,
+      build: build,
+      nextAttempt: tagSet.currentAttempt + 1,
+      userData: userData,
+    );
+  }
+
   /// Gets builder list whose config is pre-defined in LUCI.
   ///
   /// Returns cache if existing. Otherwise make the RPC call to fetch list.

@@ -13,6 +13,8 @@ import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/github_webhook_replay.dart';
 import 'src/request_handlers/lookup_hash.dart';
 import 'src/request_handlers/merge_queue_hooks.dart';
+import 'src/request_handlers/rerun_all_failed_jobs.dart';
+import 'src/request_handlers/rerun_failed_job.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
 import 'src/request_handlers/update_suppressed_test.dart';
@@ -127,6 +129,20 @@ Server createServer({
     '/api/push-gold-status-to-github': PushGoldStatusToGithub(
       config: config,
       authenticationProvider: authProvider,
+      firestore: firestore,
+    ),
+    '/api/rerun-failed-job': RerunFailedJob(
+      config: config,
+      authenticationProvider: authProvider,
+      scheduler: scheduler,
+      luciBuildService: luciBuildService,
+      firestore: firestore,
+    ),
+    '/api/rerun-all-failed-jobs': RerunAllFailedJobs(
+      config: config,
+      authenticationProvider: authProvider,
+      scheduler: scheduler,
+      luciBuildService: luciBuildService,
       firestore: firestore,
     ),
     // I do not believe these recieve a build message.

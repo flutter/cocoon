@@ -1,0 +1,8 @@
+{
+  "track_id": "rerun_failed_jobs_api_20260227",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-02-27T10:00:00Z",
+  "updated_at": "2026-02-27T10:00:00Z",
+  "description": "For unified checkrun implement re-run failed job and re-run all failed jobs api"
+}

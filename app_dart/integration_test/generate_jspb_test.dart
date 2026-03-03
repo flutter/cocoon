@@ -14,6 +14,7 @@ Future<void> main() async {
   test('validate cocoon ci.yaml generates jspb', () async {
     final generateResult = Process.runSync('dart', <String>[
       'run',
+      '--verbosity=error',
       'bin/generate_jspb.dart',
       'integration_test/data/mock_ci.yaml',
     ]);
