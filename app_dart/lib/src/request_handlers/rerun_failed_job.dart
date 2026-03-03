@@ -43,10 +43,7 @@ final class RerunFailedJob extends ApiRequestHandler {
   @override
   Future<Response> post(Request request) async {
     final requestData = await request.readBodyAsJson();
-    checkRequiredParameters(requestData, [
-      kPrParam,
-      kBuildNameParam,
-    ]);
+    checkRequiredParameters(requestData, [kPrParam, kBuildNameParam]);
 
     final owner = requestData[kOwnerParam] as String? ?? 'flutter';
     final repo = requestData[kRepoParam] as String? ?? 'flutter';
@@ -61,12 +58,8 @@ final class RerunFailedJob extends ApiRequestHandler {
       pullRequestNum: prNumber,
     );
     if (guard == null) {
-      throw NotFoundException(
-        'No PresubmitGuard found for PR $slug/$prNumber',
-      );
+      throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
     }
-
-    await checkWritePermissions(slug);
 
     final pullRequest = await _scheduler.findPullRequestCachedForPullRequestNum(
       slug,
@@ -74,9 +67,7 @@ final class RerunFailedJob extends ApiRequestHandler {
     );
 
     if (pullRequest == null) {
-      throw NotFoundException(
-        'No pull request found for PR $slug/$prNumber',
-      );
+      throw NotFoundException('No pull request found for PR $slug/$prNumber');
     }
 
     final rerunInfo = await UnifiedCheckRun.reInitializeFailedJob(
@@ -100,10 +91,8 @@ final class RerunFailedJob extends ApiRequestHandler {
 
     final target = targets.firstWhere(
       (t) => t.name == buildName,
-      orElse:
-          () => throw BadRequestException(
-            'Target $buildName not found in .ci.yaml',
-          ),
+      orElse: () =>
+          throw BadRequestException('Target $buildName not found in .ci.yaml'),
     );
 
     await _luciBuildService.scheduleTryBuilds(

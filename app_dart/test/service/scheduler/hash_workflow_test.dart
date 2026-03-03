@@ -109,7 +109,8 @@ void main() {
     );
 
     cahs = ContentAwareHashService(config: config, firestore: firestore);
-    scheduler = Scheduler(githubService: config.githubService ?? FakeGithubService(), 
+    scheduler = Scheduler(
+      githubService: config.githubService ?? FakeGithubService(),
       cache: cache,
       config: config,
       githubChecksService: GithubChecksService(

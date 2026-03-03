@@ -1735,18 +1735,18 @@ $stacktrace
     } catch (e, s) {
       log.info('$logCrumb: unable to find PR in PrCheckRuns', e, s);
     }
-if (pullRequest == null) {
-  try {
-    pullRequest = await _githubService.getPullRequest(slug, pullRequestNum);
-    await PrCheckRuns.initializeDocument(
-      firestoreService: _firestore,
-      pullRequest: pullRequest,
-      checks: [],
-    );
-  } catch (e, s) {
-    log.warn('$logCrumb: unable to find PR in GitHub', e, s);
-  }
-}
+    if (pullRequest == null) {
+      try {
+        pullRequest = await _githubService.getPullRequest(slug, pullRequestNum);
+        await PrCheckRuns.initializeDocument(
+          firestoreService: _firestore,
+          pullRequest: pullRequest,
+          checks: [],
+        );
+      } catch (e, s) {
+        log.warn('$logCrumb: unable to find PR in GitHub', e, s);
+      }
+    }
 
     if (pullRequest == null) {
       log.warn('$logCrumb: No pull request found');

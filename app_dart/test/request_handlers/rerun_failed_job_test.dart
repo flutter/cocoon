@@ -155,10 +155,7 @@ void main() {
       ),
     ).thenAnswer((_) async => []);
 
-    tester.requestData = {
-      'pr': pullRequest.number!,
-      'build_name': 'Linux A',
-    };
+    tester.requestData = {'pr': pullRequest.number!, 'build_name': 'Linux A'};
 
     final response = await tester.post(handler);
     expect(response.statusCode, HttpStatus.ok);

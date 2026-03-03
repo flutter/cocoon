@@ -10,7 +10,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/request_handlers/rerun_all_failed_jobs.dart';
-import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -184,33 +183,6 @@ void main() {
     final body = jsonDecode(bodyString) as Map<String, dynamic>;
 
     expect(body['message'], contains('No failed jobs found'));
-  });
-
-  test('Re-run all failed jobs - unauthorized', () async {
-    final checkRun = generateCheckRun(1);
-    final guard = generatePresubmitGuard(checkRun: checkRun);
-    firestore.putDocument(guard);
-
-    final authContext = FakeAuthenticatedContext(
-      clientContext: FakeClientContext(),
-      email: 'user@github.com',
-      githubLogin: 'ghuser',
-    );
-    tester = ApiRequestHandlerTester(context: authContext);
-
-    final githubService = MockGithubService();
-    config.githubService = githubService;
-    when(
-      githubService.hasUserWritePermissions(guard.slug, 'ghuser'),
-    ).thenAnswer((_) async => false);
-
-    tester.requestData = {
-      'owner': 'flutter',
-      'repo': 'flutter',
-      'pr': guard.pullRequestId,
-    };
-
-    await expectLater(tester.post(handler), throwsA(isA<Forbidden>()));
   });
 }
 

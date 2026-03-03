@@ -79,7 +79,8 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
   }
 
   /// The pull request number.
-  int get pullRequestNum => int.parse(fields[kPullRequestNumField]!.integerValue!);
+  int get pullRequestNum =>
+      int.parse(fields[kPullRequestNumField]!.integerValue!);
 
   set pullRequestNum(int value) {
     fields[kPullRequestNumField] = value.toValue();
@@ -220,7 +221,9 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     FirestoreService firestoreService,
     int pullRequestNum,
   ) async {
-    final filterMap = <String, Object>{'$kPullRequestNumField =': pullRequestNum};
+    final filterMap = <String, Object>{
+      '$kPullRequestNumField =': pullRequestNum,
+    };
     log.info(
       'findPullRequestForPullRequestNum($filterMap): finding prCheckRuns document',
     );

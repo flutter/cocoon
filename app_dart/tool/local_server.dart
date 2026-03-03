@@ -11,6 +11,7 @@ import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/foundation/providers.dart';
+
 import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
@@ -32,7 +33,7 @@ Future<void> main() async {
   // the default FakeConfig service did before refactoring.
   // https://github.com/flutter/cocoon/blob/2995f3a4b8c778bf41df5cd1a42dce966202a6b9/app_dart/lib/src/service/config.dart#L505-L507
   final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
-  final authProvider = DashboardAuthentication(
+  final dashboardAuthProvider = DashboardAuthentication(
     cache: cache,
     firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
     firestore: firestore,
@@ -97,10 +98,20 @@ Future<void> main() async {
     config: config,
   );
 
+  final presubmitAuthProvider = PresubmitAuthentication(
+    cache: cache,
+    config: config,
+    firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+    firestore: firestore,
+  );
+
   final server = createServer(
     config: config,
+    firestore: firestore,
+    bigQuery: bigQuery,
     cache: cache,
-    authProvider: authProvider,
+    dashboardAuthProvider: dashboardAuthProvider,
+    presubmitAuthProvider: presubmitAuthProvider,
     branchService: branchService,
     buildBucketClient: buildBucketClient,
     gerritService: gerritService,
@@ -111,8 +122,6 @@ Future<void> main() async {
     swarmingAuthProvider: swarmingAuthProvider,
     ciYamlFetcher: ciYamlFetcher,
     buildStatusService: buildStatusService,
-    firestore: firestore,
-    bigQuery: bigQuery,
     contentAwareHashService: contentHashService,
   );
 

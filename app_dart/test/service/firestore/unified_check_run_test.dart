@@ -538,20 +538,34 @@ void main() {
       expect(guard.checkRunId, 123);
     });
 
-    test('getLatestPresubmitGuardByPullRequestNum returns latest guard', () async {
-      final guard1 = generatePresubmitGuard(checkRun: generateCheckRun(1), commitSha: 'abc', pullRequestId: 5678, creationTime: 1000);
-      final guard2 = generatePresubmitGuard(checkRun: generateCheckRun(2), commitSha: 'abc', pullRequestId: 5678, creationTime: 2000);
+    test(
+      'getLatestPresubmitGuardByPullRequestNum returns latest guard',
+      () async {
+        final guard1 = generatePresubmitGuard(
+          checkRun: generateCheckRun(1),
+          commitSha: 'abc',
+          pullRequestId: 5678,
+          creationTime: 1000,
+        );
+        final guard2 = generatePresubmitGuard(
+          checkRun: generateCheckRun(2),
+          commitSha: 'abc',
+          pullRequestId: 5678,
+          creationTime: 2000,
+        );
 
-      firestoreService.putDocument(guard1);
-      firestoreService.putDocument(guard2);
+        firestoreService.putDocument(guard1);
+        firestoreService.putDocument(guard2);
 
-      final result = await UnifiedCheckRun.getLatestPresubmitGuardByPullRequestNum(
-        firestoreService: firestoreService,
-        slug: slug,
-        pullRequestNum: 5678,
-      );
-      expect(result!.checkRunId, 2);
-    });
+        final result =
+            await UnifiedCheckRun.getLatestPresubmitGuardByPullRequestNum(
+              firestoreService: firestoreService,
+              slug: slug,
+              pullRequestNum: 5678,
+            );
+        expect(result!.checkRunId, 2);
+      },
+    );
 
     test('getPresubmitCheckDetails returns all attempts sorted', () async {
       final check1 = PresubmitCheck(

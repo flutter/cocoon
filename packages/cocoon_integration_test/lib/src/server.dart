@@ -15,7 +15,8 @@ class IntegrationServer {
     FakeConfig? config,
     FakeFirestoreService? firestore,
     FakeBigQueryService? bigQuery,
-    FakeDashboardAuthentication? authProvider,
+    FakeDashboardAuthentication? dashboardAuthProvider,
+    FakeDashboardAuthentication? presubmitAuthProvider,
     FakeDashboardAuthentication? swarmingAuthProvider,
     FakeGerritService? gerritService,
     FakeBuildBucketClient? buildBucketClient,
@@ -29,7 +30,10 @@ class IntegrationServer {
     this.config = config ?? FakeConfig(webhookKeyValue: 'fake-secret');
     this.firestore = firestore ?? FakeFirestoreService();
     this.bigQuery = bigQuery ?? FakeBigQueryService();
-    this.authProvider = authProvider ?? FakeDashboardAuthentication();
+    this.dashboardAuthProvider =
+        dashboardAuthProvider ?? FakeDashboardAuthentication();
+    this.presubmitAuthProvider =
+        presubmitAuthProvider ?? FakeDashboardAuthentication();
     this.swarmingAuthProvider =
         swarmingAuthProvider ?? FakeDashboardAuthentication();
     this.gerritService = gerritService ?? FakeGerritService();
@@ -58,7 +62,8 @@ class IntegrationServer {
       firestore: this.firestore,
       bigQuery: this.bigQuery,
       cache: this.cache,
-      authProvider: this.authProvider,
+      dashboardAuthProvider: this.dashboardAuthProvider,
+      presubmitAuthProvider: this.presubmitAuthProvider,
       swarmingAuthProvider: this.swarmingAuthProvider,
       branchService: BranchService(
         config: this.config,
@@ -84,7 +89,8 @@ class IntegrationServer {
   late final FakeConfig config;
   late final FakeFirestoreService firestore;
   late final FakeBigQueryService bigQuery;
-  late final FakeDashboardAuthentication authProvider;
+  late final FakeDashboardAuthentication dashboardAuthProvider;
+  late final FakeDashboardAuthentication presubmitAuthProvider;
   late final FakeDashboardAuthentication swarmingAuthProvider;
   late final FakeGerritService gerritService;
   late final FakeBuildBucketClient buildBucketClient;

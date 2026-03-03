@@ -58,7 +58,7 @@ Future<void> main() async {
     // every ~1 minute.
     configUpdater.startUpdateLoop(config);
 
-    final authProvider = DashboardAuthentication(
+    final dashboardAuthProvider = DashboardAuthentication(
       cache: cache,
       firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
       firestore: firestore,
@@ -127,12 +127,20 @@ Future<void> main() async {
       config: config,
     );
 
+    final presubmitAuthProvider = PresubmitAuthentication(
+      cache: cache,
+      config: config,
+      firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+      firestore: firestore,
+    );
+
     final server = createServer(
       config: config,
       firestore: firestore,
       bigQuery: bigQuery,
       cache: cache,
-      authProvider: authProvider,
+      dashboardAuthProvider: dashboardAuthProvider,
+      presubmitAuthProvider: presubmitAuthProvider,
       branchService: branchService,
       buildBucketClient: buildBucketClient,
       gerritService: gerritService,

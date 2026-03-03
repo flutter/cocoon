@@ -41,8 +41,8 @@ import 'exceptions.dart';
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
-interface class CheckrunAuthentication implements AuthenticationProvider {
-  CheckrunAuthentication({
+interface class PresubmitAuthentication implements AuthenticationProvider {
+  PresubmitAuthentication({
     required CacheService cache,
     required Config config,
     required FirebaseJwtValidator firebaseJwtValidator,

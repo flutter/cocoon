@@ -55,12 +55,8 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       pullRequestNum: prNumber,
     );
     if (guard == null) {
-      throw NotFoundException(
-        'No PresubmitGuard found for PR $slug/$prNumber',
-      );
+      throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
     }
-
-    await checkWritePermissions(slug);
 
     final pullRequest = await _scheduler.findPullRequestCachedForPullRequestNum(
       slug,
@@ -68,9 +64,7 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     );
 
     if (pullRequest == null) {
-      throw NotFoundException(
-        'No pull request found for PR $slug/$prNumber',
-      );
+      throw NotFoundException('No pull request found for PR $slug/$prNumber');
     }
 
     final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
@@ -89,10 +83,9 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       pullRequest,
     );
 
-    final failedTargets =
-        targets
-            .where((target) => failedChecks.checkNames.contains(target.name))
-            .toList();
+    final failedTargets = targets
+        .where((target) => failedChecks.checkNames.contains(target.name))
+        .toList();
 
     await _luciBuildService.scheduleTryBuilds(
       targets: failedTargets,
@@ -103,10 +96,9 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     );
 
     return Response.json({
-      'results':
-          failedTargets
-              .map((t) => {'builder': t.name, 'status': 'rescheduled'})
-              .toList(),
+      'results': failedTargets
+          .map((t) => {'builder': t.name, 'status': 'rescheduled'})
+          .toList(),
     });
   }
 }
