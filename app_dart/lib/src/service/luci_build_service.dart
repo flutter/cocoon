@@ -297,9 +297,7 @@ class LuciBuildService {
       checkRuns.add(checkRunGuard);
     }
 
-    for (var entry in targets.entries) {
-      final target = entry.key;
-      final attemptNumber = entry.value;
+    for (final MapEntry(key: target, value: attemptNumber) in targets.entries) {
       // If the unified check run flow is disabled create individual check runs
       // for each target.
       if (!isUnifiedCheckRunFlow || checkRunGuard == null) {

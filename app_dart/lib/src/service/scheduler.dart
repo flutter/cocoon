@@ -1779,7 +1779,7 @@ $stacktrace
       guardCheckRunId: checkRunEvent.checkRun!.id!,
     );
 
-    if (failedChecks == null) {
+    if (failedChecks == null || failedChecks.checkRetries.isEmpty) {
       log.error('$logCrumb: No failed targets found');
       return const ProcessCheckRunResult.missingEntity(
         'No failed targets found',
@@ -1791,16 +1791,14 @@ $stacktrace
       pullRequest,
     );
 
-    final failedTargets = <Target>[];
     final checkRetries = <Target, int>{};
     for (final target in targets) {
       if (failedChecks.checkRetries.containsKey(target.name)) {
-        failedTargets.add(target);
         checkRetries[target] = failedChecks.checkRetries[target.name]!;
       }
     }
 
-    if (failedTargets.length != failedChecks.checkRetries.length) {
+    if (checkRetries.length != failedChecks.checkRetries.length) {
       log.error(
         '$logCrumb: Failed to find all failed targets in presubmit targets',
       );
@@ -1818,7 +1816,7 @@ $stacktrace
     );
 
     log.info(
-      '$logCrumb: Successfully rescheduled ${failedTargets.length} targets',
+      '$logCrumb: Successfully rescheduled ${checkRetries.length} targets',
     );
     return const ProcessCheckRunResult.success();
   }
