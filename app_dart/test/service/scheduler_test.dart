@@ -1249,11 +1249,11 @@ targets:
           'installation': {'id': 123},
         });
 
-        // Ensure scheduleTryBuilds returns something to avoid null errors?
-        // MockLuciBuildService.scheduleTryBuilds is mocked using Mockito?
+        // Ensure reScheduleTryBuilds returns something to avoid null errors?
+        // MockLuciBuildService.reScheduleTryBuilds is mocked using Mockito?
         // In this file `MockLuciBuildService` extends `Mock` implements `LuciBuildService`.
         when(
-          mockLuciBuildService.scheduleTryBuilds(
+          mockLuciBuildService.reScheduleTryBuilds(
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
@@ -1268,9 +1268,11 @@ targets:
         );
 
         verify(
-          mockLuciBuildService.scheduleTryBuilds(
+          mockLuciBuildService.reScheduleTryBuilds(
             targets: argThat(
-              contains(predicate<Target>((t) => t.name == 'Linux A')),
+              predicate<Map<Target, int>>((map) {
+                return map.keys.any((t) => t.name == 'Linux A');
+              }),
               named: 'targets',
             ),
             pullRequest: pullRequest,
@@ -1391,11 +1393,11 @@ targets:
           'installation': {'id': 123},
         });
 
-        // Ensure scheduleTryBuilds returns something to avoid null errors?
-        // MockLuciBuildService.scheduleTryBuilds is mocked using Mockito?
+        // Ensure reScheduleTryBuilds returns something to avoid null errors?
+        // MockLuciBuildService.reScheduleTryBuilds is mocked using Mockito?
         // In this file `MockLuciBuildService` extends `Mock` implements `LuciBuildService`.
         when(
-          mockLuciBuildService.scheduleTryBuilds(
+          mockLuciBuildService.reScheduleTryBuilds(
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
@@ -1410,9 +1412,11 @@ targets:
         );
 
         verify(
-          mockLuciBuildService.scheduleTryBuilds(
+          mockLuciBuildService.reScheduleTryBuilds(
             targets: argThat(
-              contains(predicate<Target>((t) => t.name == 'Linux A')),
+              predicate<Map<Target, int>>((map) {
+                return map.keys.any((t) => t.name == 'Linux A');
+              }),
               named: 'targets',
             ),
             pullRequest: pullRequest,

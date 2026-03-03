@@ -5,6 +5,8 @@
 /// @docImport 'failed_presubmit_checks.dart';
 library;
 
+import 'package:collection/collection.dart';
+
 import 'package:github/github.dart';
 
 import '../firestore/base.dart';
@@ -15,12 +17,12 @@ import '../firestore/base.dart';
 class FailedChecksForRerun {
   final CheckRun checkRunGuard;
   final CiStage stage;
-  final List<String> checkNames;
+  final Map<String, int> checkRetries;
 
   const FailedChecksForRerun({
     required this.checkRunGuard,
     required this.stage,
-    required this.checkNames,
+    required this.checkRetries,
   });
 
   @override
@@ -29,12 +31,20 @@ class FailedChecksForRerun {
       (other is FailedChecksForRerun &&
           other.checkRunGuard == checkRunGuard &&
           other.stage == stage &&
-          other.checkNames == checkNames);
+          const DeepCollectionEquality().equals(
+            other.checkRetries,
+            checkRetries,
+          ));
 
   @override
-  int get hashCode => Object.hashAll([checkRunGuard, stage, checkNames]);
+  int get hashCode => Object.hashAll([
+    checkRunGuard,
+    stage,
+    ...checkRetries.keys,
+    ...checkRetries.values,
+  ]);
 
   @override
   String toString() =>
-      'FailedChecksForRerun("$checkRunGuard", "$stage", "$checkNames")';
+      'FailedChecksForRerun("$checkRunGuard", "$stage", "$checkRetries")';
 }

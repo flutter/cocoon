@@ -1791,10 +1791,16 @@ $stacktrace
       pullRequest,
     );
 
-    final failedTargets = targets
-        .where((target) => failedChecks.checkNames.contains(target.name))
-        .toList();
-    if (failedTargets.length != failedChecks.checkNames.length) {
+    final failedTargets = <Target>[];
+    final checkRetries = <Target, int>{};
+    for (final target in targets) {
+      if (failedChecks.checkRetries.containsKey(target.name)) {
+        failedTargets.add(target);
+        checkRetries[target] = failedChecks.checkRetries[target.name]!;
+      }
+    }
+
+    if (failedTargets.length != failedChecks.checkRetries.length) {
       log.error(
         '$logCrumb: Failed to find all failed targets in presubmit targets',
       );
@@ -1803,8 +1809,8 @@ $stacktrace
       );
     }
 
-    await _luciBuildService.scheduleTryBuilds(
-      targets: failedTargets,
+    await _luciBuildService.reScheduleTryBuilds(
+      targets: checkRetries,
       pullRequest: pullRequest,
       engineArtifacts: artifacts,
       checkRunGuard: failedChecks.checkRunGuard,
