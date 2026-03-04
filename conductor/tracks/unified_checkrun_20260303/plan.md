@@ -5,21 +5,21 @@ This plan outlines the steps to add a `slug` field to the `PresubmitCheck` model
 ## Phase 1: Model Update (app_dart)
 In this phase, we update the `PresubmitCheck` model and the `UnifiedCheckRun` service to include the `slug` field.
 
-- [ ] Task: Update `PresubmitCheckId` in `app_dart/lib/src/model/firestore/presubmit_check.dart`
-    - [ ] Add `RepositorySlug slug` field.
-    - [ ] Update `documentId` to format: `owner_repo_checkRunId_buildName_attemptNumber`.
-    - [ ] Update `tryParse` to handle the new format.
-- [ ] Task: Update `PresubmitCheck` in `app_dart/lib/src/model/firestore/presubmit_check.dart`
-    - [ ] Add `fieldSlug` constant.
-    - [ ] Update factory constructors (`PresubmitCheck`, `PresubmitCheck.init`) to accept and store `slug`.
-    - [ ] Add `slug` getter.
-- [ ] Task: Update `UnifiedCheckRun` in `app_dart/lib/src/service/firestore/unified_check_run.dart`
-    - [ ] Update `initializeCiStagingDocument` to pass `slug` to `PresubmitCheck.init`.
-    - [ ] Update `reInitializeFailedChecks` to pass `slug` to `PresubmitCheck.init`.
-    - [ ] Update `_queryPresubmitChecks` to optionally filter by `slug`.
-    - [ ] Update `markConclusion` to handle the new `PresubmitCheckId` format (needs `slug` from `guardId`).
-- [ ] Task: Update `PresubmitCheck` tests
-    - [ ] Update `app_dart/test/model/firestore/presubmit_check_test.dart` to cover the new `slug` field and `documentId` format.
+- [x] Task: Update `PresubmitCheckId` in `app_dart/lib/src/model/firestore/presubmit_check.dart`
+    - [x] Add `RepositorySlug slug` field.
+    - [x] Update `documentId` to format: `owner_repo_checkRunId_buildName_attemptNumber`.
+    - [x] Update `tryParse` to handle the new format.
+- [x] Task: Update `PresubmitCheck` in `app_dart/lib/src/model/firestore/presubmit_check.dart`
+    - [x] Add `fieldSlug` constant.
+    - [x] Update factory constructors (`PresubmitCheck`, `PresubmitCheck.init`) to accept and store `slug`.
+    - [x] Add `slug` getter.
+- [x] Task: Update `UnifiedCheckRun` in `app_dart/lib/src/service/firestore/unified_check_run.dart`
+    - [x] Update `initializeCiStagingDocument` to pass `slug` to `PresubmitCheck.init`.
+    - [x] Update `reInitializeFailedChecks` to pass `slug` to `PresubmitCheck.init`.
+    - [x] Update `_queryPresubmitChecks` to optionally filter by `slug`.
+    - [x] Update `markConclusion` to handle the new `PresubmitCheckId` format (needs `slug` from `guardId`).
+- [x] Task: Update `PresubmitCheck` tests
+    - [x] Update `app_dart/test/model/firestore/presubmit_check_test.dart` to cover the new `slug` field and `documentId` format.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Model Update' (Protocol in workflow.md)
 
 ## Phase 2: Backend API Update (app_dart)
