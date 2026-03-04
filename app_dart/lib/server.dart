@@ -13,6 +13,8 @@ import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/github_webhook_replay.dart';
 import 'src/request_handlers/lookup_hash.dart';
 import 'src/request_handlers/merge_queue_hooks.dart';
+import 'src/request_handlers/rerun_all_failed_jobs.dart';
+import 'src/request_handlers/rerun_failed_job.dart';
 import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
 import 'src/request_handlers/update_suppressed_test.dart';
@@ -32,7 +34,7 @@ Server createServer({
   required FirestoreService firestore,
   required BigQueryService bigQuery,
   required CacheService cache,
-  required AuthenticationProvider authProvider,
+  required AuthenticationProvider dashboardAuthProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required BranchService branchService,
   required BuildBucketClient buildBucketClient,
@@ -44,6 +46,7 @@ Server createServer({
   required CiYamlFetcher ciYamlFetcher,
   required BuildStatusService buildStatusService,
   required ContentAwareHashService contentAwareHashService,
+  required AuthenticationProvider presubmitAuthProvider,
 }) {
   final githubWebhook = GithubWebhook(
     config: config,
@@ -56,13 +59,13 @@ Server createServer({
   final handlers = <String, RequestHandler>{
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       bigQuery: bigQuery,
     ),
     '/api/create-branch': CreateBranch(
       branchService: branchService,
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
     ),
     '/api/dart-internal-subscription': DartInternalSubscription(
       cache: cache,
@@ -71,18 +74,18 @@ Server createServer({
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       bigQuery: bigQuery,
     ),
     '/api/flush-cache': FlushCache(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       cache: cache,
     ),
     '/api/github-webhook-pullrequest': githubWebhook,
     '/api/github-webhook-replay': GithubWebhookReplay(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       firestoreService: firestore,
       githubWebhook: githubWebhook,
     ),
@@ -119,42 +122,56 @@ Server createServer({
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       buildStatusService: buildStatusService,
       firestore: firestore,
       bigQuery: bigQuery,
     ),
     '/api/push-gold-status-to-github': PushGoldStatusToGithub(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
+      firestore: firestore,
+    ),
+    '/api/rerun-failed-job': RerunFailedJob(
+      config: config,
+      authenticationProvider: presubmitAuthProvider,
+      scheduler: scheduler,
+      luciBuildService: luciBuildService,
+      firestore: firestore,
+    ),
+    '/api/rerun-all-failed-jobs': RerunAllFailedJobs(
+      config: config,
+      authenticationProvider: presubmitAuthProvider,
+      scheduler: scheduler,
+      luciBuildService: luciBuildService,
       firestore: firestore,
     ),
     // I do not believe these recieve a build message.
     '/api/rerun-prod-task': RerunProdTask(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
       firestore: firestore,
     ),
     '/api/reset-try-task': ResetTryTask(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       scheduler: scheduler,
     ),
     '/api/v2/reset-try-task': ResetTryTask(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       scheduler: scheduler,
     ),
     '/api/update-tree-status': UpdateTreeStatus(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       firestore: firestore,
     ),
     '/api/get-tree-status': GetTreeStatus(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       firestore: firestore,
     ),
 
@@ -198,12 +215,12 @@ Server createServer({
       firestore: firestore,
     ),
     '/api/update-suppressed-test': UpdateSuppressedTest(
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       firestore: firestore,
       config: config,
     ),
     '/api/merge_queue_hooks': MergeQueueHooks(
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       firestore: firestore,
       config: config,
     ),
@@ -227,31 +244,31 @@ Server createServer({
     ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       bigQuery: bigQuery,
       ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       scheduler: scheduler,
     ),
     '/api/v2/vacuum-github-commits': VacuumGithubCommits(
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       scheduler: scheduler,
     ),
 
     /// Temporary API to trigger a dispatch-able workflow from Cocoon.
     '/api/trigger-workflow': TriggerWorkflow(
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
       config: config,
     ),
 
     '/api/lookup-hash': LookupHash(
       contentAwareHashService: contentAwareHashService,
       config: config,
-      authenticationProvider: authProvider,
+      authenticationProvider: dashboardAuthProvider,
     ),
 
     /// Returns status of the framework tree.

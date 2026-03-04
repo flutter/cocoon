@@ -43,6 +43,7 @@ import 'firestore.dart';
 import 'firestore/unified_check_run.dart';
 import 'get_files_changed.dart';
 import 'github_checks_service.dart';
+import 'github_service.dart';
 import 'luci_build_service.dart';
 import 'luci_build_service/engine_artifacts.dart';
 import 'luci_build_service/pending_task.dart';
@@ -62,6 +63,7 @@ class Scheduler {
     required Config config,
     required GithubChecksService githubChecksService,
     required LuciBuildService luciBuildService,
+    required GithubService githubService,
     required GetFilesChanged getFilesChanged,
     required CiYamlFetcher ciYamlFetcher,
     required ContentAwareHashService contentAwareHash,
@@ -69,6 +71,7 @@ class Scheduler {
     required BigQueryService bigQuery,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
+       _githubService = githubService,
        _config = config,
        _getFilesChanged = getFilesChanged,
        _ciYamlFetcher = ciYamlFetcher,
@@ -84,6 +87,7 @@ class Scheduler {
   final GetFilesChanged _getFilesChanged;
   final Config _config;
   final GithubChecksService _githubChecksService;
+  final GithubService _githubService;
   final CiYamlFetcher _ciYamlFetcher;
   final ContentAwareHashService _contentAwareHash;
   final LuciBuildService _luciBuildService;
@@ -1460,7 +1464,7 @@ $stacktrace
     required PresubmitCheckState state,
   }) async {
     final logCrumb =
-        'checkCompleted(${state.buildName}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
+        'checkCompleted(${state.buildName}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
 
     log.info('$logCrumb: ${guardId.documentId}');
     // We're doing a transactional update, which could fail if multiple tasks
@@ -1580,55 +1584,34 @@ $stacktrace
         // https://github.com/flutter/flutter/issues/167211.
         final isPresubmit = fsCommit == null;
         if (isPresubmit) {
-          log.debug(
-            'Rescheduling presubmit build for ${checkRunEvent.checkRun?.name}',
-          );
+          log.debug('Rescheduling presubmit build for $name');
           final pullRequest = await PrCheckRuns.findPullRequestForSha(
             _firestore,
-            checkRunEvent.checkRun!.headSha!,
+            sha,
           );
           if (pullRequest == null) {
             return ProcessCheckRunResult.userError(
-              'Asked to reschedule presubmits for unknown sha/PR: ${checkRunEvent.checkRun!.headSha!}',
+              'Asked to reschedule presubmits for unknown sha/PR: $sha',
             );
           }
-
-          final (presubmitTargets, engineArtifacts) =
-              await _getAllTargetsForPullRequest(slug, pullRequest);
-
-          final target = presubmitTargets.firstWhereOrNull(
-            (target) => checkRunEvent.checkRun!.name == target.name,
-          );
-          if (target == null) {
-            return ProcessCheckRunResult.missingEntity(
-              'Could not reschedule checkRun "${checkRunEvent.checkRun!.name}", '
-              'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.name).toList()}',
-            );
-          }
-          await _luciBuildService.scheduleTryBuilds(
-            targets: [target],
-            pullRequest: pullRequest,
-            engineArtifacts: engineArtifacts,
-            checkRunGuard: null,
-            stage: null,
-          );
+          await reRunTargets(slug, pullRequest, [name!]);
         } else {
           log.debug('Rescheduling postsubmit build.');
 
-          final checkName = checkRunEvent.checkRun!.name!;
+          final checkName = name;
           final fs.Task fsTask;
-          {
-            // Query the lastest run of the `checkName` againt commit `sha`.
-            final fsTasks = await _firestore.queryRecentTasks(
-              limit: 1,
-              commitSha: fsCommit.sha,
-              name: checkName,
-            );
-            if (fsTasks.isEmpty) {
-              throw StateError('Expected 1+ tasks for $checkName');
-            }
-            fsTask = fsTasks.first;
+
+          // Query the lastest run of the `checkName` againt commit `sha`.
+          final fsTasks = await _firestore.queryRecentTasks(
+            limit: 1,
+            commitSha: fsCommit.sha,
+            name: checkName,
+          );
+          if (fsTasks.isEmpty) {
+            throw StateError('Expected 1+ tasks for $checkName');
           }
+          fsTask = fsTasks.first;
+
           log.debug('Latest firestore task is $fsTask');
           final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
             fsCommit.toRef(),
@@ -1666,6 +1649,45 @@ $stacktrace
     return const ProcessCheckRunResult.success();
   }
 
+  /// Re-runs the specified presubmit targets for the given [pullRequest].
+  ///
+  /// This method fetches the list of available presubmit targets for the PR,
+  /// filters them by [names], and schedules them.
+  ///
+  /// It handles both fusion and non-fusion repositories.
+  Future<ProcessCheckRunResult> reRunTargets(
+    RepositorySlug slug,
+    PullRequest pullRequest,
+    List<String> names,
+  ) async {
+    final (presubmitTargets, engineArtifacts) =
+        await getAllTargetsForPullRequest(slug, pullRequest);
+
+    final targets = presubmitTargets
+        .where((target) => names.contains(target.name))
+        .toList();
+    if (targets.isEmpty) {
+      return ProcessCheckRunResult.missingEntity(
+        'Could not reschedule checkRuns for: "$names", '
+        'not found in list of presubmit targets: ${presubmitTargets.map((t) => t.name).toList()}',
+      );
+    }
+    if (names.length != targets.length) {
+      return ProcessCheckRunResult.missingEntity(
+        'Could not reschedule all checkRuns for: "$names", '
+        'No direct mapping found in targets: ${presubmitTargets.map((t) => t.name).toList()}',
+      );
+    }
+    await _luciBuildService.scheduleTryBuilds(
+      targets: targets,
+      pullRequest: pullRequest,
+      engineArtifacts: engineArtifacts,
+      checkRunGuard: null,
+      stage: null,
+    );
+    return const ProcessCheckRunResult.success();
+  }
+
   Future<PullRequest?> findPullRequestCached(
     int checkRunId,
     String checkRunName,
@@ -1698,6 +1720,40 @@ $stacktrace
     return pullRequest;
   }
 
+  Future<PullRequest?> findPullRequestCachedForPullRequestNum(
+    RepositorySlug slug,
+    int pullRequestNum,
+  ) async {
+    final logCrumb = 'findPullRequestCachedForPullRequestNum($pullRequestNum)';
+    PullRequest? pullRequest;
+    // Look up the PR in our cache first. This reduces github quota and requires less calls.
+    try {
+      pullRequest = await PrCheckRuns.findPullRequestForPullRequestNum(
+        _firestore,
+        pullRequestNum,
+      );
+    } catch (e, s) {
+      log.info('$logCrumb: unable to find PR in PrCheckRuns', e, s);
+    }
+    if (pullRequest == null) {
+      try {
+        pullRequest = await _githubService.getPullRequest(slug, pullRequestNum);
+        await PrCheckRuns.initializeDocument(
+          firestoreService: _firestore,
+          pullRequest: pullRequest,
+          checks: [],
+        );
+      } catch (e, s) {
+        log.warn('$logCrumb: unable to find PR in GitHub', e, s);
+      }
+    }
+
+    if (pullRequest == null) {
+      log.warn('$logCrumb: No pull request found');
+    }
+    return pullRequest;
+  }
+
   Future<ProcessCheckRunResult> _reRunFailed(
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {
@@ -1720,7 +1776,7 @@ $stacktrace
       firestoreService: _firestore,
       slug: slug,
       pullRequestId: pullRequest!.number!,
-      checkRunId: checkRunEvent.checkRun!.id!,
+      guardCheckRunId: checkRunEvent.checkRun!.id!,
     );
 
     if (failedChecks == null) {
@@ -1730,7 +1786,7 @@ $stacktrace
       );
     }
 
-    final (targets, artifacts) = await _getAllTargetsForPullRequest(
+    final (targets, artifacts) = await getAllTargetsForPullRequest(
       slug,
       pullRequest,
     );
@@ -1761,7 +1817,7 @@ $stacktrace
     return const ProcessCheckRunResult.success();
   }
 
-  Future<(List<Target>, EngineArtifacts)> _getAllTargetsForPullRequest(
+  Future<(List<Target>, EngineArtifacts)> getAllTargetsForPullRequest(
     RepositorySlug slug,
     PullRequest pullRequest,
   ) async {

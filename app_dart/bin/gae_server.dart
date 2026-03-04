@@ -58,9 +58,16 @@ Future<void> main() async {
     // every ~1 minute.
     configUpdater.startUpdateLoop(config);
 
-    final authProvider = DashboardAuthentication(
+    final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
+    final dashboardAuthProvider = DashboardAuthentication(
       cache: cache,
-      firebaseJwtValidator: FirebaseJwtValidator(cache: cache),
+      firebaseJwtValidator: firebaseJwtValidator,
+      firestore: firestore,
+    );
+    final presubmitAuthProvider = PresubmitAuthentication(
+      cache: cache,
+      config: config,
+      firebaseJwtValidator: firebaseJwtValidator,
       firestore: firestore,
     );
     final AuthenticationProvider swarmingAuthProvider =
@@ -100,11 +107,14 @@ Future<void> main() async {
       firestore: firestore,
     );
 
+    final githubService = await config.createDefaultGitHubService();
+
     /// Cocoon scheduler service to manage validating commits in presubmit and postsubmit.
     final scheduler = Scheduler(
       cache: cache,
       config: config,
       githubChecksService: githubChecksService,
+      githubService: githubService,
       getFilesChanged: GithubApiGetFilesChanged(config),
       luciBuildService: luciBuildService,
       ciYamlFetcher: ciYamlFetcher,
@@ -129,7 +139,8 @@ Future<void> main() async {
       firestore: firestore,
       bigQuery: bigQuery,
       cache: cache,
-      authProvider: authProvider,
+      dashboardAuthProvider: dashboardAuthProvider,
+      presubmitAuthProvider: presubmitAuthProvider,
       branchService: branchService,
       buildBucketClient: buildBucketClient,
       gerritService: gerritService,

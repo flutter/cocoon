@@ -15,7 +15,8 @@ void main() {
     createServer(
       config: FakeConfig(webhookKeyValue: 'fake-secret'),
       cache: CacheService(inMemory: true),
-      authProvider: FakeDashboardAuthentication(),
+      dashboardAuthProvider: FakeDashboardAuthentication(),
+      presubmitAuthProvider: FakeDashboardAuthentication(),
       swarmingAuthProvider: FakeDashboardAuthentication(),
       branchService: BranchService(
         config: FakeConfig(),

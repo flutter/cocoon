@@ -106,6 +106,7 @@ void main() {
       );
 
       scheduler = Scheduler(
+        githubService: config.githubService ?? FakeGithubService(),
         cache: cache,
         config: config,
         githubChecksService: GithubChecksService(
@@ -227,6 +228,7 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -282,6 +284,7 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -353,6 +356,7 @@ void main() {
           });
           config.batchSizeValue = 1;
           scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
             cache: cache,
             config: config,
             githubChecksService: GithubChecksService(
@@ -579,6 +583,7 @@ void main() {
                 custom: abc
           ''', engine: r'');
           scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
             cache: cache,
             config: config,
             githubChecksService: GithubChecksService(
@@ -658,6 +663,7 @@ void main() {
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -757,6 +763,7 @@ void main() {
           ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
           config.maxFilesChangedForSkippingEnginePhaseValue = 0;
           scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
             cache: cache,
             config: config,
             githubChecksService: GithubChecksService(
@@ -850,6 +857,7 @@ void main() {
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -954,6 +962,7 @@ void main() {
         });
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -1077,6 +1086,7 @@ targets:
           firestore: firestore,
         );
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -1119,6 +1129,7 @@ targets:
         );
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -1200,6 +1211,7 @@ targets:
         config.maxFilesChangedForSkippingEnginePhaseValue = 12;
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: mockGithubChecksService,
@@ -1341,6 +1353,7 @@ targets:
         config.maxFilesChangedForSkippingEnginePhaseValue = 12;
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: mockGithubChecksService,
@@ -1659,6 +1672,7 @@ targets:
             // test stage.
 
             scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
               cache: cache,
               config: config,
               getFilesChanged: getFilesChanged,
@@ -1802,6 +1816,7 @@ targets:
               // test stage.
 
               scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
                 cache: cache,
                 config: config,
                 getFilesChanged: getFilesChanged,
@@ -1901,6 +1916,7 @@ targets:
             ).thenReturn(mockGithubChecksUtil);
 
             scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
               cache: cache,
               config: config,
               getFilesChanged: getFilesChanged,
@@ -1993,6 +2009,7 @@ targets:
               ).thenReturn(mockGithubChecksUtil);
 
               scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
                 cache: cache,
                 config: config,
                 getFilesChanged: getFilesChanged,
@@ -2064,6 +2081,7 @@ targets:
             ).thenReturn(mockGithubChecksUtil);
 
             scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
               cache: cache,
               config: config,
               getFilesChanged: getFilesChanged,
@@ -2162,6 +2180,7 @@ targets:
               ).thenReturn(mockGithubChecksUtil);
 
               scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
                 cache: cache,
                 config: config,
                 getFilesChanged: getFilesChanged,
@@ -2248,6 +2267,7 @@ targets:
               ).thenReturn(mockGithubChecksUtil);
 
               scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
                 cache: cache,
                 config: config,
                 getFilesChanged: getFilesChanged,
@@ -2330,6 +2350,7 @@ targets:
             ).thenReturn(mockGithubChecksUtil);
 
             scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
               cache: cache,
               config: config,
               getFilesChanged: getFilesChanged,
@@ -2457,6 +2478,7 @@ targets:
               ).thenReturn(mockGithubChecksUtil);
 
               scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
                 cache: cache,
                 config: config,
                 githubChecksService: gitHubChecksService,
@@ -2748,6 +2770,7 @@ targets:
     scheduler: luci
 ''');
           scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
             cache: cache,
             config: config,
             githubChecksService: GithubChecksService(
@@ -2786,6 +2809,7 @@ targets:
           final mockGithubService = MockGithubService();
           getFilesChanged.cannedFiles = null;
           scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
             cache: cache,
             config: FakeConfig(
               // tabledataResource: tabledataResource,
@@ -3060,6 +3084,7 @@ targets:
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
@@ -3193,6 +3218,7 @@ targets:
         getFilesChanged.cannedFiles = ['abc/def'];
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
@@ -3343,6 +3369,7 @@ targets:
         );
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -3464,6 +3491,7 @@ targets:
         getFilesChanged.cannedFiles = ['abc/def'];
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
@@ -3587,6 +3615,7 @@ targets:
         getFilesChanged.cannedFiles = ['abc/def'];
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: FakeConfig(
             // tabledataResource: tabledataResource,
@@ -3697,6 +3726,7 @@ targets:
         );
 
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: FakeConfig(
             githubService: mockGithubService,
@@ -3826,6 +3856,7 @@ targets:
       setUp(() {
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
         scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
           config: config,
           githubChecksService: GithubChecksService(
@@ -4094,6 +4125,194 @@ targets:
         expect(guard.remainingBuilds, 0);
       });
     });
+  });
+
+  group('findPullRequest', () {
+    test('findPullRequestCached finds in Firestore', () async {
+      final pr = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: pr,
+        checks: [generateCheckRun(1, name: 'Linux A')],
+      );
+
+      final result = await scheduler.findPullRequestCached(
+        1,
+        'Linux A',
+        Config.flutterSlug,
+        'abc',
+        1,
+      );
+      expect(result!.id, 1234);
+    });
+
+    test('findPullRequestCached finds in GitHub as fallback', () async {
+      final pr = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
+      final mockGithubChecksService = MockGithubChecksService();
+      when(
+        mockGithubChecksService.findMatchingPullRequest(any, any, any),
+      ).thenAnswer((_) async => pr);
+
+      scheduler = Scheduler(
+        githubService: config.githubService ?? FakeGithubService(),
+        cache: cache,
+        config: config,
+        githubChecksService: mockGithubChecksService,
+        luciBuildService: MockLuciBuildService(),
+        getFilesChanged: getFilesChanged,
+        ciYamlFetcher: ciYamlFetcher,
+        contentAwareHash: fakeContentAwareHash,
+        firestore: firestore,
+        bigQuery: bigQuery,
+      );
+
+      final result = await scheduler.findPullRequestCached(
+        1,
+        'Linux A',
+        Config.flutterSlug,
+        'abc',
+        1,
+      );
+      expect(result!.id, 1234);
+    });
+
+    test('findPullRequestCachedForPullRequestNum finds in Firestore', () async {
+      final pr = generatePullRequest(id: 1234, number: 5678);
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: pr,
+        checks: [],
+      );
+
+      final result = await scheduler.findPullRequestCachedForPullRequestNum(
+        Config.flutterSlug,
+        5678,
+      );
+      expect(result!.id, 1234);
+    });
+
+    test(
+      'findPullRequestCachedForPullRequestNum finds in GitHub as fallback',
+      () async {
+        final pr = generatePullRequest(id: 1234, number: 5678);
+        final mockGithubService = MockGithubService();
+        when(
+          mockGithubService.getPullRequest(any, any),
+        ).thenAnswer((_) async => pr);
+        config.githubService = mockGithubService;
+
+        final result = await scheduler.findPullRequestCachedForPullRequestNum(
+          Config.flutterSlug,
+          5678,
+        );
+        expect(result!.id, 1234);
+      },
+    );
+  });
+
+  group('findPullRequest', () {
+    test('findPullRequestCached finds in Firestore', () async {
+      final pr = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: pr,
+        checks: [generateCheckRun(1, name: 'Linux A')],
+      );
+
+      final result = await scheduler.findPullRequestCached(
+        1,
+        'Linux A',
+        Config.flutterSlug,
+        'abc',
+        1,
+      );
+      expect(result!.id, 1234);
+    });
+
+    test('findPullRequestCached finds in GitHub as fallback', () async {
+      final pr = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
+      final mockGithubChecksService = MockGithubChecksService();
+      when(
+        mockGithubChecksService.findMatchingPullRequest(any, any, any),
+      ).thenAnswer((_) async => pr);
+
+      scheduler = Scheduler(
+        githubService: config.githubService ?? FakeGithubService(),
+        cache: cache,
+        config: config,
+        githubChecksService: mockGithubChecksService,
+        luciBuildService: MockLuciBuildService(),
+        getFilesChanged: getFilesChanged,
+        ciYamlFetcher: ciYamlFetcher,
+        contentAwareHash: fakeContentAwareHash,
+        firestore: firestore,
+        bigQuery: bigQuery,
+      );
+
+      final result = await scheduler.findPullRequestCached(
+        1,
+        'Linux A',
+        Config.flutterSlug,
+        'abc',
+        1,
+      );
+      expect(result!.id, 1234);
+    });
+
+    test('findPullRequestCachedForPullRequestNum finds in Firestore', () async {
+      final pr = generatePullRequest(id: 1234, number: 5678);
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: pr,
+        checks: [],
+      );
+
+      final result = await scheduler.findPullRequestCachedForPullRequestNum(
+        Config.flutterSlug,
+        5678,
+      );
+      expect(result!.id, 1234);
+    });
+
+    test(
+      'findPullRequestCachedForPullRequestNum finds in GitHub as fallback and caches',
+      () async {
+        final pr = generatePullRequest(id: 1234, number: 5678);
+        final mockGithubService = MockGithubService();
+        when(
+          mockGithubService.getPullRequest(any, any),
+        ).thenAnswer((_) async => pr);
+
+        scheduler = Scheduler(
+          githubService: mockGithubService,
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: MockLuciBuildService(),
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+
+        final result = await scheduler.findPullRequestCachedForPullRequestNum(
+          Config.flutterSlug,
+          5678,
+        );
+        expect(result!.id, 1234);
+
+        // Verify it was cached
+        final cachedPr = await PrCheckRuns.findPullRequestForPullRequestNum(
+          firestore,
+          5678,
+        );
+        expect(cachedPr!.id, 1234);
+      },
+    );
   });
 }
 

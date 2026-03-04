@@ -11,6 +11,7 @@ import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
+import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
@@ -19,6 +20,7 @@ import 'package:github/github.dart';
 import 'fake_ci_yaml_fetcher.dart';
 import 'fake_content_aware_hash_service.dart';
 import 'fake_get_files_changed.dart';
+import 'fake_github_service.dart';
 import 'fake_luci_build_service.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
@@ -29,6 +31,7 @@ class FakeScheduler extends Scheduler {
     GetFilesChanged? getFilesChanged,
     required super.config,
     GithubChecksUtil? githubChecksUtil,
+    GithubService? githubService,
     CiYamlFetcher? ciYamlFetcher,
     ContentAwareHashService? contentAwareHash,
     required super.firestore,
@@ -39,6 +42,7 @@ class FakeScheduler extends Scheduler {
            config,
            githubChecksUtil: githubChecksUtil,
          ),
+         githubService: githubService ?? FakeGithubService(),
          getFilesChanged: getFilesChanged ?? FakeGetFilesChanged.inconclusive(),
          luciBuildService:
              luciBuildService ??

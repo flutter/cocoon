@@ -27,14 +27,20 @@ class FakeDashboardAuthentication implements DashboardAuthentication {
 
 // ignore: must_be_immutable
 class FakeAuthenticatedContext implements AuthenticatedContext {
-  FakeAuthenticatedContext({FakeClientContext? clientContext})
-    : clientContext = clientContext ?? FakeClientContext();
+  FakeAuthenticatedContext({
+    FakeClientContext? clientContext,
+    this.email = 'fake@example.com',
+    this.githubLogin,
+  }) : clientContext = clientContext ?? FakeClientContext();
 
   @override
   FakeClientContext clientContext;
 
   @override
-  String email = 'fake@example.com';
+  String email;
+
+  @override
+  String? githubLogin;
 }
 
 class FakeClientContext implements ClientContext {
