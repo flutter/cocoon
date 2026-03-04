@@ -50,6 +50,6 @@ In this phase, we update the dashboard service and state to use the new API sign
     - [x] Locate and update relevant tests in `dashboard/test/`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Update' (Protocol in workflow.md)
 
-## Phase 4: Final Verification
+## Phase 4: Final Verification [checkpoint: 3929fd6]
 - [x] Task: Run all tests and verify full integration.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Verification' (Protocol in workflow.md)
