@@ -2,7 +2,7 @@
 
 This plan outlines the steps to add a `slug` field to the `PresubmitCheck` model, update the `GetPresubmitChecks` and `GetPresubmitGuard` APIs to use standardized `owner` and `repo` parameters, and update the Flutter dashboard to use these new APIs.
 
-## Phase 1: Model Update (app_dart)
+## Phase 1: Model Update (app_dart) [checkpoint: 3c65563]
 In this phase, we update the `PresubmitCheck` model and the `UnifiedCheckRun` service to include the `slug` field.
 
 - [x] Task: Update `PresubmitCheckId` in `app_dart/lib/src/model/firestore/presubmit_check.dart`
