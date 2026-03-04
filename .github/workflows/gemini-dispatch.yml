@@ -38,13 +38,15 @@ jobs:
     # For PRs: only if not from a fork
     # For comments: only if user types @gemini-cli and is OWNER/MEMBER/COLLABORATOR
     if: |-
-      (
+      ((
         github.event_name == 'pull_request' &&
         github.event.pull_request.head.repo.fork == false
       ) || (
         github.event.sender.type == 'User' &&
         startsWith(github.event.comment.body || github.event.review.body, '@gemini-cli') &&
         contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association)
+      )) && (
+        github.actor != 'dependabot[bot]'
       )
     runs-on: 'ubuntu-latest'
     permissions:
