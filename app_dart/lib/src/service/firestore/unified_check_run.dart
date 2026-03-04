@@ -222,6 +222,7 @@ final class UnifiedCheckRun {
     );
 
     final check = PresubmitCheck.init(
+      slug: slug,
       buildName: buildName,
       checkRunId: guardCheckRunId,
       creationTime: creationTime,
