@@ -444,11 +444,13 @@ final class UnifiedCheckRun {
     required FirestoreService firestoreService,
     required int checkRunId,
     required String buildName,
+    RepositorySlug? slug,
   }) async {
     return await _queryPresubmitChecks(
       firestoreService: firestoreService,
       checkRunId: checkRunId,
       buildName: buildName,
+      slug: slug,
     );
   }
 

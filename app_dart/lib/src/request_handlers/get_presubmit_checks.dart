@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:github/github.dart';
 
 import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
@@ -17,6 +18,8 @@ import '../service/firestore/unified_check_run.dart';
 /// Parameters:
 ///   check_run_id: (int in query) mandatory. The GitHub Check Run ID.
 ///   build_name: (string in query) mandatory. The name of the check/build.
+///   repo: (string in query) optional. The repository name.
+///   owner: (string in query) optional. The repository owner.
 ///
 /// Response: Status 200 OK
 /// [
@@ -44,10 +47,18 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
   /// The query parameter for the build name.
   static const String kBuildNameParam = 'build_name';
 
+  /// The name of the query parameter for the repository name (e.g. 'flutter').
+  static const String kRepoParam = 'repo';
+
+  /// The name of the query parameter for the repository owner (e.g. 'flutter').
+  static const String kOwnerParam = 'owner';
+
   @override
   Future<Response> get(Request request) async {
     final checkRunIdString = request.uri.queryParameters[kCheckRunIdParam];
     final buildName = request.uri.queryParameters[kBuildNameParam];
+    final repo = request.uri.queryParameters[kRepoParam];
+    final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
 
     if (checkRunIdString == null || buildName == null) {
       return Response.json({
@@ -63,10 +74,12 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
       }, statusCode: HttpStatus.badRequest);
     }
 
+    final slug = repo != null ? RepositorySlug(owner, repo) : null;
     final checks = await UnifiedCheckRun.getPresubmitCheckDetails(
       firestoreService: _firestore,
       checkRunId: checkRunId,
       buildName: buildName,
+      slug: slug,
     );
 
     if (checks.isEmpty) {
