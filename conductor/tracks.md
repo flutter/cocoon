@@ -7,5 +7,5 @@
 
 ---
 
-- [ ] **Track: Unified checkrun implementation and API update**
+- [x] **Track: Unified checkrun implementation and API update**
 *Link: [./tracks/unified_checkrun_20260303/](./tracks/unified_checkrun_20260303/)*
