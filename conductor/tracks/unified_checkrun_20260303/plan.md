@@ -38,7 +38,7 @@ In this phase, we update the request handlers to use the standardized `owner` an
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend API Update' (Protocol in workflow.md)
 
-## Phase 3: Frontend Update (dashboard)
+## Phase 3: Frontend Update (dashboard) [checkpoint: 54a4a82]
 In this phase, we update the dashboard service and state to use the new API signatures.
 
 - [x] Task: Update `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart`
