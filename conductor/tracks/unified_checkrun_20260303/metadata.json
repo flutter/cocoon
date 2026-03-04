@@ -1,8 +1,0 @@
-{
-  "track_id": "unified_checkrun_20260303",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-03T00:00:00Z",
-  "updated_at": "2026-03-03T00:00:00Z",
-  "description": "Unified checkrun implementation and API update for app_dart and dashboard."
-}

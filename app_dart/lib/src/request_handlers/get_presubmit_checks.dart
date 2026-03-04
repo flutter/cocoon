@@ -74,7 +74,7 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
       }, statusCode: HttpStatus.badRequest);
     }
 
-    final slug = repo != null ? RepositorySlug(owner, repo) : null;
+    final slug = RepositorySlug(owner, repo);
     final checks = await UnifiedCheckRun.getPresubmitCheckDetails(
       firestoreService: _firestore,
       checkRunId: checkRunId,

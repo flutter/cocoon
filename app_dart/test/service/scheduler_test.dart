@@ -1184,6 +1184,7 @@ targets:
         );
 
         final check = PresubmitCheck(
+          slug: slug,
           buildName: 'Linux A',
           checkRunId: 1,
           creationTime: 1000,
@@ -1327,6 +1328,7 @@ targets:
         );
 
         final check = PresubmitCheck(
+          slug: slug,
           buildName: 'Linux A',
           checkRunId: 1,
           creationTime: 2000,
@@ -3905,6 +3907,7 @@ targets:
         // Initialize check run for the task
         firestore.putDocument(
           PresubmitCheck.init(
+            slug: pullRequest.base!.repo!.slug(),
             buildName: 'Linux engine_build',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -3995,6 +3998,7 @@ targets:
           // Initialize check run for the task
           firestore.putDocument(
             PresubmitCheck.init(
+              slug: pullRequest.base!.repo!.slug(),
               buildName: 'Linux test',
               checkRunId: checkRunGuard.id!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -4078,6 +4082,7 @@ targets:
         // Initialize check run for the task
         firestore.putDocument(
           PresubmitCheck.init(
+            slug: pullRequest.base!.repo!.slug(),
             buildName: 'Linux test',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
