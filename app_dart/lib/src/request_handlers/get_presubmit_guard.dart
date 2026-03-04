@@ -43,9 +43,9 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
   /// Returns a JSON response with the aggregated presubmit guard data.
   @override
   Future<Response> get(Request request) async {
-    checkRequiredQueryParameters(request, [kRepoParam, kShaParam]);
+    checkRequiredQueryParameters(request, [kShaParam]);
 
-    final repo = request.uri.queryParameters[kRepoParam]!;
+    final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
     final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
     final sha = request.uri.queryParameters[kShaParam]!;
 

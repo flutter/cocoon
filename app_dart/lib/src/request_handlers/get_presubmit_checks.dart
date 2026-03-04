@@ -57,7 +57,7 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
   Future<Response> get(Request request) async {
     final checkRunIdString = request.uri.queryParameters[kCheckRunIdParam];
     final buildName = request.uri.queryParameters[kBuildNameParam];
-    final repo = request.uri.queryParameters[kRepoParam];
+    final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
     final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
 
     if (checkRunIdString == null || buildName == null) {
