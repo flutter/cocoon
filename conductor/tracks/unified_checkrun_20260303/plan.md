@@ -25,28 +25,29 @@ In this phase, we update the `PresubmitCheck` model and the `UnifiedCheckRun` se
 ## Phase 2: Backend API Update (app_dart)
 In this phase, we update the request handlers to use the standardized `owner` and `repo` parameters.
 
-- [ ] Task: Update `GetPresubmitChecks` in `app_dart/lib/src/request_handlers/get_presubmit_checks.dart`
-    - [ ] Add `kOwnerParam` and `kRepoParam`.
-    - [ ] Update `get` method to parse these parameters (default `owner` to 'flutter').
-    - [ ] Update call to `UnifiedCheckRun.getPresubmitCheckDetails` to include `slug` if possible (may need to update `getPresubmitCheckDetails` signature).
-- [ ] Task: Update `GetPresubmitGuard` in `app_dart/lib/src/request_handlers/get_presubmit_guard.dart`
-    - [ ] Replace `kSlugParam` with `kOwnerParam` and `kRepoParam`.
-    - [ ] Update `get` method to parse `owner` and `repo` and construct a `RepositorySlug`.
-- [ ] Task: Update Backend API tests
-    - [ ] Update `app_dart/test/request_handlers/get_presubmit_checks_test.dart`.
-    - [ ] Update `app_dart/test/request_handlers/get_presubmit_guard_test.dart`.
+- [x] Task: Update `GetPresubmitChecks` in `app_dart/lib/src/request_handlers/get_presubmit_checks.dart`
+    - [x] Add `kOwnerParam` and `kRepoParam`.
+    - [x] Update `get` method to parse these parameters (default `owner` to 'flutter').
+    - [x] Update call to `UnifiedCheckRun.getPresubmitCheckDetails` to include `slug` if possible (may need to update `getPresubmitCheckDetails` signature).
+- [x] Task: Update `GetPresubmitGuard` in `app_dart/lib/src/request_handlers/get_presubmit_guard.dart`
+    - [x] Replace `kSlugParam` with `kOwnerParam` and `kRepoParam`.
+    - [x] Update `get` method to parse `owner` and `repo` and construct a `RepositorySlug`.
+- [x] Task: Update Backend API tests
+    - [x] Update `app_dart/test/request_handlers/get_presubmit_checks_test.dart`.
+    - [x] Update `app_dart/test/request_handlers/get_presubmit_guard_test.dart`.
+
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend API Update' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Update (dashboard)
 In this phase, we update the dashboard service and state to use the new API signatures.
 
-- [ ] Task: Update `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart`
-    - [ ] Update `fetchPresubmitGuard` to pass `owner` and `repo` instead of `slug`.
-    - [ ] Update `fetchPresubmitCheckDetails` to pass `owner` and `repo`.
-- [ ] Task: Update `PresubmitState` in `dashboard/lib/state/presubmit.dart`
-    - [ ] Ensure `fetchCheckDetails` and `fetchGuardStatus` pass the required parameters.
-- [ ] Task: Update Frontend tests
-    - [ ] Locate and update relevant tests in `dashboard/test/`.
+- [x] Task: Update `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart`
+    - [x] Update `fetchPresubmitGuard` to pass `owner` and `repo` instead of `slug`.
+    - [x] Update `fetchPresubmitCheckDetails` to pass `owner` and `repo`.
+- [x] Task: Update `PresubmitState` in `dashboard/lib/state/presubmit.dart`
+    - [x] Ensure `fetchCheckDetails` and `fetchGuardStatus` pass the required parameters.
+- [x] Task: Update Frontend tests
+    - [x] Locate and update relevant tests in `dashboard/test/`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Update' (Protocol in workflow.md)
 
 ## Phase 4: Final Verification
