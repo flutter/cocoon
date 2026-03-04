@@ -4218,8 +4218,6 @@ targets:
       },
     );
   });
-
-
 }
 
 final class _CapturingFakeLuciBuildService extends Fake
