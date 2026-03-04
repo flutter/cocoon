@@ -4102,6 +4102,26 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
           as _i13.Future<List<_i27.Target>>);
 
   @override
+  _i13.Future<List<_i27.Target>> reScheduleTryBuilds({
+    required Map<_i27.Target, int>? targets,
+    required _i7.PullRequest? pullRequest,
+    required _i28.EngineArtifacts? engineArtifacts,
+    required _i7.CheckRun? checkRunGuard,
+    required _i17.CiStage? stage,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#reScheduleTryBuilds, [], {
+              #targets: targets,
+              #pullRequest: pullRequest,
+              #engineArtifacts: engineArtifacts,
+              #checkRunGuard: checkRunGuard,
+              #stage: stage,
+            }),
+            returnValue: _i13.Future<List<_i27.Target>>.value(<_i27.Target>[]),
+          )
+          as _i13.Future<List<_i27.Target>>);
+
+  @override
   _i13.Future<void> cancelBuilds({
     required _i7.PullRequest? pullRequest,
     required String? reason,
@@ -5780,6 +5800,23 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<_i39.ProcessCheckRunResult>);
 
   @override
+  _i13.Future<_i39.ProcessCheckRunResult> reRunTargets(
+    _i7.RepositorySlug? slug,
+    _i7.PullRequest? pullRequest,
+    List<String>? names,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#reRunTargets, [slug, pullRequest, names]),
+            returnValue: _i13.Future<_i39.ProcessCheckRunResult>.value(
+              _i20.dummyValue<_i39.ProcessCheckRunResult>(
+                this,
+                Invocation.method(#reRunTargets, [slug, pullRequest, names]),
+              ),
+            ),
+          )
+          as _i13.Future<_i39.ProcessCheckRunResult>);
+
+  @override
   _i13.Future<_i7.PullRequest?> findPullRequestCached(
     int? checkRunId,
     String? checkRunName,
@@ -5798,6 +5835,45 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
             returnValue: _i13.Future<_i7.PullRequest?>.value(),
           )
           as _i13.Future<_i7.PullRequest?>);
+
+  @override
+  _i13.Future<_i7.PullRequest?> findPullRequestCachedForPullRequestNum(
+    _i7.RepositorySlug? slug,
+    int? pullRequestNum,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#findPullRequestCachedForPullRequestNum, [
+              slug,
+              pullRequestNum,
+            ]),
+            returnValue: _i13.Future<_i7.PullRequest?>.value(),
+          )
+          as _i13.Future<_i7.PullRequest?>);
+
+  @override
+  _i13.Future<(List<_i27.Target>, _i28.EngineArtifacts)>
+  getAllTargetsForPullRequest(
+    _i7.RepositorySlug? slug,
+    _i7.PullRequest? pullRequest,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllTargetsForPullRequest, [
+              slug,
+              pullRequest,
+            ]),
+            returnValue:
+                _i13.Future<(List<_i27.Target>, _i28.EngineArtifacts)>.value((
+                  <_i27.Target>[],
+                  _i20.dummyValue<_i28.EngineArtifacts>(
+                    this,
+                    Invocation.method(#getAllTargetsForPullRequest, [
+                      slug,
+                      pullRequest,
+                    ]),
+                  ),
+                )),
+          )
+          as _i13.Future<(List<_i27.Target>, _i28.EngineArtifacts)>);
 
   @override
   _i7.CheckRun checkRunFromString(String? input) =>

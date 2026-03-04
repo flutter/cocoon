@@ -84,7 +84,7 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     );
 
     final failedTargets = targets
-        .where((target) => failedChecks.checkNames.contains(target.name))
+        .where((target) => failedChecks.checkRetries.containsKey(target.name))
         .toList();
 
     await _luciBuildService.scheduleTryBuilds(

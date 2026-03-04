@@ -134,6 +134,7 @@ final class UnifiedCheckRun {
       }
       latestGuard.builds = builds;
       final checks = <PresubmitCheck>[];
+      final checkRetries = <String, int>{};
       for (final buildName in failedBuildNames) {
         final latestCheck = await getLatestPresubmitCheck(
           firestoreService: firestoreService,
@@ -141,6 +142,7 @@ final class UnifiedCheckRun {
           buildName: buildName,
           transaction: transaction,
         );
+        checkRetries[buildName] = (latestCheck?.attemptNumber ?? 0) + 1;
         checks.add(
           PresubmitCheck.init(
             buildName: buildName,
@@ -160,7 +162,7 @@ final class UnifiedCheckRun {
         );
         return FailedChecksForRerun(
           checkRunGuard: latestGuard.checkRun,
-          checkNames: failedBuildNames,
+          checkRetries: checkRetries,
           stage: latestGuard.stage,
         );
       } catch (e) {
@@ -234,7 +236,7 @@ final class UnifiedCheckRun {
       );
       return FailedChecksForRerun(
         checkRunGuard: guard.checkRun,
-        checkNames: [buildName],
+        checkRetries: {buildName: (latestCheck?.attemptNumber ?? 0) + 1},
         stage: guard.stage,
       );
     } catch (e) {
