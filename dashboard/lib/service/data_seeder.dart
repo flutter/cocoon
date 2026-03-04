@@ -183,6 +183,7 @@ class DataSeeder {
     // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
     checks.add(
       PresubmitCheck(
+        slug: RepositorySlug('flutter', 'flutter'),
         checkRunId: 1234,
         buildName: 'Test Multi Attempt',
         status: TaskStatus.succeeded,
@@ -199,6 +200,7 @@ class DataSeeder {
     );
     checks.add(
       PresubmitCheck(
+        slug: RepositorySlug('flutter', 'flutter'),
         checkRunId: 1234,
         buildName: 'Test Multi Attempt',
         status: TaskStatus.failed,
@@ -252,8 +254,10 @@ class DataSeeder {
     required TaskStatus status,
     required int creationTime,
     int attemptNumber = 1,
+    String repo = 'flutter',
   }) {
     return PresubmitCheck(
+      slug: RepositorySlug('flutter', repo),
       checkRunId: checkRunId,
       buildName: buildName,
       status: status,

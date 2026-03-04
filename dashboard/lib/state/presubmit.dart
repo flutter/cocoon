@@ -305,6 +305,7 @@ class PresubmitState extends ChangeNotifier {
     final response = await cocoonService.fetchPresubmitCheckDetails(
       checkRunId: guardResponse!.checkRunId,
       buildName: selectedCheck!,
+      repo: repo,
     );
 
     if (response.error != null) {

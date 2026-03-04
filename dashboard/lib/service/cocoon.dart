@@ -119,8 +119,9 @@ abstract class CocoonService {
 
   /// Gets the presubmit guard status for a given [repo] and commit [sha].
   Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
-    required String repo,
     required String sha,
+    String repo = 'flutter',
+    String owner = 'flutter',
   });
 
   /// Gets the details for a specific presubmit check.
@@ -128,11 +129,17 @@ abstract class CocoonService {
   fetchPresubmitCheckDetails({
     required int checkRunId,
     required String buildName,
+    String repo = 'flutter',
+    String owner = 'flutter',
   });
 
   /// Gets the presubmit guard summaries for a given [repo] and [pr].
   Future<CocoonResponse<List<PresubmitGuardSummary>>>
-  fetchPresubmitGuardSummaries({required String repo, required String pr});
+  fetchPresubmitGuardSummaries({
+    required String pr,
+    String repo = 'flutter',
+    String owner = 'flutter',
+  });
 
   /// Resets the data scenario for fake implementations.
   ///

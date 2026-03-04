@@ -6,7 +6,7 @@
 import 'dart:async' as _i8;
 import 'dart:convert' as _i9;
 import 'dart:typed_data' as _i11;
-import 'dart:ui' as _i15;
+import 'dart:ui' as _i16;
 
 import 'package:cocoon_common/rpc_model.dart' as _i12;
 import 'package:cocoon_common/task_status.dart' as _i13;
@@ -15,7 +15,8 @@ import 'package:firebase_core/firebase_core.dart' as _i6;
 import 'package:flutter_dashboard/logic/brooks.dart' as _i5;
 import 'package:flutter_dashboard/service/cocoon.dart' as _i3;
 import 'package:flutter_dashboard/service/firebase_auth.dart' as _i4;
-import 'package:flutter_dashboard/state/build.dart' as _i14;
+import 'package:flutter_dashboard/service/scenarios.dart' as _i14;
+import 'package:flutter_dashboard/state/build.dart' as _i15;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
@@ -589,11 +590,16 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
 
   @override
   _i8.Future<_i3.CocoonResponse<_i12.PresubmitGuardResponse>>
-  fetchPresubmitGuard({required String? repo, required String? sha}) =>
+  fetchPresubmitGuard({
+    required String? sha,
+    String? repo = 'flutter',
+    String? owner = 'flutter',
+  }) =>
       (super.noSuchMethod(
             Invocation.method(#fetchPresubmitGuard, [], {
-              #repo: repo,
               #sha: sha,
+              #repo: repo,
+              #owner: owner,
             }),
             returnValue:
                 _i8.Future<
@@ -602,8 +608,9 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
                   _FakeCocoonResponse_2<_i12.PresubmitGuardResponse>(
                     this,
                     Invocation.method(#fetchPresubmitGuard, [], {
-                      #repo: repo,
                       #sha: sha,
+                      #repo: repo,
+                      #owner: owner,
                     }),
                   ),
                 ),
@@ -615,11 +622,15 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
   fetchPresubmitCheckDetails({
     required int? checkRunId,
     required String? buildName,
+    String? repo = 'flutter',
+    String? owner = 'flutter',
   }) =>
       (super.noSuchMethod(
             Invocation.method(#fetchPresubmitCheckDetails, [], {
               #checkRunId: checkRunId,
               #buildName: buildName,
+              #repo: repo,
+              #owner: owner,
             }),
             returnValue:
                 _i8.Future<
@@ -630,6 +641,8 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
                     Invocation.method(#fetchPresubmitCheckDetails, [], {
                       #checkRunId: checkRunId,
                       #buildName: buildName,
+                      #repo: repo,
+                      #owner: owner,
                     }),
                   ),
                 ),
@@ -638,11 +651,16 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
 
   @override
   _i8.Future<_i3.CocoonResponse<List<_i12.PresubmitGuardSummary>>>
-  fetchPresubmitGuardSummaries({required String? repo, required String? pr}) =>
+  fetchPresubmitGuardSummaries({
+    required String? pr,
+    String? repo = 'flutter',
+    String? owner = 'flutter',
+  }) =>
       (super.noSuchMethod(
             Invocation.method(#fetchPresubmitGuardSummaries, [], {
-              #repo: repo,
               #pr: pr,
+              #repo: repo,
+              #owner: owner,
             }),
             returnValue:
                 _i8.Future<
@@ -651,19 +669,26 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
                   _FakeCocoonResponse_2<List<_i12.PresubmitGuardSummary>>(
                     this,
                     Invocation.method(#fetchPresubmitGuardSummaries, [], {
-                      #repo: repo,
                       #pr: pr,
+                      #repo: repo,
+                      #owner: owner,
                     }),
                   ),
                 ),
           )
           as _i8.Future<_i3.CocoonResponse<List<_i12.PresubmitGuardSummary>>>);
+
+  @override
+  void resetScenario(_i14.Scenario? scenario) => super.noSuchMethod(
+    Invocation.method(#resetScenario, [scenario]),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [BuildState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBuildState extends _i1.Mock implements _i14.BuildState {
+class MockBuildState extends _i1.Mock implements _i15.BuildState {
   MockBuildState() {
     _i1.throwOnMissingStub(this);
   }
@@ -783,13 +808,22 @@ class MockBuildState extends _i1.Mock implements _i14.BuildState {
           as bool);
 
   @override
-  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  _i8.Future<void> resetScenario(_i14.Scenario? scenario) =>
+      (super.noSuchMethod(
+            Invocation.method(#resetScenario, [scenario]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -961,13 +995,13 @@ class MockFirebaseAuthService extends _i1.Mock
           as _i8.Future<void>);
 
   @override
-  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
