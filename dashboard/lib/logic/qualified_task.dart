@@ -20,7 +20,11 @@ final class QualifiedTask {
 
   QualifiedTask.fromTask(Task task)
     : task = task.builderName,
-      pool = task.isBringup ? 'luci.flutter.staging' : 'luci.flutter.prod',
+      pool = isTaskFromDartInternalBuilder(builderName: task.builderName)
+          ? 'flutter'
+          : task.isBringup
+          ? 'luci.flutter.staging'
+          : 'luci.flutter.prod',
       isBringup = task.isBringup;
 
   final String pool;

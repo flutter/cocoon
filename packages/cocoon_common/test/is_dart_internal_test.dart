@@ -7,14 +7,16 @@ import 'package:test/test.dart';
 
 void main() {
   for (final platform in ['Linux', 'Mac', 'Windows']) {
-    for (final builder in [
-      'packaging_release_builder',
-      'flutter_release_builder',
-    ]) {
-      final name = '$platform $builder';
-      test('$name is a dart-internal release builder', () {
-        expect(isTaskFromDartInternalBuilder(builderName: name), isTrue);
-      });
+    for (final channel in ['', 'beta_', 'stable_']) {
+      for (final builder in [
+        'packaging_release_builder',
+        'flutter_release_builder',
+      ]) {
+        final name = '$platform $channel$builder';
+        test('$name is a dart-internal release builder', () {
+          expect(isTaskFromDartInternalBuilder(builderName: name), isTrue);
+        });
+      }
     }
   }
 }
