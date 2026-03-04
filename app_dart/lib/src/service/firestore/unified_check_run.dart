@@ -62,6 +62,7 @@ final class UnifiedCheckRun {
       final checks = [
         for (final task in tasks)
           PresubmitCheck.init(
+            slug: slug,
             buildName: task,
             checkRunId: checkRun.id!,
             creationTime: creationTime,
@@ -145,6 +146,7 @@ final class UnifiedCheckRun {
         checkRetries[buildName] = (latestCheck?.attemptNumber ?? 0) + 1;
         checks.add(
           PresubmitCheck.init(
+            slug: slug,
             buildName: buildName,
             checkRunId: guardCheckRunId,
             creationTime: creationTime,
@@ -453,6 +455,7 @@ final class UnifiedCheckRun {
   static Future<List<PresubmitCheck>> _queryPresubmitChecks({
     required FirestoreService firestoreService,
     required int checkRunId,
+    RepositorySlug? slug,
     String? buildName,
     TaskStatus? status,
     Transaction? transaction,
@@ -464,6 +467,7 @@ final class UnifiedCheckRun {
     int? limit,
   }) async {
     final filterMap = {
+      '${PresubmitCheck.fieldSlug} =': ?slug?.fullName,
       '${PresubmitCheck.fieldCheckRunId} =': checkRunId,
       '${PresubmitCheck.fieldBuildName} =': ?buildName,
       '${PresubmitCheck.fieldStatus} =': ?status?.value,
@@ -540,6 +544,7 @@ final class UnifiedCheckRun {
       }
 
       final checkDocName = PresubmitCheck.documentNameFor(
+        slug: guardId.slug,
         checkRunId: guardId.checkRunId,
         buildName: state.buildName,
         attemptNumber: state.attemptNumber,

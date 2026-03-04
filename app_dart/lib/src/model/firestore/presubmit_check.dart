@@ -7,6 +7,7 @@ library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -18,6 +19,7 @@ import 'base.dart';
 @immutable
 final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
   PresubmitCheckId({
+    required this.slug,
     required this.checkRunId,
     required this.buildName,
     required this.attemptNumber,
@@ -49,11 +51,14 @@ final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
   /// If could not be parsed, returns `null`.
   static PresubmitCheckId? tryParse(String documentName) {
     if (_parseDocumentName.matchAsPrefix(documentName) case final match?) {
-      final checkRunId = int.tryParse(match.group(1)!);
-      final buildName = match.group(2)!;
-      final attemptNumber = int.tryParse(match.group(3)!);
+      final owner = match.group(1)!;
+      final repo = match.group(2)!;
+      final checkRunId = int.tryParse(match.group(3)!);
+      final buildName = match.group(4)!;
+      final attemptNumber = int.tryParse(match.group(5)!);
       if (checkRunId != null && attemptNumber != null) {
         return PresubmitCheckId(
+          slug: RepositorySlug(owner, repo),
           checkRunId: checkRunId,
           buildName: buildName,
           attemptNumber: attemptNumber,
@@ -63,20 +68,29 @@ final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
     return null;
   }
 
-  /// Parses `{checkRunId}_{buildName}_{attemptNumber}`.
+  /// Parses `{owner}_{repo}_{checkRunId}_{buildName}_{attemptNumber}`.
   ///
   /// [buildName] could also include underscores which led us to use regexp .
   /// But we dont have build number at the moment of creating the document and
   /// we need to query by checkRunId and buildName for updating the document.
-  static final _parseDocumentName = RegExp(r'([0-9]+)_(.*)_([0-9]+)$');
+  static final _parseDocumentName = RegExp(
+    r'^([a-zA-Z0-9_-]+)_([a-zA-Z0-9_-]+)_([0-9]+)_(.*)_([0-9]+)$',
+  );
 
+  final RepositorySlug slug;
   final int checkRunId;
   final String buildName;
   final int attemptNumber;
 
   @override
   String get documentId {
-    return [checkRunId, buildName, attemptNumber].join('_');
+    return [
+      slug.owner,
+      slug.name,
+      checkRunId,
+      buildName,
+      attemptNumber,
+    ].join('_');
   }
 
   @override
@@ -87,6 +101,7 @@ final class PresubmitCheckId extends AppDocumentId<PresubmitCheck> {
 final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   static const collectionId = 'presubmit_checks';
   static const fieldCheckRunId = 'checkRunId';
+  static const fieldSlug = 'slug';
   static const fieldBuildName = 'buildName';
   static const fieldBuildNumber = 'buildNumber';
   static const fieldStatus = 'status';
@@ -97,11 +112,13 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   static const fieldSummary = 'summary';
 
   static AppDocumentId<PresubmitCheck> documentIdFor({
+    required RepositorySlug slug,
     required int checkRunId,
     required String buildName,
     required int attemptNumber,
   }) {
     return PresubmitCheckId(
+      slug: slug,
       checkRunId: checkRunId,
       buildName: buildName,
       attemptNumber: attemptNumber,
@@ -110,12 +127,14 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
 
   /// Returns a firebase documentName used in [fromFirestore].
   static String documentNameFor({
+    required RepositorySlug slug,
     required int checkRunId,
     required String buildName,
     required int attemptNumber,
   }) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(
+      slug: slug,
       checkRunId: checkRunId,
       buildName: buildName,
       attemptNumber: attemptNumber,
@@ -142,6 +161,7 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   }
 
   factory PresubmitCheck({
+    required RepositorySlug slug,
     required int checkRunId,
     required String buildName,
     required TaskStatus status,
@@ -154,6 +174,7 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   }) {
     return PresubmitCheck._(
       {
+        fieldSlug: slug.fullName.toValue(),
         fieldCheckRunId: checkRunId.toValue(),
         fieldBuildName: buildName.toValue(),
         fieldBuildNumber: ?buildNumber?.toValue(),
@@ -165,6 +186,7 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
         fieldSummary: ?summary?.toValue(),
       },
       name: documentNameFor(
+        slug: slug,
         checkRunId: checkRunId,
         buildName: buildName,
         attemptNumber: attemptNumber,
@@ -177,12 +199,14 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
   }
 
   factory PresubmitCheck.init({
+    required RepositorySlug slug,
     required String buildName,
     required int checkRunId,
     required int creationTime,
     int? attemptNumber,
   }) {
     return PresubmitCheck(
+      slug: slug,
       buildName: buildName,
       attemptNumber: attemptNumber ?? 1,
       checkRunId: checkRunId,
@@ -199,6 +223,15 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
     this
       ..fields = fields
       ..name = name;
+  }
+
+  RepositorySlug get slug {
+    if (fields[fieldSlug] != null) {
+      return RepositorySlug.full(fields[fieldSlug]!.stringValue!);
+    }
+    // Read it from the document name.
+    final [owner, repo, _, _, _] = p.posix.basename(name!).split('_');
+    return RepositorySlug(owner, repo);
   }
 
   int get checkRunId => int.parse(fields[fieldCheckRunId]!.integerValue!);
