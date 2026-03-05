@@ -344,8 +344,8 @@ void main() {
           guardCheckRunId: 123,
         );
         expect(result, isNotNull);
-        expect(result!.checkNames, contains('linux'));
-        expect(result.checkNames, isNot(contains('mac')));
+        expect(result!.checkRetries, containsPair('linux', 2));
+        expect(result.checkRetries.keys, isNot(contains('mac')));
         expect(result.stage, CiStage.fusionTests);
 
         final guardDoc = await firestoreService.getDocument(
@@ -424,8 +424,8 @@ void main() {
           guardCheckRunId: 123,
         );
         expect(result, isNotNull);
-        expect(result!.checkNames, contains('linux'));
-        expect(result.checkNames, isNot(contains('mac')));
+        expect(result!.checkRetries, containsPair('linux', 2));
+        expect(result.checkRetries.keys, isNot(contains('mac')));
         expect(result.stage, CiStage.fusionTests);
 
         final guardDoc = await firestoreService.getDocument(

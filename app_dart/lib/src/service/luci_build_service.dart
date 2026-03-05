@@ -230,8 +230,42 @@ class LuciBuildService {
     CheckRun? checkRunGuard,
     CiStage? stage,
   }) async {
+    return _scheduleTryBuilds(
+      targets: {for (final target in targets) target: 1},
+      pullRequest: pullRequest,
+      engineArtifacts: engineArtifacts,
+      checkRunGuard: checkRunGuard,
+      stage: stage,
+    );
+  }
+
+  /// Reschedules presubmit [targets] on BuildBucket for [pullRequest] with attempt numbers.
+  Future<List<Target>> reScheduleTryBuilds({
+    required Map<Target, int> targets,
+    required PullRequest pullRequest,
+    required EngineArtifacts engineArtifacts,
+    required CheckRun checkRunGuard,
+    required CiStage stage,
+  }) async {
+    return _scheduleTryBuilds(
+      targets: targets,
+      pullRequest: pullRequest,
+      engineArtifacts: engineArtifacts,
+      checkRunGuard: checkRunGuard,
+      stage: stage,
+    );
+  }
+
+  /// Schedules presubmit [targets] on BuildBucket for [pullRequest].
+  Future<List<Target>> _scheduleTryBuilds({
+    required Map<Target, int> targets,
+    required PullRequest pullRequest,
+    required EngineArtifacts engineArtifacts,
+    CheckRun? checkRunGuard,
+    CiStage? stage,
+  }) async {
     if (targets.isEmpty) {
-      return targets;
+      return targets.keys.toList();
     }
 
     final batchRequestList = <bbv2.BatchRequest_Request>[];
@@ -263,7 +297,7 @@ class LuciBuildService {
       checkRuns.add(checkRunGuard);
     }
 
-    for (var target in targets) {
+    for (final MapEntry(key: target, value: attemptNumber) in targets.entries) {
       // If the unified check run flow is disabled create individual check runs
       // for each target.
       if (!isUnifiedCheckRunFlow || checkRunGuard == null) {
@@ -324,7 +358,6 @@ class LuciBuildService {
       }
 
       final requestedDimensions = target.getDimensions();
-
       batchRequestList.add(
         bbv2.BatchRequest_Request(
           scheduleBuild: _createPresubmitScheduleBuild(
@@ -340,6 +373,8 @@ class LuciBuildService {
             tags: isUnifiedCheckRunFlow && checkRunGuard != null
                 ? BuildTags([
                     GuardCheckRunIdBuildTag(guardCheckRunId: checkRunGuard.id!),
+                    if (attemptNumber > 1)
+                      CurrentAttemptBuildTag(attemptNumber: attemptNumber),
                   ])
                 : BuildTags([
                     GitHubCheckRunIdBuildTag(checkRunId: userData.checkRunId!),
@@ -378,7 +413,7 @@ class LuciBuildService {
       );
     }
 
-    return targets;
+    return targets.keys.toList();
   }
 
   /// Cancels all the current builds on [pullRequest] with [reason].
