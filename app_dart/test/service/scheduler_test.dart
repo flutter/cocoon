@@ -1184,6 +1184,7 @@ targets:
         );
 
         final check = PresubmitCheck(
+          slug: slug,
           buildName: 'Linux A',
           checkRunId: 1,
           creationTime: 1000,
@@ -1327,6 +1328,7 @@ targets:
         );
 
         final check = PresubmitCheck(
+          slug: slug,
           buildName: 'Linux A',
           checkRunId: 1,
           creationTime: 2000,
@@ -3905,6 +3907,7 @@ targets:
         // Initialize check run for the task
         firestore.putDocument(
           PresubmitCheck.init(
+            slug: pullRequest.base!.repo!.slug(),
             buildName: 'Linux engine_build',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -3995,6 +3998,7 @@ targets:
           // Initialize check run for the task
           firestore.putDocument(
             PresubmitCheck.init(
+              slug: pullRequest.base!.repo!.slug(),
               buildName: 'Linux test',
               checkRunId: checkRunGuard.id!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -4078,6 +4082,7 @@ targets:
         // Initialize check run for the task
         firestore.putDocument(
           PresubmitCheck.init(
+            slug: pullRequest.base!.repo!.slug(),
             buildName: 'Linux test',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
@@ -4210,111 +4215,6 @@ targets:
           5678,
         );
         expect(result!.id, 1234);
-      },
-    );
-  });
-
-  group('findPullRequest', () {
-    test('findPullRequestCached finds in Firestore', () async {
-      final pr = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
-      await PrCheckRuns.initializeDocument(
-        firestoreService: firestore,
-        pullRequest: pr,
-        checks: [generateCheckRun(1, name: 'Linux A')],
-      );
-
-      final result = await scheduler.findPullRequestCached(
-        1,
-        'Linux A',
-        Config.flutterSlug,
-        'abc',
-        1,
-      );
-      expect(result!.id, 1234);
-    });
-
-    test('findPullRequestCached finds in GitHub as fallback', () async {
-      final pr = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
-      final mockGithubChecksService = MockGithubChecksService();
-      when(
-        mockGithubChecksService.findMatchingPullRequest(any, any, any),
-      ).thenAnswer((_) async => pr);
-
-      scheduler = Scheduler(
-        githubService: config.githubService ?? FakeGithubService(),
-        cache: cache,
-        config: config,
-        githubChecksService: mockGithubChecksService,
-        luciBuildService: MockLuciBuildService(),
-        getFilesChanged: getFilesChanged,
-        ciYamlFetcher: ciYamlFetcher,
-        contentAwareHash: fakeContentAwareHash,
-        firestore: firestore,
-        bigQuery: bigQuery,
-      );
-
-      final result = await scheduler.findPullRequestCached(
-        1,
-        'Linux A',
-        Config.flutterSlug,
-        'abc',
-        1,
-      );
-      expect(result!.id, 1234);
-    });
-
-    test('findPullRequestCachedForPullRequestNum finds in Firestore', () async {
-      final pr = generatePullRequest(id: 1234, number: 5678);
-      await PrCheckRuns.initializeDocument(
-        firestoreService: firestore,
-        pullRequest: pr,
-        checks: [],
-      );
-
-      final result = await scheduler.findPullRequestCachedForPullRequestNum(
-        Config.flutterSlug,
-        5678,
-      );
-      expect(result!.id, 1234);
-    });
-
-    test(
-      'findPullRequestCachedForPullRequestNum finds in GitHub as fallback and caches',
-      () async {
-        final pr = generatePullRequest(id: 1234, number: 5678);
-        final mockGithubService = MockGithubService();
-        when(
-          mockGithubService.getPullRequest(any, any),
-        ).thenAnswer((_) async => pr);
-
-        scheduler = Scheduler(
-          githubService: mockGithubService,
-          cache: cache,
-          config: config,
-          githubChecksService: GithubChecksService(
-            config,
-            githubChecksUtil: mockGithubChecksUtil,
-          ),
-          getFilesChanged: getFilesChanged,
-          ciYamlFetcher: ciYamlFetcher,
-          luciBuildService: MockLuciBuildService(),
-          contentAwareHash: fakeContentAwareHash,
-          firestore: firestore,
-          bigQuery: bigQuery,
-        );
-
-        final result = await scheduler.findPullRequestCachedForPullRequestNum(
-          Config.flutterSlug,
-          5678,
-        );
-        expect(result!.id, 1234);
-
-        // Verify it was cached
-        final cachedPr = await PrCheckRuns.findPullRequestForPullRequestNum(
-          firestore,
-          5678,
-        );
-        expect(cachedPr!.id, 1234);
       },
     );
   });

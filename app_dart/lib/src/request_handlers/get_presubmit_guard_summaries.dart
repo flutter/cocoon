@@ -43,9 +43,9 @@ final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
 
   @override
   Future<Response> get(Request request) async {
-    checkRequiredQueryParameters(request, [kRepoParam, kPRParam]);
+    checkRequiredQueryParameters(request, [kPRParam]);
 
-    final repo = request.uri.queryParameters[kRepoParam]!;
+    final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
     final prNumber = int.parse(request.uri.queryParameters[kPRParam]!);
     final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
 

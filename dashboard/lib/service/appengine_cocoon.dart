@@ -294,11 +294,13 @@ class AppEngineCocoonService implements CocoonService {
 
   @override
   Future<CocoonResponse<PresubmitGuardResponse>> fetchPresubmitGuard({
-    required String repo,
     required String sha,
+    String repo = 'flutter',
+    String owner = 'flutter',
   }) async {
     final queryParameters = <String, String?>{
-      'slug': 'flutter/$repo',
+      'owner': owner,
+      'repo': repo,
       'sha': sha,
     };
     final getGuardUrl = apiEndpoint(
@@ -334,10 +336,14 @@ class AppEngineCocoonService implements CocoonService {
   fetchPresubmitCheckDetails({
     required int checkRunId,
     required String buildName,
+    String repo = 'flutter',
+    String owner = 'flutter',
   }) async {
     final queryParameters = <String, String?>{
       'check_run_id': checkRunId.toString(),
       'build_name': buildName,
+      'repo': repo,
+      'owner': owner,
     };
     final getChecksUrl = apiEndpoint(
       '/api/public/get-presubmit-checks',
@@ -372,10 +378,15 @@ class AppEngineCocoonService implements CocoonService {
   @override
   Future<CocoonResponse<List<PresubmitGuardSummary>>>
   fetchPresubmitGuardSummaries({
-    required String repo,
     required String pr,
+    String repo = 'flutter',
+    String owner = 'flutter',
   }) async {
-    final queryParameters = <String, String?>{'repo': repo, 'pr': pr};
+    final queryParameters = <String, String?>{
+      'owner': owner,
+      'repo': repo,
+      'pr': pr,
+    };
     final getSummariesUrl = apiEndpoint(
       '/api/public/get-presubmit-guard-summaries',
       queryParameters: queryParameters,

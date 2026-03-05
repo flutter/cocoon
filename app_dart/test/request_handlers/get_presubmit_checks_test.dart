@@ -11,6 +11,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_check.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/get_presubmit_checks.dart';
+import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 import '../src/request_handling/request_handler_tester.dart';
@@ -72,6 +73,7 @@ void main() {
 
     test('returns checks when found', () async {
       final check = fs.PresubmitCheck(
+        slug: RepositorySlug('flutter', 'flutter'),
         checkRunId: 123,
         buildName: 'linux',
         status: TaskStatus.succeeded,
@@ -100,8 +102,87 @@ void main() {
       expect(checks[0].buildNumber, 456);
     });
 
+    test('returns checks when found with owner and repo', () async {
+      final slug = RepositorySlug('flutter', 'cocoon');
+      final check = fs.PresubmitCheck(
+        slug: slug,
+        checkRunId: 123,
+        buildName: 'linux',
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: 100,
+      );
+      await firestoreService.writeViaTransaction(
+        documentsToWrites([check], exists: false),
+      );
+
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          'check_run_id': '123',
+          'build_name': 'linux',
+          'owner': 'flutter',
+          'repo': 'cocoon',
+        },
+      );
+      final response = await tester.get(handler);
+      expect(response.statusCode, HttpStatus.ok);
+
+      final checks = (await getPresubmitCheckResponse(response))!;
+      expect(checks.length, 1);
+      expect(checks[0].attemptNumber, 1);
+      expect(checks[0].buildName, 'linux');
+    });
+
+    test(
+      'does not return checks from other repos when owner/repo specified',
+      () async {
+        final slug1 = RepositorySlug('flutter', 'flutter');
+        final slug2 = RepositorySlug('flutter', 'cocoon');
+
+        final check1 = fs.PresubmitCheck(
+          slug: slug1,
+          checkRunId: 123,
+          buildName: 'linux',
+          status: TaskStatus.succeeded,
+          attemptNumber: 1,
+          creationTime: 100,
+        );
+        final check2 = fs.PresubmitCheck(
+          slug: slug2,
+          checkRunId: 123,
+          buildName: 'linux',
+          status: TaskStatus.succeeded,
+          attemptNumber: 1,
+          creationTime: 100,
+        );
+        await firestoreService.writeViaTransaction(
+          documentsToWrites([check1, check2], exists: false),
+        );
+
+        tester.request = FakeHttpRequest(
+          queryParametersValue: {
+            'check_run_id': '123',
+            'build_name': 'linux',
+            'owner': 'flutter',
+            'repo': 'cocoon',
+          },
+        );
+        final response = await tester.get(handler);
+        expect(response.statusCode, HttpStatus.ok);
+
+        final checks = (await getPresubmitCheckResponse(response))!;
+        expect(checks.length, 1);
+        expect(checks[0].buildName, 'linux');
+        // We need to verify it's the right one.
+        // Since we can't easily check fields of fs.PresubmitCheck from PresubmitCheckResponse
+        // without more info, we'll rely on the handler logic using the slug.
+      },
+    );
+
     test('returns multiple checks in descending order', () async {
+      final slug = RepositorySlug('flutter', 'flutter');
       final check1 = fs.PresubmitCheck(
+        slug: slug,
         checkRunId: 123,
         buildName: 'linux',
         status: TaskStatus.succeeded,
@@ -109,6 +190,7 @@ void main() {
         creationTime: 100,
       );
       final check2 = fs.PresubmitCheck(
+        slug: slug,
         checkRunId: 123,
         buildName: 'linux',
         status: TaskStatus.failed,
@@ -133,6 +215,7 @@ void main() {
 
     test('is accessible without authentication', () async {
       final check = fs.PresubmitCheck(
+        slug: RepositorySlug('flutter', 'flutter'),
         checkRunId: 123,
         buildName: 'linux',
         status: TaskStatus.succeeded,

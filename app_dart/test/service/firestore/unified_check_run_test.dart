@@ -75,6 +75,7 @@ void main() {
         expect(guardDoc.name, endsWith(guardId.documentId));
 
         final checkId = PresubmitCheck.documentIdFor(
+          slug: slug,
           checkRunId: 123,
           buildName: 'linux',
           attemptNumber: 1,
@@ -146,11 +147,13 @@ void main() {
         );
 
         final check1 = PresubmitCheck.init(
+          slug: slug,
           buildName: 'linux',
           checkRunId: guardId.checkRunId,
           creationTime: 1000,
         );
         final check2 = PresubmitCheck.init(
+          slug: slug,
           buildName: 'mac',
           checkRunId: guardId.checkRunId,
           creationTime: 1000,
@@ -188,6 +191,7 @@ void main() {
         final checkDoc = await PresubmitCheck.fromFirestore(
           firestoreService,
           PresubmitCheckId(
+            slug: slug,
             checkRunId: 123,
             buildName: 'linux',
             attemptNumber: 1,
@@ -240,6 +244,7 @@ void main() {
           final checkDoc = await PresubmitCheck.fromFirestore(
             firestoreService,
             PresubmitCheckId(
+              slug: slug,
               checkRunId: 123,
               buildName: 'linux',
               attemptNumber: 1,
@@ -312,6 +317,7 @@ void main() {
         );
 
         final check1 = PresubmitCheck(
+          slug: slug,
           buildName: 'linux',
           checkRunId: fusionGuardId.checkRunId,
           creationTime: 1000,
@@ -320,6 +326,7 @@ void main() {
         );
 
         final check2 = PresubmitCheck(
+          slug: slug,
           buildName: 'mac',
           checkRunId: fusionGuardId.checkRunId,
           creationTime: 1000,
@@ -362,6 +369,7 @@ void main() {
         final checkDoc = await PresubmitCheck.fromFirestore(
           firestoreService,
           PresubmitCheckId(
+            slug: slug,
             checkRunId: 123,
             buildName: 'linux',
             attemptNumber: 2,
@@ -394,6 +402,7 @@ void main() {
         );
 
         final check1 = PresubmitCheck(
+          slug: slug,
           buildName: 'win',
           checkRunId: engineGuardId.checkRunId,
           creationTime: 1000,
@@ -402,6 +411,7 @@ void main() {
         );
 
         final check2 = PresubmitCheck(
+          slug: slug,
           buildName: 'ios',
           checkRunId: engineGuardId.checkRunId,
           creationTime: 1000,
@@ -442,6 +452,7 @@ void main() {
         final checkDoc = await PresubmitCheck.fromFirestore(
           firestoreService,
           PresubmitCheckId(
+            slug: slug,
             checkRunId: 123,
             buildName: 'linux',
             attemptNumber: 2,
@@ -569,6 +580,7 @@ void main() {
 
     test('getPresubmitCheckDetails returns all attempts sorted', () async {
       final check1 = PresubmitCheck(
+        slug: slug,
         checkRunId: 1234,
         buildName: 'linux_test',
         status: TaskStatus.succeeded,
@@ -579,6 +591,7 @@ void main() {
         summary: 'attempt 1',
       );
       final check2 = PresubmitCheck(
+        slug: slug,
         checkRunId: 1234,
         buildName: 'linux_test',
         status: TaskStatus.failed,

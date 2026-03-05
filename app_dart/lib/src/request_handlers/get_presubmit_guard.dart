@@ -28,24 +28,28 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
 
   final FirestoreService _firestore;
 
-  /// The name of the query parameter for the repository slug (e.g. 'flutter/flutter').
-  static const String kSlugParam = 'slug';
+  /// The name of the query parameter for the repository name (e.g. 'flutter').
+  static const String kRepoParam = 'repo';
+
+  /// The name of the query parameter for the repository owner (e.g. 'flutter').
+  static const String kOwnerParam = 'owner';
 
   /// The name of the query parameter for the commit SHA.
   static const String kShaParam = 'sha';
 
   /// Handles the HTTP GET request.
   ///
-  /// Requires [kSlugParam] and [kShaParam] query parameters.
+  /// Requires [kRepoParam] and [kShaParam] query parameters.
   /// Returns a JSON response with the aggregated presubmit guard data.
   @override
   Future<Response> get(Request request) async {
-    checkRequiredQueryParameters(request, [kSlugParam, kShaParam]);
+    checkRequiredQueryParameters(request, [kShaParam]);
 
-    final slugName = request.uri.queryParameters[kSlugParam]!;
+    final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
+    final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
     final sha = request.uri.queryParameters[kShaParam]!;
 
-    final slug = RepositorySlug.full(slugName);
+    final slug = RepositorySlug(owner, repo);
     final guards = await UnifiedCheckRun.getPresubmitGuardsForCommitSha(
       firestoreService: _firestore,
       slug: slug,

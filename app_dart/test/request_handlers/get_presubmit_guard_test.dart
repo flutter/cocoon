@@ -56,7 +56,8 @@ void main() {
   test('no guards found', () async {
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+        GetPresubmitGuard.kOwnerParam: 'flutter',
+        GetPresubmitGuard.kRepoParam: 'flutter',
         GetPresubmitGuard.kShaParam: 'abc',
       },
     );
@@ -88,7 +89,8 @@ void main() {
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+        GetPresubmitGuard.kOwnerParam: 'flutter',
+        GetPresubmitGuard.kRepoParam: 'flutter',
         GetPresubmitGuard.kShaParam: sha,
       },
     );
@@ -125,7 +127,8 @@ void main() {
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+        GetPresubmitGuard.kOwnerParam: 'flutter',
+        GetPresubmitGuard.kRepoParam: 'flutter',
         GetPresubmitGuard.kShaParam: sha,
       },
     );
@@ -151,7 +154,8 @@ void main() {
 
       tester.request = FakeHttpRequest(
         queryParametersValue: {
-          GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+          GetPresubmitGuard.kOwnerParam: 'flutter',
+          GetPresubmitGuard.kRepoParam: 'flutter',
           GetPresubmitGuard.kShaParam: sha,
         },
       );
@@ -175,7 +179,8 @@ void main() {
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+        GetPresubmitGuard.kOwnerParam: 'flutter',
+        GetPresubmitGuard.kRepoParam: 'flutter',
         GetPresubmitGuard.kShaParam: sha,
       },
     );
@@ -199,7 +204,8 @@ void main() {
 
     tester.request = FakeHttpRequest(
       queryParametersValue: {
-        GetPresubmitGuard.kSlugParam: 'flutter/flutter',
+        GetPresubmitGuard.kOwnerParam: 'flutter',
+        GetPresubmitGuard.kRepoParam: 'flutter',
         GetPresubmitGuard.kShaParam: sha,
       },
     );

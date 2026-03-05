@@ -65,6 +65,7 @@ void main() {
     scheduler.pullRequest = pullRequest;
 
     final failedCheck = PresubmitCheck(
+      slug: Config.flutterSlug,
       checkRunId: 1,
       buildName: 'Linux A',
       status: TaskStatus.failed,
@@ -130,6 +131,7 @@ void main() {
     scheduler.pullRequest = pullRequest;
 
     final failedCheck = PresubmitCheck(
+      slug: Config.flutterSlug,
       checkRunId: 1,
       buildName: 'Linux A',
       status: TaskStatus.failed,

@@ -27,19 +27,31 @@ void main() {
     // Default stubs to avoid MissingStubError during auto-fetches
     when(
       mockCocoonService.fetchPresubmitGuardSummaries(
-        repo: anyNamed('repo'),
         pr: anyNamed('pr'),
+        repo: anyNamed('repo'),
+        owner: anyNamed('owner'),
       ),
     ).thenAnswer(
       (_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data([]),
     );
     when(
       mockCocoonService.fetchPresubmitGuard(
-        repo: anyNamed('repo'),
         sha: anyNamed('sha'),
+        repo: anyNamed('repo'),
+        owner: anyNamed('owner'),
       ),
     ).thenAnswer(
       (_) async => const CocoonResponse<PresubmitGuardResponse>.data(null),
+    );
+    when(
+      mockCocoonService.fetchPresubmitCheckDetails(
+        checkRunId: anyNamed('checkRunId'),
+        buildName: anyNamed('buildName'),
+        repo: anyNamed('repo'),
+        owner: anyNamed('owner'),
+      ),
+    ).thenAnswer(
+      (_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]),
     );
     when(
       mockCocoonService.fetchCommitStatuses(
@@ -87,8 +99,8 @@ void main() {
       ];
       when(
         mockCocoonService.fetchPresubmitGuardSummaries(
-          repo: 'flutter',
           pr: '123',
+          repo: 'flutter',
         ),
       ).thenAnswer(
         (_) async =>
@@ -117,7 +129,7 @@ void main() {
         stages: [],
       );
       when(
-        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'sha1'),
+        mockCocoonService.fetchPresubmitGuard(sha: 'sha1', repo: 'flutter'),
       ).thenAnswer(
         (_) async =>
             const CocoonResponse<PresubmitGuardResponse>.data(guardResponse),
@@ -178,8 +190,8 @@ void main() {
       ];
       when(
         mockCocoonService.fetchPresubmitGuardSummaries(
-          repo: 'flutter',
           pr: '123',
+          repo: 'flutter',
         ),
       ).thenAnswer(
         (_) async =>
