@@ -230,8 +230,7 @@ final class PresubmitCheck extends AppDocument<PresubmitCheck> {
       return RepositorySlug.full(fields[fieldSlug]!.stringValue!);
     }
     // Read it from the document name.
-    final [owner, repo, _, _, _] = p.posix.basename(name!).split('_');
-    return RepositorySlug(owner, repo);
+    return PresubmitCheckId.parse(p.posix.basename(name!)).slug;
   }
 
   int get checkRunId => int.parse(fields[fieldCheckRunId]!.integerValue!);
