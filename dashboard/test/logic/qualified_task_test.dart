@@ -33,7 +33,7 @@ void main() {
     expect(
       QualifiedTask.fromTask(dartInternalTask).sourceConfigurationUrl,
       Uri.parse(
-        'https://ci.chromium.org/p/dart-internal/builders/luci.flutter.prod/Linux%20flutter_release_builder',
+        'https://ci.chromium.org/p/dart-internal/builders/flutter/Linux%20flutter_release_builder',
       ),
     );
   });

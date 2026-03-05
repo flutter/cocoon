@@ -11,5 +11,5 @@ bool isTaskFromDartInternalBuilder({required String builderName}) {
 }
 
 final _isDartInternalBuilderName = RegExp(
-  r'(Linux|Mac|Windows)\s+(packaging_release_builder|flutter_release_builder)',
+  r'(Linux|Mac|Windows)\s+(beta_|stable_)?(packaging_release_builder|flutter_release_builder)',
 );
