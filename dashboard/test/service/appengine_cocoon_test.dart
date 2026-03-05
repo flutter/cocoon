@@ -477,7 +477,6 @@ void main() {
     });
   });
 
-
   group('AppEngine CocoonService apiEndpoint', () {
     final service = AppEngineCocoonService(
       client: MockClient((Request request) async {
