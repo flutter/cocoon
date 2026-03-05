@@ -120,4 +120,72 @@ void main() {
       expect(response.data!.first.commitSha, 'sha1');
     });
   });
+  group('AppEngine CocoonService presubmit methods', () {
+    late AppEngineCocoonService service;
+    late Uri capturedUri;
+
+    setUp(() {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          capturedUri = request.url;
+          return Response('{}', 200);
+        }),
+      );
+    });
+
+    test('fetchPresubmitGuard uses correct parameters and defaults', () async {
+      await service.fetchPresubmitGuard(repo: 'cocoon', sha: 'abc');
+      expect(capturedUri.queryParameters['owner'], 'flutter');
+      expect(capturedUri.queryParameters['repo'], 'cocoon');
+      expect(capturedUri.queryParameters['sha'], 'abc');
+
+      await service.fetchPresubmitGuard(
+        repo: 'cocoon',
+        sha: 'abc',
+        owner: 'custom',
+      );
+      expect(capturedUri.queryParameters['owner'], 'custom');
+    });
+
+    test(
+      'fetchPresubmitCheckDetails uses correct parameters and defaults',
+      () async {
+        await service.fetchPresubmitCheckDetails(
+          checkRunId: 123,
+          buildName: 'linux',
+        );
+        expect(capturedUri.queryParameters['owner'], 'flutter');
+        expect(capturedUri.queryParameters['repo'], 'flutter');
+        expect(capturedUri.queryParameters['check_run_id'], '123');
+        expect(capturedUri.queryParameters['build_name'], 'linux');
+
+        await service.fetchPresubmitCheckDetails(
+          checkRunId: 123,
+          buildName: 'linux',
+          repo: 'cocoon',
+          owner: 'custom',
+        );
+        expect(capturedUri.queryParameters['owner'], 'custom');
+        expect(capturedUri.queryParameters['repo'], 'cocoon');
+      },
+    );
+
+    test(
+      'fetchPresubmitGuardSummaries uses correct parameters and defaults',
+      () async {
+        await service.fetchPresubmitGuardSummaries(pr: '123');
+        expect(capturedUri.queryParameters['owner'], 'flutter');
+        expect(capturedUri.queryParameters['repo'], 'flutter');
+        expect(capturedUri.queryParameters['pr'], '123');
+
+        await service.fetchPresubmitGuardSummaries(
+          pr: '123',
+          repo: 'cocoon',
+          owner: 'custom',
+        );
+        expect(capturedUri.queryParameters['owner'], 'custom');
+        expect(capturedUri.queryParameters['repo'], 'cocoon');
+      },
+    );
+  });
 }
