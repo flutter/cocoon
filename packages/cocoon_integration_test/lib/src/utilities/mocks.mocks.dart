@@ -1871,6 +1871,8 @@ class MockGithubChecksService extends _i1.Mock
     required _i7.RepositorySlug? slug,
     required int? checkRunId,
     bool? rescheduled = false,
+    _i7.CheckRunConclusion? conclusionOverride,
+    String? summaryPrepend,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#updateCheckStatus, [], {
@@ -1879,6 +1881,8 @@ class MockGithubChecksService extends _i1.Mock
               #slug: slug,
               #checkRunId: checkRunId,
               #rescheduled: rescheduled,
+              #conclusionOverride: conclusionOverride,
+              #summaryPrepend: summaryPrepend,
             }),
             returnValue: _i13.Future<bool>.value(false),
           )

@@ -9,6 +9,8 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/suppressed_test.dart';
 import 'package:cocoon_service/src/request_handlers/update_suppressed_test.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/extensions/cache_service_test_suppression.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:github/github.dart';
@@ -24,6 +26,7 @@ void main() {
   late UpdateSuppressedTest handler;
   late FakeConfig config;
   late FakeGithubServiceWithIssue githubService;
+  late CacheService cache;
 
   final fakeNow = DateTime.now().toUtc();
 
@@ -31,6 +34,7 @@ void main() {
     firestore = FakeFirestoreService();
     tester = ApiRequestHandlerTester();
     githubService = FakeGithubServiceWithIssue();
+    cache = CacheService(inMemory: true);
 
     // Enable feature flag by default for most tests
     final dynamicConfig = DynamicConfig.fromJson({
@@ -47,6 +51,7 @@ void main() {
       authenticationProvider: FakeDashboardAuthentication(),
       firestore: firestore,
       now: () => fakeNow,
+      cache: cache,
     );
   });
 
@@ -303,6 +308,70 @@ void main() {
             ]),
       ]),
     );
+  });
+
+  test('updates cache on SUPPRESS', () async {
+    githubService.issueResponse = Issue(state: 'open');
+
+    tester.request.body = jsonEncode({
+      'testName': 'my_test',
+      'repository': 'flutter/flutter',
+      'action': 'SUPPRESS',
+      'issueLink': 'https://github.com/flutter/flutter/issues/123',
+    });
+
+    await tester.post(handler);
+
+    // Verify cache was updated
+    final isSuppressed = await cache.isTestSuppressed(
+      testName: 'my_test',
+      repository: RepositorySlug('flutter', 'flutter'),
+      firestore: firestore,
+    );
+    expect(isSuppressed, isTrue);
+  });
+
+  test('updates cache on UNSUPPRESS', () async {
+    githubService.issueResponse = Issue(state: 'open');
+
+    // Pre-populate Firestore so that the handler doesn't return early.
+    final existingDoc =
+        SuppressedTest(
+            name: 'my_test',
+            repository: 'flutter/flutter',
+            issueLink: 'https://github.com/flutter/flutter/issues/123',
+            isSuppressed: true,
+            createTimestamp: DateTime.now().toUtc(),
+          )
+          ..name = firestore.resolveDocumentName(
+            SuppressedTest.kCollectionId,
+            'existing_doc',
+          );
+    firestore.putDocument(existingDoc);
+
+    // Ensure cache is initially true
+    await cache.setTestSuppression(
+      testName: 'my_test',
+      repository: RepositorySlug('flutter', 'flutter'),
+      isSuppressed: true,
+    );
+
+    tester.request.body = jsonEncode({
+      'testName': 'my_test',
+      'repository': 'flutter/flutter',
+      'action': 'UNSUPPRESS',
+      'issueLink': 'https://github.com/flutter/flutter/issues/123',
+    });
+
+    await tester.post(handler);
+
+    // Verify cache was updated to false
+    final isSuppressed = await cache.isTestSuppressed(
+      testName: 'my_test',
+      repository: RepositorySlug('flutter', 'flutter'),
+      firestore: firestore,
+    );
+    expect(isSuppressed, isFalse);
   });
 }
 
