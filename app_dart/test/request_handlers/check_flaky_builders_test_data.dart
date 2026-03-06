@@ -287,7 +287,7 @@ stagingSemanticsIntegrationTestResponse = <BuilderStatistic>[
     flakyNumber: 3,
     totalNumber: 10,
   ),
-  // This builder is flakey, but it should be
+  // This builder is flaky, but it should be
   // ignored because it has ignore_flakiness set.
   BuilderStatistic(
     name: 'Mac_android ignore_myflakiness',

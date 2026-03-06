@@ -4,13 +4,12 @@
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart';
-import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
-import '../service/extensions/cache_service_test_suppression.dart';
+import '../service/test_suppression.dart'
+    show SuppressingAction, TestSuppression;
 
 /// Manually updates the test suppression status.
 ///
@@ -25,18 +24,12 @@ import '../service/extensions/cache_service_test_suppression.dart';
 /// - `note`: Optional note describing the action.
 final class UpdateSuppressedTest extends ApiRequestHandler {
   const UpdateSuppressedTest({
-    required FirestoreService firestore,
     required super.config,
     required super.authenticationProvider,
-    required CacheService cache,
-    @visibleForTesting DateTime Function() now = DateTime.now,
-  }) : _firestore = firestore,
-       _now = now,
-       _cache = cache;
+    required TestSuppression suppressionService,
+  }) : _suppressionService = suppressionService;
 
-  final FirestoreService _firestore;
-  final DateTime Function() _now;
-  final CacheService _cache;
+  final TestSuppression _suppressionService;
 
   static const _paramTestName = 'testName';
   static const _paramRepository = 'repository';
@@ -130,11 +123,14 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
     }
 
     // Process suppression
-    await _updateSuppression(
+    await _suppressionService.updateSuppression(
       testName: testName,
       repository: repository,
-      action: action,
+      action: action == 'UNSUPPRESS'
+          ? SuppressingAction.unsuppress
+          : SuppressingAction.suppress,
       issueLink: issueLink,
+      email: authContext!.email,
       note: note,
     );
 
@@ -158,94 +154,5 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
     // Path segments: [flutter, flutter, issues, 123456]
     // Or just check the last segment if it is a number
     return int.tryParse(uri.pathSegments.last);
-  }
-
-  Future<void> _updateSuppression({
-    required String testName,
-    required RepositorySlug repository,
-    required String action,
-    required String note,
-    String? issueLink,
-  }) async {
-    // Query for existing suppression - we assume there is at most one document
-    // per (repo, name) based on business logic, though the DB constraint might
-    // not strictly exist yet without unique index.
-    final SuppressedTest? existingSuppression;
-    {
-      final previous = await SuppressedTest.getLatest(
-        _firestore,
-        repository.fullName,
-        testName,
-      );
-      if (previous?.isSuppressed == false) {
-        // Don't update old, closed tests.
-        existingSuppression = null;
-      } else {
-        existingSuppression = previous;
-      }
-    }
-
-    final isSuppressed = action == _actionSuppress;
-    final now = _now().toUtc();
-
-    // New or old doc; record an update
-    final updateEntry = {
-      SuppressedTest.updateFieldUser: authContext!.email,
-      SuppressedTest.updateFieldUpdateTimestamp: now,
-      SuppressedTest.updateFieldNote: note,
-      SuppressedTest.updateFieldAction: action,
-    };
-
-    // Update an existing document
-    if (existingSuppression != null) {
-      final updatedSuppression = SuppressedTest(
-        name: testName,
-        repository: repository.fullName,
-        // issue: today we don't have UI affordance for updating the link.
-        issueLink: existingSuppression.issueLink,
-        isSuppressed: isSuppressed,
-        createTimestamp: existingSuppression.createTimestamp,
-        updates: [...existingSuppression.updates, updateEntry],
-      )..name = existingSuppression.name; // We need to preserve the ID.
-
-      await _firestore.batchWriteDocuments(
-        BatchWriteRequest(
-          writes: [
-            Write(
-              update: updatedSuppression,
-              currentDocument: Precondition(exists: true),
-            ),
-          ],
-        ),
-        kDatabase,
-      );
-    } else {
-      // Create new document
-      if (action == _actionUnsuppress) {
-        // Nothing to unsuppress.
-        return;
-      }
-
-      final newSuppression = SuppressedTest(
-        name: testName,
-        repository: repository.fullName,
-        issueLink: issueLink ?? 'BUG',
-        isSuppressed: true,
-        createTimestamp: now,
-        updates: [updateEntry],
-      );
-
-      await _firestore.createDocument(
-        newSuppression,
-        collectionId: SuppressedTest.kCollectionId,
-      );
-    }
-
-    // Update cache now that we've written it
-    await _cache.setTestSuppression(
-      testName: testName,
-      repository: repository,
-      isSuppressed: isSuppressed,
-    );
   }
 }

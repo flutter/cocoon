@@ -18,6 +18,7 @@ import '../request_handling/response.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
+import '../service/test_suppression.dart';
 import 'flaky_handler_utils.dart';
 
 /// A handler that queries build statistics from luci and file issues and pull
@@ -30,11 +31,14 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
     required super.config,
     required super.authenticationProvider,
     required BigQueryService bigQuery,
-  }) : _bigQuery = bigQuery;
+    required TestSuppression testSuppression,
+  }) : _bigQuery = bigQuery,
+       _testSuppression = testSuppression;
 
   static const String kThresholdKey = 'threshold';
 
   final BigQueryService _bigQuery;
+  final TestSuppression _testSuppression;
 
   @override
   Future<Response> get(Request request) async {
@@ -55,6 +59,7 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
       yamls: {CiType.any: unCheckedSchedulerConfig},
     );
 
+    // todo(codefu) investigate why this isn't checking for both any+engine
     final schedulerConfig = ciYaml.configFor(CiType.any);
     final targets = schedulerConfig.targets;
 
@@ -130,7 +135,7 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
     required double threshold,
   }) async {
     var issue = builderDetail.existingIssue;
-    if (_shouldNotFileIssueAndPR(builderDetail, issue)) {
+    if (await _shouldNotFileIssueAndPR(builderDetail, slug, issue)) {
       return false;
     }
     // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
@@ -143,54 +148,30 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
       threshold: threshold,
     );
 
-    if (builderDetail.type == BuilderType.shard ||
-        builderDetail.type == BuilderType.unknown ||
-        builderDetail.existingPullRequest != null) {
-      return true;
-    }
-    final modifiedContent = _marksBuildFlakyInContent(
-      await gitHub.getFileContent(slug, kCiYamlPath),
-      builderDetail.statistic.name,
-      issue.htmlUrl,
+    await _testSuppression.updateSuppression(
+      testName: builderDetail.statistic.name,
+      email: 'fluttergithubbot',
+      repository: slug,
+      action: SuppressingAction.suppress,
+      note: 'flaky test rate: $threshold',
     );
-    final masterRef = await gitHub.getReference(slug, kMasterRefs);
-    final prBuilder = PullRequestBuilder(
-      statistic: builderDetail.statistic,
-      ownership: builderDetail.ownership,
-      issue: issue,
-    );
-    final pullRequest = await gitHub.createPullRequest(
-      slug,
-      title: prBuilder.pullRequestTitle,
-      body: prBuilder.pullRequestBody,
-      commitMessage: prBuilder.pullRequestTitle,
-      baseRef: masterRef,
-      entries: <CreateGitTreeEntry>[
-        CreateGitTreeEntry(
-          kCiYamlPath,
-          kModifyMode,
-          kModifyType,
-          content: modifiedContent,
-        ),
-      ],
-    );
-    final label = getTeamLabelFromTeam(builderDetail.ownership.team);
-    await gitHub.assignReviewer(
-      slug,
-      reviewer: prBuilder.pullRequestReviewer,
-      pullRequestNumber: pullRequest.number,
-    );
-    if (label != null) {
-      await gitHub.addIssueLabels(slug, pullRequest.number!, <String>[label]);
-    }
+
     return true;
   }
 
-  bool _shouldNotFileIssueAndPR(BuilderDetail builderDetail, Issue? issue) {
+  Future<bool> _shouldNotFileIssueAndPR(
+    BuilderDetail builderDetail,
+    RepositorySlug slug,
+    Issue? issue,
+  ) async {
     // Don't create a new issue or deflake PR using prod builds statuses if the builder has been marked as flaky.
-    // If the builder is `bringup: true`, but still hit flakes, a new bug will be filed in `/api/check_flaky_builders`
+    // If the builder is flaky and still hit flakes, a new bug will be filed in `/api/check_flaky_builders`
     // based on staging builds statuses.
-    if (builderDetail.isMarkedFlaky) {
+    final isSuppressed = await _testSuppression.isTestSuppressed(
+      testName: builderDetail.statistic.name,
+      repository: slug,
+    );
+    if (isSuppressed) {
       return true;
     }
 
@@ -224,34 +205,6 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
       (Target target) => target.name == builderName,
     );
     return target == null ? false : target.getIgnoreFlakiness();
-  }
-
-  String _marksBuildFlakyInContent(
-    String content,
-    String builder,
-    String issueUrl,
-  ) {
-    final lines = content.split('\n');
-    final builderLineNumber = lines.indexWhere(
-      (String line) => line.contains('name: $builder'),
-    );
-    // Takes care the case if is kCiYamlTargetIsFlakyKey is already defined to false
-    var nextLine = builderLineNumber + 1;
-    while (nextLine < lines.length && !lines[nextLine].contains('name:')) {
-      if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
-        lines[nextLine] = lines[nextLine].replaceFirst(
-          'false',
-          'true # Flaky $issueUrl',
-        );
-        return lines.join('\n');
-      }
-      nextLine += 1;
-    }
-    lines.insert(
-      builderLineNumber + 1,
-      '    $kCiYamlTargetIsFlakyKey: true # Flaky $issueUrl',
-    );
-    return lines.join('\n');
   }
 
   Future<RepositorySlug> getSlugFor(GitHub client, String repository) async {

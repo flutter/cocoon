@@ -18,29 +18,32 @@ import '../request_handling/response.dart';
 import '../service/big_query.dart';
 import '../service/config.dart';
 import '../service/github_service.dart';
+import '../service/test_suppression.dart';
 import 'flaky_handler_utils.dart';
 
 /// A handler to deflake builders if the builders are no longer flaky.
 ///
-/// This handler gets flaky builders from ci.yaml in flutter/flutter and check
-/// the following conditions:
+/// This handler gets flaky builders from Firestore in flutter/flutter and
+/// check the following conditions:
 /// 1. The builder is not in [ignoredBuilders].
 /// 2. The flaky issue of the builder is closed if there is one.
-/// 3. Does not have any existing pr against the target.
-/// 4. The builder has been passing for most recent [kRecordNumber] consecutive
+/// 3. The builder has been passing for most recent [kRecordNumber] consecutive
 ///    runs.
-/// 5. The builder is not marked with ignore_flakiness.
+/// 4. The builder is not marked with ignore_flakiness.
 ///
-/// If all the conditions are true, this handler will file a pull request to
-/// make the builder unflaky.
+/// If all the conditions are true, this handler will remove the suppression in
+/// Firestore.
 final class CheckFlakyBuilders extends ApiRequestHandler {
   const CheckFlakyBuilders({
     required super.config,
     required super.authenticationProvider,
     required BigQueryService bigQuery,
-  }) : _bigQuery = bigQuery;
+    required TestSuppression testSuppression,
+  }) : _bigQuery = bigQuery,
+       _testSuppression = testSuppression;
 
   final BigQueryService _bigQuery;
+  final TestSuppression _testSuppression;
 
   static int kRecordNumber = 50;
 
@@ -71,9 +74,6 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
       yamls: {CiType.any: unCheckedSchedulerConfig},
     );
 
-    final schedulerConfig = ciYaml.configFor(CiType.any);
-    final targets = schedulerConfig.targets;
-
     final eligibleBuilders = await _getEligibleFlakyBuilders(
       gitHub,
       slug,
@@ -84,15 +84,8 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
       'The following builders are eligible to be marked no longer flaky:\n'
       '${eligibleBuilders.map((b) => b.name).join('\n')}',
     );
-    final testOwnerContent = await gitHub.getFileContent(slug, kTestOwnerPath);
 
     for (final info in eligibleBuilders) {
-      final type = getTypeForBuilder(info.name, ciYaml);
-      final testOwnership = getTestOwnership(
-        targets.singleWhere((element) => element.name == info.name!),
-        type,
-        testOwnerContent,
-      );
       final builderRecords = await _bigQuery.listRecentBuildRecordsForBuilder(
         kBigQueryProjectId,
         builder: info.name,
@@ -112,13 +105,7 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
       );
       if (_shouldDeflake(builderRecords)) {
         log.info('${info.name}: Build data shows flakiness reduction');
-        await _deflakyPullRequest(
-          gitHub,
-          slug,
-          info: info,
-          ciContent: ciContent,
-          testOwnership: testOwnership,
-        );
+        await _unsuppressTest(slug, gitHub, info: info);
         // Manually add a 1s delay between consecutive GitHub requests to deal with secondary rate limit error.
         // https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
         await Future<void>.delayed(config.githubRequestDelay);
@@ -142,90 +129,53 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
 
   /// Gets the builders that match conditions:
   /// 1. The builder's ignoreFlakiness is false.
-  /// 2. The builder is flaky
+  /// 2. The builder is flaky (in Firestore)
   /// 3. The builder is not in [ignoredBuilders].
   /// 4. The flaky issue of the builder is closed if there is one.
-  /// 5. Does not have any existing pr against the builder.
   Future<List<_BuilderInfo>> _getEligibleFlakyBuilders(
     GithubService gitHub,
     RepositorySlug slug, {
     required String content,
     required CiYamlSet ciYaml,
   }) async {
-    final ci = loadYaml(content) as YamlMap;
-    final targets = ci[kCiYamlTargetsKey] as YamlList;
-    final flakyTargets = targets
-        .where((dynamic target) => target[kCiYamlTargetIsFlakyKey] == true)
-        .map<YamlMap?>((dynamic target) => target as YamlMap?)
-        .toList();
-    log.debug(
-      'Possibly eligible flaky builders:\n'
-      '${flakyTargets.map((t) => t![kCiYamlTargetNameKey]).join('\n')}',
-    );
     final result = <_BuilderInfo>[];
-    final lines = content.split('\n');
-    final nameToExistingPRs = await getExistingPRs(gitHub, slug);
-    for (final flakyTarget in flakyTargets) {
-      final builder = flakyTarget![kCiYamlTargetNameKey] as String?;
-      // If target specified ignore_flakiness, then skip.
-      if (getIgnoreFlakiness(builder, ciYaml)) {
-        log.debug('Skipping $builder, ignore_flakiness specified');
+
+    // Check Firestore for suppressed tests
+    final suppressedTests = await _testSuppression.listSuppressedTests(
+      repository: slug,
+    );
+
+    for (final test in suppressedTests) {
+      if (ignoredBuilders.contains(test.testName)) {
         continue;
       }
-      if (ignoredBuilders.contains(builder)) {
-        log.debug('Skipping $builder, explicitly deny-listed in Cocoon');
-        continue;
-      }
-      // Skip the flaky target if the issue or pr for the flaky target is still
-      // open.
-      if (nameToExistingPRs[builder] case final pr?) {
-        log.debug('Skipping $builder, an existing PR is open: ${pr.htmlUrl}');
+      if (getIgnoreFlakiness(test.testName, ciYaml)) {
         continue;
       }
 
-      //TODO (ricardoamador): Refactor this so we don't need to parse the entire yaml looking for commented issues, https://github.com/flutter/flutter/issues/113232
-      var builderLineNumber =
-          lines.indexWhere((String line) => line.contains('name: $builder')) +
-          1;
-
-      _BuilderInfo? toBeAdded;
-      final startingLineNumber = builderLineNumber;
-      var skippedDueToNonClosed = false;
-      while (builderLineNumber < lines.length &&
-          !lines[builderLineNumber].contains('name:')) {
-        if (lines[builderLineNumber].contains('$kCiYamlTargetIsFlakyKey:')) {
-          final match = _issueLinkRegex.firstMatch(lines[builderLineNumber]);
-          if (match == null) {
-            toBeAdded = _BuilderInfo(name: builder);
-            break;
-          }
-          final issue = await gitHub.getIssue(
-            slug,
-            issueNumber: int.parse(match.namedGroup('id')!),
-          )!;
-          // issue.isClosed checks for (strictly) "CLOSED", sigh.
-          if (issue.state.toLowerCase() == 'closed') {
-            toBeAdded = _BuilderInfo(name: builder, existingIssue: issue);
-          } else {
-            log.debug(
-              'Skipping $builder, issue #${issue.id} ($slug) is reporting as '
-              'non-closed state: ${issue.state}',
-            );
-            skippedDueToNonClosed = true;
-          }
-          break;
-        }
-        builderLineNumber += 1;
+      // Check if issue is closed
+      final issueLink = test.issueLink;
+      final match = _issueLinkRegex.firstMatch(issueLink);
+      if (match == null) {
+        // If no valid issue link, we treat it as eligible if green.
+        result.add(_BuilderInfo(name: test.testName));
+        continue;
       }
-      if (toBeAdded != null) {
-        result.add(toBeAdded);
-      } else if (skippedDueToNonClosed) {
+
+      final issue = await gitHub.getIssue(
+        slug,
+        issueNumber: int.parse(match.namedGroup('id')!),
+      )!;
+      if (issue.state.toLowerCase() == 'closed') {
+        result.add(_BuilderInfo(name: test.testName, existingIssue: issue));
+      } else {
         log.debug(
-          'Skipping $builder, could not find matching builder line '
-          'starting at line $startingLineNumber of ${lines.length} lines',
+          'Skipping ${test.testName}, issue #${issue.id} ($slug) is reporting as '
+          'non-closed state: ${issue.state}',
         );
       }
     }
+
     return result;
   }
 
@@ -238,58 +188,29 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
     return target == null ? false : target.getIgnoreFlakiness();
   }
 
-  Future<void> _deflakyPullRequest(
-    GithubService gitHub,
-    RepositorySlug slug, {
+  Future<void> _unsuppressTest(
+    RepositorySlug slug,
+    GithubService gitHub, {
     required _BuilderInfo info,
-    required String ciContent,
-    required TestOwnership testOwnership,
   }) async {
-    final modifiedContent = _deflakeBuilderInContent(ciContent, info.name);
-    final masterRef = await gitHub.getReference(slug, kMasterRefs);
-    final prBuilder = DeflakePullRequestBuilder(
-      name: info.name,
-      recordNumber: kRecordNumber,
-      ownership: testOwnership,
-      issue: info.existingIssue,
+    log.info('Unsuppressing ${info.name} in Firestore');
+    await _testSuppression.updateSuppression(
+      testName: info.name!,
+      email: 'fluttergithubbot',
+      repository: slug,
+      action: SuppressingAction.unsuppress,
+      note: 'Build data shows flakiness reduction and issue is closed',
     );
-    final pullRequest = await gitHub.createPullRequest(
-      slug,
-      title: prBuilder.pullRequestTitle,
-      body: prBuilder.pullRequestBody,
-      commitMessage: prBuilder.pullRequestTitle,
-      baseRef: masterRef,
-      entries: <CreateGitTreeEntry>[
-        CreateGitTreeEntry(
-          kCiYamlPath,
-          kModifyMode,
-          kModifyType,
-          content: modifiedContent,
-        ),
-      ],
-    );
-    await gitHub.assignReviewer(
-      slug,
-      reviewer: prBuilder.pullRequestReviewer,
-      pullRequestNumber: pullRequest.number,
-    );
-  }
 
-  /// Removes the `bringup: true` for the builder in the ci.yaml.
-  String _deflakeBuilderInContent(String content, String? builder) {
-    final lines = content.split('\n');
-    final builderLineNumber = lines.indexWhere(
-      (String line) => line.contains('name: $builder'),
-    );
-    var nextLine = builderLineNumber + 1;
-    while (nextLine < lines.length && !lines[nextLine].contains('name:')) {
-      if (lines[nextLine].contains('$kCiYamlTargetIsFlakyKey:')) {
-        lines.removeAt(nextLine);
-        return lines.join('\n');
-      }
-      nextLine += 1;
+    if (info.existingIssue != null) {
+      final issueNumber = info.existingIssue!.number;
+      log.info('Closing issue #$issueNumber for ${info.name}');
+      final comment =
+          'The test has been passing for [$kRecordNumber consecutive runs](${Uri.encodeFull('$kFlakeRecordPrefix"${info.name}"')}).\n'
+          'This test has been unsuppressed in Firestore and this issue is being closed.';
+      await gitHub.createComment(slug, issueNumber: issueNumber, body: comment);
+      await gitHub.closeIssue(slug, issueNumber: issueNumber);
     }
-    throw 'Cannot find the flaky flag, is the test really marked flaky?';
   }
 }
 
