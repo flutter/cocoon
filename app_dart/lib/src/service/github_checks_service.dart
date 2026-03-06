@@ -47,6 +47,8 @@ class GithubChecksService {
     required github.RepositorySlug slug,
     required int checkRunId,
     bool rescheduled = false,
+    github.CheckRunConclusion? conclusionOverride,
+    String? summaryPrepend,
   }) async {
     var status = statusForResult(build.status);
     log.info('status for build ${build.id} is ${status.value}');
@@ -63,9 +65,11 @@ class GithubChecksService {
       'name': build.builder.builder,
     });
 
-    var conclusion = (terminalStatuses.contains(build.status))
-        ? conclusionForResult(build.status)
-        : null;
+    var conclusion =
+        conclusionOverride ??
+        ((terminalStatuses.contains(build.status))
+            ? conclusionForResult(build.status)
+            : null);
     log.info(
       'conclusion for build ${build.id} is ${(conclusion != null) ? conclusion.value : null}',
     );
@@ -94,10 +98,11 @@ class GithubChecksService {
             allFields: true,
           ),
         );
-        output = github.CheckRunOutput(
-          title: checkRun.name!,
-          summary: getGithubSummary(buildbucketBuild.summaryMarkdown),
-        );
+        var summary = getGithubSummary(buildbucketBuild.summaryMarkdown);
+        if (summaryPrepend != null && summaryPrepend.isNotEmpty) {
+          summary = '$summaryPrepend\n\n$summary';
+        }
+        output = github.CheckRunOutput(title: checkRun.name!, summary: summary);
         log.debug(
           'Updating check run with output: [${output.toJson().toString()}]',
         );

@@ -7,12 +7,10 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
 
-import '../model/firestore/suppressed_test.dart';
+import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
-import '../request_handling/request_handler.dart'; // For Request
-import '../request_handling/response.dart';
-import '../service/firestore.dart';
+import '../service/extensions/cache_service_test_suppression.dart';
 
 /// Manually updates the test suppression status.
 ///
@@ -30,12 +28,15 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
     required FirestoreService firestore,
     required super.config,
     required super.authenticationProvider,
+    required CacheService cache,
     @visibleForTesting DateTime Function() now = DateTime.now,
   }) : _firestore = firestore,
-       _now = now;
+       _now = now,
+       _cache = cache;
 
   final FirestoreService _firestore;
   final DateTime Function() _now;
+  final CacheService _cache;
 
   static const _paramTestName = 'testName';
   static const _paramRepository = 'repository';
@@ -239,5 +240,12 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
         collectionId: SuppressedTest.kCollectionId,
       );
     }
+
+    // Update cache now that we've written it
+    await _cache.setTestSuppression(
+      testName: testName,
+      repository: repository,
+      isSuppressed: isSuppressed,
+    );
   }
 }

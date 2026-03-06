@@ -111,6 +111,7 @@ Server createServer({
       githubChecksService: githubChecksService,
       scheduler: scheduler,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
@@ -218,6 +219,7 @@ Server createServer({
       authenticationProvider: dashboardAuthProvider,
       firestore: firestore,
       config: config,
+      cache: cache,
     ),
     '/api/merge_queue_hooks': MergeQueueHooks(
       authenticationProvider: dashboardAuthProvider,

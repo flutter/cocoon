@@ -34,9 +34,10 @@ void main() {
   late MockLuciBuildService mockLuciBuildService;
   late FakeCiYamlFetcher ciYamlFetcher;
   late MockScheduler mockScheduler;
+  late FakeFirestoreService firestore;
 
   setUp(() async {
-    final firestore = FakeFirestoreService();
+    firestore = FakeFirestoreService();
 
     config = FakeConfig(
       dynamicConfig: DynamicConfig.fromJson({
@@ -62,6 +63,7 @@ void main() {
       authProvider: FakeDashboardAuthentication(),
       scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     );
     request = FakeHttpRequest();
 
@@ -274,6 +276,7 @@ void main() {
       authProvider: FakeDashboardAuthentication(),
       scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     );
 
     await tester.post(luciHandler);
@@ -506,6 +509,7 @@ void main() {
       authProvider: FakeDashboardAuthentication(),
       scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
     );
 
     await tester.post(luciHandler);
@@ -576,5 +580,116 @@ void main() {
           .having((e) => e.checkSuiteId, 'checkSuiteId', 2)
           .having((e) => e.headBranch, 'headBranch', 'master'),
     );
+  });
+
+  test('Requests when task failed and is suppressed', () async {
+    final userData = PresubmitUserData(
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'master',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
+      checkRunId: 1,
+      checkSuiteId: 2,
+    );
+
+    // Setup Firestore
+    firestore.putDocument(
+      SuppressedTest(
+          name: 'Linux A',
+          repository: 'flutter/flutter',
+          issueLink: 'https://github.com/flutter/flutter/issues/123',
+          isSuppressed: true,
+          createTimestamp: DateTime.now(),
+        )
+        ..name = firestore.resolveDocumentName(
+          SuppressedTest.kCollectionId,
+          'suppressed_1',
+        ),
+    );
+
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        conclusionOverride: github.CheckRunConclusion.neutral,
+        summaryPrepend: argThat(
+          contains('marked as suppressed'),
+          named: 'summaryPrepend',
+        ),
+      ),
+    ).thenAnswer((_) async => true);
+
+    when(
+      mockScheduler.processCheckRunCompleted(any),
+    ).thenAnswer((_) async => true);
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      userData: userData,
+    );
+
+    await tester.post(handler);
+
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        conclusionOverride: github.CheckRunConclusion.neutral,
+        summaryPrepend: argThat(
+          contains('### ⚠️ Test failed but marked as suppressed on dashboard'),
+          named: 'summaryPrepend',
+        ),
+      ),
+    ).called(1);
+  });
+
+  test('Suppression check skipped when rescheduled', () async {
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux presubmit_max_attempts=2',
+      userData: PresubmitUserData(
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+        checkRunId: 1,
+        checkSuiteId: 2,
+      ),
+    );
+
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+        conclusionOverride: null,
+        summaryPrepend: null,
+      ),
+    ).thenAnswer((_) async => true);
+
+    await tester.post(handler);
+
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+        conclusionOverride: null,
+        summaryPrepend: null,
+      ),
+    ).called(1);
   });
 }

@@ -7,22 +7,19 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
+import 'package:github/github.dart';
 
+import '../../cocoon_service.dart';
 import '../model/bbv2_extension.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../model/common/presubmit_completed_check.dart';
-import '../request_handling/authentication.dart';
 import '../request_handling/exceptions.dart';
-import '../request_handling/request_handler.dart';
-import '../request_handling/response.dart';
 import '../request_handling/subscription_handler.dart';
-import '../service/github_checks_service.dart';
-import '../service/luci_build_service.dart';
+import '../service/extensions/cache_service_test_suppression.dart';
 import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/user_data.dart';
-import '../service/scheduler.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
@@ -46,17 +43,20 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     required GithubChecksService githubChecksService,
     required CiYamlFetcher ciYamlFetcher,
     required Scheduler scheduler,
+    required FirestoreService firestore,
     AuthenticationProvider? authProvider,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _githubChecksService = githubChecksService,
        _luciBuildService = luciBuildService,
        _scheduler = scheduler,
+       _firestore = firestore,
        super(subscriptionName: 'build-bucket-presubmit-sub');
 
   final LuciBuildService _luciBuildService;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
   final Scheduler _scheduler;
+  final FirestoreService _firestore;
 
   @override
   Future<Response> post(Request request) async {
@@ -134,12 +134,30 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       }
     }
     if (!isUnifiedCheckRun) {
+      String? suppressedMessage;
+      CheckRunConclusion? override;
+      if (build.status.isTaskFailed() && !rescheduled) {
+        // If a test is suppressed; we avoid setting a failing status.
+        final isSuppressed = await cache.isTestSuppressed(
+          testName: builderName,
+          repository: userData.commit.slug,
+          firestore: _firestore,
+        );
+        if (isSuppressed) {
+          override = CheckRunConclusion.neutral;
+          suppressedMessage =
+              '### ⚠️ Test failed but marked as suppressed on dashboard';
+        }
+      }
+
       await _githubChecksService.updateCheckStatus(
         checkRunId: userData.checkRunId!,
         build: build,
         luciBuildService: _luciBuildService,
         slug: userData.commit.slug,
         rescheduled: rescheduled,
+        conclusionOverride: override,
+        summaryPrepend: suppressedMessage,
       );
     }
     if (!rescheduled) {
