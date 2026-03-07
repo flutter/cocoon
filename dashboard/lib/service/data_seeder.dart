@@ -9,7 +9,6 @@ import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
-import 'package:googleapis/tagmanager/v2.dart';
 
 import 'cocoon.dart';
 import 'scenarios.dart';
