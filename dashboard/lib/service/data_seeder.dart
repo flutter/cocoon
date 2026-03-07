@@ -51,164 +51,321 @@ class DataSeeder {
     final checks = <PresubmitCheck>[];
 
     // cafe5_1_mock_sha
-    guards.add(
-      _createPresubmitGuard(
-        commitSha: 'cafe5_1_mock_sha',
-        checkRunId: 456,
-        pullRequestId: 123,
-        author: _authors[0],
-        stage: CiStage.fusionTests,
-        creationTime: now.millisecondsSinceEpoch - 100000,
-        builds: {
-          'Mac mac_host_engine': TaskStatus.infraFailure,
-          'Mac mac_ios_engine': TaskStatus.cancelled,
-          'Linux linux_android_aot_engine': TaskStatus.infraFailure,
-        },
-      ),
-    );
-    for (final buildName in [
+    final prNum = 1234;
+    var checkRunId = 123456;
+    var creationTime = 1770000000000;
+    final engineBuilds = [
       'Mac mac_host_engine',
       'Mac mac_ios_engine',
       'Linux linux_android_aot_engine',
-    ]) {
-      checks.add(
-        _createPresubmitCheck(
-          checkRunId: 456,
-          buildName: buildName,
-          status: TaskStatus.infraFailure,
-          creationTime: now.millisecondsSinceEpoch - 100000,
-        ),
-      );
-    }
-
-    // face5_2_mock_sha
-    guards.add(
-      _createPresubmitGuard(
-        commitSha: 'face5_2_mock_sha',
-        checkRunId: 789,
-        pullRequestId: 123,
-        author: _authors[1],
-        stage: CiStage.fusionTests,
-        creationTime: now.millisecondsSinceEpoch - 50000,
-        builds: {
-          'Mac mac_host_engine': TaskStatus.succeeded,
-          'Mac mac_ios_engine': TaskStatus.cancelled,
-          'Linux linux_android_aot_engine': TaskStatus.succeeded,
-        },
+    ];
+    final fusionBuilds = [
+      'Linux framework_tests',
+      'Mac framework_tests',
+      'Linux android framework_tests',
+      'Windows framework_tests',
+    ];
+    var engineChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[0],
+        status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: creationTime,
       ),
-    );
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[1],
+        status: TaskStatus.cancelled,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[2],
+        status: TaskStatus.infraFailure,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'face5_2_mock_sha',
-        checkRunId: 789,
-        pullRequestId: 123,
-        author: _authors[1],
+        commitSha: 'cafe5_1_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[0],
         stage: CiStage.fusionEngineBuild,
-        creationTime: now.millisecondsSinceEpoch - 40000,
-        builds: {
-          'Linux framework_tests': TaskStatus.succeeded,
-          'Mac framework_tests': TaskStatus.failed,
-          'Linux android framework_tests': TaskStatus.skipped,
-          'Windows framework_tests': TaskStatus.failed,
-        },
+        creationTime: creationTime,
+        builds: {for (var check in engineChecks) check.buildName: check.status},
       ),
     );
+    checks.addAll(engineChecks);
 
-    // decaf_3_mock_sha
-    guards.add(
-      _createPresubmitGuard(
-        commitSha: 'decaf_3_mock_sha',
-        checkRunId: 1011,
-        pullRequestId: 123,
-        author: _authors[2],
-        stage: CiStage.fusionEngineBuild,
-        creationTime: now.millisecondsSinceEpoch,
-        builds: {
-          'Mac mac_host_engine': TaskStatus.succeeded,
-          'Mac mac_ios_engine': TaskStatus.cancelled,
-          'Linux linux_android_aot_engine': TaskStatus.succeeded,
-        },
-      ),
-    );
-    guards.add(
-      _createPresubmitGuard(
-        commitSha: 'decaf_3_mock_sha',
-        checkRunId: 1011,
-        pullRequestId: 123,
-        author: _authors[2],
-        stage: CiStage.fusionTests,
-        creationTime: now.millisecondsSinceEpoch,
-        builds: {
-          'Linux framework_tests': TaskStatus.succeeded,
-          'Mac framework_tests': TaskStatus.waitingForBackfill,
-          'Linux android framework_tests': TaskStatus.skipped,
-          'Windows framework_tests': TaskStatus.inProgress,
-        },
-      ),
-    );
-
-    // deafcab_mock_sha
-    guards.add(
-      _createPresubmitGuard(
-        commitSha: 'deafcab_mock_sha',
-        checkRunId: 369,
-        pullRequestId: 123,
-        author: _authors[3],
-        stage: CiStage.fusionEngineBuild,
-        creationTime: now.millisecondsSinceEpoch - 300000,
-        builds: {
-          'Mac mac_host_engine': TaskStatus.succeeded,
-          'Mac mac_ios_engine': TaskStatus.cancelled,
-          'Linux linux_android_aot_engine': TaskStatus.succeeded,
-        },
-      ),
-    );
-    guards.add(
-      _createPresubmitGuard(
-        commitSha: 'deafcab_mock_sha',
-        checkRunId: 369,
-        pullRequestId: 123,
-        author: _authors[3],
-        stage: CiStage.fusionTests,
-        creationTime: now.millisecondsSinceEpoch - 300000,
-        builds: {
-          'Linux framework_tests': TaskStatus.succeeded,
-          'Mac framework_tests': TaskStatus.succeeded,
-          'Linux android framework_tests': TaskStatus.skipped,
-          'Windows framework_tests': TaskStatus.succeeded,
-        },
-      ),
-    );
-
-    // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
-    checks.add(
-      PresubmitCheck(
-        slug: RepositorySlug('flutter', 'flutter'),
-        checkRunId: 1234,
-        buildName: 'Test Multi Attempt',
+    //face5_2_mock_sha
+    checkRunId = 234567;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
-        creationTime: now.millisecondsSinceEpoch - 10000,
-        buildNumber: 12345,
-        summary: '''
-[INFO] Starting task Test Multi Attempt...
-[SUCCESS] Dependencies installed.
-[INFO] Running build script...
-[SUCCESS] All tests passed (452/452)
-''',
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[1],
+        status: TaskStatus.skipped,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        commitSha: 'face5_2_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[1],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        builds: {for (var check in engineChecks) check.buildName: check.status},
+      ),
+    );
+    checks.addAll(engineChecks);
+    creationTime = creationTime + 100000;
+    var fusionChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[0],
+        status: TaskStatus.inProgress,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[1],
+        status: TaskStatus.skipped,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[3],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        commitSha: 'face5_2_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[1],
+        stage: CiStage.fusionTests,
+        creationTime: creationTime,
+        builds: {for (var check in fusionChecks) check.buildName: check.status},
+      ),
+    );
+    checks.addAll(fusionChecks);
+
+    // decaf_3_mock_sha
+    checkRunId = 345678;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[1],
+        status: TaskStatus.skipped,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        commitSha: 'decaf_3_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[3],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        builds: {for (var check in engineChecks) check.buildName: check.status},
+      ),
+    );
+    checks.addAll(engineChecks);
+    creationTime = creationTime + 100000;
+    fusionChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[1],
+        status: TaskStatus.skipped,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[3],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        commitSha: 'decaf_3_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[3],
+        stage: CiStage.fusionTests,
+        creationTime: creationTime,
+        builds: {for (var check in fusionChecks) check.buildName: check.status},
+      ),
+    );
+    checks.addAll(fusionChecks);
+
+    // deafcab_mock_sha
+    checkRunId = 456789;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[1],
+        status: TaskStatus.skipped,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: engineBuilds[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        commitSha: 'deafcab_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[4],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        builds: {for (var check in engineChecks) check.buildName: check.status},
+      ),
+    );
+    checks.addAll(engineChecks);
+    final creationTime2 = creationTime + 100000;
+    creationTime = creationTime + 100000;
+    fusionChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 2,
+        creationTime: creationTime2,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[1],
+        status: TaskStatus.cancelled,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[2],
+        status: TaskStatus.infraFailure,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[3],
+        status: TaskStatus.failed,
+        attemptNumber: 2,
+        creationTime: creationTime2,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        commitSha: 'deafcab_mock_sha',
+        checkRunId: checkRunId,
+        pullRequestId: prNum,
+        author: _authors[4],
+        stage: CiStage.fusionTests,
+        creationTime: creationTime,
+        builds: {for (var check in fusionChecks) check.buildName: check.status},
+      ),
+    );
+    checks.addAll(fusionChecks);
+    // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
+
+    checks.add(
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[0],
+        status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: creationTime,
       ),
     );
     checks.add(
-      PresubmitCheck(
-        slug: RepositorySlug('flutter', 'flutter'),
-        checkRunId: 1234,
-        buildName: 'Test Multi Attempt',
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[3],
         status: TaskStatus.failed,
-        attemptNumber: 2,
-        creationTime: now.millisecondsSinceEpoch,
-        buildNumber: 67890,
-        summary:
-            '[INFO] Starting task Test Multi Attempt...\n[ERROR] Test failed: Unit Tests',
+        attemptNumber: 1,
+        creationTime: creationTime,
       ),
     );
 
@@ -224,9 +381,8 @@ class DataSeeder {
     required CiStage stage,
     required int creationTime,
     required Map<String, TaskStatus> builds,
-    String repo = 'flutter',
   }) {
-    final slug = RepositorySlug('flutter', repo);
+    final slug = RepositorySlug('flutter', 'flutter');
     final failedBuilds = builds.values
         .where((status) => status.isFailure)
         .length;
@@ -254,15 +410,31 @@ class DataSeeder {
     required TaskStatus status,
     required int creationTime,
     int attemptNumber = 1,
-    String repo = 'flutter',
   }) {
     return PresubmitCheck(
-      slug: RepositorySlug('flutter', repo),
+      slug: RepositorySlug('flutter', 'flutter'),
       checkRunId: checkRunId,
       buildName: buildName,
       status: status,
       attemptNumber: attemptNumber,
       creationTime: creationTime,
+      buildNumber: 1337 + attemptNumber,
+      summary: switch (status) {
+        TaskStatus.succeeded =>
+          '[INFO] Starting task $buildName...\n[SUCCESS] All tests passed (452/452)',
+        TaskStatus.failed =>
+          '[INFO] Starting task $buildName...\n[ERROR] Test failed: Dummy Tests',
+        TaskStatus.infraFailure =>
+          '[INFO] Starting task $buildName...\n[ERROR] Infrastructure failure: Dummy Tests',
+        TaskStatus.cancelled =>
+          '[INFO] Starting task $buildName...\n[ERROR] Test cancelled: Dummy Tests',
+        TaskStatus.inProgress => '[INFO] Starting task $buildName...',
+        TaskStatus.waitingForBackfill => null,
+        TaskStatus.skipped =>
+          '[INFO] Starting task $buildName...\n[INFO] Test skipped: Dummy Tests',
+      },
+      startTime: creationTime + 30000,
+      endTime: creationTime + 60000,
     );
   }
 
