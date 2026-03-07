@@ -9,6 +9,7 @@ import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
+import 'package:googleapis/tagmanager/v2.dart';
 
 import 'cocoon.dart';
 import 'scenarios.dart';
@@ -136,7 +137,7 @@ class DataSeeder {
         author: _authors[1],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: {for (var check in engineChecks) check.buildName: check.status},
+        builds: _getLatestBuildStatuses(engineChecks),
       ),
     );
     checks.addAll(engineChecks);
@@ -179,7 +180,7 @@ class DataSeeder {
         author: _authors[1],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
-        builds: {for (var check in fusionChecks) check.buildName: check.status},
+        builds: _getLatestBuildStatuses(fusionChecks),
       ),
     );
     checks.addAll(fusionChecks);
@@ -218,18 +219,26 @@ class DataSeeder {
         author: _authors[3],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: {for (var check in engineChecks) check.buildName: check.status},
+        builds: _getLatestBuildStatuses(engineChecks),
       ),
     );
     checks.addAll(engineChecks);
     creationTime = creationTime + 100000;
+    var creationTime2 = creationTime + 100000;
     fusionChecks = [
       _createPresubmitCheck(
         checkRunId: checkRunId,
         buildName: fusionBuilds[0],
-        status: TaskStatus.succeeded,
+        status: TaskStatus.failed,
         attemptNumber: 1,
         creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 2,
+        creationTime: creationTime2,
       ),
       _createPresubmitCheck(
         checkRunId: checkRunId,
@@ -261,7 +270,7 @@ class DataSeeder {
         author: _authors[3],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
-        builds: {for (var check in fusionChecks) check.buildName: check.status},
+        builds: _getLatestBuildStatuses(fusionChecks),
       ),
     );
     checks.addAll(fusionChecks);
@@ -300,13 +309,20 @@ class DataSeeder {
         author: _authors[4],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: {for (var check in engineChecks) check.buildName: check.status},
+        builds: _getLatestBuildStatuses(engineChecks),
       ),
     );
     checks.addAll(engineChecks);
-    final creationTime2 = creationTime + 100000;
     creationTime = creationTime + 100000;
+    creationTime2 = creationTime + 100000;
     fusionChecks = [
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[0],
+        status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
       _createPresubmitCheck(
         checkRunId: checkRunId,
         buildName: fusionBuilds[0],
@@ -332,6 +348,13 @@ class DataSeeder {
         checkRunId: checkRunId,
         buildName: fusionBuilds[3],
         status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[3],
+        status: TaskStatus.failed,
         attemptNumber: 2,
         creationTime: creationTime2,
       ),
@@ -344,33 +367,26 @@ class DataSeeder {
         author: _authors[4],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
-        builds: {for (var check in fusionChecks) check.buildName: check.status},
+        builds: _getLatestBuildStatuses(fusionChecks),
       ),
     );
     checks.addAll(fusionChecks);
     // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
-
-    checks.add(
-      _createPresubmitCheck(
-        checkRunId: checkRunId,
-        buildName: fusionBuilds[0],
-        status: TaskStatus.failed,
-        attemptNumber: 1,
-        creationTime: creationTime,
-      ),
-    );
-    checks.add(
-      _createPresubmitCheck(
-        checkRunId: checkRunId,
-        buildName: fusionBuilds[3],
-        status: TaskStatus.failed,
-        attemptNumber: 1,
-        creationTime: creationTime,
-      ),
-    );
-
     _server.firestore.putDocuments(guards);
     _server.firestore.putDocuments(checks);
+  }
+
+  Map<String, TaskStatus> _getLatestBuildStatuses(List<PresubmitCheck> checks) {
+    final latestChecks = <String, PresubmitCheck>{};
+    for (final check in checks) {
+      if (!latestChecks.containsKey(check.buildName) ||
+          check.attemptNumber > latestChecks[check.buildName]!.attemptNumber) {
+        latestChecks[check.buildName] = check;
+      }
+    }
+    return {
+      for (var check in latestChecks.values) check.buildName: check.status,
+    };
   }
 
   PresubmitGuard _createPresubmitGuard({
