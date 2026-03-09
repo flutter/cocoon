@@ -333,7 +333,7 @@ class PresubmitState extends ChangeNotifier {
   /// Schedule the provided [taskName] to be re-run.
   ///
   /// Returns an error message if the request failed, otherwise null.
-  Future<String?> rerunTask(String taskName) async {
+  Future<String?> rerunFailedJob(String taskName) async {
     if (pr == null || _rerunningTasks.contains(taskName) || _isRerunningAll) {
       return null;
     }
@@ -367,7 +367,7 @@ class PresubmitState extends ChangeNotifier {
   /// Schedule all failed tasks for the current [pr] to be re-run.
   ///
   /// Returns an error message if the request failed, otherwise null.
-  Future<String?> rerunFailed() async {
+  Future<String?> rerunAllFailedJobs() async {
     if (pr == null || _isRerunningAll) {
       return null;
     }

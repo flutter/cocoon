@@ -217,7 +217,8 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                           presubmitState.isRerunningAll)
                       ? null
                       : () async {
-                          final error = await presubmitState.rerunFailed();
+                          final error = await presubmitState
+                              .rerunAllFailedJobs();
                           if (error != null) {
                             await _showErrorDialog(error);
                           }
@@ -658,7 +659,7 @@ class _CheckItem extends StatelessWidget {
                         isRerunningAll)
                     ? null
                     : () async {
-                        final error = await presubmitState.rerunTask(name);
+                        final error = await presubmitState.rerunFailedJob(name);
                         if (error != null) {
                           onError(error);
                         }

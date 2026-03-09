@@ -711,9 +711,8 @@ void main() {
       final rerunButton = find.widgetWithText(TextButton, 'Re-run');
 
       // Start re-running
-      final rerunFuture = presubmitState.rerunFailed();
+      final rerunFuture = presubmitState.rerunAllFailedJobs();
       await tester.pump();
-
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNull);
       expect(tester.widget<TextButton>(rerunButton).onPressed, isNull);
 

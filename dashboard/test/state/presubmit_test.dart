@@ -295,7 +295,7 @@ void main() {
     },
   );
 
-  test('rerunTask triggers API and updates loading state', () async {
+  test('rerunFailedJob triggers API and updates loading state', () async {
     when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
     when(
       mockCocoonService.rerunFailedJob(
@@ -309,7 +309,7 @@ void main() {
     presubmitState.repo = 'flutter';
     presubmitState.pr = '123';
 
-    final error = await presubmitState.rerunTask('linux_bot');
+    final error = await presubmitState.rerunFailedJob('linux_bot');
 
     expect(error, isNull);
     verify(
@@ -322,7 +322,7 @@ void main() {
     ).called(1);
   });
 
-  test('rerunFailed triggers API and updates loading state', () async {
+  test('rerunAllFailedJobs triggers API and updates loading state', () async {
     when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
     when(
       mockCocoonService.rerunAllFailedJobs(
@@ -335,7 +335,7 @@ void main() {
     presubmitState.repo = 'flutter';
     presubmitState.pr = '123';
 
-    final error = await presubmitState.rerunFailed();
+    final error = await presubmitState.rerunAllFailedJobs();
 
     expect(error, isNull);
     verify(
