@@ -19,6 +19,9 @@ void main() {
   setUp(() {
     mockCocoonService = MockCocoonService();
     mockAuthService = MockFirebaseAuthService();
+
+    when(mockAuthService.isAuthenticated).thenReturn(false);
+
     presubmitState = PresubmitState(
       cocoonService: mockCocoonService,
       authService: mockAuthService,
@@ -230,6 +233,27 @@ void main() {
     presubmitState.removeListener(listener);
     expect(presubmitState.refreshTimer, isNull);
   });
+
+  test(
+    'PresubmitState refreshes on auth change when becoming authenticated',
+    () async {
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      presubmitState.pr = '123';
+      // Clear initial calls from constructor/setUp
+      clearInteractions(mockCocoonService);
+
+      presubmitState.onAuthChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).called(1);
+    },
+  );
 
   test('rerunTask triggers API and updates loading state', () async {
     when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');

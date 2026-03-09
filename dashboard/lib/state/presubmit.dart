@@ -19,13 +19,18 @@ class PresubmitState extends ChangeNotifier {
     this.repo = 'flutter',
     this.pr,
     this.sha,
-  });
+  }) {
+    _isAuthenticated = authService.isAuthenticated;
+    authService.addListener(onAuthChanged);
+  }
 
   /// Cocoon backend service that retrieves the data needed for this state.
   final CocoonService cocoonService;
 
   /// Authentication service for managing Google Sign In.
   final FirebaseAuthService authService;
+
+  bool _isAuthenticated = false;
 
   /// The current repo to show data from.
   String repo;
@@ -392,9 +397,22 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
+  @visibleForTesting
+  void onAuthChanged() {
+    if (!_active) {
+      return;
+    }
+    if (authService.isAuthenticated && !_isAuthenticated) {
+      // User just logged in, refresh state
+      _fetchRefreshUpdate();
+    }
+    _isAuthenticated = authService.isAuthenticated;
+  }
+
   @override
   void dispose() {
     _active = false;
+    authService.removeListener(onAuthChanged);
     refreshTimer?.cancel();
     super.dispose();
   }
