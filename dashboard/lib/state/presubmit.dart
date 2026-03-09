@@ -402,8 +402,8 @@ class PresubmitState extends ChangeNotifier {
     if (!_active) {
       return;
     }
-    if (authService.isAuthenticated && !_isAuthenticated) {
-      // User just logged in, refresh state
+    if (authService.isAuthenticated != _isAuthenticated) {
+      // Authentication status changed (login or logout), refresh state
       _fetchRefreshUpdate();
     }
     _isAuthenticated = authService.isAuthenticated;

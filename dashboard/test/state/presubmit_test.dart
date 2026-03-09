@@ -255,6 +255,46 @@ void main() {
     },
   );
 
+  test(
+    'PresubmitState refreshes on auth change when becoming unauthenticated',
+    () async {
+      // Create a local state initialized with PR
+      final localPresubmitState = PresubmitState(
+        cocoonService: mockCocoonService,
+        authService: mockAuthService,
+        pr: '123',
+      );
+      // Wait for constructor fetch
+      await Future<void>.delayed(Duration.zero);
+      clearInteractions(mockCocoonService);
+
+      // Now login
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+      localPresubmitState.onAuthChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).called(1);
+      clearInteractions(mockCocoonService);
+
+      // Now logout
+      when(mockAuthService.isAuthenticated).thenReturn(false);
+      localPresubmitState.onAuthChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).called(1);
+    },
+  );
+
   test('rerunTask triggers API and updates loading state', () async {
     when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
     when(
