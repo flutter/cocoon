@@ -25,6 +25,7 @@ import 'src/service/commit_service.dart';
 import 'src/service/content_aware_hash_service.dart';
 import 'src/service/discord_service.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
+import 'src/service/test_suppression.dart';
 
 typedef Server = Future<void> Function(Request);
 
@@ -56,12 +57,12 @@ Server createServer({
     firestore: firestore,
   );
 
+  final suppressionService = TestSuppression(
+    firestore: firestore,
+    cache: cache,
+  );
+
   final handlers = <String, RequestHandler>{
-    '/api/check_flaky_builders': CheckFlakyBuilders(
-      config: config,
-      authenticationProvider: dashboardAuthProvider,
-      bigQuery: bigQuery,
-    ),
     '/api/create-branch': CreateBranch(
       branchService: branchService,
       config: config,
@@ -71,11 +72,6 @@ Server createServer({
       cache: cache,
       config: config,
       firestore: firestore,
-    ),
-    '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
-      config: config,
-      authenticationProvider: dashboardAuthProvider,
-      bigQuery: bigQuery,
     ),
     '/api/flush-cache': FlushCache(
       config: config,
@@ -217,9 +213,8 @@ Server createServer({
     ),
     '/api/update-suppressed-test': UpdateSuppressedTest(
       authenticationProvider: dashboardAuthProvider,
-      firestore: firestore,
+      suppressionService: suppressionService,
       config: config,
-      cache: cache,
     ),
     '/api/merge_queue_hooks': MergeQueueHooks(
       authenticationProvider: dashboardAuthProvider,
@@ -249,6 +244,18 @@ Server createServer({
       authenticationProvider: dashboardAuthProvider,
       bigQuery: bigQuery,
       ciYamlFetcher: ciYamlFetcher,
+    ),
+    '/api/check_flaky_builders': CheckFlakyBuilders(
+      config: config,
+      authenticationProvider: dashboardAuthProvider,
+      bigQuery: bigQuery,
+      testSuppression: suppressionService,
+    ),
+    '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
+      config: config,
+      authenticationProvider: dashboardAuthProvider,
+      bigQuery: bigQuery,
+      testSuppression: suppressionService,
     ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,

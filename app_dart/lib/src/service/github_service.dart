@@ -305,6 +305,15 @@ class GithubService {
     );
   }
 
+  Future<void> closeIssue(
+    RepositorySlug slug, {
+    required int issueNumber,
+  }) async {
+    ArgumentError.checkNotNull(slug);
+    ArgumentError.checkNotNull(issueNumber);
+    await github.issues.edit(slug, issueNumber, IssueRequest(state: 'closed'));
+  }
+
   Future<Issue> createIssue(
     RepositorySlug slug, {
     String? title,

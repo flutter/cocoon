@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/extensions/cache_service_test_suppression.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:cocoon_service/src/service/test_suppression.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
@@ -46,12 +47,16 @@ void main() {
       dynamicConfig: dynamicConfig,
     );
 
+    final suppression = TestSuppression(
+      firestore: firestore,
+      cache: cache,
+      now: () => fakeNow,
+    );
+
     handler = UpdateSuppressedTest(
       config: config,
       authenticationProvider: FakeDashboardAuthentication(),
-      firestore: firestore,
-      now: () => fakeNow,
-      cache: cache,
+      suppressionService: suppression,
     );
   });
 
