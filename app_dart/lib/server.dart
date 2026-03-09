@@ -63,12 +63,6 @@ Server createServer({
   );
 
   final handlers = <String, RequestHandler>{
-    '/api/check_flaky_builders': CheckFlakyBuilders(
-      config: config,
-      authenticationProvider: dashboardAuthProvider,
-      bigQuery: bigQuery,
-      testSuppression: suppressionService,
-    ),
     '/api/create-branch': CreateBranch(
       branchService: branchService,
       config: config,
@@ -78,12 +72,6 @@ Server createServer({
       cache: cache,
       config: config,
       firestore: firestore,
-    ),
-    '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
-      config: config,
-      authenticationProvider: dashboardAuthProvider,
-      bigQuery: bigQuery,
-      testSuppression: suppressionService,
     ),
     '/api/flush-cache': FlushCache(
       config: config,
@@ -256,6 +244,18 @@ Server createServer({
       authenticationProvider: dashboardAuthProvider,
       bigQuery: bigQuery,
       ciYamlFetcher: ciYamlFetcher,
+    ),
+    '/api/check_flaky_builders': CheckFlakyBuilders(
+      config: config,
+      authenticationProvider: dashboardAuthProvider,
+      bigQuery: bigQuery,
+      testSuppression: suppressionService,
+    ),
+    '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
+      config: config,
+      authenticationProvider: dashboardAuthProvider,
+      bigQuery: bigQuery,
+      testSuppression: suppressionService,
     ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,

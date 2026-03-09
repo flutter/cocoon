@@ -8,7 +8,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
-
 import '../../ci_yaml.dart';
 import '../../protos.dart' as pb;
 import '../foundation/utils.dart';
@@ -23,13 +22,12 @@ import 'flaky_handler_utils.dart';
 
 /// A handler to deflake builders if the builders are no longer flaky.
 ///
-/// This handler gets flaky builders from Firestore in flutter/flutter and
-/// check the following conditions:
+/// This handler gets flaky builders from Firestore and check the following
+/// conditions:
 /// 1. The builder is not in [ignoredBuilders].
 /// 2. The flaky issue of the builder is closed if there is one.
-/// 3. The builder has been passing for most recent [kRecordNumber] consecutive
-///    runs.
-/// 4. The builder is not marked with ignore_flakiness.
+/// 3. The builder has been passing for most recent
+///    [config.minimumPassingTestsToDeflake] consecutive runs.
 ///
 /// If all the conditions are true, this handler will remove the suppression in
 /// Firestore.
@@ -44,8 +42,6 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
 
   final BigQueryService _bigQuery;
   final TestSuppression _testSuppression;
-
-  static int kRecordNumber = 50;
 
   static final RegExp _issueLinkRegex = RegExp(
     r'https://github.com/flutter/flutter/issues/(?<id>[0-9]+)',
@@ -89,7 +85,7 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
       final builderRecords = await _bigQuery.listRecentBuildRecordsForBuilder(
         kBigQueryProjectId,
         builder: info.name,
-        limit: kRecordNumber,
+        limit: config.minimumPassingTestsToDeflake,
       );
       log.debug(
         builderRecords
@@ -121,7 +117,7 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
   /// 2) There is no flake
   /// 3) There is no failure
   bool _shouldDeflake(List<BuilderRecord> builderRecords) {
-    return builderRecords.length >= kRecordNumber &&
+    return builderRecords.length >= config.minimumPassingTestsToDeflake &&
         builderRecords.every(
           (BuilderRecord record) => !record.isFlaky && !record.isFailed,
         );
@@ -206,7 +202,8 @@ final class CheckFlakyBuilders extends ApiRequestHandler {
       final issueNumber = info.existingIssue!.number;
       log.info('Closing issue #$issueNumber for ${info.name}');
       final comment =
-          'The test has been passing for [$kRecordNumber consecutive runs](${Uri.encodeFull('$kFlakeRecordPrefix"${info.name}"')}).\n'
+          'The test has been passing for [${config.minimumPassingTestsToDeflake} consecutive runs]'
+          '(${Uri.encodeFull('$kFlakeRecordPrefix"${info.name}"')}).\n'
           'This test has been unsuppressed in Firestore and this issue is being closed.';
       await gitHub.createComment(slug, issueNumber: issueNumber, body: comment);
       await gitHub.closeIssue(slug, issueNumber: issueNumber);

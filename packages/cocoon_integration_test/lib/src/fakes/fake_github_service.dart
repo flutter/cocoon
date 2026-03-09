@@ -94,10 +94,7 @@ class FakeGithubService implements GithubService {
   final List<(RepositorySlug slug, int issueNumber)> closedIssues = [];
 
   @override
-  Future<void> closeIssue(
-    RepositorySlug slug, {
-    int? issueNumber,
-  }) async {
+  Future<void> closeIssue(RepositorySlug slug, {int? issueNumber}) async {
     closedIssues.add((slug, issueNumber!));
   }
 

@@ -185,7 +185,7 @@ void main() {
               );
         firestore.putDocument(suppressedTest);
 
-        CheckFlakyBuilders.kRecordNumber =
+        config.minimumPassingTestsToDeflake =
             semanticsIntegrationTestRecordsAllPassed.length;
         final result =
             await utf8.decoder
@@ -208,7 +208,7 @@ void main() {
           captured[1] as String?,
           expectedSemanticsIntegrationTestBuilderName,
         );
-        expect(captured[2] as int?, CheckFlakyBuilders.kRecordNumber);
+        expect(captured[2] as int?, config.minimumPassingTestsToDeflake);
 
         // Verify it gets the correct issue.
         captured = verify(
@@ -282,7 +282,7 @@ void main() {
             );
       firestore.putDocument(suppressedTest);
 
-      CheckFlakyBuilders.kRecordNumber =
+      config.minimumPassingTestsToDeflake =
           semanticsIntegrationTestRecordsAllPassed.length;
       final result =
           await utf8.decoder
@@ -341,7 +341,7 @@ void main() {
           ),
         );
       });
-      CheckFlakyBuilders.kRecordNumber =
+      config.minimumPassingTestsToDeflake =
           semanticsIntegrationTestRecordsAllPassed.length;
       final result =
           await utf8.decoder
@@ -418,7 +418,7 @@ void main() {
         );
       });
 
-      CheckFlakyBuilders.kRecordNumber =
+      config.minimumPassingTestsToDeflake =
           semanticsIntegrationTestRecordsFailed.length;
       final result =
           await utf8.decoder
@@ -481,7 +481,7 @@ void main() {
         );
       });
 
-      CheckFlakyBuilders.kRecordNumber =
+      config.minimumPassingTestsToDeflake =
           semanticsIntegrationTestRecordsAllPassed.length + 1;
       final result =
           await utf8.decoder

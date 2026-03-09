@@ -368,6 +368,8 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// The default number of commit shown in flutter build dashboard.
   int get commitNumber => 30;
 
+  int get minimumPassingTestsToDeflake => 50;
+
   /// Delay between consecutive GitHub deflake request calls.
   Duration get githubRequestDelay => const Duration(seconds: 1);
 

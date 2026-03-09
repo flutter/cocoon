@@ -24,6 +24,9 @@ import 'flaky_handler_utils.dart';
 /// A handler that queries build statistics from luci and file issues and pull
 /// requests for tests that have high flaky ratios.
 ///
+/// **Does not file a PR**: The name of this class and its API are carry overs
+/// and can be updated ~weeks after this updates land.
+///
 /// The query parameter kThresholdKey is required for this handler to use it as
 /// the standard when compares the flaky ratios.
 final class FileFlakyIssueAndPR extends ApiRequestHandler {
