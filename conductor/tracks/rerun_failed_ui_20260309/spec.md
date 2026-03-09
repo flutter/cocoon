@@ -5,10 +5,10 @@ Implement event handling and authentication for the existing "Re-run" and "Re-ru
 
 ## Functional Requirements
 *   **Re-run Event Handling:**
-    *   Connect the existing **"Re-run"** buttons (per job) to trigger an API call to the backend.
+    *   Connect the existing **"Re-run"** buttons (per job) to trigger the **`/api/rerun-failed-job`** API call.
     *   **UI Logic:** Disable only the specific "Re-run" button while the request is pending.
 *   **Re-run Failed Event Handling:**
-    *   Connect the existing **"Re-run failed"** button to trigger an API call to the backend for all failed jobs.
+    *   Connect the existing **"Re-run failed"** button to trigger the **`/api/rerun-all-failed-jobs`** API call.
     *   **UI Logic:** Disable the "Re-run failed" button AND all individual "Re-run" buttons while the request is pending.
 *   **State Management:**
     *   After a successful re-run request, call `_fetchRefreshUpdate` (or equivalent) to refresh the check-run states in the UI.

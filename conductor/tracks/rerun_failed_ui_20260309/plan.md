@@ -1,19 +1,21 @@
 # Implementation Plan - Re-run Event Handling in Presubmit Guard Details
 
 ## Phase 1: Service and State Updates
-Update the backend service interface and the state management logic to support re-run operations and track their loading status.
+Update the backend service interface and the state management logic to support re-run operations using the new API endpoints.
 
-- [ ] Task: Update `CocoonService` interface in `dashboard/lib/service/cocoon.dart` to include optional `include` parameter in `rerunTask`.
-- [ ] Task: Update `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart` to ensure `rerunTask` correctly overrides the interface.
+- [ ] Task: Update `CocoonService` interface in `dashboard/lib/service/cocoon.dart`:
+    - Add `Future<CocoonResponse<void>> rerunFailedJob({required String? idToken, required String repo, required int pr, required String buildName, String owner = 'flutter'})`.
+    - Add `Future<CocoonResponse<void>> rerunAllFailedJobs({required String? idToken, required String repo, required int pr, String owner = 'flutter'})`.
+- [ ] Task: Implement these methods in `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart` to call `/api/rerun-failed-job` and `/api/rerun-all-failed-jobs` respectively.
 - [ ] Task: Update `PresubmitState` in `dashboard/lib/state/presubmit.dart` to include re-run methods and state tracking.
     - Add `Set<String> _rerunningTasks` to track which tasks are currently being re-run.
     - Add `bool _isRerunningAll = false` to track if "Re-run failed" is in progress.
     - Implement `Future<String?> rerunTask(String taskName)`:
-        - Trigger `rerunTask` API.
+        - Trigger `rerunFailedJob` API using `pr` and `taskName`.
         - On success, call `_fetchRefreshUpdate()`.
         - Return error message if any.
     - Implement `Future<String?> rerunFailed()`:
-        - Trigger `rerunCommit` API with failed/infra-failure statuses.
+        - Trigger `rerunAllFailedJobs` API using `pr`.
         - On success, call `_fetchRefreshUpdate()`.
         - Return error message if any.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Service and State Updates' (Protocol in workflow.md)
