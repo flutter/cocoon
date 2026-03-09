@@ -3,11 +3,11 @@
 ## Phase 1: Service and State Updates
 Update the backend service interface and the state management logic to support re-run operations using the new API endpoints.
 
-- [ ] Task: Update `CocoonService` interface in `dashboard/lib/service/cocoon.dart`:
+- [x] Task: Update `CocoonService` interface in `dashboard/lib/service/cocoon.dart`:
     - Add `Future<CocoonResponse<void>> rerunFailedJob({required String? idToken, required String repo, required int pr, required String buildName, String owner = 'flutter'})`.
     - Add `Future<CocoonResponse<void>> rerunAllFailedJobs({required String? idToken, required String repo, required int pr, String owner = 'flutter'})`.
-- [ ] Task: Implement these methods in `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart` to call `/api/rerun-failed-job` and `/api/rerun-all-failed-jobs` respectively.
-- [ ] Task: Update `PresubmitState` in `dashboard/lib/state/presubmit.dart` to include re-run methods and state tracking.
+- [x] Task: Implement these methods in `AppEngineCocoonService` in `dashboard/lib/service/appengine_cocoon.dart` to call `/api/rerun-failed-job` and `/api/rerun-all-failed-jobs` respectively.
+- [x] Task: Update `PresubmitState` in `dashboard/lib/state/presubmit.dart` to include re-run methods and state tracking.
     - Add `Set<String> _rerunningTasks` to track which tasks are currently being re-run.
     - Add `bool _isRerunningAll = false` to track if "Re-run failed" is in progress.
     - Implement `Future<String?> rerunTask(String taskName)`:
