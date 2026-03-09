@@ -1,6 +1,6 @@
 # Implementation Plan - Re-run Event Handling in Presubmit Guard Details
 
-## Phase 1: Service and State Updates
+## Phase 1: Service and State Updates [checkpoint: 98e36b1]
 Update the backend service interface and the state management logic to support re-run operations using the new API endpoints.
 
 - [x] Task: Update `CocoonService` interface in `dashboard/lib/service/cocoon.dart`:
@@ -18,7 +18,7 @@ Update the backend service interface and the state management logic to support r
         - Trigger `rerunAllFailedJobs` API using `pr`.
         - On success, call `_fetchRefreshUpdate()`.
         - Return error message if any.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Service and State Updates' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Service and State Updates' (Protocol in workflow.md)
 
 ## Phase 2: UI Implementation
 Update the `PresubmitView` to connect the existing buttons to the new state methods and handle error reporting.
