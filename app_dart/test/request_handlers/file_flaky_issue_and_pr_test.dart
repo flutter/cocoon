@@ -14,6 +14,7 @@ import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart'
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:cocoon_service/src/service/test_suppression.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -47,6 +48,11 @@ void main() {
     late MockGitService mockGitService;
     late MockUsersService mockUsersService;
 
+    late FakeFirestoreService firestore;
+    late CacheService cache;
+    final fakeNow = DateTime.timestamp();
+    late TestSuppression suppression;
+
     setUp(() {
       request = FakeHttpRequest(
         queryParametersValue: <String, dynamic>{
@@ -63,6 +69,15 @@ void main() {
       mockPullRequestsService = MockPullRequestsService();
       mockGitService = MockGitService();
       mockUsersService = MockUsersService();
+
+      firestore = FakeFirestoreService();
+      cache = CacheService(inMemory: true);
+      suppression = TestSuppression(
+        firestore: firestore,
+        cache: cache,
+        now: () => fakeNow,
+      );
+
       // when gets the content of .ci.yaml
       when(
         // ignore: discarded_futures
@@ -157,10 +172,11 @@ void main() {
         config: config,
         authenticationProvider: auth,
         bigQuery: mockBigQueryService,
+        testSuppression: suppression,
       );
     });
 
-    test('Can file issue and pr for devicelab test', () async {
+    test('Can file issue and suppress for devicelab test', () async {
       // When queries flaky data from BigQuery.
       when(
         mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
@@ -175,45 +191,7 @@ void main() {
           Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
         );
       });
-      // Add issue labels
-      when(
-        mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny),
-      ).thenAnswer((_) {
-        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
-      });
-      // When creates git tree
-      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitTree>.value(
-          GitTree(
-            expectedSemanticsIntegrationTestTreeSha,
-            '',
-            false,
-            <GitTreeEntry>[],
-          ),
-        );
-      });
-      // When creates git commit
-      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitCommit>.value(
-          GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-        );
-      });
-      // When creates git reference
-      when(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(
-          GitReference(ref: invocation.positionalArguments[1] as String?),
-        );
-      });
-      // When creates pr to mark test flaky
-      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((
-        _,
-      ) {
-        return Future<PullRequest>.value(
-          PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-        );
-      });
+
       final result =
           await utf8.decoder
                   .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -222,7 +200,7 @@ void main() {
               as Map<String, dynamic>;
 
       // Verify issue is created correctly.
-      var captured = verify(
+      final captured = verify(
         mockIssuesService.create(captureAny, captureAny),
       ).captured;
       expect(captured.length, 2);
@@ -243,74 +221,29 @@ void main() {
         isTrue,
       );
 
-      // Verify issue label is added correctly.
-      captured = verify(
-        mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 3);
-      expect(captured[2], ['team-framework']);
-
-      // Verify tree is created correctly.
-      captured = verify(
-        mockGitService.createTree(captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
-      expect(captured[1], isA<CreateGitTree>());
-      final tree = captured[1] as CreateGitTree;
-      expect(tree.baseTree, kCurrentMasterSHA);
-      expect(tree.entries!.length, 1);
+      // Verify test is suppressed in firestore
       expect(
-        tree.entries![0].content,
-        expectedSemanticsIntegrationTestCiYamlContent,
+        firestore,
+        existsInStorage(SuppressedTest.metadata, [
+          isSuppressedTest
+              .hasTestName('Mac_android android_semantics_integration_test')
+              .hasRepository('flutter/flutter')
+              .hasIsSuppressed(isTrue)
+              .hasUpdates([
+                {
+                  'user': 'fluttergithubbot',
+                  'action': 'SUPPRESS',
+                  'note': 'flaky test rate: 0.02',
+                  'updateTimestamp': fakeNow,
+                },
+              ]),
+        ]),
       );
-      expect(tree.entries![0].path, kCiYamlPath);
-      expect(tree.entries![0].mode, kModifyMode);
-      expect(tree.entries![0].type, kModifyType);
-
-      // Verify commit is created correctly.
-      captured = verify(
-        mockGitService.createCommit(captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
-      expect(captured[1], isA<CreateGitCommit>());
-      final commit = captured[1] as CreateGitCommit;
-      expect(commit.message, expectedSemanticsIntegrationTestPullRequestTitle);
-      expect(commit.author!.name, kCurrentUserName);
-      expect(commit.author!.email, kCurrentUserEmail);
-      expect(commit.committer!.name, kCurrentUserName);
-      expect(commit.committer!.email, kCurrentUserEmail);
-      expect(commit.tree, expectedSemanticsIntegrationTestTreeSha);
-      expect(commit.parents!.length, 1);
-      expect(commit.parents![0], kCurrentMasterSHA);
-
-      // Verify reference is created correctly.
-      captured = verify(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 3);
-      expect(captured[0].toString(), '$kCurrentUserLogin/flutter');
-      expect(captured[2], expectedSemanticsIntegrationTestTreeSha);
-      final ref = captured[1] as String?;
-
-      // Verify pr is created correctly.
-      captured = verify(
-        mockPullRequestsService.create(captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), Config.flutterSlug.toString());
-      expect(captured[1], isA<CreatePullRequest>());
-      final pr = captured[1] as CreatePullRequest;
-      expect(pr.title, expectedSemanticsIntegrationTestPullRequestTitle);
-      expect(pr.body, expectedSemanticsIntegrationTestPullRequestBody);
-      expect(pr.head, '$kCurrentUserLogin:$ref');
-      expect(pr.base, 'refs/$kMasterRefs');
 
       expect(result['Status'], 'success');
     });
 
-    test('File mulitple issues and prs', () async {
+    test('File mulitple issues and suppressions', () async {
       // when gets the content of .ci.yaml
       when(
         mockRepositoriesService.getContents(captureAny, kCiYamlPath),
@@ -337,45 +270,7 @@ void main() {
           Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
         );
       });
-      // Add issue labels
-      when(
-        mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny),
-      ).thenAnswer((_) {
-        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
-      });
-      // When creates git tree
-      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitTree>.value(
-          GitTree(
-            expectedSemanticsIntegrationTestTreeSha,
-            '',
-            false,
-            <GitTreeEntry>[],
-          ),
-        );
-      });
-      // When creates git commit
-      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitCommit>.value(
-          GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-        );
-      });
-      // When creates git reference
-      when(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(
-          GitReference(ref: invocation.positionalArguments[1] as String?),
-        );
-      });
-      // When creates pr to mark test flaky
-      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((
-        _,
-      ) {
-        return Future<PullRequest>.value(
-          PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-        );
-      });
+
       final result =
           await utf8.decoder
                   .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -384,9 +279,20 @@ void main() {
               as Map<String, dynamic>;
       expect(result['Status'], 'success');
       expect(result['NumberOfCreatedIssuesAndPRs'], 2);
+
+      // Verify both tests are suppressed
+      expect(
+        firestore,
+        existsInStorage(SuppressedTest.metadata, [
+          isSuppressedTest.hasTestName(
+            'Mac_android android_semantics_integration_test',
+          ),
+          isSuppressedTest.hasTestName('Mac_android ignore_myflakiness'),
+        ]),
+      );
     });
 
-    test('File issues and prs up to issueAndPRLimit', () async {
+    test('File issues and suppressions up to issueAndPRLimit', () async {
       // when gets the content of .ci.yaml
       config = FakeConfig(
         githubService: GithubService(mockGitHubClient),
@@ -397,6 +303,7 @@ void main() {
         config: config,
         authenticationProvider: auth,
         bigQuery: mockBigQueryService,
+        testSuppression: suppression,
       );
       when(
         mockRepositoriesService.getContents(captureAny, kCiYamlPath),
@@ -423,45 +330,7 @@ void main() {
           Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
         );
       });
-      // Add issue labels
-      when(
-        mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny),
-      ).thenAnswer((_) {
-        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
-      });
-      // When creates git tree
-      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitTree>.value(
-          GitTree(
-            expectedSemanticsIntegrationTestTreeSha,
-            '',
-            false,
-            <GitTreeEntry>[],
-          ),
-        );
-      });
-      // When creates git commit
-      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitCommit>.value(
-          GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-        );
-      });
-      // When creates git reference
-      when(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(
-          GitReference(ref: invocation.positionalArguments[1] as String?),
-        );
-      });
-      // When creates pr to mark test flaky
-      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((
-        _,
-      ) {
-        return Future<PullRequest>.value(
-          PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-        );
-      });
+
       final result =
           await utf8.decoder
                   .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -470,94 +339,66 @@ void main() {
               as Map<String, dynamic>;
       expect(result['Status'], 'success');
       expect(result['NumberOfCreatedIssuesAndPRs'], 1);
-    });
 
-    test('Can file issue and pr for framework host-only test', () async {
-      // When queries flaky data from BigQuery.
-      when(
-        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<BuilderStatistic>>.value(analyzeTestResponse);
-      });
-      // When creates issue
-      when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
-        return Future<Issue>.value(
-          Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
-        );
-      });
-      // Add issue labels
-      when(
-        mockIssuesService.addLabelsToIssue(captureAny, captureAny, captureAny),
-      ).thenAnswer((_) {
-        return Future<List<IssueLabel>>.value(<IssueLabel>[]);
-      });
-      // When creates git tree
-      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitTree>.value(
-          GitTree(
-            expectedSemanticsIntegrationTestTreeSha,
-            '',
-            false,
-            <GitTreeEntry>[],
-          ),
-        );
-      });
-      // When creates git commit
-      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitCommit>.value(
-          GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-        );
-      });
-      // When creates git reference
-      when(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(
-          GitReference(ref: invocation.positionalArguments[1] as String?),
-        );
-      });
-      // When creates pr to mark test flaky
-      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((
-        _,
-      ) {
-        return Future<PullRequest>.value(
-          PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-        );
-      });
-      final result =
-          await utf8.decoder
-                  .bind((await tester.get(handler)).body as Stream<List<int>>)
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
-
-      // Verify issue is created correctly.
-      var captured = verify(
-        mockIssuesService.create(captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), Config.flutterSlug.toString());
-      expect(captured[1], isA<IssueRequest>());
-      final issueRequest = captured[1] as IssueRequest;
-      expect(issueRequest.assignee, expectedAnalyzeTestResponseAssignee);
-      expect(
-        const ListEquality<String>().equals(
-          issueRequest.labels,
-          expectedAnalyzeTestResponseLabels,
-        ),
-        isTrue,
+      // Verify only one test is suppressed
+      final suppressed = await SuppressedTest.getSuppressedTests(
+        firestore,
+        'flutter/flutter',
       );
-
-      // Verify pr is created correctly.
-      captured = verify(
-        mockPullRequestsService.create(captureAny, captureAny),
-      ).captured;
-      expect(captured.length, 2);
-      expect(captured[0].toString(), Config.flutterSlug.toString());
-      expect(captured[1], isA<CreatePullRequest>());
-
-      expect(result['Status'], 'success');
+      expect(suppressed.length, 1);
     });
+
+    test(
+      'Can file issue and suppression for framework host-only test',
+      () async {
+        // When queries flaky data from BigQuery.
+        when(
+          mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
+        ).thenAnswer((Invocation invocation) {
+          return Future<List<BuilderStatistic>>.value(analyzeTestResponse);
+        });
+        // When creates issue
+        when(mockIssuesService.create(captureAny, captureAny)).thenAnswer((_) {
+          return Future<Issue>.value(
+            Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
+          );
+        });
+
+        final result =
+            await utf8.decoder
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
+                    .transform(json.decoder)
+                    .single
+                as Map<String, dynamic>;
+
+        // Verify issue is created correctly.
+        final captured = verify(
+          mockIssuesService.create(captureAny, captureAny),
+        ).captured;
+        expect(captured.length, 2);
+        expect(captured[0].toString(), Config.flutterSlug.toString());
+        expect(captured[1], isA<IssueRequest>());
+        final issueRequest = captured[1] as IssueRequest;
+        expect(issueRequest.assignee, expectedAnalyzeTestResponseAssignee);
+        expect(
+          const ListEquality<String>().equals(
+            issueRequest.labels,
+            expectedAnalyzeTestResponseLabels,
+          ),
+          isTrue,
+        );
+
+        // Verify suppression
+        final suppressed = await SuppressedTest.getSuppressedTests(
+          firestore,
+          'flutter/flutter',
+        );
+        expect(suppressed.length, 1);
+        expect(suppressed[0].testName, 'Linux analyze');
+
+        expect(result['Status'], 'success');
+      },
+    );
 
     test(
       'Can file issue when limited number of successfuly builds exist',
@@ -576,51 +417,7 @@ void main() {
             Issue(htmlUrl: expectedSemanticsIntegrationTestNewIssueURL),
           );
         });
-        // Add issue labels
-        when(
-          mockIssuesService.addLabelsToIssue(
-            captureAny,
-            captureAny,
-            captureAny,
-          ),
-        ).thenAnswer((_) {
-          return Future<List<IssueLabel>>.value(<IssueLabel>[]);
-        });
-        // When creates git tree
-        when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-          return Future<GitTree>.value(
-            GitTree(
-              expectedSemanticsIntegrationTestTreeSha,
-              '',
-              false,
-              <GitTreeEntry>[],
-            ),
-          );
-        });
-        // When creates git commit
-        when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((
-          _,
-        ) {
-          return Future<GitCommit>.value(
-            GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-          );
-        });
-        // When creates git reference
-        when(
-          mockGitService.createReference(captureAny, captureAny, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<GitReference>.value(
-            GitReference(ref: invocation.positionalArguments[1] as String?),
-          );
-        });
-        // When creates pr to mark test flaky
-        when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer(
-          (_) {
-            return Future<PullRequest>.value(
-              PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-            );
-          },
-        );
+
         final result =
             await utf8.decoder
                     .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -642,7 +439,7 @@ void main() {
       },
     );
 
-    test('Can file issue but not pr for shard test', () async {
+    test('Can file issue but still suppress for shard test', () async {
       // When queries flaky data from BigQuery.
       when(
         mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
@@ -678,8 +475,13 @@ void main() {
         ),
         isTrue,
       );
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+
+      // Verify suppression still happens for shard tests
+      final suppressed = await SuppressedTest.getSuppressedTests(
+        firestore,
+        'flutter/flutter',
+      );
+      expect(suppressed.length, 1);
 
       expect(result['Status'], 'success');
     });
@@ -708,39 +510,7 @@ void main() {
           ),
         ]);
       });
-      // When creates git tree
-      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitTree>.value(
-          GitTree(
-            expectedSemanticsIntegrationTestTreeSha,
-            '',
-            false,
-            <GitTreeEntry>[],
-          ),
-        );
-      });
-      // When creates git commit
-      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitCommit>.value(
-          GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-        );
-      });
-      // When creates git reference
-      when(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(
-          GitReference(ref: invocation.positionalArguments[1] as String?),
-        );
-      });
-      // When creates pr to mark test flaky
-      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((
-        _,
-      ) {
-        return Future<PullRequest>.value(
-          PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-        );
-      });
+
       final result =
           await utf8.decoder
                   .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -749,8 +519,13 @@ void main() {
               as Map<String, dynamic>;
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+      // Verify no suppression is created.
+      final suppressed = await SuppressedTest.getSuppressedTests(
+        firestore,
+        'flutter/flutter',
+      );
+      expect(suppressed.isEmpty, isTrue);
+
       expect(result['Status'], 'success');
     });
 
@@ -782,39 +557,7 @@ void main() {
           ),
         ]);
       });
-      // When creates git tree
-      when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitTree>.value(
-          GitTree(
-            expectedSemanticsIntegrationTestTreeSha,
-            '',
-            false,
-            <GitTreeEntry>[],
-          ),
-        );
-      });
-      // When creates git commit
-      when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((_) {
-        return Future<GitCommit>.value(
-          GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-        );
-      });
-      // When creates git reference
-      when(
-        mockGitService.createReference(captureAny, captureAny, captureAny),
-      ).thenAnswer((Invocation invocation) {
-        return Future<GitReference>.value(
-          GitReference(ref: invocation.positionalArguments[1] as String?),
-        );
-      });
-      // When creates pr to mark test flaky
-      when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer((
-        _,
-      ) {
-        return Future<PullRequest>.value(
-          PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-        );
-      });
+
       final result =
           await utf8.decoder
                   .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -823,8 +566,13 @@ void main() {
               as Map<String, dynamic>;
       // Verify no issue is created.
       verifyNever(mockIssuesService.create(captureAny, captureAny));
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+      // Verify no suppression is created.
+      final suppressed = await SuppressedTest.getSuppressedTests(
+        firestore,
+        'flutter/flutter',
+      );
+      expect(suppressed.isEmpty, isTrue);
+
       expect(result['Status'], 'success');
     });
 
@@ -858,51 +606,7 @@ void main() {
             ),
           ]);
         });
-        // When creates git tree
-        when(mockGitService.createTree(captureAny, captureAny)).thenAnswer((_) {
-          return Future<GitTree>.value(
-            GitTree(
-              expectedSemanticsIntegrationTestTreeSha,
-              '',
-              false,
-              <GitTreeEntry>[],
-            ),
-          );
-        });
-        // Add issue labels
-        when(
-          mockIssuesService.addLabelsToIssue(
-            captureAny,
-            captureAny,
-            captureAny,
-          ),
-        ).thenAnswer((_) {
-          return Future<List<IssueLabel>>.value(<IssueLabel>[]);
-        });
-        // When creates git commit
-        when(mockGitService.createCommit(captureAny, captureAny)).thenAnswer((
-          _,
-        ) {
-          return Future<GitCommit>.value(
-            GitCommit(sha: expectedSemanticsIntegrationTestTreeSha),
-          );
-        });
-        // When creates git reference
-        when(
-          mockGitService.createReference(captureAny, captureAny, captureAny),
-        ).thenAnswer((Invocation invocation) {
-          return Future<GitReference>.value(
-            GitReference(ref: invocation.positionalArguments[1] as String?),
-          );
-        });
-        // When creates pr to mark test flaky
-        when(mockPullRequestsService.create(captureAny, captureAny)).thenAnswer(
-          (_) {
-            return Future<PullRequest>.value(
-              PullRequest(number: expectedSemanticsIntegrationTestPRNumber),
-            );
-          },
-        );
+
         final result =
             await utf8.decoder
                     .bind((await tester.get(handler)).body as Stream<List<int>>)
@@ -934,11 +638,57 @@ void main() {
           isTrue,
         );
 
+        // Verify suppression
+        final suppressed = await SuppressedTest.getSuppressedTests(
+          firestore,
+          'flutter/flutter',
+        );
+        expect(suppressed.length, 1);
+
         expect(result['Status'], 'success');
       },
     );
 
-    test('Do not create an issue or PR if the test is already flaky', () async {
+    test(
+      'Do not create an issue or suppression if the test is already suppressed',
+      () async {
+        // When queries flaky data from BigQuery.
+        when(
+          mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
+        ).thenAnswer((Invocation invocation) {
+          return Future<List<BuilderStatistic>>.value(
+            semanticsIntegrationTestResponse,
+          );
+        });
+
+        // Mark as suppressed in firestore
+        final suppressedTest =
+            SuppressedTest(
+                name: 'Mac_android android_semantics_integration_test',
+                repository: 'flutter/flutter',
+                issueLink: 'https://github.com/flutter/flutter/issues/123',
+                isSuppressed: true,
+                createTimestamp: DateTime.now().toUtc(),
+              )
+              ..name = firestore.resolveDocumentName(
+                SuppressedTest.kCollectionId,
+                'existing_doc',
+              );
+        firestore.putDocument(suppressedTest);
+        final result =
+            await utf8.decoder
+                    .bind((await tester.get(handler)).body as Stream<List<int>>)
+                    .transform(json.decoder)
+                    .single
+                as Map<String, dynamic>;
+        // Verify no issue is created.
+        verifyNever(mockIssuesService.create(captureAny, captureAny));
+
+        expect(result['Status'], 'success');
+      },
+    );
+
+    test('Do not create issue if there is already an opened one', () async {
       // When queries flaky data from BigQuery.
       when(
         mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
@@ -947,48 +697,18 @@ void main() {
           semanticsIntegrationTestResponse,
         );
       });
-      // when gets the content of .ci.yaml
+      // when gets existing flaky issues.
       when(
-        mockRepositoriesService.getContents(captureAny, kCiYamlPath),
+        mockIssuesService.listByRepo(
+          captureAny,
+          state: captureAnyNamed('state'),
+          labels: captureAnyNamed('labels'),
+        ),
       ).thenAnswer((Invocation invocation) {
-        return Future<RepositoryContents>.value(
-          RepositoryContents(
-            file: GitHubFile(content: gitHubEncode(ciYamlContentAlreadyFlaky)),
-          ),
-        );
-      });
-
-      final result =
-          await utf8.decoder
-                  .bind((await tester.get(handler)).body as Stream<List<int>>)
-                  .transform(json.decoder)
-                  .single
-              as Map<String, dynamic>;
-      // Verify no issue is created.
-      verifyNever(mockIssuesService.create(captureAny, captureAny));
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
-
-      expect(result['Status'], 'success');
-    });
-
-    test('Do not create PR if there is already an opened one', () async {
-      // When queries flaky data from BigQuery.
-      when(
-        mockBigQueryService.listBuilderStatistic(kBigQueryProjectId),
-      ).thenAnswer((Invocation invocation) {
-        return Future<List<BuilderStatistic>>.value(
-          semanticsIntegrationTestResponse,
-        );
-      });
-      // when gets existing marks flaky prs.
-      when(mockPullRequestsService.list(captureAny)).thenAnswer((
-        Invocation invocation,
-      ) {
-        return Stream<PullRequest>.fromIterable(<PullRequest>[
-          PullRequest(
-            title: expectedSemanticsIntegrationTestPullRequestTitle,
-            body: expectedSemanticsIntegrationTestPullRequestBody,
+        return Stream<Issue>.fromIterable(<Issue>[
+          Issue(
+            title: expectedSemanticsIntegrationTestResponseTitle,
+            body: expectedSemanticsIntegrationTestResponseBody,
             state: 'open',
           ),
         ]);
@@ -1000,8 +720,8 @@ void main() {
                   .transform(json.decoder)
                   .single
               as Map<String, dynamic>;
-      // Verify no pr is created.
-      verifyNever(mockPullRequestsService.create(captureAny, captureAny));
+      // Verify no issue is created.
+      verifyNever(mockIssuesService.create(captureAny, captureAny));
 
       expect(result['Status'], 'success');
     });

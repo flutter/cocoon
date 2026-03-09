@@ -60,7 +60,7 @@ const String _prodBuildPrefix =
     'https://ci.chromium.org/ui/p/flutter/builders/prod/';
 const String _stagingBuildPrefix =
     'https://ci.chromium.org/ui/p/flutter/builders/staging/';
-const String _flakeRecordPrefix =
+const String kFlakeRecordPrefix =
     'https://data.corp.google.com/sites/flutter_infra_metrics_datasite/flutter_check_test_flakiness_status_dashboard/?p=BUILDER_NAME:';
 
 /// A builder to build a new issue for a flake.
@@ -176,55 +176,6 @@ ${_issueBuilderLink(statistic.name, bringup: bringup)}
     }
     return result;
   }
-}
-
-/// A builder to build the pull request title and body for marking test flaky
-class PullRequestBuilder {
-  PullRequestBuilder({
-    required this.statistic,
-    required this.ownership,
-    required this.issue,
-  });
-
-  final BuilderStatistic statistic;
-  final TestOwnership ownership;
-  final Issue issue;
-
-  String get pullRequestTitle => 'Marks ${statistic.name} to be flaky';
-  String get pullRequestBody =>
-      '${_buildHiddenMetaTags(name: statistic.name)}Issue link: ${issue.htmlUrl}\n';
-  String? get pullRequestReviewer => ownership.owner;
-}
-
-/// A builder to build the pull request title and body for marking test unflaky
-class DeflakePullRequestBuilder {
-  DeflakePullRequestBuilder({
-    required this.name,
-    required this.recordNumber,
-    required this.ownership,
-    this.issue,
-  });
-
-  final String? name;
-  final Issue? issue;
-  final TestOwnership ownership;
-  final int recordNumber;
-
-  String get pullRequestTitle => 'Marks $name to be unflaky';
-  String get pullRequestBody {
-    var body = _buildHiddenMetaTags(name: name);
-    if (issue != null) {
-      body +=
-          'The issue ${issue!.htmlUrl} has been closed, and the test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
-    } else {
-      body +=
-          'The test has been passing for [$recordNumber consecutive runs](${Uri.encodeFull('$_flakeRecordPrefix"$name"')}).\n';
-    }
-    body += 'This test can be marked as unflaky.\n';
-    return body;
-  }
-
-  String? get pullRequestReviewer => ownership.owner;
 }
 
 // TESTOWNER Regex

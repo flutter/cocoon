@@ -271,4 +271,7 @@ class FakeConfig implements Config {
   @override
   // TODO: implement flags
   DynamicConfig get flags => dynamicConfig;
+
+  @override
+  int minimumPassingTestsToDeflake = 50;
 }

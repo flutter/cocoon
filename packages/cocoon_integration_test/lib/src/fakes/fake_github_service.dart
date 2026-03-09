@@ -91,6 +91,13 @@ class FakeGithubService implements GithubService {
     return;
   }
 
+  final List<(RepositorySlug slug, int issueNumber)> closedIssues = [];
+
+  @override
+  Future<void> closeIssue(RepositorySlug slug, {int? issueNumber}) async {
+    closedIssues.add((slug, issueNumber!));
+  }
+
   @override
   Future<PullRequest> createPullRequest(
     RepositorySlug slug, {
