@@ -9,7 +9,7 @@ This track involves implementing a new request handler in the `app_dart` service
     - Updated existing `GetPresubmitGuard` handler to use the centralized logic.
 - **RPC Model:**
     - Created `PresubmitGuardSummary` model in `packages/cocoon_common` to represent the aggregated status of guards for a single commit SHA.
-- **Endpoint:** Created a new GET endpoint: `/api/get-presubmit-guard-summaries`.
+- **Endpoint:** Created a new GET endpoint: `/api/public/get-presubmit-guard-summaries`.
 - **Input Parameters:**
     - `repo`: The GitHub repository name (required).
     - `pr`: The pull request number (required).
@@ -29,6 +29,6 @@ This track involves implementing a new request handler in the `app_dart` service
 - [x] `GetPresubmitGuard` refactored to use `GuardStatus.calculate`.
 - [x] `PresubmitGuardSummary` RPC model created and exported.
 - [x] `GetPresubmitGuardSummaries` handler implemented with grouping and aggregation logic.
-- [x] Endpoint registered at `/api/get-presubmit-guard-summaries`.
+- [x] Endpoint registered at `/api/public/get-presubmit-guard-summaries`.
 - [x] Unit tests cover all requirements and grouping logic.
 - [x] Code coverage > 95%.

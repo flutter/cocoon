@@ -4,7 +4,7 @@
 This track involves implementing a new API endpoint in the `app_dart` backend service to provide detailed information about a specific presubmit check. The dashboard will use this API to display the history and status of all checks for a given check run.
 
 ## Functional Requirements
-- **Endpoint:** `/api/get-presubmit-checks`
+- **Endpoint:** `/api/public/get-presubmit-checks`
 - **Method:** GET
 - **Parameters (Mandatory):**
     - `check_run_id`: The unique identifier for the GitHub Check Run.

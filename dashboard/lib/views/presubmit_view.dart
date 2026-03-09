@@ -428,7 +428,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     ? null
                     : () async => await launchUrl(
                         Uri.parse(
-                          generateBuildLogUrl(
+                          generatePreSubmitBuildLogUrl(
                             buildName: selectedCheck.buildName,
                             buildNumber: selectedCheck.buildNumber!,
                           ),

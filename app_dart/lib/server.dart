@@ -180,7 +180,7 @@ Server createServer({
     ///
     /// Consolidates multiple [PresubmitGuard] records (one per stage) into a single response.
     ///
-    /// GET: /api/get-presubmit-guard
+    /// GET: /api/public/get-presubmit-guard
     ///
     /// Parameters:
     ///   slug: (string in query) required. The repository owner/name (e.g., 'flutter/flutter').

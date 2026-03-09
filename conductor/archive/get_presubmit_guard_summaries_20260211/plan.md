@@ -40,7 +40,7 @@ This plan outlines the steps to refactor `GuardStatus` logic and implement the `
 - [x] Task: Conductor - User Manual Verification 'Rename Handler to GetPresubmitGuardSummaries' (Protocol in workflow.md)
 
 ## Phase 6: Update API URL
-- [x] Task: Update API URL in `app_dart/lib/server.dart` to `/api/get-presubmit-guard-summaries`.
+- [x] Task: Update API URL in `app_dart/lib/server.dart` to `/api/public/get-presubmit-guard-summaries`.
 - [x] Task: Update documentation in `GetPresubmitGuardSummaries` handler.
 - [x] Task: Verify all tests pass.
 - [x] Task: Conductor - User Manual Verification 'Update API URL' (Protocol in workflow.md)

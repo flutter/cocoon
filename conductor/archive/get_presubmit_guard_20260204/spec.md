@@ -7,7 +7,7 @@ This track involves implementing a new backend API endpoint in the `app_dart` se
 As a Flutter developer, I want to see the real-time status of my PR's presubmit checks on the Cocoon dashboard so that I can quickly identify and address failures without navigating through multiple GitHub or LUCI pages.
 
 ## Functional Requirements
-1.  **New API Endpoint:** Create an authenticated GET endpoint in `app_dart` (e.g., `/api/get-presubmit-guard`).
+1.  **New API Endpoint:** Create an authenticated GET endpoint in `app_dart` (e.g., `/api/public/get-presubmit-guard`).
 2.  **Input Parameters:** The endpoint must accept a `slug` (e.g., `flutter/flutter`) and a `commit_sha` as query parameters.
 3.  **Data Retrieval:** 
     - Query Cloud Firestore for all `PresubmitGuard` records matching the provided slug and commit SHA.
