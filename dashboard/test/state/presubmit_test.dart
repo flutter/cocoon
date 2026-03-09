@@ -9,7 +9,7 @@ import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-import '../utils/mocks.dart';
+import '../utils/mocks.mocks.dart';
 
 void main() {
   late PresubmitState presubmitState;
@@ -229,5 +229,57 @@ void main() {
 
     presubmitState.removeListener(listener);
     expect(presubmitState.refreshTimer, isNull);
+  });
+
+  test('rerunTask triggers API and updates loading state', () async {
+    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
+    when(
+      mockCocoonService.rerunFailedJob(
+        idToken: anyNamed('idToken'),
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+        buildName: anyNamed('buildName'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
+
+    presubmitState.repo = 'flutter';
+    presubmitState.pr = '123';
+
+    final error = await presubmitState.rerunTask('linux_bot');
+
+    expect(error, isNull);
+    verify(
+      mockCocoonService.rerunFailedJob(
+        idToken: 'fakeToken',
+        repo: 'flutter',
+        pr: 123,
+        buildName: 'linux_bot',
+      ),
+    ).called(1);
+  });
+
+  test('rerunFailed triggers API and updates loading state', () async {
+    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
+    when(
+      mockCocoonService.rerunAllFailedJobs(
+        idToken: anyNamed('idToken'),
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
+
+    presubmitState.repo = 'flutter';
+    presubmitState.pr = '123';
+
+    final error = await presubmitState.rerunFailed();
+
+    expect(error, isNull);
+    verify(
+      mockCocoonService.rerunAllFailedJobs(
+        idToken: 'fakeToken',
+        repo: 'flutter',
+        pr: 123,
+      ),
+    ).called(1);
   });
 }

@@ -48,6 +48,14 @@ class PresubmitState extends ChangeNotifier {
   bool _isGuardLoading = false;
   bool _isChecksLoading = false;
 
+  /// Set of task names that are currently being re-run.
+  Set<String> get rerunningTasks => _rerunningTasks;
+  final Set<String> _rerunningTasks = <String>{};
+
+  /// Whether "Re-run failed" is currently in progress.
+  bool get isRerunningAll => _isRerunningAll;
+  bool _isRerunningAll = false;
+
   /// The available SHAs for the current [pr].
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
   List<PresubmitGuardSummary> _availableSummaries = [];
@@ -315,6 +323,73 @@ class PresubmitState extends ChangeNotifier {
     }
     _isChecksLoading = false;
     notifyListeners();
+  }
+
+  /// Schedule the provided [taskName] to be re-run.
+  ///
+  /// Returns an error message if the request failed, otherwise null.
+  Future<String?> rerunTask(String taskName) async {
+    if (pr == null || _rerunningTasks.contains(taskName) || _isRerunningAll) {
+      return null;
+    }
+
+    _rerunningTasks.add(taskName);
+    notifyListeners();
+
+    try {
+      final idToken = await authService.idToken;
+      final response = await cocoonService.rerunFailedJob(
+        idToken: idToken,
+        repo: repo,
+        pr: int.parse(pr!),
+        buildName: taskName,
+      );
+
+      if (response.error != null) {
+        return response.error;
+      }
+
+      unawaited(_fetchRefreshUpdate());
+      return null;
+    } catch (e) {
+      return e.toString();
+    } finally {
+      _rerunningTasks.remove(taskName);
+      notifyListeners();
+    }
+  }
+
+  /// Schedule all failed tasks for the current [pr] to be re-run.
+  ///
+  /// Returns an error message if the request failed, otherwise null.
+  Future<String?> rerunFailed() async {
+    if (pr == null || _isRerunningAll) {
+      return null;
+    }
+
+    _isRerunningAll = true;
+    notifyListeners();
+
+    try {
+      final idToken = await authService.idToken;
+      final response = await cocoonService.rerunAllFailedJobs(
+        idToken: idToken,
+        repo: repo,
+        pr: int.parse(pr!),
+      );
+
+      if (response.error != null) {
+        return response.error;
+      }
+
+      unawaited(_fetchRefreshUpdate());
+      return null;
+    } catch (e) {
+      return e.toString();
+    } finally {
+      _isRerunningAll = false;
+      notifyListeners();
+    }
   }
 
   @override

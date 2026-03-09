@@ -445,6 +445,65 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
           as _i8.Future<_i3.CocoonResponse<bool>>);
 
   @override
+  _i8.Future<_i3.CocoonResponse<void>> rerunFailedJob({
+    required String? idToken,
+    required String? repo,
+    required int? pr,
+    required String? buildName,
+    String? owner = 'flutter',
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#rerunFailedJob, [], {
+              #idToken: idToken,
+              #repo: repo,
+              #pr: pr,
+              #buildName: buildName,
+              #owner: owner,
+            }),
+            returnValue: _i8.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#rerunFailedJob, [], {
+                  #idToken: idToken,
+                  #repo: repo,
+                  #pr: pr,
+                  #buildName: buildName,
+                  #owner: owner,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i3.CocoonResponse<void>>);
+
+  @override
+  _i8.Future<_i3.CocoonResponse<void>> rerunAllFailedJobs({
+    required String? idToken,
+    required String? repo,
+    required int? pr,
+    String? owner = 'flutter',
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#rerunAllFailedJobs, [], {
+              #idToken: idToken,
+              #repo: repo,
+              #pr: pr,
+              #owner: owner,
+            }),
+            returnValue: _i8.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#rerunAllFailedJobs, [], {
+                  #idToken: idToken,
+                  #repo: repo,
+                  #pr: pr,
+                  #owner: owner,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i3.CocoonResponse<void>>);
+
+  @override
   _i8.Future<_i3.CocoonResponse<void>> rerunCommit({
     required String? idToken,
     required String? commitSha,
