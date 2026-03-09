@@ -25,7 +25,7 @@ class LuciTaskAttemptSummary extends StatelessWidget {
         return ElevatedButton(
           child: Text('OPEN LOG FOR BUILD #$buildNumber'),
           onPressed: () async {
-            final url = generateBuildLogUrl(
+            final url = generatePostSubmitBuildLogUrl(
               buildName: task.builderName,
               buildNumber: buildNumber,
               isBringup: task.isBringup,

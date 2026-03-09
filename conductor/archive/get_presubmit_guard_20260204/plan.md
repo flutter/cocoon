@@ -21,7 +21,7 @@ Implement the request handler and wire it into the `app_dart` server.
         - Consolidate records into the `GetPresubmitGuardResponse` format.
         - Handle cases with no matching records (e.g., return 404 or empty response).
 - [x] Task: Register Endpoint in Server [checkpoint: 8f78382]
-    - [x] Add the new `/api/get-presubmit-guard` route to the `app_dart` server configuration (e.g., `app_dart/lib/src/server.dart` or equivalent).
+    - [x] Add the new `/api/public/get-presubmit-guard` route to the `app_dart` server configuration (e.g., `app_dart/lib/src/server.dart` or equivalent).
 - [x] Task: Conductor - User Manual Verification 'Phase 2: API Endpoint Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Verification & Documentation

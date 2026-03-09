@@ -16,7 +16,7 @@ import '../service/firestore/unified_check_run.dart';
 
 /// Request handler for retrieving all presubmit guards for a specific pull request.
 ///
-/// GET: /api/get-presubmit-guard-summaries
+/// GET: /api/public/get-presubmit-guard-summaries
 ///
 /// Parameters:
 ///   repo: (string in query) required. The repository name (e.g., 'flutter').

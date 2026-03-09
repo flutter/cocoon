@@ -13,7 +13,7 @@ import '../service/firestore/unified_check_run.dart';
 
 /// Returns all checks for a specific presubmit check run.
 ///
-/// GET: /api/get-presubmit-checks
+/// GET: /api/public/get-presubmit-checks
 ///
 /// Parameters:
 ///   check_run_id: (int in query) mandatory. The GitHub Check Run ID.
