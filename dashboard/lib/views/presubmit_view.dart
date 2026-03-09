@@ -222,13 +222,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                             await _showErrorDialog(error);
                           }
                         },
-                  icon: presubmitState.isRerunningAll
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.refresh, size: 18),
+                  icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Re-run failed'),
                   style: TextButton.styleFrom(
                     foregroundColor: isDark ? Colors.white : Colors.black87,
@@ -657,7 +651,7 @@ class _CheckItem extends StatelessWidget {
             if (isLatestSha &&
                 (status == TaskStatus.failed ||
                     status == TaskStatus.infraFailure))
-              TextButton(
+              TextButton.icon(
                 onPressed:
                     (!presubmitState.authService.isAuthenticated ||
                         isRerunning ||
@@ -669,21 +663,13 @@ class _CheckItem extends StatelessWidget {
                           onError(error);
                         }
                       },
-                child: isRerunning
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        'Re-run',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFF58A6FF)
-                              : const Color(0xFF0969DA),
-                        ),
-                      ),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Re-run'),
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark
+                      ? const Color(0xFF58A6FF)
+                      : const Color(0xFF0969DA),
+                ),
               ),
           ],
         ),
