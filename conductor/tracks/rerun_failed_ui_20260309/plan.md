@@ -18,17 +18,19 @@ Update the backend service interface and the state management logic to support r
         - Trigger `rerunAllFailedJobs` API using `pr`.
         - On success, call `_fetchRefreshUpdate()`.
         - Return error message if any.
+    - Listen to `authService` and trigger `_fetchRefreshUpdate()` when user becomes authenticated.
+- [x] Task: Update `PresubmitState` to refresh state on authentication changes.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Service and State Updates' (Protocol in workflow.md)
 
 ## Phase 2: UI Implementation
 Update the `PresubmitView` to connect the existing buttons to the new state methods and handle error reporting.
 
-- [ ] Task: Update `_CheckItem` in `dashboard/lib/views/presubmit_view.dart` to:
+- [x] Task: Update `_CheckItem` in `dashboard/lib/views/presubmit_view.dart` to:
     - Check if the task is currently being re-run or if "Re-run all" is in progress to disable the button.
     - Check authentication status to disable the button.
     - Call `presubmitState.rerunTask` on press and show error dialog on failure.
-- [ ] Task: Update `PresubmitView`'s "Re-run failed" button in `CocoonAppBar` to:
+- [x] Task: Update `PresubmitView`'s "Re-run failed" button in `CocoonAppBar` to:
     - Check if "Re-run all" is in progress to disable the button.
     - Check authentication status to disable the button.
     - Call `presubmitState.rerunFailed` on press and show error dialog on failure.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: UI Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: UI Implementation' (Protocol in workflow.md)
