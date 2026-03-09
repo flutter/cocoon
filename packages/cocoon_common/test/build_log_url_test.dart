@@ -34,5 +34,34 @@ void main() {
         '$dartInternalLogBase/flutter/Linux%20flutter_release_builder/123',
       );
     });
+    test('generates dart-internal url with isBringup', () {
+      expect(
+        generatePostSubmitBuildLogUrl(
+          buildName: 'Linux flutter_release_builder',
+          buildNumber: 123,
+          isBringup: true,
+        ),
+        '$dartInternalLogBase/flutter/Linux%20flutter_release_builder/123',
+      );
+    });
+  });
+
+  group('generatePreSubmitBuildLogUrl', () {
+    test('generates luci try url', () {
+      expect(
+        generatePreSubmitBuildLogUrl(buildName: 'Linux', buildNumber: 123),
+        '$luciProdLogBase/try/Linux/123',
+      );
+    });
+
+    test('generates dart-internal url', () {
+      expect(
+        generatePreSubmitBuildLogUrl(
+          buildName: 'Linux flutter_release_builder',
+          buildNumber: 123,
+        ),
+        '$dartInternalLogBase/flutter/Linux%20flutter_release_builder/123',
+      );
+    });
   });
 }

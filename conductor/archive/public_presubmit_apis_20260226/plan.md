@@ -35,7 +35,7 @@ This phase transitions the specified handlers to `PublicApiRequestHandler`.
 - [x] Task: Verify Public Access
     - [x] Add/Update tests for each handler to verify they return successful responses even when no authentication is provided.
 - [x] Task: Update API Paths
-    - [x] Change `/api/public/get-presubmit-*` to `/api/public/get-presubmit-*` in `app_dart/lib/server.dart`.
+    - [x] Change `/api/get-presubmit-*` to `/api/public/get-presubmit-*` in `app_dart/lib/server.dart`.
 - [x] Task: Refactor all Public Handlers
     - [x] Identify all handlers with `/api/public/` path.
     - [x] Update `GetBuildStatus`, `GetSuppressedTests`, `GetRepos`, `GetEngineArtifactsReady`, `GetReleaseBranches`, `GetStatus`, `GetGreenCommits`, and `GithubRateLimitStatus` to extend `PublicApiRequestHandler`.
