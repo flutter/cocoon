@@ -18,9 +18,18 @@ Update the backend service interface and the state management logic to support r
         - Trigger `rerunAllFailedJobs` API using `pr`.
         - On success, call `_fetchRefreshUpdate()`.
         - Return error message if any.
-    - Listen to `authService` and trigger `_fetchRefreshUpdate()` when user becomes authenticated.
-- [x] Task: Update `PresubmitState` to refresh state on authentication changes.
+    - Listen to `authService` and trigger `_fetchRefreshUpdate()` when user authentication status changes (login or logout).
+- [x] Task: Update `PresubmitState` to refresh state on authentication changes (login/logout).
+- [x] Task: Rename `rerunTask` to `rerunFailedJob` and `rerunFailed` to `rerunAllFailedJobs` in `PresubmitState` and its usages.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Service and State Updates' (Protocol in workflow.md)
+
+## Phase 3: Data Seeding Updates
+Update the backend data seeder to provide more realistic dummy data for integration tests.
+
+- [~] Task: Update `_seedPresubmitData` in `dashboard/lib/service/data_seeder.dart` to seed `prCheckRuns` with dummy `pull_request`.
+    - For every `PresubmitGuard`, create a matching `PrCheckRuns` document.
+    - Include a dummy `PullRequest` object with: `head.sha`, `base.repo`, `base.ref`, `user.login`, `number`, `labels`.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Seeding Updates' (Protocol in workflow.md)
 
 ## Phase 2: UI Implementation
 Update the `PresubmitView` to connect the existing buttons to the new state methods and handle error reporting.

@@ -368,13 +368,14 @@ final class UnifiedCheckRun {
     required int pullRequestNum,
     Transaction? transaction,
   }) async {
-    return (await _queryPresubmitGuards(
+    final test = await _queryPresubmitGuards(
       firestoreService: firestoreService,
       slug: slug,
       pullRequestId: pullRequestNum,
       transaction: transaction,
       limit: 1,
-    )).firstOrNull;
+    );
+    return test.firstOrNull;
   }
 
   /// Queries for [PresubmitGuard] records by [slug] and [commitSha].
@@ -434,7 +435,8 @@ final class UnifiedCheckRun {
       limit: limit,
       orderMap: orderMap,
     );
-    return [...documents.map(PresubmitGuard.fromDocument)];
+    final test = [...documents.map(PresubmitGuard.fromDocument)];
+    return test;
   }
 
   /// Returns detailed information for a specific presubmit check identified by

@@ -10,6 +10,9 @@ import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
+import 'package:uuid/data.dart';
+import 'package:uuid/rng.dart';
+import 'package:uuid/uuid.dart';
 
 import 'cocoon.dart';
 import 'scenarios.dart';
@@ -102,11 +105,6 @@ class DataSeeder {
       ),
     );
     checks.addAll(engineChecks);
-
-    final prCheckRuns = <PrCheckRuns>[];
-    for (final guard in guards) {
-      prCheckRuns.add(_createPrCheckRuns(guard));
-    }
 
     // face5_2_mock_sha
     checkRunId = 234567;
@@ -377,10 +375,9 @@ class DataSeeder {
     );
     checks.addAll(fusionChecks);
 
+    final prCheckRuns = <PrCheckRuns>[];
     for (final guard in guards) {
-      if (!prCheckRuns.any((p) => p.sha == guard.commitSha)) {
-        prCheckRuns.add(_createPrCheckRuns(guard));
-      }
+      prCheckRuns.add(_createPrCheckRuns(guard));
     }
 
     // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
@@ -420,7 +417,11 @@ class DataSeeder {
         .length;
 
     return PresubmitGuard(
-      checkRun: generateCheckRun(checkRunId),
+      checkRun: generateCheckRun(
+        checkRunId,
+        name: 'Merge Queue Guard',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(creationTime),
+      ),
       commitSha: commitSha,
       slug: slug,
       pullRequestId: pullRequestId,
@@ -489,14 +490,19 @@ class DataSeeder {
       user: User(login: guard.author),
       labels: [],
     );
+    final uuid = const Uuid(goptions: GlobalOptions(CryptoRNG()));
+    final docName =
+        'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}/documents/${PrCheckRuns.kCollectionId}/${uuid.v4()}';
     final prCheckRuns = PrCheckRuns()
       ..pullRequest = pr
       ..pullRequestNum = guard.pullRequestId
       ..fields['sha'] = guard.commitSha.toValue()
-      ..fields['slug'] = jsonEncode(guard.slug.toJson()).toValue();
+      ..fields['slug'] = jsonEncode(guard.slug.toJson()).toValue()
+      ..fields['Merge Queue Guard'] = guard.checkRun.id!.toString().toValue()
+      ..name = docName;
 
     for (final buildName in guard.builds.keys) {
-      prCheckRuns.fields[buildName] = '12345'.toValue();
+      prCheckRuns.fields[buildName] = '234567'.toString().toValue();
     }
 
     return prCheckRuns;
