@@ -219,6 +219,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                       : () async {
                           final error = await presubmitState
                               .rerunAllFailedJobs();
+                          if (!mounted) return;
                           if (error != null) {
                             await _showErrorDialog(error);
                           }
