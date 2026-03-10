@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:cocoon_common/task_status.dart';
@@ -102,7 +103,12 @@ class DataSeeder {
     );
     checks.addAll(engineChecks);
 
-    //face5_2_mock_sha
+    final prCheckRuns = <PrCheckRuns>[];
+    for (final guard in guards) {
+      prCheckRuns.add(_createPrCheckRuns(guard));
+    }
+
+    // face5_2_mock_sha
     checkRunId = 234567;
     creationTime = creationTime + 100000;
     engineChecks = [
@@ -370,9 +376,17 @@ class DataSeeder {
       ),
     );
     checks.addAll(fusionChecks);
+
+    for (final guard in guards) {
+      if (!prCheckRuns.any((p) => p.sha == guard.commitSha)) {
+        prCheckRuns.add(_createPrCheckRuns(guard));
+      }
+    }
+
     // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
     _server.firestore.putDocuments(guards);
     _server.firestore.putDocuments(checks);
+    _server.firestore.putDocuments(prCheckRuns);
   }
 
   Map<String, TaskStatus> _getLatestBuildStatuses(List<PresubmitCheck> checks) {
@@ -451,6 +465,41 @@ class DataSeeder {
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,
     );
+  }
+
+  PrCheckRuns _createPrCheckRuns(PresubmitGuard guard) {
+    final pr = PullRequest(
+      number: guard.pullRequestId,
+      head: PullRequestHead(
+        sha: guard.commitSha,
+        repo: Repository(
+          fullName: guard.slug.fullName,
+          name: guard.slug.name,
+          owner: UserInformation(guard.slug.owner, 1, '', ''),
+        ),
+      ),
+      base: PullRequestHead(
+        ref: 'master',
+        repo: Repository(
+          fullName: guard.slug.fullName,
+          name: guard.slug.name,
+          owner: UserInformation(guard.slug.owner, 1, '', ''),
+        ),
+      ),
+      user: User(login: guard.author),
+      labels: [],
+    );
+    final prCheckRuns = PrCheckRuns()
+      ..pullRequest = pr
+      ..pullRequestNum = guard.pullRequestId
+      ..fields['sha'] = guard.commitSha.toValue()
+      ..fields['slug'] = jsonEncode(guard.slug.toJson()).toValue();
+
+    for (final buildName in guard.builds.keys) {
+      prCheckRuns.fields[buildName] = '12345'.toValue();
+    }
+
+    return prCheckRuns;
   }
 
   void _seedTreeStatusChanges(DateTime now) {

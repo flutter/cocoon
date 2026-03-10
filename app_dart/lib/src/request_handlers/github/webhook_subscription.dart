@@ -14,7 +14,6 @@ import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
 import '../../../protos.dart' as pb;
-import '../../model/firestore/pr_check_runs.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../model/github/workflow_job.dart' as workflow_job;
 import '../../request_handling/exceptions.dart';

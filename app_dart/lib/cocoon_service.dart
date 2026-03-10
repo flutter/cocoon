@@ -6,6 +6,7 @@ export 'src/foundation/context.dart';
 export 'src/foundation/utils.dart';
 export 'src/model/firestore/base.dart' hide AppDocument;
 export 'src/model/firestore/commit.dart';
+export 'src/model/firestore/pr_check_runs.dart';
 export 'src/model/firestore/presubmit_check.dart';
 export 'src/model/firestore/presubmit_guard.dart';
 export 'src/model/firestore/suppressed_test.dart';
