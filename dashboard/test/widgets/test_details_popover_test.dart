@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
@@ -212,6 +214,55 @@ void main() {
       expect(call.issueLink, 'https://github.com/flutter/flutter/issues/1234');
       expect(call.note, 'Flaky test');
     });
+
+    testWidgets('disables toggle suppression while pending', (
+      WidgetTester tester,
+    ) async {
+      final waitUntil = Completer<void>();
+      buildState.pauseUpdateUntilCompleted = waitUntil.future;
+      buildState.updateTestSuppressionResult = true;
+      buildState.suppressedTests = [suppressedTest];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TestDetailsPopover(
+              qualifiedTask: task,
+              buildState: buildState,
+              showSnackBarCallback: (SnackBar snackBar) {
+                ScaffoldMessenger.of(
+                  tester.element(find.byType(Scaffold)),
+                ).showSnackBar(snackBar);
+              },
+              closeCallback: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Tap Remove Suppression
+      final findButton = find.text('Remove Suppression');
+
+      await tester.tap(findButton);
+      await tester.pump(); // Start async call
+      await tester.pump(); // Resolve async call and show snackbar
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is ElevatedButton && w.onPressed == null,
+        ),
+        findsOneWidget,
+      );
+
+      waitUntil.complete();
+      await tester.pump();
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is ElevatedButton && w.onPressed != null,
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('shows error snackbar when update fails', (
       WidgetTester tester,
     ) async {
