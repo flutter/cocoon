@@ -229,6 +229,7 @@ void main() {
               .hasTestName('Mac_android android_semantics_integration_test')
               .hasRepository('flutter/flutter')
               .hasIsSuppressed(isTrue)
+              .hasIssueLink(expectedSemanticsIntegrationTestNewIssueURL)
               .hasUpdates([
                 {
                   'user': 'fluttergithubbot',
@@ -395,6 +396,10 @@ void main() {
         );
         expect(suppressed.length, 1);
         expect(suppressed[0].testName, 'Linux analyze');
+        expect(
+          suppressed[0].issueLink,
+          expectedSemanticsIntegrationTestNewIssueURL,
+        );
 
         expect(result['Status'], 'success');
       },
@@ -434,6 +439,17 @@ void main() {
         expect(captured[1], isA<IssueRequest>());
         final issueRequest = captured[1] as IssueRequest;
         expect(issueRequest.body, expectedLimitedNumberOfBuildsResponseBody);
+
+        // Verify suppression
+        final suppressed = await SuppressedTest.getSuppressedTests(
+          firestore,
+          'flutter/flutter',
+        );
+        expect(suppressed.length, 1);
+        expect(
+          suppressed[0].issueLink,
+          expectedSemanticsIntegrationTestNewIssueURL,
+        );
 
         expect(result['Status'], 'success');
       },
@@ -482,6 +498,10 @@ void main() {
         'flutter/flutter',
       );
       expect(suppressed.length, 1);
+      expect(
+        suppressed[0].issueLink,
+        expectedSemanticsIntegrationTestNewIssueURL,
+      );
 
       expect(result['Status'], 'success');
     });

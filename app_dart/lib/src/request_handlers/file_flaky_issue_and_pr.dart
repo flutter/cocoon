@@ -159,6 +159,7 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
       testName: builderDetail.statistic.name,
       email: 'fluttergithubbot',
       repository: slug,
+      issueLink: issue.htmlUrl,
       action: SuppressingAction.suppress,
       note: 'flaky test rate: $threshold',
     );
