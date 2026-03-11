@@ -297,6 +297,7 @@ void main() {
 
   test('rerunFailedJob triggers API and updates loading state', () async {
     when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
+    when(mockAuthService.isAuthenticated).thenReturn(true);
     when(
       mockCocoonService.rerunFailedJob(
         idToken: anyNamed('idToken'),
@@ -324,6 +325,7 @@ void main() {
 
   test('rerunAllFailedJobs triggers API and updates loading state', () async {
     when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
+    when(mockAuthService.isAuthenticated).thenReturn(true);
     when(
       mockCocoonService.rerunAllFailedJobs(
         idToken: anyNamed('idToken'),
