@@ -109,6 +109,26 @@ class _PreSubmitViewState extends State<PreSubmitView> {
     });
   }
 
+  Future<void> _showErrorDialog(String message) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -192,7 +212,16 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             actions: [
               if (isLatestSha) ...[
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: (!presubmitState.canRerunAllFailedJobs)
+                      ? null
+                      : () async {
+                          final error = await presubmitState
+                              .rerunAllFailedJobs();
+                          if (!mounted) return;
+                          if (error != null) {
+                            await _showErrorDialog(error);
+                          }
+                        },
                   icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Re-run failed'),
                   style: TextButton.styleFrom(
@@ -230,6 +259,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                                 selectedCheck: selectedCheck,
                                 isLatestSha: isLatestSha,
                                 onCheckSelected: presubmitState.selectCheck,
+                                onError: _showErrorDialog,
                               ),
                             const VerticalDivider(width: 1, thickness: 1),
                             Expanded(
@@ -475,12 +505,14 @@ class _ChecksSidebar extends StatefulWidget {
     this.selectedCheck,
     this.isLatestSha = false,
     required this.onCheckSelected,
+    required this.onError,
   });
 
   final PresubmitGuardResponse guardResponse;
   final String? selectedCheck;
   final bool isLatestSha;
   final ValueChanged<String> onCheckSelected;
+  final ValueChanged<String> onError;
 
   @override
   State<_ChecksSidebar> createState() => _ChecksSidebarState();
@@ -543,6 +575,7 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                           isSelected: isSelected,
                           isLatestSha: widget.isLatestSha,
                           onTap: () => widget.onCheckSelected(entry.key),
+                          onError: widget.onError,
                         );
                       }),
                     ],
@@ -564,6 +597,7 @@ class _CheckItem extends StatelessWidget {
     required this.isSelected,
     this.isLatestSha = false,
     required this.onTap,
+    required this.onError,
   });
 
   final String name;
@@ -571,11 +605,13 @@ class _CheckItem extends StatelessWidget {
   final bool isSelected;
   final bool isLatestSha;
   final VoidCallback onTap;
+  final ValueChanged<String> onError;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final presubmitState = Provider.of<PresubmitState>(context);
 
     return InkWell(
       onTap: onTap,
@@ -612,16 +648,21 @@ class _CheckItem extends StatelessWidget {
             if (isLatestSha &&
                 (status == TaskStatus.failed ||
                     status == TaskStatus.infraFailure))
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Re-run',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark
-                        ? const Color(0xFF58A6FF)
-                        : const Color(0xFF0969DA),
-                  ),
+              TextButton.icon(
+                onPressed: (!presubmitState.canRerunFailedJob(name))
+                    ? null
+                    : () async {
+                        final error = await presubmitState.rerunFailedJob(name);
+                        if (error != null) {
+                          onError(error);
+                        }
+                      },
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('Re-run'),
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark
+                      ? const Color(0xFF58A6FF)
+                      : const Color(0xFF0969DA),
                 ),
               ),
           ],

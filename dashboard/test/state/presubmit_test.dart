@@ -9,7 +9,7 @@ import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-import '../utils/mocks.dart';
+import '../utils/mocks.mocks.dart';
 
 void main() {
   late PresubmitState presubmitState;
@@ -19,6 +19,9 @@ void main() {
   setUp(() {
     mockCocoonService = MockCocoonService();
     mockAuthService = MockFirebaseAuthService();
+
+    when(mockAuthService.isAuthenticated).thenReturn(false);
+
     presubmitState = PresubmitState(
       cocoonService: mockCocoonService,
       authService: mockAuthService,
@@ -229,5 +232,120 @@ void main() {
 
     presubmitState.removeListener(listener);
     expect(presubmitState.refreshTimer, isNull);
+  });
+
+  test(
+    'PresubmitState refreshes on auth change when becoming authenticated',
+    () async {
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      presubmitState.pr = '123';
+      // Clear initial calls from constructor/setUp
+      clearInteractions(mockCocoonService);
+
+      presubmitState.onAuthChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
+    'PresubmitState refreshes on auth change when becoming unauthenticated',
+    () async {
+      // Create a local state initialized with PR
+      final localPresubmitState = PresubmitState(
+        cocoonService: mockCocoonService,
+        authService: mockAuthService,
+        pr: '123',
+      );
+      // Wait for constructor fetch
+      await Future<void>.delayed(Duration.zero);
+      clearInteractions(mockCocoonService);
+
+      // Now login
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+      localPresubmitState.onAuthChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).called(1);
+      clearInteractions(mockCocoonService);
+
+      // Now logout
+      when(mockAuthService.isAuthenticated).thenReturn(false);
+      localPresubmitState.onAuthChanged();
+      await Future<void>.delayed(Duration.zero);
+
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).called(1);
+    },
+  );
+
+  test('rerunFailedJob triggers API and updates loading state', () async {
+    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
+    when(mockAuthService.isAuthenticated).thenReturn(true);
+    when(
+      mockCocoonService.rerunFailedJob(
+        idToken: anyNamed('idToken'),
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+        buildName: anyNamed('buildName'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
+
+    presubmitState.repo = 'flutter';
+    presubmitState.pr = '123';
+
+    final error = await presubmitState.rerunFailedJob('linux_bot');
+
+    expect(error, isNull);
+    verify(
+      mockCocoonService.rerunFailedJob(
+        idToken: 'fakeToken',
+        repo: 'flutter',
+        pr: 123,
+        buildName: 'linux_bot',
+      ),
+    ).called(1);
+  });
+
+  test('rerunAllFailedJobs triggers API and updates loading state', () async {
+    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
+    when(mockAuthService.isAuthenticated).thenReturn(true);
+    when(
+      mockCocoonService.rerunAllFailedJobs(
+        idToken: anyNamed('idToken'),
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
+
+    presubmitState.repo = 'flutter';
+    presubmitState.pr = '123';
+
+    final error = await presubmitState.rerunAllFailedJobs();
+
+    expect(error, isNull);
+    verify(
+      mockCocoonService.rerunAllFailedJobs(
+        idToken: 'fakeToken',
+        repo: 'flutter',
+        pr: 123,
+      ),
+    ).called(1);
   });
 }

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
@@ -34,6 +36,7 @@ void main() {
 
     when(mockAuthService.user).thenReturn(null);
     when(mockAuthService.isAuthenticated).thenReturn(false);
+    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
 
     when(
       mockCocoonService.fetchFlutterBranches(),
@@ -94,6 +97,23 @@ void main() {
     ).thenAnswer(
       (_) async => const CocoonResponse.error('Not found', statusCode: 404),
     );
+
+    when(
+      mockCocoonService.rerunFailedJob(
+        idToken: anyNamed('idToken'),
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+        buildName: anyNamed('buildName'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
+
+    when(
+      mockCocoonService.rerunAllFailedJobs(
+        idToken: anyNamed('idToken'),
+        repo: anyNamed('repo'),
+        pr: anyNamed('pr'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
     buildState = BuildState(
       cocoonService: mockCocoonService,
@@ -517,6 +537,192 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('PR #123 by dash (abcdef1)'), findsOneWidget);
+    });
+  });
+
+  group('Re-run functionality', () {
+    testWidgets('Re-run buttons are disabled when unauthenticated', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'linux_bot': TaskStatus.failed},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({
+            'repo': 'flutter',
+            'pr': '123',
+            'sha': 'decaf_3_real_sha',
+          }),
+        );
+        for (var i = 0; i < 20; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('linux_bot').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      final rerunAllButton = find.widgetWithText(TextButton, 'Re-run failed');
+      final rerunButton = find.widgetWithText(TextButton, 'Re-run');
+
+      expect(rerunAllButton, findsOneWidget);
+      expect(rerunButton, findsOneWidget);
+
+      // Verify buttons are disabled (onPressed is null)
+      expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNull);
+    });
+
+    testWidgets('Re-run buttons are enabled when authenticated', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'linux_bot': TaskStatus.failed},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({
+            'repo': 'flutter',
+            'pr': '123',
+            'sha': 'decaf_3_real_sha',
+          }),
+        );
+        for (var i = 0; i < 20; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('linux_bot').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      final rerunAllButton = find.widgetWithText(TextButton, 'Re-run failed');
+      final rerunButton = find.widgetWithText(TextButton, 'Re-run');
+
+      expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNotNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);
+    });
+
+    testWidgets('Re-run buttons are disabled while re-running', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'linux_bot': TaskStatus.failed},
+          ),
+        ],
+      );
+
+      final rerunCompleter = Completer<CocoonResponse<void>>();
+      when(
+        mockCocoonService.rerunAllFailedJobs(
+          idToken: anyNamed('idToken'),
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).thenAnswer((_) => rerunCompleter.future);
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({
+            'repo': 'flutter',
+            'pr': '123',
+            'sha': 'decaf_3_real_sha',
+          }),
+        );
+        for (var i = 0; i < 20; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('linux_bot').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      final rerunAllButton = find.widgetWithText(TextButton, 'Re-run failed');
+      final rerunButton = find.widgetWithText(TextButton, 'Re-run');
+
+      // Start re-running
+      final rerunFuture = presubmitState.rerunAllFailedJobs();
+      await tester.pump();
+      expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNull);
+
+      // Finish re-running
+      rerunCompleter.complete(const CocoonResponse<void>.data(null));
+      await rerunFuture;
+      await tester.pump();
+
+      expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNotNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);
     });
   });
 }

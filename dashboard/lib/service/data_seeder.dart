@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:cocoon_common/task_status.dart';
@@ -9,6 +10,7 @@ import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
+import 'package:uuid/uuid.dart';
 
 import 'cocoon.dart';
 import 'scenarios.dart';
@@ -102,7 +104,7 @@ class DataSeeder {
     );
     checks.addAll(engineChecks);
 
-    //face5_2_mock_sha
+    // face5_2_mock_sha
     checkRunId = 234567;
     creationTime = creationTime + 100000;
     engineChecks = [
@@ -370,9 +372,16 @@ class DataSeeder {
       ),
     );
     checks.addAll(fusionChecks);
+
+    final prCheckRuns = <PrCheckRuns>[];
+    for (final guard in guards) {
+      prCheckRuns.add(_createPrCheckRuns(guard));
+    }
+
     // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
     _server.firestore.putDocuments(guards);
     _server.firestore.putDocuments(checks);
+    _server.firestore.putDocuments(prCheckRuns);
   }
 
   Map<String, TaskStatus> _getLatestBuildStatuses(List<PresubmitCheck> checks) {
@@ -406,7 +415,11 @@ class DataSeeder {
         .length;
 
     return PresubmitGuard(
-      checkRun: generateCheckRun(checkRunId),
+      checkRun: generateCheckRun(
+        checkRunId,
+        name: 'Merge Queue Guard',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(creationTime),
+      ),
       commitSha: commitSha,
       slug: slug,
       pullRequestId: pullRequestId,
@@ -451,6 +464,45 @@ class DataSeeder {
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,
     );
+  }
+
+  PrCheckRuns _createPrCheckRuns(PresubmitGuard guard) {
+    final pr = PullRequest(
+      number: guard.pullRequestId,
+      head: PullRequestHead(
+        sha: guard.commitSha,
+        repo: Repository(
+          fullName: guard.slug.fullName,
+          name: guard.slug.name,
+          owner: UserInformation(guard.slug.owner, 1, '', ''),
+        ),
+      ),
+      base: PullRequestHead(
+        ref: 'master',
+        repo: Repository(
+          fullName: guard.slug.fullName,
+          name: guard.slug.name,
+          owner: UserInformation(guard.slug.owner, 1, '', ''),
+        ),
+      ),
+      user: User(login: guard.author),
+      labels: [],
+    );
+    final docName =
+        'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}/documents/${PrCheckRuns.kCollectionId}/${const Uuid().v4()}';
+    final prCheckRuns = PrCheckRuns()
+      ..pullRequest = pr
+      ..pullRequestNum = guard.pullRequestId
+      ..fields['sha'] = guard.commitSha.toValue()
+      ..fields['slug'] = jsonEncode(guard.slug.toJson()).toValue()
+      ..fields['Merge Queue Guard'] = guard.checkRun.id!.toString().toValue()
+      ..name = docName;
+
+    for (final buildName in guard.builds.keys) {
+      prCheckRuns.fields[buildName] = '234567'.toString().toValue();
+    }
+
+    return prCheckRuns;
   }
 
   void _seedTreeStatusChanges(DateTime now) {

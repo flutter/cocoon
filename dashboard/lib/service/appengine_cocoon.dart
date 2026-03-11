@@ -507,6 +507,74 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<void>> rerunFailedJob({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    required String buildName,
+    String owner = 'flutter',
+  }) async {
+    if (idToken == null || idToken.isEmpty) {
+      return const CocoonResponse<void>.error(
+        'Sign in to trigger reruns',
+        statusCode: HttpStatus.unauthorized,
+      );
+    }
+
+    final rerunUrl = apiEndpoint('/api/rerun-failed-job');
+    final response = await _client.post(
+      rerunUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+      body: jsonEncode({
+        'owner': owner,
+        'repo': repo,
+        'pr': pr,
+        'build_name': buildName,
+      }),
+    );
+
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
+  @override
+  Future<CocoonResponse<void>> rerunAllFailedJobs({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    String owner = 'flutter',
+  }) async {
+    if (idToken == null || idToken.isEmpty) {
+      return const CocoonResponse<void>.error(
+        'Sign in to trigger reruns',
+        statusCode: HttpStatus.unauthorized,
+      );
+    }
+
+    final rerunUrl = apiEndpoint('/api/rerun-all-failed-jobs');
+    final response = await _client.post(
+      rerunUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+      body: jsonEncode({'owner': owner, 'repo': repo, 'pr': pr}),
+    );
+
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
+  @override
   Future<CocoonResponse<void>> rerunCommit({
     required String? idToken,
     required String commitSha,

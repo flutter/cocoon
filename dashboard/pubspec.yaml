@@ -43,6 +43,7 @@ dependencies:
   url_launcher: 6.3.2 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
   url_launcher_web: 2.4.2 # Rolled by dependabot
+  uuid: ^4.5.3
 
 dev_dependencies:
   build_runner: ^2.4.15 # Rolled by dependabot

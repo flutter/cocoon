@@ -241,6 +241,54 @@ void main() {
         );
       },
     );
+
+    test('rerunFailedJob should post correct parameters', () async {
+      var capturedBody = '';
+      var capturedUrl = '';
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          capturedBody = request.body;
+          capturedUrl = request.url.toString();
+          return Response('', 200);
+        }),
+      );
+
+      final response = await service.rerunFailedJob(
+        idToken: 'token',
+        repo: 'flutter',
+        pr: 123,
+        buildName: 'linux_bot',
+      );
+
+      expect(response.error, isNull);
+      expect(capturedUrl, contains('/api/rerun-failed-job'));
+      expect(
+        capturedBody,
+        '{"owner":"flutter","repo":"flutter","pr":123,"build_name":"linux_bot"}',
+      );
+    });
+
+    test('rerunAllFailedJobs should post correct parameters', () async {
+      var capturedBody = '';
+      var capturedUrl = '';
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          capturedBody = request.body;
+          capturedUrl = request.url.toString();
+          return Response('', 200);
+        }),
+      );
+
+      final response = await service.rerunAllFailedJobs(
+        idToken: 'token',
+        repo: 'flutter',
+        pr: 123,
+      );
+
+      expect(response.error, isNull);
+      expect(capturedUrl, contains('/api/rerun-all-failed-jobs'));
+      expect(capturedBody, '{"owner":"flutter","repo":"flutter","pr":123}');
+    });
   });
 
   group('AppEngine CocoonService refresh github commits', () {

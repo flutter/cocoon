@@ -73,6 +73,23 @@ abstract class CocoonService {
     required String branch,
   });
 
+  /// Schedule the provided failed [buildName] to be re-run for the given [pr].
+  Future<CocoonResponse<void>> rerunFailedJob({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    required String buildName,
+    String owner = 'flutter',
+  });
+
+  /// Schedule all failed tasks for the given [pr] to be re-run.
+  Future<CocoonResponse<void>> rerunAllFailedJobs({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    String owner = 'flutter',
+  });
+
   /// Tell Cocoon to manually schedule (or reschedule) tasks for the given commit.
   Future<CocoonResponse<void>> rerunCommit({
     required String? idToken,
