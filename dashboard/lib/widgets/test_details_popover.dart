@@ -36,6 +36,8 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
     );
   }
 
+  bool _isPendingUpdate = false;
+
   @override
   Widget build(BuildContext context) {
     final suppressed = suppressedTest;
@@ -61,7 +63,9 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
                   style: TextStyle(fontStyle: FontStyle.italic),
                 ),
                 (true, null) => ElevatedButton.icon(
-                  onPressed: () => _showSuppressDialog(context),
+                  onPressed: _isPendingUpdate
+                      ? null
+                      : () => _showSuppressDialog(context),
                   icon: const Icon(Icons.do_not_disturb_on_outlined),
                   label: const Text('Unblock Tree'),
                   style: ElevatedButton.styleFrom(
@@ -70,7 +74,9 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
                   ),
                 ),
                 (true, _) => ElevatedButton.icon(
-                  onPressed: () => _toggleSuppression(false),
+                  onPressed: _isPendingUpdate
+                      ? null
+                      : () => _toggleSuppression(false),
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text('Remove Suppression'),
                   style: ElevatedButton.styleFrom(
@@ -236,12 +242,18 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
     String? issueLink,
     String? note,
   }) async {
+    setState(() {
+      _isPendingUpdate = true;
+    });
     final success = await widget.buildState.updateTestSuppression(
       testName: widget.qualifiedTask.task,
       suppress: suppress,
       issueLink: issueLink,
       note: note,
     );
+    setState(() {
+      _isPendingUpdate = false;
+    });
     if (!success) {
       widget.showSnackBarCallback(
         const SnackBar(content: Text('Failed to update test suppression')),

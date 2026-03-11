@@ -122,6 +122,9 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
 
   bool updateTestSuppressionResult = true;
 
+  /// If non-null, [updateTestSuppression] waits until this future completes.
+  Future<void>? pauseUpdateUntilCompleted;
+
   @override
   Future<bool> updateTestSuppression({
     required String testName,
@@ -135,6 +138,9 @@ class FakeBuildState extends ChangeNotifier implements BuildState {
       issueLink: issueLink,
       note: note,
     ));
+    if (pauseUpdateUntilCompleted case final shouldPause?) {
+      await shouldPause;
+    }
     return updateTestSuppressionResult;
   }
 }
