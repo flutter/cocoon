@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -150,11 +151,15 @@ final class FileFlakyIssueAndPR extends ApiRequestHandler {
       slug: slug,
       threshold: threshold,
     );
+    log.info(
+      'FileFlakyIssueAndPR.fileIssueAndPR($slug): filed #${issue.number} for ${builderDetail.statistic.name} / ${builderDetail.statistic.flakyRate}',
+    );
 
     await _testSuppression.updateSuppression(
       testName: builderDetail.statistic.name,
       email: 'fluttergithubbot',
       repository: slug,
+      issueLink: issue.htmlUrl,
       action: SuppressingAction.suppress,
       note: 'flaky test rate: $threshold',
     );

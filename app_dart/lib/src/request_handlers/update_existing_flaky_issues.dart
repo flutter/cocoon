@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 
 import '../../ci_yaml.dart';
@@ -158,6 +159,11 @@ final class UpdateExistingFlakyIssue extends ApiRequestHandler {
         ignoreFlakyMap[target.name] = true;
       }
     }
+
+    log.info(
+      'updateExistingFlakyIssue($slug): handling $nameToExistingIssue over ${builderFlakyMap.length} builders (${ignoreFlakyMap.length} ignored)',
+    );
+
     // Update an existing flaky bug with only prod stats if the builder is with `bringup: false`, such as a shard builder.
     //
     // Update an existing flaky bug with both prod and staging stats if the builder is with `bringup: true`. When a builder

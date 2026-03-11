@@ -37,6 +37,13 @@ melos:
       dev_dependencies:
         test: any
   scripts:
+    # If you're using a worktree, this is helpful to remove missing package warnings
+    pub-get:
+      steps:
+        - flutter pub get
+        - cd cipd_packages/codesign; dart pub get
+        - cd ../device_doctor; dart pub get
+
     lint:all:
       steps:
         - analyze
@@ -56,11 +63,6 @@ melos:
     format-check:
       run: melos exec dart format . --set-exit-if-changed
       description: Run `dart format` checks for all packages.
-
-    pub-get:
-      steps:
-        - melos exec --no-flutter -- "dart pub get"
-        - melos exec --flutter -- "flutter pub get"
 
     upgrade: melos exec flutter pub upgrade
 
