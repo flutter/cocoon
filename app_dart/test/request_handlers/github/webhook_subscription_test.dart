@@ -32,6 +32,16 @@ import 'package:test/test.dart';
 
 import '../../src/request_handling/subscription_tester.dart';
 
+final labelEventMap = <String, Object?>{
+  'name': Config.kCicdLabel,
+  'id': Config.kCicdLabelId,
+  'node_id': 'abcd',
+  'url': 'https://api.github.com/repos/flutter/flutter/labels/CICD',
+  'color': '008820',
+  'default': false,
+  'description': 'CICD label',
+};
+
 void main() {
   useTestLoggerPerTest();
 
@@ -437,7 +447,7 @@ void main() {
         ),
       ).called(1);
 
-      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      expect(scheduler.triggerPresubmitTargetsCallCount, 0);
       scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 
@@ -489,7 +499,7 @@ void main() {
         ),
       ).called(1);
 
-      expect(scheduler.triggerPresubmitTargetsCallCount, 1);
+      expect(scheduler.triggerPresubmitTargetsCallCount, 0);
       scheduler.resetTriggerPresubmitTargetsCallCount();
     });
 
@@ -562,8 +572,8 @@ void main() {
 
       await tester.post(webhook);
 
-      expect(batchRequestCalled, isTrue);
-      expect(scheduler.cancelPreSubmitTargetsCallCnt, 1);
+      expect(batchRequestCalled, isFalse);
+      expect(scheduler.cancelPreSubmitTargetsCallCnt, 0);
     });
 
     test('Does nothing against cherry pick PR', () async {
@@ -2639,11 +2649,11 @@ void foo() {
       () async {
         const issueNumber = 12345;
         tester.message = generateGithubWebhookMessage(
-          action: 'synchronize',
+          action: 'labeled',
           number: issueNumber,
           // This PR is unmergeable (probably merge conflict)
           mergeable: false,
-          withCicdLabel: true,
+          labeledLabel: labelEventMap,
         );
 
         await tester.post(webhook);
@@ -2657,60 +2667,57 @@ void foo() {
       },
     );
 
-    test(
-      'When synchronized, cancels existing builds and schedules new ones',
-      () async {
-        const issueNumber = 12345;
-        var batchRequestCalled = false;
+    test('When synchronized, does nothing', () async {
+      const issueNumber = 12345;
+      var batchRequestCalled = false;
 
-        Future<bbv2.BatchResponse> getBatchResponse(
-          bbv2.BatchRequest _,
-          String _,
-        ) async {
-          batchRequestCalled = true;
-          return bbv2.BatchResponse(
-            responses: <bbv2.BatchResponse_Response>[
-              bbv2.BatchResponse_Response(
-                searchBuilds: bbv2.SearchBuildsResponse(
-                  builds: <bbv2.Build>[
-                    bbv2.Build(
-                      number: 999,
-                      builder: bbv2.BuilderID(builder: 'Linux'),
-                      status: bbv2.Status.SUCCESS,
-                    ),
-                  ],
-                ),
+      Future<bbv2.BatchResponse> getBatchResponse(
+        bbv2.BatchRequest _,
+        String _,
+      ) async {
+        batchRequestCalled = true;
+        return bbv2.BatchResponse(
+          responses: <bbv2.BatchResponse_Response>[
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(
+                    number: 999,
+                    builder: bbv2.BuilderID(builder: 'Linux'),
+                    status: bbv2.Status.SUCCESS,
+                  ),
+                ],
               ),
-              bbv2.BatchResponse_Response(
-                searchBuilds: bbv2.SearchBuildsResponse(
-                  builds: <bbv2.Build>[
-                    bbv2.Build(
-                      number: 998,
-                      builder: bbv2.BuilderID(builder: 'Linux'),
-                      status: bbv2.Status.SUCCESS,
-                    ),
-                  ],
-                ),
+            ),
+            bbv2.BatchResponse_Response(
+              searchBuilds: bbv2.SearchBuildsResponse(
+                builds: <bbv2.Build>[
+                  bbv2.Build(
+                    number: 998,
+                    builder: bbv2.BuilderID(builder: 'Linux'),
+                    status: bbv2.Status.SUCCESS,
+                  ),
+                ],
               ),
-            ],
-          );
-        }
-
-        fakeBuildBucketClient.batchResponse = getBatchResponse;
-
-        tester.message = generateGithubWebhookMessage(
-          action: 'synchronize',
-          number: issueNumber,
-          withCicdLabel: true,
+            ),
+          ],
         );
+      }
 
-        final mockRepositoriesService = MockRepositoriesService();
-        when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
+      fakeBuildBucketClient.batchResponse = getBatchResponse;
 
-        await tester.post(webhook);
-        expect(batchRequestCalled, isTrue);
-      },
-    );
+      tester.message = generateGithubWebhookMessage(
+        action: 'synchronize',
+        number: issueNumber,
+        withCicdLabel: true,
+      );
+
+      final mockRepositoriesService = MockRepositoriesService();
+      when(gitHubClient.repositories).thenReturn(mockRepositoriesService);
+
+      await tester.post(webhook);
+      expect(batchRequestCalled, isFalse);
+    });
 
     test('Removes the "autosubmit" label on dequeued', () async {
       const issueNumber = 123;
@@ -2781,6 +2788,7 @@ void foo() {
           number: 1,
           headSha: headSha,
           withCicdLabel: true,
+          labeledLabel: action == 'labeled' ? labelEventMap : null,
         );
 
         await tester.post(webhook);
@@ -2839,7 +2847,7 @@ void foo() {
         );
         config.maxFilesChangedForSkippingEnginePhaseValue = 1;
         await testActions(
-          'synchronize',
+          'labeled',
           headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
         );
         verify(
@@ -2850,30 +2858,6 @@ void foo() {
           ),
         );
       });
-
-      test(
-        'Comments on PR but does not schedule builds for unmergeable PRs',
-        () async {
-          when(
-            issuesService.listCommentsByIssue(any, any),
-          ).thenAnswer((_) => Stream<IssueComment>.value(IssueComment()));
-          tester.message = generateGithubWebhookMessage(
-            action: 'synchronize',
-            number: issueNumber,
-            // This PR is unmergeable (probably merge conflict)
-            mergeable: false,
-            withCicdLabel: true,
-          );
-          await tester.post(webhook);
-          verify(
-            issuesService.createComment(
-              Config.flutterSlug,
-              issueNumber,
-              config.mergeConflictPullRequestMessage,
-            ),
-          );
-        },
-      );
 
       test(
         'When synchronized, cancels existing builds and schedules new ones',
@@ -3750,7 +3734,7 @@ void foo() {
     });
   });
 
-  group('CICD label security check', () {
+  group('CICD label', () {
     test('opened PR without CICD label does not schedule tests', () async {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
@@ -3758,21 +3742,10 @@ void foo() {
       );
 
       await tester.post(webhook);
-
-      expect(
-        log,
-        bufferedLoggerOf(
-          contains(
-            logThat(
-              message: contains('Not scheduling tasks, missing CICD label'),
-            ),
-          ),
-        ),
-      );
       expect(scheduler.triggerPresubmitTargetsCnt, 0);
     });
 
-    test('opened PR with CICD label schedules tests', () async {
+    test('opened PR with CICD label does not schedules tests', () async {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         withCicdLabel: true,
@@ -3780,7 +3753,7 @@ void foo() {
 
       await tester.post(webhook);
 
-      expect(scheduler.triggerPresubmitTargetsCnt, 1);
+      expect(scheduler.triggerPresubmitTargetsCnt, 0);
     });
 
     test('labeled event with CICD label schedules tests', () async {
@@ -3813,39 +3786,17 @@ void foo() {
       );
       expect(scheduler.triggerPresubmitTargetsCnt, 1);
     });
-
     test(
-      'synchronize event without CICD label does not schedule tests',
+      'synchronize event with CICD label does not schedules tests',
       () async {
         tester.message = generateGithubWebhookMessage(
           action: 'synchronize',
-          withCicdLabel: false,
+          withCicdLabel: true,
         );
 
         await tester.post(webhook);
-
-        expect(
-          log,
-          bufferedLoggerOf(
-            contains(
-              logThat(
-                message: contains('Not scheduling tasks, missing CICD label'),
-              ),
-            ),
-          ),
-        );
         expect(scheduler.triggerPresubmitTargetsCnt, 0);
       },
     );
-
-    test('synchronize event with CICD label schedules tests', () async {
-      tester.message = generateGithubWebhookMessage(
-        action: 'synchronize',
-        withCicdLabel: true,
-      );
-
-      await tester.post(webhook);
-      expect(scheduler.triggerPresubmitTargetsCnt, 1);
-    });
   });
 }

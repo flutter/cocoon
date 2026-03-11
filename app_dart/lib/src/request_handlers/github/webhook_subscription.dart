@@ -221,17 +221,11 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         return result.toResponse();
       case 'edited':
         await _checkForTests(pullRequestEvent);
-        // In the event of the base ref changing we want to start new checks.
-        if (pullRequestEvent.changes != null &&
-            pullRequestEvent.changes!.base != null) {
-          await _scheduleIfMergeable(pullRequestEvent);
-        }
         break;
       case 'opened':
         // These cases should trigger LUCI jobs. The closed event should happen
         // before these which should cancel all in progress checks.
         await _checkForTests(pullRequestEvent);
-        await _scheduleIfMergeable(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
       case 'reopened':
@@ -242,10 +236,8 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         log.info(
           '$crumb: PR labels = [${pr.labels?.map((label) => '"${label.name}"').join(', ')}]',
         );
-        await _processLabels(pr);
-        await _updatePullRequest(pr);
-        final labelEvent = _getLabeledEvent(rawRequest);
 
+        final labelEvent = _getLabeledEvent(rawRequest);
         if (labelEvent?.label case final label?) {
           if (label.id == Config.kCicdLabelId &&
               label.name == Config.kCicdLabel) {
@@ -253,16 +245,16 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
             await _scheduleIfMergeable(pullRequestEvent);
           }
         }
-        break;
-      case 'synchronize':
-        // This indicates the PR has new commits. We need to cancel old jobs
-        // and schedule new ones.
-        await _scheduleIfMergeable(pullRequestEvent);
+
+        await _processLabels(pr);
+        await _updatePullRequest(pr);
+
         break;
       case 'dequeued':
         await _respondToPullRequestDequeued(pullRequestEvent);
         break;
       // Ignore the rest of the events.
+      case 'synchronize':
       case 'ready_for_review':
       case 'unlabeled':
       case 'assigned':
@@ -436,13 +428,6 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   Future<void> _scheduleIfMergeable(PullRequestEvent pullRequestEvent) async {
     final pr = pullRequestEvent.pullRequest!;
     final slug = pullRequestEvent.repository!.slug();
-
-    if (!pullRequestEvent.canScheduleCICD()) {
-      log.info(
-        'Not scheduling tasks, missing CICD label: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
-      );
-      return;
-    }
 
     log.info(
       'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
