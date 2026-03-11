@@ -52,9 +52,9 @@ class PresubmitState extends ChangeNotifier {
   bool _isGuardLoading = false;
   bool _isChecksLoading = false;
 
-  /// Set of task names that are currently being re-run.
-  Set<String> get rerunningTasks => _rerunningTasks;
-  final Set<String> _rerunningTasks = <String>{};
+  /// Set of job names that are currently being re-run.
+  Set<String> get rerunningJobs => _rerunningJobs;
+  final Set<String> _rerunningJobs = <String>{};
 
   /// Whether "Re-run failed" is currently in progress.
   bool get isRerunningAll => _isRerunningAll;
@@ -303,7 +303,7 @@ class PresubmitState extends ChangeNotifier {
   bool canRerunFailedJob(String jobName) =>
       authService.isAuthenticated &&
       pr != null &&
-      !_rerunningTasks.contains(jobName) &&
+      !_rerunningJobs.contains(jobName) &&
       !_isRerunningAll;
 
   bool get canRerunAllFailedJobs =>
@@ -317,7 +317,7 @@ class PresubmitState extends ChangeNotifier {
       return null;
     }
 
-    _rerunningTasks.add(jobName);
+    _rerunningJobs.add(jobName);
     notifyListeners();
 
     try {
@@ -338,12 +338,12 @@ class PresubmitState extends ChangeNotifier {
     } catch (e) {
       return e.toString();
     } finally {
-      _rerunningTasks.remove(jobName);
+      _rerunningJobs.remove(jobName);
       notifyListeners();
     }
   }
 
-  /// Schedule all failed tasks for the current [pr] to be re-run.
+  /// Schedule all failed jobs for the current [pr] to be re-run.
   ///
   /// Returns an error message if the request failed, otherwise null.
   Future<String?> rerunAllFailedJobs() async {
