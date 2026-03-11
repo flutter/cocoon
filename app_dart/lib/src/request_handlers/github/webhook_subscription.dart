@@ -15,12 +15,34 @@ import 'package:meta/meta.dart';
 import '../../../cocoon_service.dart';
 import '../../../protos.dart' as pb;
 import '../../model/github/checks.dart' as cocoon_checks;
+import '../../model/github/labels.dart';
 import '../../model/github/workflow_job.dart' as workflow_job;
 import '../../request_handling/exceptions.dart';
 import '../../request_handling/subscription_handler.dart';
 import '../../service/commit_service.dart';
 import '../../service/github_service.dart';
 import '../../service/scheduler/process_check_run_result.dart';
+
+extension PullRequestCiCd on PullRequest {
+  bool canScheduleCICD() {
+    for (var label in labels ?? <IssueLabel>[]) {
+      // Impossible to check label.id because the external package excludes it.
+      if (label.name == Config.kCicdLabel) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+extension PullRequestEventCiCd on PullRequestEvent {
+  bool canScheduleCICD() {
+    if (pullRequest != null) {
+      return pullRequest!.canScheduleCICD();
+    }
+    return false;
+  }
+}
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -222,6 +244,15 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         );
         await _processLabels(pr);
         await _updatePullRequest(pr);
+        final labelEvent = _getLabeledEvent(rawRequest);
+
+        if (labelEvent?.label case final label?) {
+          if (label.id == Config.kCicdLabelId &&
+              label.name == Config.kCicdLabel) {
+            log.info('new CICD label added - scheduling tests');
+            await _scheduleIfMergeable(pullRequestEvent);
+          }
+        }
         break;
       case 'synchronize':
         // This indicates the PR has new commits. We need to cancel old jobs
@@ -405,6 +436,13 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   Future<void> _scheduleIfMergeable(PullRequestEvent pullRequestEvent) async {
     final pr = pullRequestEvent.pullRequest!;
     final slug = pullRequestEvent.repository!.slug();
+
+    if (!pullRequestEvent.canScheduleCICD()) {
+      log.info(
+        'Not scheduling tasks, missing CICD label: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
+      );
+      return;
+    }
 
     log.info(
       'Scheduling tasks if mergeable(${pr.mergeable}): owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
@@ -963,6 +1001,17 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       );
     } on FormatException catch (e) {
       log.warn('Failed to parse $request', e);
+      return null;
+    }
+  }
+
+  LabeledEvent? _getLabeledEvent(String request) {
+    try {
+      return LabeledEvent.fromJson(
+        json.decode(request) as Map<String, dynamic>,
+      );
+    } on FormatException catch (e) {
+      log.warn('_getLabeledEvent: Failed to parse $request', e);
       return null;
     }
   }

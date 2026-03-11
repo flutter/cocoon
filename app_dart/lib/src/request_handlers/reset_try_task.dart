@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -55,6 +56,13 @@ final class ResetTryTask extends ApiRequestHandler {
     final slug = RepositorySlug(owner, repo);
     final github = await config.createGitHubClient(slug: slug);
     final pullRequest = await github.pullRequests.get(slug, prNumber);
+
+    if (!pullRequest.canScheduleCICD()) {
+      log.info(
+        'ResetTryTask: Not scheduling tasks, missing CICD label: owner=${slug.owner} repo=${slug.name} and pr=${pullRequest.number}',
+      );
+      return Response.emptyOk;
+    }
     await _scheduler.triggerPresubmitTargets(
       pullRequest: pullRequest,
       builderTriggerList: builderList,

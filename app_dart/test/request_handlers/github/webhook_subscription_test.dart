@@ -398,6 +398,7 @@ void main() {
         number: issueNumber,
         baseRef: 'master',
         slug: Config.packagesSlug,
+        withCicdLabel: true,
       );
 
       tester.message = pushMessage;
@@ -449,6 +450,7 @@ void main() {
         baseRef: 'master',
         slug: Config.packagesSlug,
         includeChanges: true,
+        withCicdLabel: true,
       );
 
       tester.message = pushMessage;
@@ -521,6 +523,7 @@ void main() {
         action: 'opened',
         number: issueNumber,
         isDraft: true,
+        withCicdLabel: true,
       );
 
       var batchRequestCalled = false;
@@ -2640,6 +2643,7 @@ void foo() {
           number: issueNumber,
           // This PR is unmergeable (probably merge conflict)
           mergeable: false,
+          withCicdLabel: true,
         );
 
         await tester.post(webhook);
@@ -2697,6 +2701,7 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'synchronize',
           number: issueNumber,
+          withCicdLabel: true,
         );
 
         final mockRepositoriesService = MockRepositoriesService();
@@ -2775,6 +2780,7 @@ void foo() {
           action: action,
           number: 1,
           headSha: headSha,
+          withCicdLabel: true,
         );
 
         await tester.post(webhook);
@@ -2856,6 +2862,7 @@ void foo() {
             number: issueNumber,
             // This PR is unmergeable (probably merge conflict)
             mergeable: false,
+            withCicdLabel: true,
           );
           await tester.post(webhook);
           verify(
@@ -3740,6 +3747,105 @@ void foo() {
           ]),
         ),
       );
+    });
+  });
+
+  group('CICD label security check', () {
+    test('opened PR without CICD label does not schedule tests', () async {
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        withCicdLabel: false,
+      );
+
+      await tester.post(webhook);
+
+      expect(
+        log,
+        bufferedLoggerOf(
+          contains(
+            logThat(
+              message: contains('Not scheduling tasks, missing CICD label'),
+            ),
+          ),
+        ),
+      );
+      expect(scheduler.triggerPresubmitTargetsCnt, 0);
+    });
+
+    test('opened PR with CICD label schedules tests', () async {
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        withCicdLabel: true,
+      );
+
+      await tester.post(webhook);
+
+      expect(scheduler.triggerPresubmitTargetsCnt, 1);
+    });
+
+    test('labeled event with CICD label schedules tests', () async {
+      tester.message = generateGithubWebhookMessage(
+        action: 'labeled',
+        labeledLabel: <String, Object?>{
+          'name': Config.kCicdLabel,
+          'id': Config.kCicdLabelId,
+          'node_id': 'abcd',
+          'url': 'https://api.github.com/repos/flutter/flutter/labels/CICD',
+          'color': '008820',
+          'default': false,
+          'description': 'CICD label',
+        },
+        withCicdLabel:
+            true, // PR already has it, but the event is what triggers it
+      );
+
+      await tester.post(webhook);
+
+      expect(
+        log,
+        bufferedLoggerOf(
+          contains(
+            logThat(
+              message: contains('new CICD label added - scheduling tests'),
+            ),
+          ),
+        ),
+      );
+      expect(scheduler.triggerPresubmitTargetsCnt, 1);
+    });
+
+    test(
+      'synchronize event without CICD label does not schedule tests',
+      () async {
+        tester.message = generateGithubWebhookMessage(
+          action: 'synchronize',
+          withCicdLabel: false,
+        );
+
+        await tester.post(webhook);
+
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                message: contains('Not scheduling tasks, missing CICD label'),
+              ),
+            ),
+          ),
+        );
+        expect(scheduler.triggerPresubmitTargetsCnt, 0);
+      },
+    );
+
+    test('synchronize event with CICD label schedules tests', () async {
+      tester.message = generateGithubWebhookMessage(
+        action: 'synchronize',
+        withCicdLabel: true,
+      );
+
+      await tester.post(webhook);
+      expect(scheduler.triggerPresubmitTargetsCnt, 1);
     });
   });
 }
