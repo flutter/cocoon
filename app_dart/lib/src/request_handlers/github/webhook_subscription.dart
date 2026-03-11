@@ -974,8 +974,8 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       return LabeledEvent.fromJson(
         json.decode(request) as Map<String, dynamic>,
       );
-    } on FormatException catch (e) {
-      log.warn('_getLabeledEvent: Failed to parse $request', e);
+    } catch (e, s) {
+      log.warn('_getLabeledEvent: Failed to parse $request', e, s);
       return null;
     }
   }
