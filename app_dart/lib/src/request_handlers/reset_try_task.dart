@@ -4,6 +4,9 @@
 
 import 'dart:async';
 
+// ignore: unused_import
+import 'package:cocoon_server/logging.dart';
+// ignore: unused_import
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -20,6 +23,7 @@ final class ResetTryTask extends ApiRequestHandler {
     required Scheduler scheduler,
   }) : _scheduler = scheduler;
 
+  // ignore: unused_field
   final Scheduler _scheduler;
 
   @visibleForTesting
@@ -40,11 +44,11 @@ final class ResetTryTask extends ApiRequestHandler {
       kRepoParam,
       kPullRequestNumberParam,
     ]);
-    final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
-    final repo = request.uri.queryParameters[kRepoParam]!;
+    // final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
+    // final repo = request.uri.queryParameters[kRepoParam]!;
     final pr = request.uri.queryParameters[kPullRequestNumberParam]!;
-    final builders = request.uri.queryParameters[kBuilderParam] ?? '';
-    final builderList = getBuilderList(builders);
+    // final builders = request.uri.queryParameters[kBuilderParam] ?? '';
+    // final builderList = getBuilderList(builders);
 
     final prNumber = int.tryParse(pr);
     if (prNumber == null) {
@@ -52,13 +56,15 @@ final class ResetTryTask extends ApiRequestHandler {
         '$kPullRequestNumberParam must be a number',
       );
     }
-    final slug = RepositorySlug(owner, repo);
-    final github = await config.createGitHubClient(slug: slug);
-    final pullRequest = await github.pullRequests.get(slug, prNumber);
-    await _scheduler.triggerPresubmitTargets(
-      pullRequest: pullRequest,
-      builderTriggerList: builderList,
-    );
+    // final slug = RepositorySlug(owner, repo);
+    // final github = await config.createGitHubClient(slug: slug);
+    // final pullRequest = await github.pullRequests.get(slug, prNumber);
+
+    // WARNING: Did you need this? If so, reach out to codefu.
+    // await _scheduler.triggerPresubmitTargets(
+    //   pullRequest: pullRequest,
+    //   builderTriggerList: builderList,
+    // );
     return Response.emptyOk;
   }
 

@@ -29,8 +29,10 @@ PushMessage generateGithubWebhookMessage({
   bool includeChanges = false,
   bool withAutosubmit = false,
   bool withRevertOf = false,
+  bool withCicdLabel = false,
   DateTime? closedAt,
   Iterable<String> additionalLabels = const [],
+  Map<String, Object?>? labeledLabel,
 }) {
   final data =
       (pb.GithubWebhookMessage.create()
@@ -51,8 +53,10 @@ PushMessage generateGithubWebhookMessage({
               includeChanges: includeChanges,
               withAutosubmit: withAutosubmit,
               withRevertOf: withRevertOf,
+              withCicdLabel: withCicdLabel,
               closedAt: closedAt,
               additionalLabels: additionalLabels,
+              labeledLabel: labeledLabel,
             ))
           .writeToJson();
   return PushMessage(data: data, messageId: 'abc123');
@@ -76,17 +80,22 @@ String _generatePullRequestEvent(
   DateTime? closedAt,
   required bool withAutosubmit,
   required bool withRevertOf,
+  bool withCicdLabel = false,
   Iterable<String> additionalLabels = const [],
+  Map<String, Object?>? labeledLabel,
 }) {
   slug ??= Config.flutterSlug;
   baseRef ??= Config.defaultBranch(slug);
 
   var labelId = 1000;
   Map<String, Object?> generateLabel(String name) {
-    labelId++;
+    var id = labelId++;
+    if (name == Config.kCicdLabel) {
+      id = Config.kCicdLabelIdFlutter;
+    }
     return {
-      'id': labelId,
-      'node_id': base64Encode('$labelId'.codeUnits),
+      'id': id,
+      'node_id': base64Encode('$id'.codeUnits),
       'url': 'https://api.github.com/repos/${slug!.fullName}/labels/$name',
       'name': name,
       'color': '207de5',
@@ -98,6 +107,7 @@ String _generatePullRequestEvent(
     if (includeCqLabel) generateLabel('cla: yes'),
     if (withAutosubmit) generateLabel('autosubmit'),
     if (withRevertOf) generateLabel('revert of'),
+    if (withCicdLabel) generateLabel(Config.kCicdLabel),
 
     // This matches the behavior of this function before refactoring to have a
     // more structured way to add test labels. It would be nice to refactor
@@ -107,9 +117,26 @@ String _generatePullRequestEvent(
     ...additionalLabels.map(generateLabel),
   ];
 
+  Map<String, Object?>? eventLabel;
+  if (action == 'labeled') {
+    eventLabel =
+        labeledLabel ??
+        <String, Object?>{
+          'name': 'super_awesome',
+          'id': 12345,
+          'node_id': 'abcd',
+          'url':
+              'https://api.github.com/repos/flutter/flutter/labels/super_awesome',
+          'color': '008820',
+          'default': false,
+          'description': 'fake label co',
+        };
+  }
+
   return '''{
   "action": "$action",
   "number": $number,
+  ${eventLabel != null ? '"label": ${jsonEncode(eventLabel)},' : ''}
   "pull_request": {
     "url": "https://api.github.com/repos/${slug.fullName}/pulls/$number",
     "id": 294034,

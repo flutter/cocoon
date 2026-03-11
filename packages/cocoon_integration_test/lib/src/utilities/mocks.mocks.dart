@@ -1047,6 +1047,14 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as int);
 
   @override
+  int get minimumPassingTestsToDeflake =>
+      (super.noSuchMethod(
+            Invocation.getter(#minimumPassingTestsToDeflake),
+            returnValue: 0,
+          )
+          as int);
+
+  @override
   Duration get githubRequestDelay =>
       (super.noSuchMethod(
             Invocation.getter(#githubRequestDelay),
@@ -2374,6 +2382,18 @@ class MockGithubService extends _i1.Mock implements _i9.GithubService {
               [slug],
               {#issueNumber: issueNumber, #assignee: assignee},
             ),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
+  _i13.Future<void> closeIssue(
+    _i7.RepositorySlug? slug, {
+    required int? issueNumber,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#closeIssue, [slug], {#issueNumber: issueNumber}),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),
           )

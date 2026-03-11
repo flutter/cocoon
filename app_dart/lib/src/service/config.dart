@@ -38,6 +38,18 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// Keep this in sync with the similar `Config` class in `auto_submit`.
   static const String kEmergencyLabel = 'emergency';
 
+  /// Label required to schedule CI tasks on pull requests as a security stop-gap.
+  static const String kCicdLabel = 'CICD';
+
+  /// GitHub ID for the CICD label.
+  static const int kCicdLabelIdFlutter = 10404216443;
+
+  /// GitHub ID for the CICD label.
+  static const int kCicdLabelIdPackages = 10404974695;
+
+  /// All valid labels for triggering cicd
+  static const kCicdLabelIds = [kCicdLabelIdFlutter, kCicdLabelIdPackages];
+
   /// Validates that CI tasks were successfully created from the .ci.yaml file.
   ///
   /// If this check fails, it means Cocoon failed to fully populate the list of
