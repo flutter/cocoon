@@ -102,7 +102,9 @@ class TestSuppression {
       final newSuppression = SuppressedTest(
         name: testName,
         repository: repository.fullName,
-        issueLink: issueLink ?? 'BUG',
+        issueLink:
+            issueLink ??
+            'BUG: You have found a bug! Please report to https://www.github.com/flutter/flutter/issues/new',
         isSuppressed: true,
         createTimestamp: now,
         updates: [updateEntry],
