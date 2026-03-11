@@ -42,7 +42,13 @@ interface class Config extends DynamicallyUpdatedConfig {
   static const String kCicdLabel = 'CICD';
 
   /// GitHub ID for the CICD label.
-  static const int kCicdLabelId = 10404216443;
+  static const int kCicdLabelIdFlutter = 10404216443;
+
+  /// GitHub ID for the CICD label.
+  static const int kCicdLabelIdPackages = 10404974695;
+
+  /// All valid lables for trigger cicd
+  static const kCicdLabelIds = [kCicdLabelIdFlutter, kCicdLabelIdPackages];
 
   /// Validates that CI tasks were successfully created from the .ci.yaml file.
   ///

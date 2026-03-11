@@ -23,27 +23,6 @@ import '../../service/commit_service.dart';
 import '../../service/github_service.dart';
 import '../../service/scheduler/process_check_run_result.dart';
 
-extension PullRequestCiCd on PullRequest {
-  bool canScheduleCICD() {
-    for (var label in labels ?? <IssueLabel>[]) {
-      // Impossible to check label.id because the external package excludes it.
-      if (label.name == Config.kCicdLabel) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-extension PullRequestEventCiCd on PullRequestEvent {
-  bool canScheduleCICD() {
-    if (pullRequest != null) {
-      return pullRequest!.canScheduleCICD();
-    }
-    return false;
-  }
-}
-
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
   'packages/flutter/lib/src/gestures/hit_test.dart',
@@ -239,7 +218,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
 
         final labelEvent = _getLabeledEvent(rawRequest);
         if (labelEvent?.label case final label?) {
-          if (label.id == Config.kCicdLabelId &&
+          if (Config.kCicdLabelIds.contains(label.id) &&
               label.name == Config.kCicdLabel) {
             log.info('new CICD label added - scheduling tests');
             await _scheduleIfMergeable(pullRequestEvent);

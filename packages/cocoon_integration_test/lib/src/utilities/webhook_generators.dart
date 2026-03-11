@@ -91,7 +91,7 @@ String _generatePullRequestEvent(
   Map<String, Object?> generateLabel(String name) {
     var id = labelId++;
     if (name == Config.kCicdLabel) {
-      id = Config.kCicdLabelId;
+      id = Config.kCicdLabelIdFlutter;
     }
     return {
       'id': id,

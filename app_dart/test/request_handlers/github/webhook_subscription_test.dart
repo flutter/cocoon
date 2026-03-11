@@ -34,7 +34,7 @@ import '../../src/request_handling/subscription_tester.dart';
 
 final labelEventMap = <String, Object?>{
   'name': Config.kCicdLabel,
-  'id': Config.kCicdLabelId,
+  'id': Config.kCicdLabelIdFlutter,
   'node_id': 'abcd',
   'url': 'https://api.github.com/repos/flutter/flutter/labels/CICD',
   'color': '008820',
@@ -3756,36 +3756,58 @@ void foo() {
       expect(scheduler.triggerPresubmitTargetsCnt, 0);
     });
 
-    test('labeled event with CICD label schedules tests', () async {
-      tester.message = generateGithubWebhookMessage(
-        action: 'labeled',
-        labeledLabel: <String, Object?>{
-          'name': Config.kCicdLabel,
-          'id': Config.kCicdLabelId,
-          'node_id': 'abcd',
-          'url': 'https://api.github.com/repos/flutter/flutter/labels/CICD',
-          'color': '008820',
-          'default': false,
-          'description': 'CICD label',
-        },
-        withCicdLabel:
-            true, // PR already has it, but the event is what triggers it
-      );
+    test(
+      'labeled event with CICD label schedules tests on flutter/flutter',
+      () async {
+        tester.message = generateGithubWebhookMessage(
+          action: 'labeled',
+          labeledLabel: labelEventMap,
+          withCicdLabel:
+              true, // PR already has it, but the event is what triggers it
+        );
 
-      await tester.post(webhook);
+        await tester.post(webhook);
 
-      expect(
-        log,
-        bufferedLoggerOf(
-          contains(
-            logThat(
-              message: contains('new CICD label added - scheduling tests'),
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                message: contains('new CICD label added - scheduling tests'),
+              ),
             ),
           ),
-        ),
-      );
-      expect(scheduler.triggerPresubmitTargetsCnt, 1);
-    });
+        );
+        expect(scheduler.triggerPresubmitTargetsCnt, 1);
+      },
+    );
+
+    test(
+      'labeled event with CICD label schedules tests on flutter/packages',
+      () async {
+        tester.message = generateGithubWebhookMessage(
+          action: 'labeled',
+          labeledLabel: {...labelEventMap, 'id': Config.kCicdLabelIdPackages},
+          withCicdLabel:
+              true, // PR already has it, but the event is what triggers it
+        );
+
+        await tester.post(webhook);
+
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                message: contains('new CICD label added - scheduling tests'),
+              ),
+            ),
+          ),
+        );
+        expect(scheduler.triggerPresubmitTargetsCnt, 1);
+      },
+    );
+
     test(
       'synchronize event with CICD label does not schedules tests',
       () async {
