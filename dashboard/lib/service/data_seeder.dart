@@ -10,8 +10,6 @@ import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
-import 'package:uuid/data.dart';
-import 'package:uuid/rng.dart';
 import 'package:uuid/uuid.dart';
 
 import 'cocoon.dart';
@@ -490,9 +488,8 @@ class DataSeeder {
       user: User(login: guard.author),
       labels: [],
     );
-    final uuid = const Uuid(goptions: GlobalOptions(CryptoRNG()));
     final docName =
-        'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}/documents/${PrCheckRuns.kCollectionId}/${uuid.v4()}';
+        'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}/documents/${PrCheckRuns.kCollectionId}/${const Uuid().v4()}';
     final prCheckRuns = PrCheckRuns()
       ..pullRequest = pr
       ..pullRequestNum = guard.pullRequestId
