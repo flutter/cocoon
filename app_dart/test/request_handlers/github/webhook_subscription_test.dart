@@ -408,7 +408,6 @@ void main() {
         number: issueNumber,
         baseRef: 'master',
         slug: Config.packagesSlug,
-        withCicdLabel: true,
       );
 
       tester.message = pushMessage;
@@ -460,7 +459,6 @@ void main() {
         baseRef: 'master',
         slug: Config.packagesSlug,
         includeChanges: true,
-        withCicdLabel: true,
       );
 
       tester.message = pushMessage;
@@ -533,7 +531,6 @@ void main() {
         action: 'opened',
         number: issueNumber,
         isDraft: true,
-        withCicdLabel: true,
       );
 
       var batchRequestCalled = false;
@@ -2709,7 +2706,6 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'synchronize',
         number: issueNumber,
-        withCicdLabel: true,
       );
 
       final mockRepositoriesService = MockRepositoriesService();
@@ -2787,7 +2783,6 @@ void foo() {
           action: action,
           number: 1,
           headSha: headSha,
-          withCicdLabel: true,
           labeledLabel: action == 'labeled' ? labelEventMap : null,
         );
 
