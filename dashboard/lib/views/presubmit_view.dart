@@ -212,9 +212,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
             actions: [
               if (isLatestSha) ...[
                 TextButton.icon(
-                  onPressed:
-                      (!presubmitState.authService.isAuthenticated ||
-                          presubmitState.isRerunningAll)
+                  onPressed: (!presubmitState.canRerunAllFailedJobs)
                       ? null
                       : () async {
                           final error = await presubmitState
@@ -615,9 +613,6 @@ class _CheckItem extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final presubmitState = Provider.of<PresubmitState>(context);
 
-    final isRerunning = presubmitState.rerunningTasks.contains(name);
-    final isRerunningAll = presubmitState.isRerunningAll;
-
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -654,10 +649,7 @@ class _CheckItem extends StatelessWidget {
                 (status == TaskStatus.failed ||
                     status == TaskStatus.infraFailure))
               TextButton.icon(
-                onPressed:
-                    (!presubmitState.authService.isAuthenticated ||
-                        isRerunning ||
-                        isRerunningAll)
+                onPressed: (!presubmitState.canRerunFailedJob(name))
                     ? null
                     : () async {
                         final error = await presubmitState.rerunFailedJob(name);

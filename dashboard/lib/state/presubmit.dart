@@ -300,15 +300,24 @@ class PresubmitState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Schedule the provided [taskName] to be re-run.
+  bool canRerunFailedJob(String jobName) =>
+      authService.isAuthenticated &&
+      pr != null &&
+      !_rerunningTasks.contains(jobName) &&
+      !_isRerunningAll;
+
+  bool get canRerunAllFailedJobs =>
+      authService.isAuthenticated && pr != null && !_isRerunningAll;
+
+  /// Schedule the provided [jobName] to be re-run.
   ///
   /// Returns an error message if the request failed, otherwise null.
-  Future<String?> rerunFailedJob(String taskName) async {
-    if (pr == null || _rerunningTasks.contains(taskName) || _isRerunningAll) {
+  Future<String?> rerunFailedJob(String jobName) async {
+    if (!canRerunFailedJob(jobName)) {
       return null;
     }
 
-    _rerunningTasks.add(taskName);
+    _rerunningTasks.add(jobName);
     notifyListeners();
 
     try {
@@ -317,7 +326,7 @@ class PresubmitState extends ChangeNotifier {
         idToken: idToken,
         repo: repo,
         pr: int.parse(pr!),
-        buildName: taskName,
+        buildName: jobName,
       );
 
       if (response.error != null) {
@@ -329,7 +338,7 @@ class PresubmitState extends ChangeNotifier {
     } catch (e) {
       return e.toString();
     } finally {
-      _rerunningTasks.remove(taskName);
+      _rerunningTasks.remove(jobName);
       notifyListeners();
     }
   }
@@ -338,7 +347,7 @@ class PresubmitState extends ChangeNotifier {
   ///
   /// Returns an error message if the request failed, otherwise null.
   Future<String?> rerunAllFailedJobs() async {
-    if (pr == null || _isRerunningAll) {
+    if (!canRerunAllFailedJobs) {
       return null;
     }
 
