@@ -202,8 +202,6 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         await _checkForTests(pullRequestEvent);
         break;
       case 'opened':
-        // These cases should trigger LUCI jobs. The closed event should happen
-        // before these which should cancel all in progress checks.
         await _checkForTests(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
