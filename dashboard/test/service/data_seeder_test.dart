@@ -14,8 +14,9 @@ void main() {
 
     final firestore = server.firestore;
     final changes = firestore.documents
-        .where((d) => d.name!.contains('tree_status_change'))
-        .toList();
+        .where(
+      (d) => d.name!.contains('tree_status_change'),
+    );
     expect(changes, isNotEmpty);
   });
 
@@ -26,8 +27,9 @@ void main() {
 
     final firestore = server.firestore;
     final suppressed = firestore.documents
-        .where((d) => d.name!.contains('suppressed_tests'))
-        .toList();
+        .where(
+      (d) => d.name!.contains('suppressed_tests'),
+    );
     expect(suppressed, isNotEmpty);
   });
 
@@ -38,18 +40,21 @@ void main() {
 
     final firestore = server.firestore;
     final guards = firestore.documents
-        .where((d) => d.name!.contains('presubmit_guards'))
-        .toList();
+        .where(
+      (d) => d.name!.contains('presubmit_guards'),
+    );
     expect(guards, isNotEmpty);
 
     final checks = firestore.documents
-        .where((d) => d.name!.contains('presubmit_checks'))
-        .toList();
+        .where(
+      (d) => d.name!.contains('presubmit_checks'),
+    );
     expect(checks, isNotEmpty);
 
     final prCheckRuns = firestore.documents
-        .where((d) => d.name!.contains('prCheckRuns'))
-        .toList();
+        .where(
+      (d) => d.name!.contains('prCheckRuns'),
+    );
     expect(prCheckRuns, isNotEmpty);
   });
 }
