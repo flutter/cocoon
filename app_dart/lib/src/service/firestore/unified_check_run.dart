@@ -210,7 +210,9 @@ final class UnifiedCheckRun {
 
     if (currentStatus.isBuildCompleted) {
       guard.remainingBuilds += 1;
-      guard.failedBuilds -= 1;
+      if (currentStatus.isBuildFailed && guard.failedBuilds > 0) {
+        guard.failedBuilds -= 1;
+      }
     }
 
     builds[buildName] = TaskStatus.waitingForBackfill;
@@ -595,29 +597,12 @@ final class UnifiedCheckRun {
             throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
           }
           remaining = remaining - 1;
-        }
-
-        if (status.isBuildSuccessed) {
-          // Only rollback the "failed" counter if this is a successful test run,
-          // i.e. the test failed, the user requested a rerun, and now it passes.
-          if (state.attemptNumber > 1) {
-            log.info(
-              '$logCrumb: conclusion flipped to positive - assuming test was re-run',
-            );
-            if (failed == 0) {
-              throw '$logCrumb: field "${PresubmitGuard.fieldFailedBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
-            }
-            failed = failed - 1;
-          }
           valid = true;
         }
 
-        // Only increment the "failed" counter if the conclusion failed for the first attempt.
         if (status.isBuildFailed) {
-          if (state.attemptNumber == 1) {
-            log.info('$logCrumb: test failed');
-            failed = failed + 1;
-          }
+          log.info('$logCrumb: test failed');
+          failed = failed + 1;
           valid = true;
         }
 
