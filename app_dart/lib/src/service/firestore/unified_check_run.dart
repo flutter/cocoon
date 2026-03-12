@@ -213,7 +213,7 @@ final class UnifiedCheckRun {
     // If build succeeded re-run is not possible but if some how they manage to
     // request re-run we have to only increment remaining builds.
     // If build is still in progress re-run is not possible but if some how they
-    // manage to request rerun we should not touch any counters.
+    // manage to request re-run we should not touch any counters.
     if (currentStatus.isBuildCompleted) {
       guard.remainingBuilds += 1;
       if (currentStatus.isBuildFailed && guard.failedBuilds > 0) {
