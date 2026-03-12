@@ -7,5 +7,5 @@
 
 ---
 
-- [x] **Track: Re-run Event Handling in Presubmit Guard Details**
+- [~] **Track: Re-run Event Handling in Presubmit Guard Details**
 *Link: [./tracks/rerun_failed_ui_20260309/](./tracks/rerun_failed_ui_20260309/)*

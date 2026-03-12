@@ -30,4 +30,26 @@ void main() {
         .toList();
     expect(suppressed, isNotEmpty);
   });
+
+  test('DataSeeder seeds presubmit data', () async {
+    final server = IntegrationServer();
+    final seeder = DataSeeder(server);
+    seeder.seed();
+
+    final firestore = server.firestore;
+    final guards = firestore.documents
+        .where((d) => d.name!.contains('presubmit_guards'))
+        .toList();
+    expect(guards, isNotEmpty);
+
+    final checks = firestore.documents
+        .where((d) => d.name!.contains('presubmit_checks'))
+        .toList();
+    expect(checks, isNotEmpty);
+
+    final prCheckRuns = firestore.documents
+        .where((d) => d.name!.contains('prCheckRuns'))
+        .toList();
+    expect(prCheckRuns, isNotEmpty);
+  });
 }
