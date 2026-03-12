@@ -13,11 +13,10 @@ void main() {
     seeder.seed();
 
     final firestore = server.firestore;
-    final changes = firestore.documents
-        .where(
-      (d) => d.name!.contains('tree_status_change'),
+    expect(
+      firestore.documents.where((d) => d.name!.contains('tree_status_change')),
+      isNotEmpty,
     );
-    expect(changes, isNotEmpty);
   });
 
   test('DataSeeder seeds suppressed tests', () async {
@@ -26,11 +25,10 @@ void main() {
     seeder.seed();
 
     final firestore = server.firestore;
-    final suppressed = firestore.documents
-        .where(
-      (d) => d.name!.contains('suppressed_tests'),
+    expect(
+      firestore.documents.where((d) => d.name!.contains('suppressed_tests')),
+      isNotEmpty,
     );
-    expect(suppressed, isNotEmpty);
   });
 
   test('DataSeeder seeds presubmit data', () async {
@@ -39,22 +37,19 @@ void main() {
     seeder.seed();
 
     final firestore = server.firestore;
-    final guards = firestore.documents
-        .where(
-      (d) => d.name!.contains('presubmit_guards'),
+    expect(
+      firestore.documents.where((d) => d.name!.contains('presubmit_guards')),
+      isNotEmpty,
     );
-    expect(guards, isNotEmpty);
 
-    final checks = firestore.documents
-        .where(
-      (d) => d.name!.contains('presubmit_checks'),
+    expect(
+      firestore.documents.where((d) => d.name!.contains('presubmit_checks')),
+      isNotEmpty,
     );
-    expect(checks, isNotEmpty);
 
-    final prCheckRuns = firestore.documents
-        .where(
-      (d) => d.name!.contains('prCheckRuns'),
+    expect(
+      firestore.documents.where((d) => d.name!.contains('prCheckRuns')),
+      isNotEmpty,
     );
-    expect(prCheckRuns, isNotEmpty);
   });
 }
