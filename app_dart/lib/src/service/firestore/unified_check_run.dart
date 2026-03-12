@@ -210,7 +210,9 @@ final class UnifiedCheckRun {
 
     if (currentStatus.isBuildCompleted) {
       guard.remainingBuilds += 1;
+      guard.failedBuilds -= 1;
     }
+
     builds[buildName] = TaskStatus.waitingForBackfill;
     guard.builds = builds;
 
