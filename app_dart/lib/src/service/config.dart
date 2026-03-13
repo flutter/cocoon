@@ -41,14 +41,21 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// Label required to schedule CI tasks on pull requests as a security stop-gap.
   static const String kCicdLabel = 'CICD';
 
-  /// GitHub ID for the CICD label.
+  /// GitHub ID for the CICD label on Flutter
   static const int kCicdLabelIdFlutter = 10404216443;
 
-  /// GitHub ID for the CICD label.
+  /// GitHub ID for the CICD label on Packages.
   static const int kCicdLabelIdPackages = 10404974695;
 
+  /// GitHub ID for CICD label on Cocoon.
+  static const int kCicdLabelIdCocoon = 10414490556;
+
   /// All valid labels for triggering cicd
-  static const kCicdLabelIds = [kCicdLabelIdFlutter, kCicdLabelIdPackages];
+  static const kCicdLabelIds = [
+    kCicdLabelIdFlutter,
+    kCicdLabelIdPackages,
+    kCicdLabelIdCocoon,
+  ];
 
   /// Validates that CI tasks were successfully created from the .ci.yaml file.
   ///

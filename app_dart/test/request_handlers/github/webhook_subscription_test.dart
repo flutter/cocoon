@@ -3804,6 +3804,32 @@ void foo() {
     );
 
     test(
+      'labeled event with CICD label schedules tests on flutter/cocoon',
+      () async {
+        tester.message = generateGithubWebhookMessage(
+          action: 'labeled',
+          labeledLabel: {...labelEventMap, 'id': Config.kCicdLabelIdCocoon},
+          withCicdLabel:
+              true, // PR already has it, but the event is what triggers it
+        );
+
+        await tester.post(webhook);
+
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                message: contains('new CICD label added - scheduling tests'),
+              ),
+            ),
+          ),
+        );
+        expect(scheduler.triggerPresubmitTargetsCnt, 1);
+      },
+    );
+
+    test(
       'synchronize event with CICD label does not schedules tests',
       () async {
         tester.message = generateGithubWebhookMessage(
