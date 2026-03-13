@@ -199,9 +199,11 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         final result = await _processPullRequestClosed(pullRequestEvent);
         return result.toResponse();
       case 'edited':
+        await _addCICDForRollers(pullRequestEvent);
         await _checkForTests(pullRequestEvent);
         break;
       case 'opened':
+        await _addCICDForRollers(pullRequestEvent);
         await _checkForTests(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
@@ -565,6 +567,17 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     return ProcessCheckRunResult.missingEntity(
       '${pr.mergeCommitSha!} was not found on GoB (duration=$duration).',
     );
+  }
+
+  Future<void> _addCICDForRollers(PullRequestEvent pullRequestEvent) async {
+    final pr = pullRequestEvent.pullRequest!;
+    final slug = pr.base!.repo!.slug();
+
+    if (config.rollerAccounts.contains(pr.user!.login) &&
+        config.supportedRepos.contains(slug)) {
+      final gitHubClient = await config.createGitHubClient(pullRequest: pr);
+      await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, ['CICD']);
+    }
   }
 
   Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {
