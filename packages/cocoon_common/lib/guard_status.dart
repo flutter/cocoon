@@ -33,14 +33,14 @@ enum GuardStatus {
     required int remainingBuilds,
     required int totalBuilds,
   }) {
-    if (failedBuilds > 0) {
-      return GuardStatus.failed;
-    } else if (failedBuilds == 0 && remainingBuilds == 0) {
+    if (failedBuilds == 0 && remainingBuilds == 0) {
       return GuardStatus.succeeded;
     } else if (remainingBuilds == totalBuilds) {
       return GuardStatus.waitingForBackfill;
-    } else {
+    } else if (remainingBuilds > 0) {
       return GuardStatus.inProgress;
+    } else {
+      return GuardStatus.failed;
     }
   }
 }

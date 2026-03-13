@@ -208,9 +208,18 @@ final class UnifiedCheckRun {
     final builds = guard.builds;
     final currentStatus = builds[buildName]!;
 
+    // If build is failed we increment remain builds and decrement failed.
+    // If build succeeded re-run is not possible but if some how they manage to
+    // request re-run we have to only increment remaining builds.
+    // If build is still in progress re-run is not possible but if some how they
+    // manage to request re-run we should not touch any counters.
     if (currentStatus.isBuildCompleted) {
       guard.remainingBuilds += 1;
+      if (currentStatus.isBuildFailed && guard.failedBuilds > 0) {
+        guard.failedBuilds -= 1;
+      }
     }
+
     builds[buildName] = TaskStatus.waitingForBackfill;
     guard.builds = builds;
 
@@ -580,54 +589,42 @@ final class UnifiedCheckRun {
         }
         valid = true;
       } else {
-        // "remaining" should go down if build is succeeded or failed.
-        // "failed_count" can go up or down depending on:
-        //   attemptNumber > 1 && buildSuccessed: down (-1)
-        //   attemptNumber = 1 && buildFailed: up (+1)
-        // So if the test existed and either remaining or failed_count is changed;
-        // the response is valid.
-        status = state.status;
-        if (status.isBuildCompleted) {
-          // Guard against going negative and log enough info so we can debug.
-          if (remaining == 0) {
-            throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
-          }
-          remaining = remaining - 1;
-        }
-
-        if (status.isBuildSuccessed) {
-          // Only rollback the "failed" counter if this is a successful test run,
-          // i.e. the test failed, the user requested a rerun, and now it passes.
-          if (state.attemptNumber > 1) {
-            log.info(
-              '$logCrumb: conclusion flipped to positive - assuming test was re-run',
-            );
-            if (failed == 0) {
-              throw '$logCrumb: field "${PresubmitGuard.fieldFailedBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
+        // If build already compleated remaining and failed should not updated.
+        if (!status.isBuildCompleted) {
+          // "remaining" should go down if build is succeeded or failed.
+          // "failed_count" can go up or down depending on:
+          //   attemptNumber > 1 && buildSuccessed: down (-1)
+          //   attemptNumber = 1 && buildFailed: up (+1)
+          // So if the test existed and either remaining or failed_count is changed;
+          // the response is valid.
+          if (state.status.isBuildCompleted) {
+            // Guard against going negative and log enough info so we can debug.
+            if (remaining == 0) {
+              throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
             }
-            failed = failed - 1;
+            remaining -= 1;
+            valid = true;
           }
-          valid = true;
-        }
 
-        // Only increment the "failed" counter if the conclusion failed for the first attempt.
-        if (status.isBuildFailed) {
-          if (state.attemptNumber == 1) {
+          if (state.status.isBuildFailed) {
             log.info('$logCrumb: test failed');
-            failed = failed + 1;
+            failed += 1;
+            valid = true;
           }
+          status = state.status;
+          // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
+          log.info(
+            '$logCrumb: setting remaining to $remaining, failed to $failed',
+          );
+          presubmitGuard.remainingBuilds = remaining;
+          presubmitGuard.failedBuilds = failed;
+          presubmitCheck.endTime = state.endTime!;
+          presubmitCheck.summary = state.summary;
+          presubmitCheck.buildNumber = state.buildNumber;
+        } else {
+          status = state.status;
           valid = true;
         }
-
-        // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
-        log.info(
-          '$logCrumb: setting remaining to $remaining, failed to $failed',
-        );
-        presubmitGuard.remainingBuilds = remaining;
-        presubmitGuard.failedBuilds = failed;
-        presubmitCheck.endTime = state.endTime!;
-        presubmitCheck.summary = state.summary;
-        presubmitCheck.buildNumber = state.buildNumber;
       }
       builds[state.buildName] = status;
       presubmitGuard.builds = builds;

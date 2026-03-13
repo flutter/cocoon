@@ -13,10 +13,10 @@ void main() {
     seeder.seed();
 
     final firestore = server.firestore;
-    final changes = firestore.documents
-        .where((d) => d.name!.contains('tree_status_change'))
-        .toList();
-    expect(changes, isNotEmpty);
+    expect(
+      firestore.documents.where((d) => d.name!.contains('tree_status_change')),
+      isNotEmpty,
+    );
   });
 
   test('DataSeeder seeds suppressed tests', () async {
@@ -25,9 +25,31 @@ void main() {
     seeder.seed();
 
     final firestore = server.firestore;
-    final suppressed = firestore.documents
-        .where((d) => d.name!.contains('suppressed_tests'))
-        .toList();
-    expect(suppressed, isNotEmpty);
+    expect(
+      firestore.documents.where((d) => d.name!.contains('suppressed_tests')),
+      isNotEmpty,
+    );
+  });
+
+  test('DataSeeder seeds presubmit data', () async {
+    final server = IntegrationServer();
+    final seeder = DataSeeder(server);
+    seeder.seed();
+
+    final firestore = server.firestore;
+    expect(
+      firestore.documents.where((d) => d.name!.contains('presubmit_guards')),
+      isNotEmpty,
+    );
+
+    expect(
+      firestore.documents.where((d) => d.name!.contains('presubmit_checks')),
+      isNotEmpty,
+    );
+
+    expect(
+      firestore.documents.where((d) => d.name!.contains('prCheckRuns')),
+      isNotEmpty,
+    );
   });
 }

@@ -23,13 +23,13 @@ Update the backend service interface and the state management logic to support r
 - [x] Task: Rename `rerunTask` to `rerunFailedJob` and `rerunFailed` to `rerunAllFailedJobs` in `PresubmitState` and its usages.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Service and State Updates' (Protocol in workflow.md)
 
-## Phase 3: Data Seeding Updates
+## Phase 3: Data Seeding Updates [checkpoint: 0011a64]
 Update the backend data seeder to provide more realistic dummy data for integration tests.
 
-- [~] Task: Update `_seedPresubmitData` in `dashboard/lib/service/data_seeder.dart` to seed `prCheckRuns` with dummy `pull_request`.
+- [x] Task: Update `_seedPresubmitData` in `dashboard/lib/service/data_seeder.dart` to seed `prCheckRuns` with dummy `pull_request`.
     - For every `PresubmitGuard`, create a matching `PrCheckRuns` document.
     - Include a dummy `PullRequest` object with: `head.sha`, `base.repo`, `base.ref`, `user.login`, `number`, `labels`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Seeding Updates' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Data Seeding Updates' (Protocol in workflow.md)
 
 ## Phase 2: UI Implementation
 Update the `PresubmitView` to connect the existing buttons to the new state methods and handle error reporting.
