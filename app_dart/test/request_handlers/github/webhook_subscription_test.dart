@@ -879,92 +879,53 @@ void main() {
     });
 
     group(
-      'Auto-roller accounts do not label Framework PR with test label or comment.',
+      'Auto-roller accounts label Framework PR with CICD label, but no comment',
       () {
-        final inputs = <String>{'skia-flutter-autoroll', 'dependabot'};
+        final inputs = <String>{
+          'skia-flutter-autoroll',
+          'dependabot',
+          'engine-flutter-autoroll',
+        };
 
         for (var element in inputs) {
-          test(
-            'Framework does not label PR with no tests label if author is $element',
-            () async {
-              const issueNumber = 123;
+          test('if author is $element', () async {
+            const issueNumber = 123;
 
-              tester.message = generateGithubWebhookMessage(
-                action: 'opened',
-                number: issueNumber,
-                login: element,
-              );
+            tester.message = generateGithubWebhookMessage(
+              action: 'opened',
+              number: issueNumber,
+              login: element,
+            );
 
-              final slug = RepositorySlug('flutter', 'flutter');
+            final slug = RepositorySlug('flutter', 'flutter');
 
-              when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-                (_) => Stream<PullRequestFile>.value(
-                  PullRequestFile()..filename = 'packages/flutter/blah.dart',
-                ),
-              );
+            when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
+              (_) => Stream<PullRequestFile>.value(
+                PullRequestFile()..filename = 'packages/flutter/blah.dart',
+              ),
+            );
 
-              when(
-                issuesService.listCommentsByIssue(slug, issueNumber),
-              ).thenAnswer(
-                (_) => Stream<IssueComment>.value(
-                  IssueComment()..body = 'some other comment',
-                ),
-              );
+            when(
+              issuesService.listCommentsByIssue(slug, issueNumber),
+            ).thenAnswer(
+              (_) => Stream<IssueComment>.value(
+                IssueComment()..body = 'some other comment',
+              ),
+            );
 
-              await tester.post(webhook);
+            await tester.post(webhook);
 
-              verifyNever(
-                issuesService.addLabelsToIssue(slug, issueNumber, any),
-              );
+            verify(issuesService.addLabelsToIssue(slug, issueNumber, ['CICD']));
 
-              verifyNever(
-                issuesService.createComment(
-                  slug,
-                  issueNumber,
-                  argThat(contains(config.missingTestsPullRequestMessageValue)),
-                ),
-              );
-            },
-          );
+            verifyNever(
+              issuesService.createComment(
+                slug,
+                issueNumber,
+                argThat(contains(config.missingTestsPullRequestMessageValue)),
+              ),
+            );
+          });
         }
-      },
-    );
-
-    test(
-      'Framework does not label PR with no tests label if author is engine-flutter-autoroll',
-      () async {
-        const issueNumber = 123;
-
-        tester.message = generateGithubWebhookMessage(
-          action: 'opened',
-          number: issueNumber,
-          login: 'engine-flutter-autoroll',
-        );
-        final slug = RepositorySlug('flutter', 'flutter');
-
-        when(pullRequestsService.listFiles(slug, issueNumber)).thenAnswer(
-          (_) => Stream<PullRequestFile>.value(
-            PullRequestFile()..filename = 'packages/flutter/blah.dart',
-          ),
-        );
-
-        when(issuesService.listCommentsByIssue(slug, issueNumber)).thenAnswer(
-          (_) => Stream<IssueComment>.value(
-            IssueComment()..body = 'some other comment',
-          ),
-        );
-
-        await tester.post(webhook);
-
-        verifyNever(issuesService.addLabelsToIssue(slug, issueNumber, any));
-
-        verifyNever(
-          issuesService.createComment(
-            slug,
-            issueNumber,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
-          ),
-        );
       },
     );
 
@@ -3783,6 +3744,32 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'labeled',
           labeledLabel: {...labelEventMap, 'id': Config.kCicdLabelIdPackages},
+          withCicdLabel:
+              true, // PR already has it, but the event is what triggers it
+        );
+
+        await tester.post(webhook);
+
+        expect(
+          log,
+          bufferedLoggerOf(
+            contains(
+              logThat(
+                message: contains('new CICD label added - scheduling tests'),
+              ),
+            ),
+          ),
+        );
+        expect(scheduler.triggerPresubmitTargetsCnt, 1);
+      },
+    );
+
+    test(
+      'labeled event with CICD label schedules tests on flutter/cocoon',
+      () async {
+        tester.message = generateGithubWebhookMessage(
+          action: 'labeled',
+          labeledLabel: {...labelEventMap, 'id': Config.kCicdLabelIdCocoon},
           withCicdLabel:
               true, // PR already has it, but the event is what triggers it
         );
