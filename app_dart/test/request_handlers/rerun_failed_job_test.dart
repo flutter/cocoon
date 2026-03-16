@@ -7,6 +7,7 @@ import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
+import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/request_handlers/rerun_failed_job.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
@@ -61,8 +62,13 @@ void main() {
     );
     firestore.putDocument(guard);
 
-    final pullRequest = generatePullRequest();
+    final pullRequest = generatePullRequest(headSha: guard.commitSha);
     scheduler.pullRequest = pullRequest;
+    await PrCheckRuns.initializeDocument(
+      firestoreService: firestore,
+      pullRequest: pullRequest,
+      checks: [],
+    );
 
     final failedCheck = PresubmitCheck(
       slug: Config.flutterSlug,
@@ -82,7 +88,7 @@ void main() {
     );
 
     when(
-      mockLuciBuildService.scheduleTryBuilds(
+      mockLuciBuildService.reScheduleTryBuilds(
         targets: anyNamed('targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
@@ -102,9 +108,9 @@ void main() {
     expect(response.statusCode, HttpStatus.ok);
 
     verify(
-      mockLuciBuildService.scheduleTryBuilds(
-        targets: argThat(contains(targetA), named: 'targets'),
-        pullRequest: pullRequest,
+      mockLuciBuildService.reScheduleTryBuilds(
+        targets: argThat(containsPair(targetA, 2), named: 'targets'),
+        pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
         checkRunGuard: anyNamed('checkRunGuard'),
         stage: anyNamed('stage'),
@@ -127,8 +133,13 @@ void main() {
     );
     firestore.putDocument(guard);
 
-    final pullRequest = generatePullRequest();
+    final pullRequest = generatePullRequest(headSha: guard.commitSha);
     scheduler.pullRequest = pullRequest;
+    await PrCheckRuns.initializeDocument(
+      firestoreService: firestore,
+      pullRequest: pullRequest,
+      checks: [],
+    );
 
     final failedCheck = PresubmitCheck(
       slug: Config.flutterSlug,
@@ -148,7 +159,7 @@ void main() {
     );
 
     when(
-      mockLuciBuildService.scheduleTryBuilds(
+      mockLuciBuildService.reScheduleTryBuilds(
         targets: anyNamed('targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
@@ -194,8 +205,13 @@ void main() {
     final guard = generatePresubmitGuard(checkRun: checkRun);
     firestore.putDocument(guard);
 
-    final pullRequest = generatePullRequest();
+    final pullRequest = generatePullRequest(headSha: guard.commitSha);
     scheduler.pullRequest = pullRequest;
+    await PrCheckRuns.initializeDocument(
+      firestoreService: firestore,
+      pullRequest: pullRequest,
+      checks: [],
+    );
 
     tester.requestData = {
       'owner': 'flutter',

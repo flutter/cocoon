@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:github/github.dart';
 
 import '../../cocoon_service.dart';
+import '../model/ci_yaml/target.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/firestore/unified_check_run.dart';
@@ -58,9 +59,9 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
     }
 
-    final pullRequest = await _scheduler.findPullRequestCachedForPullRequestNum(
-      slug,
-      prNumber,
+    final pullRequest = await PrCheckRuns.findPullRequestForSha(
+      _firestore,
+      guard.commitSha,
     );
 
     if (pullRequest == null) {
@@ -83,12 +84,21 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       pullRequest,
     );
 
-    final failedTargets = targets
-        .where((target) => failedChecks.checkRetries.containsKey(target.name))
-        .toList();
+    final checkRetries = <Target, int>{};
+    for (final target in targets) {
+      if (failedChecks.checkRetries.containsKey(target.name)) {
+        checkRetries[target] = failedChecks.checkRetries[target.name]!;
+      }
+    }
 
-    await _luciBuildService.scheduleTryBuilds(
-      targets: failedTargets,
+    if (checkRetries.length != failedChecks.checkRetries.length) {
+      throw const NotFoundException(
+        'Failed to find all failed targets in presubmit targets',
+      );
+    }
+
+    await _luciBuildService.reScheduleTryBuilds(
+      targets: checkRetries,
       pullRequest: pullRequest,
       engineArtifacts: artifacts,
       checkRunGuard: failedChecks.checkRunGuard,
@@ -96,7 +106,7 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     );
 
     return Response.json({
-      'results': failedTargets
+      'results': checkRetries.keys
           .map((t) => {'builder': t.name, 'status': 'rescheduled'})
           .toList(),
     });
