@@ -61,7 +61,7 @@ final class RerunFailedJob extends ApiRequestHandler {
       throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
     }
 
-    PullRequest pullRequest;
+    final PullRequest pullRequest;
     try {
       pullRequest = await PrCheckRuns.findPullRequestFor(
         _firestore,
