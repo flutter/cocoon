@@ -71,7 +71,6 @@ class Scheduler {
     required BigQueryService bigQuery,
   }) : _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
-       _githubService = githubService,
        _config = config,
        _getFilesChanged = getFilesChanged,
        _ciYamlFetcher = ciYamlFetcher,
@@ -87,7 +86,6 @@ class Scheduler {
   final GetFilesChanged _getFilesChanged;
   final Config _config;
   final GithubChecksService _githubChecksService;
-  final GithubService _githubService;
   final CiYamlFetcher _ciYamlFetcher;
   final ContentAwareHashService _contentAwareHash;
   final LuciBuildService _luciBuildService;

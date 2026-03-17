@@ -8,7 +8,6 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/request_handlers/rerun_all_failed_jobs.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
