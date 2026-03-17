@@ -5,6 +5,27 @@
 # The auto-build will be skipped if no new commits since last deployment.
 
 steps:
+  # Step 0: Poll for the orovenance
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |-
+        echo "Waiting for provenance to be indexed by Google..."
+        # Loop for up to 2 minutes
+        for i in {1..12}; do
+          if gcloud artifacts docker images describe \
+            us-docker.pkg.dev/$PROJECT_ID/appengine/auto-submit.version-$SHORT_SHA:latest \
+            --show-provenance > /dev/null 2>&1; then
+            echo "Provenance is ready!"
+            exit 0
+          fi
+          echo "Not ready yet (Attempt $i/12). Sleeping 10s..."
+          sleep 10
+        done
+        echo "ERROR: Provenance never appeared."
+        exit 1
+
   # Get recently pushed docker image and associated provenance, along with the
   # correct docker digest url, including the hash.
   - name: gcr.io/cloud-builders/gcloud
