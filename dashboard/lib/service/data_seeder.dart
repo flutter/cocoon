@@ -492,7 +492,6 @@ class DataSeeder {
         'projects/${Config.flutterGcpProjectId}/databases/${Config.flutterGcpFirestoreDatabase}/documents/${PrCheckRuns.kCollectionId}/${const Uuid().v4()}';
     final prCheckRuns = PrCheckRuns()
       ..pullRequest = pr
-      ..pullRequestNum = guard.pullRequestId
       ..fields['sha'] = guard.commitSha.toValue()
       ..fields['slug'] = jsonEncode(guard.slug.toJson()).toValue()
       ..fields['Merge Queue Guard'] = guard.checkRun.id!.toString().toValue()
