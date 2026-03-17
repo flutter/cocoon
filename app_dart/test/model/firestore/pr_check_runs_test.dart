@@ -83,7 +83,6 @@ void main() {
     expect(pr.id, 1234);
   });
 
-
   test('updatePullRequestForSha updates pullRequest', () async {
     final pr1 = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
     await PrCheckRuns.initializeDocument(

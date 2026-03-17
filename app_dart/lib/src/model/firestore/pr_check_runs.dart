@@ -89,9 +89,7 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
   Map<String, String> get checkRuns {
     final checkRuns = <String, String>{};
     for (final MapEntry(:key, :value) in fields.entries) {
-      if (key == kPullRequestField ||
-          key == kSlugField ||
-          key == kShaField) {
+      if (key == kPullRequestField || key == kSlugField || key == kShaField) {
         continue;
       }
       checkRuns[key] = value.stringValue!;
@@ -203,5 +201,4 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     final prcr = await _findPrCheckRunsForSha(firestoreService, sha);
     return prcr?.pullRequest;
   }
-
 }
