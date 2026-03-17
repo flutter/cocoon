@@ -5,7 +5,7 @@
 # The auto-build will be skipped if no new commits since last deployment.
 
 steps:
-  # Step 0: Poll for the orovenance
+  # Step 0: Poll for the provenance
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: '/bin/bash'
     args:
