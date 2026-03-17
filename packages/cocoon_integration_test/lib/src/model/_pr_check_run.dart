@@ -16,7 +16,6 @@ final class PrCheckRunsMatcher extends ModelMatcher<PrCheckRuns> {
     );
   }
 
-
   PrCheckRunsMatcher hasSha(Object? valueOrMatcher) {
     return PrCheckRunsMatcher._(
       _delegate.having((c) => c.sha, 'sha', valueOrMatcher),
