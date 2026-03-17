@@ -1720,40 +1720,6 @@ $stacktrace
     return pullRequest;
   }
 
-  Future<PullRequest?> findPullRequestCachedForPullRequestNum(
-    RepositorySlug slug,
-    int pullRequestNum,
-  ) async {
-    final logCrumb = 'findPullRequestCachedForPullRequestNum($pullRequestNum)';
-    PullRequest? pullRequest;
-    // Look up the PR in our cache first. This reduces github quota and requires less calls.
-    try {
-      pullRequest = await PrCheckRuns.findPullRequestForPullRequestNum(
-        _firestore,
-        pullRequestNum,
-      );
-    } catch (e, s) {
-      log.info('$logCrumb: unable to find PR in PrCheckRuns', e, s);
-    }
-    if (pullRequest == null) {
-      try {
-        pullRequest = await _githubService.getPullRequest(slug, pullRequestNum);
-        await PrCheckRuns.initializeDocument(
-          firestoreService: _firestore,
-          pullRequest: pullRequest,
-          checks: [],
-        );
-      } catch (e, s) {
-        log.warn('$logCrumb: unable to find PR in GitHub', e, s);
-      }
-    }
-
-    if (pullRequest == null) {
-      log.warn('$logCrumb: No pull request found');
-    }
-    return pullRequest;
-  }
-
   Future<ProcessCheckRunResult> _reRunFailed(
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {

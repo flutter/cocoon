@@ -244,12 +244,6 @@ class TestScheduler extends FakeScheduler {
     int checkSuiteId,
   ) async => pullRequest;
 
-  @override
-  Future<PullRequest?> findPullRequestCachedForPullRequestNum(
-    RepositorySlug slug,
-    int pullRequestNum,
-  ) async => pullRequest;
-
   List<Target>? targets;
   EngineArtifacts? engineArtifacts;
   @override

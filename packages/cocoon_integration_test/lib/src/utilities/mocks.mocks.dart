@@ -5861,20 +5861,6 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<_i7.PullRequest?>);
 
   @override
-  _i13.Future<_i7.PullRequest?> findPullRequestCachedForPullRequestNum(
-    _i7.RepositorySlug? slug,
-    int? pullRequestNum,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#findPullRequestCachedForPullRequestNum, [
-              slug,
-              pullRequestNum,
-            ]),
-            returnValue: _i13.Future<_i7.PullRequest?>.value(),
-          )
-          as _i13.Future<_i7.PullRequest?>);
-
-  @override
   _i13.Future<(List<_i27.Target>, _i28.EngineArtifacts)>
   getAllTargetsForPullRequest(
     _i7.RepositorySlug? slug,

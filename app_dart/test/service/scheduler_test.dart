@@ -4183,39 +4183,6 @@ targets:
       );
       expect(result!.id, 1234);
     });
-
-    test('findPullRequestCachedForPullRequestNum finds in Firestore', () async {
-      final pr = generatePullRequest(id: 1234, number: 5678);
-      await PrCheckRuns.initializeDocument(
-        firestoreService: firestore,
-        pullRequest: pr,
-        checks: [],
-      );
-
-      final result = await scheduler.findPullRequestCachedForPullRequestNum(
-        Config.flutterSlug,
-        5678,
-      );
-      expect(result!.id, 1234);
-    });
-
-    test(
-      'findPullRequestCachedForPullRequestNum finds in GitHub as fallback',
-      () async {
-        final pr = generatePullRequest(id: 1234, number: 5678);
-        final mockGithubService = MockGithubService();
-        when(
-          mockGithubService.getPullRequest(any, any),
-        ).thenAnswer((_) async => pr);
-        config.githubService = mockGithubService;
-
-        final result = await scheduler.findPullRequestCachedForPullRequestNum(
-          Config.flutterSlug,
-          5678,
-        );
-        expect(result!.id, 1234);
-      },
-    );
   });
 }
 

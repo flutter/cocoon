@@ -32,8 +32,6 @@
 - [x] Task: Remove `_scheduler.findPullRequestCached` call in `RerunAllFailedJobs`.
 - [x] Task: Add `pull_request_num` field to `PrCheckRuns` and implement `findPullRequestForPullRequestNum`.
 - [x] Task: Update `pull_request_num` in `updatePullRequestForSha`.
-- [x] Task: Add `findPullRequestCachedForPullRequestNum` to `Scheduler`.
-- [x] Task: Add `githubService` to `Scheduler` constructor and cache PRs in `findPullRequestCachedForPullRequestNum`.
 - [x] Task: Update handlers to use `owner`, `repo`, and `pr` and implement `getLatestPresubmitGuardByPullRequestNum`.
 - [x] Task: Default `owner` and `repo` to 'flutter' in handlers.
 - [x] Task: Fix `validate cocoon ci.yaml generates jspb` unit test.
