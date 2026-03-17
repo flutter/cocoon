@@ -60,15 +60,18 @@ final class RerunFailedJob extends ApiRequestHandler {
     if (guard == null) {
       throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
     }
-    // In theory several PRs could have the same sha,
-    // but in practice this should not be the case.
-    final pullRequest = await PrCheckRuns.findPullRequestForSha(
-      _firestore,
-      guard.commitSha,
-    );
 
-    if (pullRequest == null) {
-      throw NotFoundException('No pull request found for PR $slug/$prNumber');
+    PullRequest pullRequest;
+    try {
+      pullRequest = await PrCheckRuns.findPullRequestFor(
+        _firestore,
+        guard.checkRunId,
+        Config.kMergeQueueLockName,
+      );
+    } catch (e) {
+      throw NotFoundException(
+        'No pull request found for ${Config.kMergeQueueLockName} with ${guard.checkRunId} id',
+      );
     }
 
     final rerunInfo = await UnifiedCheckRun.reInitializeFailedJob(

@@ -67,7 +67,12 @@ void main() {
     await PrCheckRuns.initializeDocument(
       firestoreService: firestore,
       pullRequest: pullRequest,
-      checks: [],
+      checks: [
+        generateCheckRun(
+          guard.checkRunId,
+          name: Config.kMergeQueueLockName,
+        ),
+      ],
     );
 
     final failedCheck = PresubmitCheck(
@@ -137,7 +142,12 @@ void main() {
     await PrCheckRuns.initializeDocument(
       firestoreService: firestore,
       pullRequest: pullRequest,
-      checks: [],
+      checks: [
+        generateCheckRun(
+          guard.checkRunId,
+          name: Config.kMergeQueueLockName,
+        ),
+      ],
     );
 
     final failedCheck = PresubmitCheck(
@@ -186,7 +196,12 @@ void main() {
     await PrCheckRuns.initializeDocument(
       firestoreService: firestore,
       pullRequest: pullRequest,
-      checks: [],
+      checks: [
+        generateCheckRun(
+          guard.checkRunId,
+          name: Config.kMergeQueueLockName,
+        ),
+      ],
     );
 
     tester.requestData = {
