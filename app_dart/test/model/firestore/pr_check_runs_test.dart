@@ -50,7 +50,6 @@ void main() {
                   json.encode(pr.toJson()),
                 ),
               )
-              .hasPullRequestNum(pr.number)
               .hasSlug(pr.head!.repo!.slug())
               .hasSha(pr.head!.sha)
               .hasCheckRuns({'check 1': '1', 'check 2': '2'}),
@@ -84,33 +83,8 @@ void main() {
     expect(pr.id, 1234);
   });
 
-  test('query for pullRequestNum', () async {
-    final pr = generatePullRequest(id: 1234, number: 5678);
-    firestoreService.putDocument(
-      Document(
-        fields: {
-          PrCheckRuns.kPullRequestField: Value(
-            stringValue: json.encode(pr.toJson()),
-          ),
-          PrCheckRuns.kPullRequestNumField: pr.number!.toValue(),
-        },
-        name: firestoreService.resolveDocumentName(
-          PrCheckRuns.kCollectionId,
-          '1234',
-        ),
-      ),
-    );
 
-    final result = await PrCheckRuns.findPullRequestForPullRequestNum(
-      firestoreService,
-      5678,
-    );
-
-    expect(result!.id, 1234);
-    expect(result.number, 5678);
-  });
-
-  test('updatePullRequestForSha updates pullRequestNum', () async {
+  test('updatePullRequestForSha updates pullRequest', () async {
     final pr1 = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
     await PrCheckRuns.initializeDocument(
       firestoreService: firestoreService,
@@ -127,17 +101,11 @@ void main() {
 
     expect(updated, isTrue);
 
-    final result = await PrCheckRuns.findPullRequestForPullRequestNum(
+    final result = await PrCheckRuns.findPullRequestForSha(
       firestoreService,
-      9999,
+      'abc',
     );
     expect(result!.number, 9999);
-
-    final oldResult = await PrCheckRuns.findPullRequestForPullRequestNum(
-      firestoreService,
-      5678,
-    );
-    expect(oldResult, isNull);
   });
 
   // Regression test for https://github.com/flutter/flutter/issues/166014.
