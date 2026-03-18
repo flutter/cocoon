@@ -521,6 +521,28 @@ class _ChecksSidebar extends StatefulWidget {
 
 class _ChecksSidebarState extends State<_ChecksSidebar> {
   final ScrollController _scrollController = ScrollController();
+  late List<List<MapEntry<String, TaskStatus>>> _sortedBuildsPerStage;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateSortedBuilds();
+  }
+
+  @override
+  void didUpdateWidget(_ChecksSidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.guardResponse != oldWidget.guardResponse) {
+      _updateSortedBuilds();
+    }
+  }
+
+  void _updateSortedBuilds() {
+    _sortedBuildsPerStage = widget.guardResponse.stages.map((stage) {
+      return stage.builds.entries.toList()
+        ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
+    }).toList();
+  }
 
   @override
   void dispose() {
@@ -546,10 +568,7 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                 itemCount: widget.guardResponse.stages.length,
                 itemBuilder: (context, stageIndex) {
                   final stage = widget.guardResponse.stages[stageIndex];
-                  final sortedBuilds = stage.builds.entries.toList()
-                    ..sort(
-                      (a, b) => compareTasks(a.key, a.value, b.key, b.value),
-                    );
+                  final sortedBuilds = _sortedBuildsPerStage[stageIndex];
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
