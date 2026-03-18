@@ -20,14 +20,14 @@ Implement sorting of checks in the Presubmit Guard Details view by status first 
 
 ### Dashboard Logic
 
-#### [ ] Task: Create task sorting utility
+#### [x] Task: Create task sorting utility
 - Create `dashboard/lib/logic/task_sorting.dart`.
 - Implement `compareTasks(String nameA, TaskStatus statusA, String nameB, TaskStatus statusB)` function.
 - Implement `_statusPriority(TaskStatus status)` helper.
 
 ### Dashboard Views
 
-#### [ ] Task: Apply sorting to `_ChecksSidebar`
+#### [x] Task: Apply sorting to `_ChecksSidebar`
 - Modify `dashboard/lib/views/presubmit_view.dart`.
 - Import `../logic/task_sorting.dart`.
 - In `_ChecksSidebar.build`, sort `stage.builds.entries` before mapping them to `_CheckItem`.
