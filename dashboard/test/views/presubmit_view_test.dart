@@ -115,6 +115,13 @@ void main() {
       ),
     ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
+    when(
+      mockCocoonService.fetchPresubmitCheckDetails(
+        checkRunId: anyNamed('checkRunId'),
+        buildName: anyNamed('buildName'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse.data([]));
+
     buildState = BuildState(
       cocoonService: mockCocoonService,
       authService: mockAuthService,
@@ -426,7 +433,7 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    await tester.tap(find.textContaining('mac_host_engine'));
+    await tester.tap(find.textContaining('mac_host_engine').first);
     await tester.runAsync(() async {
       for (var i = 0; i < 20; i++) {
         await tester.pump();
