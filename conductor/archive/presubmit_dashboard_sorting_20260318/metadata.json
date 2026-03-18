@@ -1,0 +1,8 @@
+{
+  "track_id": "presubmit_dashboard_sorting_20260318",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-18T10:00:00Z",
+  "updated_at": "2026-03-18T10:00:00Z",
+  "description": "For presubmit dashboard implement checks sorting by task status first and by name within same status. The order of statuses is the following: Failed, Infra Failure, In Progress, New, Cancelled, Skipped, Succeeded."
+}
