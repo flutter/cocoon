@@ -725,4 +725,102 @@ void main() {
       expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);
     });
   });
+
+  group('PreSubmitView Sorting', () {
+    testWidgets('checks are sorted by status priority and then name', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {
+              'succeeded_z': TaskStatus.succeeded,
+              'failed_b': TaskStatus.failed,
+              'infra_c': TaskStatus.infraFailure,
+              'in_progress_d': TaskStatus.inProgress,
+              'new_e': TaskStatus.waitingForBackfill,
+              'cancelled_f': TaskStatus.cancelled,
+              'skipped_g': TaskStatus.skipped,
+              'failed_a': TaskStatus.failed,
+              'succeeded_u': TaskStatus.succeeded,
+            },
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({
+            'repo': 'flutter',
+            'pr': '123',
+            'sha': 'decaf_3_real_sha',
+          }),
+        );
+        for (var i = 0; i < 20; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('succeeded_z').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pump(); // Render the results
+
+      // The expected order should be:
+      // 1. failed_a (Failed)
+      // 2. failed_b (Failed)
+      // 3. infra_c (Infra Failure)
+      // 4. in_progress_d (In Progress)
+      // 5. new_e (New)
+      // 6. cancelled_f (Cancelled)
+      // 7. skipped_g (Skipped)
+      // 8. succeeded_u (Succeeded)
+      // 9. succeeded_z (Succeeded)
+
+      final names = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(PreSubmitView),
+              matching: find.byWidgetPredicate(
+                (widget) =>
+                    widget is Text &&
+                    (widget.style?.fontSize == 14 ||
+                        widget.style?.fontSize == 11),
+              ),
+            ),
+          )
+          .map((t) => t.data!)
+          .where((name) => name != 'ENGINE')
+          .take(9)
+          .toList();
+
+      expect(names, [
+        'failed_a',
+        'failed_b',
+        'infra_c',
+        'in_progress_d',
+        'new_e',
+        'cancelled_f',
+        'skipped_g',
+        'succeeded_u',
+        'succeeded_z',
+      ]);
+    });
+  });
 }

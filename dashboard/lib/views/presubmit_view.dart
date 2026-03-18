@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../dashboard_navigation_drawer.dart';
+import '../logic/task_sorting.dart';
 import '../state/presubmit.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/guard_status.dart' as pw;
@@ -545,6 +546,10 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                 itemCount: widget.guardResponse.stages.length,
                 itemBuilder: (context, stageIndex) {
                   final stage = widget.guardResponse.stages[stageIndex];
+                  final sortedBuilds = stage.builds.entries.toList()
+                    ..sort(
+                      (a, b) => compareTasks(a.key, a.value, b.key, b.value),
+                    );
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -567,7 +572,7 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                           ),
                         ),
                       ),
-                      ...stage.builds.entries.map((entry) {
+                      ...sortedBuilds.map((entry) {
                         final isSelected = widget.selectedCheck == entry.key;
                         return _CheckItem(
                           name: entry.key,
