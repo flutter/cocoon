@@ -527,6 +527,7 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
   void initState() {
     super.initState();
     _updateSortedBuilds();
+    _selectFirstCheck();
   }
 
   @override
@@ -534,6 +535,24 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
     super.didUpdateWidget(oldWidget);
     if (widget.guardResponse != oldWidget.guardResponse) {
       _updateSortedBuilds();
+    }
+    if (widget.selectedCheck == null) {
+      _selectFirstCheck();
+    }
+  }
+
+  void _selectFirstCheck() {
+    if (widget.selectedCheck != null) return;
+    for (final stage in _sortedBuildsPerStage) {
+      if (stage.isNotEmpty) {
+        final firstCheck = stage.first.key;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && widget.selectedCheck == null) {
+            widget.onCheckSelected(firstCheck);
+          }
+        });
+        break;
+      }
     }
   }
 
