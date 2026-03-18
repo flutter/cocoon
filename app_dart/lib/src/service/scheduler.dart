@@ -1468,7 +1468,10 @@ $stacktrace
     // We're doing a transactional update, which could fail if multiple tasks
     // are running at the same time so retry a sane amount of times before
     // giving up.
-    const r = RetryOptions(maxAttempts: 5, delayFactor: Duration(seconds: 5));
+    const r = RetryOptions(
+      delayFactor: Duration(seconds: 2),
+      maxDelay: Duration(minutes: 2),
+    );
 
     try {
       return await r.retry(() {

@@ -616,7 +616,7 @@ class _CheckItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark
@@ -633,13 +633,13 @@ class _CheckItem extends StatelessWidget {
         child: Row(
           children: [
             _getStatusIcon(status),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
             Expanded(
               child: Text(
                 name,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: FontWeight.normal,
                   color: isSelected && !isDark ? const Color(0xFF1F2937) : null,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -660,6 +660,7 @@ class _CheckItem extends StatelessWidget {
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('Re-run'),
                 style: TextButton.styleFrom(
+                  minimumSize: const Size(64, 18),
                   foregroundColor: isDark
                       ? const Color(0xFF58A6FF)
                       : const Color(0xFF0969DA),
