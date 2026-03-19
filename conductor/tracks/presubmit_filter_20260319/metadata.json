@@ -1,0 +1,8 @@
+{
+  "track_id": "presubmit_filter_20260319",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-19T10:00:00Z",
+  "updated_at": "2026-03-19T10:00:00Z",
+  "description": "In 'CocoonAppBar' of Presubmit Dashboard add filter button to lust of actions that will show filer dialog and filer jobs in '_ChecksSidebar'."
+}
