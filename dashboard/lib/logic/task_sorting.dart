@@ -44,7 +44,9 @@ int _statusPriority(TaskStatus status) {
       return 5;
     case TaskStatus.skipped:
       return 6;
-    case TaskStatus.succeeded:
+    case TaskStatus.neutral:
       return 7;
+    case TaskStatus.succeeded:
+      return 8;
   }
 }

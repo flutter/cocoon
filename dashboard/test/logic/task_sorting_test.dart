@@ -17,6 +17,7 @@ void main() {
         ('e', TaskStatus.waitingForBackfill),
         ('f', TaskStatus.cancelled),
         ('g', TaskStatus.skipped),
+        ('h', TaskStatus.neutral),
       ];
 
       tasks.sort((a, b) => compareTasks(a.$1, a.$2, b.$1, b.$2));
@@ -28,6 +29,7 @@ void main() {
         ('e', TaskStatus.waitingForBackfill),
         ('f', TaskStatus.cancelled),
         ('g', TaskStatus.skipped),
+        ('h', TaskStatus.neutral),
         ('a', TaskStatus.succeeded),
       ]);
     });
@@ -58,6 +60,8 @@ void main() {
         ('w', TaskStatus.inProgress),
         ('v', TaskStatus.failed),
         ('u', TaskStatus.succeeded),
+        ('0', TaskStatus.neutral),
+        ('t', TaskStatus.neutral),
       ];
 
       tasks.sort((a, b) => compareTasks(a.$1, a.$2, b.$1, b.$2));
@@ -67,6 +71,8 @@ void main() {
         ('y', TaskStatus.failed),
         ('x', TaskStatus.infraFailure),
         ('w', TaskStatus.inProgress),
+        ('0', TaskStatus.neutral),
+        ('t', TaskStatus.neutral),
         ('u', TaskStatus.succeeded),
         ('z', TaskStatus.succeeded),
       ]);
