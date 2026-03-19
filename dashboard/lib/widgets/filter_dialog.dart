@@ -57,9 +57,7 @@ class _FilterDialogState extends State<FilterDialog> {
   }
 
   void _onRegexChanged(String value) {
-    setState(() {
-      // Just rebuild to update the count in 'Show N jobs' button
-    });
+    _applyFilters();
   }
 
   void _toggleStatus(TaskStatus status) {
@@ -104,13 +102,7 @@ class _FilterDialogState extends State<FilterDialog> {
     final theme = Theme.of(context);
     final availablePlatforms = presubmitState.availablePlatforms.toList()..sort();
 
-    final localFilteredResponse = presubmitState.filterResponse(
-      presubmitState.guardResponse,
-      statuses: _selectedStatuses,
-      platforms: _selectedPlatforms,
-      jobNameFilter: _regexController.text,
-    );
-    final filteredCount = localFilteredResponse?.stages.fold<int>(0, (prev, stage) => prev + stage.builds.length) ?? 0;
+    final filteredCount = presubmitState.filteredGuardResponse?.stages.fold<int>(0, (prev, stage) => prev + stage.builds.length) ?? 0;
 
     return AlertDialog(
       title: const Text('Filter jobs'),
