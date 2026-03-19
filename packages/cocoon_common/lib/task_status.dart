@@ -27,6 +27,9 @@ enum TaskStatus {
   /// The task ran successfully.
   succeeded('Succeeded'),
 
+  /// The task ran but the status is ignored.
+  neutral('Neutral'),
+
   /// The task was skipped instead of being executed.
   skipped('Skipped');
 
