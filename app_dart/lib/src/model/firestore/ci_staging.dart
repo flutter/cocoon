@@ -480,5 +480,5 @@ enum TaskConclusion {
   bool get isSuccess => this == success || this == neutral;
 
   /// Whether the task is a failure or not.
-  bool get isFailure => this == .failure;
+  bool get isFailure => this == failure;
 }

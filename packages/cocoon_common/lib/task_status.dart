@@ -76,8 +76,10 @@ enum TaskStatus {
   bool get isRunning => this == inProgress;
 
   /// Returns true if the build is waiting for backfill or in progress.
-  bool get isBuildInProgress =>
-      this == .waitingForBackfill || this == .inProgress;
+  bool get isBuildInProgress => switch (this) {
+    waitingForBackfill || inProgress => true,
+    _ => false,
+  };
 
   /// Returns the JSON representation of `this`.
   Object? toJson() => value;
