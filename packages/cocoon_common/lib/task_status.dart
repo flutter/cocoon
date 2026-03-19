@@ -31,12 +31,7 @@ enum TaskStatus {
   neutral('Neutral'),
 
   /// The task was skipped instead of being executed.
-  skipped('Skipped'),
-
-  /// The task was completed, but we record the results as non-blocking.
-  ///
-  /// Example: suppressed tests
-  neutral('Neutral');
+  skipped('Skipped');
 
   const TaskStatus(this.value);
 
