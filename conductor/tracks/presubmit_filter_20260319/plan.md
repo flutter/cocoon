@@ -5,19 +5,19 @@ This plan outlines the steps to add job filtering to the Presubmit Dashboard in 
 ## Phase 1: State Management (PresubmitState)
 In this phase, we will extend `PresubmitState` to hold and manage the filter state.
 
-- [ ] **Task: Add filter state variables to `PresubmitState`.**
+- [x] **Task: Add filter state variables to `PresubmitState`.**
     - Variables: `Set<TaskStatus> selectedStatuses`, `Set<String> selectedPlatforms`, `String? jobNameFilter`.
     - Initialize with all statuses and platforms selected, and `null` or empty string for regex.
-- [ ] **Task: Add methods to update filter state.**
+- [x] **Task: Add methods to update filter state.**
     - `updateFilters({Set<TaskStatus>? statuses, Set<String>? platforms, String? jobNameFilter})`
     - `clearFilters()`: Resets filters to "select all" and clear regex.
-- [ ] **Task: Implement filtering logic in `PresubmitState`.**
+- [x] **Task: Implement filtering logic in `PresubmitState`.**
     - Add a getter `filteredGuardResponse` (or similar) that returns a `PresubmitGuardResponse` with filtered stages and builds based on the active filters.
     - Platforms are extracted by splitting job names by space and taking the first part.
-- [ ] **Task: Add unit tests for `PresubmitState` filtering logic.**
+- [x] **Task: Add unit tests for `PresubmitState` filtering logic.**
     - Verify filtering by status, platform, and regex.
     - Verify persistence when `update` is called with same PR but different SHA.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 1: State Management' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 1: State Management' (Protocol in workflow.md)**
 
 ## Phase 2: Filter Dialog UI
 In this phase, we will create the filter dialog and its components.
