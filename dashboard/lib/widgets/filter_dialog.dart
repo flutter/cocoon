@@ -57,7 +57,9 @@ class _FilterDialogState extends State<FilterDialog> {
   }
 
   void _onRegexChanged(String value) {
-    _applyFilters();
+    setState(() {
+      _applyFilters();
+    });
   }
 
   void _toggleStatus(TaskStatus status) {
