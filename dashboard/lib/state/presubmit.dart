@@ -8,6 +8,7 @@ import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart';
 
+import '../logic/task_sorting.dart';
 import '../service/cocoon.dart';
 import '../service/firebase_auth.dart';
 
@@ -19,9 +20,14 @@ class PresubmitState extends ChangeNotifier {
   PresubmitState({
     required this.cocoonService,
     required this.authService,
+    this.pr,
+    this.sha,
   }) {
     authService.addListener(onAuthChanged);
     _isAuthenticated = authService.isAuthenticated;
+    if (pr != null || sha != null) {
+      fetchIfNeeded();
+    }
   }
 
   final CocoonService cocoonService;
@@ -91,6 +97,7 @@ class PresubmitState extends ChangeNotifier {
     if (jobNameFilter != null) {
       _jobNameFilter = jobNameFilter;
     }
+    _ensureValidSelection();
     notifyListeners();
   }
 
@@ -100,7 +107,47 @@ class PresubmitState extends ChangeNotifier {
     _selectedPlatforms = <String>{};
     _availablePlatforms = <String>{};
     _jobNameFilter = null;
+    _ensureValidSelection();
     notifyListeners();
+  }
+
+  void _ensureValidSelection() {
+    final filtered = filteredGuardResponse;
+    if (filtered == null || filtered.stages.isEmpty || filtered.stages.every((s) => s.builds.isEmpty)) {
+      _selectedCheck = null;
+      _checks = null;
+      return;
+    }
+
+    // Check if current selection is still visible
+    var isVisible = false;
+    if (_selectedCheck != null) {
+      for (final stage in filtered.stages) {
+        if (stage.builds.containsKey(_selectedCheck)) {
+          isVisible = true;
+          break;
+        }
+      }
+    }
+
+    if (!isVisible) {
+      // Select first available check based on UI sorting
+      String? topMost;
+      for (final stage in filtered.stages) {
+        if (stage.builds.isNotEmpty) {
+          final sortedBuilds = stage.builds.entries.toList()
+            ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
+          topMost = sortedBuilds.first.key;
+          break;
+        }
+      }
+
+      _selectedCheck = topMost;
+      _checks = null;
+      if (_selectedCheck != null) {
+        unawaited(fetchCheckDetails());
+      }
+    }
   }
 
   void _updateSelectedPlatforms() {
@@ -205,6 +252,7 @@ class PresubmitState extends ChangeNotifier {
   void setGuardResponseForTest(PresubmitGuardResponse response) {
     _guardResponse = response;
     _updateSelectedPlatforms();
+    _ensureValidSelection();
     notifyListeners();
   }
 
@@ -263,7 +311,7 @@ class PresubmitState extends ChangeNotifier {
   ///
   /// This is used to initialize or update the state based on URL parameters.
   void syncUpdate({String? repo, String? pr, String? sha}) {
-    bool changed = false;
+    var changed = false;
     if (repo != null && repo != this.repo) {
       this.repo = repo;
       changed = true;
@@ -298,10 +346,10 @@ class PresubmitState extends ChangeNotifier {
   /// Triggers a data fetch if parameters have changed.
   void fetchIfNeeded() {
     if (pr != null && _lastFetchedPr != pr) {
-      fetchAvailableShas();
+      unawaited(fetchAvailableShas());
     }
     if (sha != null && _lastFetchedSha != sha) {
-      fetchGuardStatus();
+      unawaited(fetchGuardStatus());
     }
   }
 
@@ -311,7 +359,7 @@ class PresubmitState extends ChangeNotifier {
     _selectedCheck = buildName;
     _checks = null;
     notifyListeners();
-    fetchCheckDetails();
+    unawaited(fetchCheckDetails());
   }
 
   /// Fetches available SHAs for the current [pr].
@@ -330,7 +378,7 @@ class PresubmitState extends ChangeNotifier {
       // Default to the latest SHA if none selected
       if (sha == null && _availableSummaries.isNotEmpty) {
         sha = _availableSummaries.first.commitSha;
-        fetchGuardStatus();
+        unawaited(fetchGuardStatus());
       }
     }
     _isSummariesLoading = false;
@@ -354,6 +402,7 @@ class PresubmitState extends ChangeNotifier {
         pr = _guardResponse?.prNum.toString();
       }
       _updateSelectedPlatforms();
+      _ensureValidSelection();
     }
     _isGuardLoading = false;
     notifyListeners();
@@ -396,7 +445,7 @@ class PresubmitState extends ChangeNotifier {
     _isChecksLoading = false;
     if (response.error == null) {
       // Trigger a refresh after a small delay to allow the backend to update
-      Timer(const Duration(seconds: 2), () => fetchGuardStatus());
+      Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
     }
     return response.error;
   }
@@ -416,7 +465,7 @@ class PresubmitState extends ChangeNotifier {
     _isRerunningAll = false;
     if (response.error == null) {
       // Trigger a refresh after a small delay
-      Timer(const Duration(seconds: 2), () => fetchGuardStatus());
+      Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
     }
     return response.error;
   }
@@ -447,7 +496,7 @@ class PresubmitState extends ChangeNotifier {
     if (!_active) return;
     fetchIfNeeded();
     if (_selectedCheck != null) {
-      fetchCheckDetails();
+      unawaited(fetchCheckDetails());
     }
   }
 

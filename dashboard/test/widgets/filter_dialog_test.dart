@@ -6,6 +6,7 @@ import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_dashboard/widgets/filter_dialog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +29,15 @@ void main() {
       cocoonService: mockCocoonService,
       authService: mockAuthService,
     );
+
+    when(
+      mockCocoonService.fetchPresubmitCheckDetails(
+        checkRunId: anyNamed('checkRunId'),
+        buildName: anyNamed('buildName'),
+        repo: anyNamed('repo'),
+        owner: anyNamed('owner'),
+      ),
+    ).thenAnswer((_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]));
 
     const response = PresubmitGuardResponse(
       prNum: 123,
@@ -122,17 +132,12 @@ void main() {
     expect(find.text('Show 2 jobs'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'test1');
-    // Regex applies on focus loss or editing complete.
-    // In our implementation we have onEditingComplete and focus listener.
-    await tester.testTextInput.receiveAction(TextInputAction.done);
+    // Count should update immediately because of onChanged and setState
     await tester.pump();
-
     expect(find.text('Show 2 jobs'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'linux');
-    await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-
     expect(find.text('Show 1 jobs'), findsOneWidget);
   });
 
