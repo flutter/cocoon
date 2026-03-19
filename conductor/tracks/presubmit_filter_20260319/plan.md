@@ -36,17 +36,17 @@ In this phase, we will create the filter dialog and its components.
 ## Phase 3: Integration and Dashboard UI
 In this phase, we will integrate the filter functionality into the Presubmit Dashboard.
 
-- [ ] **Task: Add Filter Button to `CocoonAppBar` in `PreSubmitView`.**
+- [x] **Task: Add Filter Button to `CocoonAppBar` in `PreSubmitView`.**
     - Icon: `Icons.filter_alt_outlined` (no filters applied) or `Icons.filter_alt` (some filters applied).
     - Tooltip: "Filter jobs".
     - Hover highlight: "Filter jobs".
-- [ ] **Task: Update `PreSubmitView` to use `filteredGuardResponse` for `_ChecksSidebar`.**
-- [ ] **Task: Ensure filter state persists when switching guard statuses.**
+- [x] **Task: Update `PreSubmitView` to use `filteredGuardResponse` for `_ChecksSidebar`.**
+- [x] **Task: Ensure filter state persists when switching guard statuses.**
     - Handled by `PresubmitState` during `update` calls.
-- [ ] **Task: Add integration tests for filtering functionality in `PreSubmitView`.**
+- [x] **Task: Add integration tests for filtering functionality in `PreSubmitView`.**
     - Verify clicking the filter button opens the dialog.
     - Verify applying filters updates the `_ChecksSidebar`.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 3: Integration and Dashboard UI' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 3: Integration and Dashboard UI' (Protocol in workflow.md)**
 
 ## Phase 4: Final Polishing and Cleanup
 - [ ] **Task: Verify overall dashboard performance with active filters.**
