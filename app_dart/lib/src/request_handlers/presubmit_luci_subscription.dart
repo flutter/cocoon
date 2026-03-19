@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
-import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 
@@ -168,9 +167,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
         final check = PresubmitCompletedCheck.fromBuild(
           build,
           userData,
-          status: override == CheckRunConclusion.neutral
-              ? TaskStatus.neutral
-              : null,
+          status: override == .neutral ? .neutral : null,
         );
         await _scheduler.processCheckRunCompleted(check);
       }
