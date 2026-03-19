@@ -19,7 +19,7 @@ In this phase, we will extend `PresubmitState` to hold and manage the filter sta
     - Verify persistence when `update` is called with same PR but different SHA.
 - [x] **Task: Conductor - User Manual Verification 'Phase 1: State Management' (Protocol in workflow.md)**
 
-## Phase 2: Filter Dialog UI
+## Phase 2: Filter Dialog UI [checkpoint: 2903a30]
 In this phase, we will create the filter dialog and its components.
 
 - [x] **Task: Create `FilterDialog` widget in `dashboard/lib/widgets/filter_dialog.dart`.**
