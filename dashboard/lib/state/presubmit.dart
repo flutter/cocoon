@@ -73,7 +73,12 @@ class PresubmitState extends ChangeNotifier {
   String? get jobNameFilter => _jobNameFilter;
   String? _jobNameFilter;
 
+  /// All unique platforms derived from the current [guardResponse].
+  Set<String> get availablePlatforms => _availablePlatforms;
+  Set<String> _availablePlatforms = <String>{};
+
   /// Update the current filters and notify listeners.
+
   void updateFilters({
     Set<TaskStatus>? statuses,
     Set<String>? platforms,
@@ -95,7 +100,102 @@ class PresubmitState extends ChangeNotifier {
   void clearFilters() {
     _selectedStatuses = TaskStatus.values.toSet();
     _selectedPlatforms = <String>{};
+    _availablePlatforms = <String>{};
     _jobNameFilter = null;
+    notifyListeners();
+  }
+
+  void _updateSelectedPlatforms() {
+    final response = _guardResponse;
+    if (response == null) {
+      _availablePlatforms = {};
+      return;
+    }
+
+    final newAvailablePlatforms = <String>{};
+    for (final stage in response.stages) {
+      for (final jobName in stage.builds.keys) {
+        newAvailablePlatforms.add(jobName.split(' ').first);
+      }
+    }
+
+    // If this is the first time we load data for this PR/session, select everything.
+    if (_availablePlatforms.isEmpty) {
+      _selectedPlatforms = Set.from(newAvailablePlatforms);
+    }
+
+    _availablePlatforms = newAvailablePlatforms;
+  }
+
+  /// Returns a [PresubmitGuardResponse] filtered by the current filter state.
+
+  ///
+  /// If [guardResponse] is null, this returns null.
+  PresubmitGuardResponse? get filteredGuardResponse {
+    final response = _guardResponse;
+    if (response == null) {
+      return null;
+    }
+
+    final filteredStages = <PresubmitGuardStage>[];
+    for (final stage in response.stages) {
+      final filteredBuilds = <String, TaskStatus>{};
+      for (final entry in stage.builds.entries) {
+        final jobName = entry.key;
+        final status = entry.value;
+
+        // Status filter
+        if (!_selectedStatuses.contains(status)) {
+          continue;
+        }
+
+        // Platform filter
+        final platform = jobName.split(' ').first;
+        if (_selectedPlatforms.isNotEmpty &&
+            !_selectedPlatforms.contains(platform)) {
+          continue;
+        }
+
+        // Regex filter
+        if (_jobNameFilter != null && _jobNameFilter!.isNotEmpty) {
+          try {
+            final regex = RegExp(_jobNameFilter!, caseSensitive: false);
+            if (!regex.hasMatch(jobName)) {
+              continue;
+            }
+          } catch (e) {
+            // Invalid regex, skip filtering by it.
+          }
+        }
+
+        filteredBuilds[jobName] = status;
+      }
+
+      if (filteredBuilds.isNotEmpty) {
+        filteredStages.add(
+          PresubmitGuardStage(
+            name: stage.name,
+            createdAt: stage.createdAt,
+            builds: filteredBuilds,
+          ),
+        );
+      }
+    }
+
+    return PresubmitGuardResponse(
+      prNum: response.prNum,
+      checkRunId: response.checkRunId,
+      author: response.author,
+      stages: filteredStages,
+      guardStatus: response.guardStatus,
+    );
+  }
+
+  /// Manually set the guard response for testing purposes.
+  @visibleForTesting
+  void setGuardResponseForTest(PresubmitGuardResponse response) {
+    _guardResponse = response;
+    _updateSelectedPlatforms();
     notifyListeners();
   }
 
@@ -206,6 +306,7 @@ class PresubmitState extends ChangeNotifier {
       changed = true;
       _availableSummaries = [];
       _lastFetchedPr = null;
+      clearFilters();
     }
     if (sha != this.sha) {
       this.sha = sha;
@@ -307,6 +408,7 @@ class PresubmitState extends ChangeNotifier {
       if (pr == null && sha != null) {
         pr = _guardResponse?.prNum.toString();
       }
+      _updateSelectedPlatforms();
     }
     _isGuardLoading = false;
     notifyListeners();
