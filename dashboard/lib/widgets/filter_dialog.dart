@@ -29,7 +29,9 @@ class _FilterDialogState extends State<FilterDialog> {
     final presubmitState = Provider.of<PresubmitState>(context, listen: false);
     _selectedStatuses = Set.from(presubmitState.selectedStatuses);
     _selectedPlatforms = Set.from(presubmitState.selectedPlatforms);
-    _regexController = TextEditingController(text: presubmitState.jobNameFilter);
+    _regexController = TextEditingController(
+      text: presubmitState.jobNameFilter,
+    );
     _regexFocusNode.addListener(_onRegexFocusChange);
   }
 
@@ -57,9 +59,8 @@ class _FilterDialogState extends State<FilterDialog> {
   }
 
   void _onRegexChanged(String value) {
-    setState(() {
-      _applyFilters();
-    });
+    setState(() {});
+    _applyFilters();
   }
 
   void _toggleStatus(TaskStatus status) {
@@ -90,7 +91,10 @@ class _FilterDialogState extends State<FilterDialog> {
 
   void _clearAll() {
     setState(() {
-      final presubmitState = Provider.of<PresubmitState>(context, listen: false);
+      final presubmitState = Provider.of<PresubmitState>(
+        context,
+        listen: false,
+      );
       _selectedStatuses = TaskStatus.values.toSet();
       _selectedPlatforms = Set.from(presubmitState.availablePlatforms);
       _regexController.clear();
@@ -102,9 +106,15 @@ class _FilterDialogState extends State<FilterDialog> {
   Widget build(BuildContext context) {
     final presubmitState = Provider.of<PresubmitState>(context);
     final theme = Theme.of(context);
-    final availablePlatforms = presubmitState.availablePlatforms.toList()..sort();
+    final availablePlatforms = presubmitState.availablePlatforms.toList()
+      ..sort();
 
-    final filteredCount = presubmitState.filteredGuardResponse?.stages.fold<int>(0, (prev, stage) => prev + stage.builds.length) ?? 0;
+    final filteredCount =
+        presubmitState.filteredGuardResponse?.stages.fold<int>(
+          0,
+          (prev, stage) => prev + stage.builds.length,
+        ) ??
+        0;
 
     return AlertDialog(
       title: const Text('Filter jobs'),
@@ -119,6 +129,7 @@ class _FilterDialogState extends State<FilterDialog> {
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
+                runSpacing: 8,
                 children: TaskStatus.values.map((status) {
                   final isSelected = _selectedStatuses.contains(status);
                   return FilterChip(
@@ -134,6 +145,7 @@ class _FilterDialogState extends State<FilterDialog> {
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
+                runSpacing: 8,
                 children: availablePlatforms.map((platform) {
                   return FilterChip(
                     label: Text(platform),
@@ -151,7 +163,10 @@ class _FilterDialogState extends State<FilterDialog> {
                 decoration: const InputDecoration(
                   hintText: 'e.g. .*test.*',
                   border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                 ),
                 onChanged: _onRegexChanged,
                 onEditingComplete: _applyFilters,
