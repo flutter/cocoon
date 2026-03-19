@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart';
 
 import '../service/cocoon.dart';
@@ -59,6 +60,18 @@ class PresubmitState extends ChangeNotifier {
   /// Whether "Re-run failed" is currently in progress.
   bool get isRerunningAll => _isRerunningAll;
   bool _isRerunningAll = false;
+
+  /// The currently selected task statuses for filtering.
+  Set<TaskStatus> get selectedStatuses => _selectedStatuses;
+  Set<TaskStatus> _selectedStatuses = TaskStatus.values.toSet();
+
+  /// The currently selected platforms for filtering.
+  Set<String> get selectedPlatforms => _selectedPlatforms;
+  Set<String> _selectedPlatforms = <String>{};
+
+  /// The current job name filter (regex).
+  String? get jobNameFilter => _jobNameFilter;
+  String? _jobNameFilter;
 
   /// The available SHAs for the current [pr].
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
