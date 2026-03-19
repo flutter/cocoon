@@ -300,7 +300,7 @@ final class CiStaging extends AppDocument<CiStaging> {
 
       // Only rollback the "failed" counter if this is a successful test run,
       // i.e. the test failed, the user requested a rerun, and now it passes.
-      if (recordedConclusion == .failure && conclusion.isSuccess) {
+      if (recordedConclusion.isFailure && conclusion.isSuccess) {
         log.info(
           '$logCrumb: conclusion flipped to positive - assuming test was re-run',
         );
@@ -313,7 +313,7 @@ final class CiStaging extends AppDocument<CiStaging> {
 
       // Only increment the "failed" counter if the new conclusion flips from positive or neutral to failure.
       if ((recordedConclusion == .scheduled || recordedConclusion.isSuccess) &&
-          conclusion == .failure) {
+          conclusion.isFailure) {
         log.info('$logCrumb: test failed');
         valid = true;
         failed = failed + 1;
