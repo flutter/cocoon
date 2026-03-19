@@ -49,6 +49,6 @@ In this phase, we will integrate the filter functionality into the Presubmit Das
 - [x] **Task: Conductor - User Manual Verification 'Phase 3: Integration and Dashboard UI' (Protocol in workflow.md)**
 
 ## Phase 4: Final Polishing and Cleanup
-- [ ] **Task: Verify overall dashboard performance with active filters.**
-- [ ] **Task: Ensure accessibility (ARIA labels, tooltips).**
-- [ ] **Task: Conductor - User Manual Verification 'Phase 4: Final Polishing and Cleanup' (Protocol in workflow.md)**
+- [x] **Task: Verify overall dashboard performance with active filters.**
+- [x] **Task: Ensure accessibility (ARIA labels, tooltips).**
+- [x] **Task: Conductor - User Manual Verification 'Phase 4: Final Polishing and Cleanup' (Protocol in workflow.md)**
