@@ -11,20 +11,22 @@ extension ChecksExtension on TaskStatus {
   /// Converts a [TaskStatus] to a [TaskConclusion].
   TaskConclusion toTaskConclusion() {
     return switch (this) {
-      TaskStatus.succeeded => TaskConclusion.success,
-      TaskStatus.failed || TaskStatus.infraFailure => TaskConclusion.failure,
-      TaskStatus.inProgress => TaskConclusion.scheduled,
-      _ => TaskConclusion.unknown,
+      .succeeded => .success,
+      .neutral => .neutral,
+      .failed || .infraFailure => .failure,
+      .inProgress => .scheduled,
+      _ => .unknown,
     };
   }
 
   /// Converts a [TaskStatus] to a GitHub check conclusion string.
   String toConclusion() {
     return switch (this) {
-      TaskStatus.succeeded => 'success',
-      TaskStatus.failed || TaskStatus.infraFailure => 'failure',
-      TaskStatus.cancelled => 'cancelled',
-      TaskStatus.skipped => 'skipped',
+      .succeeded => 'success',
+      .neutral => 'neutral',
+      .failed || .infraFailure => 'failure',
+      .cancelled => 'cancelled',
+      .skipped => 'skipped',
       _ => '',
     };
   }
@@ -32,39 +34,39 @@ extension ChecksExtension on TaskStatus {
   /// Converts a [TaskStatus] to a GitHub check conclusion string.
   CheckRunConclusion toCheckRunConclusion() {
     return switch (this) {
-      TaskStatus.succeeded => CheckRunConclusion.success,
-      TaskStatus.failed ||
-      TaskStatus.infraFailure => CheckRunConclusion.failure,
-      TaskStatus.cancelled => CheckRunConclusion.cancelled,
-      TaskStatus.skipped => CheckRunConclusion.skipped,
-      _ => CheckRunConclusion.empty,
+      .succeeded => .success,
+      .failed || .infraFailure => .failure,
+      .cancelled => .cancelled,
+      .skipped => .skipped,
+      .neutral => .neutral,
+      _ => .empty,
     };
   }
 
   /// Converts a GitHub check conclusion string to a [TaskStatus].
   static TaskStatus fromConclusion(String? conclusion) {
     return switch (conclusion) {
-      'success' => TaskStatus.succeeded,
-      'failure' => TaskStatus.failed,
-      'neutral' => TaskStatus.succeeded,
-      'cancelled' => TaskStatus.cancelled,
-      'timed_out' => TaskStatus.failed,
-      'action_required' => TaskStatus.failed,
-      'skipped' => TaskStatus.skipped,
-      _ => TaskStatus.failed,
+      'success' => .succeeded,
+      'failure' => .failed,
+      'neutral' => .neutral,
+      'cancelled' => .cancelled,
+      'timed_out' => .failed,
+      'action_required' => .failed,
+      'skipped' => .skipped,
+      _ => .failed,
     };
   }
 
   static TaskStatus fromCheckRunConclusion(CheckRunConclusion? conclusion) {
     return switch (conclusion) {
-      CheckRunConclusion.success => TaskStatus.succeeded,
-      CheckRunConclusion.failure => TaskStatus.failed,
-      CheckRunConclusion.neutral => TaskStatus.succeeded,
-      CheckRunConclusion.cancelled => TaskStatus.cancelled,
-      CheckRunConclusion.timedOut => TaskStatus.failed,
-      CheckRunConclusion.actionRequired => TaskStatus.failed,
-      CheckRunConclusion.skipped => TaskStatus.skipped,
-      _ => TaskStatus.failed,
+      .success => .succeeded,
+      .failure => .failed,
+      .neutral => .neutral,
+      .cancelled => .cancelled,
+      .timedOut => .failed,
+      .actionRequired => .failed,
+      .skipped => .skipped,
+      _ => .failed,
     };
   }
 }

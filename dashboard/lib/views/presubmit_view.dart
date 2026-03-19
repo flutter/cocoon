@@ -717,45 +717,45 @@ class _CheckItem extends StatelessWidget {
 
   Widget _getStatusIcon(TaskStatus status) {
     switch (status) {
-      case TaskStatus.succeeded:
+      case .succeeded:
         return Icon(
           Icons.check_circle_outline,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case TaskStatus.failed:
+      case .failed:
         return Icon(
           Icons.error_outline,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case TaskStatus.infraFailure:
+      case .infraFailure:
         return Icon(
           Icons.error_outline,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case TaskStatus.waitingForBackfill:
+      case .waitingForBackfill:
         return Icon(
           Icons.not_started_outlined,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case TaskStatus.skipped:
+      case .skipped:
         return Icon(
           Icons.do_not_disturb_on_outlined,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case TaskStatus.neutral:
+      case .neutral:
         return Icon(Icons.flaky, color: TaskBox.statusColor[status], size: 18);
-      case TaskStatus.cancelled:
+      case .cancelled:
         return Icon(
           Icons.block_outlined,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case TaskStatus.inProgress:
+      case .inProgress:
         return SizedBox(
           width: 14,
           height: 14,

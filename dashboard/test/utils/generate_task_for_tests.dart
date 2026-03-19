@@ -64,18 +64,18 @@ Task generateTaskForTest({
   final bool started;
   final bool completed;
   switch (status) {
-    case TaskStatus.cancelled:
-    case TaskStatus.failed:
-    case TaskStatus.infraFailure:
-    case TaskStatus.succeeded:
-    case TaskStatus.neutral:
+    case .cancelled:
+    case .failed:
+    case .infraFailure:
+    case .succeeded:
+    case .neutral:
       started = true;
       completed = true;
-    case TaskStatus.inProgress:
+    case .inProgress:
       started = true;
       completed = false;
-    case TaskStatus.waitingForBackfill:
-    case TaskStatus.skipped:
+    case .waitingForBackfill:
+    case .skipped:
       started = false;
       completed = false;
   }

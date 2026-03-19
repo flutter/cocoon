@@ -213,9 +213,9 @@ final class UnifiedCheckRun {
     // request re-run we have to only increment remaining builds.
     // If build is still in progress re-run is not possible but if some how they
     // manage to request re-run we should not touch any counters.
-    if (currentStatus.isBuildCompleted) {
+    if (currentStatus.isComplete) {
       guard.remainingBuilds += 1;
-      if (currentStatus.isBuildFailed && guard.failedBuilds > 0) {
+      if (currentStatus.isFailure && guard.failedBuilds > 0) {
         guard.failedBuilds -= 1;
       }
     }
@@ -584,20 +584,20 @@ final class UnifiedCheckRun {
       } else if (state.status == TaskStatus.inProgress) {
         presubmitCheck.startTime = state.startTime!;
         // If the build is not completed, update the status.
-        if (!status.isBuildCompleted) {
+        if (!status.isComplete) {
           status = state.status;
         }
         valid = true;
       } else {
         // If build already compleated remaining and failed should not updated.
-        if (!status.isBuildCompleted) {
+        if (!status.isComplete) {
           // "remaining" should go down if build is succeeded or failed.
           // "failed_count" can go up or down depending on:
           //   attemptNumber > 1 && buildSuccessed: down (-1)
           //   attemptNumber = 1 && buildFailed: up (+1)
           // So if the test existed and either remaining or failed_count is changed;
           // the response is valid.
-          if (state.status.isBuildCompleted) {
+          if (state.status.isComplete) {
             // Guard against going negative and log enough info so we can debug.
             if (remaining == 0) {
               throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
@@ -606,7 +606,7 @@ final class UnifiedCheckRun {
             valid = true;
           }
 
-          if (state.status.isBuildFailed) {
+          if (state.status.isFailure) {
             log.info('$logCrumb: test failed');
             failed += 1;
             valid = true;

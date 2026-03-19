@@ -289,8 +289,7 @@ final class CiStaging extends AppDocument<CiStaging> {
       //   recordedConclusion == failure && conclusion == success: down (-1)
       //   recordedConclusion != failure && conclusion == failure: up (+1)
       // So if the test existed and either remaining or failed_count is changed; the response is valid.
-      if (recordedConclusion == TaskConclusion.scheduled &&
-          conclusion != TaskConclusion.scheduled) {
+      if (recordedConclusion == .scheduled && conclusion != .scheduled) {
         // Guard against going negative and log enough info so we can debug.
         if (remaining == 0) {
           throw '$logCrumb: field "$kRemainingField" is already zero for $transaction / ${doc.fields}';
@@ -301,8 +300,7 @@ final class CiStaging extends AppDocument<CiStaging> {
 
       // Only rollback the "failed" counter if this is a successful test run,
       // i.e. the test failed, the user requested a rerun, and now it passes.
-      if (recordedConclusion == TaskConclusion.failure &&
-          conclusion == TaskConclusion.success) {
+      if (recordedConclusion == .failure && conclusion.isSuccess) {
         log.info(
           '$logCrumb: conclusion flipped to positive - assuming test was re-run',
         );
@@ -314,9 +312,8 @@ final class CiStaging extends AppDocument<CiStaging> {
       }
 
       // Only increment the "failed" counter if the new conclusion flips from positive or neutral to failure.
-      if ((recordedConclusion == TaskConclusion.scheduled ||
-              recordedConclusion == TaskConclusion.success) &&
-          conclusion == TaskConclusion.failure) {
+      if ((recordedConclusion == .scheduled || recordedConclusion.isSuccess) &&
+          conclusion == .failure) {
         log.info('$logCrumb: test failed');
         valid = true;
         failed = failed + 1;
@@ -460,6 +457,9 @@ enum TaskConclusion {
   /// A task was completed as a success.
   success,
 
+  /// A task was completed, but status is ignored.
+  neutral,
+
   /// A task was completed as a failure.
   failure;
 
@@ -477,5 +477,8 @@ enum TaskConclusion {
   bool get isComplete => this != scheduled;
 
   /// Whether the task is a success or not.
-  bool get isSuccess => this == success;
+  bool get isSuccess => this == success || this == neutral;
+
+  /// Whether the task is a failure or not.
+  bool get isFailure => this == .failure;
 }

@@ -252,22 +252,22 @@ class TaskOverlayContents extends StatelessWidget {
     );
 
     switch (task.status) {
-      case TaskStatus.inProgress when wasQueued:
+      case .inProgress when wasQueued:
         final ranFor = now.difference(startTime);
         buffer.write('Running for ${ranFor.inMinutes} minutes');
-      case TaskStatus.skipped:
+      case .skipped:
         buffer.write('Skipped');
-      case TaskStatus.neutral:
+      case .neutral:
         buffer.write('Neutral');
-      case TaskStatus.cancelled:
+      case .cancelled:
         buffer.write('Cancelled');
-      case TaskStatus.succeeded:
-      case TaskStatus.failed:
-      case TaskStatus.infraFailure:
+      case .succeeded:
+      case .failed:
+      case .infraFailure:
         final ranFor = endTime.difference(startTime);
         buffer.write('Ran for ${ranFor.inMinutes} minutes');
-      case TaskStatus.waitingForBackfill:
-      case TaskStatus.inProgress:
+      case .waitingForBackfill:
+      case .inProgress:
     }
 
     return buffer.toString();

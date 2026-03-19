@@ -1025,7 +1025,7 @@ detailsUrl: $detailsUrl
     } else {
       // for github flow check runs are processed only if the build succeeded or
       // some kind of failure occurred.
-      if (!check.status.isBuildCompleted) {
+      if (!check.status.isComplete) {
         return true;
       }
       // Check runs are fired at every stage. However, at this point it is unknown

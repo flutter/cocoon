@@ -324,6 +324,49 @@ For CI stage engine:
       );
     });
 
+    test('handles a test flip-flop (neutral) after re-running', () async {
+      firestoreService.putDocument(
+        Document(
+          name: expectedName,
+          fields: {
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 1.toValue(),
+            CiStaging.kTotalField: 1.toValue(),
+            CiStaging.kCheckRunGuardField: '{}'.toValue(),
+            'MacOS build_test': TaskConclusion.failure.name.toValue(),
+          },
+        ),
+      );
+
+      final future = CiStaging.markConclusion(
+        firestoreService: firestoreService,
+        slug: slug,
+        sha: '1234',
+        stage: CiStage.fusionEngineBuild,
+        checkRun: 'MacOS build_test',
+        conclusion: TaskConclusion.neutral,
+      );
+
+      final result = await future;
+      // Remaining == 1 because our test was already concluded.
+      expect(
+        result,
+        const PresubmitGuardConclusion(
+          remaining: 1,
+          result: PresubmitGuardConclusionResult.ok,
+          failed: 0,
+          checkRunGuard: '{}',
+          summary: 'All tests passed',
+          details: '''
+For CI stage engine:
+  Total check runs scheduled: 1
+  Pending: 1
+  Failed: 0
+''',
+        ),
+      );
+    });
+
     test('ignored repeat failures', () async {
       firestoreService.putDocument(
         Document(

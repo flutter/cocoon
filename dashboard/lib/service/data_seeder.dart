@@ -411,7 +411,7 @@ class DataSeeder {
         .where((status) => status.isFailure)
         .length;
     final remainingBuilds = builds.values
-        .where((status) => !status.isBuildCompleted)
+        .where((status) => !status.isComplete)
         .length;
 
     return PresubmitGuard(
@@ -448,20 +448,20 @@ class DataSeeder {
       creationTime: creationTime,
       buildNumber: 1337 + attemptNumber,
       summary: switch (status) {
-        TaskStatus.succeeded =>
+        .succeeded =>
           '[INFO] Starting task $buildName...\n[SUCCESS] All tests passed (452/452)',
-        TaskStatus.failed =>
+        .failed =>
           '[INFO] Starting task $buildName...\n[ERROR] Test failed: Dummy Tests',
-        TaskStatus.infraFailure =>
+        .infraFailure =>
           '[INFO] Starting task $buildName...\n[ERROR] Infrastructure failure: Dummy Tests',
-        TaskStatus.cancelled =>
+        .cancelled =>
           '[INFO] Starting task $buildName...\n[ERROR] Test cancelled: Dummy Tests',
-        TaskStatus.inProgress => '[INFO] Starting task $buildName...',
-        TaskStatus.waitingForBackfill => null,
-        TaskStatus.skipped =>
+        .inProgress => '[INFO] Starting task $buildName...',
+        .waitingForBackfill => null,
+        .skipped =>
           '[INFO] Starting task $buildName...\n[INFO] Test skipped: Dummy Tests',
-        TaskStatus.neutral =>
-          '[INFO] Starting task $buildName...\n[INFO] Test status neutral: Dummy Tests',
+        .neutral =>
+          '[INFO] Starting task $buildName...\n[INFO] Test neutral: Dummy Tests',
       },
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,

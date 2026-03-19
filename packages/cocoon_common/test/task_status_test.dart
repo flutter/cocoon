@@ -38,6 +38,7 @@ void main() {
       TaskStatus.failed: 'Failed',
       TaskStatus.succeeded: 'Succeeded',
       TaskStatus.skipped: 'Skipped',
+      TaskStatus.neutral: 'Neutral',
     }.entries) {
       test('$value == $expectation', () {
         expect(value.value, expectation);
@@ -48,15 +49,21 @@ void main() {
   group('isSuccess', () {
     test('true for succeeded', () {
       expect(TaskStatus.succeeded.isSuccess, isTrue);
+      expect(TaskStatus.neutral.isSuccess, isTrue);
+      expect(TaskStatus.skipped.isSuccess, isTrue);
     });
 
     test('false for everything else', () {
-      expect(
-        TaskStatus.values
-            .where((v) => v != TaskStatus.succeeded)
-            .map((t) => t.isSuccess),
-        everyElement(isFalse),
-      );
+      for (final value in TaskStatus.values) {
+        switch (value) {
+          case TaskStatus.succeeded:
+          case TaskStatus.skipped:
+          case TaskStatus.neutral:
+            expect(value.isSuccess, isTrue);
+          default:
+            expect(value.isSuccess, isFalse);
+        }
+      }
     });
   });
 
@@ -87,7 +94,7 @@ void main() {
 
     group('false otherwise', () {
       for (final status in TaskStatus.values.where(
-        (v) => !v.isFailure && !v.isSuccess && !v.isSkipped,
+        (v) => !(v.isSuccess || v.isFailure),
       )) {
         test('$status', () {
           expect(status.isComplete, isFalse);
@@ -118,16 +125,6 @@ void main() {
         });
       }
     });
-  });
-
-  test('isSuccess', () {
-    expect(TaskStatus.succeeded.isSuccess, isTrue);
-    expect(
-      TaskStatus.values.where((v) => v != TaskStatus.succeeded),
-      everyElement(
-        isA<TaskStatus>().having((t) => t.isSuccess, 'isSuccess', isFalse),
-      ),
-    );
   });
 
   test('isSkipped', () {
