@@ -17,6 +17,7 @@ import '../dashboard_navigation_drawer.dart';
 import '../logic/task_sorting.dart';
 import '../state/presubmit.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/filter_dialog.dart';
 import '../widgets/guard_status.dart' as pw;
 import '../widgets/sha_selector.dart';
 import '../widgets/task_box.dart';
@@ -211,6 +212,20 @@ class _PreSubmitViewState extends State<PreSubmitView> {
               ],
             ),
             actions: [
+              IconButton(
+                icon: Icon(
+                  presubmitState.isAnyFilterApplied
+                      ? Icons.filter_alt
+                      : Icons.filter_alt_outlined,
+                ),
+                tooltip: 'Filter jobs',
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => const FilterDialog(),
+                  );
+                },
+              ),
               if (isLatestSha) ...[
                 TextButton.icon(
                   onPressed: (!presubmitState.canRerunAllFailedJobs)
@@ -256,7 +271,9 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                           children: [
                             if (guardResponse != null)
                               _ChecksSidebar(
-                                guardResponse: guardResponse,
+                                guardResponse:
+                                    presubmitState.filteredGuardResponse ??
+                                    guardResponse,
                                 selectedCheck: selectedCheck,
                                 isLatestSha: isLatestSha,
                                 onCheckSelected: presubmitState.selectCheck,
@@ -717,45 +734,45 @@ class _CheckItem extends StatelessWidget {
 
   Widget _getStatusIcon(TaskStatus status) {
     switch (status) {
-      case .succeeded:
+      case TaskStatus.succeeded:
         return Icon(
           Icons.check_circle_outline,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case .failed:
+      case TaskStatus.failed:
         return Icon(
           Icons.error_outline,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case .infraFailure:
+      case TaskStatus.infraFailure:
         return Icon(
           Icons.error_outline,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case .waitingForBackfill:
+      case TaskStatus.waitingForBackfill:
         return Icon(
           Icons.not_started_outlined,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case .skipped:
+      case TaskStatus.skipped:
         return Icon(
           Icons.do_not_disturb_on_outlined,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case .neutral:
+      case TaskStatus.neutral:
         return Icon(Icons.flaky, color: TaskBox.statusColor[status], size: 18);
-      case .cancelled:
+      case TaskStatus.cancelled:
         return Icon(
           Icons.block_outlined,
           color: TaskBox.statusColor[status],
           size: 18,
         );
-      case .inProgress:
+      case TaskStatus.inProgress:
         return SizedBox(
           width: 14,
           height: 14,

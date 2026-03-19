@@ -73,6 +73,14 @@ class PresubmitState extends ChangeNotifier {
   String? get jobNameFilter => _jobNameFilter;
   String? _jobNameFilter;
 
+  /// Whether any filter is currently applied.
+  bool get isAnyFilterApplied {
+    return _selectedStatuses.length < TaskStatus.values.length ||
+        (_availablePlatforms.isNotEmpty &&
+            _selectedPlatforms.length < _availablePlatforms.length) ||
+        (_jobNameFilter != null && _jobNameFilter!.isNotEmpty);
+  }
+
   /// All unique platforms derived from the current [guardResponse].
   Set<String> get availablePlatforms => _availablePlatforms;
   Set<String> _availablePlatforms = <String>{};
