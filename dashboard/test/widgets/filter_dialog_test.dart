@@ -136,6 +136,25 @@ void main() {
     expect(find.text('Show 1 jobs'), findsOneWidget);
   });
 
+  testWidgets('Regex filter updates filtered count immediately on typing', (
+    WidgetTester tester,
+  ) async {
+    await pumpDialog(tester);
+
+    expect(find.text('Show 2 jobs'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'linux');
+    // Count should update immediately because of onChanged
+    await tester.pump();
+    expect(find.text('Show 1 jobs'), findsOneWidget);
+
+    // Tap on 'Status' label to move focus - should still be 1 job
+    await tester.tap(find.text('Status'), warnIfMissed: false);
+    await tester.pump();
+
+    expect(find.text('Show 1 jobs'), findsOneWidget);
+  });
+
   testWidgets('Clear all filters resets everything', (
     WidgetTester tester,
   ) async {
