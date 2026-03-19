@@ -73,6 +73,32 @@ class PresubmitState extends ChangeNotifier {
   String? get jobNameFilter => _jobNameFilter;
   String? _jobNameFilter;
 
+  /// Update the current filters and notify listeners.
+  void updateFilters({
+    Set<TaskStatus>? statuses,
+    Set<String>? platforms,
+    String? jobNameFilter,
+  }) {
+    if (statuses != null) {
+      _selectedStatuses = statuses;
+    }
+    if (platforms != null) {
+      _selectedPlatforms = platforms;
+    }
+    if (jobNameFilter != null) {
+      _jobNameFilter = jobNameFilter;
+    }
+    notifyListeners();
+  }
+
+  /// Reset all filters to their default values and notify listeners.
+  void clearFilters() {
+    _selectedStatuses = TaskStatus.values.toSet();
+    _selectedPlatforms = <String>{};
+    _jobNameFilter = null;
+    notifyListeners();
+  }
+
   /// The available SHAs for the current [pr].
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
   List<PresubmitGuardSummary> _availableSummaries = [];

@@ -32,4 +32,41 @@ void main() {
     ); // Initially empty until data is loaded
     expect(presubmitState.jobNameFilter, isNull);
   });
+
+  test('updateFilters updates state and notifies listeners', () {
+    var notified = false;
+    presubmitState.addListener(() => notified = true);
+
+    presubmitState.updateFilters(
+      statuses: {TaskStatus.failed, TaskStatus.infraFailure},
+      platforms: {'linux', 'mac'},
+      jobNameFilter: 'test.*',
+    );
+
+    expect(presubmitState.selectedStatuses, {
+      TaskStatus.failed,
+      TaskStatus.infraFailure,
+    });
+    expect(presubmitState.selectedPlatforms, {'linux', 'mac'});
+    expect(presubmitState.jobNameFilter, 'test.*');
+    expect(notified, isTrue);
+  });
+
+  test('clearFilters resets state and notifies listeners', () {
+    presubmitState.updateFilters(
+      statuses: {TaskStatus.failed},
+      platforms: {'linux'},
+      jobNameFilter: 'test',
+    );
+
+    var notified = false;
+    presubmitState.addListener(() => notified = true);
+
+    presubmitState.clearFilters();
+
+    expect(presubmitState.selectedStatuses, TaskStatus.values.toSet());
+    expect(presubmitState.selectedPlatforms, isEmpty);
+    expect(presubmitState.jobNameFilter, isNull);
+    expect(notified, isTrue);
+  });
 }
