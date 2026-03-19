@@ -66,6 +66,11 @@ class DataSeeder {
       'Mac framework_tests',
       'Linux android framework_tests',
       'Windows framework_tests',
+      'Mac_x64 framework_misc',
+      'Linux_android_emu android_engine_opengles_tests',
+      'Linux_android_emu_vulkan_stable android_engine_vulkan_tests',
+      'Mac_arm64 run_debug_test_macos',
+      'Linux_android_emu android views',
     ];
     var engineChecks = [
       _createPresubmitCheck(
@@ -358,6 +363,41 @@ class DataSeeder {
         status: TaskStatus.failed,
         attemptNumber: 2,
         creationTime: creationTime2,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[4],
+        status: TaskStatus.neutral,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[5],
+        status: TaskStatus.neutral,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[6],
+        status: TaskStatus.neutral,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[7],
+        status: TaskStatus.neutral,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitCheck(
+        checkRunId: checkRunId,
+        buildName: fusionBuilds[8],
+        status: TaskStatus.neutral,
+        attemptNumber: 1,
+        creationTime: creationTime,
       ),
     ];
     guards.add(

@@ -33,6 +33,7 @@ class TaskBox extends StatelessWidget {
     TaskStatus.succeeded: Colors.green,
     TaskStatus.infraFailure: Colors.purple,
     TaskStatus.inProgress: Colors.yellow,
+    TaskStatus.neutral: Colors.blueGrey,
   };
 
   static const statusColorFailedAndRerunning = Color(0xFF8A3324);
