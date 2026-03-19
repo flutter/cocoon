@@ -125,7 +125,7 @@ class _FilterDialogState extends State<FilterDialog> {
                     label: Text(status.value),
                     selected: isSelected,
                     onSelected: (_) => _toggleStatus(status),
-                    avatar: isSelected ? null : _getStatusIcon(status),
+                    avatar: _getStatusIcon(status),
                   );
                 }).toList(),
               ),
