@@ -68,6 +68,7 @@ Task generateTaskForTest({
     case TaskStatus.failed:
     case TaskStatus.infraFailure:
     case TaskStatus.succeeded:
+    case TaskStatus.neutral:
       started = true;
       completed = true;
     case TaskStatus.inProgress:

@@ -747,6 +747,8 @@ class _CheckItem extends StatelessWidget {
           color: TaskBox.statusColor[status],
           size: 18,
         );
+      case TaskStatus.neutral:
+        return Icon(Icons.flaky, color: TaskBox.statusColor[status], size: 18);
       case TaskStatus.cancelled:
         return Icon(
           Icons.block_outlined,

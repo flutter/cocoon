@@ -257,6 +257,8 @@ class TaskOverlayContents extends StatelessWidget {
         buffer.write('Running for ${ranFor.inMinutes} minutes');
       case TaskStatus.skipped:
         buffer.write('Skipped');
+      case TaskStatus.neutral:
+        buffer.write('Neutral');
       case TaskStatus.cancelled:
         buffer.write('Cancelled');
       case TaskStatus.succeeded:

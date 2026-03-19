@@ -460,6 +460,8 @@ class DataSeeder {
         TaskStatus.waitingForBackfill => null,
         TaskStatus.skipped =>
           '[INFO] Starting task $buildName...\n[INFO] Test skipped: Dummy Tests',
+        TaskStatus.neutral =>
+          '[INFO] Starting task $buildName...\n[INFO] Test status neutral: Dummy Tests',
       },
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,
