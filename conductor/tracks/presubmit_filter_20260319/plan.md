@@ -33,7 +33,7 @@ In this phase, we will create the filter dialog and its components.
     - Verify toggling selections updates the UI and buttons.
 - [x] **Task: Conductor - User Manual Verification 'Phase 2: Filter Dialog UI' (Protocol in workflow.md)**
 
-## Phase 3: Integration and Dashboard UI
+## Phase 3: Integration and Dashboard UI [checkpoint: b499002]
 In this phase, we will integrate the filter functionality into the Presubmit Dashboard.
 
 - [x] **Task: Add Filter Button to `CocoonAppBar` in `PreSubmitView`.**
