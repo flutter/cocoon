@@ -22,16 +22,16 @@ In this phase, we will extend `PresubmitState` to hold and manage the filter sta
 ## Phase 2: Filter Dialog UI
 In this phase, we will create the filter dialog and its components.
 
-- [ ] **Task: Create `FilterDialog` widget in `dashboard/lib/widgets/filter_dialog.dart`.**
+- [x] **Task: Create `FilterDialog` widget in `dashboard/lib/widgets/filter_dialog.dart`.**
     - Multi-select sections for Task Status and Platform.
     - `TextField` for Job Name Regex (with `onChanged` or `onEditingComplete` depending on final behavior).
     - Validation: Ensure at least one status and one platform are always selected (disable uncheck if it's the last one).
     - "Clear all filters" button at the bottom.
     - "Show N jobs" button displaying the filtered count.
-- [ ] **Task: Add unit tests for `FilterDialog`.**
+- [x] **Task: Add unit tests for `FilterDialog`.**
     - Verify initial state shows all filters.
     - Verify toggling selections updates the UI and buttons.
-- [ ] **Task: Conductor - User Manual Verification 'Phase 2: Filter Dialog UI' (Protocol in workflow.md)**
+- [x] **Task: Conductor - User Manual Verification 'Phase 2: Filter Dialog UI' (Protocol in workflow.md)**
 
 ## Phase 3: Integration and Dashboard UI
 In this phase, we will integrate the filter functionality into the Presubmit Dashboard.
