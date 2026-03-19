@@ -2,7 +2,7 @@
 
 This plan outlines the steps to add job filtering to the Presubmit Dashboard in the Cocoon dashboard.
 
-## Phase 1: State Management (PresubmitState)
+## Phase 1: State Management (PresubmitState) [checkpoint: 48bff29]
 In this phase, we will extend `PresubmitState` to hold and manage the filter state.
 
 - [x] **Task: Add filter state variables to `PresubmitState`.**
