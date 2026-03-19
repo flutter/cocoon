@@ -37,7 +37,9 @@ void main() {
         repo: anyNamed('repo'),
         owner: anyNamed('owner'),
       ),
-    ).thenAnswer((_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]));
+    ).thenAnswer(
+      (_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]),
+    );
 
     const response = PresubmitGuardResponse(
       prNum: 123,

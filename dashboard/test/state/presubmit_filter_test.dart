@@ -48,7 +48,9 @@ void main() {
         repo: anyNamed('repo'),
         owner: anyNamed('owner'),
       ),
-    ).thenAnswer((_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]));
+    ).thenAnswer(
+      (_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]),
+    );
 
     presubmitState = PresubmitState(
       cocoonService: mockCocoonService,
@@ -75,7 +77,10 @@ void main() {
       jobNameFilter: 'test.*',
     );
 
-    expect(presubmitState.selectedStatuses, {TaskStatus.failed, TaskStatus.infraFailure});
+    expect(presubmitState.selectedStatuses, {
+      TaskStatus.failed,
+      TaskStatus.infraFailure,
+    });
     expect(presubmitState.selectedPlatforms, {'linux', 'mac'});
     expect(presubmitState.jobNameFilter, 'test.*');
     expect(notified, isTrue);

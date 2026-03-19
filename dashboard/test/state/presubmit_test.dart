@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -109,7 +107,8 @@ void main() {
           repo: 'flutter',
         ),
       ).thenAnswer(
-        (_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
+        (_) async =>
+            const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
       );
 
       presubmitState.pr = '123';
@@ -136,7 +135,8 @@ void main() {
       when(
         mockCocoonService.fetchPresubmitGuard(sha: 'sha1', repo: 'flutter'),
       ).thenAnswer(
-        (_) async => const CocoonResponse<PresubmitGuardResponse>.data(guardResponse),
+        (_) async =>
+            const CocoonResponse<PresubmitGuardResponse>.data(guardResponse),
       );
 
       presubmitState.sha = 'sha1';
@@ -205,48 +205,58 @@ void main() {
     },
   );
 
-  test('PresubmitState fetchAvailableShas returns early if pr is null', () async {
-    await presubmitState.fetchAvailableShas();
-    verifyNever(
-      mockCocoonService.fetchPresubmitGuardSummaries(
-        repo: anyNamed('repo'),
-        pr: anyNamed('pr'),
-      ),
-    );
-  });
+  test(
+    'PresubmitState fetchAvailableShas returns early if pr is null',
+    () async {
+      await presubmitState.fetchAvailableShas();
+      verifyNever(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      );
+    },
+  );
 
-  test('PresubmitState fetchAvailableShas defaults sha to latest if sha is null', () async {
-    const summaries = [
-      PresubmitGuardSummary(
-        commitSha: 'latest',
-        creationTime: 123,
-        guardStatus: GuardStatus.succeeded,
-      ),
-    ];
-    when(
-      mockCocoonService.fetchPresubmitGuardSummaries(
-        pr: '123',
-        repo: 'flutter',
-      ),
-    ).thenAnswer(
-      (_) async => const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
-    );
+  test(
+    'PresubmitState fetchAvailableShas defaults sha to latest if sha is null',
+    () async {
+      const summaries = [
+        PresubmitGuardSummary(
+          commitSha: 'latest',
+          creationTime: 123,
+          guardStatus: GuardStatus.succeeded,
+        ),
+      ];
+      when(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          pr: '123',
+          repo: 'flutter',
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
+      );
 
-    presubmitState.pr = '123';
-    await presubmitState.fetchAvailableShas();
+      presubmitState.pr = '123';
+      await presubmitState.fetchAvailableShas();
 
-    expect(presubmitState.sha, 'latest');
-  });
+      expect(presubmitState.sha, 'latest');
+    },
+  );
 
-  test('PresubmitState fetchGuardStatus returns early if sha is null', () async {
-    await presubmitState.fetchGuardStatus();
-    verifyNever(
-      mockCocoonService.fetchPresubmitGuard(
-        repo: anyNamed('repo'),
-        sha: anyNamed('sha'),
-      ),
-    );
-  });
+  test(
+    'PresubmitState fetchGuardStatus returns early if sha is null',
+    () async {
+      await presubmitState.fetchGuardStatus();
+      verifyNever(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: anyNamed('sha'),
+        ),
+      );
+    },
+  );
 
   test('PresubmitState refresh timer management', () async {
     presubmitState.addListener(() {}); // Trigger timer start
