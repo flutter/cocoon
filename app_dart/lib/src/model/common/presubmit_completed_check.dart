@@ -86,13 +86,14 @@ class PresubmitCompletedCheck {
   /// Creates a [PresubmitCompletedCheck] from a BuildBucket [Build].
   factory PresubmitCompletedCheck.fromBuild(
     Build build,
-    PresubmitUserData userData,
-  ) {
+    PresubmitUserData userData, {
+    TaskStatus? status,
+  }) {
     return PresubmitCompletedCheck(
       name: build.builder.builder,
       sha: userData.commit.sha,
       slug: userData.commit.slug,
-      status: build.status.toTaskStatus(),
+      status: status ?? build.status.toTaskStatus(),
       isMergeGroup: _isMergeGroup(userData.commit.branch),
       checkRunId: userData.guardCheckRunId ?? userData.checkRunId!,
       checkSuiteId: userData.checkSuiteId,

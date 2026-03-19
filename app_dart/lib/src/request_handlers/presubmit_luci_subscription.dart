@@ -133,9 +133,9 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
         );
       }
     }
+    CheckRunConclusion? override;
     if (!isUnifiedCheckRun) {
       String? suppressedMessage;
-      CheckRunConclusion? override;
       if (build.status.isTaskFailed() && !rescheduled) {
         // If a test is suppressed; we avoid setting a failing status.
         final isSuppressed = await cache.isTestSuppressed(
@@ -164,7 +164,11 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       // Process to the check-run status in the merge queue document during
       // the LUCI callback.
       if (config.flags.closeMqGuardAfterPresubmit || isUnifiedCheckRun) {
-        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+        final check = PresubmitCompletedCheck.fromBuild(
+          build,
+          userData,
+          status: override == .neutral ? .neutral : null,
+        );
         await _scheduler.processCheckRunCompleted(check);
       }
     }
