@@ -276,7 +276,7 @@ class FakeConfig implements Config {
   DynamicConfig get flags => dynamicConfig;
 
   @override
-  http.Client get httpClient => httpClientValue ?? http.Client();
+  http.Client get httpClient => httpClientValue ??= http.Client();
 
   @override
   int minimumPassingTestsToDeflake = 50;
