@@ -39,7 +39,7 @@ void main() {
           isA<cocoon_service.SocketException>().having(
             (e) => e.message,
             'message',
-            'test message',
+            'SocketException: test message',
           ),
         ),
       );
@@ -56,7 +56,7 @@ void main() {
           isA<cocoon_service.HttpException>().having(
             (e) => e.message,
             'message',
-            'test message',
+            'HttpException: test message',
           ),
         ),
       );
