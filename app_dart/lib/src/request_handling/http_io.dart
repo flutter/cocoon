@@ -119,6 +119,8 @@ class MappingHttpClient extends http.BaseClient {
       return await _inner.send(request);
     } on SocketException catch (e) {
       throw cocoon_service.SocketException(e.message);
+    } on HttpException catch (e) {
+      throw cocoon_service.HttpException(e.message);
     }
   }
 

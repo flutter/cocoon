@@ -77,12 +77,16 @@ Future<void> main() async {
 
     final buildBucketClient = BuildBucketClient(
       accessTokenService: AccessTokenService.defaultProvider(config),
+      httpClient: config.httpClient,
     );
 
     // Gerrit service class to communicate with GoB.
     final gerritService = GerritService(
       config: config,
-      authClient: await const GoogleAuthProvider().createClient(scopes: []),
+      authClient: await const GoogleAuthProvider().createClient(
+        baseClient: config.httpClient,
+        scopes: [],
+      ),
     );
 
     /// LUCI service class to communicate with buildBucket service.

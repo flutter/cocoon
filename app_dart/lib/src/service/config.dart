@@ -85,6 +85,9 @@ interface class Config extends DynamicallyUpdatedConfig {
   final SecretManager _secrets;
   final http.Client _httpClient;
 
+  /// The [http.Client] to use for requests.
+  http.Client get httpClient => _httpClient;
+
   /// List of Github presubmit supported repos.
   ///
   /// This adds support for the `waiting for tree to go green label` to the repo.

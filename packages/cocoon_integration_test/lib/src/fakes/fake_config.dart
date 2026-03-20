@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
 import 'package:github/github.dart' as gh;
 import 'package:graphql/client.dart';
+import 'package:http/http.dart' as http;
 
 import 'fake_github_service.dart';
 
@@ -51,12 +52,14 @@ class FakeConfig implements Config {
     this.backfillerTargetLimitValue,
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
+    this.httpClientValue,
     DynamicConfig? dynamicConfig,
   }) : dynamicConfig = dynamicConfig ?? DynamicConfig.fromLocalFileSystem();
 
   gh.GitHub? githubClient;
   GraphQLClient? githubGraphQLClient;
   GithubService? githubService;
+  http.Client? httpClientValue;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
@@ -271,6 +274,9 @@ class FakeConfig implements Config {
   @override
   // TODO: implement flags
   DynamicConfig get flags => dynamicConfig;
+
+  @override
+  http.Client get httpClient => httpClientValue ?? http.Client();
 
   @override
   int minimumPassingTestsToDeflake = 50;

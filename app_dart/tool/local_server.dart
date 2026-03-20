@@ -10,7 +10,6 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
-import 'package:cocoon_service/src/foundation/providers.dart';
 
 import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
@@ -53,12 +52,13 @@ Future<void> main() async {
 
   final buildBucketClient = BuildBucketClient(
     accessTokenService: AccessTokenService.defaultProvider(config),
+    httpClient: config.httpClient,
   );
 
   // Gerrit service class to communicate with GoB.
   final gerritService = GerritService(
     config: config,
-    authClient: Providers.freshHttpClient(),
+    authClient: config.httpClient,
   );
 
   /// LUCI service class to communicate with buildBucket service.

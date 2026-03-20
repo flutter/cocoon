@@ -42,14 +42,20 @@ void main() {
       );
     });
 
-    test('passes through other exceptions', () async {
+    test('maps io.HttpException to cocoon_service.HttpException', () async {
       when(
         mockClient.send(any),
       ).thenThrow(const io.HttpException('test message'));
 
       expect(
         () => mappingClient.get(Uri.parse('https://example.com')),
-        throwsA(isA<io.HttpException>()),
+        throwsA(
+          isA<cocoon_service.HttpException>().having(
+            (e) => e.message,
+            'message',
+            'test message',
+          ),
+        ),
       );
     });
 
