@@ -201,21 +201,21 @@ class _FilterDialogState extends State<FilterDialog> {
 
   IconData _getIconData(TaskStatus status) {
     switch (status) {
-      case TaskStatus.succeeded:
+      case .succeeded:
         return Icons.check_circle_outline;
-      case TaskStatus.failed:
+      case .failed:
         return Icons.error_outline;
-      case TaskStatus.infraFailure:
+      case .infraFailure:
         return Icons.error_outline;
-      case TaskStatus.waitingForBackfill:
+      case .waitingForBackfill:
         return Icons.not_started_outlined;
-      case TaskStatus.skipped:
+      case .skipped:
         return Icons.do_not_disturb_on_outlined;
-      case TaskStatus.neutral:
+      case .neutral:
         return Icons.flaky;
-      case TaskStatus.cancelled:
+      case .cancelled:
         return Icons.block_outlined;
-      case TaskStatus.inProgress:
+      case .inProgress:
         return Icons.sync;
     }
   }
