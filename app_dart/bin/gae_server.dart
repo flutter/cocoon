@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_server/google_auth_provider.dart';
@@ -20,6 +20,7 @@ import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config_updater.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
 Future<void> main() async {
@@ -53,6 +54,7 @@ Future<void> main() async {
         projectId: Config.flutterGcpProjectId,
       ),
       initialConfig: dynamicConfig,
+      httpClient: MappingHttpClient(http.Client()),
     );
     // Start updating the config to loop forever. If this fails, it will log
     // every ~1 minute.
@@ -155,10 +157,10 @@ Future<void> main() async {
     );
 
     return runAppEngine(
-      (HttpRequest request) async {
+      (io.HttpRequest request) async {
         await server(request.toRequest());
       },
-      onAcceptingConnections: (InternetAddress address, int port) {
+      onAcceptingConnections: (io.InternetAddress address, int port) {
         final host = address.isLoopback ? 'localhost' : address.host;
         print('Serving requests at http://$host:$port/');
       },

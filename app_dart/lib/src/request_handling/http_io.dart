@@ -7,8 +7,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_common/core_extensions.dart';
+import 'package:http/http.dart' as http;
 
-import 'http_utils.dart';
+import 'http_utils.dart' as cocoon_service;
 import 'request_handler.dart';
 
 /// Creates a [Request] by wrapping an existing [HttpRequest].
@@ -74,7 +75,7 @@ final class _HttpResponse implements RequestResponse {
   set statusCode(int value) => _response.statusCode = value;
 
   @override
-  set contentType(MediaType? value) {
+  set contentType(cocoon_service.MediaType? value) {
     if (value != null) {
       _response.headers.contentType = ContentType(
         value.type,
@@ -99,6 +100,28 @@ final class _HttpResponse implements RequestResponse {
   @override
   Future<dynamic> redirect(
     Uri location, {
-    int status = HttpStatus.movedTemporarily,
+    int status = cocoon_service.HttpStatus.movedTemporarily,
   }) => _response.redirect(location, status: status);
+}
+
+/// An [http.Client] that maps [SocketException] from dart:io to the cocoon
+/// [cocoon_service.SocketException].
+///
+/// This is used to maintain platform neutrality in the core of app_dart.
+class MappingHttpClient extends http.BaseClient {
+  MappingHttpClient(this._inner);
+
+  final http.Client _inner;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    try {
+      return await _inner.send(request);
+    } on SocketException catch (e) {
+      throw cocoon_service.SocketException(e.message);
+    }
+  }
+
+  @override
+  void close() => _inner.close();
 }

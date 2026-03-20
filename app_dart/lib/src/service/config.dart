@@ -24,7 +24,12 @@ const String kDefaultBranchName = 'master';
 
 interface class Config extends DynamicallyUpdatedConfig {
   /// Creates and returns a [Config] instance.
-  Config(this._cache, this._secrets, {required super.initialConfig});
+  Config(
+    this._cache,
+    this._secrets, {
+    required super.initialConfig,
+    http.Client? httpClient,
+  }) : _httpClient = httpClient ?? http.Client();
 
   /// When present on a pull request, instructs Cocoon to submit it
   /// automatically as soon as all the required checks pass.
@@ -78,6 +83,7 @@ interface class Config extends DynamicallyUpdatedConfig {
 
   final CacheService _cache;
   final SecretManager _secrets;
+  final http.Client _httpClient;
 
   /// List of Github presubmit supported repos.
   ///
@@ -453,7 +459,10 @@ interface class Config extends DynamicallyUpdatedConfig {
       'api.github.com',
       'app/installations/$appInstallation/access_tokens',
     );
-    final response = await http.post(githubAccessTokensUri, headers: headers);
+    final response = await _httpClient.post(
+      githubAccessTokensUri,
+      headers: headers,
+    );
     final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
     if (jsonBody.containsKey('token') == false) {
       log.warn(response.body);
@@ -476,12 +485,16 @@ interface class Config extends DynamicallyUpdatedConfig {
   }
 
   gh.GitHub createGitHubClientWithToken(String token) {
-    return gh.GitHub(auth: gh.Authentication.withToken(token));
+    return gh.GitHub(
+      auth: gh.Authentication.withToken(token),
+      client: _httpClient,
+    );
   }
 
   Future<GraphQLClient> createGitHubGraphQLClient() async {
     final httpLink = HttpLink(
       'https://api.github.com/graphql',
+      httpClient: _httpClient,
       defaultHeaders: <String, String>{
         'Accept': 'application/vnd.github.antiope-preview+json',
       },

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart';
 import 'package:cocoon_integration_test/testing.dart';
@@ -19,6 +19,7 @@ import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
+import 'package:http/http.dart' as http;
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
@@ -26,6 +27,7 @@ Future<void> main() async {
     cache,
     FakeSecretManager(),
     initialConfig: DynamicConfig.fromJson({}),
+    httpClient: MappingHttpClient(http.Client()),
   );
   final firestore = FakeFirestoreService();
 
@@ -127,10 +129,10 @@ Future<void> main() async {
   );
 
   return runAppEngine(
-    (HttpRequest request) async {
+    (io.HttpRequest request) async {
       await server(request.toRequest());
     },
-    onAcceptingConnections: (InternetAddress address, int port) {
+    onAcceptingConnections: (io.InternetAddress address, int port) {
       final host = address.isLoopback ? 'localhost' : address.host;
       print('Serving requests at http://$host:$port/');
     },
