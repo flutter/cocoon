@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/request_handling/http_utils.dart'
     as cocoon_service;
@@ -16,6 +17,8 @@ import 'mapping_http_client_test.mocks.dart';
 
 @GenerateMocks([http.Client])
 void main() {
+  useTestLoggerPerTest();
+
   group('MappingHttpClient', () {
     late MockClient mockClient;
     late MappingHttpClient mappingClient;
