@@ -24,7 +24,6 @@ class PresubmitState extends ChangeNotifier {
     this.sha,
   }) {
     authService.addListener(onAuthChanged);
-    _isAuthenticated = authService.isAuthenticated;
     if (pr != null || sha != null) {
       fetchIfNeeded();
     }
@@ -32,8 +31,6 @@ class PresubmitState extends ChangeNotifier {
 
   final CocoonService cocoonService;
   final FirebaseAuthService authService;
-
-  bool _isAuthenticated = false;
 
   /// The repository name (e.g., 'flutter', 'engine').
   String repo = 'flutter';
@@ -45,8 +42,7 @@ class PresubmitState extends ChangeNotifier {
   String? sha;
 
   /// Whether data is currently being fetched.
-  bool get isLoading =>
-      _isSummariesLoading || _isGuardLoading || _isChecksLoading;
+  bool get isLoading => _isSummariesLoading || _isGuardLoading || _isChecksLoading;
 
   bool _isSummariesLoading = false;
   bool _isGuardLoading = false;
@@ -75,8 +71,7 @@ class PresubmitState extends ChangeNotifier {
   /// Whether any filter is currently applied.
   bool get isAnyFilterApplied {
     return _selectedStatuses.length < TaskStatus.values.length ||
-        (_availablePlatforms.isNotEmpty &&
-            _selectedPlatforms.length < _availablePlatforms.length) ||
+        (_availablePlatforms.isNotEmpty && _selectedPlatforms.length < _availablePlatforms.length) ||
         (_jobNameFilter != null && _jobNameFilter!.isNotEmpty);
   }
 
@@ -115,9 +110,7 @@ class PresubmitState extends ChangeNotifier {
 
   void _ensureValidSelection() {
     final filtered = filteredGuardResponse;
-    if (filtered == null ||
-        filtered.stages.isEmpty ||
-        filtered.stages.every((s) => s.builds.isEmpty)) {
+    if (filtered == null || filtered.stages.isEmpty || filtered.stages.every((s) => s.builds.isEmpty)) {
       _selectedCheck = null;
       _checks = null;
       return;
@@ -212,14 +205,12 @@ class PresubmitState extends ChangeNotifier {
 
         // Platform filter
         final platform = jobName.split(' ').first;
-        if (effectivePlatforms.isNotEmpty &&
-            !effectivePlatforms.contains(platform)) {
+        if (effectivePlatforms.isNotEmpty && !effectivePlatforms.contains(platform)) {
           continue;
         }
 
         // Regex filter
-        if (effectiveJobNameFilter != null &&
-            effectiveJobNameFilter.isNotEmpty) {
+        if (effectiveJobNameFilter != null && effectiveJobNameFilter.isNotEmpty) {
           try {
             final regex = RegExp(effectiveJobNameFilter, caseSensitive: false);
             if (!regex.hasMatch(jobName)) {
@@ -310,10 +301,7 @@ class PresubmitState extends ChangeNotifier {
 
   void _startTimer() {
     refreshTimer?.cancel();
-    refreshTimer = Timer.periodic(
-      refreshRate,
-      (Timer t) => _fetchRefreshUpdate(),
-    );
+    refreshTimer = Timer.periodic(refreshRate, (Timer t) => _fetchRefreshUpdate());
   }
 
   /// Syncs internal state with the provided parameters.
@@ -378,10 +366,7 @@ class PresubmitState extends ChangeNotifier {
     _lastFetchedPr = pr;
     notifyListeners();
 
-    final response = await cocoonService.fetchPresubmitGuardSummaries(
-      pr: pr!,
-      repo: repo,
-    );
+    final response = await cocoonService.fetchPresubmitGuardSummaries(pr: pr!, repo: repo);
 
     if (response.error != null) {
       // TODO: Handle error
@@ -404,10 +389,7 @@ class PresubmitState extends ChangeNotifier {
     _lastFetchedSha = sha;
     notifyListeners();
 
-    final response = await cocoonService.fetchPresubmitGuard(
-      sha: sha!,
-      repo: repo,
-    );
+    final response = await cocoonService.fetchPresubmitGuard(sha: sha!, repo: repo);
 
     if (response.error != null) {
       // TODO: Handle error
@@ -462,6 +444,7 @@ class PresubmitState extends ChangeNotifier {
       // Trigger a refresh after a small delay to allow the backend to update
       Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
     }
+    notifyListeners();
     return response.error;
   }
 
@@ -482,17 +465,17 @@ class PresubmitState extends ChangeNotifier {
       // Trigger a refresh after a small delay
       Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
     }
+    notifyListeners();
     return response.error;
   }
 
   /// Whether the user can trigger a re-run for a specific job.
   bool canRerunFailedJob(String buildName) {
-    if (!_isAuthenticated || isLoading || _isRerunningAll) return false;
+    if (!authService.isAuthenticated || isLoading || _isRerunningAll) return false;
     // Only allow re-run if the job failed
     final stage = _guardResponse?.stages.firstWhere(
       (s) => s.builds.containsKey(buildName),
-      orElse: () =>
-          const PresubmitGuardStage(name: '', createdAt: 0, builds: {}),
+      orElse: () => const PresubmitGuardStage(name: '', createdAt: 0, builds: {}),
     );
     final status = stage?.builds[buildName];
     return status == TaskStatus.failed || status == TaskStatus.infraFailure;
@@ -500,14 +483,10 @@ class PresubmitState extends ChangeNotifier {
 
   /// Whether the user can trigger "Re-run failed" for all jobs.
   bool get canRerunAllFailedJobs {
-    if (!_isAuthenticated || isLoading || _isRerunningAll) return false;
+    if (!authService.isAuthenticated || isLoading || _isRerunningAll) return false;
     // Check if there are any failed jobs
     return _guardResponse?.stages.any(
-          (s) => s.builds.values.any(
-            (status) =>
-                status == TaskStatus.failed ||
-                status == TaskStatus.infraFailure,
-          ),
+          (s) => s.builds.values.any((status) => status == TaskStatus.failed || status == TaskStatus.infraFailure),
         ) ??
         false;
   }
@@ -521,10 +500,10 @@ class PresubmitState extends ChangeNotifier {
   }
 
   void onAuthChanged() {
-    if (authService.isAuthenticated && !_isAuthenticated) {
+    if (authService.isAuthenticated) {
       _fetchRefreshUpdate();
     }
-    _isAuthenticated = authService.isAuthenticated;
+    notifyListeners();
   }
 
   @override
