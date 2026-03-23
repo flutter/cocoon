@@ -726,7 +726,9 @@ void main() {
       // Finish re-running
       rerunCompleter.complete(const CocoonResponse<void>.data(null));
       await rerunFuture;
-      await tester.pump();
+      await tester.pump(
+        const Duration(seconds: 2),
+      ); // Pump time for the refresh timer
 
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNotNull);
       expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);

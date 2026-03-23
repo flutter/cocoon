@@ -17,6 +17,7 @@ import '../dashboard_navigation_drawer.dart';
 import '../logic/task_sorting.dart';
 import '../state/presubmit.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/filter_dialog.dart';
 import '../widgets/guard_status.dart' as pw;
 import '../widgets/sha_selector.dart';
 import '../widgets/task_box.dart';
@@ -211,6 +212,20 @@ class _PreSubmitViewState extends State<PreSubmitView> {
               ],
             ),
             actions: [
+              IconButton(
+                icon: Icon(
+                  presubmitState.isAnyFilterApplied
+                      ? Icons.filter_alt
+                      : Icons.filter_alt_outlined,
+                ),
+                tooltip: 'Filter jobs',
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => const FilterDialog(),
+                  );
+                },
+              ),
               if (isLatestSha) ...[
                 TextButton.icon(
                   onPressed: (!presubmitState.canRerunAllFailedJobs)
@@ -256,7 +271,9 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                           children: [
                             if (guardResponse != null)
                               _ChecksSidebar(
-                                guardResponse: guardResponse,
+                                guardResponse:
+                                    presubmitState.filteredGuardResponse ??
+                                    guardResponse,
                                 selectedCheck: selectedCheck,
                                 isLatestSha: isLatestSha,
                                 onCheckSelected: presubmitState.selectCheck,

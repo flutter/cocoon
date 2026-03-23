@@ -59,5 +59,6 @@ const _$TaskStatusEnumMap = {
   TaskStatus.infraFailure: 'Infra Failure',
   TaskStatus.failed: 'Failed',
   TaskStatus.succeeded: 'Succeeded',
+  TaskStatus.neutral: 'Neutral',
   TaskStatus.skipped: 'Skipped',
 };

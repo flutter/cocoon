@@ -5,44 +5,41 @@
 import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/foundation.dart';
 
+import '../logic/task_sorting.dart';
 import '../service/cocoon.dart';
 import '../service/firebase_auth.dart';
 
-/// State for the PreSubmit View.
+/// State for the Presubmit Dashboard.
+///
+/// This state manages the data for a specific Pull Request (PR) or commit SHA,
+/// including available SHAs, guard status, and individual check results.
 class PresubmitState extends ChangeNotifier {
   PresubmitState({
     required this.cocoonService,
     required this.authService,
-    this.repo = 'flutter',
     this.pr,
     this.sha,
   }) {
-    _isAuthenticated = authService.isAuthenticated;
     authService.addListener(onAuthChanged);
+    if (pr != null || sha != null) {
+      fetchIfNeeded();
+    }
   }
 
-  /// Cocoon backend service that retrieves the data needed for this state.
   final CocoonService cocoonService;
-
-  /// Authentication service for managing Google Sign In.
   final FirebaseAuthService authService;
 
-  bool _isAuthenticated = false;
+  /// The repository name (e.g., 'flutter', 'engine').
+  String repo = 'flutter';
 
-  /// The current repo to show data from.
-  String repo;
-
-  /// The current PR number.
+  /// The pull request number string.
   String? pr;
 
-  /// The current commit SHA.
+  /// The commit SHA string.
   String? sha;
-
-  /// The guard response for the current [sha].
-  PresubmitGuardResponse? get guardResponse => _guardResponse;
-  PresubmitGuardResponse? _guardResponse;
 
   /// Whether data is currently being fetched.
   bool get isLoading =>
@@ -52,13 +49,215 @@ class PresubmitState extends ChangeNotifier {
   bool _isGuardLoading = false;
   bool _isChecksLoading = false;
 
-  /// Set of job names that are currently being re-run.
-  Set<String> get rerunningJobs => _rerunningJobs;
-  final Set<String> _rerunningJobs = <String>{};
+  /// The full guard status response for the current [sha].
+  PresubmitGuardResponse? get guardResponse => _guardResponse;
+  PresubmitGuardResponse? _guardResponse;
 
   /// Whether "Re-run failed" is currently in progress.
   bool get isRerunningAll => _isRerunningAll;
   bool _isRerunningAll = false;
+
+  /// The currently selected task statuses for filtering.
+  Set<TaskStatus> get selectedStatuses => _selectedStatuses;
+  Set<TaskStatus> _selectedStatuses = TaskStatus.values.toSet();
+
+  /// The currently selected platforms for filtering.
+  Set<String> get selectedPlatforms => _selectedPlatforms;
+  Set<String> _selectedPlatforms = <String>{};
+
+  /// The current job name filter (regex).
+  String? get jobNameFilter => _jobNameFilter;
+  String? _jobNameFilter;
+
+  /// Whether any filter is currently applied.
+  bool get isAnyFilterApplied {
+    return _selectedStatuses.length < TaskStatus.values.length ||
+        (_availablePlatforms.isNotEmpty &&
+            _selectedPlatforms.length < _availablePlatforms.length) ||
+        (_jobNameFilter != null && _jobNameFilter!.isNotEmpty);
+  }
+
+  /// All unique platforms derived from the current [guardResponse].
+  Set<String> get availablePlatforms => _availablePlatforms;
+  Set<String> _availablePlatforms = <String>{};
+
+  /// Update the current filters and notify listeners.
+  void updateFilters({
+    Set<TaskStatus>? statuses,
+    Set<String>? platforms,
+    String? jobNameFilter,
+  }) {
+    if (statuses != null) {
+      _selectedStatuses = statuses;
+    }
+    if (platforms != null) {
+      _selectedPlatforms = platforms;
+    }
+    if (jobNameFilter != null) {
+      _jobNameFilter = jobNameFilter;
+    }
+    _ensureValidSelection();
+    notifyListeners();
+  }
+
+  /// Reset all filters to their default values and notify listeners.
+  void clearFilters() {
+    _selectedStatuses = TaskStatus.values.toSet();
+    _selectedPlatforms = <String>{};
+    _availablePlatforms = <String>{};
+    _jobNameFilter = null;
+    _ensureValidSelection();
+    notifyListeners();
+  }
+
+  void _ensureValidSelection() {
+    final filtered = filteredGuardResponse;
+    if (filtered == null ||
+        filtered.stages.isEmpty ||
+        filtered.stages.every((s) => s.builds.isEmpty)) {
+      _selectedCheck = null;
+      _checks = null;
+      return;
+    }
+
+    // Check if current selection is still visible
+    var isVisible = false;
+    if (_selectedCheck != null) {
+      for (final stage in filtered.stages) {
+        if (stage.builds.containsKey(_selectedCheck)) {
+          isVisible = true;
+          break;
+        }
+      }
+    }
+
+    if (!isVisible) {
+      // Select first available check based on UI sorting
+      String? topMost;
+      for (final stage in filtered.stages) {
+        if (stage.builds.isNotEmpty) {
+          final sortedBuilds = stage.builds.entries.toList()
+            ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
+          topMost = sortedBuilds.first.key;
+          break;
+        }
+      }
+
+      _selectedCheck = topMost;
+      _checks = null;
+      if (_selectedCheck != null) {
+        unawaited(fetchCheckDetails());
+      }
+    }
+  }
+
+  void _updateSelectedPlatforms() {
+    final response = _guardResponse;
+    if (response == null) {
+      _availablePlatforms = {};
+      return;
+    }
+
+    final newAvailablePlatforms = <String>{};
+    for (final stage in response.stages) {
+      for (final jobName in stage.builds.keys) {
+        newAvailablePlatforms.add(jobName.split(' ').first);
+      }
+    }
+
+    // If this is the first time we load data for this PR/session, select everything.
+    if (_availablePlatforms.isEmpty) {
+      _selectedPlatforms = Set.from(newAvailablePlatforms);
+    }
+
+    _availablePlatforms = newAvailablePlatforms;
+  }
+
+  /// Returns a [PresubmitGuardResponse] filtered by the current filter state.
+  ///
+  /// If [guardResponse] is null, this returns null.
+  PresubmitGuardResponse? get filteredGuardResponse {
+    return filterResponse(_guardResponse);
+  }
+
+  /// Filters the given [response] using the current state or provided overrides.
+  PresubmitGuardResponse? filterResponse(
+    PresubmitGuardResponse? response, {
+    Set<TaskStatus>? statuses,
+    Set<String>? platforms,
+    String? jobNameFilter,
+  }) {
+    if (response == null) {
+      return null;
+    }
+
+    final effectiveStatuses = statuses ?? _selectedStatuses;
+    final effectivePlatforms = platforms ?? _selectedPlatforms;
+    final effectiveJobNameFilter = jobNameFilter ?? _jobNameFilter;
+
+    final filteredStages = <PresubmitGuardStage>[];
+    for (final stage in response.stages) {
+      final filteredBuilds = <String, TaskStatus>{};
+      for (final entry in stage.builds.entries) {
+        final jobName = entry.key;
+        final status = entry.value;
+
+        // Status filter
+        if (!effectiveStatuses.contains(status)) {
+          continue;
+        }
+
+        // Platform filter
+        final platform = jobName.split(' ').first;
+        if (effectivePlatforms.isNotEmpty &&
+            !effectivePlatforms.contains(platform)) {
+          continue;
+        }
+
+        // Regex filter
+        if (effectiveJobNameFilter != null &&
+            effectiveJobNameFilter.isNotEmpty) {
+          try {
+            final regex = RegExp(effectiveJobNameFilter, caseSensitive: false);
+            if (!regex.hasMatch(jobName)) {
+              continue;
+            }
+          } catch (e) {
+            // Invalid regex, skip filtering by it.
+          }
+        }
+
+        filteredBuilds[jobName] = status;
+      }
+
+      if (filteredBuilds.isNotEmpty) {
+        filteredStages.add(
+          PresubmitGuardStage(
+            name: stage.name,
+            createdAt: stage.createdAt,
+            builds: filteredBuilds,
+          ),
+        );
+      }
+    }
+
+    return PresubmitGuardResponse(
+      prNum: response.prNum,
+      checkRunId: response.checkRunId,
+      author: response.author,
+      stages: filteredStages,
+      guardStatus: response.guardStatus,
+    );
+  }
+
+  /// Manually set the guard response for testing purposes.
+  @visibleForTesting
+  void setGuardResponseForTest(PresubmitGuardResponse response) {
+    _guardResponse = response;
+    _updateSelectedPlatforms();
+    _ensureValidSelection();
+    notifyListeners();
+  }
 
   /// The available SHAs for the current [pr].
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
@@ -101,164 +300,110 @@ class PresubmitState extends ChangeNotifier {
   void removeListener(VoidCallback listener) {
     super.removeListener(listener);
     if (!hasListeners) {
-      _stopTimer();
+      refreshTimer?.cancel();
+      refreshTimer = null;
     }
   }
 
   void _startTimer() {
     refreshTimer?.cancel();
-    refreshTimer = Timer.periodic(refreshRate, _fetchRefreshUpdate);
+    refreshTimer = Timer.periodic(
+      refreshRate,
+      (Timer t) => _fetchRefreshUpdate(),
+    );
   }
 
-  void _stopTimer() {
-    refreshTimer?.cancel();
-    refreshTimer = null;
-  }
-
-  Future<void> _fetchRefreshUpdate([Timer? timer]) async {
-    if (!_active || isLoading) {
-      return;
-    }
-
-    final refreshes = <Future<void>>[];
-
-    if (pr != null) {
-      refreshes.add(fetchAvailableShas(refresh: true));
-    }
-
-    if (sha != null) {
-      // final isInProgress =
-      //     _availableSummaries.first.guardStatus == GuardStatus.inProgress;
-
-      // if (isInProgress) {
-      refreshes.add(fetchGuardStatus(refresh: true));
-      if (selectedCheck != null) {
-        refreshes.add(fetchCheckDetails(refresh: true));
-      }
-      // }
-    }
-
-    if (refreshes.isNotEmpty) {
-      await Future.wait(refreshes);
-    }
-  }
-
-  /// Update the current parameters and trigger fetches if needed.
-  Future<void> update({String? repo, String? pr, String? sha}) async {
-    if (_syncParameters(repo: repo, pr: pr, sha: sha)) {
-      notifyListeners();
-    }
-    await fetchIfNeeded();
-  }
-
-  /// Synchronously update parameters without notifying.
+  /// Syncs internal state with the provided parameters.
   ///
-  /// Returns true if anything changed.
-  bool _syncParameters({String? repo, String? pr, String? sha}) {
+  /// This is used to initialize or update the state based on URL parameters.
+  void syncUpdate({String? repo, String? pr, String? sha}) {
     var changed = false;
-    if (repo != null && this.repo != repo) {
+    if (repo != null && repo != this.repo) {
       this.repo = repo;
       changed = true;
-      _availableSummaries = [];
-      _lastFetchedPr = null;
     }
     if (pr != this.pr) {
       this.pr = pr;
       changed = true;
       _availableSummaries = [];
       _lastFetchedPr = null;
+      clearFilters();
     }
     if (sha != this.sha) {
       this.sha = sha;
       changed = true;
       _guardResponse = null;
-      _selectedCheck = null;
-      _checks = null;
       _lastFetchedSha = null;
+      _checks = null;
+      _selectedCheck = null;
     }
-    return changed;
+
+    if (changed) {
+      notifyListeners();
+    }
   }
 
-  /// Synchronously update state without notifying.
-  void syncUpdate({String? repo, String? pr, String? sha}) {
-    _syncParameters(repo: repo, pr: pr, sha: sha);
+  /// Explicitly updates parameters and triggers a fetch.
+  void update({String? repo, String? pr, String? sha}) {
+    syncUpdate(repo: repo, pr: pr, sha: sha);
+    fetchIfNeeded();
   }
 
-  /// Select a check and fetch its details.
-  Future<void> selectCheck(String? name) async {
-    if (_selectedCheck == name) {
-      return;
+  /// Triggers a data fetch if parameters have changed.
+  void fetchIfNeeded() {
+    if (pr != null && _lastFetchedPr != pr) {
+      unawaited(fetchAvailableShas());
     }
-    _selectedCheck = name;
+    if (sha != null && _lastFetchedSha != sha) {
+      unawaited(fetchGuardStatus());
+    }
+  }
+
+  /// Selects a specific check and fetches its details.
+  void selectCheck(String buildName) {
+    if (_selectedCheck == buildName) return;
+    _selectedCheck = buildName;
     _checks = null;
     notifyListeners();
-    if (_selectedCheck != null) {
-      await fetchCheckDetails();
-    }
+    unawaited(fetchCheckDetails());
   }
 
-  /// Trigger data fetching if parameters were updated but data is missing.
-  Future<void> fetchIfNeeded() async {
-    if (isLoading) {
-      return;
-    }
-    if (pr == null && sha != null && _lastFetchedSha != sha) {
-      await fetchGuardStatus();
-    }
-    if (pr != null) {
-      if (_availableSummaries.isEmpty && _lastFetchedPr != pr) {
-        await fetchAvailableShas();
-      }
-    }
-
-    if (sha != null && _guardResponse == null && _lastFetchedSha != sha) {
-      await fetchGuardStatus();
-    }
-  }
-
-  /// Request the latest available SHAs for the current [pr] from [CocoonService].
-  Future<void> fetchAvailableShas({bool refresh = false}) async {
-    if (pr == null || _isSummariesLoading) {
-      return;
-    }
+  /// Fetches available SHAs for the current [pr].
+  Future<void> fetchAvailableShas() async {
+    if (pr == null) return;
     _isSummariesLoading = true;
     _lastFetchedPr = pr;
     notifyListeners();
 
     final response = await cocoonService.fetchPresubmitGuardSummaries(
-      repo: repo,
       pr: pr!,
+      repo: repo,
     );
 
     if (response.error != null) {
       // TODO: Handle error
     } else {
-      _availableSummaries = response.data!;
-      // If no SHA was specified, default to the latest one
+      _availableSummaries = response.data ?? [];
+      // Default to the latest SHA if none selected
       if (sha == null && _availableSummaries.isNotEmpty) {
         sha = _availableSummaries.first.commitSha;
+        unawaited(fetchGuardStatus());
       }
     }
     _isSummariesLoading = false;
     notifyListeners();
-    await fetchIfNeeded(); // Proceed to fetch guard status for the new SHA
   }
 
-  /// Request the guard status for the current [sha] from [CocoonService].
-  Future<void> fetchGuardStatus({bool refresh = false}) async {
-    if (sha == null || _isGuardLoading) {
-      return;
-    }
+  /// Fetches the guard status for the current [sha].
+  Future<void> fetchGuardStatus() async {
+    if (sha == null) return;
     _isGuardLoading = true;
     _lastFetchedSha = sha;
-    if (!refresh) {
-      _guardResponse = null;
-    }
     notifyListeners();
 
     final response = await cocoonService.fetchPresubmitGuard(
-      repo: repo,
       sha: sha!,
+      repo: repo,
     );
 
     if (response.error != null) {
@@ -268,124 +413,119 @@ class PresubmitState extends ChangeNotifier {
       if (pr == null && sha != null) {
         pr = _guardResponse?.prNum.toString();
       }
+      _updateSelectedPlatforms();
+      _ensureValidSelection();
     }
     _isGuardLoading = false;
     notifyListeners();
   }
 
-  /// Request check details for the current [selectedCheck] and [guardResponse].
-  Future<void> fetchCheckDetails({bool refresh = false}) async {
-    if (selectedCheck == null || guardResponse == null || _isChecksLoading) {
-      return;
-    }
-
+  /// Fetches details/logs for the current [selectedCheck].
+  Future<void> fetchCheckDetails() async {
+    if (_selectedCheck == null || _guardResponse == null) return;
     _isChecksLoading = true;
-    if (!refresh) {
-      _checks = null;
-    }
     notifyListeners();
 
     final response = await cocoonService.fetchPresubmitCheckDetails(
-      checkRunId: guardResponse!.checkRunId,
-      buildName: selectedCheck!,
+      checkRunId: _guardResponse!.checkRunId,
+      buildName: _selectedCheck!,
       repo: repo,
     );
 
     if (response.error != null) {
       // TODO: Handle error
     } else {
-      _checks = response.data;
+      _checks = response.data ?? [];
     }
     _isChecksLoading = false;
     notifyListeners();
   }
 
-  bool canRerunFailedJob(String jobName) =>
-      authService.isAuthenticated &&
-      pr != null &&
-      !_rerunningJobs.contains(jobName) &&
-      !_isRerunningAll;
-
-  bool get canRerunAllFailedJobs =>
-      authService.isAuthenticated && pr != null && !_isRerunningAll;
-
-  /// Schedule the provided [jobName] to be re-run.
-  ///
-  /// Returns an error message if the request failed, otherwise null.
-  Future<String?> rerunFailedJob(String jobName) async {
-    if (!canRerunFailedJob(jobName)) {
-      return null;
-    }
-
-    _rerunningJobs.add(jobName);
+  /// Schedules a re-run for a failed job.
+  Future<String?> rerunFailedJob(String buildName) async {
+    if (pr == null) return 'No PR selected';
+    _isChecksLoading = true;
     notifyListeners();
 
-    try {
-      final idToken = await authService.idToken;
-      final response = await cocoonService.rerunFailedJob(
-        idToken: idToken,
-        repo: repo,
-        pr: int.parse(pr!),
-        buildName: jobName,
-      );
+    final response = await cocoonService.rerunFailedJob(
+      idToken: await authService.idToken,
+      repo: repo,
+      pr: int.parse(pr!),
+      buildName: buildName,
+    );
 
-      if (response.error != null) {
-        return response.error;
-      }
-
-      unawaited(_fetchRefreshUpdate());
-      return null;
-    } catch (e) {
-      return e.toString();
-    } finally {
-      _rerunningJobs.remove(jobName);
-      notifyListeners();
+    _isChecksLoading = false;
+    if (response.error == null) {
+      // Trigger a refresh after a small delay to allow the backend to update
+      Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
     }
+    notifyListeners();
+    return response.error;
   }
 
-  /// Schedule all failed jobs for the current [pr] to be re-run.
-  ///
-  /// Returns an error message if the request failed, otherwise null.
+  /// Schedules a re-run for all failed jobs in the current PR.
   Future<String?> rerunAllFailedJobs() async {
-    if (!canRerunAllFailedJobs) {
-      return null;
-    }
-
+    if (pr == null) return 'No PR selected';
     _isRerunningAll = true;
     notifyListeners();
 
-    try {
-      final idToken = await authService.idToken;
-      final response = await cocoonService.rerunAllFailedJobs(
-        idToken: idToken,
-        repo: repo,
-        pr: int.parse(pr!),
-      );
+    final response = await cocoonService.rerunAllFailedJobs(
+      idToken: await authService.idToken,
+      repo: repo,
+      pr: int.parse(pr!),
+    );
 
-      if (response.error != null) {
-        return response.error;
-      }
+    _isRerunningAll = false;
+    if (response.error == null) {
+      // Trigger a refresh after a small delay
+      Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
+    }
+    notifyListeners();
+    return response.error;
+  }
 
-      unawaited(_fetchRefreshUpdate());
-      return null;
-    } catch (e) {
-      return e.toString();
-    } finally {
-      _isRerunningAll = false;
-      notifyListeners();
+  /// Whether the user can trigger a re-run for a specific job.
+  bool canRerunFailedJob(String buildName) {
+    if (!authService.isAuthenticated || isLoading || _isRerunningAll)
+      return false;
+    // Only allow re-run if the job failed
+    final stage = _guardResponse?.stages.firstWhere(
+      (s) => s.builds.containsKey(buildName),
+      orElse: () =>
+          const PresubmitGuardStage(name: '', createdAt: 0, builds: {}),
+    );
+    final status = stage?.builds[buildName];
+    return status == TaskStatus.failed || status == TaskStatus.infraFailure;
+  }
+
+  /// Whether the user can trigger "Re-run failed" for all jobs.
+  bool get canRerunAllFailedJobs {
+    if (!authService.isAuthenticated || isLoading || _isRerunningAll)
+      return false;
+    // Check if there are any failed jobs
+    return _guardResponse?.stages.any(
+          (s) => s.builds.values.any(
+            (status) =>
+                status == TaskStatus.failed ||
+                status == TaskStatus.infraFailure,
+          ),
+        ) ??
+        false;
+  }
+
+  void _fetchRefreshUpdate() {
+    if (!_active) return;
+    fetchIfNeeded();
+    if (_selectedCheck != null) {
+      unawaited(fetchCheckDetails());
     }
   }
 
-  @visibleForTesting
   void onAuthChanged() {
-    if (!_active) {
-      return;
-    }
-    if (authService.isAuthenticated != _isAuthenticated) {
-      // Authentication status changed (login or logout), refresh state
+    if (authService.isAuthenticated) {
       _fetchRefreshUpdate();
     }
-    _isAuthenticated = authService.isAuthenticated;
+    notifyListeners();
   }
 
   @override

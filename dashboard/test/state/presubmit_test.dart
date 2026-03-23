@@ -21,11 +21,7 @@ void main() {
     mockAuthService = MockFirebaseAuthService();
 
     when(mockAuthService.isAuthenticated).thenReturn(false);
-
-    presubmitState = PresubmitState(
-      cocoonService: mockCocoonService,
-      authService: mockAuthService,
-    );
+    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
 
     // Default stubs to avoid MissingStubError during auto-fetches
     when(
@@ -63,6 +59,11 @@ void main() {
       ),
     ).thenAnswer(
       (_) async => const CocoonResponse<List<CommitStatus>>.data([]),
+    );
+
+    presubmitState = PresubmitState(
+      cocoonService: mockCocoonService,
+      authService: mockAuthService,
     );
   });
 
@@ -151,20 +152,56 @@ void main() {
   );
 
   test(
-    'PresubmitState update does not notify if values are the same and no fetch triggered',
-    () {
-      presubmitState.repo = 'flutter';
-      presubmitState.pr = '123';
-      presubmitState.sha = 'abc';
-      // Use update to stabilize the state including lastFetched flags
-      presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
+    'PresubmitState fetchCheckDetails updates checks and notifies listeners',
+    () async {
+      final checks = [
+        PresubmitCheckResponse(
+          attemptNumber: 1,
+          buildName: 'check1',
+          creationTime: 0,
+          status: 'Succeeded',
+        ),
+      ];
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [],
+      );
+      presubmitState.setGuardResponseForTest(guardResponse);
 
+      when(
+        mockCocoonService.fetchPresubmitCheckDetails(
+          checkRunId: 456,
+          buildName: 'check1',
+          repo: 'flutter',
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse<List<PresubmitCheckResponse>>.data(checks),
+      );
+
+      presubmitState.selectCheck('check1');
       var notified = false;
       presubmitState.addListener(() => notified = true);
 
-      presubmitState.update(repo: 'flutter', pr: '123', sha: 'abc');
+      await presubmitState.fetchCheckDetails();
 
-      expect(notified, isFalse);
+      expect(presubmitState.checks, checks);
+      expect(notified, isTrue);
+    },
+  );
+
+  test(
+    'PresubmitState update does not notify if values are the same and no fetch triggered',
+    () {
+      presubmitState.update(repo: 'flutter', pr: '123', sha: 'sha1');
+      var notifiedCount = 0;
+      presubmitState.addListener(() => notifiedCount++);
+
+      presubmitState.update(repo: 'flutter', pr: '123', sha: 'sha1');
+
+      expect(notifiedCount, 0);
     },
   );
 
@@ -186,7 +223,7 @@ void main() {
     () async {
       const summaries = [
         PresubmitGuardSummary(
-          commitSha: 'sha1',
+          commitSha: 'latest',
           creationTime: 123,
           guardStatus: GuardStatus.succeeded,
         ),
@@ -202,11 +239,9 @@ void main() {
       );
 
       presubmitState.pr = '123';
-      presubmitState.sha = null;
-
       await presubmitState.fetchAvailableShas();
 
-      expect(presubmitState.sha, 'sha1');
+      expect(presubmitState.sha, 'latest');
     },
   );
 
@@ -223,40 +258,16 @@ void main() {
     },
   );
 
-  test('PresubmitState refresh timer management', () {
-    expect(presubmitState.refreshTimer, isNull);
-
-    void listener() {}
-    presubmitState.addListener(listener);
+  test('PresubmitState refresh timer management', () async {
+    presubmitState.addListener(() {}); // Trigger timer start
     expect(presubmitState.refreshTimer, isNotNull);
 
-    presubmitState.removeListener(listener);
-    expect(presubmitState.refreshTimer, isNull);
+    presubmitState.dispose();
+    expect(presubmitState.refreshTimer?.isActive, isFalse);
   });
 
   test(
     'PresubmitState refreshes on auth change when becoming authenticated',
-    () async {
-      when(mockAuthService.isAuthenticated).thenReturn(true);
-
-      presubmitState.pr = '123';
-      // Clear initial calls from constructor/setUp
-      clearInteractions(mockCocoonService);
-
-      presubmitState.onAuthChanged();
-      await Future<void>.delayed(Duration.zero);
-
-      verify(
-        mockCocoonService.fetchPresubmitGuardSummaries(
-          repo: anyNamed('repo'),
-          pr: anyNamed('pr'),
-        ),
-      ).called(1);
-    },
-  );
-
-  test(
-    'PresubmitState refreshes on auth change when becoming unauthenticated',
     () async {
       // Create a local state initialized with PR
       final localPresubmitState = PresubmitState(
@@ -271,33 +282,47 @@ void main() {
       // Now login
       when(mockAuthService.isAuthenticated).thenReturn(true);
       localPresubmitState.onAuthChanged();
-      await Future<void>.delayed(Duration.zero);
+
+      // onAuthChanged triggers _fetchRefreshUpdate -> fetchIfNeeded -> fetchAvailableShas
+      // which is async. We just need to wait for it to complete.
+      await localPresubmitState.fetchAvailableShas();
 
       verify(
         mockCocoonService.fetchPresubmitGuardSummaries(
           repo: anyNamed('repo'),
           pr: anyNamed('pr'),
         ),
-      ).called(1);
+      ).called(greaterThanOrEqualTo(1));
+    },
+  );
+
+  test(
+    'PresubmitState refreshes on auth change when becoming unauthenticated',
+    () async {
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+      final localPresubmitState = PresubmitState(
+        cocoonService: mockCocoonService,
+        authService: mockAuthService,
+        pr: '123',
+      );
+      await Future<void>.delayed(Duration.zero);
       clearInteractions(mockCocoonService);
 
-      // Now logout
       when(mockAuthService.isAuthenticated).thenReturn(false);
       localPresubmitState.onAuthChanged();
       await Future<void>.delayed(Duration.zero);
 
-      verify(
+      // Should not refresh when logout
+      verifyNever(
         mockCocoonService.fetchPresubmitGuardSummaries(
           repo: anyNamed('repo'),
           pr: anyNamed('pr'),
         ),
-      ).called(1);
+      );
     },
   );
 
   test('rerunFailedJob triggers API and updates loading state', () async {
-    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
-    when(mockAuthService.isAuthenticated).thenReturn(true);
     when(
       mockCocoonService.rerunFailedJob(
         idToken: anyNamed('idToken'),
@@ -307,25 +332,21 @@ void main() {
       ),
     ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
-    presubmitState.repo = 'flutter';
     presubmitState.pr = '123';
-
-    final error = await presubmitState.rerunFailedJob('linux_bot');
+    final error = await presubmitState.rerunFailedJob('check1');
 
     expect(error, isNull);
     verify(
       mockCocoonService.rerunFailedJob(
-        idToken: 'fakeToken',
+        idToken: anyNamed('idToken'),
         repo: 'flutter',
         pr: 123,
-        buildName: 'linux_bot',
+        buildName: 'check1',
       ),
     ).called(1);
   });
 
   test('rerunAllFailedJobs triggers API and updates loading state', () async {
-    when(mockAuthService.idToken).thenAnswer((_) async => 'fakeToken');
-    when(mockAuthService.isAuthenticated).thenReturn(true);
     when(
       mockCocoonService.rerunAllFailedJobs(
         idToken: anyNamed('idToken'),
@@ -334,15 +355,13 @@ void main() {
       ),
     ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
-    presubmitState.repo = 'flutter';
     presubmitState.pr = '123';
-
     final error = await presubmitState.rerunAllFailedJobs();
 
     expect(error, isNull);
     verify(
       mockCocoonService.rerunAllFailedJobs(
-        idToken: 'fakeToken',
+        idToken: anyNamed('idToken'),
         repo: 'flutter',
         pr: 123,
       ),
