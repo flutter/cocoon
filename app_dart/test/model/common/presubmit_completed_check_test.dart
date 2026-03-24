@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -71,7 +72,7 @@ void main() {
       expect(check.checkSuiteId, 456);
       expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
       expect(check.isUnifiedCheckRun, true);
-      expect(check.checkRun.name, 'Merge Queue Guard');
+      expect(check.checkRun.name, Config.kMergeQueueLockName);
       expect(check.buildNumber, 0);
     });
 

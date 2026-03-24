@@ -6,6 +6,7 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
+import 'package:cocoon_service/src/service/config.dart';
 
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -30,7 +31,7 @@ void main() {
     final slug = RepositorySlug('flutter', 'flutter');
     final checkRun = CheckRun.fromJson({
       'id': 456,
-      'name': 'Merge Queue Guard',
+      'name': Config.kMergeQueueLockName,
       'head_sha': 'abc',
       'started_at': DateTime.now().toIso8601String(),
       'check_suite': {'id': 789},

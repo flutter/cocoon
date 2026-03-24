@@ -8,6 +8,7 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../foundation/utils.dart';
+import '../../service/config.dart';
 import '../../service/luci_build_service/build_tags.dart';
 import '../../service/luci_build_service/user_data.dart';
 import '../bbv2_extension.dart';
@@ -117,7 +118,7 @@ class PresubmitCompletedCheck {
   cocoon_checks.CheckRun get checkRun {
     return cocoon_checks.CheckRun(
       id: checkRunId,
-      name: isUnifiedCheckRun ? 'Merge Queue Guard' : name,
+      name: isUnifiedCheckRun ? Config.kMergeQueueLockName : name,
       headSha: sha,
       conclusion: status.toConclusion(),
       checkSuite: CheckSuite(

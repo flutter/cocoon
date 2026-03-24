@@ -2051,7 +2051,7 @@ targets:
                 checkRun: checkRunEvent.checkRun!,
                 slug: RepositorySlug('flutter', 'flutter'),
                 sha: 'abc1234',
-                mergeQueueGuard: checkRunFor(name: 'merge queue guard'),
+                mergeQueueGuard: checkRunFor(name: Config.kMergeQueueLockName),
                 logCrumb: 'test',
               );
 
@@ -2153,7 +2153,7 @@ targets:
               checkRun: checkRunEvent.checkRun!,
               slug: RepositorySlug('flutter', 'flutter'),
               sha: 'abc1234',
-              mergeQueueGuard: checkRunFor(name: 'merge queue guard'),
+              mergeQueueGuard: checkRunFor(name: Config.kMergeQueueLockName),
               logCrumb: 'test',
             );
 
@@ -3167,7 +3167,7 @@ targets:
       final data = scheduler.checkRunFromString(
         '{"name":"Merge Queue Guard","id":33947747856,"external_id":"","status":"queued","head_sha":"","check_suite":{"id":31681571627},"details_url":"https://flutter-dashboard.appspot.com","started_at":"2024-12-05T01:05:24.000Z","conclusion":"null"}',
       );
-      expect(data.name, 'Merge Queue Guard');
+      expect(data.name, Config.kMergeQueueLockName);
       expect(data.id, 33947747856);
       expect(data.conclusion, CheckRunConclusion.empty);
     });
@@ -3701,7 +3701,7 @@ targets:
 
         // Expect the merge queue guard to be completed with failure.
         final mergeQueueGuard = checkRuns.single;
-        expect(mergeQueueGuard.name, 'Merge Queue Guard');
+        expect(mergeQueueGuard.name, Config.kMergeQueueLockName);
         expect(
           verify(
             await mockGithubChecksUtil.updateCheckRun(
@@ -3879,7 +3879,10 @@ targets:
 
       test('schedules tests after engine stage', () async {
         final pullRequest = generatePullRequest();
-        final checkRunGuard = generateCheckRun(1234, name: 'Merge Queue Guard');
+        final checkRunGuard = generateCheckRun(
+          1234,
+          name: Config.kMergeQueueLockName,
+        );
 
         await PrCheckRuns.initializeDocument(
           firestoreService: firestore,
@@ -3965,7 +3968,7 @@ targets:
           final pullRequest = generatePullRequest();
           final checkRunGuard = generateCheckRun(
             1234,
-            name: 'Merge Queue Guard',
+            name: Config.kMergeQueueLockName,
             startedAt: DateTime.now(),
           );
 
@@ -4049,7 +4052,7 @@ targets:
         final pullRequest = generatePullRequest();
         final checkRunGuard = generateCheckRun(
           1234,
-          name: 'Merge Queue Guard',
+          name: Config.kMergeQueueLockName,
           startedAt: DateTime.now(),
         );
 

@@ -837,6 +837,7 @@ $s
         title: Config.kMergeQueueLockName,
         summary: kMergeQueueLockDescription,
       ),
+      detailsUrl: detailsUrl,
     );
   }
 
