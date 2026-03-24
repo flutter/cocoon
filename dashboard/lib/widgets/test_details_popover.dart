@@ -221,12 +221,12 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
+                  Navigator.of(context).pop();
                   await _toggleSuppression(
                     true,
                     issueLink: issueLinkController.text,
                     note: noteController.text,
                   );
-                  Navigator.of(context).pop();
                 }
               },
               child: const Text('Unblock Tree'),

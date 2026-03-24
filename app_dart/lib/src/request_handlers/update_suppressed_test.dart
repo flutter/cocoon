@@ -121,6 +121,8 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
             'Issue must be open to suppress a test.',
           );
         }
+      } on BadRequestException {
+        rethrow;
       } catch (e) {
         throw BadRequestException('Error searching for issue: $e');
       }
