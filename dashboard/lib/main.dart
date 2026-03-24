@@ -64,10 +64,10 @@ void main([List<String> args = const <String>[]]) async {
   }
 
   final FirebaseAuthService authService;
-  if (useProductionService) {
-    authService = FirebaseAuthService();
-  } else {
+  if (const bool.fromEnvironment('FAKE_AUTH', defaultValue: false)) {
     authService = FakeFirebaseAuthService();
+  } else {
+    authService = FirebaseAuthService();
   }
 
   final cocoonService = CocoonService(

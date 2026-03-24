@@ -106,7 +106,7 @@ The dashboard application will use dummy data when it is not connected
 to the server, so it can be developed locally without a dev server.
 
 To run the dashboard locally, go into the `dashboard` directory and
-run `flutter run -d chrome`. The dashboard will be served from localhost
+run `flutter run -d chrome --dart-define=FAKE_AUTH=true`. The dashboard will be served from localhost
 (the exact address will be given on the console); copy the URL into
 your browser to view the application. (The dashboard should also be
 able to run on non-Web platforms, but since the Web is our main target

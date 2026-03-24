@@ -13,10 +13,10 @@ It is possible to run a simulation of the UI locally with fake data:
 
 ```sh
 # Launches Chrome
-flutter run -d chrome --web-port=8080 --web-define=description=Dashboard --web-define=projectName=Dashboard
+flutter run -d chrome --web-port=8080 --dart-define=FAKE_AUTH=true
 
 # Starts a web server, bring your own browser instance
-flutter run -d web-server --web-port=8080 --web-define=description=Dashboard --web-define=projectName=Dashboard
+flutter run -d web-server --web-port=8080 --dart-define=FAKE_AUTH=true
 ```
 
 NOTE: Must run on port 8080[^8080] for authentication to work.
