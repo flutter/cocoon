@@ -33,7 +33,7 @@ class DataSeeder {
     final random = math.Random(now.millisecondsSinceEpoch);
 
     // Seed Commits and Tasks
-    for (final repo in ['flutter', 'cocoon']) {
+    for (final repo in ['flutter', 'cocoon', 'packages']) {
       final branch = defaultBranches[repo]!;
       _seedCommitStatuses(now, random, repo, branch);
     }
@@ -659,7 +659,12 @@ class DataSeeder {
       );
       commits.add(commit);
 
-      final taskCount = repo == 'flutter' ? 100 : 3;
+      final taskCount = switch (repo) {
+        'flutter' => 100,
+        'packages' => 42,
+        'cocoon' => 13,
+        _ => 3,
+      };
       for (var i = 0; i < taskCount; i++) {
         tasks.add(
           _createFakeTask(
@@ -829,6 +834,7 @@ class DataSeeder {
   static const _commitsSha = {
     'cocoon': _commitsCocoon,
     'flutter': _commitsFlutter,
+    'packages': _commitsPackages,
   };
 
   // These commits from from flutter/cocoon
@@ -1036,5 +1042,108 @@ class DataSeeder {
     '9292bb3a66ea6377899df5a7fc17857fa364477c',
     '9fa7f81be038464d2aabef4752d2f50ea60ce561',
     'aba16bc2db714ba438f5480fd328c14ca92c42db',
+  ];
+
+  static const _commitsPackages = [
+    '8dcfd1186ef968be1398f80432f94bb0a36e6d9e',
+    'c1f116788a9c0187ac566517eecaf31a49c2bbf7',
+    '99155a84f372cef1c5fc2d03c54d6980fb9df808',
+    'b3a69599c7b8d2f97dc7f601df59b09f6a47a8ed',
+    '43de301d0901cac145b39a994fe3b58889e00b85',
+    'ca60bd020f339b5538423b3e60463717a702ddc7',
+    '09ddfca4fe95c5aa90015ce4ecb31485eb7cf3d7',
+    '94b93d4cd52af75b3298c1966394759a9e611f61',
+    '071ed5b454e05b071ffb9113c33e7a423ca344b0',
+    '3c0cdab2bbb0e98e5e5871f5949e38f21cff6385',
+    'b3280ae0d8ed70ec2e354e000354099b8abcc448',
+    'afa1a1c3564e5be4795193600b1c2f0e58d80bee',
+    '2fbf78d1099c2ec04578c0db2737b81632f573da',
+    '90a2dc1245d7a3e370230bcd2f308a35da67851f',
+    '70049bdd9b88609b4485cc2cf71ccb60da57031c',
+    'b2e421bc176c488730567e4edbdee6ed48d00473',
+    'dd634a2186cfe9e5b57fca2c8cceae7b4fa41790',
+    '1802599d43eb93a1ada0dfb294d3f030bdacc2a2',
+    'a9d36fb7b9021b6e980156097fa8c0f8392273f3',
+    '88afc6863149dfa1a26170a17789a1b711ddbe5a',
+    '0f2eeaecde3f34322f9e9980177d15beaeb2b871',
+    '409793bcb784b9464def8698557005fb8851a9e6',
+    '1ad1a084c057b6c0383f6cf0ba9df70d5d4b0fc6',
+    '392d771dac6e7956d30fe93ef2595df787f5a287',
+    'ea9b53ba608a8aa6d0d243832fdcee37928e1614',
+    'd809b4f2e1cb8381b0328234204c5423a0580999',
+    '91f7c339b29af157db001e487e14274487f41688',
+    '86543faf4d5634bdaf5d60661630ddf81ad0617f',
+    '02f231f376761cc04610e8c566b0ba759db0bda7',
+    '61b4096307bf8a20786716522a0f5ce55a577d82',
+    'bba1da378c820040d57cf8cb01ca27c85728fe61',
+    '14cbff2f7383a1563aef4efd29d92f65d8ddef2a',
+    'ecace66e92c2f9235e0d811b064d9f0e97f6175e',
+    '1ea3725c4396e1708571082a635f6132c059fd18',
+    'a6542ceef278cf10bd82bc0c4c2feca611c582a2',
+    '44980b66496ec338ed1ed256e40e161c5bb6d09b',
+    '295819c44093d6fed1fe48c28b3ac01268154387',
+    '77796111ab5f3d0a63d0f594d9499dc7dcc58c50',
+    '406a9821eb084426e0264fca36e0afbc3acd5227',
+    'a643267e6bf368f0ae83a17caf0a369c095ab0df',
+    '37827fc0a5588f40ea5dba1a70383ae86e8265b6',
+    '349d8853cab54514b15173337f3203093ccda106',
+    'ee460d6a01fee815ffbe1dc169f851bd682addd6',
+    '5bee35271f19d5bd039c5bd460a62e60b426ebca',
+    'c7170181ffebd5efcc06bf78734c5820a27f7cfd',
+    '9139f6c6bef51edf08dc587b43b06e359fb5c7de',
+    '2673dcdf47156efdfae783bb389234df81ac9da7',
+    'edc45c5f31a12875352048545bed57820e970edd',
+    '79b53f3424dc889dd0d257c83461644dab46278e',
+    '1e0338bfd3c6799713fe89c26a55a64521416e16',
+    '4d0dfb290e773d4bf68d046f797584a172694966',
+    '27b12509e5203fea3aa2ed3cc4a4c38cf3349634',
+    'ff15dfdb36837e099424a4590ebf202472029f49',
+    'e774c2a3f03b2c551506508f813c91d25c297d22',
+    'fe3de646912443c073773acea83c783be6c2275c',
+    'bf3a29cfccf105d652b03d2cb681081e6854eddd',
+    '8d5c5cd0fa83b786429a5c7ce9f93a5f2f132648',
+    '888ef055975de366031e514317ba8bc39f9c11d5',
+    '82baf937218655b8befc2a391c955ae8eb7aa674',
+    '3c04d2df64a497e646d344bf384049c0bcbccdf9',
+    '03ed07755ce0761fee7ecd8b0a46cf3bfa85c667',
+    'e5ef6e87e51bd3213e60ae060a48273a5384f855',
+    '8212bdb4a2c8b5911b3ba33cbf85942917c9dcd9',
+    '9083bc9bed1d399f54952848c85c54dc6cba8645',
+    '7293eee6ac127b7c34185a56064f75bf46dcd892',
+    '173a344964f6426579cb2b9578108d014585c79b',
+    '12279ffac3cee623e51667e62dd720046f05fa03',
+    'faa4e22db67cc5e6d6af84ebc85603330fff7353',
+    '678f033811377ce039a491ad1beae56ac7ba87ed',
+    '7f9860a70d20bc77166eba1a56f4e9c2d2680db3',
+    '32a8a23e9be049c0da892e08e36e43cfe76799a1',
+    'a27d7c50b3ac66cdcc9e774d2a5310793277ed34',
+    '7026f1a62c30509b40023c67969c5d0eeb7c0f24',
+    '6301571e051a814d6610ab199484d94f4aa0d795',
+    'f3ce6cbfa7677fa6ea093982c5c7c4194976d339',
+    '6d8b19d5fd7ae2f1905885f2b323af1cb2f0ad57',
+    '3bef3cf3da7603393ed969e5cb1f814322c46058',
+    '79c529a6bf794cca23ff33299e893a2b118cb19b',
+    'f234c1f626d56f05eaeb0bd5f1094e5354ed2518',
+    'e1d01695273f692c6a67848e72bd58b255837f7c',
+    'f84c6e71882fd6af96fafec34c8fbced81016a0a',
+    '40bb258f277522f87dc8c01a62293828116bb16a',
+    '6c20ef3136acf476b3923dc9bdc74a1d512f3849',
+    'b9ee0b3caffce7a33cac1e72cded5777865c6f79',
+    '546d3542df2d017142bb9dcb1f142060f319e631',
+    '7fe183f964b312cc51985067ac54f1ff292236b3',
+    'd8970b12d60a31e9bae5521142f9881895244f88',
+    'acd9adbe46762bc305c7502d17527accf184c3a6',
+    '0b2baeb4fbf3e565f87cb2f7a28394a1d9c0e77d',
+    '062c8d4f8dd51004a87b0abebb88c1986c5a73a5',
+    '12013c49611994d08759f056294e347e5b5fa236',
+    '9fa0fdce48a2b730da20c2d2228b75f819b1cbdd',
+    '8f2fd365ea7b30762f4e67357b299954f9b4a996',
+    '76183f418542218f3bb49a7ecfe5e2e1406ed126',
+    '12b43a192e1f5fa5141181a72d681a15abd003c1',
+    'df8be18fb5083a0baee0f9612b6488ef7c375d71',
+    'de38ee1e9da563cbf70436db7f7b2e95595c07d8',
+    '54b6834b2a74aa1165dd7fba3558edb6e71d1112',
+    'bf37517977ffaa46c76dfbc1d30e3ef874cd9729',
+    '673c2ac4b464aacb2b320ffc30eca0ab953e6212',
   ];
 }

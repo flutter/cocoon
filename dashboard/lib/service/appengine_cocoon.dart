@@ -271,25 +271,36 @@ class AppEngineCocoonService implements CocoonService {
     String? issueLink,
     String? note,
   }) async {
-    final updateTestSuppressionUrl = apiEndpoint('/api/update-suppressed-test');
-    final response = await _client.post(
-      updateTestSuppressionUrl,
-      headers: {'X-Flutter-IdToken': idToken},
-      body: jsonEncode({
-        'repository': repo,
-        'testName': testName,
-        'action': suppress ? 'SUPPRESS' : 'UNSUPPRESS',
-        'issueLink': ?issueLink,
-        'note': ?note,
-      }),
-    );
-    if (response.statusCode == HttpStatus.ok) {
-      return const CocoonResponse.data(null);
+    final action = suppress ? 'SUPPRESS' : 'UNSUPPRESS';
+    try {
+      final updateTestSuppressionUrl = apiEndpoint(
+        '/api/update-suppressed-test',
+      );
+      final response = await _client.post(
+        updateTestSuppressionUrl,
+        headers: {'X-Flutter-IdToken': idToken},
+        body: jsonEncode({
+          'repository': repo,
+          'testName': testName,
+          'action': action,
+          'issueLink': ?issueLink,
+          'note': ?note,
+        }),
+      );
+      if (response.statusCode == HttpStatus.ok) {
+        return const CocoonResponse.data(null);
+      }
+      return CocoonResponse.error(
+        'HTTP Code: ${response.statusCode}, ${response.body}',
+        statusCode: response.statusCode,
+      );
+    } catch (e, s) {
+      print(
+        'Error calling update-suppressed-test('
+        '${(repo: repo, testName: testName, action: action, issueLink: issueLink, note: note)}); $e\n$s',
+      );
+      return CocoonResponse.error('Error: $e, $s', statusCode: 500);
     }
-    return CocoonResponse.error(
-      'HTTP Code: ${response.statusCode}, ${response.body}',
-      statusCode: response.statusCode,
-    );
   }
 
   @override

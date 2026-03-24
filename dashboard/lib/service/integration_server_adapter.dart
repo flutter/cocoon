@@ -9,6 +9,7 @@ import 'dart:typed_data';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:github/github.dart' show Issue, RepositorySlug;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
@@ -52,11 +53,25 @@ class IntegrationServerAdapter extends AppEngineCocoonService {
     if (seed) {
       DataSeeder(_server).seed(now: _now);
     }
+
+    _server.githubService.getIssueMock = fakeGetIssue;
   }
 
   final IntegrationServer _server;
 
   bool _paused = false;
+
+  Future<Issue>? fakeGetIssue(RepositorySlug slug, {int? issueNumber}) {
+    if (issueNumber != null && issueNumber.isEven) {
+      return Future.value(
+        Issue(
+          id: issueNumber,
+          state: issueNumber % 10 == 0 ? 'closed' : 'open',
+        ),
+      );
+    }
+    return null;
+  }
 
   /// Whether requests to this adapter are paused.
   ///

@@ -219,14 +219,14 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  Navigator.of(context).pop();
-                  _toggleSuppression(
+                  await _toggleSuppression(
                     true,
                     issueLink: issueLinkController.text,
                     note: noteController.text,
                   );
+                  Navigator.of(context).pop();
                 }
               },
               child: const Text('Unblock Tree'),
@@ -242,18 +242,22 @@ class _TestDetailsPopoverState extends State<TestDetailsPopover> {
     String? issueLink,
     String? note,
   }) async {
-    setState(() {
-      _isPendingUpdate = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isPendingUpdate = true;
+      });
+    }
     final success = await widget.buildState.updateTestSuppression(
       testName: widget.qualifiedTask.task,
       suppress: suppress,
       issueLink: issueLink,
       note: note,
     );
-    setState(() {
-      _isPendingUpdate = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isPendingUpdate = false;
+      });
+    }
     if (!success) {
       widget.showSnackBarCallback(
         const SnackBar(content: Text('Failed to update test suppression')),

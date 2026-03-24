@@ -142,6 +142,28 @@ void main() {
     );
   });
 
+  test('throws BadRequestException if issue search fails (SUPPRESS)', () async {
+    githubService.error = Exception('GitHub error');
+
+    tester.request.body = jsonEncode({
+      'testName': 'my_test',
+      'repository': 'flutter/flutter',
+      'action': 'SUPPRESS',
+      'issueLink': 'https://github.com/flutter/flutter/issues/123',
+    });
+
+    await expectLater(
+      tester.post(handler),
+      throwsA(
+        isA<BadRequestException>().having(
+          (e) => e.message,
+          'message',
+          contains('Error searching for issue'),
+        ),
+      ),
+    );
+  });
+
   test('throws BadRequestException if issue not found (SUPPRESS)', () async {
     githubService.issueResponse = null; // Issue not found
 
@@ -410,9 +432,13 @@ void main() {
 
 class FakeGithubServiceWithIssue extends FakeGithubService {
   Issue? issueResponse;
+  Object? error;
 
   @override
   Future<Issue>? getIssue(RepositorySlug slug, {int? issueNumber}) {
+    if (error != null) {
+      throw error!;
+    }
     if (issueResponse == null) {
       return null;
     }

@@ -523,6 +523,24 @@ void main() {
 
       expect(response.error, isNotNull);
     });
+
+    test('should return error on exception', () async {
+      service = AppEngineCocoonService(
+        client: MockClient((Request request) async {
+          throw Exception('network error');
+        }),
+      );
+
+      final response = await service.updateTestSuppression(
+        idToken: 'token',
+        repo: 'flutter/flutter',
+        testName: 'linux_android',
+        suppress: true,
+        issueLink: 'link',
+      );
+
+      expect(response.error, contains('Error: Exception: network error'));
+    });
   });
 
   group('AppEngine CocoonService apiEndpoint', () {

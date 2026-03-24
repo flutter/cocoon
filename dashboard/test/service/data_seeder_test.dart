@@ -31,6 +31,29 @@ void main() {
     );
   });
 
+  test('DataSeeder seeds packages repo', () async {
+    final server = IntegrationServer();
+    final seeder = DataSeeder(server);
+    seeder.seed();
+
+    final firestore = server.firestore;
+    expect(
+      firestore.documents.where(
+        (d) => d.name!.contains(
+          'commits/8dcfd1186ef968be1398f80432f94bb0a36e6d9e',
+        ),
+      ),
+      isNotEmpty,
+    );
+    expect(
+      firestore.documents.where(
+        (d) =>
+            d.name!.contains('tasks/8dcfd1186ef968be1398f80432f94bb0a36e6d9e'),
+      ),
+      isNotEmpty,
+    );
+  });
+
   test('DataSeeder seeds presubmit data', () async {
     final server = IntegrationServer();
     final seeder = DataSeeder(server);

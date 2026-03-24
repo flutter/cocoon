@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
+import 'service/fake_firebase_auth.dart';
 import 'service/firebase_auth.dart';
 import 'state/build.dart';
 import 'state/presubmit.dart';
@@ -62,7 +63,12 @@ void main([List<String> args = const <String>[]]) async {
     };
   }
 
-  final authService = FirebaseAuthService();
+  final FirebaseAuthService authService;
+  if (useProductionService) {
+    authService = FirebaseAuthService();
+  } else {
+    authService = FakeFirebaseAuthService();
+  }
 
   final cocoonService = CocoonService(
     useProductionService: useProductionService,

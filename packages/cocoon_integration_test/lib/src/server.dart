@@ -26,8 +26,15 @@ class IntegrationServer {
     BuildStatusService? buildStatusService,
     FakeContentAwareHashService? contentAwareHashService,
     CacheService? cache,
+    FakeGithubService? githubService,
   }) {
-    this.config = config ?? FakeConfig(webhookKeyValue: 'fake-secret');
+    this.githubService = githubService ?? FakeGithubService();
+    this.config =
+        config ??
+        FakeConfig(
+          webhookKeyValue: 'fake-secret',
+          githubService: this.githubService,
+        );
     this.firestore = firestore ?? FakeFirestoreService();
     this.bigQuery = bigQuery ?? FakeBigQueryService();
     this.dashboardAuthProvider =
@@ -100,4 +107,5 @@ class IntegrationServer {
   late final BuildStatusService buildStatusService;
   late final FakeContentAwareHashService contentAwareHashService;
   late final CacheService cache;
+  late final FakeGithubService githubService;
 }

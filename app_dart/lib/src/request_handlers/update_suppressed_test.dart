@@ -108,17 +108,21 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       }
 
       final githubService = await config.createGithubService(repository);
-      final issue = await githubService.getIssue(
-        repository,
-        issueNumber: issueNumber,
-      );
-      if (issue == null) {
-        throw const BadRequestException('Issue not found.');
-      }
-      if (issue.state != 'open') {
-        throw const BadRequestException(
-          'Issue must be open to suppress a test.',
+      try {
+        final issue = await githubService.getIssue(
+          repository,
+          issueNumber: issueNumber,
         );
+        if (issue == null) {
+          throw const BadRequestException('Issue not found.');
+        }
+        if (issue.state != 'open') {
+          throw const BadRequestException(
+            'Issue must be open to suppress a test.',
+          );
+        }
+      } catch (e) {
+        throw BadRequestException('Error searching for issue: $e');
       }
     }
 

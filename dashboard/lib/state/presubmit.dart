@@ -486,8 +486,9 @@ class PresubmitState extends ChangeNotifier {
 
   /// Whether the user can trigger a re-run for a specific job.
   bool canRerunFailedJob(String buildName) {
-    if (!authService.isAuthenticated || isLoading || _isRerunningAll)
+    if (!authService.isAuthenticated || isLoading || _isRerunningAll) {
       return false;
+    }
     // Only allow re-run if the job failed
     final stage = _guardResponse?.stages.firstWhere(
       (s) => s.builds.containsKey(buildName),
@@ -500,8 +501,9 @@ class PresubmitState extends ChangeNotifier {
 
   /// Whether the user can trigger "Re-run failed" for all jobs.
   bool get canRerunAllFailedJobs {
-    if (!authService.isAuthenticated || isLoading || _isRerunningAll)
+    if (!authService.isAuthenticated || isLoading || _isRerunningAll) {
       return false;
+    }
     // Check if there are any failed jobs
     return _guardResponse?.stages.any(
           (s) => s.builds.values.any(
