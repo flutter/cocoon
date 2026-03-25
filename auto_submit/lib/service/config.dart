@@ -21,6 +21,7 @@ import '../configuration/code_freeze_configuration.dart';
 import '../configuration/repository_configuration.dart';
 import '../configuration/repository_configuration_manager.dart';
 import '../foundation/providers.dart';
+import '../src/generated_config.dart';
 import 'github_service.dart';
 
 class CocoonGitHubRequestException implements Exception {
@@ -51,20 +52,9 @@ class Config {
       this,
       cache,
     );
-    final codeFreezeFile = File(
-      Platform.script
-          .resolve('../lib/configuration/code_freeze.yaml')
-          .toFilePath(),
+    codeFreezeConfiguration = CodeFreezeConfiguration.fromYaml(
+      codeFreezeConfigContent,
     );
-    if (codeFreezeFile.existsSync()) {
-      codeFreezeConfiguration = CodeFreezeConfiguration.fromYaml(
-        codeFreezeFile.readAsStringSync(),
-      );
-    } else {
-      codeFreezeConfiguration = CodeFreezeConfiguration(
-        const <String, FreezeCriteria>{},
-      );
-    }
   }
 
   late RepositoryConfigurationManager repositoryConfigurationManager;

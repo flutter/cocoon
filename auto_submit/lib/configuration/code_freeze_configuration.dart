@@ -3,47 +3,36 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+part 'code_freeze_configuration.g.dart';
+
 /// Configuration for repository-specific code freezes.
-class CodeFreezeConfiguration {
-  CodeFreezeConfiguration(this.repoFreezeCriteria);
+@JsonSerializable(explicitToJson: true)
+@immutable
+final class CodeFreezeConfiguration {
+  const CodeFreezeConfiguration([this.repoFreezeCriteria = const <String, FreezeCriteria>{}]);
 
   /// A mapping of repository slugs to their freeze criteria.
+  @JsonKey(name: 'repoFreezeCriteria')
   final Map<String, FreezeCriteria> repoFreezeCriteria;
 
   /// Parses the configuration from a YAML string.
   factory CodeFreezeConfiguration.fromYaml(String yaml) {
-    final dynamic yamlDoc = loadYaml(yaml);
-    final repoFreezeCriteria = <String, FreezeCriteria>{};
-
-    if (yamlDoc is YamlMap) {
-      for (final entry in yamlDoc.entries) {
-        final repoName = entry.key as String;
-        final repoConfig = entry.value as YamlMap?;
-        if (repoConfig != null) {
-          final frozenLabels = <String>{};
-          final yamlLabels = repoConfig['frozen_labels'] as YamlList?;
-          if (yamlLabels != null) {
-            frozenLabels.addAll(yamlLabels.map((label) => label as String));
-          }
-
-          final frozenPaths = <String>{};
-          final yamlPaths = repoConfig['frozen_paths'] as YamlList?;
-          if (yamlPaths != null) {
-            frozenPaths.addAll(yamlPaths.map((path) => path as String));
-          }
-
-          repoFreezeCriteria[repoName] = FreezeCriteria(
-            frozenLabels: frozenLabels,
-            frozenPaths: frozenPaths,
-          );
-        }
-      }
-    }
-
-    return CodeFreezeConfiguration(repoFreezeCriteria);
+    final yamlDoc = loadYaml(yaml) as YamlMap;
+    final map = <String, dynamic>{
+      'repoFreezeCriteria': yamlDoc.asMap,
+    };
+    return CodeFreezeConfiguration.fromJson(map);
   }
+
+  /// Creates [CodeFreezeConfiguration] from a [json] object.
+  factory CodeFreezeConfiguration.fromJson(Map<String, dynamic> json) => _$CodeFreezeConfigurationFromJson(json);
+
+  /// Converts [CodeFreezeConfiguration] to a [json] object.
+  Map<String, dynamic> toJson() => _$CodeFreezeConfigurationToJson(this);
 
   /// Returns the freeze criteria for the given [slug].
   FreezeCriteria getFreezeCriteria(RepositorySlug slug) {
@@ -52,7 +41,9 @@ class CodeFreezeConfiguration {
 }
 
 /// Criteria used to determine if a PR is affected by a code freeze.
-class FreezeCriteria {
+@JsonSerializable()
+@immutable
+final class FreezeCriteria {
   const FreezeCriteria({
     this.frozenLabels = const <String>{},
     this.frozenPaths = const <String>{},
@@ -61,5 +52,39 @@ class FreezeCriteria {
   final Set<String> frozenLabels;
   final Set<String> frozenPaths;
 
+  /// Creates [FreezeCriteria] from a [json] object.
+  factory FreezeCriteria.fromJson(Map<String, dynamic> json) => _$FreezeCriteriaFromJson(json);
+
+  /// Converts [FreezeCriteria] to a [json] object.
+  Map<String, dynamic> toJson() => _$FreezeCriteriaToJson(this);
+
   bool get isEmpty => frozenLabels.isEmpty && frozenPaths.isEmpty;
+}
+
+extension _YamlMapToMap on YamlMap {
+  Map<String, dynamic> get asMap => <String, dynamic>{
+    for (final MapEntry(:key, :value) in entries)
+      if (value is YamlMap)
+        '$key': value.asMap
+      else if (value is YamlList)
+        '$key': value.asList
+      else if (value is YamlScalar)
+        '$key': value.value
+      else
+        '$key': value,
+  };
+}
+
+extension _YamlListToList on YamlList {
+  List<dynamic> get asList => <dynamic>[
+    for (final node in nodes)
+      if (node is YamlMap)
+        node.asMap
+      else if (node is YamlList)
+        node.asList
+      else if (node is YamlScalar)
+        node.value
+      else
+        node,
+  ];
 }
