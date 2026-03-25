@@ -97,7 +97,7 @@ void main() {
     test('should return expected List<PresubmitGuardSummary>', () async {
       final summaryData = [
         {
-          'commit_sha': 'sha1',
+          'head_sha': 'sha1',
           'creation_time': 123456789,
           'guard_status': 'Succeeded',
         },
