@@ -8,6 +8,7 @@ import '../service/process_method.dart';
 import 'approval.dart';
 import 'base_commit_date_allowed.dart';
 import 'ci_successful.dart';
+import 'code_freeze.dart';
 import 'empty_checks.dart';
 import 'mergeable.dart';
 import 'required_check_runs.dart';
@@ -50,6 +51,7 @@ class PullRequestValidationFilter implements ValidationFilter {
 
     validationsToRun.add(BaseCommitDateAllowed(config: config));
     validationsToRun.add(Approval(config: config));
+    validationsToRun.add(CodeFreeze(config: config));
     // If we are running ci then we need to check the checkRuns and make sure
     // there are check runs created.
     if (repositoryConfiguration.runCi) {
@@ -72,6 +74,7 @@ class EmergencyValidationFilter implements ValidationFilter {
   @override
   Set<Validation> getValidations() => {
     Approval(config: config),
+    CodeFreeze(config: config),
     Mergeable(config: config),
   };
 }
@@ -87,6 +90,7 @@ class RevertRequestValidationFilter implements ValidationFilter {
   @override
   Set<Validation> getValidations() => {
     Approval(config: config),
+    CodeFreeze(config: config),
     RequiredCheckRuns(config: config),
     Mergeable(config: config),
   };

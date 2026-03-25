@@ -1,0 +1,7 @@
+flutter/flutter:
+  frozen_labels:
+    - "f: material design"
+    - "f: cupertino"
+  frozen_paths:
+    - "packages/flutter/lib/src/material/"
+    - "packages/flutter/lib/src/cupertino/"

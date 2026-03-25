@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:auto_submit/configuration/code_freeze_configuration.dart';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/service/github_service.dart';
@@ -47,6 +48,11 @@ class FakeConfig extends Config {
   String get pubsubRevertRequestTopic => 'auto-submit-revert-queue';
   @override
   String get pubsubRevertRequestSubscription => 'auto-submit-revert-queue-sub';
+
+  @override
+  CodeFreezeConfiguration get codeFreezeConfiguration =>
+      codeFreezeConfigurationValue ?? CodeFreezeConfiguration({});
+  CodeFreezeConfiguration? codeFreezeConfigurationValue;
 
   @override
   int get kPubsubPullNumber => kPubsubPullNumberValue ?? 1;

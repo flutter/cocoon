@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_server/bigquery.dart';
@@ -16,6 +17,7 @@ import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:retry/retry.dart';
 
+import '../configuration/code_freeze_configuration.dart';
 import '../configuration/repository_configuration.dart';
 import '../configuration/repository_configuration_manager.dart';
 import '../foundation/providers.dart';
@@ -49,9 +51,24 @@ class Config {
       this,
       cache,
     );
+    final codeFreezeFile = File(
+      Platform.script
+          .resolve('../lib/configuration/code_freeze.yaml')
+          .toFilePath(),
+    );
+    if (codeFreezeFile.existsSync()) {
+      codeFreezeConfiguration = CodeFreezeConfiguration.fromYaml(
+        codeFreezeFile.readAsStringSync(),
+      );
+    } else {
+      codeFreezeConfiguration = CodeFreezeConfiguration(
+        const <String, FreezeCriteria>{},
+      );
+    }
   }
 
   late RepositoryConfigurationManager repositoryConfigurationManager;
+  late CodeFreezeConfiguration codeFreezeConfiguration;
 
   /// Project/GCP constants
   static const String flutter = 'flutter';
