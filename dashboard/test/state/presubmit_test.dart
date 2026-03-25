@@ -96,7 +96,7 @@ void main() {
     () async {
       const summaries = [
         PresubmitGuardSummary(
-          commitSha: 'sha1',
+          headSha: 'sha1',
           creationTime: 123,
           guardStatus: GuardStatus.succeeded,
         ),
@@ -223,7 +223,7 @@ void main() {
     () async {
       const summaries = [
         PresubmitGuardSummary(
-          commitSha: 'latest',
+          headSha: 'latest',
           creationTime: 123,
           guardStatus: GuardStatus.succeeded,
         ),

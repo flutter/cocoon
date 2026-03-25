@@ -72,17 +72,17 @@ void main() {
     ).thenAnswer(
       (_) async => const CocoonResponse.data([
         PresubmitGuardSummary(
-          commitSha: 'decaf_3_real_sha',
+          headSha: 'decaf_3_real_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.succeeded,
         ),
         PresubmitGuardSummary(
-          commitSha: 'face5_2_mock_sha',
+          headSha: 'face5_2_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.failed,
         ),
         PresubmitGuardSummary(
-          commitSha: 'cafe5_1_mock_sha',
+          headSha: 'cafe5_1_mock_sha',
           creationTime: 123456789,
           guardStatus: GuardStatus.inProgress,
         ),

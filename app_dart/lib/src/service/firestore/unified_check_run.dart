@@ -13,8 +13,8 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../../model/common/failed_presubmit_jobs.dart';
-import '../../model/common/presubmit_job_state.dart';
 import '../../model/common/presubmit_guard_conclusion.dart';
+import '../../model/common/presubmit_job_state.dart';
 import '../../model/firestore/base.dart';
 import '../../model/firestore/ci_staging.dart';
 import '../../model/firestore/presubmit_guard.dart';

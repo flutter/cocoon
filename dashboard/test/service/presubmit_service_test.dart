@@ -75,7 +75,7 @@ void main() {
 
       service = AppEngineCocoonService(
         client: MockClient((Request request) async {
-          expect(request.url.path, '/api/public/get-presubmit-checks');
+          expect(request.url.path, '/api/public/get-presubmit-jobs');
           return Response(jsonEncode(checkData), 200);
         }),
       );
@@ -117,7 +117,7 @@ void main() {
 
       expect(response.error, isNull);
       expect(response.data!.length, 1);
-      expect(response.data!.first.commitSha, 'sha1');
+      expect(response.data!.first.headSha, 'sha1');
     });
   });
   group('AppEngine CocoonService presubmit methods', () {
