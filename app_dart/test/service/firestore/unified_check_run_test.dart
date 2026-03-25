@@ -568,12 +568,11 @@ void main() {
         firestoreService.putDocument(guard1);
         firestoreService.putDocument(guard2);
 
-        final result =
-            await UnifiedCheckRun.getLatestPresubmitGuardForPrNum(
-              firestoreService: firestoreService,
-              slug: slug,
+        final result = await UnifiedCheckRun.getLatestPresubmitGuardForPrNum(
+          firestoreService: firestoreService,
+          slug: slug,
           prNum: 5678,
-            );
+        );
         expect(result!.checkRunId, 2);
       },
     );

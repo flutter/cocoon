@@ -60,10 +60,7 @@ void main() {
       expect(guard.failedJobs, 0);
       expect(guard.checkRun.id, 456);
       expect(guard.fields[PresubmitGuard.fieldCheckRunId]!.integerValue, '456');
-      expect(
-        guard.fields[PresubmitGuard.fieldPrNum]!.integerValue,
-        '123',
-      );
+      expect(guard.fields[PresubmitGuard.fieldPrNum]!.integerValue, '123');
       expect(
         guard.fields[PresubmitGuard.fieldSlug]!.stringValue,
         'flutter/flutter',
