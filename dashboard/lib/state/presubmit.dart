@@ -15,7 +15,7 @@ import '../service/firebase_auth.dart';
 /// State for the Presubmit Dashboard.
 ///
 /// This state manages the data for a specific Pull Request (PR) or commit SHA,
-/// including available SHAs, guard status, and individual check results.
+/// including available SHAs, guard status, and individual job results.
 class PresubmitState extends ChangeNotifier {
   PresubmitState({
     required this.cocoonService,
@@ -43,11 +43,11 @@ class PresubmitState extends ChangeNotifier {
 
   /// Whether data is currently being fetched.
   bool get isLoading =>
-      _isSummariesLoading || _isGuardLoading || _isChecksLoading;
+      _isSummariesLoading || _isGuardLoading || _isJobsLoading;
 
   bool _isSummariesLoading = false;
   bool _isGuardLoading = false;
-  bool _isChecksLoading = false;
+  bool _isJobsLoading = false;
 
   /// The full guard status response for the current [sha].
   PresubmitGuardResponse? get guardResponse => _guardResponse;
@@ -115,16 +115,16 @@ class PresubmitState extends ChangeNotifier {
     if (filtered == null ||
         filtered.stages.isEmpty ||
         filtered.stages.every((s) => s.builds.isEmpty)) {
-      _selectedCheck = null;
-      _checks = null;
+      _selectedJob = null;
+      _jobs = null;
       return;
     }
 
     // Check if current selection is still visible
     var isVisible = false;
-    if (_selectedCheck != null) {
+    if (_selectedJob != null) {
       for (final stage in filtered.stages) {
-        if (stage.builds.containsKey(_selectedCheck)) {
+        if (stage.builds.containsKey(_selectedJob)) {
           isVisible = true;
           break;
         }
@@ -132,7 +132,7 @@ class PresubmitState extends ChangeNotifier {
     }
 
     if (!isVisible) {
-      // Select first available check based on UI sorting
+      // Select first available job based on UI sorting
       String? topMost;
       for (final stage in filtered.stages) {
         if (stage.builds.isNotEmpty) {
@@ -143,10 +143,10 @@ class PresubmitState extends ChangeNotifier {
         }
       }
 
-      _selectedCheck = topMost;
-      _checks = null;
-      if (_selectedCheck != null) {
-        unawaited(fetchCheckDetails());
+      _selectedJob = topMost;
+      _jobs = null;
+      if (_selectedJob != null) {
+        unawaited(fetchJobDetails());
       }
     }
   }
@@ -263,13 +263,13 @@ class PresubmitState extends ChangeNotifier {
   List<PresubmitGuardSummary> get availableSummaries => _availableSummaries;
   List<PresubmitGuardSummary> _availableSummaries = [];
 
-  /// The currently selected check name.
-  String? get selectedCheck => _selectedCheck;
-  String? _selectedCheck;
+  /// The currently selected job name.
+  String? get selectedJob => _selectedJob;
+  String? _selectedJob;
 
-  /// The checks/logs for the current [selectedCheck].
-  List<PresubmitCheckResponse>? get checks => _checks;
-  List<PresubmitCheckResponse>? _checks;
+  /// The jobs/logs for the current [selectedJob].
+  List<PresubmitJobResponse>? get jobs => _jobs;
+  List<PresubmitJobResponse>? _jobs;
 
   /// Track if we have already attempted to fetch summaries for the current [pr].
   String? _lastFetchedPr;
@@ -334,8 +334,8 @@ class PresubmitState extends ChangeNotifier {
       changed = true;
       _guardResponse = null;
       _lastFetchedSha = null;
-      _checks = null;
-      _selectedCheck = null;
+      _jobs = null;
+      _selectedJob = null;
     }
 
     if (changed) {
@@ -359,13 +359,13 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
-  /// Selects a specific check and fetches its details.
-  void selectCheck(String buildName) {
-    if (_selectedCheck == buildName) return;
-    _selectedCheck = buildName;
-    _checks = null;
+  /// Selects a specific job and fetches its details.
+  void selectJob(String jobName) {
+    if (_selectedJob == jobName) return;
+    _selectedJob = jobName;
+    _jobs = null;
     notifyListeners();
-    unawaited(fetchCheckDetails());
+    unawaited(fetchJobDetails());
   }
 
   /// Fetches available SHAs for the current [pr].
@@ -386,7 +386,7 @@ class PresubmitState extends ChangeNotifier {
       _availableSummaries = response.data ?? [];
       // Default to the latest SHA if none selected
       if (sha == null && _availableSummaries.isNotEmpty) {
-        sha = _availableSummaries.first.commitSha;
+        sha = _availableSummaries.first.headSha;
         unawaited(fetchGuardStatus());
       }
     }
@@ -420,41 +420,41 @@ class PresubmitState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetches details/logs for the current [selectedCheck].
-  Future<void> fetchCheckDetails() async {
-    if (_selectedCheck == null || _guardResponse == null) return;
-    _isChecksLoading = true;
+  /// Fetches details/logs for the current [selectedJob].
+  Future<void> fetchJobDetails() async {
+    if (_selectedJob == null || _guardResponse == null) return;
+    _isJobsLoading = true;
     notifyListeners();
 
-    final response = await cocoonService.fetchPresubmitCheckDetails(
+    final response = await cocoonService.fetchPresubmitJobDetails(
       checkRunId: _guardResponse!.checkRunId,
-      buildName: _selectedCheck!,
+      jobName: _selectedJob!,
       repo: repo,
     );
 
     if (response.error != null) {
       // TODO: Handle error
     } else {
-      _checks = response.data ?? [];
+      _jobs = response.data ?? [];
     }
-    _isChecksLoading = false;
+    _isJobsLoading = false;
     notifyListeners();
   }
 
   /// Schedules a re-run for a failed job.
-  Future<String?> rerunFailedJob(String buildName) async {
+  Future<String?> rerunFailedJob(String jobName) async {
     if (pr == null) return 'No PR selected';
-    _isChecksLoading = true;
+    _isJobsLoading = true;
     notifyListeners();
 
     final response = await cocoonService.rerunFailedJob(
       idToken: await authService.idToken,
       repo: repo,
       pr: int.parse(pr!),
-      buildName: buildName,
+      jobName: jobName,
     );
 
-    _isChecksLoading = false;
+    _isJobsLoading = false;
     if (response.error == null) {
       // Trigger a refresh after a small delay to allow the backend to update
       Timer(const Duration(seconds: 2), () => unawaited(fetchGuardStatus()));
@@ -485,17 +485,17 @@ class PresubmitState extends ChangeNotifier {
   }
 
   /// Whether the user can trigger a re-run for a specific job.
-  bool canRerunFailedJob(String buildName) {
+  bool canRerunFailedJob(String jobName) {
     if (!authService.isAuthenticated || isLoading || _isRerunningAll) {
       return false;
     }
     // Only allow re-run if the job failed
     final stage = _guardResponse?.stages.firstWhere(
-      (s) => s.builds.containsKey(buildName),
+      (s) => s.builds.containsKey(jobName),
       orElse: () =>
           const PresubmitGuardStage(name: '', createdAt: 0, builds: {}),
     );
-    final status = stage?.builds[buildName];
+    final status = stage?.builds[jobName];
     return status == TaskStatus.failed || status == TaskStatus.infraFailure;
   }
 
@@ -518,8 +518,8 @@ class PresubmitState extends ChangeNotifier {
   void _fetchRefreshUpdate() {
     if (!_active) return;
     fetchIfNeeded();
-    if (_selectedCheck != null) {
-      unawaited(fetchCheckDetails());
+    if (_selectedJob != null) {
+      unawaited(fetchJobDetails());
     }
   }
 

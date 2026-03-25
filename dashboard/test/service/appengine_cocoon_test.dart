@@ -257,14 +257,14 @@ void main() {
         idToken: 'token',
         repo: 'flutter',
         pr: 123,
-        buildName: 'linux_bot',
+        jobName: 'linux_bot',
       );
 
       expect(response.error, isNull);
       expect(capturedUrl, contains('/api/rerun-failed-job'));
       expect(
         capturedBody,
-        '{"owner":"flutter","repo":"flutter","pr":123,"build_name":"linux_bot"}',
+        '{"owner":"flutter","repo":"flutter","pr":123,"job_name":"linux_bot"}',
       );
     });
 

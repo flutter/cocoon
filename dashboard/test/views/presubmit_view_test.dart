@@ -103,7 +103,7 @@ void main() {
         idToken: anyNamed('idToken'),
         repo: anyNamed('repo'),
         pr: anyNamed('pr'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
       ),
     ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
@@ -116,9 +116,9 @@ void main() {
     ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: anyNamed('checkRunId'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
       ),
     ).thenAnswer((_) async => const CocoonResponse.data([]));
 
@@ -222,22 +222,22 @@ void main() {
     ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: anyNamed('checkRunId'),
-        buildName: argThat(contains('mac_host_engine'), named: 'buildName'),
+        jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
       ),
     ).thenAnswer(
       (_) async => CocoonResponse.data([
-        PresubmitCheckResponse(
+        PresubmitJobResponse(
           attemptNumber: 1,
-          buildName: 'Mac mac_host_engine 1',
+          jobName: 'Mac mac_host_engine 1',
           creationTime: 0,
           status: 'Succeeded',
           summary: 'All tests passed (452/452)',
         ),
-        PresubmitCheckResponse(
+        PresubmitJobResponse(
           attemptNumber: 2,
-          buildName: 'Mac mac_host_engine 1',
+          jobName: 'Mac mac_host_engine 1',
           creationTime: 0,
           status: 'Failed',
           summary: 'Test failed: Unit Tests',
@@ -405,15 +405,15 @@ void main() {
     ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: 456,
-        buildName: 'Mac mac_host_engine',
+        jobName: 'Mac mac_host_engine',
       ),
     ).thenAnswer(
       (_) async => CocoonResponse.data([
-        PresubmitCheckResponse(
+        PresubmitJobResponse(
           attemptNumber: 1,
-          buildName: 'Mac mac_host_engine',
+          jobName: 'Mac mac_host_engine',
           creationTime: 0,
           status: 'Succeeded',
           summary: 'Live log content',

@@ -1,12 +1,12 @@
 # Implementation Plan - Pull Request Detailed View
 
 ## Phase 1: Infrastructure & Data Model [checkpoint: 085b744]
-- [x] Task: Define the `PresubmitGuardResponse` and `PresubmitCheckResponse` models. (3c968d9)
+- [x] Task: Define the `PresubmitGuardResponse` and `PresubmitJobResponse` models. (3c968d9)
     - [x] Write Tests: Create unit tests for the new models, ensuring correct JSON deserialization based on the Cocoon API structure. (3c968d9)
     - [x] Implement: Reuse model classes from `cocoon_common`. (3c968d9)
 - [x] Task: Integrate the new endpoints into `CocoonService`. (3c968d9)
     - [x] Write Tests: Mock the `/dashboard/api/public/get-presubmit-guard` and `/dashboard/api/public/get-presubmit-checks` endpoints and verify the service correctly fetches and parses the data. (3c968d9)
-    - [x] Implement: Add `fetchPresubmitGuard` and `fetchPresubmitCheckDetails` methods to `CocoonService` and its implementations. (3c968d9)
+    - [x] Implement: Add `fetchPresubmitGuard` and `fetchPresubmitJobDetails` methods to `CocoonService` and its implementations. (3c968d9)
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Data Model' (Protocol in workflow.md) (085b744)
 
 ## Phase 2: UI Implementation - Sidebar & Header [checkpoint: a498231]

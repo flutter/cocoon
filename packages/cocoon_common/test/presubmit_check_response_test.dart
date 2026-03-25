@@ -6,17 +6,17 @@ import 'package:cocoon_common/rpc_model.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('PresubmitCheckResponse', () {
+  group('PresubmitJobResponse', () {
     test('toJson and fromJson handles buildNumber', () {
       final json = {
         'attempt_number': 1,
-        'build_name': 'linux',
+        'job_name': 'linux',
         'creation_time': 1000,
         'status': 'succeeded',
         'build_number': 456,
       };
 
-      final response = PresubmitCheckResponse.fromJson(json);
+      final response = PresubmitJobResponse.fromJson(json);
       expect(response.buildNumber, 456);
 
       final backToJson = response.toJson();
@@ -26,12 +26,12 @@ void main() {
     test('toJson and fromJson handles null buildNumber', () {
       final json = {
         'attempt_number': 1,
-        'build_name': 'linux',
+        'job_name': 'linux',
         'creation_time': 1000,
         'status': 'succeeded',
       };
 
-      final response = PresubmitCheckResponse.fromJson(json);
+      final response = PresubmitJobResponse.fromJson(json);
       expect(response.buildNumber, isNull);
 
       final backToJson = response.toJson();

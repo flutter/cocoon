@@ -57,8 +57,8 @@ void main() {
     final checkRun = generateCheckRun(1, name: 'Guard');
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
-      builds: {'Linux A': TaskStatus.failed, 'Linux B': TaskStatus.succeeded},
-      remainingBuilds: 0,
+      jobs: {'Linux A': TaskStatus.failed, 'Linux B': TaskStatus.succeeded},
+      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 
@@ -72,10 +72,10 @@ void main() {
       ],
     );
 
-    final failedCheck = PresubmitCheck(
+    final failedCheck = PresubmitJob(
       slug: Config.flutterSlug,
       checkRunId: 1,
-      buildName: 'Linux A',
+      jobName: 'Linux A',
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
@@ -122,15 +122,15 @@ void main() {
     final updatedGuard = PresubmitGuard.fromDocument(
       await firestore.getDocument(guard.name!),
     );
-    expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
+    expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
   });
 
   test('Re-run all failed jobs successful with default owner/repo', () async {
     final checkRun = generateCheckRun(1, name: 'Guard');
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
-      builds: {'Linux A': TaskStatus.failed},
-      remainingBuilds: 0,
+      jobs: {'Linux A': TaskStatus.failed},
+      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 
@@ -144,10 +144,10 @@ void main() {
       ],
     );
 
-    final failedCheck = PresubmitCheck(
+    final failedCheck = PresubmitJob(
       slug: Config.flutterSlug,
       checkRunId: 1,
-      buildName: 'Linux A',
+      jobName: 'Linux A',
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
@@ -181,7 +181,7 @@ void main() {
     final checkRun = generateCheckRun(1, name: 'Guard');
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
-      builds: {'Linux A': TaskStatus.succeeded},
+      jobs: {'Linux A': TaskStatus.succeeded},
     );
     firestore.putDocument(guard);
 
@@ -198,7 +198,7 @@ void main() {
     tester.requestData = {
       'owner': 'flutter',
       'repo': 'flutter',
-      'pr': guard.pullRequestId,
+      'pr': guard.prNum,
     };
 
     final response = await tester.post(handler);

@@ -2,7 +2,7 @@
 
 ## Phase 1: Research & Discovery [checkpoint: 41c1531]
 - [x] Task: Analyze `LuciBuildService` and `BuildBucketClient` in `app_dart/lib/src/service` to identify re-run capabilities.
-- [x] Task: Research `unified_check_run.dart` and `GetPresubmitChecks` handler to understand how jobs are linked to `check_run_id`.
+- [x] Task: Research `unified_check_run.dart` and `GetPresubmitJobs` handler to understand how jobs are linked to `check_run_id`.
 - [x] Task: Identify the appropriate method for GitHub write access verification (check existing `app_dart` patterns).
 - [x] Task: Conductor - User Manual Verification 'Research & Discovery' (Protocol in workflow.md)
 

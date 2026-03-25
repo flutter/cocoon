@@ -14,13 +14,13 @@ part 'presubmit_guard_summary.g.dart';
 @JsonSerializable(fieldRename: FieldRename.snake)
 final class PresubmitGuardSummary {
   const PresubmitGuardSummary({
-    required this.commitSha,
+    required this.headSha,
     required this.creationTime,
     required this.guardStatus,
   });
 
-  /// The commit SHA.
-  final String commitSha;
+  /// The commit head SHA.
+  final String headSha;
 
   /// The creation timestamp in microseconds since epoch.
   final int creationTime;

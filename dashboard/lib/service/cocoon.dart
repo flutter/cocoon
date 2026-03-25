@@ -73,12 +73,12 @@ abstract class CocoonService {
     required String branch,
   });
 
-  /// Schedule the provided failed [buildName] to be re-run for the given [pr].
+  /// Schedule the provided failed [jobName] to be re-run for the given [pr].
   Future<CocoonResponse<void>> rerunFailedJob({
     required String? idToken,
     required String repo,
     required int pr,
-    required String buildName,
+    required String jobName,
     String owner = 'flutter',
   });
 
@@ -142,10 +142,9 @@ abstract class CocoonService {
   });
 
   /// Gets the details for a specific presubmit check.
-  Future<CocoonResponse<List<PresubmitCheckResponse>>>
-  fetchPresubmitCheckDetails({
+  Future<CocoonResponse<List<PresubmitJobResponse>>> fetchPresubmitJobDetails({
     required int checkRunId,
-    required String buildName,
+    required String jobName,
     String repo = 'flutter',
     String owner = 'flutter',
   });

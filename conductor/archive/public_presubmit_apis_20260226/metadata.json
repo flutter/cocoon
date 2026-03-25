@@ -4,5 +4,5 @@
   "status": "new",
   "created_at": "2026-02-26T14:30:00Z",
   "updated_at": "2026-02-26T14:30:00Z",
-  "description": "Make presubmit get api public. Refactor ApiRequestHandler to extend a new PublicApiRequestHandler and update GetPresubmitChecks, GetPresubmitGuardSummaries and GetPresubmitGuard to inherit from it."
+  "description": "Make presubmit get api public. Refactor ApiRequestHandler to extend a new PublicApiRequestHandler and update GetPresubmitJobs, GetPresubmitGuardSummaries and GetPresubmitGuard to inherit from it."
 }

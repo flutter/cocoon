@@ -146,7 +146,7 @@ void main() {
       expect(captured, hasLength(1));
       expect(
         captured[0],
-        isA<PresubmitCompletedCheck>().having(
+        isA<PresubmitCompletedJob>().having(
           (e) => e.status,
           'status',
           TaskStatus.neutral,
@@ -213,7 +213,7 @@ void main() {
       expect(captured, hasLength(1));
       expect(
         captured[0],
-        isA<PresubmitCompletedCheck>().having(
+        isA<PresubmitCompletedJob>().having(
           (e) => e.status,
           'status',
           TaskStatus.failed,

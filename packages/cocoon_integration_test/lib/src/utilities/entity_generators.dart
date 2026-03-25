@@ -313,28 +313,26 @@ SuppressedTest generateSuppressedTest({
 
 PresubmitGuard generatePresubmitGuard({
   github.RepositorySlug? slug,
-  int pullRequestId = 123,
+  int prNum = 123,
   github.CheckRun? checkRun,
   CiStage stage = CiStage.fusionTests,
-  String commitSha = 'abc',
+  String headSha = 'abc',
   int creationTime = 1,
   String author = 'dash',
-  int remainingBuilds = -1,
-  int failedBuilds = 0,
-  Map<String, TaskStatus>? builds,
+  int remainingJobs = -1,
+  int failedJobs = 0,
+  Map<String, TaskStatus>? jobs,
 }) {
   return PresubmitGuard(
     slug: slug ?? github.RepositorySlug('flutter', 'flutter'),
-    pullRequestId: pullRequestId,
+    prNum: prNum,
     checkRun: checkRun ?? generateCheckRun(1),
     stage: stage,
-    commitSha: commitSha,
+    headSha: headSha,
     creationTime: creationTime,
     author: author,
-    remainingBuilds: remainingBuilds >= 0
-        ? remainingBuilds
-        : (builds?.length ?? 0),
-    failedBuilds: failedBuilds,
-    builds: builds,
+    remainingJobs: remainingJobs >= 0 ? remainingJobs : (jobs?.length ?? 0),
+    failedJobs: failedJobs,
+    jobs: jobs,
   );
 }

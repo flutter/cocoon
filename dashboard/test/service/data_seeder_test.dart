@@ -66,7 +66,7 @@ void main() {
     );
 
     expect(
-      firestore.documents.where((d) => d.name!.contains('presubmit_checks')),
+      firestore.documents.where((d) => d.name!.contains('presubmit_jobs')),
       isNotEmpty,
     );
 

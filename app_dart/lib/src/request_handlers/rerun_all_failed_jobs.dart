@@ -50,10 +50,10 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
 
     final slug = RepositorySlug(owner, repo);
 
-    final guard = await UnifiedCheckRun.getLatestPresubmitGuardByPullRequestNum(
+    final guard = await UnifiedCheckRun.getLatestPresubmitGuardForPrNum(
       firestoreService: _firestore,
       slug: slug,
-      pullRequestNum: prNumber,
+      prNum: prNumber,
     );
     if (guard == null) {
       throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
@@ -72,10 +72,10 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       );
     }
 
-    final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+    final failedChecks = await UnifiedCheckRun.reInitializeFailedJobs(
       firestoreService: _firestore,
       slug: slug,
-      pullRequestId: prNumber,
+      prNum: prNumber,
       guardCheckRunId: guard.checkRunId,
     );
 
@@ -90,12 +90,12 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
 
     final checkRetries = <Target, int>{};
     for (final target in targets) {
-      if (failedChecks.checkRetries.containsKey(target.name)) {
-        checkRetries[target] = failedChecks.checkRetries[target.name]!;
+      if (failedChecks.jobRetries.containsKey(target.name)) {
+        checkRetries[target] = failedChecks.jobRetries[target.name]!;
       }
     }
 
-    if (checkRetries.length != failedChecks.checkRetries.length) {
+    if (checkRetries.length != failedChecks.jobRetries.length) {
       throw const NotFoundException(
         'Failed to find all failed targets in presubmit targets',
       );

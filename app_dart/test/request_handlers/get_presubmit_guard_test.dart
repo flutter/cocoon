@@ -72,17 +72,17 @@ void main() {
 
     final guard1 = generatePresubmitGuard(
       slug: slug,
-      commitSha: sha,
+      headSha: sha,
       stage: CiStage.fusionTests,
-      builds: {'test1': TaskStatus.succeeded},
-      remainingBuilds: 0,
+      jobs: {'test1': TaskStatus.succeeded},
+      remainingJobs: 0,
     );
 
     final guard2 = generatePresubmitGuard(
       slug: slug,
-      commitSha: sha,
+      headSha: sha,
       stage: CiStage.fusionEngineBuild,
-      builds: {'engine1': TaskStatus.inProgress},
+      jobs: {'engine1': TaskStatus.inProgress},
     );
 
     firestore.putDocuments([guard1, guard2]);
@@ -117,10 +117,10 @@ void main() {
 
     final guard = generatePresubmitGuard(
       slug: slug,
-      commitSha: sha,
-      builds: {'test1': TaskStatus.failed},
-      failedBuilds: 1,
-      remainingBuilds: 0,
+      headSha: sha,
+      jobs: {'test1': TaskStatus.failed},
+      failedJobs: 1,
+      remainingJobs: 0,
     );
 
     firestore.putDocuments([guard]);
@@ -145,9 +145,9 @@ void main() {
 
       final guard = generatePresubmitGuard(
         slug: slug,
-        commitSha: sha,
-        builds: {'test1': TaskStatus.succeeded},
-        remainingBuilds: 0,
+        headSha: sha,
+        jobs: {'test1': TaskStatus.succeeded},
+        remainingJobs: 0,
       );
 
       firestore.putDocuments([guard]);
@@ -171,8 +171,8 @@ void main() {
 
     final guard = generatePresubmitGuard(
       slug: slug,
-      commitSha: sha,
-      builds: {'test1': TaskStatus.waitingForBackfill},
+      headSha: sha,
+      jobs: {'test1': TaskStatus.waitingForBackfill},
     );
 
     firestore.putDocuments([guard]);
@@ -195,9 +195,9 @@ void main() {
 
     final guard = generatePresubmitGuard(
       slug: slug,
-      commitSha: sha,
-      builds: {'test1': TaskStatus.succeeded},
-      remainingBuilds: 0,
+      headSha: sha,
+      jobs: {'test1': TaskStatus.succeeded},
+      remainingJobs: 0,
     );
 
     firestore.putDocuments([guard]);

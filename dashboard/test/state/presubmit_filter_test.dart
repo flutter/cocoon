@@ -42,14 +42,14 @@ void main() {
       (_) async => const CocoonResponse<PresubmitGuardResponse>.data(null),
     );
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: anyNamed('checkRunId'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
         repo: anyNamed('repo'),
         owner: anyNamed('owner'),
       ),
     ).thenAnswer(
-      (_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]),
+      (_) async => const CocoonResponse<List<PresubmitJobResponse>>.data([]),
     );
 
     presubmitState = PresubmitState(
@@ -194,14 +194,14 @@ void main() {
     presubmitState.setGuardResponseForTest(response);
 
     // Initial selection should be 'linux test2' (failed has higher priority than succeeded)
-    expect(presubmitState.selectedCheck, 'linux test2');
+    expect(presubmitState.selectedJob, 'linux test2');
 
     // Filter out 'linux test2'
     presubmitState.updateFilters(statuses: {TaskStatus.succeeded});
-    expect(presubmitState.selectedCheck, 'linux test1');
+    expect(presubmitState.selectedJob, 'linux test1');
 
     // Filter out everything
     presubmitState.updateFilters(jobNameFilter: 'none');
-    expect(presubmitState.selectedCheck, isNull);
+    expect(presubmitState.selectedJob, isNull);
   });
 }

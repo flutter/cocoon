@@ -29,7 +29,7 @@ void main() {
         conclusion: 'success',
       );
 
-      final check = PresubmitCompletedCheck.fromCheckRun(checkRun, slug);
+      final check = PresubmitCompletedJob.fromCheckRun(checkRun, slug);
 
       expect(check.name, 'test_check');
       expect(check.sha, sha);
@@ -61,7 +61,7 @@ void main() {
         checkSuiteId: 456,
       );
 
-      final check = PresubmitCompletedCheck.fromBuild(build, userData);
+      final check = PresubmitCompletedJob.fromBuild(build, userData);
 
       expect(check.name, 'test_builder');
       expect(check.sha, sha);
@@ -95,7 +95,7 @@ void main() {
         checkSuiteId: 456,
       );
 
-      final check = PresubmitCompletedCheck.fromBuild(build, userData);
+      final check = PresubmitCompletedJob.fromBuild(build, userData);
 
       expect(check.name, 'test_builder');
       expect(check.sha, sha);

@@ -12,7 +12,7 @@ part 'presubmit_guard.g.dart';
 
 /// Response model for a Presubmit Guard.
 ///
-/// Contains the aggregated status and stages of presubmit checks for a specific commit.
+/// Contains the aggregated status and stages of presubmit jobs for a specific commit.
 @immutable
 @JsonSerializable(fieldRename: FieldRename.snake)
 final class PresubmitGuardResponse {

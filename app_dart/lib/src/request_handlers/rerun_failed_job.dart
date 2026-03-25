@@ -19,7 +19,7 @@ import '../service/firestore/unified_check_run.dart';
 ///   owner: (string in body) mandatory. The GitHub repository owner.
 ///   repo: (string in body) mandatory. The GitHub repository name.
 ///   pr: (int in body) mandatory. The Pull Request number.
-///   build_name: (string in body) mandatory. The name of the build to re-run.
+///   job_name: (string in body) mandatory. The name of the job to re-run.
 final class RerunFailedJob extends ApiRequestHandler {
   const RerunFailedJob({
     required super.config,
@@ -38,24 +38,24 @@ final class RerunFailedJob extends ApiRequestHandler {
   static const String kOwnerParam = 'owner';
   static const String kRepoParam = 'repo';
   static const String kPrParam = 'pr';
-  static const String kBuildNameParam = 'build_name';
+  static const String kJobNameParam = 'job_name';
 
   @override
   Future<Response> post(Request request) async {
     final requestData = await request.readBodyAsJson();
-    checkRequiredParameters(requestData, [kPrParam, kBuildNameParam]);
+    checkRequiredParameters(requestData, [kPrParam, kJobNameParam]);
 
     final owner = requestData[kOwnerParam] as String? ?? 'flutter';
     final repo = requestData[kRepoParam] as String? ?? 'flutter';
     final prNumber = requestData[kPrParam] as int;
-    final buildName = requestData[kBuildNameParam] as String;
+    final jobName = requestData[kJobNameParam] as String;
 
     final slug = RepositorySlug(owner, repo);
 
-    final guard = await UnifiedCheckRun.getLatestPresubmitGuardByPullRequestNum(
+    final guard = await UnifiedCheckRun.getLatestPresubmitGuardForPrNum(
       firestoreService: _firestore,
       slug: slug,
-      pullRequestNum: prNumber,
+      prNum: prNumber,
     );
     if (guard == null) {
       throw NotFoundException('No PresubmitGuard found for PR $slug/$prNumber');
@@ -77,14 +77,14 @@ final class RerunFailedJob extends ApiRequestHandler {
     final rerunInfo = await UnifiedCheckRun.reInitializeFailedJob(
       firestoreService: _firestore,
       slug: slug,
-      pullRequestId: prNumber,
+      prNum: prNumber,
       guardCheckRunId: guard.checkRunId,
-      buildName: buildName,
+      jobName: jobName,
     );
 
     if (rerunInfo == null) {
       throw BadRequestException(
-        'Build $buildName is not a failed job in PR $slug/$prNumber',
+        'Job $jobName is not a failed job in PR $slug/$prNumber',
       );
     }
 
@@ -94,12 +94,12 @@ final class RerunFailedJob extends ApiRequestHandler {
     );
 
     final target = targets.firstWhere(
-      (t) => t.name == buildName,
+      (t) => t.name == jobName,
       orElse: () =>
-          throw BadRequestException('Target $buildName not found in .ci.yaml'),
+          throw BadRequestException('Target $jobName not found in .ci.yaml'),
     );
 
-    final retries = rerunInfo.checkRetries[buildName]!;
+    final retries = rerunInfo.jobRetries[jobName]!;
 
     await _luciBuildService.reScheduleTryBuilds(
       targets: {target: retries},
@@ -109,6 +109,6 @@ final class RerunFailedJob extends ApiRequestHandler {
       stage: rerunInfo.stage,
     );
 
-    return Response.json({'builder': buildName, 'status': 'rescheduled'});
+    return Response.json({'builder': jobName, 'status': 'rescheduled'});
   }
 }

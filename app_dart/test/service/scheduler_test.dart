@@ -938,7 +938,7 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested presubmit check triggers presubmit build', () async {
+      test('rerequested presubmit job triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the Firestore.
         final pullRequest = generatePullRequest(
@@ -1171,20 +1171,20 @@ targets:
 
         final guard = PresubmitGuard(
           checkRun: createGithubCheckRun(id: 1),
-          commitSha: 'sha',
+          headSha: 'sha',
           slug: slug,
-          pullRequestId: 1,
+          prNum: 1,
           stage: CiStage.fusionEngineBuild,
           creationTime: 1000,
           author: 'dash',
-          builds: {'Linux A': TaskStatus.failed},
-          failedBuilds: 1,
-          remainingBuilds: 0,
+          jobs: {'Linux A': TaskStatus.failed},
+          failedJobs: 1,
+          remainingJobs: 0,
         );
 
-        final check = PresubmitCheck(
+        final check = PresubmitJob(
           slug: slug,
-          buildName: 'Linux A',
+          jobName: 'Linux A',
           checkRunId: 1,
           creationTime: 1000,
           status: TaskStatus.failed,
@@ -1284,8 +1284,8 @@ targets:
 
         final updatedGuardDoc = await firestore.getDocument(guard.name!);
         final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
-        expect(updatedGuard.failedBuilds, 0);
-        expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
+        expect(updatedGuard.failedJobs, 0);
+        expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
       });
 
       test('rerequested action reschedules failed checks for fusion', () async {
@@ -1303,32 +1303,32 @@ targets:
 
         final engineGuard = PresubmitGuard(
           checkRun: createGithubCheckRun(id: 1),
-          commitSha: 'sha',
+          headSha: 'sha',
           slug: slug,
-          pullRequestId: 1,
+          prNum: 1,
           stage: CiStage.fusionEngineBuild,
           creationTime: 1000,
           author: 'dash',
-          failedBuilds: 0,
-          remainingBuilds: 0,
+          failedJobs: 0,
+          remainingJobs: 0,
         );
 
         final fusionGuard = PresubmitGuard(
           checkRun: createGithubCheckRun(id: 1),
-          commitSha: 'sha',
+          headSha: 'sha',
           slug: slug,
-          pullRequestId: 1,
+          prNum: 1,
           stage: CiStage.fusionTests,
           creationTime: 2000,
           author: 'dash',
-          builds: {'Linux A': TaskStatus.failed},
-          failedBuilds: 1,
-          remainingBuilds: 0,
+          jobs: {'Linux A': TaskStatus.failed},
+          failedJobs: 1,
+          remainingJobs: 0,
         );
 
-        final check = PresubmitCheck(
+        final check = PresubmitJob(
           slug: slug,
-          buildName: 'Linux A',
+          jobName: 'Linux A',
           checkRunId: 1,
           creationTime: 2000,
           status: TaskStatus.failed,
@@ -1429,8 +1429,8 @@ targets:
 
         final updatedGuardDoc = await firestore.getDocument(fusionGuard.name!);
         final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
-        expect(updatedGuard.failedBuilds, 0);
-        expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
+        expect(updatedGuard.failedJobs, 0);
+        expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
       });
 
       group('completed action', () {
@@ -1462,7 +1462,7 @@ targets:
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
                   await scheduler.processCheckRunCompleted(
-                    PresubmitCompletedCheck.fromCheckRun(
+                    PresubmitCompletedJob.fromCheckRun(
                       createCocoonCheckRun(name: ignored, sha: 'abc123'),
                       createGithubRepository().slug(),
                     ),
@@ -1497,7 +1497,7 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedCheck.fromCheckRun(
+                PresubmitCompletedJob.fromCheckRun(
                   createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
                   createGithubRepository().slug(),
                 ),
@@ -1536,7 +1536,7 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedCheck.fromCheckRun(
+                PresubmitCompletedJob.fromCheckRun(
                   createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
                   createGithubRepository().slug(),
                 ),
@@ -1590,7 +1590,7 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedCheck.fromCheckRun(
+                  PresubmitCompletedJob.fromCheckRun(
                     createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
                     createGithubRepository().slug(),
                   ),
@@ -1700,7 +1700,7 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedCheck.fromCheckRun(
+                PresubmitCompletedJob.fromCheckRun(
                   createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
                   createGithubRepository().slug(),
                 ),
@@ -1844,7 +1844,7 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedCheck.fromCheckRun(
+                  PresubmitCompletedJob.fromCheckRun(
                     createCocoonCheckRun(
                       name: 'Bar bar',
                       sha: 'testSha',
@@ -1953,7 +1953,7 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedCheck.fromCheckRun(
+                PresubmitCompletedJob.fromCheckRun(
                   createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
                   createGithubRepository().slug(),
                 ),
@@ -2217,7 +2217,7 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedCheck.fromCheckRun(
+                  PresubmitCompletedJob.fromCheckRun(
                     createCocoonCheckRun(
                       name: 'Bar bar',
                       sha: 'testSha',
@@ -2300,7 +2300,7 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedCheck.fromCheckRun(
+                  PresubmitCompletedJob.fromCheckRun(
                     createCocoonCheckRun(
                       name: 'Bar bar',
                       sha: 'testSha',
@@ -2383,7 +2383,7 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedCheck.fromCheckRun(
+                PresubmitCompletedJob.fromCheckRun(
                   createCocoonCheckRun(
                     name: 'Bar bar',
                     sha: 'testSha',
@@ -2506,7 +2506,7 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedCheck.fromCheckRun(
+                  PresubmitCompletedJob.fromCheckRun(
                     createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
                     createGithubRepository().slug(),
                   ),
@@ -3894,23 +3894,23 @@ targets:
         firestore.putDocument(
           PresubmitGuard(
             checkRun: checkRunGuard,
-            commitSha: pullRequest.head!.sha!,
+            headSha: pullRequest.head!.sha!,
             slug: pullRequest.base!.repo!.slug(),
-            pullRequestId: pullRequest.number!,
+            prNum: pullRequest.number!,
             stage: CiStage.fusionEngineBuild,
             author: pullRequest.user!.login!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
-            builds: {'Linux engine_build': TaskStatus.waitingForBackfill},
-            remainingBuilds: 1,
-            failedBuilds: 0,
+            jobs: {'Linux engine_build': TaskStatus.waitingForBackfill},
+            remainingJobs: 1,
+            failedJobs: 0,
           ),
         );
 
         // Initialize check run for the task
         firestore.putDocument(
-          PresubmitCheck.init(
+          PresubmitJob.init(
             slug: pullRequest.base!.repo!.slug(),
-            buildName: 'Linux engine_build',
+            jobName: 'Linux engine_build',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
           ),
@@ -3946,7 +3946,7 @@ targets:
           ],
         );
 
-        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+        final check = PresubmitCompletedJob.fromBuild(build, userData);
 
         expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
@@ -3958,8 +3958,8 @@ targets:
         final guard = guards
             .map(PresubmitGuard.fromDocument)
             .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
-        expect(guard.builds['Linux engine_build'], TaskStatus.succeeded);
-        expect(guard.remainingBuilds, 0);
+        expect(guard.jobs['Linux engine_build'], TaskStatus.succeeded);
+        expect(guard.remainingJobs, 0);
       });
 
       test(
@@ -3985,23 +3985,23 @@ targets:
           firestore.putDocument(
             PresubmitGuard(
               checkRun: checkRunGuard,
-              commitSha: pullRequest.head!.sha!,
+              headSha: pullRequest.head!.sha!,
               slug: pullRequest.base!.repo!.slug(),
-              pullRequestId: pullRequest.number!,
+              prNum: pullRequest.number!,
               stage: CiStage.fusionTests,
               author: pullRequest.user!.login!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
-              builds: {'Linux test': TaskStatus.waitingForBackfill},
-              remainingBuilds: 1,
-              failedBuilds: 0,
+              jobs: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingJobs: 1,
+              failedJobs: 0,
             ),
           );
 
           // Initialize check run for the task
           firestore.putDocument(
-            PresubmitCheck.init(
+            PresubmitJob.init(
               slug: pullRequest.base!.repo!.slug(),
-              buildName: 'Linux test',
+              jobName: 'Linux test',
               checkRunId: checkRunGuard.id!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
             ),
@@ -4026,7 +4026,7 @@ targets:
             tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
           );
 
-          final check = PresubmitCompletedCheck.fromBuild(build, userData);
+          final check = PresubmitCompletedJob.fromBuild(build, userData);
 
           expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
@@ -4044,7 +4044,7 @@ targets:
 
           final guards = await firestore.query(PresubmitGuard.collectionId, {});
           final guard = PresubmitGuard.fromDocument(guards.single);
-          expect(guard.failedBuilds, 1);
+          expect(guard.failedJobs, 1);
         },
       );
 
@@ -4069,23 +4069,23 @@ targets:
         firestore.putDocument(
           PresubmitGuard(
             checkRun: checkRunGuard,
-            commitSha: pullRequest.head!.sha!,
+            headSha: pullRequest.head!.sha!,
             slug: pullRequest.base!.repo!.slug(),
-            pullRequestId: pullRequest.number!,
+            prNum: pullRequest.number!,
             stage: CiStage.fusionTests,
             author: pullRequest.user!.login!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
-            builds: {'Linux test': TaskStatus.waitingForBackfill},
-            remainingBuilds: 1,
-            failedBuilds: 0,
+            jobs: {'Linux test': TaskStatus.waitingForBackfill},
+            remainingJobs: 1,
+            failedJobs: 0,
           ),
         );
 
         // Initialize check run for the task
         firestore.putDocument(
-          PresubmitCheck.init(
+          PresubmitJob.init(
             slug: pullRequest.base!.repo!.slug(),
-            buildName: 'Linux test',
+            jobName: 'Linux test',
             checkRunId: checkRunGuard.id!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
           ),
@@ -4116,7 +4116,7 @@ targets:
           ],
         );
 
-        final check = PresubmitCompletedCheck.fromBuild(build, userData);
+        final check = PresubmitCompletedJob.fromBuild(build, userData);
 
         expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
@@ -4133,7 +4133,7 @@ targets:
 
         final guards = await firestore.query(PresubmitGuard.collectionId, {});
         final guard = PresubmitGuard.fromDocument(guards.single);
-        expect(guard.remainingBuilds, 0);
+        expect(guard.remainingJobs, 0);
       });
     });
   });

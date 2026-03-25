@@ -54,7 +54,7 @@ class ShaSelector extends StatelessWidget {
             }
           },
           items: availableShas.map((summary) {
-            final sha = summary.commitSha;
+            final sha = summary.headSha;
             final status = summary.guardStatus;
             final creationTime = DateTime.fromMillisecondsSinceEpoch(
               summary.creationTime,

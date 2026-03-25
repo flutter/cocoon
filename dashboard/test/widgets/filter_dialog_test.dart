@@ -31,14 +31,14 @@ void main() {
     );
 
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: anyNamed('checkRunId'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
         repo: anyNamed('repo'),
         owner: anyNamed('owner'),
       ),
     ).thenAnswer(
-      (_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]),
+      (_) async => const CocoonResponse<List<PresubmitJobResponse>>.data([]),
     );
 
     const response = PresubmitGuardResponse(

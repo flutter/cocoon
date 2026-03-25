@@ -343,21 +343,20 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
-  Future<CocoonResponse<List<PresubmitCheckResponse>>>
-  fetchPresubmitCheckDetails({
+  Future<CocoonResponse<List<PresubmitJobResponse>>> fetchPresubmitJobDetails({
     required int checkRunId,
-    required String buildName,
+    required String jobName,
     String repo = 'flutter',
     String owner = 'flutter',
   }) async {
     final queryParameters = <String, String?>{
       'check_run_id': checkRunId.toString(),
-      'build_name': buildName,
+      'job_name': jobName,
       'repo': repo,
       'owner': owner,
     };
     final getChecksUrl = apiEndpoint(
-      '/api/public/get-presubmit-checks',
+      '/api/public/get-presubmit-jobs',
       queryParameters: queryParameters,
     );
 
@@ -365,7 +364,7 @@ class AppEngineCocoonService implements CocoonService {
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse.error(
-        '/api/public/get-presubmit-checks returned ${response.statusCode}',
+        '/api/public/get-presubmit-jobs returned ${response.statusCode}',
         statusCode: response.statusCode,
       );
     }
@@ -375,7 +374,7 @@ class AppEngineCocoonService implements CocoonService {
       return CocoonResponse.data(
         jsonResponse
             .cast<Map<String, Object?>>()
-            .map(PresubmitCheckResponse.fromJson)
+            .map(PresubmitJobResponse.fromJson)
             .toList(),
       );
     } catch (error) {
@@ -522,7 +521,7 @@ class AppEngineCocoonService implements CocoonService {
     required String? idToken,
     required String repo,
     required int pr,
-    required String buildName,
+    required String jobName,
     String owner = 'flutter',
   }) async {
     if (idToken == null || idToken.isEmpty) {
@@ -540,7 +539,7 @@ class AppEngineCocoonService implements CocoonService {
         'owner': owner,
         'repo': repo,
         'pr': pr,
-        'build_name': buildName,
+        'job_name': jobName,
       }),
     );
 

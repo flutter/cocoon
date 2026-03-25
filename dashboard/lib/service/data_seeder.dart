@@ -50,18 +50,18 @@ class DataSeeder {
 
   void _seedPresubmitData(DateTime now) {
     final guards = <PresubmitGuard>[];
-    final checks = <PresubmitCheck>[];
+    final checks = <PresubmitJob>[];
 
     // cafe5_1_mock_sha
     final prNum = 1234;
     var checkRunId = 123456;
     var creationTime = 1770000000000;
-    final engineBuilds = [
+    final enginejobs = [
       'Mac mac_host_engine',
       'Mac mac_ios_engine',
       'Linux linux_android_aot_engine',
     ];
-    final fusionBuilds = [
+    final fusionjobs = [
       'Linux framework_tests',
       'Mac framework_tests',
       'Linux android framework_tests',
@@ -73,23 +73,23 @@ class DataSeeder {
       'Linux_android_emu android views',
     ];
     var engineChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[0],
+        jobName: enginejobs[0],
         status: TaskStatus.failed,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[1],
+        jobName: enginejobs[1],
         status: TaskStatus.cancelled,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[2],
+        jobName: enginejobs[2],
         status: TaskStatus.infraFailure,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -98,13 +98,13 @@ class DataSeeder {
 
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'cafe5_1_mock_sha',
+        headSha: 'cafe5_1_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[0],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: {for (var check in engineChecks) check.buildName: check.status},
+        jobs: {for (var check in engineChecks) check.jobName: check.status},
       ),
     );
     checks.addAll(engineChecks);
@@ -113,23 +113,23 @@ class DataSeeder {
     checkRunId = 234567;
     creationTime = creationTime + 100000;
     engineChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[0],
+        jobName: enginejobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[1],
+        jobName: enginejobs[1],
         status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[2],
+        jobName: enginejobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -137,42 +137,42 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'face5_2_mock_sha',
+        headSha: 'face5_2_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[1],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: _getLatestBuildStatuses(engineChecks),
+        jobs: _getLatestjobstatuses(engineChecks),
       ),
     );
     checks.addAll(engineChecks);
     creationTime = creationTime + 100000;
     var fusionChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[0],
+        jobName: fusionjobs[0],
         status: TaskStatus.inProgress,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[1],
+        jobName: fusionjobs[1],
         status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[2],
+        jobName: fusionjobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[3],
+        jobName: fusionjobs[3],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -180,13 +180,13 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'face5_2_mock_sha',
+        headSha: 'face5_2_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[1],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
-        builds: _getLatestBuildStatuses(fusionChecks),
+        jobs: _getLatestjobstatuses(fusionChecks),
       ),
     );
     checks.addAll(fusionChecks);
@@ -195,23 +195,23 @@ class DataSeeder {
     checkRunId = 345678;
     creationTime = creationTime + 100000;
     engineChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[0],
+        jobName: enginejobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[1],
+        jobName: enginejobs[1],
         status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[2],
+        jobName: enginejobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -219,50 +219,50 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'decaf_3_mock_sha',
+        headSha: 'decaf_3_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[3],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: _getLatestBuildStatuses(engineChecks),
+        jobs: _getLatestjobstatuses(engineChecks),
       ),
     );
     checks.addAll(engineChecks);
     creationTime = creationTime + 100000;
     var creationTime2 = creationTime + 100000;
     fusionChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[0],
+        jobName: fusionjobs[0],
         status: TaskStatus.failed,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[0],
+        jobName: fusionjobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 2,
         creationTime: creationTime2,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[1],
+        jobName: fusionjobs[1],
         status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[2],
+        jobName: fusionjobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[3],
+        jobName: fusionjobs[3],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -270,13 +270,13 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'decaf_3_mock_sha',
+        headSha: 'decaf_3_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[3],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
-        builds: _getLatestBuildStatuses(fusionChecks),
+        jobs: _getLatestjobstatuses(fusionChecks),
       ),
     );
     checks.addAll(fusionChecks);
@@ -285,23 +285,23 @@ class DataSeeder {
     checkRunId = 456789;
     creationTime = creationTime + 100000;
     engineChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[0],
+        jobName: enginejobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[1],
+        jobName: enginejobs[1],
         status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: engineBuilds[2],
+        jobName: enginejobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -309,92 +309,92 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'deafcab_mock_sha',
+        headSha: 'deafcab_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[4],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
-        builds: _getLatestBuildStatuses(engineChecks),
+        jobs: _getLatestjobstatuses(engineChecks),
       ),
     );
     checks.addAll(engineChecks);
     creationTime = creationTime + 100000;
     creationTime2 = creationTime + 100000;
     fusionChecks = [
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[0],
+        jobName: fusionjobs[0],
         status: TaskStatus.failed,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[0],
+        jobName: fusionjobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 2,
         creationTime: creationTime2,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[1],
+        jobName: fusionjobs[1],
         status: TaskStatus.cancelled,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[2],
+        jobName: fusionjobs[2],
         status: TaskStatus.infraFailure,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[3],
+        jobName: fusionjobs[3],
         status: TaskStatus.failed,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[3],
+        jobName: fusionjobs[3],
         status: TaskStatus.failed,
         attemptNumber: 2,
         creationTime: creationTime2,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[4],
+        jobName: fusionjobs[4],
         status: TaskStatus.neutral,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[5],
+        jobName: fusionjobs[5],
         status: TaskStatus.neutral,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[6],
+        jobName: fusionjobs[6],
         status: TaskStatus.neutral,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[7],
+        jobName: fusionjobs[7],
         status: TaskStatus.neutral,
         attemptNumber: 1,
         creationTime: creationTime,
       ),
-      _createPresubmitCheck(
+      _createPresubmitJob(
         checkRunId: checkRunId,
-        buildName: fusionBuilds[8],
+        jobName: fusionjobs[8],
         status: TaskStatus.neutral,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -402,13 +402,13 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        commitSha: 'deafcab_mock_sha',
+        headSha: 'deafcab_mock_sha',
         checkRunId: checkRunId,
-        pullRequestId: prNum,
+        prNum: prNum,
         author: _authors[4],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
-        builds: _getLatestBuildStatuses(fusionChecks),
+        jobs: _getLatestjobstatuses(fusionChecks),
       ),
     );
     checks.addAll(fusionChecks);
@@ -418,39 +418,35 @@ class DataSeeder {
       prCheckRuns.add(_createPrCheckRuns(guard));
     }
 
-    // Add some checks with multiple attempts for testing fetchPresubmitCheckDetails
+    // Add some checks with multiple attempts for testing fetchPresubmitJobDetails
     _server.firestore.putDocuments(guards);
     _server.firestore.putDocuments(checks);
     _server.firestore.putDocuments(prCheckRuns);
   }
 
-  Map<String, TaskStatus> _getLatestBuildStatuses(List<PresubmitCheck> checks) {
-    final latestChecks = <String, PresubmitCheck>{};
+  Map<String, TaskStatus> _getLatestjobstatuses(List<PresubmitJob> checks) {
+    final latestChecks = <String, PresubmitJob>{};
     for (final check in checks) {
-      if (!latestChecks.containsKey(check.buildName) ||
-          check.attemptNumber > latestChecks[check.buildName]!.attemptNumber) {
-        latestChecks[check.buildName] = check;
+      if (!latestChecks.containsKey(check.jobName) ||
+          check.attemptNumber > latestChecks[check.jobName]!.attemptNumber) {
+        latestChecks[check.jobName] = check;
       }
     }
-    return {
-      for (var check in latestChecks.values) check.buildName: check.status,
-    };
+    return {for (var check in latestChecks.values) check.jobName: check.status};
   }
 
   PresubmitGuard _createPresubmitGuard({
-    required String commitSha,
+    required String headSha,
     required int checkRunId,
-    required int pullRequestId,
+    required int prNum,
     required String author,
     required CiStage stage,
     required int creationTime,
-    required Map<String, TaskStatus> builds,
+    required Map<String, TaskStatus> jobs,
   }) {
     final slug = RepositorySlug('flutter', 'flutter');
-    final failedBuilds = builds.values
-        .where((status) => status.isFailure)
-        .length;
-    final remainingBuilds = builds.values
+    final failedJobs = jobs.values.where((status) => status.isFailure).length;
+    final remainingJobs = jobs.values
         .where((status) => !status.isComplete)
         .length;
 
@@ -460,48 +456,48 @@ class DataSeeder {
         name: 'Merge Queue Guard',
         startedAt: DateTime.fromMillisecondsSinceEpoch(creationTime),
       ),
-      commitSha: commitSha,
+      headSha: headSha,
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       stage: stage,
       creationTime: creationTime,
       author: author,
-      remainingBuilds: remainingBuilds,
-      failedBuilds: failedBuilds,
-      builds: builds,
+      remainingJobs: remainingJobs,
+      failedJobs: failedJobs,
+      jobs: jobs,
     );
   }
 
-  PresubmitCheck _createPresubmitCheck({
+  PresubmitJob _createPresubmitJob({
     required int checkRunId,
-    required String buildName,
+    required String jobName,
     required TaskStatus status,
     required int creationTime,
     int attemptNumber = 1,
   }) {
-    return PresubmitCheck(
+    return PresubmitJob(
       slug: RepositorySlug('flutter', 'flutter'),
       checkRunId: checkRunId,
-      buildName: buildName,
+      jobName: jobName,
       status: status,
       attemptNumber: attemptNumber,
       creationTime: creationTime,
       buildNumber: 1337 + attemptNumber,
       summary: switch (status) {
         .succeeded =>
-          '[INFO] Starting task $buildName...\n[SUCCESS] All tests passed (452/452)',
+          '[INFO] Starting task $jobName...\n[SUCCESS] All tests passed (452/452)',
         .failed =>
-          '[INFO] Starting task $buildName...\n[ERROR] Test failed: Dummy Tests',
+          '[INFO] Starting task $jobName...\n[ERROR] Test failed: Dummy Tests',
         .infraFailure =>
-          '[INFO] Starting task $buildName...\n[ERROR] Infrastructure failure: Dummy Tests',
+          '[INFO] Starting task $jobName...\n[ERROR] Infrastructure failure: Dummy Tests',
         .cancelled =>
-          '[INFO] Starting task $buildName...\n[ERROR] Test cancelled: Dummy Tests',
-        .inProgress => '[INFO] Starting task $buildName...',
+          '[INFO] Starting task $jobName...\n[ERROR] Test cancelled: Dummy Tests',
+        .inProgress => '[INFO] Starting task $jobName...',
         .waitingForBackfill => null,
         .skipped =>
-          '[INFO] Starting task $buildName...\n[INFO] Test skipped: Dummy Tests',
+          '[INFO] Starting task $jobName...\n[INFO] Test skipped: Dummy Tests',
         .neutral =>
-          '[INFO] Starting task $buildName...\n[INFO] Test neutral: Dummy Tests',
+          '[INFO] Starting task $jobName...\n[INFO] Test neutral: Dummy Tests',
       },
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,
@@ -510,7 +506,7 @@ class DataSeeder {
 
   PrCheckRuns _createPrCheckRuns(PresubmitGuard guard) {
     final pr = PullRequest(
-      number: guard.pullRequestId,
+      number: guard.prNum,
       head: PullRequestHead(
         sha: guard.commitSha,
         repo: Repository(
@@ -539,8 +535,8 @@ class DataSeeder {
       ..fields['Merge Queue Guard'] = guard.checkRun.id!.toString().toValue()
       ..name = docName;
 
-    for (final buildName in guard.builds.keys) {
-      prCheckRuns.fields[buildName] = '234567'.toString().toValue();
+    for (final jobName in guard.jobs.keys) {
+      prCheckRuns.fields[jobName] = '234567'.toString().toValue();
     }
 
     return prCheckRuns;
@@ -637,7 +633,7 @@ class DataSeeder {
       final commitRandom = math.Random(commitTimestamp);
 
       // Generate a stable and unique SHA for each commit
-      final commitSha = _commitsSha[repo]![index];
+      final headSha = _commitsSha[repo]![index];
 
       final authorIndex = commitRandom.nextInt(_authors.length);
       final messageSeed = commitTimestamp % 37 + authorIndex;
@@ -649,7 +645,7 @@ class DataSeeder {
 
       final commit = generateFirestoreCommit(
         index,
-        sha: commitSha,
+        sha: headSha,
         repo: repo,
         branch: branch,
         createTimestamp: commitTimestamp,
@@ -673,7 +669,7 @@ class DataSeeder {
             index,
             i,
             commitRandom,
-            commitSha,
+            headSha,
             repo,
           ),
         );

@@ -1,10 +1,10 @@
 # Specification: Implement get presubmit guard api
 
 ## Overview
-This track involves implementing a new backend API endpoint in the `app_dart` service to serve real-time presubmit check statuses (based on the `PresubmitGuard` entity) to the Cocoon dashboard. The dashboard needs to display the progress and results of various validation stages for active pull requests to provide developers with actionable visibility into their PR health.
+This track involves implementing a new backend API endpoint in the `app_dart` service to serve real-time presubmit job statuses (based on the `PresubmitGuard` entity) to the Cocoon dashboard. The dashboard needs to display the progress and results of various validation stages for active pull requests to provide developers with actionable visibility into their PR health.
 
 ## User Stories
-As a Flutter developer, I want to see the real-time status of my PR's presubmit checks on the Cocoon dashboard so that I can quickly identify and address failures without navigating through multiple GitHub or LUCI pages.
+As a Flutter developer, I want to see the real-time status of my PR's presubmit jobs on the Cocoon dashboard so that I can quickly identify and address failures without navigating through multiple GitHub or LUCI pages.
 
 ## Functional Requirements
 1.  **New API Endpoint:** Create an authenticated GET endpoint in `app_dart` (e.g., `/api/public/get-presubmit-guard`).

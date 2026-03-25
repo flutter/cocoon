@@ -12,13 +12,13 @@ import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
-import '../../model/common/failed_presubmit_checks.dart';
-import '../../model/common/presubmit_check_state.dart';
+import '../../model/common/failed_presubmit_jobs.dart';
+import '../../model/common/presubmit_job_state.dart';
 import '../../model/common/presubmit_guard_conclusion.dart';
 import '../../model/firestore/base.dart';
 import '../../model/firestore/ci_staging.dart';
-import '../../model/firestore/presubmit_check.dart';
 import '../../model/firestore/presubmit_guard.dart';
+import '../../model/firestore/presubmit_job.dart';
 import '../config.dart';
 import '../firestore.dart';
 
@@ -39,7 +39,7 @@ final class UnifiedCheckRun {
         config.flags.isUnifiedCheckRunFlowEnabledForUser(
           pullRequest.user!.login!,
         )) {
-      // Create the UnifiedCheckRun and UnifiedCheckRunBuilds.
+      // Create the presubmit_guard and associated presubmit_job documents.
       log.info(
         'Storing UnifiedCheckRun data for ${slug.fullName}#${pullRequest.number} as it enabled for user ${pullRequest.user!.login}.',
       );
@@ -49,27 +49,27 @@ final class UnifiedCheckRun {
       final creationTime = utcNow().microsecondsSinceEpoch;
       final guard = PresubmitGuard(
         checkRun: checkRun,
-        commitSha: sha,
+        headSha: sha,
         slug: slug,
-        pullRequestId: pullRequest.number!,
+        prNum: pullRequest.number!,
         stage: stage,
         creationTime: creationTime,
         author: pullRequest.user!.login!,
-        remainingBuilds: tasks.length,
-        failedBuilds: 0,
-        builds: {for (final task in tasks) task: TaskStatus.waitingForBackfill},
+        remainingJobs: tasks.length,
+        failedJobs: 0,
+        jobs: {for (final task in tasks) task: TaskStatus.waitingForBackfill},
       );
-      final checks = [
+      final jobs = [
         for (final task in tasks)
-          PresubmitCheck.init(
+          PresubmitJob.init(
             slug: slug,
-            buildName: task,
+            jobName: task,
             checkRunId: checkRun.id!,
             creationTime: creationTime,
           ),
       ];
       await firestoreService.writeViaTransaction(
-        documentsToWrites([...checks, guard], exists: false),
+        documentsToWrites([...jobs, guard], exists: false),
       );
     } else {
       // Initialize the CiStaging document.
@@ -84,18 +84,18 @@ final class UnifiedCheckRun {
     }
   }
 
-  /// Re-initializes all failed checks for the specified [guardCheckRunId].
-  static Future<FailedChecksForRerun?> reInitializeFailedChecks({
+  /// Re-initializes all failed jobs for the specified [guardCheckRunId].
+  static Future<FailedJobsForRerun?> reInitializeFailedJobs({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required int guardCheckRunId,
     @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
     final guard = await getLatestPresubmitGuardForCheckRun(
       firestoreService: firestoreService,
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       checkRunId: guardCheckRunId,
     );
 
@@ -104,7 +104,7 @@ final class UnifiedCheckRun {
     }
 
     final logCrumb =
-        'reInitializeFailedChecks(${slug.fullName}, $pullRequestId, $guardCheckRunId)';
+        'reInitializeFailedChecks(${slug.fullName}, $prNum, $guardCheckRunId)';
 
     log.info('$logCrumb Re-Running failed checks.');
     final transaction = await firestoreService.beginTransaction();
@@ -114,7 +114,7 @@ final class UnifiedCheckRun {
     final latestGuard = await getLatestPresubmitGuardForCheckRun(
       firestoreService: firestoreService,
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       checkRunId: guardCheckRunId,
       transaction: transaction,
     );
@@ -125,29 +125,29 @@ final class UnifiedCheckRun {
     }
 
     final creationTime = utcNow().microsecondsSinceEpoch;
-    final failedBuildNames = latestGuard.failedBuildNames;
-    if (failedBuildNames.isNotEmpty) {
-      latestGuard.failedBuilds = 0;
-      latestGuard.remainingBuilds = failedBuildNames.length;
-      final builds = latestGuard.builds;
-      for (final buildName in failedBuildNames) {
-        builds[buildName] = TaskStatus.waitingForBackfill;
+    final failedJobNames = latestGuard.failedJobNames;
+    if (failedJobNames.isNotEmpty) {
+      latestGuard.failedJobs = 0;
+      latestGuard.remainingJobs = failedJobNames.length;
+      final jobs = latestGuard.jobs;
+      for (final jobName in failedJobNames) {
+        jobs[jobName] = TaskStatus.waitingForBackfill;
       }
-      latestGuard.builds = builds;
-      final checks = <PresubmitCheck>[];
+      latestGuard.jobs = jobs;
+      final checks = <PresubmitJob>[];
       final checkRetries = <String, int>{};
-      for (final buildName in failedBuildNames) {
-        final latestCheck = await getLatestPresubmitCheck(
+      for (final jobName in failedJobNames) {
+        final latestCheck = await getLatestPresubmitJob(
           firestoreService: firestoreService,
           checkRunId: guardCheckRunId,
-          buildName: buildName,
+          jobName: jobName,
           transaction: transaction,
         );
-        checkRetries[buildName] = (latestCheck?.attemptNumber ?? 0) + 1;
+        checkRetries[jobName] = (latestCheck?.attemptNumber ?? 0) + 1;
         checks.add(
-          PresubmitCheck.init(
+          PresubmitJob.init(
             slug: slug,
-            buildName: buildName,
+            jobName: jobName,
             checkRunId: guardCheckRunId,
             creationTime: creationTime,
             attemptNumber: (latestCheck?.attemptNumber ?? 0) + 1,
@@ -162,13 +162,13 @@ final class UnifiedCheckRun {
         log.info(
           '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
         );
-        return FailedChecksForRerun(
+        return FailedJobsForRerun(
           checkRunGuard: latestGuard.checkRun,
-          checkRetries: checkRetries,
+          jobRetries: checkRetries,
           stage: latestGuard.stage,
         );
       } catch (e) {
-        log.info('$logCrumb: failed to update presubmit check', e);
+        log.info('$logCrumb: failed to update presubmit job', e);
         rethrow;
       }
     }
@@ -176,17 +176,17 @@ final class UnifiedCheckRun {
     return null;
   }
 
-  /// Re-initializes a specific failed check for the specified [guardCheckRunId] and [buildName].
-  static Future<FailedChecksForRerun?> reInitializeFailedJob({
+  /// Re-initializes a specific failed check for the specified [guardCheckRunId] and [jobName].
+  static Future<FailedJobsForRerun?> reInitializeFailedJob({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required int guardCheckRunId,
-    required String buildName,
+    required String jobName,
     @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
     final logCrumb =
-        'reInitializeFailedJob(${slug.fullName}, $pullRequestId, $guardCheckRunId, $buildName)';
+        'reInitializeFailedJob(${slug.fullName}, $prNum, $guardCheckRunId, $jobName)';
 
     log.info('$logCrumb Re-Running failed job.');
     final transaction = await firestoreService.beginTransaction();
@@ -194,45 +194,45 @@ final class UnifiedCheckRun {
     final guard = await getLatestPresubmitGuardForCheckRun(
       firestoreService: firestoreService,
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       checkRunId: guardCheckRunId,
       transaction: transaction,
     );
 
-    if (guard == null || !guard.builds.containsKey(buildName)) {
+    if (guard == null || !guard.jobs.containsKey(jobName)) {
       await firestoreService.rollback(transaction);
       return null;
     }
 
     final creationTime = utcNow().microsecondsSinceEpoch;
-    final builds = guard.builds;
-    final currentStatus = builds[buildName]!;
+    final jobs = guard.jobs;
+    final currentStatus = jobs[jobName]!;
 
-    // If build is failed we increment remain builds and decrement failed.
-    // If build succeeded re-run is not possible but if some how they manage to
-    // request re-run we have to only increment remaining builds.
-    // If build is still in progress re-run is not possible but if some how they
+    // If job is failed we increment remain jobs and decrement failed.
+    // If job succeeded re-run is not possible but if some how they manage to
+    // request re-run we have to only increment remaining jobs.
+    // If job is still in progress re-run is not possible but if some how they
     // manage to request re-run we should not touch any counters.
     if (currentStatus.isComplete) {
-      guard.remainingBuilds += 1;
-      if (currentStatus.isFailure && guard.failedBuilds > 0) {
-        guard.failedBuilds -= 1;
+      guard.remainingJobs += 1;
+      if (currentStatus.isFailure && guard.failedJobs > 0) {
+        guard.failedJobs -= 1;
       }
     }
 
-    builds[buildName] = TaskStatus.waitingForBackfill;
-    guard.builds = builds;
+    jobs[jobName] = TaskStatus.waitingForBackfill;
+    guard.jobs = jobs;
 
-    final latestCheck = await getLatestPresubmitCheck(
+    final latestCheck = await getLatestPresubmitJob(
       firestoreService: firestoreService,
       checkRunId: guardCheckRunId,
-      buildName: buildName,
+      jobName: jobName,
       transaction: transaction,
     );
 
-    final check = PresubmitCheck.init(
+    final check = PresubmitJob.init(
       slug: slug,
-      buildName: buildName,
+      jobName: jobName,
       checkRunId: guardCheckRunId,
       creationTime: creationTime,
       attemptNumber: (latestCheck?.attemptNumber ?? 0) + 1,
@@ -246,65 +246,65 @@ final class UnifiedCheckRun {
       log.info(
         '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
       );
-      return FailedChecksForRerun(
+      return FailedJobsForRerun(
         checkRunGuard: guard.checkRun,
-        checkRetries: {buildName: (latestCheck?.attemptNumber ?? 0) + 1},
+        jobRetries: {jobName: (latestCheck?.attemptNumber ?? 0) + 1},
         stage: guard.stage,
       );
     } catch (e) {
-      log.info('$logCrumb: failed to update presubmit check', e);
+      log.info('$logCrumb: failed to update presubmit job', e);
       rethrow;
     }
   }
 
-  /// Returns _all_ checks running against the specified github [checkRunId].
-  static Future<List<PresubmitCheck>> queryAllPresubmitChecksForGuard({
+  /// Returns _all_ jobs running against the specified github [checkRunId].
+  static Future<List<PresubmitJob>> queryAllPresubmitJobsForGuard({
     required FirestoreService firestoreService,
     required int checkRunId,
     TaskStatus? status,
-    String? buildName,
+    String? jobName,
     Transaction? transaction,
   }) async {
-    return await _queryPresubmitChecks(
+    return await _queryPresubmitJobs(
       firestoreService: firestoreService,
       checkRunId: checkRunId,
-      buildName: buildName,
+      jobName: jobName,
       status: status,
       transaction: transaction,
     );
   }
 
   /// Returns check for the specified github [checkRunId] and
-  /// [buildName] and [attemptNumber].
-  static Future<PresubmitCheck?> queryPresubmitCheck({
+  /// [jobName] and [attemptNumber].
+  static Future<PresubmitJob?> queryPresubmitJob({
     required FirestoreService firestoreService,
     required int checkRunId,
-    required String buildName,
+    required String jobName,
     required int attemptNumber,
     Transaction? transaction,
   }) async {
-    return (await _queryPresubmitChecks(
+    return (await _queryPresubmitJobs(
       firestoreService: firestoreService,
       checkRunId: checkRunId,
-      buildName: buildName,
+      jobName: jobName,
       status: null,
       attemptNumber: attemptNumber,
       transaction: transaction,
     )).firstOrNull;
   }
 
-  /// Returns the latest [PresubmitCheck] for the specified github [checkRunId] and
-  /// [buildName].
-  static Future<PresubmitCheck?> getLatestPresubmitCheck({
+  /// Returns the latest [PresubmitJob] for the specified github [checkRunId] and
+  /// [jobName].
+  static Future<PresubmitJob?> getLatestPresubmitJob({
     required FirestoreService firestoreService,
     required int checkRunId,
-    required String buildName,
+    required String jobName,
     Transaction? transaction,
   }) async {
-    return (await _queryPresubmitChecks(
+    return (await _queryPresubmitJobs(
       firestoreService: firestoreService,
       checkRunId: checkRunId,
-      buildName: buildName,
+      jobName: jobName,
       status: null,
       transaction: transaction,
       limit: 1,
@@ -315,7 +315,7 @@ final class UnifiedCheckRun {
   static Future<PresubmitGuard?> getLatestPresubmitGuardForCheckRun({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required int checkRunId,
     Transaction? transaction,
   }) async {
@@ -327,27 +327,27 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
-  /// Returns the latest [PresubmitCheck] for each build in the specified github [checkRunId].
-  static Future<List<PresubmitCheck>> getLatestFailedChecks({
+  /// Returns the latest failed [PresubmitJob] for the specified github [checkRunId].
+  static Future<List<PresubmitJob>> getLatestFailedJobs({
     required FirestoreService firestoreService,
     required int checkRunId,
   }) async {
     final filterMap = <String, Object>{
-      PresubmitCheck.fieldCheckRunId: checkRunId,
+      PresubmitJob.fieldCheckRunId: checkRunId,
     };
     final docs = await firestoreService.query(
-      PresubmitCheck.collectionId,
+      PresubmitJob.collectionId,
       filterMap,
     );
-    final allChecks = docs.map(PresubmitCheck.fromDocument).toList();
+    final allChecks = docs.map(PresubmitJob.fromDocument).toList();
 
-    // Group by buildName and find the latest attempt.
-    final latestChecks = <String, PresubmitCheck>{};
+    // Group by jobName and find the latest attempt.
+    final latestChecks = <String, PresubmitJob>{};
     for (final check in allChecks) {
-      final currentLatest = latestChecks[check.buildName];
+      final currentLatest = latestChecks[check.jobName];
       if (currentLatest == null ||
           check.attemptNumber > currentLatest.attemptNumber) {
-        latestChecks[check.buildName] = check;
+        latestChecks[check.jobName] = check;
       }
     }
 
@@ -357,7 +357,7 @@ final class UnifiedCheckRun {
   }
 
   /// Returns the latest [PresubmitGuard] for the specified github [checkRunId].
-  static Future<PresubmitGuard?> getLatestPresubmitGuardByCheckRunId({
+  static Future<PresubmitGuard?> getLatestPresubmitGuardForCheckRunId({
     required FirestoreService firestoreService,
     required int checkRunId,
     Transaction? transaction,
@@ -370,17 +370,17 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
-  /// Returns the latest [PresubmitGuard] for the specified [slug] and [pullRequestNum].
-  static Future<PresubmitGuard?> getLatestPresubmitGuardByPullRequestNum({
+  /// Returns the latest [PresubmitGuard] for the specified [slug] and [prNum].
+  static Future<PresubmitGuard?> getLatestPresubmitGuardForPrNum({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
-    required int pullRequestNum,
+    required int prNum,
     Transaction? transaction,
   }) async {
     return (await _queryPresubmitGuards(
       firestoreService: firestoreService,
       slug: slug,
-      pullRequestId: pullRequestNum,
+      prNum: prNum,
       transaction: transaction,
       limit: 1,
     )).firstOrNull;
@@ -399,16 +399,16 @@ final class UnifiedCheckRun {
     );
   }
 
-  /// Queries for [PresubmitGuard] records by [slug] and [pullRequestId].
+  /// Queries for [PresubmitGuard] records by [slug] and [prNum].
   static Future<List<PresubmitGuard>> getPresubmitGuardsForPullRequest({
     required FirestoreService firestoreService,
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
   }) async {
     return await _queryPresubmitGuards(
       firestoreService: firestoreService,
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
     );
   }
 
@@ -418,7 +418,7 @@ final class UnifiedCheckRun {
     int? checkRunId,
     String? commitSha,
     RepositorySlug? slug,
-    int? pullRequestId,
+    int? prNum,
     CiStage? stage,
     int? creationTime,
     String? author,
@@ -429,12 +429,12 @@ final class UnifiedCheckRun {
   }) async {
     final filterMap = {
       '${PresubmitGuard.fieldSlug} =': ?slug?.fullName,
-      '${PresubmitGuard.fieldPullRequestId} =': ?pullRequestId,
+      '${PresubmitGuard.fieldPrNum} =': ?prNum,
       '${PresubmitGuard.fieldCheckRunId} =': ?checkRunId,
       '${PresubmitGuard.fieldStage} =': ?stage?.name,
       '${PresubmitGuard.fieldCreationTime} =': ?creationTime,
       '${PresubmitGuard.fieldAuthor} =': ?author,
-      '${PresubmitGuard.fieldCommitSha} =': ?commitSha,
+      '${PresubmitGuard.fieldHeadSha} =': ?commitSha,
     };
     final documents = await firestoreService.query(
       PresubmitGuard.collectionId,
@@ -446,56 +446,56 @@ final class UnifiedCheckRun {
     return [...documents.map(PresubmitGuard.fromDocument)];
   }
 
-  /// Returns detailed information for a specific presubmit check identified by
-  /// [checkRunId] and [buildName].
+  /// Returns detailed information for a specific presubmit job identified by
+  /// [checkRunId] and [jobName].
   ///
   /// The results are ordered by attempt number descending.
-  static Future<List<PresubmitCheck>> getPresubmitCheckDetails({
+  static Future<List<PresubmitJob>> getPresubmitJobDetails({
     required FirestoreService firestoreService,
     required int checkRunId,
-    required String buildName,
+    required String jobName,
     RepositorySlug? slug,
   }) async {
-    return await _queryPresubmitChecks(
+    return await _queryPresubmitJobs(
       firestoreService: firestoreService,
       checkRunId: checkRunId,
-      buildName: buildName,
+      jobName: jobName,
       slug: slug,
     );
   }
 
-  static Future<List<PresubmitCheck>> _queryPresubmitChecks({
+  static Future<List<PresubmitJob>> _queryPresubmitJobs({
     required FirestoreService firestoreService,
     required int checkRunId,
     RepositorySlug? slug,
-    String? buildName,
+    String? jobName,
     TaskStatus? status,
     Transaction? transaction,
     int? attemptNumber,
     // By default order by attempt number descending.
     Map<String, String>? orderMap = const {
-      PresubmitCheck.fieldAttemptNumber: kQueryOrderDescending,
+      PresubmitJob.fieldAttemptNumber: kQueryOrderDescending,
     },
     int? limit,
   }) async {
     final filterMap = {
-      '${PresubmitCheck.fieldSlug} =': ?slug?.fullName,
-      '${PresubmitCheck.fieldCheckRunId} =': checkRunId,
-      '${PresubmitCheck.fieldBuildName} =': ?buildName,
-      '${PresubmitCheck.fieldStatus} =': ?status?.value,
-      '${PresubmitCheck.fieldAttemptNumber} =': ?attemptNumber,
+      '${PresubmitJob.fieldSlug} =': ?slug?.fullName,
+      '${PresubmitJob.fieldCheckRunId} =': checkRunId,
+      '${PresubmitJob.fieldJobName} =': ?jobName,
+      '${PresubmitJob.fieldStatus} =': ?status?.value,
+      '${PresubmitJob.fieldAttemptNumber} =': ?attemptNumber,
     };
     final documents = await firestoreService.query(
-      PresubmitCheck.collectionId,
+      PresubmitJob.collectionId,
       filterMap,
       limit: limit,
       orderMap: orderMap,
       transaction: transaction,
     );
-    return [...documents.map(PresubmitCheck.fromDocument)];
+    return [...documents.map(PresubmitJob.fromDocument)];
   }
 
-  /// Mark a [buildName] for a given [stage] with [conclusion].
+  /// Mark a [jobName] for a given [stage] with [conclusion].
   ///
   /// Returns a [PresubmitGuardConclusion] record or throws. If the check_run was
   /// both valid and recorded successfully, the record's `remaining` value
@@ -504,12 +504,12 @@ final class UnifiedCheckRun {
   static Future<PresubmitGuardConclusion> markConclusion({
     required FirestoreService firestoreService,
     required PresubmitGuardId guardId,
-    required PresubmitCheckState state,
+    required PresubmitJobState state,
   }) async {
     final changeCrumb =
-        '${guardId.slug.owner}_${guardId.slug.name}_${guardId.pullRequestId}_${guardId.checkRunId}';
+        '${guardId.slug.owner}_${guardId.slug.name}_${guardId.prNum}_${guardId.checkRunId}';
     final logCrumb =
-        'markConclusion(${changeCrumb}_${guardId.stage}, ${state.buildName}, ${state.status}, ${state.attemptNumber})';
+        'markConclusion(${changeCrumb}_${guardId.stage}, ${state.jobName}, ${state.status}, ${state.attemptNumber})';
 
     // Marking needs to happen while in a transaction to ensure `remaining` is
     // updated correctly. For that to happen correctly; we need to perform a
@@ -522,13 +522,13 @@ final class UnifiedCheckRun {
     var valid = false;
 
     late final PresubmitGuard presubmitGuard;
-    late final PresubmitCheck presubmitCheck;
+    late final PresubmitJob presubmitJob;
     // transaction block
     try {
       // First: read the fields we want to change.
       final presubmitGuardDocumentName = PresubmitGuard.documentNameFor(
         slug: guardId.slug,
-        pullRequestId: guardId.pullRequestId,
+        prNum: guardId.prNum,
         checkRunId: guardId.checkRunId,
         stage: guardId.stage,
       );
@@ -539,68 +539,68 @@ final class UnifiedCheckRun {
       presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
 
       // Check if the build is present in the guard before trying to load it.
-      if (presubmitGuard.builds[state.buildName] == null) {
+      if (presubmitGuard.jobs[state.jobName] == null) {
         log.info(
-          '$logCrumb: ${state.buildName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
+          '$logCrumb: ${state.jobName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
         );
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingBuilds,
+          remaining: presubmitGuard.remainingJobs,
           checkRunGuard: presubmitGuard.checkRunJson,
-          failed: presubmitGuard.failedBuilds,
+          failed: presubmitGuard.failedJobs,
           summary:
-              'Check run "${state.buildName}" not present in ${guardId.stage} CI stage',
+              'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
         );
       }
 
-      final checkDocName = PresubmitCheck.documentNameFor(
+      final checkDocName = PresubmitJob.documentNameFor(
         slug: guardId.slug,
         checkRunId: guardId.checkRunId,
-        buildName: state.buildName,
+        jobName: state.jobName,
         attemptNumber: state.attemptNumber,
       );
-      final presubmitCheckDocument = await firestoreService.getDocument(
+      final presubmitJobDocument = await firestoreService.getDocument(
         checkDocName,
         transaction: transaction,
       );
-      presubmitCheck = PresubmitCheck.fromDocument(presubmitCheckDocument);
+      presubmitJob = PresubmitJob.fromDocument(presubmitJobDocument);
 
-      remaining = presubmitGuard.remainingBuilds;
-      failed = presubmitGuard.failedBuilds;
-      final builds = presubmitGuard.builds;
-      var status = builds[state.buildName]!;
+      remaining = presubmitGuard.remainingJobs;
+      failed = presubmitGuard.failedJobs;
+      final jobs = presubmitGuard.jobs;
+      var status = jobs[state.jobName]!;
 
-      // If build is waiting for backfill, that means its initiated by github
+      // If job is waiting for backfill, that means its initiated by github
       // or re-run. So no processing needed, we should only update appropriate
       // checks with that [TaskStatus]
       if (state.status == TaskStatus.waitingForBackfill) {
         status = state.status;
         valid = true;
-        // If build is in progress, we should update apropriate checks with start
-        // time and their status to that [TaskStatus] only if the build is not
+        // If job is in progress, we should update apropriate checks with start
+        // time and their status to that [TaskStatus] only if the job is not
         // completed.
       } else if (state.status == TaskStatus.inProgress) {
-        presubmitCheck.startTime = state.startTime!;
-        // If the build is not completed, update the status.
+        presubmitJob.startTime = state.startTime!;
+        // If the job is not completed, update the status.
         if (!status.isComplete) {
           status = state.status;
         }
         valid = true;
       } else {
-        // If build already compleated remaining and failed should not updated.
+        // If job already compleated remaining and failed should not updated.
         if (!status.isComplete) {
-          // "remaining" should go down if build is succeeded or failed.
+          // "remaining" should go down if job is succeeded or failed.
           // "failed_count" can go up or down depending on:
-          //   attemptNumber > 1 && buildSuccessed: down (-1)
-          //   attemptNumber = 1 && buildFailed: up (+1)
+          //   attemptNumber > 1 && jobSuccessed: down (-1)
+          //   attemptNumber = 1 && jobFailed: up (+1)
           // So if the test existed and either remaining or failed_count is changed;
           // the response is valid.
           if (state.status.isComplete) {
             // Guard against going negative and log enough info so we can debug.
             if (remaining == 0) {
-              throw '$logCrumb: field "${PresubmitGuard.fieldRemainingBuilds}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
+              throw '$logCrumb: field "${PresubmitGuard.fieldRemainingJobs}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
             }
             remaining -= 1;
             valid = true;
@@ -616,24 +616,24 @@ final class UnifiedCheckRun {
           log.info(
             '$logCrumb: setting remaining to $remaining, failed to $failed',
           );
-          presubmitGuard.remainingBuilds = remaining;
-          presubmitGuard.failedBuilds = failed;
-          presubmitCheck.endTime = state.endTime!;
-          presubmitCheck.summary = state.summary;
-          presubmitCheck.buildNumber = state.buildNumber;
+          presubmitGuard.remainingJobs = remaining;
+          presubmitGuard.failedJobs = failed;
+          presubmitJob.endTime = state.endTime!;
+          presubmitJob.summary = state.summary;
+          presubmitJob.buildNumber = state.buildNumber;
         } else {
           status = state.status;
           valid = true;
         }
       }
-      builds[state.buildName] = status;
-      presubmitGuard.builds = builds;
-      presubmitCheck.status = status;
+      jobs[state.jobName] = status;
+      presubmitGuard.jobs = jobs;
+      presubmitJob.status = status;
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
         log.info(
-          '$logCrumb: ${PresubmitCheck.collectionId} document not found for $transaction',
+          '$logCrumb: ${PresubmitJob.collectionId} document not found for $transaction',
         );
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
@@ -644,7 +644,7 @@ final class UnifiedCheckRun {
           summary: 'Internal server error',
           details:
               '''
-${PresubmitCheck.collectionId} document not found for stage "${guardId.stage}" for $changeCrumb. Got 404 from Firestore.
+${PresubmitJob.collectionId} document not found for stage "${guardId.stage}" for $changeCrumb. Got 404 from Firestore.
 Error: ${e.toString()}
 $stack
 ''',
@@ -664,7 +664,7 @@ $stack
     try {
       final response = await firestoreService.commit(
         transaction,
-        documentsToWrites([presubmitGuard, presubmitCheck], exists: true),
+        documentsToWrites([presubmitGuard, presubmitJob], exists: true),
       );
       log.info(
         '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
@@ -678,18 +678,18 @@ $stack
         failed: failed,
         summary: valid
             ? 'Successfully updated presubmit guard status'
-            : 'Not a valid state transition for ${state.buildName}',
+            : 'Not a valid state transition for ${state.jobName}',
         details: valid
             ? '''
 For CI stage ${guardId.stage}:
   Pending: $remaining
   Failed: $failed
 '''
-            : 'Attempted to set the state of check run ${state.buildName} '
+            : 'Attempted to set the state of job ${state.jobName} '
                   'to "${state.status.name}".',
       );
     } catch (e) {
-      log.info('$logCrumb: failed to update presubmit check', e);
+      log.info('$logCrumb: failed to update presubmit job', e);
       rethrow;
     }
   }

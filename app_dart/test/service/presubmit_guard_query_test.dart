@@ -24,18 +24,18 @@ void main() {
 
     final guard1 = generatePresubmitGuard(
       slug: slug,
-      commitSha: commitSha,
+      headSha: commitSha,
       stage: CiStage.fusionTests,
     );
     final guard2 = generatePresubmitGuard(
       slug: slug,
-      commitSha: commitSha,
+      headSha: commitSha,
       stage: CiStage.fusionEngineBuild,
     );
     final otherGuard = generatePresubmitGuard(
       slug: slug,
-      pullRequestId: 456,
-      commitSha: 'def',
+      prNum: 456,
+      headSha: 'def',
       stage: CiStage.fusionTests,
     );
 

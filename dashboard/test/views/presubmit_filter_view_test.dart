@@ -69,7 +69,7 @@ void main() {
     ).thenAnswer(
       (_) async => const CocoonResponse.data([
         PresubmitGuardSummary(
-          commitSha: 'abc',
+          headSha: 'abc',
           creationTime: 123,
           guardStatus: GuardStatus.succeeded,
         ),
@@ -77,9 +77,9 @@ void main() {
     );
 
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: anyNamed('checkRunId'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
         repo: anyNamed('repo'),
         owner: anyNamed('owner'),
       ),

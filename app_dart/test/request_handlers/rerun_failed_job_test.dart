@@ -56,8 +56,8 @@ void main() {
     final checkRun = generateCheckRun(1, name: 'Linux A');
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
-      builds: {'Linux A': TaskStatus.failed},
-      remainingBuilds: 0,
+      jobs: {'Linux A': TaskStatus.failed},
+      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 
@@ -71,10 +71,10 @@ void main() {
       ],
     );
 
-    final failedCheck = PresubmitCheck(
+    final failedCheck = PresubmitJob(
       slug: Config.flutterSlug,
       checkRunId: 1,
-      buildName: 'Linux A',
+      jobName: 'Linux A',
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
@@ -102,7 +102,7 @@ void main() {
       'owner': 'flutter',
       'repo': 'flutter',
       'pr': pullRequest.number!,
-      'build_name': 'Linux A',
+      'job_name': 'Linux A',
     };
 
     final response = await tester.post(handler);
@@ -121,16 +121,16 @@ void main() {
     final updatedGuard = PresubmitGuard.fromDocument(
       await firestore.getDocument(guard.name!),
     );
-    expect(updatedGuard.builds['Linux A'], TaskStatus.waitingForBackfill);
-    expect(updatedGuard.remainingBuilds, 1);
+    expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
+    expect(updatedGuard.remainingJobs, 1);
   });
 
   test('Re-run successful failed job with default owner/repo', () async {
     final checkRun = generateCheckRun(1, name: 'Linux A');
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
-      builds: {'Linux A': TaskStatus.failed},
-      remainingBuilds: 0,
+      jobs: {'Linux A': TaskStatus.failed},
+      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 
@@ -144,10 +144,10 @@ void main() {
       ],
     );
 
-    final failedCheck = PresubmitCheck(
+    final failedCheck = PresubmitJob(
       slug: Config.flutterSlug,
       checkRunId: 1,
-      buildName: 'Linux A',
+      jobName: 'Linux A',
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
@@ -171,7 +171,7 @@ void main() {
       ),
     ).thenAnswer((_) async => []);
 
-    tester.requestData = {'pr': pullRequest.number!, 'build_name': 'Linux A'};
+    tester.requestData = {'pr': pullRequest.number!, 'job_name': 'Linux A'};
 
     final response = await tester.post(handler);
     expect(response.statusCode, HttpStatus.ok);
@@ -182,7 +182,7 @@ void main() {
       'owner': 'flutter',
       'repo': 'flutter',
       'pr': 123,
-      'build_name': 'Linux A',
+      'job_name': 'Linux A',
     };
 
     await expectLater(tester.post(handler), throwsA(isA<NotFoundException>()));
@@ -196,8 +196,8 @@ void main() {
     tester.requestData = {
       'owner': 'flutter',
       'repo': 'flutter',
-      'pr': guard.pullRequestId + 1,
-      'build_name': 'Linux A',
+      'pr': guard.prNum + 1,
+      'job_name': 'Linux A',
     };
 
     await expectLater(tester.post(handler), throwsA(isA<NotFoundException>()));
@@ -221,8 +221,8 @@ void main() {
     tester.requestData = {
       'owner': 'flutter',
       'repo': 'flutter',
-      'pr': guard.pullRequestId,
-      'build_name': 'Linux A',
+      'pr': guard.prNum,
+      'job_name': 'Linux A',
     };
 
     await expectLater(

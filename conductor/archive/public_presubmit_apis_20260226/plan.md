@@ -20,10 +20,10 @@ This phase focuses on introducing the `PublicApiRequestHandler` and refactoring 
 ## Phase 2: Expose Target APIs Publicly [checkpoint: 4c366bf]
 This phase transitions the specified handlers to `PublicApiRequestHandler`.
 
-- [x] Task: Refactor `GetPresubmitChecks`
-    - [x] Update `app_dart/lib/src/request_handlers/get_presubmit_checks.dart` to extend `PublicApiRequestHandler`.
+- [x] Task: Refactor `GetPresubmitJobs`
+    - [x] Update `app_dart/lib/src/request_handlers/get_presubmit_jobs.dart` to extend `PublicApiRequestHandler`.
     - [x] Remove `authenticationProvider` from the constructor and `super` call.
-    - [x] Update tests in `app_dart/test/request_handlers/get_presubmit_checks_test.dart` to reflect constructor changes.
+    - [x] Update tests in `app_dart/test/request_handlers/get_presubmit_jobs_test.dart` to reflect constructor changes.
 - [x] Task: Refactor `GetPresubmitGuardSummaries`
     - [x] Update `app_dart/lib/src/request_handlers/get_presubmit_guard_summaries.dart` to extend `PublicApiRequestHandler`.
     - [x] Remove `authenticationProvider` from the constructor and `super` call.

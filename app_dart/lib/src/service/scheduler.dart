@@ -20,7 +20,7 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../model/common/checks_extension.dart';
-import '../model/common/presubmit_check_state.dart';
+import '../model/common/presubmit_job_state.dart';
 import '../model/common/presubmit_completed_check.dart';
 import '../model/common/presubmit_guard_conclusion.dart';
 import '../model/firestore/base.dart';
@@ -1000,7 +1000,7 @@ detailsUrl: $detailsUrl
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompleted(PresubmitCompletedCheck check) async {
+  Future<bool> processCheckRunCompleted(PresubmitCompletedJob check) async {
     if (kCheckRunsToIgnore.contains(check.name)) {
       return true;
     }
@@ -1460,10 +1460,10 @@ $stacktrace
 
   Future<PresubmitGuardConclusion> _markUnifiedCheckRunConclusion({
     required PresubmitGuardId guardId,
-    required PresubmitCheckState state,
+    required PresubmitJobState state,
   }) async {
     final logCrumb =
-        'checkCompleted(${state.buildName}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
+        'checkCompleted(${state.jobName}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
 
     log.info('$logCrumb: ${guardId.documentId}');
     // We're doing a transactional update, which could fail if multiple tasks
@@ -1505,7 +1505,7 @@ $stacktrace
       case 'completed':
         if (!_config.flags.closeMqGuardAfterPresubmit) {
           await processCheckRunCompleted(
-            PresubmitCompletedCheck.fromCheckRun(
+            PresubmitCompletedJob.fromCheckRun(
               checkRunEvent.checkRun!,
               checkRunEvent.repository!.slug(),
             ),
@@ -1740,14 +1740,14 @@ $stacktrace
       checkRunEvent.checkRun!.checkSuite!.id!,
     );
 
-    final failedChecks = await UnifiedCheckRun.reInitializeFailedChecks(
+    final failedChecks = await UnifiedCheckRun.reInitializeFailedJobs(
       firestoreService: _firestore,
       slug: slug,
-      pullRequestId: pullRequest!.number!,
+      prNum: pullRequest!.number!,
       guardCheckRunId: checkRunEvent.checkRun!.id!,
     );
 
-    if (failedChecks == null || failedChecks.checkRetries.isEmpty) {
+    if (failedChecks == null || failedChecks.jobRetries.isEmpty) {
       log.error('$logCrumb: No failed targets found');
       return const ProcessCheckRunResult.missingEntity(
         'No failed targets found',
@@ -1761,12 +1761,12 @@ $stacktrace
 
     final checkRetries = <Target, int>{};
     for (final target in targets) {
-      if (failedChecks.checkRetries.containsKey(target.name)) {
-        checkRetries[target] = failedChecks.checkRetries[target.name]!;
+      if (failedChecks.jobRetries.containsKey(target.name)) {
+        checkRetries[target] = failedChecks.jobRetries[target.name]!;
       }
     }
 
-    if (checkRetries.length != failedChecks.checkRetries.length) {
+    if (checkRetries.length != failedChecks.jobRetries.length) {
       log.error(
         '$logCrumb: Failed to find all failed targets in presubmit targets',
       );

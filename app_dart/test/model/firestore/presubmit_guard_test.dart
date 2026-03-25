@@ -19,7 +19,7 @@ void main() {
     test('generates correct documentId', () {
       final id = PresubmitGuardId(
         slug: RepositorySlug('flutter', 'flutter'),
-        pullRequestId: 123,
+        prNum: 123,
         checkRunId: 456,
         stage: CiStage.fusionEngineBuild,
       );
@@ -40,28 +40,28 @@ void main() {
     test('init creates correct initial state', () {
       final guard = PresubmitGuard.init(
         slug: slug,
-        pullRequestId: 123,
+        prNum: 123,
         checkRun: checkRun,
         stage: CiStage.fusionEngineBuild,
-        commitSha: 'abc',
+        headSha: 'abc',
         creationTime: 1000,
         author: 'author',
-        buildCount: 2,
+        jobCount: 2,
       );
 
       expect(guard.slug, slug);
-      expect(guard.pullRequestId, 123);
+      expect(guard.prNum, 123);
       expect(guard.checkRunId, 456);
       expect(guard.stage, CiStage.fusionEngineBuild);
       expect(guard.commitSha, 'abc');
       expect(guard.creationTime, 1000);
       expect(guard.author, 'author');
-      expect(guard.remainingBuilds, 2);
-      expect(guard.failedBuilds, 0);
+      expect(guard.remainingJobs, 2);
+      expect(guard.failedJobs, 0);
       expect(guard.checkRun.id, 456);
       expect(guard.fields[PresubmitGuard.fieldCheckRunId]!.integerValue, '456');
       expect(
-        guard.fields[PresubmitGuard.fieldPullRequestId]!.integerValue,
+        guard.fields[PresubmitGuard.fieldPrNum]!.integerValue,
         '123',
       );
       expect(
@@ -77,65 +77,65 @@ void main() {
     test('fromDocument loads correct state', () {
       final guard = PresubmitGuard.init(
         slug: slug,
-        pullRequestId: 123,
+        prNum: 123,
         checkRun: checkRun,
         stage: CiStage.fusionEngineBuild,
-        commitSha: 'abc',
+        headSha: 'abc',
         creationTime: 1000,
         author: 'author',
-        buildCount: 2,
+        jobCount: 2,
       );
-      guard.builds = {'linux': TaskStatus.succeeded};
+      guard.jobs = {'linux': TaskStatus.succeeded};
 
       final doc = Document(name: guard.name, fields: guard.fields);
 
       final loadedGuard = PresubmitGuard.fromDocument(doc);
 
       expect(loadedGuard.slug, slug);
-      expect(loadedGuard.pullRequestId, 123);
+      expect(loadedGuard.prNum, 123);
       expect(loadedGuard.checkRunId, 456);
       expect(loadedGuard.stage, CiStage.fusionEngineBuild);
-      expect(loadedGuard.builds, {'linux': TaskStatus.succeeded});
-      expect(loadedGuard.remainingBuilds, 2);
+      expect(loadedGuard.jobs, {'linux': TaskStatus.succeeded});
+      expect(loadedGuard.remainingJobs, 2);
     });
 
     test('updates fields correctly', () {
       final guard = PresubmitGuard.init(
         slug: slug,
-        pullRequestId: 123,
+        prNum: 123,
         checkRun: checkRun,
         stage: CiStage.fusionEngineBuild,
-        commitSha: 'abc',
+        headSha: 'abc',
         creationTime: 1000,
         author: 'author',
-        buildCount: 2,
+        jobCount: 2,
       );
 
-      guard.remainingBuilds = 1;
-      guard.failedBuilds = 1;
-      guard.builds = {'linux': TaskStatus.failed};
+      guard.remainingJobs = 1;
+      guard.failedJobs = 1;
+      guard.jobs = {'linux': TaskStatus.failed};
 
-      expect(guard.remainingBuilds, 1);
-      expect(guard.failedBuilds, 1);
-      expect(guard.builds, {'linux': TaskStatus.failed});
+      expect(guard.remainingJobs, 1);
+      expect(guard.failedJobs, 1);
+      expect(guard.jobs, {'linux': TaskStatus.failed});
     });
 
     test('parses properties from document name', () {
       // flutter_flutter_123_456_fusionEngineBuild
       final guard = PresubmitGuard(
         checkRun: checkRun,
-        commitSha: 'abc',
+        headSha: 'abc',
         slug: slug,
-        pullRequestId: 123,
+        prNum: 123,
         stage: CiStage.fusionEngineBuild,
         creationTime: 1000,
         author: 'author',
-        remainingBuilds: 0,
-        failedBuilds: 0,
+        remainingJobs: 0,
+        failedJobs: 0,
       );
 
       expect(guard.slug, slug);
-      expect(guard.pullRequestId, 123);
+      expect(guard.prNum, 123);
       expect(guard.checkRunId, 456);
       expect(guard.stage, CiStage.fusionEngineBuild);
     });

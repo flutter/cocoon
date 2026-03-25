@@ -24,7 +24,7 @@ import '../widgets/task_box.dart';
 
 /// A detailed monitoring view for a specific Pull Request (PR) or commit SHA.
 ///
-/// This view displays CI check statuses and execution logs.
+/// This view displays CI job statuses and execution logs.
 final class PreSubmitView extends StatefulWidget {
   const PreSubmitView({
     super.key,
@@ -147,14 +147,14 @@ class _PreSubmitViewState extends State<PreSubmitView> {
 
         final guardResponse = presubmitState.guardResponse;
         final isLoading = presubmitState.isLoading;
-        final selectedCheck = presubmitState.selectedCheck;
+        final selectedJob = presubmitState.selectedJob;
 
         var availableSummaries = presubmitState.availableSummaries;
 
-        if (sha != null && !availableSummaries.any((s) => s.commitSha == sha)) {
+        if (sha != null && !availableSummaries.any((s) => s.headSha == sha)) {
           availableSummaries = [
             PresubmitGuardSummary(
-              commitSha: sha,
+              headSha: sha,
               creationTime: 0,
               guardStatus: GuardStatus.waitingForBackfill,
             ),
@@ -174,14 +174,14 @@ class _PreSubmitViewState extends State<PreSubmitView> {
           statusText = guardResponse.guardStatus.value;
         } else if (sha != null) {
           final summary = presubmitState.availableSummaries.firstWhere(
-            (s) => s.commitSha == sha,
+            (s) => s.headSha == sha,
             orElse: () => const PresubmitGuardSummary(
-              commitSha: '',
+              headSha: '',
               creationTime: 0,
               guardStatus: GuardStatus.waitingForBackfill,
             ),
           );
-          if (summary.commitSha.isNotEmpty) {
+          if (summary.headSha.isNotEmpty) {
             statusText = summary.guardStatus.value;
           }
         }
@@ -189,7 +189,7 @@ class _PreSubmitViewState extends State<PreSubmitView> {
         final isLatestSha =
             pr != null &&
             presubmitState.availableSummaries.isNotEmpty &&
-            sha == presubmitState.availableSummaries.first.commitSha;
+            sha == presubmitState.availableSummaries.first.headSha;
 
         return Scaffold(
           appBar: CocoonAppBar(
@@ -270,24 +270,21 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                         child: Row(
                           children: [
                             if (guardResponse != null)
-                              _ChecksSidebar(
+                              _JobsSidebar(
                                 guardResponse:
                                     presubmitState.filteredGuardResponse ??
                                     guardResponse,
-                                selectedCheck: selectedCheck,
+                                selectedJob: selectedJob,
                                 isLatestSha: isLatestSha,
-                                onCheckSelected: presubmitState.selectCheck,
+                                onJobSelected: presubmitState.selectJob,
                                 onError: _showErrorDialog,
                               ),
                             const VerticalDivider(width: 1, thickness: 1),
                             Expanded(
                               child:
-                                  (selectedCheck == null ||
-                                      guardResponse == null)
+                                  (selectedJob == null || guardResponse == null)
                                   ? const Center(
-                                      child: Text(
-                                        'Select a check to view logs',
-                                      ),
+                                      child: Text('Select a job to view logs'),
                                     )
                                   : const _LogViewerPane(),
                             ),
@@ -323,27 +320,27 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
       animation: presubmitState,
       builder: (context, _) {
         final repo = presubmitState.repo;
-        final buildName = presubmitState.selectedCheck;
-        final checks = presubmitState.checks;
+        final jobName = presubmitState.selectedJob;
+        final jobs = presubmitState.jobs;
         final isLoading = presubmitState.isLoading;
 
         final borderColor = isDark
             ? const Color(0xFF333333)
             : const Color(0xFFD1D5DB);
 
-        if (isLoading && (checks == null || checks.isEmpty)) {
+        if (isLoading && (jobs == null || jobs.isEmpty)) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (checks == null || checks.isEmpty) {
-          return const Center(child: Text('No details found for this check'));
+        if (jobs == null || jobs.isEmpty) {
+          return const Center(child: Text('No details found for this job'));
         }
 
-        if (_selectedAttemptIndex >= checks.length) {
+        if (_selectedAttemptIndex >= jobs.length) {
           _selectedAttemptIndex = 0;
         }
 
-        final selectedCheck = checks[_selectedAttemptIndex];
+        final selectedJob = jobs[_selectedAttemptIndex];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +351,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$repo / $buildName',
+                    '$repo / $jobName',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -362,7 +359,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Status: ${selectedCheck.status}',
+                    'Status: ${selectedJob.status}',
                     style: TextStyle(
                       fontSize: 14,
                       color: isDark
@@ -382,9 +379,9 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
               ),
               child: Row(
                 children: [
-                  ...checks.asMap().entries.map((entry) {
+                  ...jobs.asMap().entries.map((entry) {
                     final index = entry.key;
-                    final check = entry.value;
+                    final job = entry.value;
                     final isSelected = _selectedAttemptIndex == index;
                     return InkWell(
                       onTap: () =>
@@ -403,7 +400,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                           ),
                         ),
                         child: Text(
-                          '#${check.attemptNumber}',
+                          '#${job.attemptNumber}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: isSelected
@@ -460,7 +457,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedCheck.summary ?? 'No log summary available',
+                    selectedJob.summary ?? 'No log summary available',
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
@@ -472,13 +469,13 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: ElevatedButton(
-                onPressed: selectedCheck.buildNumber == null
+                onPressed: selectedJob.buildNumber == null
                     ? null
                     : () async => await launchUrl(
                         Uri.parse(
                           generatePreSubmitBuildLogUrl(
-                            buildName: selectedCheck.buildName,
-                            buildNumber: selectedCheck.buildNumber!,
+                            buildName: selectedJob.jobName,
+                            buildNumber: selectedJob.buildNumber!,
                           ),
                         ),
                       ),
@@ -488,7 +485,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     Icon(
                       Icons.open_in_new,
                       size: 18,
-                      color: selectedCheck.buildNumber == null
+                      color: selectedJob.buildNumber == null
                           ? Colors.grey
                           : (isDark
                                 ? const Color(0xFF58A6FF)
@@ -498,7 +495,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                     Text(
                       'View more details on LUCI UI',
                       style: TextStyle(
-                        color: selectedCheck.buildNumber == null
+                        color: selectedJob.buildNumber == null
                             ? Colors.grey
                             : (isDark
                                   ? const Color(0xFF58A6FF)
@@ -517,26 +514,26 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
   }
 }
 
-class _ChecksSidebar extends StatefulWidget {
-  const _ChecksSidebar({
+class _JobsSidebar extends StatefulWidget {
+  const _JobsSidebar({
     required this.guardResponse,
-    this.selectedCheck,
+    this.selectedJob,
     this.isLatestSha = false,
-    required this.onCheckSelected,
+    required this.onJobSelected,
     required this.onError,
   });
 
   final PresubmitGuardResponse guardResponse;
-  final String? selectedCheck;
+  final String? selectedJob;
   final bool isLatestSha;
-  final ValueChanged<String> onCheckSelected;
+  final ValueChanged<String> onJobSelected;
   final ValueChanged<String> onError;
 
   @override
-  State<_ChecksSidebar> createState() => _ChecksSidebarState();
+  State<_JobsSidebar> createState() => _JobsSidebarState();
 }
 
-class _ChecksSidebarState extends State<_ChecksSidebar> {
+class _JobsSidebarState extends State<_JobsSidebar> {
   final ScrollController _scrollController = ScrollController();
   late List<List<MapEntry<String, TaskStatus>>> _sortedBuildsPerStage;
 
@@ -544,28 +541,28 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
   void initState() {
     super.initState();
     _updateSortedBuilds();
-    _selectFirstCheck();
+    _selectFirstJob();
   }
 
   @override
-  void didUpdateWidget(_ChecksSidebar oldWidget) {
+  void didUpdateWidget(_JobsSidebar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.guardResponse != oldWidget.guardResponse) {
       _updateSortedBuilds();
     }
-    if (widget.selectedCheck == null) {
-      _selectFirstCheck();
+    if (widget.selectedJob == null) {
+      _selectFirstJob();
     }
   }
 
-  void _selectFirstCheck() {
-    if (widget.selectedCheck != null) return;
+  void _selectFirstJob() {
+    if (widget.selectedJob != null) return;
     for (final stage in _sortedBuildsPerStage) {
       if (stage.isNotEmpty) {
-        final firstCheck = stage.first.key;
+        final firstJob = stage.first.key;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && widget.selectedCheck == null) {
-            widget.onCheckSelected(firstCheck);
+          if (mounted && widget.selectedJob == null) {
+            widget.onJobSelected(firstJob);
           }
         });
         break;
@@ -628,13 +625,13 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
                         ),
                       ),
                       ...sortedBuilds.map((entry) {
-                        final isSelected = widget.selectedCheck == entry.key;
-                        return _CheckItem(
+                        final isSelected = widget.selectedJob == entry.key;
+                        return _JobItem(
                           name: entry.key,
                           status: entry.value,
                           isSelected: isSelected,
                           isLatestSha: widget.isLatestSha,
-                          onTap: () => widget.onCheckSelected(entry.key),
+                          onTap: () => widget.onJobSelected(entry.key),
                           onError: widget.onError,
                         );
                       }),
@@ -650,8 +647,8 @@ class _ChecksSidebarState extends State<_ChecksSidebar> {
   }
 }
 
-class _CheckItem extends StatelessWidget {
-  const _CheckItem({
+class _JobItem extends StatelessWidget {
+  const _JobItem({
     required this.name,
     required this.status,
     required this.isSelected,

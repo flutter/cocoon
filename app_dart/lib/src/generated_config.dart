@@ -31,5 +31,5 @@ unifiedCheckRunFlow:
   useForAll: false
   useForUsers:
     - ievdokdm
-    - matanlurey
+    - eyebrowsoffire
 ''';

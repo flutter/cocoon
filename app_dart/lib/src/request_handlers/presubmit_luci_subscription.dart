@@ -164,7 +164,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       // Process to the check-run status in the merge queue document during
       // the LUCI callback.
       if (config.flags.closeMqGuardAfterPresubmit || isUnifiedCheckRun) {
-        final check = PresubmitCompletedCheck.fromBuild(
+        final check = PresubmitCompletedJob.fromBuild(
           build,
           userData,
           status: override == .neutral ? .neutral : null,

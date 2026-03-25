@@ -16,14 +16,14 @@ import '../firestore/base.dart';
 import '../firestore/presubmit_guard.dart';
 import '../github/checks.dart' as cocoon_checks;
 import 'checks_extension.dart';
-import 'presubmit_check_state.dart';
+import 'presubmit_job_state.dart';
 
-/// Unified representation of a completed presubmit check.
+/// Unified representation of a completed presubmit job.
 ///
-/// This class abstracts away the source of the check (GitHub CheckRun or BuildBucket Build)
+/// This class abstracts away the source of the job (GitHub CheckRun or BuildBucket Build)
 /// to allow unified processing logic.
 @immutable
-class PresubmitCompletedCheck {
+class PresubmitCompletedJob {
   final String name;
   final String sha;
   final RepositorySlug slug;
@@ -35,14 +35,14 @@ class PresubmitCompletedCheck {
   final String? headBranch;
   final bool isUnifiedCheckRun;
   final CiStage? stage;
-  final int? pullRequestNumber;
+  final int? prNum;
   final int attempt;
   final int? startTime;
   final int? endTime;
   final String? summary;
   final int? buildNumber;
 
-  const PresubmitCompletedCheck({
+  const PresubmitCompletedJob({
     required this.name,
     required this.sha,
     required this.slug,
@@ -53,7 +53,7 @@ class PresubmitCompletedCheck {
     required this.headBranch,
     required this.isUnifiedCheckRun,
     this.stage,
-    this.pullRequestNumber,
+    this.prNum,
     this.attempt = 1,
     this.startTime,
     this.endTime,
@@ -61,12 +61,12 @@ class PresubmitCompletedCheck {
     this.buildNumber,
   });
 
-  /// Creates a [PresubmitCompletedCheck] from a GitHub [CheckRun].
-  factory PresubmitCompletedCheck.fromCheckRun(
+  /// Creates a [PresubmitCompletedJob] from a GitHub [CheckRun].
+  factory PresubmitCompletedJob.fromCheckRun(
     cocoon_checks.CheckRun checkRun,
     RepositorySlug slug,
   ) {
-    return PresubmitCompletedCheck(
+    return PresubmitCompletedJob(
       name: checkRun.name!,
       sha: checkRun.headSha!,
       slug: slug,
@@ -84,13 +84,13 @@ class PresubmitCompletedCheck {
     );
   }
 
-  /// Creates a [PresubmitCompletedCheck] from a BuildBucket [Build].
-  factory PresubmitCompletedCheck.fromBuild(
+  /// Creates a [PresubmitCompletedJob] from a BuildBucket [Build].
+  factory PresubmitCompletedJob.fromBuild(
     Build build,
     PresubmitUserData userData, {
     TaskStatus? status,
   }) {
-    return PresubmitCompletedCheck(
+    return PresubmitCompletedJob(
       name: build.builder.builder,
       sha: userData.commit.sha,
       slug: userData.commit.slug,
@@ -101,7 +101,7 @@ class PresubmitCompletedCheck {
       headBranch: userData.commit.branch,
       isUnifiedCheckRun: userData.guardCheckRunId != null,
       stage: userData.stage,
-      pullRequestNumber: userData.pullRequestNumber,
+      prNum: userData.pullRequestNumber,
       attempt: _getAttempt(build),
       startTime: build.startTime.toDateTime().microsecondsSinceEpoch,
       endTime: build.endTime.toDateTime().microsecondsSinceEpoch,
@@ -134,15 +134,15 @@ class PresubmitCompletedCheck {
   PresubmitGuardId get guardId {
     return PresubmitGuardId(
       slug: slug,
-      pullRequestId: pullRequestNumber ?? 0,
+      prNum: prNum ?? 0,
       checkRunId: checkRunId,
       stage: stage ?? CiStage.fusionTests,
     );
   }
 
-  PresubmitCheckState get state {
-    return PresubmitCheckState(
-      buildName: name,
+  PresubmitJobState get state {
+    return PresubmitJobState(
+      jobName: name,
       status: status,
       attemptNumber: attempt,
       startTime: startTime,

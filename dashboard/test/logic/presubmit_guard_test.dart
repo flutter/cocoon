@@ -37,20 +37,20 @@ void main() {
     });
   });
 
-  group('PresubmitCheckResponse', () {
+  group('PresubmitJobResponse', () {
     test('fromJson creates a valid object', () {
       final json = {
         'attempt_number': 1,
-        'build_name': 'Linux Device Doctor',
+        'job_name': 'Linux Device Doctor',
         'creation_time': 1620134239000,
         'status': 'Succeeded',
         'summary': 'Check passed',
       };
 
-      final response = PresubmitCheckResponse.fromJson(json);
+      final response = PresubmitJobResponse.fromJson(json);
 
       expect(response.attemptNumber, 1);
-      expect(response.buildName, 'Linux Device Doctor');
+      expect(response.jobName, 'Linux Device Doctor');
       expect(response.creationTime, 1620134239000);
       expect(response.status, 'Succeeded');
       expect(response.summary, 'Check passed');

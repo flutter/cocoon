@@ -43,14 +43,14 @@ void main() {
       (_) async => const CocoonResponse<PresubmitGuardResponse>.data(null),
     );
     when(
-      mockCocoonService.fetchPresubmitCheckDetails(
+      mockCocoonService.fetchPresubmitJobDetails(
         checkRunId: anyNamed('checkRunId'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
         repo: anyNamed('repo'),
         owner: anyNamed('owner'),
       ),
     ).thenAnswer(
-      (_) async => const CocoonResponse<List<PresubmitCheckResponse>>.data([]),
+      (_) async => const CocoonResponse<List<PresubmitJobResponse>>.data([]),
     );
     when(
       mockCocoonService.fetchCommitStatuses(
@@ -155,9 +155,9 @@ void main() {
     'PresubmitState fetchCheckDetails updates checks and notifies listeners',
     () async {
       final checks = [
-        PresubmitCheckResponse(
+        PresubmitJobResponse(
           attemptNumber: 1,
-          buildName: 'check1',
+          jobName: 'check1',
           creationTime: 0,
           status: 'Succeeded',
         ),
@@ -172,22 +172,22 @@ void main() {
       presubmitState.setGuardResponseForTest(guardResponse);
 
       when(
-        mockCocoonService.fetchPresubmitCheckDetails(
+        mockCocoonService.fetchPresubmitJobDetails(
           checkRunId: 456,
-          buildName: 'check1',
+          jobName: 'check1',
           repo: 'flutter',
         ),
       ).thenAnswer(
-        (_) async => CocoonResponse<List<PresubmitCheckResponse>>.data(checks),
+        (_) async => CocoonResponse<List<PresubmitJobResponse>>.data(checks),
       );
 
-      presubmitState.selectCheck('check1');
+      presubmitState.selectJob('check1');
       var notified = false;
       presubmitState.addListener(() => notified = true);
 
-      await presubmitState.fetchCheckDetails();
+      await presubmitState.fetchJobDetails();
 
-      expect(presubmitState.checks, checks);
+      expect(presubmitState.jobs, checks);
       expect(notified, isTrue);
     },
   );
@@ -328,7 +328,7 @@ void main() {
         idToken: anyNamed('idToken'),
         repo: anyNamed('repo'),
         pr: anyNamed('pr'),
-        buildName: anyNamed('buildName'),
+        jobName: anyNamed('jobName'),
       ),
     ).thenAnswer((_) async => const CocoonResponse<void>.data(null));
 
@@ -341,7 +341,7 @@ void main() {
         idToken: anyNamed('idToken'),
         repo: 'flutter',
         pr: 123,
-        buildName: 'check1',
+        jobName: 'check1',
       ),
     ).called(1);
   });

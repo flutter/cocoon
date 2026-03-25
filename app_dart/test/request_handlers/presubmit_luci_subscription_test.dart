@@ -572,7 +572,7 @@ void main() {
     expect(captured, hasLength(1));
     expect(
       captured[0],
-      isA<PresubmitCompletedCheck>()
+      isA<PresubmitCompletedJob>()
           .having((e) => e.name, 'name', 'Linux C')
           .having((e) => e.sha, 'sha', 'abc')
           .having((e) => e.checkRunId, 'checkRunId', 1)

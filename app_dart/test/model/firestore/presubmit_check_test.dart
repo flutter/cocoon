@@ -6,7 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/firestore/presubmit_check.dart';
+import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -15,15 +15,15 @@ import 'package:test/test.dart';
 void main() {
   useTestLoggerPerTest();
 
-  group('PresubmitCheckId', () {
+  group('PresubmitJobId', () {
     final slug = RepositorySlug('flutter', 'flutter');
 
     test('validates checkRunId', () {
       expect(
-        () => PresubmitCheckId(
+        () => PresubmitJobId(
           slug: slug,
           checkRunId: 0,
-          buildName: 'linux',
+          jobName: 'linux',
           attemptNumber: 1,
         ),
         throwsA(isA<RangeError>()),
@@ -32,10 +32,10 @@ void main() {
 
     test('validates attemptNumber', () {
       expect(
-        () => PresubmitCheckId(
+        () => PresubmitJobId(
           slug: slug,
           checkRunId: 1,
-          buildName: 'linux',
+          jobName: 'linux',
           attemptNumber: 0,
         ),
         throwsA(isA<RangeError>()),
@@ -43,41 +43,41 @@ void main() {
     });
 
     test('generates correct documentId', () {
-      final id = PresubmitCheckId(
+      final id = PresubmitJobId(
         slug: slug,
         checkRunId: 123,
-        buildName: 'linux_test',
+        jobName: 'linux_test',
         attemptNumber: 2,
       );
       expect(id.documentId, 'flutter_flutter_123_linux_test_2');
     });
 
     test('parses valid documentName', () {
-      final id = PresubmitCheckId.parse('flutter_flutter_123_linux_test_2');
+      final id = PresubmitJobId.parse('flutter_flutter_123_linux_test_2');
       expect(id.slug, slug);
       expect(id.checkRunId, 123);
-      expect(id.buildName, 'linux_test');
+      expect(id.jobName, 'linux_test');
       expect(id.attemptNumber, 2);
     });
 
     test('tryParse returns null for invalid format', () {
-      expect(PresubmitCheckId.tryParse('invalid'), isNull);
-      expect(PresubmitCheckId.tryParse('flutter_flutter_123_linux'), isNull);
+      expect(PresubmitJobId.tryParse('invalid'), isNull);
+      expect(PresubmitJobId.tryParse('flutter_flutter_123_linux'), isNull);
     });
 
     test('generates correct documentId with different slug', () {
       final cocoonSlug = RepositorySlug('flutter', 'cocoon');
-      final id = PresubmitCheckId(
+      final id = PresubmitJobId(
         slug: cocoonSlug,
         checkRunId: 123,
-        buildName: 'linux_test',
+        jobName: 'linux_test',
         attemptNumber: 2,
       );
       expect(id.documentId, 'flutter_cocoon_123_linux_test_2');
     });
   });
 
-  group('PresubmitCheck', () {
+  group('PresubmitJob', () {
     late FakeFirestoreService firestoreService;
     final slug = RepositorySlug('flutter', 'flutter');
 
@@ -86,15 +86,15 @@ void main() {
     });
 
     test('init creates correct initial state', () {
-      final check = PresubmitCheck.init(
+      final check = PresubmitJob.init(
         slug: slug,
-        buildName: 'linux',
+        jobName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );
 
       expect(check.slug, slug);
-      expect(check.buildName, 'linux');
+      expect(check.jobName, 'linux');
       expect(check.checkRunId, 123);
       expect(check.creationTime, 1000);
       expect(check.attemptNumber, 1);
@@ -106,10 +106,10 @@ void main() {
     });
 
     test('constructor stores slug in fields', () {
-      final check = PresubmitCheck(
+      final check = PresubmitJob(
         slug: slug,
         checkRunId: 123,
-        buildName: 'linux',
+        jobName: 'linux',
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: 1000,
@@ -117,16 +117,16 @@ void main() {
 
       expect(check.slug, slug);
       expect(
-        check.fields[PresubmitCheck.fieldSlug]!.stringValue,
+        check.fields[PresubmitJob.fieldSlug]!.stringValue,
         'flutter/flutter',
       );
     });
 
     test('fromFirestore loads document correctly', () async {
-      final check = PresubmitCheck(
+      final check = PresubmitJob(
         slug: slug,
         checkRunId: 123,
-        buildName: 'linux',
+        jobName: 'linux',
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: 1000,
@@ -137,33 +137,33 @@ void main() {
       );
 
       // Use the helper to get the correct document name
-      final docName = PresubmitCheck.documentNameFor(
+      final docName = PresubmitJob.documentNameFor(
         slug: slug,
         checkRunId: 123,
-        buildName: 'linux',
+        jobName: 'linux',
         attemptNumber: 1,
       );
 
       // Manually ensuring the name is set for the fake service, usually done by `putDocument`
-      // but we should verify the `PresubmitCheck` object has it right via the factory or init.
-      // Actually `PresubmitCheck` constructor sets name.
+      // but we should verify the `PresubmitJob` object has it right via the factory or init.
+      // Actually `PresubmitJob` constructor sets name.
       firestoreService.putDocument(
         Document(name: docName, fields: check.fields),
       );
 
-      final loadedCheck = await PresubmitCheck.fromFirestore(
+      final loadedCheck = await PresubmitJob.fromFirestore(
         firestoreService,
-        PresubmitCheckId(
+        PresubmitJobId(
           slug: slug,
           checkRunId: 123,
-          buildName: 'linux',
+          jobName: 'linux',
           attemptNumber: 1,
         ),
       );
 
       expect(loadedCheck.slug, slug);
       expect(loadedCheck.checkRunId, 123);
-      expect(loadedCheck.buildName, 'linux');
+      expect(loadedCheck.jobName, 'linux');
       expect(loadedCheck.status, TaskStatus.succeeded);
       expect(loadedCheck.attemptNumber, 1);
       expect(loadedCheck.creationTime, 1000);
@@ -174,9 +174,9 @@ void main() {
     });
 
     test('updateFromBuild updates fields', () {
-      final check = PresubmitCheck.init(
+      final check = PresubmitJob.init(
         slug: slug,
-        buildName: 'linux',
+        jobName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );
@@ -199,9 +199,9 @@ void main() {
     });
 
     test('updateFromBuild does not update status if already complete', () {
-      final check = PresubmitCheck.init(
+      final check = PresubmitJob.init(
         slug: slug,
-        buildName: 'linux',
+        jobName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );
@@ -219,9 +219,9 @@ void main() {
     });
 
     test('buildNumber setter updates fields', () {
-      final check = PresubmitCheck.init(
+      final check = PresubmitJob.init(
         slug: slug,
-        buildName: 'linux',
+        jobName: 'linux',
         checkRunId: 123,
         creationTime: 1000,
       );

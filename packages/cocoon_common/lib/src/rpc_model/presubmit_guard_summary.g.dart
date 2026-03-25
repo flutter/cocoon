@@ -9,7 +9,7 @@ part of 'presubmit_guard_summary.dart';
 PresubmitGuardSummary _$PresubmitGuardSummaryFromJson(
   Map<String, dynamic> json,
 ) => PresubmitGuardSummary(
-  commitSha: json['commit_sha'] as String,
+  headSha: json['commit_sha'] as String,
   creationTime: (json['creation_time'] as num).toInt(),
   guardStatus: $enumDecode(_$GuardStatusEnumMap, json['guard_status']),
 );
@@ -17,7 +17,7 @@ PresubmitGuardSummary _$PresubmitGuardSummaryFromJson(
 Map<String, dynamic> _$PresubmitGuardSummaryToJson(
   PresubmitGuardSummary instance,
 ) => <String, dynamic>{
-  'commit_sha': instance.commitSha,
+  'commit_sha': instance.headSha,
   'creation_time': instance.creationTime,
   'guard_status': instance.guardStatus,
 };

@@ -23,9 +23,9 @@ Implement a detailed monitoring view for a specific Pull Request (PR) in the Flu
 - **Log Viewer Pane:**
     - Display the "Execution Log" for the selected check in the sidebar.
     - For the functional `sha` route, fetch the check details using the Cocoon API:
-      `GET /api/public/get-presubmit-checks?check_run_id=<check_run_id>&build_name=<build_name>`
+      `GET /api/public/get-presubmit-jobs?check_run_id=<check_run_id>&job_name=<job_name>`
     - **Handling Multiple Attempts (Tabs):**
-        - If the API returns multiple `PresubmitCheckResponse` objects for a build, display them as tabs in the log viewer (as shown in the layout).
+        - If the API returns multiple `PresubmitJobResponse` objects for a build, display them as tabs in the log viewer (as shown in the layout).
         - **Tab Naming:** Use the `attemptNumber` prefixed with a hash as the tab label (e.g., `#1`, `#2`).
         - Selecting a tab displays the `summary` or log content from that specific attempt.
     - Include a link to view details on the external LUCI UI.
@@ -40,7 +40,7 @@ Implement a detailed monitoring view for a specific Pull Request (PR) in the Flu
 ## Acceptance Criteria
 - [ ] Navigating to `?repo=flutter&sha=<sha>` correctly calls the `/api/public/get-presubmit-guard` endpoint and renders the sidebar.
 - [ ] Navigating to `?repo=flutter&pr=<pr>` displays the mocked dashboard layout.
-- [ ] Selecting a check in the sidebar correctly calls the `/api/public/get-presubmit-checks` endpoint (for functional SHA routes).
+- [ ] Selecting a check in the sidebar correctly calls the `/api/public/get-presubmit-jobs` endpoint (for functional SHA routes).
 - [ ] Multiple attempts for a check are displayed as clickable tabs labeled by their attempt number.
 - [ ] The UI supports both Light and Dark modes.
 

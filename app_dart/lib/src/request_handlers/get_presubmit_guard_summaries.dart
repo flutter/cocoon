@@ -46,19 +46,19 @@ final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
     checkRequiredQueryParameters(request, [kPRParam]);
 
     final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
-    final prNumber = int.parse(request.uri.queryParameters[kPRParam]!);
+    final pr = int.parse(request.uri.queryParameters[kPRParam]!);
     final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
 
     final slug = RepositorySlug(owner, repo);
     final guards = await UnifiedCheckRun.getPresubmitGuardsForPullRequest(
       firestoreService: _firestore,
       slug: slug,
-      pullRequestId: prNumber,
+      prNum: pr,
     );
 
     if (guards.isEmpty) {
       return Response.json({
-        'error': 'No guards found for PR $prNumber in $slug',
+        'error': 'No guards found for PR $pr in $slug',
       }, statusCode: HttpStatus.notFound);
     }
 
@@ -75,15 +75,15 @@ final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
 
       final totalFailed = shaGuards.fold<int>(
         0,
-        (int sum, PresubmitGuard g) => sum + g.failedBuilds,
+        (int sum, PresubmitGuard g) => sum + g.failedJobs,
       );
       final totalRemaining = shaGuards.fold<int>(
         0,
-        (int sum, PresubmitGuard g) => sum + g.remainingBuilds,
+        (int sum, PresubmitGuard g) => sum + g.remainingJobs,
       );
       final totalBuilds = shaGuards.fold<int>(
         0,
-        (int sum, PresubmitGuard g) => sum + g.builds.length,
+        (int sum, PresubmitGuard g) => sum + g.jobs.length,
       );
       final earliestCreationTime = shaGuards.fold<int>(
         // assuming creation time is always in the past :)
@@ -93,7 +93,7 @@ final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
 
       responseGuards.add(
         rpc_model.PresubmitGuardSummary(
-          commitSha: sha,
+          headSha: sha,
           creationTime: earliestCreationTime,
           guardStatus: GuardStatus.calculate(
             failedBuilds: totalFailed,

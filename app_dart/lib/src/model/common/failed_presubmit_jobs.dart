@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-/// @docImport 'failed_presubmit_checks.dart';
+/// @docImport 'failed_presubmit_jobs.dart';
 library;
 
 import 'package:collection/collection.dart';
@@ -11,40 +11,37 @@ import 'package:github/github.dart';
 
 import '../firestore/base.dart';
 
-/// Contains the list of failed checks that are proposed to be re-run.
+/// Contains the list of failed jobs that are proposed to be re-run.
 ///
-/// See: [UnifiedCheckRun.reInitializeFailedChecks]
-class FailedChecksForRerun {
+/// See: [UnifiedCheckRun.reInitializeFailedJobs]
+class FailedJobsForRerun {
   final CheckRun checkRunGuard;
   final CiStage stage;
-  final Map<String, int> checkRetries;
+  final Map<String, int> jobRetries;
 
-  const FailedChecksForRerun({
+  const FailedJobsForRerun({
     required this.checkRunGuard,
     required this.stage,
-    required this.checkRetries,
+    required this.jobRetries,
   });
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is FailedChecksForRerun &&
+      (other is FailedJobsForRerun &&
           other.checkRunGuard == checkRunGuard &&
           other.stage == stage &&
-          const DeepCollectionEquality().equals(
-            other.checkRetries,
-            checkRetries,
-          ));
+          const DeepCollectionEquality().equals(other.jobRetries, jobRetries));
 
   @override
   int get hashCode => Object.hashAll([
     checkRunGuard,
     stage,
-    ...checkRetries.keys,
-    ...checkRetries.values,
+    ...jobRetries.keys,
+    ...jobRetries.values,
   ]);
 
   @override
   String toString() =>
-      'FailedChecksForRerun("$checkRunGuard", "$stage", "$checkRetries")';
+      'FailedChecksForRerun("$checkRunGuard", "$stage", "$jobRetries")';
 }

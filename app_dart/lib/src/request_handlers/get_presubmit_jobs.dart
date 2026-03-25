@@ -11,13 +11,13 @@ import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Returns all checks for a specific presubmit check run.
+/// Returns all jobs for a specific presubmit job.
 ///
-/// GET: /api/public/get-presubmit-checks
+/// GET: /api/public/get-presubmit-jobs
 ///
 /// Parameters:
 ///   check_run_id: (int in query) mandatory. The GitHub Check Run ID.
-///   build_name: (string in query) mandatory. The name of the check/build.
+///   job_name: (string in query) mandatory. The name of the job.
 ///   repo: (string in query) optional. The repository name.
 ///   owner: (string in query) optional. The repository owner.
 ///
@@ -25,7 +25,7 @@ import '../service/firestore/unified_check_run.dart';
 /// [
 ///   {
 ///     "attempt_number": 1,
-///     "build_name": "Linux Device Doctor",
+///     "job_name": "Linux Device Doctor",
 ///     "creation_time": 1620134239000,
 ///     "start_time": 1620134240000,
 ///     "end_time": 1620134250000,
@@ -33,8 +33,8 @@ import '../service/firestore/unified_check_run.dart';
 ///     "summary": "Check passed"
 ///   }
 /// ]
-final class GetPresubmitChecks extends PublicApiRequestHandler {
-  const GetPresubmitChecks({
+final class GetPresubmitJobs extends PublicApiRequestHandler {
+  const GetPresubmitJobs({
     required super.config,
     required FirestoreService firestore,
   }) : _firestore = firestore;
@@ -44,8 +44,8 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
   /// The query parameter for the GitHub Check Run ID.
   static const String kCheckRunIdParam = 'check_run_id';
 
-  /// The query parameter for the build name.
-  static const String kBuildNameParam = 'build_name';
+  /// The query parameter for the job name.
+  static const String kJobNameParam = 'job_name';
 
   /// The name of the query parameter for the repository name (e.g. 'flutter').
   static const String kRepoParam = 'repo';
@@ -56,14 +56,14 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
   @override
   Future<Response> get(Request request) async {
     final checkRunIdString = request.uri.queryParameters[kCheckRunIdParam];
-    final buildName = request.uri.queryParameters[kBuildNameParam];
+    final jobName = request.uri.queryParameters[kJobNameParam];
     final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
     final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
 
-    if (checkRunIdString == null || buildName == null) {
+    if (checkRunIdString == null || jobName == null) {
       return Response.json({
         'error':
-            'Missing mandatory parameters: $kCheckRunIdParam, $kBuildNameParam',
+            'Missing mandatory parameters: $kCheckRunIdParam, $kJobNameParam',
       }, statusCode: HttpStatus.badRequest);
     }
 
@@ -75,31 +75,31 @@ final class GetPresubmitChecks extends PublicApiRequestHandler {
     }
 
     final slug = RepositorySlug(owner, repo);
-    final checks = await UnifiedCheckRun.getPresubmitCheckDetails(
+    final jobs = await UnifiedCheckRun.getPresubmitJobDetails(
       firestoreService: _firestore,
       checkRunId: checkRunId,
-      buildName: buildName,
+      jobName: jobName,
       slug: slug,
     );
 
-    if (checks.isEmpty) {
+    if (jobs.isEmpty) {
       return Response.json({
         'error':
-            'No checks found for check_run_id $checkRunId and build_name $buildName',
+            'No checks found for check_run_id $checkRunId and job_name $jobName',
       }, statusCode: HttpStatus.notFound);
     }
 
     final rpcChecks = [
-      for (final check in checks)
-        PresubmitCheckResponse(
-          attemptNumber: check.attemptNumber,
-          buildName: check.buildName,
-          creationTime: check.creationTime,
-          startTime: check.startTime,
-          endTime: check.endTime,
-          status: check.status.value,
-          summary: check.summary,
-          buildNumber: check.buildNumber,
+      for (final job in jobs)
+        PresubmitJobResponse(
+          attemptNumber: job.attemptNumber,
+          jobName: job.jobName,
+          creationTime: job.creationTime,
+          startTime: job.startTime,
+          endTime: job.endTime,
+          status: job.status.value,
+          summary: job.summary,
+          buildNumber: job.buildNumber,
         ),
     ];
 

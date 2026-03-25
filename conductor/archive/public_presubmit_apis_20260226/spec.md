@@ -12,7 +12,7 @@ This track aims to make certain presubmit-related APIs public by refactoring the
     *   Retain authentication logic and `authContext` access within `ApiRequestHandler`.
 3.  **Expose APIs Publicly**:
     *   Update the following handlers to extend `PublicApiRequestHandler` instead of `ApiRequestHandler`:
-        *   `GetPresubmitChecks`
+        *   `GetPresubmitJobs`
         *   `GetPresubmitGuardSummaries`
         *   `GetPresubmitGuard`
     *   Remove the `authenticationProvider` requirement from their constructors.
@@ -23,7 +23,7 @@ This track aims to make certain presubmit-related APIs public by refactoring the
 
 ## Acceptance Criteria
 1.  `PublicApiRequestHandler` is correctly implemented and used as a base for `ApiRequestHandler`.
-2.  `GetPresubmitChecks`, `GetPresubmitGuardSummaries`, and `GetPresubmitGuard` no longer require authentication to be called.
+2.  `GetPresubmitJobs`, `GetPresubmitGuardSummaries`, and `GetPresubmitGuard` no longer require authentication to be called.
 3.  Existing unit tests for these handlers pass (with adjustments to the constructor/setup where necessary).
 4.  New tests verify that these APIs are accessible without an authentication token.
 5.  **Code Quality**: Running `dart format --set-exit-if-changed .` and `dart analyze --fatal-infos .` in `app_dart` results in no warnings or formatting issues.

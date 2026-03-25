@@ -1,23 +1,23 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'presubmit_check_response.dart';
+part of 'presubmit_job_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
+PresubmitJobResponse _$PresubmitJobResponseFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate(
-  'PresubmitCheckResponse',
+  'PresubmitJobResponse',
   json,
   ($checkedConvert) {
-    final val = PresubmitCheckResponse(
+    final val = PresubmitJobResponse(
       attemptNumber: $checkedConvert(
         'attempt_number',
         (v) => (v as num).toInt(),
       ),
-      buildName: $checkedConvert('build_name', (v) => v as String),
+      jobName: $checkedConvert('job_name', (v) => v as String),
       creationTime: $checkedConvert('creation_time', (v) => (v as num).toInt()),
       startTime: $checkedConvert('start_time', (v) => (v as num?)?.toInt()),
       endTime: $checkedConvert('end_time', (v) => (v as num?)?.toInt()),
@@ -29,7 +29,7 @@ PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
   },
   fieldKeyMap: const {
     'attemptNumber': 'attempt_number',
-    'buildName': 'build_name',
+    'jobName': 'job_name',
     'creationTime': 'creation_time',
     'startTime': 'start_time',
     'endTime': 'end_time',
@@ -37,11 +37,11 @@ PresubmitCheckResponse _$PresubmitCheckResponseFromJson(
   },
 );
 
-Map<String, dynamic> _$PresubmitCheckResponseToJson(
-  PresubmitCheckResponse instance,
+Map<String, dynamic> _$PresubmitJobResponseToJson(
+  PresubmitJobResponse instance,
 ) => <String, dynamic>{
   'attempt_number': instance.attemptNumber,
-  'build_name': instance.buildName,
+  'job_name': instance.jobName,
   'creation_time': instance.creationTime,
   'start_time': ?instance.startTime,
   'end_time': ?instance.endTime,

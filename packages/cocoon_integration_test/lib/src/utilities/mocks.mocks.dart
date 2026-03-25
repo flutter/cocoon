@@ -5771,7 +5771,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
 
   @override
   _i13.Future<bool> processCheckRunCompleted(
-    _i38.PresubmitCompletedCheck? check,
+    _i38.PresubmitCompletedJob? check,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#processCheckRunCompleted, [check]),

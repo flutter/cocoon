@@ -18,7 +18,7 @@ import 'base.dart';
 final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {
   PresubmitGuardId({
     required this.slug,
-    required this.pullRequestId,
+    required this.prNum,
     required this.checkRunId,
     required this.stage,
   });
@@ -26,8 +26,8 @@ final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {
   /// The repository owner/name.
   final RepositorySlug slug;
 
-  /// The pull request id.
-  final int pullRequestId;
+  /// The pull request number.
+  final int prNum;
 
   /// The Check Run Id.
   final int checkRunId;
@@ -37,7 +37,7 @@ final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {
 
   @override
   String get documentId =>
-      [slug.owner, slug.name, pullRequestId, checkRunId, stage].join('_');
+      [slug.owner, slug.name, prNum, checkRunId, stage].join('_');
 
   @override
   AppDocumentMetadata<PresubmitGuard> get runtimeMetadata =>
@@ -48,25 +48,25 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   static const collectionId = 'presubmit_guards';
   static const fieldCheckRun = 'check_run';
   static const fieldCheckRunId = 'check_run_id';
-  static const fieldPullRequestId = 'pull_request_id';
+  static const fieldPrNum = 'pr_num';
   static const fieldSlug = 'slug';
   static const fieldStage = 'stage';
-  static const fieldCommitSha = 'commit_sha';
+  static const fieldHeadSha = 'head_sha';
   static const fieldAuthor = 'author';
   static const fieldCreationTime = 'creation_time';
-  static const fieldRemainingBuilds = 'remaining_builds';
-  static const fieldFailedBuilds = 'failed_builds';
-  static const fieldBuilds = 'builds';
+  static const fieldRemainingJobs = 'remaining_jobs';
+  static const fieldFailedJobs = 'failed_jobs';
+  static const fieldJobs = 'jobs';
 
   static AppDocumentId<PresubmitGuard> documentIdFor({
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required int checkRunId,
     required CiStage stage,
   }) {
     return PresubmitGuardId(
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       checkRunId: checkRunId,
       stage: stage,
     );
@@ -75,14 +75,14 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   /// Returns a firebase documentName used in [fromFirestore].
   static String documentNameFor({
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required int checkRunId,
     required CiStage stage,
   }) {
     // Document names cannot cannot have '/' in the document id.
     final docId = documentIdFor(
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       checkRunId: checkRunId,
       stage: stage,
     );
@@ -92,11 +92,11 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   /// Returns the document ID for the given parameters.
   // static String documentId({
   //   required RepositorySlug slug,
-  //   required int pullRequestId,
+  //   required int prNum,
   //   required int checkRunId,
   //   required CiStage stage,
   // }) =>
-  //     '${slug.owner}_${slug.name}_${pullRequestId}_${checkRunId}_${stage.name}';
+  //     '${slug.owner}_${slug.name}_${prNum}_${checkRunId}_${stage.name}';
 
   @override
   AppDocumentMetadata<PresubmitGuard> get runtimeMetadata => metadata;
@@ -108,24 +108,24 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
 
   factory PresubmitGuard.init({
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required CheckRun checkRun,
     required CiStage stage,
-    required String commitSha,
+    required String headSha,
     required int creationTime,
     required String author,
-    required int buildCount,
+    required int jobCount,
   }) {
     return PresubmitGuard(
       checkRun: checkRun,
-      commitSha: commitSha,
+      headSha: headSha,
       slug: slug,
-      pullRequestId: pullRequestId,
+      prNum: prNum,
       stage: stage,
       author: author,
       creationTime: creationTime,
-      remainingBuilds: buildCount,
-      failedBuilds: 0,
+      remainingJobs: jobCount,
+      failedJobs: 0,
     );
   }
 
@@ -135,38 +135,38 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
 
   factory PresubmitGuard({
     required CheckRun checkRun,
-    required String commitSha,
+    required String headSha,
     required RepositorySlug slug,
-    required int pullRequestId,
+    required int prNum,
     required CiStage stage,
     required int creationTime,
     required String author,
-    required int remainingBuilds,
-    required int failedBuilds,
-    Map<String, TaskStatus>? builds,
+    required int remainingJobs,
+    required int failedJobs,
+    Map<String, TaskStatus>? jobs,
   }) {
     return PresubmitGuard._(
       {
         fieldCheckRunId: checkRun.id!.toValue(),
-        fieldPullRequestId: pullRequestId.toValue(),
+        fieldPrNum: prNum.toValue(),
         fieldSlug: slug.fullName.toValue(),
         fieldStage: stage.name.toValue(),
-        fieldCommitSha: commitSha.toValue(),
+        fieldHeadSha: headSha.toValue(),
         fieldCreationTime: creationTime.toValue(),
         fieldAuthor: author.toValue(),
         fieldCheckRun: json.encode(checkRun.toJson()).toValue(),
-        fieldRemainingBuilds: remainingBuilds.toValue(),
-        fieldFailedBuilds: failedBuilds.toValue(),
-        if (builds != null)
-          fieldBuilds: Value(
+        fieldRemainingJobs: remainingJobs.toValue(),
+        fieldFailedJobs: failedJobs.toValue(),
+        if (jobs != null)
+          fieldJobs: Value(
             mapValue: MapValue(
-              fields: builds.map((k, v) => MapEntry(k, v.value.toValue())),
+              fields: jobs.map((k, v) => MapEntry(k, v.value.toValue())),
             ),
           ),
       },
       name: documentNameFor(
         slug: slug,
-        pullRequestId: pullRequestId,
+        prNum: prNum,
         checkRunId: checkRun.id!,
         stage: stage,
       ),
@@ -178,14 +178,13 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     this.name = name;
   }
 
-  String get commitSha => fields[fieldCommitSha]!.stringValue!;
+  String get commitSha => fields[fieldHeadSha]!.stringValue!;
   String get author => fields[fieldAuthor]!.stringValue!;
   int get creationTime => int.parse(fields[fieldCreationTime]!.integerValue!);
-  int get remainingBuilds =>
-      int.parse(fields[fieldRemainingBuilds]!.integerValue!);
-  int get failedBuilds => int.parse(fields[fieldFailedBuilds]!.integerValue!);
-  Map<String, TaskStatus> get builds =>
-      fields[fieldBuilds]?.mapValue?.fields?.map<String, TaskStatus>(
+  int get remainingJobs => int.parse(fields[fieldRemainingJobs]!.integerValue!);
+  int get failedJobs => int.parse(fields[fieldFailedJobs]!.integerValue!);
+  Map<String, TaskStatus> get jobs =>
+      fields[fieldJobs]?.mapValue?.fields?.map<String, TaskStatus>(
         (k, v) => MapEntry(k, TaskStatus.from(v.stringValue!)),
       ) ??
       <String, TaskStatus>{};
@@ -212,13 +211,13 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   }
 
   /// The pull request for which this stage is recorded for.
-  int get pullRequestId {
-    if (fields[fieldPullRequestId] != null) {
-      return int.parse(fields[fieldPullRequestId]!.integerValue!);
+  int get prNum {
+    if (fields[fieldPrNum] != null) {
+      return int.parse(fields[fieldPrNum]!.integerValue!);
     }
     // Read it from the document name.
-    final [_, _, pullRequestId, _, _] = p.posix.basename(name!).split('_');
-    return int.parse(pullRequestId);
+    final [_, _, prNum, _, _] = p.posix.basename(name!).split('_');
+    return int.parse(prNum);
   }
 
   /// Which commit this stage is recorded for.
@@ -243,23 +242,23 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     return CiStage.values.firstWhere((e) => e.name == stageName);
   }
 
-  List<String> get failedBuildNames => [
-    for (final MapEntry(:key, :value) in builds.entries)
+  List<String> get failedJobNames => [
+    for (final MapEntry(:key, :value) in jobs.entries)
       if (value.isFailure) key,
   ];
 
-  set remainingBuilds(int remainingBuilds) {
-    fields[fieldRemainingBuilds] = remainingBuilds.toValue();
+  set remainingJobs(int remainingJobs) {
+    fields[fieldRemainingJobs] = remainingJobs.toValue();
   }
 
-  set failedBuilds(int failedBuilds) {
-    fields[fieldFailedBuilds] = failedBuilds.toValue();
+  set failedJobs(int failedJobs) {
+    fields[fieldFailedJobs] = failedJobs.toValue();
   }
 
-  set builds(Map<String, TaskStatus> builds) {
-    fields[fieldBuilds] = Value(
+  set jobs(Map<String, TaskStatus> jobs) {
+    fields[fieldJobs] = Value(
       mapValue: MapValue(
-        fields: builds.map((k, v) => MapEntry(k, v.value.toValue())),
+        fields: jobs.map((k, v) => MapEntry(k, v.value.toValue())),
       ),
     );
   }
