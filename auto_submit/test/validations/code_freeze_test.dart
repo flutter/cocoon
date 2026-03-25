@@ -41,7 +41,7 @@ void main() {
     test('blocks PR with frozen label', () async {
       final pr = generatePullRequest(labelName: 'f: material design');
 
-      final criteria = FreezeCriteria(frozenLabels: {'f: material design'});
+      const criteria = FreezeCriteria(frozenLabels: {'f: material design'});
       config.codeFreezeConfigurationValue = CodeFreezeConfiguration({
         'flutter/flutter': criteria,
       });
@@ -60,7 +60,7 @@ void main() {
     test('blocks PR with frozen path', () async {
       final pr = generatePullRequest(prNumber: 123);
 
-      final criteria = FreezeCriteria(
+      const criteria = FreezeCriteria(
         frozenPaths: {'packages/flutter/lib/src/material/'},
       );
       config.codeFreezeConfigurationValue = CodeFreezeConfiguration({
@@ -88,7 +88,7 @@ void main() {
         labelName: 'f: some other label',
       );
 
-      final criteria = FreezeCriteria(
+      const criteria = FreezeCriteria(
         frozenLabels: {'f: material design'},
         frozenPaths: {'packages/flutter/lib/src/material/'},
       );
