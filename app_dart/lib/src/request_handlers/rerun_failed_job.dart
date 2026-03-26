@@ -78,16 +78,15 @@ final class RerunFailedJob extends ApiRequestHandler {
     // We're doing a transactional update, which could fail if multiple tasks
     // are running at the same time so retry a sane amount of times before
     // giving up.
-    const r = RetryOptions(maxAttempts: 10, maxDelay: Duration(minutes: 2));
-    final rerunInfo = await r.retry(() async {
-      return await UnifiedCheckRun.reInitializeFailedJob(
+    final rerunInfo = await const RetryOptions().retry(
+      () => UnifiedCheckRun.reInitializeFailedJob(
         firestoreService: _firestore,
         slug: slug,
         prNum: prNumber,
         guardCheckRunId: guard.checkRunId,
         jobName: jobName,
-      );
-    });
+      ),
+    );
 
     if (rerunInfo == null) {
       throw BadRequestException(

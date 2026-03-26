@@ -76,15 +76,14 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     // We're doing a transactional update, which could fail if multiple tasks
     // are running at the same time so retry a sane amount of times before
     // giving up.
-    const r = RetryOptions(maxAttempts: 10, maxDelay: Duration(minutes: 2));
-    final failedChecks = await r.retry(() async {
-      return await UnifiedCheckRun.reInitializeFailedJobs(
+    final failedChecks = await const RetryOptions().retry(
+      () => UnifiedCheckRun.reInitializeFailedJobs(
         firestoreService: _firestore,
         slug: slug,
         prNum: prNumber,
         guardCheckRunId: guard.checkRunId,
-      );
-    });
+      ),
+    );
 
     if (failedChecks == null) {
       throw const NotFoundException('No failed jobs found to re-run');
