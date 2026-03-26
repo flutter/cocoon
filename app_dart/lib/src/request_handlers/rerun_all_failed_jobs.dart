@@ -86,7 +86,7 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     );
 
     if (failedChecks == null) {
-      throw const NotFoundException('No failed jobs found to re-run');
+      throw const BadRequestException('No failed jobs found to re-run');
     }
 
     final (targets, artifacts) = await _scheduler.getAllTargetsForPullRequest(
