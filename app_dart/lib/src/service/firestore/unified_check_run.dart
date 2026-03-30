@@ -583,6 +583,7 @@ final class UnifiedCheckRun {
         // completed.
       } else if (state.status == TaskStatus.inProgress) {
         presubmitJob.startTime = state.startTime!;
+        presubmitJob.buildNumber = state.buildNumber;
         // If the job is not completed, update the status.
         if (!status.isComplete) {
           status = state.status;
