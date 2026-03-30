@@ -24,7 +24,7 @@ import '../widgets/task_box.dart';
 
 /// A detailed monitoring view for a specific Pull Request (PR) or commit SHA.
 ///
-/// This view displays CI job statuses and execution logs.
+/// This view displays CI job statuses and execution details.
 final class PreSubmitView extends StatefulWidget {
   const PreSubmitView({
     super.key,
@@ -434,7 +434,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
               child: Row(
                 children: [
                   Text(
-                    'Execution Log',
+                    'Execution Details',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   Spacer(),
@@ -457,7 +457,10 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedJob.summary ?? 'No log summary available',
+                    selectedJob.summary
+                        ?? (selectedJob.status == 'Succeeded'
+                            ? '$jobName Executed Successfully. Click "View more details on LUCI UI" button below for more details.'
+                            : 'No execution details available'),
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
