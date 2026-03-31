@@ -336,6 +336,9 @@ class PresubmitState extends ChangeNotifier {
       _lastFetchedSha = null;
       _jobs = null;
       _selectedJob = null;
+      if (sha == null) {
+        _lastFetchedPr = null;
+      }
     }
 
     if (changed) {
