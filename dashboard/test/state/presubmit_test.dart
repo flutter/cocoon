@@ -367,38 +367,41 @@ void main() {
       ),
     ).called(1);
   });
-  test('syncUpdate with null sha resets _lastFetchedPr to force re-fetch when pr is the same', () async {
-    const summaries = [
-      PresubmitGuardSummary(
-        headSha: 'latest',
-        creationTime: 123,
-        guardStatus: GuardStatus.succeeded,
-      ),
-    ];
-    when(
-      mockCocoonService.fetchPresubmitGuardSummaries(
-        pr: '123',
-        repo: 'flutter',
-      ),
-    ).thenAnswer(
-      (_) async =>
-          const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
-    );
+  test(
+    'syncUpdate with null sha resets _lastFetchedPr to force re-fetch when pr is the same',
+    () async {
+      const summaries = [
+        PresubmitGuardSummary(
+          headSha: 'latest',
+          creationTime: 123,
+          guardStatus: GuardStatus.succeeded,
+        ),
+      ];
+      when(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          pr: '123',
+          repo: 'flutter',
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const CocoonResponse<List<PresubmitGuardSummary>>.data(summaries),
+      );
 
-    await presubmitState.update(repo: 'flutter', pr: '123', sha: 'sha1');
-    expect(presubmitState.sha, 'sha1');
+      presubmitState.update(repo: 'flutter', pr: '123', sha: 'sha1');
+      expect(presubmitState.sha, 'sha1');
 
-    await Future<void>.delayed(Duration.zero);
-    clearInteractions(mockCocoonService);
+      await Future<void>.delayed(Duration.zero);
+      clearInteractions(mockCocoonService);
 
-    await presubmitState.update(pr: '123', sha: null);
+      presubmitState.update(pr: '123', sha: null);
 
-    verify(
-      mockCocoonService.fetchPresubmitGuardSummaries(
-        pr: '123',
-        repo: 'flutter',
-      ),
-    ).called(1);
-    expect(presubmitState.sha, 'latest');
-  });
+      verify(
+        mockCocoonService.fetchPresubmitGuardSummaries(
+          pr: '123',
+          repo: 'flutter',
+        ),
+      ).called(1);
+      expect(presubmitState.sha, 'latest');
+    },
+  );
 }
