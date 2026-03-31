@@ -290,6 +290,36 @@ void main() {
 
         expect(result.result, PresubmitGuardConclusionResult.missing);
       });
+      test('updates check status and build number on inProgress', () async {
+        final state = const PresubmitJobState(
+          jobName: 'linux',
+          status: TaskStatus.inProgress,
+          attemptNumber: 1,
+          startTime: 2000,
+          buildNumber: 456,
+        );
+
+        final result = await UnifiedCheckRun.markConclusion(
+          firestoreService: firestoreService,
+          guardId: guardId,
+          state: state,
+        );
+
+        expect(result.result, PresubmitGuardConclusionResult.ok);
+
+        final checkDoc = await PresubmitJob.fromFirestore(
+          firestoreService,
+          PresubmitJobId(
+            slug: slug,
+            checkRunId: 123,
+            jobName: 'linux',
+            attemptNumber: 1,
+          ),
+        );
+        expect(checkDoc.status, TaskStatus.inProgress);
+        expect(checkDoc.startTime, 2000);
+        expect(checkDoc.buildNumber, 456);
+      });
     });
     group('reInitializeFailedChecks', () {
       late PresubmitGuardId fusionGuardId;
