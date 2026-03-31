@@ -430,6 +430,7 @@ interface class Config extends DynamicallyUpdatedConfig {
     'engine-flutter-autoroll',
     'dependabot',
     'dependabot[bot]',
+    'flutter-pub-roller-bot',
   };
 
   Future<String> generateGithubToken(gh.RepositorySlug slug) async {

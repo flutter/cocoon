@@ -92,6 +92,7 @@ void main() {
         'engine-flutter-autoroll',
         'dependabot',
         'dependabot[bot]',
+        'flutter-pub-roller-bot',
       },
       wrongHeadBranchPullRequestMessageValue:
           'wrongHeadBranchPullRequestMessage',
@@ -885,6 +886,7 @@ void main() {
           'skia-flutter-autoroll',
           'dependabot',
           'engine-flutter-autoroll',
+          'flutter-pub-roller-bot',
         };
 
         for (var element in inputs) {
@@ -1732,6 +1734,7 @@ void foo() {
           'engine-flutter-autoroll',
           'dependabot',
           'dependabot[bot]',
+          'flutter-pub-roller-bot',
         };
 
         for (var element in inputs) {

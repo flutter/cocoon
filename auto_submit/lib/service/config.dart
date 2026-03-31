@@ -134,6 +134,7 @@ class Config {
     'dependabot[bot]',
     'dependabot',
     'DartDevtoolWorkflowBot',
+    'flutter-pub-roller-bot',
   };
 
   /// Repository configuration variables

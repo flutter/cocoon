@@ -74,6 +74,7 @@ class FakeConfig extends Config {
         'engine-flutter-autoroll',
         'dependabot[bot]',
         'dependabot',
+        'flutter-pub-roller-bot',
       };
 
   @override
