@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "dashboard",
+            "cwd": "dashboard",
+            "request": "launch",
+            "flutterMode": "debug",
+            "deviceId": "chrome",
+            "type": "dart",
+            "args": [
+                "--web-port",
+                "8080",
+            ]
+        },
+        {
             "name": "dashboard (fake auth)",
             "cwd": "dashboard",
             "request": "launch",
@@ -12,7 +24,9 @@
             "deviceId": "chrome",
             "type": "dart",
             "args": [
-                "--dart-define=FAKE_AUTH=true"
+                "--dart-define=FAKE_AUTH=true",
+                "--web-port",
+                "8080",
             ]
         },
     ]
