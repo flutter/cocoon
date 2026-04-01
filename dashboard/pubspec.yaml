@@ -38,7 +38,7 @@ dependencies:
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
   provider: 6.1.5 # Rolled by dependabot
-  # TODO(chunhtai): Remove this pin once sign_in_button is updated to use font_awesome_flutter >= 11.0.0
+  # TODO(chunhtai): Avoid using pinning once sign_in_button is updated to use font_awesome_flutter >= 11.0.0
   sign_in_button: 4.0.1
   truncate: 3.0.1 # Rolled by dependabot
   url_launcher: 6.3.2 # Rolled by dependabot
