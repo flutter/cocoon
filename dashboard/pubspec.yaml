@@ -28,6 +28,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_app_icons: 0.1.1 # Rolled by dependabot
+  font_awesome_flutter: ^10.12.0
   github: ^9.25.0
   google_sign_in: ^7.0.0
   google_sign_in_platform_interface: ^3.0.0
