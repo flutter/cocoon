@@ -5,6 +5,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
+import '../../task_status.dart';
 import 'base.dart';
 
 part 'presubmit_job_response.g.dart';
@@ -54,7 +55,7 @@ final class PresubmitJobResponse extends Model {
   final int? endTime;
 
   /// The status of the job.
-  final String status;
+  final TaskStatus status;
 
   /// A brief summary of the job result or link to logs.
   final String? summary;

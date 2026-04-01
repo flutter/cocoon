@@ -322,14 +322,14 @@ class PresubmitState extends ChangeNotifier {
       this.repo = repo;
       changed = true;
     }
-    if (pr != this.pr) {
+    if (this.pr != pr) {
       this.pr = pr;
       changed = true;
       _availableSummaries = [];
       _lastFetchedPr = null;
       clearFilters();
     }
-    if (sha != this.sha) {
+    if (this.sha != sha) {
       this.sha = sha;
       changed = true;
       _guardResponse = null;

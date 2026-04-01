@@ -21,7 +21,10 @@ PresubmitJobResponse _$PresubmitJobResponseFromJson(
       creationTime: $checkedConvert('creation_time', (v) => (v as num).toInt()),
       startTime: $checkedConvert('start_time', (v) => (v as num?)?.toInt()),
       endTime: $checkedConvert('end_time', (v) => (v as num?)?.toInt()),
-      status: $checkedConvert('status', (v) => v as String),
+      status: $checkedConvert(
+        'status',
+        (v) => $enumDecode(_$TaskStatusEnumMap, v),
+      ),
       summary: $checkedConvert('summary', (v) => v as String?),
       buildNumber: $checkedConvert('build_number', (v) => (v as num?)?.toInt()),
     );
@@ -48,4 +51,15 @@ Map<String, dynamic> _$PresubmitJobResponseToJson(
   'status': instance.status,
   'summary': ?instance.summary,
   'build_number': ?instance.buildNumber,
+};
+
+const _$TaskStatusEnumMap = {
+  TaskStatus.cancelled: 'Cancelled',
+  TaskStatus.waitingForBackfill: 'New',
+  TaskStatus.inProgress: 'In Progress',
+  TaskStatus.infraFailure: 'Infra Failure',
+  TaskStatus.failed: 'Failed',
+  TaskStatus.succeeded: 'Succeeded',
+  TaskStatus.neutral: 'Neutral',
+  TaskStatus.skipped: 'Skipped',
 };

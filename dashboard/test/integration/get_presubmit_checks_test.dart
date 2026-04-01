@@ -59,7 +59,7 @@ void main() {
 
       final result = response.data!.first;
       expect(result.jobName, 'linux android_2');
-      expect(result.status, 'Succeeded');
+      expect(result.status, TaskStatus.succeeded);
       expect(result.attemptNumber, 1);
       expect(result.buildNumber, 1337);
       expect(result.summary, 'Build succeeded');
@@ -107,10 +107,10 @@ void main() {
       // `orderMap: const { PresubmitJob.fieldAttemptNumber: kQueryOrderDescending }`
 
       expect(response.data![0].attemptNumber, 2);
-      expect(response.data![0].status, 'Succeeded');
+      expect(response.data![0].status, TaskStatus.succeeded);
 
       expect(response.data![1].attemptNumber, 1);
-      expect(response.data![1].status, 'Failed');
+      expect(response.data![1].status, TaskStatus.failed);
     });
   });
 }

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -12,7 +13,7 @@ void main() {
         'attempt_number': 1,
         'job_name': 'linux',
         'creation_time': 1000,
-        'status': 'succeeded',
+        'status': '${TaskStatus.succeeded}',
         'build_number': 456,
       };
 
@@ -28,7 +29,7 @@ void main() {
         'attempt_number': 1,
         'job_name': 'linux',
         'creation_time': 1000,
-        'status': 'succeeded',
+        'status': '${TaskStatus.succeeded}',
       };
 
       final response = PresubmitJobResponse.fromJson(json);

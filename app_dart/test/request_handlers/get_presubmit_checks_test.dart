@@ -98,7 +98,7 @@ void main() {
       expect(jobs.length, 1);
       expect(jobs[0].attemptNumber, 1);
       expect(jobs[0].jobName, 'linux');
-      expect(jobs[0].status, 'Succeeded');
+      expect(jobs[0].status, TaskStatus.succeeded);
       expect(jobs[0].buildNumber, 456);
     });
 

@@ -97,7 +97,7 @@ final class GetPresubmitJobs extends PublicApiRequestHandler {
           creationTime: job.creationTime,
           startTime: job.startTime,
           endTime: job.endTime,
-          status: job.status.value,
+          status: job.status,
           summary: job.summary,
           buildNumber: job.buildNumber,
         ),

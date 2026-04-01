@@ -43,7 +43,7 @@ void main() {
         'attempt_number': 1,
         'job_name': 'Linux Device Doctor',
         'creation_time': 1620134239000,
-        'status': 'Succeeded',
+        'status': '${TaskStatus.succeeded}',
         'summary': 'Check passed',
       };
 
@@ -52,7 +52,7 @@ void main() {
       expect(response.attemptNumber, 1);
       expect(response.jobName, 'Linux Device Doctor');
       expect(response.creationTime, 1620134239000);
-      expect(response.status, 'Succeeded');
+      expect(response.status, TaskStatus.succeeded);
       expect(response.summary, 'Check passed');
     });
   });

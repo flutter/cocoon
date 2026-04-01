@@ -4,6 +4,7 @@
 
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -159,7 +160,7 @@ void main() {
           attemptNumber: 1,
           jobName: 'check1',
           creationTime: 0,
-          status: 'Succeeded',
+          status: TaskStatus.succeeded,
         ),
       ];
       const guardResponse = PresubmitGuardResponse(
@@ -394,6 +395,8 @@ void main() {
       clearInteractions(mockCocoonService);
 
       presubmitState.update(pr: '123', sha: null);
+
+      await Future<void>.delayed(Duration.zero);
 
       verify(
         mockCocoonService.fetchPresubmitGuardSummaries(

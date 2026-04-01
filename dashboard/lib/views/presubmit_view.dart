@@ -24,7 +24,7 @@ import '../widgets/task_box.dart';
 
 /// A detailed monitoring view for a specific Pull Request (PR) or commit SHA.
 ///
-/// This view displays CI job statuses and execution logs.
+/// This view displays CI job statuses and execution details.
 final class PreSubmitView extends StatefulWidget {
   const PreSubmitView({
     super.key,
@@ -284,9 +284,11 @@ class _PreSubmitViewState extends State<PreSubmitView> {
                               child:
                                   (selectedJob == null || guardResponse == null)
                                   ? const Center(
-                                      child: Text('Select a job to view logs'),
+                                      child: Text(
+                                        'Select a job to view execution details.',
+                                      ),
                                     )
-                                  : const _LogViewerPane(),
+                                  : const _JobDetailsViewerPane(),
                             ),
                           ],
                         ),
@@ -300,14 +302,14 @@ class _PreSubmitViewState extends State<PreSubmitView> {
   }
 }
 
-class _LogViewerPane extends StatefulWidget {
-  const _LogViewerPane();
+class _JobDetailsViewerPane extends StatefulWidget {
+  const _JobDetailsViewerPane();
 
   @override
-  State<_LogViewerPane> createState() => _LogViewerPaneState();
+  State<_JobDetailsViewerPane> createState() => _JobDetailsViewerPaneState();
 }
 
-class _LogViewerPaneState extends State<_LogViewerPane> {
+class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
   int _selectedAttemptIndex = 0;
 
   @override
@@ -434,7 +436,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
               child: Row(
                 children: [
                   Text(
-                    'Execution Log',
+                    'Execution Details',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   Spacer(),
@@ -457,7 +459,7 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedJob.summary ?? 'No log summary available',
+                    selectedJob.summary ?? _getDefaultJobDetails(selectedJob),
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
@@ -511,6 +513,24 @@ class _LogViewerPaneState extends State<_LogViewerPane> {
         );
       },
     );
+  }
+
+  String _getDefaultJobDetails(PresubmitJobResponse job) {
+    return switch (job.status) {
+      .succeeded =>
+        '${job.jobName} executed successfully. Click "View more details on LUCI UI" button bellow for more details.',
+      .failed =>
+        '${job.jobName} failed. Click "View more details on LUCI UI" button bellow for more details.',
+      .infraFailure =>
+        'Infrastructure failed during execution of ${job.jobName}. Click "View more details on LUCI UI" button bellow for more details.',
+      .skipped => '${job.jobName} is skipped.',
+      .neutral => '${job.jobName} is disabled.',
+      .cancelled => '${job.jobName} is cancelled.',
+      .inProgress =>
+        '${job.jobName} is in progress. Click "View more details on LUCI UI" button bellow to see execution details.',
+      .waitingForBackfill =>
+        '${job.jobName} is not yet scheduled for execution. "View more details on LUCI UI" button will become enabled once the job is scheduled.',
+    };
   }
 }
 
