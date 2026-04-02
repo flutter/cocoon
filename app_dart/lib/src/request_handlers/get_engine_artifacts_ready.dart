@@ -8,6 +8,7 @@ import '../../cocoon_service.dart';
 import '../model/firestore/ci_staging.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/public_api_request_handler.dart';
+import '../service/firestore/unified_check_run.dart';
 
 /// Query if engine artifacts are ready for a given commit SHA.
 ///
@@ -40,9 +41,11 @@ final class GetEngineArtifactsReady extends PublicApiRequestHandler {
       throw const BadRequestException('Missing query parameter: "$_paramSha"');
     }
 
-    final CiStaging ciStaging;
+    var failed = 0;
+    var remaining = 0;
+    var found = false;
     try {
-      ciStaging = await CiStaging.fromFirestore(
+      final ciStaging = await CiStaging.fromFirestore(
         firestoreService: _firestore,
         documentName: CiStaging.documentNameFor(
           slug: Config.flutterSlug,
@@ -50,18 +53,50 @@ final class GetEngineArtifactsReady extends PublicApiRequestHandler {
           stage: CiStage.fusionEngineBuild,
         ),
       );
+      failed = ciStaging.failed;
+      remaining = ciStaging.remaining;
+      found = true;
     } on DetailedApiRequestError catch (e) {
-      if (e.status == HttpStatus.notFound) {
-        throw NotFoundException('No engine SHA found for "$commitSha"');
+      if (e.status != HttpStatus.notFound) {
+        rethrow;
       }
-      rethrow;
+    }
+    // if not found in ciStaging document, check if there are any
+    // presubmit guards for this sha. This is needed for unified check-run flow.
+    if (!found) {
+      final guards = await UnifiedCheckRun.getPresubmitGuardsForCommitSha(
+        firestoreService: _firestore,
+        slug: Config.flutterSlug,
+        commitSha: commitSha,
+      );
+      if (guards.isNotEmpty) {
+        found = true;
+        // If Guard exists for `fusion` only consider that stage is successful
+        // since empty guard is not stored for `engine` like it is in ciStaging.
+        remaining =
+            guards
+                .where((g) => g.stage == CiStage.fusionEngineBuild)
+                .firstOrNull
+                ?.remainingJobs ??
+            0;
+        failed =
+            guards
+                .where((g) => g.stage == CiStage.fusionEngineBuild)
+                .firstOrNull
+                ?.failedJobs ??
+            0;
+      }
     }
 
-    if (ciStaging.failed > 0) {
+    if (!found) {
+      throw NotFoundException('No engine SHA found for "$commitSha"');
+    }
+
+    if (failed > 0) {
       return Response.json(_GetEngineArtifactsResponse.failed);
     }
 
-    if (ciStaging.remaining > 0) {
+    if (remaining > 0) {
       return Response.json(_GetEngineArtifactsResponse.pending);
     }
 

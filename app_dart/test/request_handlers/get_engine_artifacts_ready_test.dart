@@ -131,4 +131,106 @@ void main() {
     await expectLater(tester.get(handler), completes);
     await expectLater(decodeHandlerBody(), completion({'status': 'failed'}));
   });
+
+  group('when not found in ciStaging, checks presubmit guards', () {
+    test(
+      'returns "complete" when guard for fusionEngineBuild is successful',
+      () async {
+        tester.request.uri = tester.request.uri.replace(
+          queryParameters: {'sha': 'abc123'},
+        );
+
+        final guard = generatePresubmitGuard(
+          slug: Config.flutterSlug,
+          headSha: 'abc123',
+          stage: CiStage.fusionEngineBuild,
+          remainingJobs: 0,
+          failedJobs: 0,
+        );
+
+        firestore.putDocuments([guard]);
+
+        await expectLater(tester.get(handler), completes);
+        await expectLater(
+          decodeHandlerBody(),
+          completion({'status': 'complete'}),
+        );
+      },
+    );
+
+    test(
+      'returns "pending" when guard for fusionEngineBuild is pending',
+      () async {
+        tester.request.uri = tester.request.uri.replace(
+          queryParameters: {'sha': 'abc123'},
+        );
+
+        final guard = generatePresubmitGuard(
+          slug: Config.flutterSlug,
+          headSha: 'abc123',
+          stage: CiStage.fusionEngineBuild,
+          remainingJobs: 1,
+          failedJobs: 0,
+        );
+
+        firestore.putDocuments([guard]);
+
+        await expectLater(tester.get(handler), completes);
+        await expectLater(
+          decodeHandlerBody(),
+          completion({'status': 'pending'}),
+        );
+      },
+    );
+
+    test(
+      'returns "failed" when guard for fusionEngineBuild is failed',
+      () async {
+        tester.request.uri = tester.request.uri.replace(
+          queryParameters: {'sha': 'abc123'},
+        );
+
+        final guard = generatePresubmitGuard(
+          slug: Config.flutterSlug,
+          headSha: 'abc123',
+          stage: CiStage.fusionEngineBuild,
+          remainingJobs: 0,
+          failedJobs: 1,
+        );
+
+        firestore.putDocuments([guard]);
+
+        await expectLater(tester.get(handler), completes);
+        await expectLater(
+          decodeHandlerBody(),
+          completion({'status': 'failed'}),
+        );
+      },
+    );
+
+    test(
+      'returns "complete" when guards exist but none for fusionEngineBuild',
+      () async {
+        tester.request.uri = tester.request.uri.replace(
+          queryParameters: {'sha': 'abc123'},
+        );
+
+        final guard = generatePresubmitGuard(
+          slug: Config.flutterSlug,
+          headSha: 'abc123',
+          stage: CiStage.fusionTests,
+          remainingJobs: 1,
+          failedJobs: 0,
+        );
+
+        firestore.putDocuments([guard]);
+
+        await expectLater(tester.get(handler), completes);
+        await expectLater(
+          decodeHandlerBody(),
+          completion({'status': 'complete'}),
+        );
+      },
+    );
+  });
 }
