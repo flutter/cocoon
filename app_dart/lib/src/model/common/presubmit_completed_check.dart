@@ -103,8 +103,8 @@ class PresubmitCompletedJob {
       stage: userData.stage,
       prNum: userData.pullRequestNumber,
       attempt: _getAttempt(build),
-      startTime: build.startTime.toDateTime().microsecondsSinceEpoch,
-      endTime: build.endTime.toDateTime().microsecondsSinceEpoch,
+      startTime: build.startTime.toDateTime().millisecondsSinceEpoch,
+      endTime: build.endTime.toDateTime().millisecondsSinceEpoch,
       summary: build.summaryMarkdown,
       buildNumber: build.number,
     );

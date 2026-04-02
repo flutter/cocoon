@@ -46,7 +46,7 @@ final class UnifiedCheckRun {
       // We store the creation time of the guard since there might be several
       // guards for the same PR created and each new one created after previous
       // was succeeded so we are interested in a state of the latest one.
-      final creationTime = utcNow().microsecondsSinceEpoch;
+      final creationTime = utcNow().millisecondsSinceEpoch;
       final guard = PresubmitGuard(
         checkRun: checkRun,
         headSha: sha,
@@ -124,7 +124,7 @@ final class UnifiedCheckRun {
       return null;
     }
 
-    final creationTime = utcNow().microsecondsSinceEpoch;
+    final creationTime = utcNow().millisecondsSinceEpoch;
     final failedJobNames = latestGuard.failedJobNames;
     if (failedJobNames.isNotEmpty) {
       latestGuard.failedJobs = 0;
@@ -204,7 +204,7 @@ final class UnifiedCheckRun {
       return null;
     }
 
-    final creationTime = utcNow().microsecondsSinceEpoch;
+    final creationTime = utcNow().millisecondsSinceEpoch;
     final jobs = guard.jobs;
     final currentStatus = jobs[jobName]!;
 

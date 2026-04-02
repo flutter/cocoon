@@ -37,8 +37,8 @@ extension BuildToPresubmitJobState on bbv2.Build {
     jobName: builder.builder,
     status: status.toTaskStatus(),
     attemptNumber: BuildTags.fromStringPairs(tags).currentAttempt,
-    startTime: startTime.toDateTime().microsecondsSinceEpoch,
-    endTime: endTime.toDateTime().microsecondsSinceEpoch,
+    startTime: startTime.toDateTime().millisecondsSinceEpoch,
+    endTime: endTime.toDateTime().millisecondsSinceEpoch,
     summary: summaryMarkdown,
     buildNumber: number,
   );

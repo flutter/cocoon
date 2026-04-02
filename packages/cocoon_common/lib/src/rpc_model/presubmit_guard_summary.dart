@@ -22,7 +22,7 @@ final class PresubmitGuardSummary {
   /// The commit head SHA.
   final String headSha;
 
-  /// The creation timestamp in microseconds since epoch.
+  /// The creation timestamp in milliseconds since epoch.
   final int creationTime;
 
   /// The status of the guard.
