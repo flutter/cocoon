@@ -73,18 +73,11 @@ final class GetEngineArtifactsReady extends PublicApiRequestHandler {
         found = true;
         // If Guard exists for `fusion` only consider that stage is successful
         // since empty guard is not stored for `engine` like it is in ciStaging.
-        remaining =
-            guards
-                .where((g) => g.stage == CiStage.fusionEngineBuild)
-                .firstOrNull
-                ?.remainingJobs ??
-            0;
-        failed =
-            guards
-                .where((g) => g.stage == CiStage.fusionEngineBuild)
-                .firstOrNull
-                ?.failedJobs ??
-            0;
+        final engineGuard = guards
+            .where((g) => g.stage == CiStage.fusionEngineBuild)
+            .firstOrNull;
+        remaining = engineGuard?.remainingJobs ?? 0;
+        failed = engineGuard?.failedJobs ?? 0;
       }
     }
 
