@@ -459,7 +459,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedJob.summary ?? _getDefaultJobDetails(selectedJob),
+                    selectedJob.summary?.isEmpty ?? true
+                        ? _getDefaultJobDetails(selectedJob)
+                        : selectedJob.summary!,
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
