@@ -59,15 +59,21 @@ class PubSub {
   ///
   /// The PubSub system can remove the relevant messages from the subscription.
   Future<void> acknowledge(String subscription, String ackId) async {
-    final Client httpClient = await clientViaApplicationDefaultCredentials(
-      scopes: <String>[pubsub.PubsubApi.pubsubScope],
-    );
-    final pubsubApi = pubsub.PubsubApi(httpClient);
-    final ackIds = <String>[ackId];
-    final acknowledgeRequest = pubsub.AcknowledgeRequest(ackIds: ackIds);
-    await pubsubApi.projects.subscriptions.acknowledge(
-      acknowledgeRequest,
-      '${Config.pubsubSubscriptionsPrefix}/$subscription',
-    );
+    try {
+      final Client httpClient = await clientViaApplicationDefaultCredentials(
+        scopes: <String>[pubsub.PubsubApi.pubsubScope],
+      );
+      final pubsubApi = pubsub.PubsubApi(httpClient);
+      final ackIds = <String>[ackId];
+      final acknowledgeRequest = pubsub.AcknowledgeRequest(ackIds: ackIds);
+      await pubsubApi.projects.subscriptions.acknowledge(
+        acknowledgeRequest,
+        '${Config.pubsubSubscriptionsPrefix}/$subscription',
+      );
+    } catch (e) {
+      log.warning(
+        'Failed to acknowledge message $ackId for subscription $subscription: $e',
+      );
+    }
   }
 }
