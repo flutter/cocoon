@@ -71,7 +71,7 @@ class PubSub {
         '${Config.pubsubSubscriptionsPrefix}/$subscription',
       );
     } catch (e) {
-      log.warning(
+      log.error(
         'Failed to acknowledge message $ackId for subscription $subscription: $e',
       );
     }
