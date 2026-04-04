@@ -459,7 +459,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedJob.summary?.isEmpty ?? true
+                    selectedJob.summary?.trim().isEmpty ?? true
                         ? _getDefaultJobDetails(selectedJob)
                         : selectedJob.summary!,
                     style: const TextStyle(
@@ -520,16 +520,16 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
   String _getDefaultJobDetails(PresubmitJobResponse job) {
     return switch (job.status) {
       .succeeded =>
-        '${job.jobName} executed successfully.\nClick "View more details on LUCI UI" button bellow for more details.',
+        '${job.jobName} executed successfully.\nClick "View more details on LUCI UI" button below for more details.',
       .failed =>
-        '${job.jobName} failed.\nClick "View more details on LUCI UI" button bellow for more details.',
+        '${job.jobName} failed.\nClick "View more details on LUCI UI" button below for more details.',
       .infraFailure =>
-        'Infrastructure failed during execution of ${job.jobName}.\nClick "View more details on LUCI UI" button bellow for more details.',
+        'Infrastructure failed during execution of ${job.jobName}.\nClick "View more details on LUCI UI" button below for more details.',
       .skipped => '${job.jobName} is skipped.',
       .neutral => '${job.jobName} is disabled.',
       .cancelled => '${job.jobName} is cancelled.',
       .inProgress =>
-        '${job.jobName} is in progress.\nClick "View more details on LUCI UI" button bellow to see execution details.',
+        '${job.jobName} is in progress.\nClick "View more details on LUCI UI" button below to see execution details.',
       .waitingForBackfill =>
         '${job.jobName} is not yet scheduled for execution.\n"View more details on LUCI UI" button will become enabled once the job is scheduled.',
     };
