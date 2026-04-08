@@ -216,6 +216,9 @@ class FakeGithubService implements GithubService {
 
   @override
   Future<List<CheckRun>> getCheckRuns(RepositorySlug slug, String ref) async {
+    if (checkRunsMock == null) {
+      return <CheckRun>[];
+    }
     final rawBody = json.decode(checkRunsMock!) as Map<String, dynamic>;
     final checkRunsBody = rawBody['check_runs']! as List<dynamic>;
     final checkRuns = <CheckRun>[];

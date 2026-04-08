@@ -3859,5 +3859,114 @@ void foo() {
         );
       },
     );
+
+    test(
+      'opened PR without CICD label creates "Awaiting CICD label" checkrun',
+      () async {
+        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          withCicdLabel: false,
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'opened PR with CICD label STILL creates "Awaiting CICD label" checkrun if not exists',
+      () async {
+        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          withCicdLabel: true,
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'edited PR without CICD label creates "Awaiting CICD label" checkrun if not exists',
+      () async {
+        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
+        tester.message = generateGithubWebhookMessage(
+          action: 'edited',
+          withCicdLabel: false,
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'labeled event with CICD label resolves "Awaiting CICD label" checkrun',
+      () async {
+        githubService.checkRunsMock = '''{
+        "total_count": 1,
+        "check_runs": [
+          {
+            "id": 1,
+            "name": "Awaiting CICD label",
+            "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+            "status": "in_progress",
+            "started_at": "2018-05-04T01:14:52Z",
+            "conclusion": null,
+            "check_suite": {
+              "id": 5
+            }
+          }
+        ]
+      }''';
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'labeled',
+          labeledLabel: labelEventMap,
+          withCicdLabel: true,
+        );
+
+        await tester.post(webhook);
+
+        expect(githubService.checkRunUpdates.length, 1);
+        expect(
+          githubService.checkRunUpdates.first.status,
+          CheckRunStatus.completed,
+        );
+        expect(
+          githubService.checkRunUpdates.first.conclusion,
+          CheckRunConclusion.success,
+        );
+      },
+    );
   });
 }

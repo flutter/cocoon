@@ -841,6 +841,57 @@ $s
     );
   }
 
+  /// Creates a pending check run for "Awaiting CICD label" if it doesn't exist.
+  Future<CheckRun?> createAwaitingCicdLabelCheckRun(
+    RepositorySlug slug,
+    String headSha,
+  ) async {
+    final githubService = await _config.createGithubService(slug);
+    final existing = await githubService.getCheckRunsFiltered(
+      slug: slug,
+      ref: headSha,
+      checkName: 'Awaiting CICD label',
+    );
+    if (existing.isEmpty) {
+      return _githubChecksService.githubChecksUtil.createCheckRun(
+        _config,
+        slug,
+        headSha,
+        'Awaiting CICD label',
+        output: const CheckRunOutput(
+          title: 'Awaiting CICD label',
+          summary: 'This PR is awaiting the CICD label to start tests.',
+        ),
+      );
+    }
+    return null;
+  }
+
+  /// Resolves the pending check run for "Awaiting CICD label".
+  Future<void> resolveAwaitingCicdLabelCheckRun(
+    RepositorySlug slug,
+    String headSha,
+  ) async {
+    final githubService = await _config.createGithubService(slug);
+    final guard = (await githubService.getCheckRunsFiltered(
+      slug: slug,
+      ref: headSha,
+      checkName: 'Awaiting CICD label',
+    )).singleOrNull;
+    if (guard != null) {
+      await githubService.updateCheckRun(
+        slug: slug,
+        checkRun: guard,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.success,
+        output: const CheckRunOutput(
+          title: 'Awaiting CICD label',
+          summary: 'CICD label added.',
+        ),
+      );
+    }
+  }
+
   /// Completes the "Merge Queue Guard" check run.
   ///
   /// If the guard is guarding a merge group, this immediately makes the merge

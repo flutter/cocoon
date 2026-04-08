@@ -203,10 +203,12 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
             pullRequestEvent.changes!.base != null) {
           await _addCICDForRollersAndMembers(pullRequestEvent);
         }
+        await scheduler.createAwaitingCicdLabelCheckRun(slug, pr.head!.sha!);
         await _checkForTests(pullRequestEvent);
         break;
       case 'opened':
         await _addCICDForRollersAndMembers(pullRequestEvent);
+        await scheduler.createAwaitingCicdLabelCheckRun(slug, pr.head!.sha!);
         await _checkForTests(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
@@ -224,6 +226,10 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
           if (Config.kCicdLabelIds.contains(label.id) &&
               label.name == Config.kCicdLabel) {
             log.info('new CICD label added - scheduling tests');
+            await scheduler.resolveAwaitingCicdLabelCheckRun(
+              slug,
+              pr.head!.sha!,
+            );
             await _scheduleIfMergeable(pullRequestEvent);
           }
         }
