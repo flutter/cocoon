@@ -46,7 +46,17 @@ class GraphQlService {
 
     if (queryResult.hasException) {
       log.error('GraphQL query failed', queryResult.exception);
-      throw const BadRequestException('GraphQL query failed');
+      final exception = queryResult.exception!;
+      final errors = exception.graphqlErrors;
+      String errorMessage;
+      if (errors.isNotEmpty) {
+        errorMessage = errors.map((e) => e.message).join(', ');
+      } else if (exception.linkException != null) {
+        errorMessage = exception.linkException.toString();
+      } else {
+        errorMessage = 'GraphQL query failed';
+      }
+      throw BadRequestException(errorMessage);
     }
     return queryResult.data!;
   }
@@ -67,7 +77,17 @@ class GraphQlService {
 
     if (queryResult.hasException) {
       log.error('GraphQL mutate failed', queryResult.exception);
-      throw const BadRequestException('GraphQL mutate failed');
+      final exception = queryResult.exception!;
+      final errors = exception.graphqlErrors;
+      String errorMessage;
+      if (errors.isNotEmpty) {
+        errorMessage = errors.map((e) => e.message).join(', ');
+      } else if (exception.linkException != null) {
+        errorMessage = exception.linkException.toString();
+      } else {
+        errorMessage = 'GraphQL mutate failed';
+      }
+      throw BadRequestException(errorMessage);
     }
     return queryResult.data!;
   }

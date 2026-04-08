@@ -627,7 +627,14 @@ This is the second line in a paragraph.''');
         return QueryResult(
           options: options,
           source: QueryResultSource.network,
-          exception: OperationException(),
+          exception: OperationException(
+            graphqlErrors: <GraphQLError>[
+              const GraphQLError(
+                message:
+                    'Pull request New changes require approval from someone other than Piinks because they were the last pusher.',
+              ),
+            ],
+          ),
         );
       };
 
@@ -648,7 +655,7 @@ This is the second line in a paragraph.''');
       expect(
         result.message,
         contains(
-          'Failed to enqueue flutter/flutter/42 with HTTP 400: GraphQL mutate failed',
+          'Failed to enqueue flutter/flutter/42 with HTTP 400: Pull request New changes require approval from someone other than Piinks because they were the last pusher.',
         ),
       );
     });
