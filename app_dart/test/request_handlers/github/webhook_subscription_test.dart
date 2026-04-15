@@ -3312,7 +3312,7 @@ void foo() {
           status: CheckRunStatus.completed,
           conclusion: CheckRunConclusion.success,
         ),
-      ).called(1);
+      ).called(2);
 
       expect(
         log,
