@@ -117,6 +117,10 @@ class Scheduler {
       'If you need to merge your PR without tests (a rare situation, typically '
       'an emergency), then you can use the `emergency` label.';
 
+  /// Briefly describes what the "Flutter Presubmits" check is for.
+  static const String kFlutterPresubmitsDescription =
+      'Flutter Presubmits unified check run.';
+
   /// Ensure [commits] exist in Cocoon.
   ///
   /// If the commit already exists, it is ignored.
@@ -332,6 +336,10 @@ class Scheduler {
 
     final slug = pullRequest.base!.repo!.slug();
 
+    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
+      pullRequest.user!.login!,
+    );
+
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
     // the PR and to the merge group, and so it must be completed in both cases.
@@ -340,12 +348,10 @@ class Scheduler {
       pullRequest.head!.sha!,
       // Override details url of merge queue guard check for users with unified
       // check run flow enabled
-      detailsUrl:
-          _config.flags.isUnifiedCheckRunFlowEnabledForUser(
-            pullRequest.user!.login!,
-          )
+      detailsUrl: isUnifiedCheckRun
           ? 'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=${pullRequest.head!.sha}'
           : null,
+      isUnifiedCheckRun: isUnifiedCheckRun,
     );
 
     // Track if we should unlock the merge group lock in case of non-fusion or
@@ -611,7 +617,11 @@ class Scheduler {
         '${contentHash != null ? ', contentHash: $contentHash' : ''})';
     log.info('$logCrumb: scheduling merge group checks');
 
-    final lock = await lockMergeGroupChecks(slug, headSha);
+    final lock = await lockMergeGroupChecks(
+      slug,
+      headSha,
+      isUnifiedCheckRun: false,
+    );
 
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
     // close the merge group guard.
@@ -827,8 +837,9 @@ $s
     RepositorySlug slug,
     String headSha, {
     String? detailsUrl,
+    required bool isUnifiedCheckRun,
   }) async {
-    return _githubChecksService.githubChecksUtil.createCheckRun(
+    final mqGuard = await _githubChecksService.githubChecksUtil.createCheckRun(
       _config,
       slug,
       headSha,
@@ -837,8 +848,43 @@ $s
         title: Config.kMergeQueueLockName,
         summary: kMergeQueueLockDescription,
       ),
-      detailsUrl: detailsUrl,
+      detailsUrl: isUnifiedCheckRun ? null : detailsUrl,
     );
+
+    final flutterPresubmits = await _githubChecksService.githubChecksUtil
+        .createCheckRun(
+          _config,
+          slug,
+          headSha,
+          Config.kFlutterPresubmitsName,
+          output: const CheckRunOutput(
+            title: Config.kFlutterPresubmitsName,
+            summary: kFlutterPresubmitsDescription,
+          ),
+          detailsUrl: isUnifiedCheckRun ? detailsUrl : null,
+        );
+
+    if (isUnifiedCheckRun) {
+      // Skip MQ Guard
+      await _githubChecksService.githubChecksUtil.updateCheckRun(
+        _config,
+        slug,
+        mqGuard,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.success,
+      );
+      return flutterPresubmits;
+    } else {
+      // Skip Flutter Presubmits
+      await _githubChecksService.githubChecksUtil.updateCheckRun(
+        _config,
+        slug,
+        flutterPresubmits,
+        status: CheckRunStatus.completed,
+        conclusion: CheckRunConclusion.success,
+      );
+      return mqGuard;
+    }
   }
 
   /// Creates a pending check run for "Awaiting CICD label" if it doesn't exist.
@@ -1592,11 +1638,12 @@ $stacktrace
     );
     final name = checkRunEvent.checkRun!.name;
     var success = false;
-    if (name == Config.kMergeQueueLockName) {
+    if (name == Config.kMergeQueueLockName ||
+        name == Config.kFlutterPresubmitsName) {
       final slug = checkRunEvent.repository!.slug();
       final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
       log.debug(
-        '$logCrumb: Requested re-run of "${Config.kMergeQueueLockName}" for '
+        '$logCrumb: Requested re-run of "$name" for '
         '$slug / $checkSuiteId - ignoring',
       );
       success = true;

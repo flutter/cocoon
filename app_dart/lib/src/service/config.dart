@@ -81,6 +81,10 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// workflow.
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
+  /// A required check that stays in pending state until all presubmit checks pass
+  /// for users opted into the unified checkrun flow.
+  static const String kFlutterPresubmitsName = 'Flutter Presubmits';
+
   final CacheService _cache;
   final SecretManager _secrets;
   final http.Client _httpClient;

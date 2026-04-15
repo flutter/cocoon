@@ -72,7 +72,7 @@ void main() {
       expect(check.checkSuiteId, 456);
       expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
       expect(check.isUnifiedCheckRun, true);
-      expect(check.checkRun.name, Config.kMergeQueueLockName);
+      expect(check.checkRun.name, Config.kFlutterPresubmitsName);
       expect(check.buildNumber, 0);
     });
 

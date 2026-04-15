@@ -938,6 +938,93 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
+      test('rerequested flutter presubmits check is ignored', () async {
+        final mockGithubService = MockGithubService();
+        final mockGithubClient = MockGitHub();
+        config = FakeConfig(githubService: mockGithubService);
+        scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            firestore: firestore,
+          ),
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+        when(mockGithubService.github).thenReturn(mockGithubClient);
+        when(
+          mockGithubService.searchIssuesAndPRs(
+            any,
+            any,
+            sort: anyNamed('sort'),
+            pages: anyNamed('pages'),
+          ),
+        ).thenAnswer((_) async => [generateIssue(3)]);
+        when(
+          mockGithubChecksUtil.listCheckSuitesForRef(
+            any,
+            any,
+            ref: anyNamed('ref'),
+          ),
+        ).thenAnswer(
+          (_) async => [
+            // From check_run.check_suite.id in [checkRunString].
+            generateCheckSuite(668083231),
+          ],
+        );
+        when(
+          mockGithubService.getPullRequest(any, any),
+        ).thenAnswer((_) async => generatePullRequest());
+        getFilesChanged.cannedFiles = ['abc/def'];
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {
+          return CheckRun.fromJson(const <String, dynamic>{
+            'id': 1,
+            'started_at': '2020-05-10T02:49:31Z',
+            'name': Config.kCiYamlCheckName,
+            'check_suite': <String, dynamic>{'id': 2},
+          });
+        });
+        final checkRunEventJson =
+            jsonDecode(checkRunString()) as Map<String, dynamic>;
+        checkRunEventJson['check_run']['name'] = Config.kFlutterPresubmitsName;
+        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+          checkRunEventJson,
+        );
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
+        verifyNever(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            Config.kFlutterPresubmitsName,
+            output: anyNamed('output'),
+          ),
+        );
+        // Verifies no checks were created
+        verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
+      });
+
       test('rerequested presubmit job triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
         // only postsubmit commits are stored in the Firestore.
@@ -2670,6 +2757,11 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
+            Config.kFlutterPresubmitsName,
+            const CheckRunOutput(
+              title: Config.kFlutterPresubmitsName,
+              summary: Scheduler.kFlutterPresubmitsDescription,
+            ),
             Config.kCiYamlCheckName,
             const CheckRunOutput(
               title: Config.kCiYamlCheckName,
@@ -2709,6 +2801,11 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
+            Config.kFlutterPresubmitsName,
+            const CheckRunOutput(
+              title: Config.kFlutterPresubmitsName,
+              summary: Scheduler.kFlutterPresubmitsDescription,
+            ),
             Config.kCiYamlCheckName,
             // No other targets should be created.
             const CheckRunOutput(
@@ -2742,6 +2839,9 @@ targets:
             ),
           ).captured,
           <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            null,
             CheckRunStatus.completed,
             CheckRunConclusion.success,
             null,
@@ -2858,6 +2958,11 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
+              Config.kFlutterPresubmitsName,
+              const CheckRunOutput(
+                title: Config.kFlutterPresubmitsName,
+                summary: Scheduler.kFlutterPresubmitsDescription,
+              ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
                 title: Config.kCiYamlCheckName,
@@ -2899,6 +3004,11 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
+              Config.kFlutterPresubmitsName,
+              const CheckRunOutput(
+                title: Config.kFlutterPresubmitsName,
+                summary: Scheduler.kFlutterPresubmitsDescription,
+              ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
                 title: Config.kCiYamlCheckName,
@@ -2930,6 +3040,8 @@ targets:
             ),
           ).captured,
           <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
             CheckRunStatus.completed,
             CheckRunConclusion.success,
             CheckRunStatus.completed,
@@ -2966,6 +3078,11 @@ targets:
 
         expect(capturedUpdates, <(String, CheckRunStatus, CheckRunConclusion)>[
           (
+            Config.kFlutterPresubmitsName,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+          ),
+          (
             'ci.yaml validation',
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
@@ -2987,7 +3104,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <Object?>[CheckRunStatus.completed, CheckRunConclusion.failure],
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
 
@@ -3135,7 +3257,7 @@ targets:
         // see the blend of fusionCiYaml and singleCiYaml
         expect(captured[0][0].name, 'Linux engine_build');
 
-        expect(checkRuns, hasLength(2));
+        expect(checkRuns, hasLength(3));
         verify(
           mockGithubChecksUtil.updateCheckRun(
             any,
@@ -3289,7 +3411,7 @@ targets:
             captureAny,
             output: captureAnyNamed('output'),
           ),
-        ).called(1);
+        ).called(2);
         final result = verify(
           luci.scheduleMergeGroupBuilds(
             targets: captureAnyNamed('targets'),
@@ -3302,7 +3424,7 @@ targets:
           ['Linux engine_build', 'Mac engine_build'],
         );
 
-        expect(checkRuns, hasLength(1));
+        expect(checkRuns, hasLength(2));
         verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
@@ -3548,7 +3670,7 @@ targets:
             captureAny,
             output: captureAnyNamed('output'),
           ),
-        ).called(1);
+        ).called(2);
         final result = verify(
           luci.scheduleMergeGroupBuilds(
             targets: captureAnyNamed('targets'),
@@ -3561,7 +3683,7 @@ targets:
           ['Mac engine_build'],
         );
 
-        expect(checkRuns, hasLength(1));
+        expect(checkRuns, hasLength(2));
         verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
@@ -3684,7 +3806,7 @@ targets:
             captureAny,
             output: captureAnyNamed('output'),
           ),
-        ).called(1);
+        ).called(2);
         final result = verify(
           luci.scheduleMergeGroupBuilds(
             targets: captureAnyNamed('targets'),
@@ -3697,11 +3819,12 @@ targets:
           ['Linux engine_build', 'Mac engine_build'],
         );
 
-        expect(checkRuns, hasLength(1));
+        expect(checkRuns, hasLength(2));
 
         // Expect the merge queue guard to be completed with failure.
-        final mergeQueueGuard = checkRuns.single;
-        expect(mergeQueueGuard.name, Config.kMergeQueueLockName);
+        final mergeQueueGuard = checkRuns.firstWhere(
+          (element) => element.name == Config.kMergeQueueLockName,
+        );
         expect(
           verify(
             await mockGithubChecksUtil.updateCheckRun(
@@ -3881,7 +4004,7 @@ targets:
         final pullRequest = generatePullRequest();
         final checkRunGuard = generateCheckRun(
           1234,
-          name: Config.kMergeQueueLockName,
+          name: Config.kFlutterPresubmitsName,
         );
 
         await PrCheckRuns.initializeDocument(

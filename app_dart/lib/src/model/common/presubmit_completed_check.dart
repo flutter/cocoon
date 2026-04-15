@@ -118,7 +118,7 @@ class PresubmitCompletedJob {
   cocoon_checks.CheckRun get checkRun {
     return cocoon_checks.CheckRun(
       id: checkRunId,
-      name: isUnifiedCheckRun ? Config.kMergeQueueLockName : name,
+      name: isUnifiedCheckRun ? Config.kFlutterPresubmitsName : name,
       headSha: sha,
       conclusion: status.toConclusion(),
       checkSuite: CheckSuite(

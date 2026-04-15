@@ -734,6 +734,14 @@ class MockConfig extends _i1.Mock implements _i2.Config {
   }
 
   @override
+  _i5.Client get httpClient =>
+      (super.noSuchMethod(
+            Invocation.getter(#httpClient),
+            returnValue: _FakeClient_3(this, Invocation.getter(#httpClient)),
+          )
+          as _i5.Client);
+
+  @override
   Set<_i7.RepositorySlug> get supportedRepos =>
       (super.noSuchMethod(
             Invocation.getter(#supportedRepos),
@@ -2163,6 +2171,14 @@ class MockGithubService extends _i1.Mock implements _i9.GithubService {
             ),
           )
           as _i13.Future<List<_i7.PullRequest>>);
+
+  @override
+  _i13.Future<bool> isTeamMember(String? team, String? user, String? org) =>
+      (super.noSuchMethod(
+            Invocation.method(#isTeamMember, [team, user, org]),
+            returnValue: _i13.Future<bool>.value(false),
+          )
+          as _i13.Future<bool>);
 
   @override
   _i13.Future<_i7.PullRequest> createPullRequest(
@@ -5684,12 +5700,13 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
     _i7.RepositorySlug? slug,
     String? headSha, {
     String? detailsUrl,
+    required bool? isUnifiedCheckRun,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #lockMergeGroupChecks,
               [slug, headSha],
-              {#detailsUrl: detailsUrl},
+              {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isUnifiedCheckRun},
             ),
             returnValue: _i13.Future<_i7.CheckRun>.value(
               _FakeCheckRun_20(
@@ -5697,12 +5714,44 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
                 Invocation.method(
                   #lockMergeGroupChecks,
                   [slug, headSha],
-                  {#detailsUrl: detailsUrl},
+                  {
+                    #detailsUrl: detailsUrl,
+                    #isUnifiedCheckRun: isUnifiedCheckRun,
+                  },
                 ),
               ),
             ),
           )
           as _i13.Future<_i7.CheckRun>);
+
+  @override
+  _i13.Future<_i7.CheckRun?> createAwaitingCicdLabelCheckRun(
+    _i7.RepositorySlug? slug,
+    String? headSha,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#createAwaitingCicdLabelCheckRun, [
+              slug,
+              headSha,
+            ]),
+            returnValue: _i13.Future<_i7.CheckRun?>.value(),
+          )
+          as _i13.Future<_i7.CheckRun?>);
+
+  @override
+  _i13.Future<void> resolveAwaitingCicdLabelCheckRun(
+    _i7.RepositorySlug? slug,
+    String? headSha,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#resolveAwaitingCicdLabelCheckRun, [
+              slug,
+              headSha,
+            ]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
 
   @override
   _i13.Future<void> unlockMergeQueueGuard(
