@@ -594,10 +594,12 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       author,
       slug.owner,
     );
+    log.debug('isRoller=$isRoller, isFlutterHacker=$isFlutterHacker');
 
     if (config.supportedRepos.contains(slug) && (isRoller || isFlutterHacker)) {
       final gitHubClient = await config.createGitHubClient(pullRequest: pr);
       await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, ['CICD']);
+      log.debug('Added CICD label to PR $pr.number');
     }
   }
 
