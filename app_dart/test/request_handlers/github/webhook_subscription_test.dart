@@ -803,6 +803,40 @@ void main() {
       ).called(1);
     });
 
+    test('Fusion labels engine PRs, comment if no tests for Swift', () async {
+      const issueNumber = 124;
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: issueNumber,
+      );
+      when(
+        pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+      ).thenAnswer(
+        (_) => Stream<PullRequestFile>.fromIterable([
+          PullRequestFile()..filename = 'engine/src/flutter/fu.swift',
+        ]),
+      );
+
+      when(
+        issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
+      ).thenAnswer(
+        (_) => Stream<IssueComment>.value(
+          IssueComment()..body = 'some other comment',
+        ),
+      );
+
+      await tester.post(webhook);
+
+      verify(
+        issuesService.createComment(
+          Config.flutterSlug,
+          issueNumber,
+          argThat(contains(config.missingTestsPullRequestMessageValue)),
+        ),
+      ).called(1);
+    });
+
     test('Fusion labels engine PRs, no comment for tests', () async {
       // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
@@ -1940,6 +1974,11 @@ void foo() {
           // Java tests.
           'engine/src/flutter/shell/platform/android/io/flutter/Blah.java',
           'engine/src/flutter/shell/platform/android/test/io/flutter/BlahTest.java',
+        ],
+        <String>[
+          // Swift tests.
+          'engine/src/flutter/shell/platform/darwin/ios/framework/Source/Blah.swift',
+          'engine/src/flutter/shell/platform/darwin/ios/framework/Source/BlahTest.swift',
         ],
         <String>[
           // Script tests.
