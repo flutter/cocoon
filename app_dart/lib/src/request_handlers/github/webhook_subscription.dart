@@ -838,7 +838,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
 
   bool _isAnEngineTest(String filename) {
     final engineTestRegExp = RegExp(
-      r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py)$',
+      r'(tests?|benchmarks?)\.(dart|java|mm|m|cc|sh|py|swift)$',
     );
     return filename.contains('IosBenchmarks') ||
         filename.contains('IosUnitTests') ||
