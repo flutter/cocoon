@@ -180,15 +180,17 @@ class Approver {
         if (_remainingReviews > 0) {
           _remainingReviews--;
         }
+        _reviewAuthors.add(authorLogin);
       } else if (state == CHANGES_REQUESTED_STATE &&
           !_reviewAuthors.contains(authorLogin)) {
         _changeRequestAuthors.add(authorLogin);
         if (_remainingReviews < targetReviewCount) {
           _remainingReviews++;
         }
+        _reviewAuthors.add(authorLogin);
+      } else if (state == DISMISSED_STATE && !_reviewAuthors.contains(authorLogin)) {
+        _reviewAuthors.add(authorLogin);
       }
-
-      _reviewAuthors.add(authorLogin);
     }
 
     _approved =

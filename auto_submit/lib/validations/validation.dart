@@ -10,6 +10,7 @@ import '../service/config.dart';
 /// GitHub PR state constants.
 const APPROVED_STATE = 'APPROVED';
 const CHANGES_REQUESTED_STATE = 'CHANGES_REQUESTED';
+const DISMISSED_STATE = 'DISMISSED';
 
 /// GitHub status state.
 const STATUS_SUCCESS = 'SUCCESS';

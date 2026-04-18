@@ -389,6 +389,113 @@ void main() {
         isTrue,
       );
     });
+
+    test('DISMISSED review should override previous CHANGES_REQUESTED', () async {
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['jmagman'] = true;
+      githubService.isTeamMemberMockMap['Z'] = true;
+
+      const String bugScenario = '''
+      {
+        "repository": {
+          "pullRequest": {
+            "author": {
+              "login": "author1"
+            },
+            "id": "PR_kwDOA8VHis43rs4_",
+            "title": "Test PR",
+            "commits": {
+              "nodes":[
+                {
+                  "commit": {
+                    "abbreviatedOid": "4009ecc",
+                    "oid": "4009ecc0b6dbf5cb19cb97472147063e7368ec10",
+                    "status": {
+                      "contexts":[]
+                    }
+                  }
+                }
+              ]
+            },
+            "reviews": {
+              "nodes": [
+                {
+                  "author": {
+                    "login": "jmagman"
+                  },
+                  "state": "CHANGES_REQUESTED"
+                },
+                {
+                  "author": {
+                    "login": "jmagman"
+                  },
+                  "state": "DISMISSED"
+                },
+                {
+                  "author": {
+                    "login": "Z"
+                  },
+                  "state": "APPROVED"
+                }
+              ]
+            }
+          }
+        }
+      }
+      ''';
+
+      final result = await computeValidationResult(bugScenario);
+
+      expect(result.result, isTrue);
+    });
+
+    test('COMMENTED review should NOT clear previous CHANGES_REQUESTED', () async {
+      githubService.isTeamMemberMockMap['author1'] = true;
+      githubService.isTeamMemberMockMap['jmagman'] = true;
+      githubService.isTeamMemberMockMap['Z'] = true;
+
+      const String scenario = '''
+      {
+        "repository": {
+          "pullRequest": {
+            "author": {
+              "login": "author1"
+            },
+            "id": "PR_kwDOA8VHis43rs4_",
+            "title": "Test PR",
+            "reviews": {
+              "nodes": [
+                {
+                  "author": {
+                    "login": "jmagman"
+                  },
+                  "state": "CHANGES_REQUESTED"
+                },
+                {
+                  "author": {
+                    "login": "jmagman"
+                  },
+                  "state": "COMMENTED"
+                },
+                {
+                  "author": {
+                    "login": "Z"
+                  },
+                  "state": "APPROVED"
+                }
+              ]
+            }
+          }
+        }
+      }
+      ''';
+
+      final result = await computeValidationResult(scenario);
+
+      expect(result.result, isFalse);
+      expect(result.message, contains('Changes were requested by {jmagman}'));
+    });
+
     test(
       'pullRequestApprovalRequirementsMessage takes approval_group from config',
       () async {
