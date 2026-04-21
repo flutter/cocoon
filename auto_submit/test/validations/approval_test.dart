@@ -397,7 +397,7 @@ void main() {
         githubService.isTeamMemberMockMap['jmagman'] = true;
         githubService.isTeamMemberMockMap['Z'] = true;
 
-        const String bugScenario = '''
+        const bugScenario = '''
       {
         "repository": {
           "pullRequest": {
@@ -459,7 +459,7 @@ void main() {
         githubService.isTeamMemberMockMap['jmagman'] = true;
         githubService.isTeamMemberMockMap['Z'] = true;
 
-        const String scenario = '''
+        const scenario = '''
       {
         "repository": {
           "pullRequest": {
