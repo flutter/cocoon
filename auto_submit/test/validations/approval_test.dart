@@ -390,12 +390,14 @@ void main() {
       );
     });
 
-    test('DISMISSED review should override previous CHANGES_REQUESTED', () async {
-      githubService.isTeamMemberMockMap['author1'] = true;
-      githubService.isTeamMemberMockMap['jmagman'] = true;
-      githubService.isTeamMemberMockMap['Z'] = true;
+    test(
+      'DISMISSED review should override previous CHANGES_REQUESTED',
+      () async {
+        githubService.isTeamMemberMockMap['author1'] = true;
+        githubService.isTeamMemberMockMap['jmagman'] = true;
+        githubService.isTeamMemberMockMap['Z'] = true;
 
-      const String bugScenario = '''
+        const String bugScenario = '''
       {
         "repository": {
           "pullRequest": {
@@ -444,17 +446,20 @@ void main() {
       }
       ''';
 
-      final result = await computeValidationResult(bugScenario);
+        final result = await computeValidationResult(bugScenario);
 
-      expect(result.result, isTrue);
-    });
+        expect(result.result, isTrue);
+      },
+    );
 
-    test('COMMENTED review should NOT clear previous CHANGES_REQUESTED', () async {
-      githubService.isTeamMemberMockMap['author1'] = true;
-      githubService.isTeamMemberMockMap['jmagman'] = true;
-      githubService.isTeamMemberMockMap['Z'] = true;
+    test(
+      'COMMENTED review should NOT clear previous CHANGES_REQUESTED',
+      () async {
+        githubService.isTeamMemberMockMap['author1'] = true;
+        githubService.isTeamMemberMockMap['jmagman'] = true;
+        githubService.isTeamMemberMockMap['Z'] = true;
 
-      const String scenario = '''
+        const String scenario = '''
       {
         "repository": {
           "pullRequest": {
@@ -490,11 +495,12 @@ void main() {
       }
       ''';
 
-      final result = await computeValidationResult(scenario);
+        final result = await computeValidationResult(scenario);
 
-      expect(result.result, isFalse);
-      expect(result.message, contains('Changes were requested by {jmagman}'));
-    });
+        expect(result.result, isFalse);
+        expect(result.message, contains('Changes were requested by {jmagman}'));
+      },
+    );
 
     test(
       'pullRequestApprovalRequirementsMessage takes approval_group from config',

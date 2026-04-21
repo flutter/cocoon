@@ -188,7 +188,8 @@ class Approver {
           _remainingReviews++;
         }
         _reviewAuthors.add(authorLogin);
-      } else if (state == DISMISSED_STATE && !_reviewAuthors.contains(authorLogin)) {
+      } else if (state == DISMISSED_STATE &&
+          !_reviewAuthors.contains(authorLogin)) {
         _reviewAuthors.add(authorLogin);
       }
     }
