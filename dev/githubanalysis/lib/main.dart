@@ -425,7 +425,7 @@ Future<int> full(final Directory cache, final GitHub github) async {
         ..write(',${daysToTwentyVotes ?? ''}')
         ..write(',${issue.labels.contains('new feature')}')
         ..write(',${issue.labels.contains('proposal')}')
-        ..write(',${issue.labels.contains('waiting for customer response')}')
+        ..write(',${issue.labels.contains('waiting for response')}')
         ..write(',${allMembers.contains(canon(issue.metadata.user!.login))}')
         ..write(
           ',${expectedExmembers.contains(canon(issue.metadata.user!.login))}',
