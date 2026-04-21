@@ -67,7 +67,7 @@ query LabeledPullRequestWithReviews($sOwner: String!, $sName: String!, $sPrNumbe
           }
         }
       }
-      reviews(last: 30, states: [APPROVED, CHANGES_REQUESTED]) {
+      reviews(last: 30, states: [APPROVED, CHANGES_REQUESTED, DISMISSED]) {
         nodes {
           author {
             login
