@@ -617,7 +617,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     final isFlutterHacker = await githubService.isTeamMember(
       'flutter-hackers',
       pr.user!.login!,
-      slug.owner,
+      'flutter',
     );
     return isRoller || isFlutterHacker;
   }
