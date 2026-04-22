@@ -5,15 +5,15 @@ This flowchart describes the logic for managing the `CICD` label in Cocoon for r
 ```mermaid
 flowchart TD
     PR_Opened([Event: PR Opened]) --> Is_Draft{Is Draft?}
-    
+
     Is_Draft -- No --> Is_Privileged_Open{Is Privileged?}
     Is_Draft -- Yes --> Create_Awaiting[Create Awaiting Check Run]
-    
+
     Is_Privileged_Open -- Yes --> Add_Label[Add CICD Label]
     Add_Label --> Start_Pre[Start Presubmits]
-    
+
     Is_Privileged_Open -- No --> Create_Awaiting
-    
+
     Create_Awaiting --> State_Awaiting((State: Awaiting))
     Start_Pre --> State_Running((State: Running))
 
