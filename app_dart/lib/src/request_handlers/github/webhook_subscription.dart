@@ -173,8 +173,6 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   /// retried with exponential backoff within that time period. The GoB mirror
   /// should be caught up within that time frame via either the internal
   /// mirroring service or [VacuumGithubCommits].
-  ///
-  /// See docs/cicd_flowchart.md for the flowchart of CICD label management.
   Future<Response> _handlePullRequest(String rawRequest) async {
     final pullRequestEvent = _getPullRequestEvent(rawRequest);
     if (pullRequestEvent == null) {
@@ -201,20 +199,16 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         final result = await _processPullRequestClosed(pullRequestEvent);
         return result.toResponse();
       case 'edited':
+        if (pullRequestEvent.changes != null &&
+            pullRequestEvent.changes!.base != null) {
+          await _addCICDForRollersAndMembers(pullRequestEvent);
+        }
+        await scheduler.createAwaitingCicdLabelCheckRun(slug, pr.head!.sha!);
         await _checkForTests(pullRequestEvent);
         break;
       case 'opened':
-        final isPrivileged = await _isPrivilegedUser(pr, slug);
-        if (!pr.draft! && isPrivileged) {
-          final gitHubClient = await config.createGitHubClient(pullRequest: pr);
-          await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, [
-            'CICD',
-          ]);
-          log.debug('Added CICD label to PR ${pr.number}');
-          await _scheduleIfMergeable(pullRequestEvent);
-        } else {
-          await scheduler.createAwaitingCicdLabelCheckRun(slug, pr.head!.sha!);
-        }
+        await _addCICDForRollersAndMembers(pullRequestEvent);
+        await scheduler.createAwaitingCicdLabelCheckRun(slug, pr.head!.sha!);
         await _checkForTests(pullRequestEvent);
         await _tryReleaseApproval(pullRequestEvent);
         break;
@@ -248,31 +242,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         await _respondToPullRequestDequeued(pullRequestEvent);
         break;
       case 'synchronize':
-        final isPrivileged = await _isPrivilegedUser(pr, slug);
-        final hasLabel =
-            pr.labels?.any((l) => l.name == Config.kCicdLabel) ?? false;
-        final githubService = await config.createGithubService(slug);
-
-        if (isPrivileged) {
-          if (hasLabel) {
-            await _scheduleIfMergeable(pullRequestEvent);
-          } else {
-            await scheduler.createAwaitingCicdLabelCheckRun(
-              slug,
-              pr.head!.sha!,
-            );
-          }
-        } else {
-          if (hasLabel) {
-            await githubService.removeLabel(
-              slug,
-              pr.number!,
-              Config.kCicdLabel,
-            );
-            log.debug('Removed CICD label from PR ${pr.number}');
-          }
-          await scheduler.createAwaitingCicdLabelCheckRun(slug, pr.head!.sha!);
-        }
+        await _addCICDForRollersAndMembers(pullRequestEvent);
         break;
       // Ignore the rest of the events.
       case 'ready_for_review':
@@ -610,16 +580,27 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     );
   }
 
-  /// Returns true if the user is a roller or a member of flutter-hackers.
-  Future<bool> _isPrivilegedUser(PullRequest pr, RepositorySlug slug) async {
-    final isRoller = config.rollerAccounts.contains(pr.user!.login);
+  Future<void> _addCICDForRollersAndMembers(
+    PullRequestEvent pullRequestEvent,
+  ) async {
+    final pr = pullRequestEvent.pullRequest!;
+    final slug = pr.base!.repo!.slug();
+    final author = pr.user!.login!;
     final githubService = await config.createGithubService(slug);
+
+    final isRoller = config.rollerAccounts.contains(pr.user!.login);
     final isFlutterHacker = await githubService.isTeamMember(
       'flutter-hackers',
-      pr.user!.login!,
-      'flutter',
+      author,
+      slug.owner,
     );
-    return isRoller || isFlutterHacker;
+    log.debug('isRoller=$isRoller, isFlutterHacker=$isFlutterHacker');
+
+    if (config.supportedRepos.contains(slug) && (isRoller || isFlutterHacker)) {
+      final gitHubClient = await config.createGitHubClient(pullRequest: pr);
+      await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, ['CICD']);
+      log.debug('Added CICD label to PR $pr.number');
+    }
   }
 
   Future<void> _checkForTests(PullRequestEvent pullRequestEvent) async {
