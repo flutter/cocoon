@@ -1105,50 +1105,21 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
         ) ??
         false;
     if (hasEmergencyLabel) {
-      // The merge guard can be unlocked without approval checks because:
+      // The merge guard and Flutter Presubmits check can be unlocked without approval checks because:
       //
       // * For manual merges the GitHub repo settings already require minimum
       //   approvals before the PR can be submitted.
       // * For `autosubmit` label Cocoon has the [Approval] validation that
-      //   checks approvasl before attempting to merge the PR.
-      await _unlockMergeQueueGuardForEmergency();
+      //   checks approvals before attempting to merge the PR.
+      await _unlockCheckrunsForEmergency();
     } else {
       logInfo('no emergency label; moving on.');
     }
   }
 
-  Future<void> _unlockMergeQueueGuardForEmergency() async {
-    logInfo(
-      'attempting to unlock the ${Config.kMergeQueueLockName} for emergency',
-    );
-
-    final guard = (await githubService.getCheckRunsFiltered(
-      slug: slug,
-      ref: pullRequest.head!.sha!,
-      checkName: Config.kMergeQueueLockName,
-    )).singleOrNull;
-
-    if (guard == null) {
-      logSevere(
-        'failed to process the emergency label. "${Config.kMergeQueueLockName}" check run is missing.',
-      );
-      return;
-    }
-
-    await githubService.updateCheckRun(
-      slug: slug,
-      checkRun: guard,
-      status: CheckRunStatus.completed,
-      conclusion: CheckRunConclusion.success,
-      output: const CheckRunOutput(
-        title: Config.kMergeQueueLockName,
-        summary: 'Emergency label applied.',
-      ),
-    );
-
-    logInfo(
-      'unlocked "${Config.kMergeQueueLockName}", allowing it to land as an emergency.',
-    );
+  Future<void> _unlockCheckrunsForEmergency() async {
+    await _unlockCheckrun(Config.kMergeQueueLockName);
+    await _unlockCheckrun(Config.kFlutterPresubmitsName);
 
     // Let the developer know what is happening with the MQ when this label is found the first time.
     try {
@@ -1170,5 +1141,35 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
         stackTrace: s,
       );
     }
+  }
+
+  Future<void> _unlockCheckrun(String checkName) async {
+    logInfo('attempting to unlock the $checkName for emergency');
+
+    final guard = (await githubService.getCheckRunsFiltered(
+      slug: slug,
+      ref: pullRequest.head!.sha!,
+      checkName: checkName,
+    )).singleOrNull;
+
+    if (guard == null) {
+      logSevere(
+        'failed to process the emergency label. "$checkName" check run is missing.',
+      );
+      return;
+    }
+
+    await githubService.updateCheckRun(
+      slug: slug,
+      checkRun: guard,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.success,
+      output: CheckRunOutput(
+        title: checkName,
+        summary: 'Emergency label applied.',
+      ),
+    );
+
+    logInfo('unlocked "$checkName", allowing it to land as an emergency.');
   }
 }
