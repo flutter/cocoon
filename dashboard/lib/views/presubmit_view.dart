@@ -42,8 +42,15 @@ final class PreSubmitView extends StatefulWidget {
   State<PreSubmitView> createState() => _PreSubmitViewState();
 }
 
-class _PreSubmitViewState extends State<PreSubmitView> {
+class _PreSubmitViewState extends State<PreSubmitView>
+    with WidgetsBindingObserver {
   PresubmitState? _presubmitState;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didChangeDependencies() {
@@ -59,8 +66,18 @@ class _PreSubmitViewState extends State<PreSubmitView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _presubmitState?.removeListener(_onStateChanged);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _presubmitState?.resume();
+    } else {
+      _presubmitState?.pause();
+    }
   }
 
   @override

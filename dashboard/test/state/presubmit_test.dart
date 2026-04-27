@@ -267,6 +267,17 @@ void main() {
     expect(presubmitState.refreshTimer?.isActive, isFalse);
   });
 
+  test('PresubmitState pause and resume timer management', () async {
+    presubmitState.addListener(() {}); // Trigger timer start
+    expect(presubmitState.refreshTimer, isNotNull);
+
+    presubmitState.pause();
+    expect(presubmitState.refreshTimer, isNull);
+
+    presubmitState.resume();
+    expect(presubmitState.refreshTimer, isNotNull);
+  });
+
   test(
     'PresubmitState refreshes on auth change when becoming authenticated',
     () async {

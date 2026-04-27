@@ -281,82 +281,94 @@ void main() {
     expect(find.textContaining('Status: Failed'), findsOneWidget);
   });
 
-  testWidgets('PreSubmitView displays default job details when summary is empty', (
-    WidgetTester tester,
-  ) async {
-    tester.view.physicalSize = const Size(2000, 1080);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'PreSubmitView displays default job details when summary is empty',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    const mockSha = 'decaf_3_real_sha';
-    const guardResponse = PresubmitGuardResponse(
-      prNum: 123,
-      author: 'dash',
-      guardStatus: GuardStatus.failed,
-      checkRunId: 456,
-      stages: [
-        PresubmitGuardStage(
-          name: 'Engine',
-          createdAt: 0,
-          builds: {'Mac mac_host_engine 1': TaskStatus.failed},
-        ),
-      ],
-    );
-
-    when(
-      mockCocoonService.fetchPresubmitGuard(
-        repo: anyNamed('repo'),
-        sha: mockSha,
-      ),
-    ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
-
-    when(
-      mockCocoonService.fetchPresubmitJobDetails(
-        checkRunId: anyNamed('checkRunId'),
-        jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
-      ),
-    ).thenAnswer(
-      (_) async => CocoonResponse.data([
-        PresubmitJobResponse(
-          attemptNumber: 1,
-          jobName: 'Mac mac_host_engine 1',
-          creationTime: 0,
-          status: TaskStatus.failed,
-          summary: '', // Empty summary
-        ),
-      ]),
-    );
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+      const mockSha = 'decaf_3_real_sha';
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+          ),
+        ],
       );
-      for (var i = 0; i < 50; i++) {
-        await tester.pump();
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        if (find.textContaining('by dash').evaluate().isNotEmpty) break;
-      }
-    });
-    await tester.pumpAndSettle();
 
-    expect(find.textContaining('PR #123'), findsOneWidget);
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: mockSha,
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
-    await tester.tap(find.textContaining('mac_host_engine').first);
-    await tester.runAsync(() async {
-      for (var i = 0; i < 50; i++) {
-        await tester.pump();
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        if (find.textContaining('Mac mac_host_engine 1 failed.').evaluate().isNotEmpty) {
-          break;
+      when(
+        mockCocoonService.fetchPresubmitJobDetails(
+          checkRunId: anyNamed('checkRunId'),
+          jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse.data([
+          PresubmitJobResponse(
+            attemptNumber: 1,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: 0,
+            status: TaskStatus.failed,
+            summary: '', // Empty summary
+          ),
+        ]),
+      );
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('by dash').evaluate().isNotEmpty) break;
         }
-      }
-    });
-    await tester.pumpAndSettle();
+      });
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('Mac mac_host_engine 1 failed.'), findsOneWidget);
-    expect(find.textContaining('Click "View more details on LUCI UI" button below for more details.'), findsOneWidget);
-  });
+      expect(find.textContaining('PR #123'), findsOneWidget);
+
+      await tester.tap(find.textContaining('mac_host_engine').first);
+      await tester.runAsync(() async {
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find
+              .textContaining('Mac mac_host_engine 1 failed.')
+              .evaluate()
+              .isNotEmpty) {
+            break;
+          }
+        }
+      });
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Mac mac_host_engine 1 failed.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'Click "View more details on LUCI UI" button below for more details.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets(
     'PreSubmitView automatically selects latest SHA and updates sidebar when opened with PR only',

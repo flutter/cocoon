@@ -363,6 +363,16 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
+  /// Triggers a data fetch regardless of whether parameters have changed.
+  void fetch() {
+    if (pr != null) {
+      unawaited(fetchAvailableShas());
+    }
+    if (sha != null) {
+      unawaited(fetchGuardStatus());
+    }
+  }
+
   /// Selects a specific job and fetches its details.
   void selectJob(String jobName) {
     if (_selectedJob == jobName) return;
@@ -519,9 +529,20 @@ class PresubmitState extends ChangeNotifier {
         false;
   }
 
+  void resume() {
+    if (!_active) return;
+    _startTimer();
+    _fetchRefreshUpdate();
+  }
+
+  void pause() {
+    refreshTimer?.cancel();
+    refreshTimer = null;
+  }
+
   void _fetchRefreshUpdate() {
     if (!_active) return;
-    fetchIfNeeded();
+    fetch();
     if (_selectedJob != null) {
       unawaited(fetchJobDetails());
     }

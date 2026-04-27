@@ -67,7 +67,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kMergeQueueLockName),
+        generateCheckRun(guard.checkRunId, name: Config.kFlutterPresubmitsName),
       ],
     );
 
@@ -139,7 +139,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kMergeQueueLockName),
+        generateCheckRun(guard.checkRunId, name: Config.kFlutterPresubmitsName),
       ],
     );
 
@@ -190,7 +190,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kMergeQueueLockName),
+        generateCheckRun(guard.checkRunId, name: Config.kFlutterPresubmitsName),
       ],
     );
 

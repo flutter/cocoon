@@ -65,11 +65,11 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       pullRequest = await PrCheckRuns.findPullRequestFor(
         _firestore,
         guard.checkRunId,
-        Config.kMergeQueueLockName,
+        Config.kFlutterPresubmitsName,
       );
     } catch (e) {
       throw NotFoundException(
-        'No pull request found for ${Config.kMergeQueueLockName} with ${guard.checkRunId} id',
+        'No pull request found for ${Config.kFlutterPresubmitsName} with ${guard.checkRunId} id',
       );
     }
 
