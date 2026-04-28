@@ -259,6 +259,9 @@ interface class Config extends DynamicallyUpdatedConfig {
   Future<String> get discordTreeStatusWebhookUrl =>
       _getSingleValue('TREE_STATUS_DISCORD_WEBHOOK_URL');
 
+  Future<String> get geminiLogAnalyzerKey =>
+      _getSingleValue('APP_DART_GEMINI_LOG_ANALYZER_KEY');
+
   String get wrongBaseBranchPullRequestMessage =>
       'This pull request was opened against a branch other than '
       '_{{default_branch}}_. Since Flutter pull requests should not '
