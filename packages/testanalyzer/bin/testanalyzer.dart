@@ -108,7 +108,7 @@ The check run for the failing test "$failingTest" was either not found in the Gi
 ''');
     }
 
-    if (detailUrl!.isNotEmpty) {
+    if (detailUrl.isNotEmpty) {
       print('Found details URL: $detailUrl');
       // Extract ID from URL
       final idRegExp = RegExp(r'/build/(\d+)');
