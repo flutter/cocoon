@@ -110,6 +110,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
   static const fieldStartTime = 'start_time';
   static const fieldEndTime = 'end_time';
   static const fieldSummary = 'summary';
+  static const fieldLogAnalysis = 'log_analysis';
 
   static AppDocumentId<PresubmitJob> documentIdFor({
     required RepositorySlug slug,
@@ -171,6 +172,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
     int? startTime,
     int? endTime,
     String? summary,
+    String? logAnalysis,
   }) {
     return PresubmitJob._(
       {
@@ -184,6 +186,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
         fieldStartTime: ?startTime?.toValue(),
         fieldEndTime: ?endTime?.toValue(),
         fieldSummary: ?summary?.toValue(),
+        fieldLogAnalysis: ?logAnalysis?.toValue(),
       },
       name: documentNameFor(
         slug: slug,
@@ -216,6 +219,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
       startTime: null,
       endTime: null,
       summary: null,
+      logAnalysis: null,
     );
   }
 
@@ -247,6 +251,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
       ? int.parse(fields[fieldEndTime]!.integerValue!)
       : null;
   String? get summary => fields[fieldSummary]?.stringValue;
+  String? get logAnalysis => fields[fieldLogAnalysis]?.stringValue;
 
   TaskStatus get status {
     final rawValue = fields[fieldStatus]!.stringValue!;
@@ -278,6 +283,14 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
       fields.remove(fieldSummary);
     } else {
       fields[fieldSummary] = summary.toValue();
+    }
+  }
+
+  set logAnalysis(String? logAnalysis) {
+    if (logAnalysis == null) {
+      fields.remove(fieldLogAnalysis);
+    } else {
+      fields[fieldLogAnalysis] = logAnalysis.toValue();
     }
   }
 
