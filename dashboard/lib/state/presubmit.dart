@@ -25,7 +25,7 @@ class PresubmitState extends ChangeNotifier {
   }) {
     authService.addListener(onAuthChanged);
     if (pr != null || sha != null) {
-      fetchIfNeeded();
+      unawaited(fetchIfNeeded());
     }
   }
 
@@ -350,25 +350,31 @@ class PresubmitState extends ChangeNotifier {
   /// Explicitly updates parameters and triggers a fetch.
   void update({String? repo, String? pr, String? sha}) {
     syncUpdate(repo: repo, pr: pr, sha: sha);
-    fetchIfNeeded();
+    unawaited(fetchIfNeeded());
   }
 
   /// Triggers a data fetch if parameters have changed.
-  void fetchIfNeeded() {
+  Future<void> fetchIfNeeded() async {
+    var prFetched = false;
     if (pr != null && _lastFetchedPr != pr) {
-      unawaited(fetchAvailableShas());
+      await fetchAvailableShas();
+      prFetched = true;
     }
     if (sha != null && _lastFetchedSha != sha) {
-      unawaited(fetchGuardStatus());
+      await fetchGuardStatus();
+    }
+    // We got pr during fetchGuardStatus, so we need to fetch available SHAs.
+    if (!prFetched && pr != null) {
+      await fetchAvailableShas();
     }
   }
 
   /// Triggers a data fetch regardless of whether parameters have changed.
   void fetch() {
-    if (pr != null) {
+    if (pr != null && _lastFetchedPr != pr) {
       unawaited(fetchAvailableShas());
     }
-    if (sha != null) {
+    if (sha != null && _lastFetchedSha != sha) {
       unawaited(fetchGuardStatus());
     }
   }

@@ -194,7 +194,7 @@ void main() {
   );
 
   test(
-    'PresubmitState update does not notify if values are the same and no fetch triggered',
+    'PresubmitState update triggers notification due to auto-fetch even if values are the same',
     () {
       presubmitState.update(repo: 'flutter', pr: '123', sha: 'sha1');
       var notifiedCount = 0;
@@ -202,7 +202,7 @@ void main() {
 
       presubmitState.update(repo: 'flutter', pr: '123', sha: 'sha1');
 
-      expect(notifiedCount, 0);
+      expect(notifiedCount, 1);
     },
   );
 
