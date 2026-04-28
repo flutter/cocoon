@@ -23,6 +23,7 @@ import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
+import 'package:cocoon_service/src/service/pull_request_manager.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' hide Branch;
@@ -3949,41 +3950,111 @@ void foo() {
     );
 
     test(
-      'synchronize event with CICD label does not schedules tests',
+      'synchronize event by non-privileged user removes CICD label and creates awaiting checkrun',
       () async {
+        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
         tester.message = generateGithubWebhookMessage(
           action: 'synchronize',
           withCicdLabel: true,
         );
 
         await tester.post(webhook);
+
+        expect(githubService.removedLabels, [
+          (Config.flutterSlug, 123, Config.kCicdLabel),
+        ]);
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
         expect(scheduler.triggerPresubmitTargetsCnt, 0);
       },
     );
 
     test(
-      'synchronize event adds CICD label if author is member of flutter-hackers',
+      'synchronize event by non-privileged user without label creates awaiting checkrun',
       () async {
+        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
+        tester.message = generateGithubWebhookMessage(
+          action: 'synchronize',
+          withCicdLabel: false,
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+        expect(scheduler.triggerPresubmitTargetsCnt, 0);
+      },
+    );
+
+    test(
+      'synchronize event by privileged user with label schedules tests',
+      () async {
+        // Setup: Open PR as privileged user to populate state
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          login: 'test-flutter-hacker',
+        );
+        await tester.post(webhook);
+        expect(scheduler.triggerPresubmitTargetsCnt, 1);
+
+        // Act: Synchronize with label
         tester.message = generateGithubWebhookMessage(
           action: 'synchronize',
           login: 'test-flutter-hacker',
+          withCicdLabel: true,
         );
 
         await tester.post(webhook);
-        verify(
-          issuesService.addLabelsToIssue(Config.flutterSlug, 123, ['CICD']),
+
+        expect(scheduler.triggerPresubmitTargetsCnt, 1);
+        verifyNever(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
         );
       },
     );
+
     test(
-      'synchronize event does not add CICD label if author is not member of flutter-hackers',
+      'synchronize event by privileged user without label creates awaiting checkrun',
       () async {
-        tester.message = generateGithubWebhookMessage(action: 'synchronize');
+        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
+        tester.message = generateGithubWebhookMessage(
+          action: 'synchronize',
+          login: 'test-flutter-hacker',
+          withCicdLabel: false,
+        );
 
         await tester.post(webhook);
-        verifyNever(
-          issuesService.addLabelsToIssue(Config.flutterSlug, 123, any),
-        );
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            'Awaiting CICD label',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+        expect(scheduler.triggerPresubmitTargetsCnt, 0);
       },
     );
 
@@ -4017,29 +4088,6 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'opened',
           withCicdLabel: true,
-        );
-
-        await tester.post(webhook);
-
-        verify(
-          mockGithubChecksUtil.createCheckRun(
-            any,
-            any,
-            any,
-            'Awaiting CICD label',
-            output: anyNamed('output'),
-          ),
-        ).called(1);
-      },
-    );
-
-    test(
-      'edited PR without CICD label creates "Awaiting CICD label" checkrun if not exists',
-      () async {
-        githubService.checkRunsMock = '{"total_count": 0, "check_runs": [{}]}';
-        tester.message = generateGithubWebhookMessage(
-          action: 'edited',
-          withCicdLabel: false,
         );
 
         await tester.post(webhook);

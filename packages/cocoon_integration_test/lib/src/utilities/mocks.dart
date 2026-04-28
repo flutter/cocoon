@@ -6,7 +6,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
-import 'package:cocoon_service/src/request_handlers/github/webhook_subscription.dart';
 import 'package:cocoon_service/src/service/access_token_provider.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/branch_service.dart';
@@ -17,6 +16,7 @@ import 'package:cocoon_service/src/service/discord_service.dart';
 import 'package:cocoon_service/src/service/github_checks_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
+import 'package:cocoon_service/src/service/pull_request_manager.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/bigquery/v2.dart';
