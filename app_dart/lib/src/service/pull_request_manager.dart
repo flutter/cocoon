@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_common/is_release_branch.dart';
@@ -75,24 +74,25 @@ class PullRequestManager {
   /// Kicks off asynchronous initialization in the queue.
   void _initialize(PullRequestEvent event) {
     _addEvent(() async {
-      final filterMap = <String, Object>{
-        'slug =': json.encode(slug.toJson()),
-        'number =': prNumber,
-      };
-      final docs = await firestore.query(
-        PullRequestState.kCollectionId,
-        filterMap,
-      );
+      final documentId = PullRequestState.getDocumentId(slug, prNumber);
+      final name =
+          '$kDocumentParent/${PullRequestState.kCollectionId}/$documentId';
 
-      if (docs.isNotEmpty) {
-        final state = PullRequestState.fromDocument(docs.first);
+      try {
+        final doc = await firestore.getDocument(name);
+        final state = PullRequestState.fromDocument(doc);
         _isPrivileged = state.isPrivileged ?? false;
         _latestSha = state.latestSha ?? event.pullRequest!.head!.sha!;
         _scheduledSha = state.scheduledSha;
         log.info(
           'Hydrated PullRequestManager for $slug/$prNumber: isPrivileged=$_isPrivileged, latestSha=$_latestSha, scheduledSha=$_scheduledSha',
         );
-      } else {
+      } on DetailedApiRequestError catch (e) {
+        if (e.status != HttpStatus.notFound) {
+          rethrow;
+        }
+
+        // Document not found, initialize as new
         final pr = event.pullRequest!;
         final author = pr.user!.login!;
         final githubService = await config.createGithubService(slug);
@@ -105,16 +105,18 @@ class PullRequestManager {
         _isPrivileged = isRoller || isFlutterHacker;
         _latestSha = pr.head!.sha!;
 
-        // Persist initial state
+        // Persist initial state using the specific document ID!
         final state = PullRequestState()
           ..slug = slug
           ..number = prNumber
           ..isPrivileged = _isPrivileged
           ..latestSha = _latestSha;
+
         final document = Document(fields: state.fields);
         await firestore.createDocument(
           document,
           collectionId: PullRequestState.kCollectionId,
+          documentId: documentId,
         );
         log.info('Created initial PullRequestState for $slug/$prNumber');
       }
@@ -130,14 +132,9 @@ class PullRequestManager {
 
   /// Persists the current state to Firestore.
   Future<void> persist() async {
-    final filterMap = <String, Object>{
-      'slug =': json.encode(slug.toJson()),
-      'number =': prNumber,
-    };
-    final docs = await firestore.query(
-      PullRequestState.kCollectionId,
-      filterMap,
-    );
+    final documentId = PullRequestState.getDocumentId(slug, prNumber);
+    final name =
+        '$kDocumentParent/${PullRequestState.kCollectionId}/$documentId';
 
     final state = PullRequestState()
       ..slug = slug
@@ -146,25 +143,10 @@ class PullRequestManager {
       ..latestSha = latestSha
       ..scheduledSha = _scheduledSha;
 
-    if (docs.isEmpty) {
-      // Create
-      final document = Document(fields: state.fields);
-      await firestore.createDocument(
-        document,
-        collectionId: PullRequestState.kCollectionId,
-      );
-      log.info('Created PullRequestState for $slug/$prNumber');
-    } else {
-      // Update
-      final existing = PullRequestState.fromDocument(docs.first);
-      existing.isPrivileged = _isPrivileged;
-      existing.latestSha = latestSha;
-      existing.scheduledSha = _scheduledSha;
+    final document = Document(name: name, fields: state.fields);
 
-      final tx = await firestore.beginTransaction();
-      await firestore.commit(tx, documentsToWrites([existing]));
-      log.info('Updated PullRequestState for $slug/$prNumber');
-    }
+    await firestore.writeViaTransaction(documentsToWrites([document]));
+    log.info('Persisted PullRequestState for $slug/$prNumber');
   }
 
   /// The latest SHA that we have processed for this PR.
