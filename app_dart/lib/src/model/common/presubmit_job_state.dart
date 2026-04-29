@@ -20,6 +20,7 @@ class PresubmitJobState {
   final int? endTime;
   final String? summary;
   final int? buildNumber;
+  final int? buildId;
 
   const PresubmitJobState({
     required this.jobName,
@@ -29,6 +30,7 @@ class PresubmitJobState {
     this.endTime,
     this.summary,
     this.buildNumber,
+    this.buildId,
   });
 }
 
@@ -41,5 +43,6 @@ extension BuildToPresubmitJobState on bbv2.Build {
     endTime: endTime.toDateTime().millisecondsSinceEpoch,
     summary: summaryMarkdown,
     buildNumber: number,
+    buildId: id.toInt(),
   );
 }

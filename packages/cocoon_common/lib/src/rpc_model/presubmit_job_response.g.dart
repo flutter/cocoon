@@ -27,6 +27,7 @@ PresubmitJobResponse _$PresubmitJobResponseFromJson(
       ),
       summary: $checkedConvert('summary', (v) => v as String?),
       buildNumber: $checkedConvert('build_number', (v) => (v as num?)?.toInt()),
+      buildId: $checkedConvert('build_id', (v) => (v as num?)?.toInt()),
     );
     return val;
   },
@@ -37,6 +38,7 @@ PresubmitJobResponse _$PresubmitJobResponseFromJson(
     'startTime': 'start_time',
     'endTime': 'end_time',
     'buildNumber': 'build_number',
+    'buildId': 'build_id',
   },
 );
 
@@ -51,6 +53,7 @@ Map<String, dynamic> _$PresubmitJobResponseToJson(
   'status': instance.status,
   'summary': ?instance.summary,
   'build_number': ?instance.buildNumber,
+  'build_id': ?instance.buildId,
 };
 
 const _$TaskStatusEnumMap = {

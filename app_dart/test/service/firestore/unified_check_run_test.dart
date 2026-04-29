@@ -176,6 +176,7 @@ void main() {
           startTime: 2000,
           endTime: 3000,
           buildNumber: 456,
+          buildId: 98765,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -200,6 +201,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.succeeded);
         expect(checkDoc.endTime, 3000);
         expect(checkDoc.buildNumber, 456);
+        expect(checkDoc.buildId, 98765);
       });
 
       test(
@@ -297,6 +299,7 @@ void main() {
           attemptNumber: 1,
           startTime: 2000,
           buildNumber: 456,
+          buildId: 98765,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -319,6 +322,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.inProgress);
         expect(checkDoc.startTime, 2000);
         expect(checkDoc.buildNumber, 456);
+        expect(checkDoc.buildId, 98765);
       });
     });
     group('reInitializeFailedChecks', () {

@@ -104,6 +104,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
   static const fieldSlug = 'slug';
   static const fieldJobName = 'job_name';
   static const fieldBuildNumber = 'build_number';
+  static const fieldBuildId = 'build_id';
   static const fieldStatus = 'status';
   static const fieldAttemptNumber = 'attempt_number';
   static const fieldCreationTime = 'creation_time';
@@ -169,6 +170,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
     required int attemptNumber,
     required int creationTime,
     int? buildNumber,
+    int? buildId,
     int? startTime,
     int? endTime,
     String? summary,
@@ -180,6 +182,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
         fieldCheckRunId: checkRunId.toValue(),
         fieldJobName: jobName.toValue(),
         fieldBuildNumber: ?buildNumber?.toValue(),
+        fieldBuildId: ?buildId?.toValue(),
         fieldStatus: status.value.toValue(),
         fieldAttemptNumber: attemptNumber.toValue(),
         fieldCreationTime: creationTime.toValue(),
@@ -216,6 +219,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
       creationTime: creationTime,
       status: TaskStatus.waitingForBackfill,
       buildNumber: null,
+      buildId: null,
       startTime: null,
       endTime: null,
       summary: null,
@@ -243,6 +247,9 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
   int get creationTime => int.parse(fields[fieldCreationTime]!.integerValue!);
   int? get buildNumber => fields[fieldBuildNumber] != null
       ? int.parse(fields[fieldBuildNumber]!.integerValue!)
+      : null;
+  int? get buildId => fields[fieldBuildId] != null
+      ? int.parse(fields[fieldBuildId]!.integerValue!)
       : null;
   int? get startTime => fields[fieldStartTime] != null
       ? int.parse(fields[fieldStartTime]!.integerValue!)
@@ -278,6 +285,14 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
     }
   }
 
+  set buildId(int? buildId) {
+    if (buildId == null) {
+      fields.remove(fieldBuildId);
+    } else {
+      fields[fieldBuildId] = buildId.toValue();
+    }
+  }
+
   set summary(String? summary) {
     if (summary == null) {
       fields.remove(fieldSummary);
@@ -296,6 +311,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
 
   void updateFromBuild(bbv2.Build build) {
     fields[fieldBuildNumber] = build.number.toValue();
+    fields[fieldBuildId] = Value(integerValue: build.id.toString());
     fields[fieldCreationTime] = build.createTime
         .toDateTime()
         .millisecondsSinceEpoch

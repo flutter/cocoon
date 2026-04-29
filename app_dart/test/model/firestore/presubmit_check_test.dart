@@ -100,6 +100,7 @@ void main() {
       expect(check.attemptNumber, 1);
       expect(check.status, TaskStatus.waitingForBackfill);
       expect(check.buildNumber, isNull);
+      expect(check.buildId, isNull);
       expect(check.startTime, isNull);
       expect(check.endTime, isNull);
       expect(check.summary, isNull);
@@ -131,6 +132,7 @@ void main() {
         attemptNumber: 1,
         creationTime: 1000,
         buildNumber: 456,
+        buildId: 789,
         startTime: 2000,
         endTime: 3000,
         summary: 'Success',
@@ -168,6 +170,7 @@ void main() {
       expect(loadedCheck.attemptNumber, 1);
       expect(loadedCheck.creationTime, 1000);
       expect(loadedCheck.buildNumber, 456);
+      expect(loadedCheck.buildId, 789);
       expect(loadedCheck.startTime, 2000);
       expect(loadedCheck.endTime, 3000);
       expect(loadedCheck.summary, 'Success');
@@ -182,6 +185,7 @@ void main() {
       );
 
       final build = bbv2.Build(
+        id: Int64(789),
         number: 456,
         createTime: bbv2.Timestamp(seconds: Int64(2000)),
         startTime: bbv2.Timestamp(seconds: Int64(2100)),
@@ -192,6 +196,7 @@ void main() {
       check.updateFromBuild(build);
 
       expect(check.buildNumber, 456);
+      expect(check.buildId, 789);
       expect(check.creationTime, 2000000); // seconds to millis
       expect(check.startTime, 2100000);
       expect(check.endTime, 2200000);
@@ -231,6 +236,21 @@ void main() {
 
       check.buildNumber = null;
       expect(check.buildNumber, isNull);
+    });
+
+    test('buildId setter updates fields', () {
+      final check = PresubmitJob.init(
+        slug: slug,
+        jobName: 'linux',
+        checkRunId: 123,
+        creationTime: 1000,
+      );
+
+      check.buildId = 789;
+      expect(check.buildId, 789);
+
+      check.buildId = null;
+      expect(check.buildId, isNull);
     });
   });
 }
