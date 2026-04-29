@@ -41,6 +41,7 @@ class PresubmitCompletedJob {
   final int? endTime;
   final String? summary;
   final int? buildNumber;
+  final int? buildId;
 
   const PresubmitCompletedJob({
     required this.name,
@@ -59,6 +60,7 @@ class PresubmitCompletedJob {
     this.endTime,
     this.summary,
     this.buildNumber,
+    this.buildId,
   });
 
   /// Creates a [PresubmitCompletedJob] from a GitHub [CheckRun].
@@ -81,6 +83,7 @@ class PresubmitCompletedJob {
       endTime: null,
       summary: null,
       buildNumber: null,
+      buildId: null,
     );
   }
 
@@ -107,6 +110,7 @@ class PresubmitCompletedJob {
       endTime: build.endTime.toDateTime().millisecondsSinceEpoch,
       summary: build.summaryMarkdown,
       buildNumber: build.number,
+      buildId: build.id.toInt(),
     );
   }
 
@@ -149,6 +153,7 @@ class PresubmitCompletedJob {
       endTime: endTime,
       summary: summary,
       buildNumber: buildNumber,
+      buildId: buildId,
     );
   }
 

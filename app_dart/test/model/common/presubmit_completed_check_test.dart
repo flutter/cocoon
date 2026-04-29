@@ -5,6 +5,7 @@
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -45,6 +46,7 @@ void main() {
 
     test('fromBuild creates correct unified check', () {
       final build = Build(
+        id: Int64(98765),
         builder: BuilderID(builder: 'test_builder'),
         status: Status.SUCCESS,
       );
@@ -74,10 +76,12 @@ void main() {
       expect(check.isUnifiedCheckRun, true);
       expect(check.checkRun.name, Config.kFlutterPresubmitsName);
       expect(check.buildNumber, 0);
+      expect(check.buildId, 98765);
     });
 
     test('fromBuild creates correct legacy check', () {
       final build = Build(
+        id: Int64(98765),
         builder: BuilderID(builder: 'test_builder'),
         status: Status.SUCCESS,
         number: 1234,
@@ -108,6 +112,7 @@ void main() {
       expect(check.isUnifiedCheckRun, false);
       expect(check.checkRun.name, 'test_builder');
       expect(check.buildNumber, 1234);
+      expect(check.buildId, 98765);
     });
   });
 }

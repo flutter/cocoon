@@ -83,6 +83,7 @@ void main() {
         endTime: 120,
         summary: 'all good',
         buildNumber: 456,
+        buildId: 98765,
       );
       await firestoreService.writeViaTransaction(
         documentsToWrites([job], exists: false),
@@ -100,6 +101,7 @@ void main() {
       expect(jobs[0].jobName, 'linux');
       expect(jobs[0].status, TaskStatus.succeeded);
       expect(jobs[0].buildNumber, 456);
+      expect(jobs[0].buildId, 98765);
     });
 
     test('returns checks when found with owner and repo', () async {

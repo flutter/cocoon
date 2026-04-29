@@ -100,6 +100,7 @@ final class GetPresubmitJobs extends PublicApiRequestHandler {
           status: job.status,
           summary: job.summary,
           buildNumber: job.buildNumber,
+          buildId: job.buildId,
         ),
     ];
 
