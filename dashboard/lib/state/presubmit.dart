@@ -525,6 +525,33 @@ class PresubmitState extends ChangeNotifier {
         false;
   }
 
+  /// Whether the user can trigger log analysis for a specific job.
+  bool canAnalyzeLog(PresubmitJobResponse job) {
+    if (!authService.isAuthenticated || isLoading) {
+      return false;
+    }
+    if (job.status != TaskStatus.failed &&
+        job.status != TaskStatus.infraFailure) {
+      return false;
+    }
+    return job.buildId != null &&
+        (job.logAnalysis == null || job.logAnalysis!.trim().isEmpty);
+  }
+
+  /// Triggers log analysis for a job.
+  Future<String?> analyzeLogs(PresubmitJobResponse job) async {
+    if (pr == null) return 'No PR selected';
+
+    final response = await cocoonService.analyzeLogs(
+      idToken: await authService.idToken,
+      repo: repo,
+      pr: int.parse(pr!),
+      buildId: job.buildId!,
+    );
+
+    return response.error;
+  }
+
   void resume() {
     if (!_active) return;
     _startTimer();

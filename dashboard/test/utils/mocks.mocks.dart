@@ -476,6 +476,37 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
           as _i8.Future<_i3.CocoonResponse<void>>);
 
   @override
+  _i8.Future<_i3.CocoonResponse<void>> analyzeLogs({
+    required String? idToken,
+    required String? repo,
+    required int? pr,
+    required int? buildId,
+    String? owner = 'flutter',
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#analyzeLogs, [], {
+              #idToken: idToken,
+              #repo: repo,
+              #pr: pr,
+              #buildId: buildId,
+              #owner: owner,
+            }),
+            returnValue: _i8.Future<_i3.CocoonResponse<void>>.value(
+              _FakeCocoonResponse_2<void>(
+                this,
+                Invocation.method(#analyzeLogs, [], {
+                  #idToken: idToken,
+                  #repo: repo,
+                  #pr: pr,
+                  #buildId: buildId,
+                  #owner: owner,
+                }),
+              ),
+            ),
+          )
+          as _i8.Future<_i3.CocoonResponse<void>>);
+
+  @override
   _i8.Future<_i3.CocoonResponse<void>> rerunAllFailedJobs({
     required String? idToken,
     required String? repo,
