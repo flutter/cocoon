@@ -82,6 +82,15 @@ abstract class CocoonService {
     String owner = 'flutter',
   });
 
+  /// Analyze logs for the given failed job.
+  Future<CocoonResponse<void>> analyzeLogs({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    required int buildId,
+    String owner = 'flutter',
+  });
+
   /// Schedule all failed tasks for the given [pr] to be re-run.
   Future<CocoonResponse<void>> rerunAllFailedJobs({
     required String? idToken,

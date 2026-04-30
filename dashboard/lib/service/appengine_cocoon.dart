@@ -554,6 +554,43 @@ class AppEngineCocoonService implements CocoonService {
   }
 
   @override
+  Future<CocoonResponse<void>> analyzeLogs({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    required int buildId,
+    String owner = 'flutter',
+  }) async {
+    if (idToken == null || idToken.isEmpty) {
+      return const CocoonResponse<void>.error(
+        'Sign in to analyze logs',
+        statusCode: HttpStatus.unauthorized,
+      );
+    }
+
+    final analyzeUrl = apiEndpoint('/api/analyze-logs');
+    final response = await _client.post(
+      analyzeUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+      body: jsonEncode({
+        'owner': owner,
+        'repo': repo,
+        'pr': pr,
+        'build_id': buildId,
+      }),
+    );
+
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
+  @override
   Future<CocoonResponse<void>> rerunAllFailedJobs({
     required String? idToken,
     required String repo,

@@ -483,6 +483,7 @@ class DataSeeder {
       attemptNumber: attemptNumber,
       creationTime: creationTime,
       buildNumber: 1337 + attemptNumber,
+      buildId: 24567 + attemptNumber,
       summary: switch (status) {
         .succeeded =>
           '[INFO] Starting task $jobName...\n[SUCCESS] All tests passed (452/452)',
@@ -504,8 +505,6 @@ class DataSeeder {
       logAnalysis: switch (status) {
         .failed =>
           'Based on my analysis of the provided LUCI logs and the context of the changes in this PR, here is the breakdown of the build failure:\n\n ### 1. Identify the specific test or command that failed for $jobName \n...',
-        .infraFailure =>
-          'Based on my analysis of the provided LUCI logs and the context of the changes in this PR, here is the breakdown of the build failure:\n\n ### 1. Identify the specific infra issue for $jobName \n...',
         _ => null,
       },
     );
