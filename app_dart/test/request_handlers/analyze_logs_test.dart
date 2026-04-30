@@ -219,7 +219,7 @@ void main() {
       ..steps.addAll([
         bbv2.Step.create()
           ..name = 'step1'
-          ..status = bbv2.Status.FAILURE
+          ..status = bbv2.Status.FAILURE,
       ]);
 
     when(
@@ -236,9 +236,6 @@ void main() {
       'build_id': 123,
     };
 
-    await expectLater(
-      tester.post(handler),
-      throwsA(isA<NotFoundException>()),
-    );
+    await expectLater(tester.post(handler), throwsA(isA<NotFoundException>()));
   });
 }

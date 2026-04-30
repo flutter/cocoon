@@ -24,8 +24,11 @@ void main() {
   group('GenkitLogAnalyzer', () {
     test('throws state error when no plugins registered', () async {
       final ai = Genkit(plugins: []);
-      final analyzer = GenkitLogAnalyzer(ai, modelName: 'gemini-3-flash-preview');
-      
+      final analyzer = GenkitLogAnalyzer(
+        ai,
+        modelName: 'gemini-3-flash-preview',
+      );
+
       // Expect a StateError or similar when trying to use a model without the plugin.
       // Genkit throws StateError when looking up a model that isn't registered.
       expect(
