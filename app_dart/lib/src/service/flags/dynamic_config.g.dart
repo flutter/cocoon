@@ -26,6 +26,7 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
               json['unifiedCheckRunFlow'] as Map<String, dynamic>?,
             ),
       dynamicTestSuppression: json['dynamicTestSuppression'] as bool?,
+      geminiModel: json['geminiModel'] as String?,
     );
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
@@ -36,4 +37,5 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'closeMqGuardAfterPresubmit': instance.closeMqGuardAfterPresubmit,
       'unifiedCheckRunFlow': instance.unifiedCheckRunFlow.toJson(),
       'dynamicTestSuppression': instance.dynamicTestSuppression,
+      'geminiModel': instance.geminiModel,
     };

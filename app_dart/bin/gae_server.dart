@@ -19,6 +19,7 @@ import 'package:cocoon_service/src/service/content_aware_hash_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config_updater.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
+import 'package:cocoon_service/src/service/log_analyzer.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:genkit/genkit.dart';
 import 'package:genkit_google_genai/genkit_google_genai.dart';
@@ -163,6 +164,7 @@ Future<void> main() async {
       ciYamlFetcher: ciYamlFetcher,
       buildStatusService: buildStatusService,
       contentAwareHashService: contentHashService,
+      logAnalyzer: GenkitLogAnalyzer(ai, modelName: config.flags.geminiModel),
     );
 
     return runAppEngine(

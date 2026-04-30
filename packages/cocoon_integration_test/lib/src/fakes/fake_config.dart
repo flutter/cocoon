@@ -179,7 +179,8 @@ class FakeConfig implements Config {
   Future<String> get githubOAuthToken async => githubOAuthTokenValue ?? 'token';
 
   @override
-  Future<String> get geminiLogAnalyzerKey async => geminiLogAnalyzerKeyValue ?? 'fake-gemini-key';
+  Future<String> get geminiLogAnalyzerKey async =>
+      geminiLogAnalyzerKeyValue ?? 'fake-gemini-key';
 
   @override
   String get mergeConflictPullRequestMessage =>
