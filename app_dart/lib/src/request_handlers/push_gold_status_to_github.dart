@@ -161,7 +161,7 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
         }
         const successfulConclusion = {'SUCCESS', 'NEUTRAL'};
 
-        if (checkRun['status']?.toUpperCase() != 'completed' ||
+        if (checkRun['status']?.toUpperCase() != 'COMPLETED' ||
             !successfulConclusion.contains(
               checkRun['conclusion']?.toUpperCase(),
             )) {
