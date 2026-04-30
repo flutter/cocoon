@@ -27,6 +27,8 @@ dependencies:
   crypto: ^3.0.6
   dbcrypt: 2.0.0
   file: ^7.0.1
+  genkit: ^0.13.0
+  genkit_google_genai: ^0.2.5
   fixnum: 1.1.1
   gcloud: 0.8.19
   github: 9.25.0
