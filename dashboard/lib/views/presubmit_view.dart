@@ -328,18 +328,26 @@ class _JobDetailsViewerPane extends StatefulWidget {
 
 class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
   int _selectedAttemptIndex = 0;
+  int _selectedDetailTabIndex = 0;
+  String? _lastJobName;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final presubmitState = Provider.of<PresubmitState>(context);
+    final jobName = presubmitState.selectedJob;
+
+    if (_lastJobName != jobName) {
+      _lastJobName = jobName;
+      _selectedAttemptIndex = 0;
+      _selectedDetailTabIndex = 0;
+    }
 
     return AnimatedBuilder(
       animation: presubmitState,
       builder: (context, _) {
         final repo = presubmitState.repo;
-        final jobName = presubmitState.selectedJob;
         final jobs = presubmitState.jobs;
         final isLoading = presubmitState.isLoading;
 
@@ -360,6 +368,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
         }
 
         final selectedJob = jobs[_selectedAttemptIndex];
+        final hasLogAnalysis = selectedJob.logAnalysis != null && selectedJob.logAnalysis!.isNotEmpty;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,22 +457,33 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                border: Border(bottom: BorderSide(color: borderColor)),
+              ),
               child: Row(
                 children: [
-                  Text(
-                    'Execution Details',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Spacer(),
-                  Text(
+                  if (hasLogAnalysis) ...[
+                    _buildDetailTab('Log Analysis', 0, isDark),
+                    _buildDetailTab('Execution Details', 1, isDark),
+                  ] else
+                    const Text(
+                      'Execution Details',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  const Spacer(),
+                  const Text(
                     'Raw output',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 12),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -476,9 +496,11 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedJob.summary?.trim().isEmpty ?? true
-                        ? _getDefaultJobDetails(selectedJob)
-                        : selectedJob.summary!,
+                    hasLogAnalysis && _selectedDetailTabIndex == 0
+                        ? selectedJob.logAnalysis!
+                        : (selectedJob.summary?.trim().isEmpty ?? true
+                            ? _getDefaultJobDetails(selectedJob)
+                            : selectedJob.summary!),
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
@@ -531,6 +553,35 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDetailTab(String label, int index, bool isDark) {
+    final isSelected = _selectedDetailTabIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _selectedDetailTabIndex = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected
+                ? (isDark ? Colors.white : Colors.black)
+                : (isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280)),
+          ),
+        ),
+      ),
     );
   }
 

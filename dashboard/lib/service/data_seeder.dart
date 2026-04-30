@@ -501,6 +501,13 @@ class DataSeeder {
       },
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,
+      logAnalysis: switch (status) {
+        .failed =>
+          'Based on my analysis of the provided LUCI logs and the context of the changes in this PR, here is the breakdown of the build failure:\n\n ### 1. Identify the specific test or command that failed for $jobName \n...',
+        .infraFailure =>
+          'Based on my analysis of the provided LUCI logs and the context of the changes in this PR, here is the breakdown of the build failure:\n\n ### 1. Identify the specific infra issue for $jobName \n...',
+        _ => null,
+      },
     );
   }
 
