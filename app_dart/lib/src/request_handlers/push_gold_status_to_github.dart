@@ -159,12 +159,10 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
             runsGoldenFileTests = true;
           }
         }
-        if (checkRun['status']?.toUpperCase() != 'COMPLETED' ||
-            checkRun['conclusion'] == null ||
-            !<String>[
-              'SUCCESS',
-              'NEUTRAL',
-            ].contains(checkRun['conclusion'].toUpperCase())) {
+        const successfulConclusion = {'SUCCESS', 'NEUTRAL'};
+
+        if (checkRun['status']?.toUpperCase() != 'completed' ||
+            !successfulConclusion.contains(checkRun['conclusion']?.toUpperCase())) {
           log.debug('Incomplete check run: $checkRun');
           incompleteChecks.add(name);
         }
