@@ -362,6 +362,64 @@ void main() {
       });
 
       test(
+        'same commit, neutral checks complete, last status complete',
+        () async {
+          // Same commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusCompleted,
+              'abc',
+              config.flutterGoldSuccessValue!,
+            ),
+          );
+
+          // Neutral checks complete
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'framework',
+              'status': 'completed',
+              'conclusion': 'neutral',
+            },
+            <String, String>{
+              'name': 'web engine',
+              'status': 'completed',
+              'conclusion': 'neutral',
+            },
+          ];
+
+          final body = await tester.get(handler);
+          expect(body, same(Response.emptyOk));
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
+          );
+          expect(log, hasNoWarningsOrHigher);
+
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        },
+      );
+
+      test(
         'same commit, checks complete, last status & gold status is running/awaiting triage, should not comment',
         () async {
           // Same commit
@@ -1160,7 +1218,7 @@ void main() {
         checkRuns = <dynamic>[
           <String, String>{
             'name': 'framework',
-            'completed': 'in_progress',
+            'status': 'completed',
             'conclusion': 'success',
           },
         ];
