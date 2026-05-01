@@ -237,8 +237,8 @@ class CiSuccessful extends Validation {
     // If the workflow has run more than once on the same commit, every result
     // is included in this initial pull of check runs for the given commit.
     final uniqueCheckRuns = <String, github.CheckRun>{};
+    log.info('Deduplicating check runs...');
     for (final checkRun in checkRuns) {
-      log.info('Deduplicating check runs...');
       final name = checkRun.name;
       if (name == null) {
         continue;
