@@ -232,8 +232,26 @@ class CiSuccessful extends Validation {
   ) {
     log.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
 
+    final uniqueCheckRuns = <String, github.CheckRun>{};
+    for (final checkRun in checkRuns) {
+      final name = checkRun.name;
+      if (name == null) {
+        continue;
+      }
+      final existing = uniqueCheckRuns[name];
+      if (existing == null) {
+        uniqueCheckRuns[name] = checkRun;
+      } else {
+        final existingStartedAt = existing.startedAt;
+        final currentStartedAt = checkRun.startedAt;
+        if (currentStartedAt.isAfter(existingStartedAt)) {
+          uniqueCheckRuns[name] = checkRun;
+        }
+      }
+    }
+
     final staleCheckRuns = <github.CheckRun>[];
-    for (var checkRun in checkRuns) {
+    for (var checkRun in uniqueCheckRuns.values) {
       final name = checkRun.name;
 
       if (checkRun.name == Config.kMergeQueueLockName) {

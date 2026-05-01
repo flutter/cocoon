@@ -177,3 +177,66 @@ const String nonNullStatusFAILURECommitRepositoryJson = '''
     }
   }
   ''';
+const String dedupedCheckRunsSuccessMock = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 1,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com/failure",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "my_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 2,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com/success",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2018-05-04T02:14:52Z",
+      "name": "my_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
+
+const String dedupedCheckRunsFailureMock = '''{
+  "total_count": 2,
+  "check_runs": [
+    {
+      "id": 1,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com/success",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2018-05-04T01:14:52Z",
+      "name": "my_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    },
+    {
+      "id": 2,
+      "head_sha": "be6ff099a4ee56e152a5fa2f37edd10f79d1269a",
+      "external_id": "",
+      "details_url": "https://example.com/failure",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2018-05-04T02:14:52Z",
+      "name": "my_checkrun",
+      "check_suite": {
+        "id": 5
+      }
+    }
+  ]
+}''';
