@@ -232,8 +232,13 @@ class CiSuccessful extends Validation {
   ) {
     log.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
 
+    // Deduplicate check runs by name, keeping the most recent one.
+    // This can happen for example if a workflow is triggered by a label event.
+    // If the workflow has run more than once on the same commit, every result
+    // is included in this initial pull of heck runs for the given commi.
     final uniqueCheckRuns = <String, github.CheckRun>{};
     for (final checkRun in checkRuns) {
+      log.info('Deduplicating check runs...');
       final name = checkRun.name;
       if (name == null) {
         continue;
@@ -246,6 +251,9 @@ class CiSuccessful extends Validation {
         final currentStartedAt = checkRun.startedAt;
         if (currentStartedAt.isAfter(existingStartedAt)) {
           uniqueCheckRuns[name] = checkRun;
+          log.info(
+            'Replaced ${existing.name} (${existing.startedAt}) with newer ${checkRun.name} (${checkRun.startedAt})',
+          );
         }
       }
     }
