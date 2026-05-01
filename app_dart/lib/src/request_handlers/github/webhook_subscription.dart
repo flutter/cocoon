@@ -48,18 +48,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     @visibleForTesting DateTime Function() now = DateTime.now,
     // Gets the initial github events from this sub after the webhook uploads them.
   }) : _now = now,
-       prManagerCache = PullRequestManagerCache(
-         capacity: 100,
-         firestore: firestore,
-         config: config,
-         scheduler: scheduler,
-         gerritService: gerritService,
-         pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
-       ),
        super(subscriptionName: 'github-webhooks-sub');
 
   final DateTime Function() _now;
-  final PullRequestManagerCache prManagerCache;
 
   /// Cocoon scheduler to trigger tasks against changes from GitHub.
   final Scheduler scheduler;
@@ -170,25 +161,34 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       throw const InternalServerError('Unsupported repository');
     }
 
+    final context = PullRequestEventContext(
+      cache: cache,
+      firestore: firestore,
+      config: config,
+      scheduler: scheduler,
+      gerritService: gerritService,
+      pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
+    );
+
     // See the API reference:
     // https://developer.github.com/v3/activity/events/types/#pullrequestevent
     // which unfortunately is a bit light on explanations.
     log.info('$crumb: processing $eventAction for ${pr.htmlUrl}');
     switch (eventAction) {
       case 'closed':
-        final result = await _processPullRequestClosed(pullRequestEvent);
-        return result.toResponse();
+        return await PullRequestManager.handleClosed(
+          pullRequestEvent,
+          context,
+          _processPullRequestClosed,
+        );
       case 'edited':
-        final manager = prManagerCache.getOrCreate(pullRequestEvent);
-        await manager.handleEdited(pullRequestEvent);
+        await PullRequestManager.handleEdited(pullRequestEvent, context);
         break;
       case 'opened':
-        final manager = prManagerCache.getOrCreate(pullRequestEvent);
-        await manager.handleOpened(pullRequestEvent);
+        await PullRequestManager.handleOpened(pullRequestEvent, context);
         break;
       case 'reopened':
-        final manager = prManagerCache.getOrCreate(pullRequestEvent);
-        await manager.handleReopened(pullRequestEvent);
+        await PullRequestManager.handleReopened(pullRequestEvent, context);
         break;
       case 'labeled':
         log.info(
@@ -197,15 +197,18 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         final labelEvent = _getLabeledEvent(rawRequest);
         final labelName = labelEvent?.label.name;
         final labelId = labelEvent?.label.id;
-        final manager = prManagerCache.getOrCreate(pullRequestEvent);
-        await manager.handleLabeled(pullRequestEvent, labelName, labelId);
+        await PullRequestManager.handleLabeled(
+          pullRequestEvent,
+          context,
+          labelName,
+          labelId,
+        );
         break;
       case 'dequeued':
         await _respondToPullRequestDequeued(pullRequestEvent);
         break;
       case 'synchronize':
-        final manager = prManagerCache.getOrCreate(pullRequestEvent);
-        await manager.handleSynchronize(pullRequestEvent);
+        await PullRequestManager.handleSynchronize(pullRequestEvent, context);
         break;
       // Ignore the rest of the events.
       case 'ready_for_review':

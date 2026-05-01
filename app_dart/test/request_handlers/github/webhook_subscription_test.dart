@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/core_extensions.dart';
@@ -47,6 +48,7 @@ void main() {
   useTestLoggerPerTest();
 
   late GithubWebhookSubscription webhook;
+  late CacheService cache;
   late FakeBuildBucketClient fakeBuildBucketClient;
   late FakeConfig config;
   late FakeGithubService githubService;
@@ -163,9 +165,10 @@ void main() {
     gerritService = FakeGerritService();
 
     fakeNow = DateTime.now();
+    cache = CacheService(inMemory: true);
     webhook = GithubWebhookSubscription(
       config: config,
-      cache: CacheService(inMemory: true),
+      cache: cache,
       gerritService: gerritService,
       scheduler: scheduler,
       commitService: commitService,
@@ -4143,5 +4146,30 @@ void foo() {
         );
       },
     );
+  });
+
+  group('Redis locks', () {
+    test('fails with 503 when PR is locked', () async {
+      final slug = Config.flutterSlug;
+      const prNumber = 123;
+      final lockKey = 'pr_lock_${slug.owner}_${slug.name}_$prNumber';
+      final lockValue = Uint8List.fromList('l'.codeUnits);
+
+      // Pre-populate cache to simulate lock held by another instance
+      await cache.set('pr_locks', lockKey, lockValue);
+
+      tester.message = generateGithubWebhookMessage(
+        action: 'opened',
+        number: prNumber,
+      );
+
+      try {
+        await tester.post(webhook);
+        fail('Should have thrown ServiceUnavailable');
+      } on ServiceUnavailable catch (e) {
+        expect(e.statusCode, HttpStatus.serviceUnavailable);
+        expect(e.message, contains('PR is locked by another instance'));
+      }
+    });
   });
 }

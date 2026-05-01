@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
@@ -14,11 +15,15 @@ import 'package:googleapis/firestore/v1.dart' hide Value;
 
 import '../model/firestore/pr_check_runs.dart';
 import '../model/firestore/pull_request_state.dart';
+import '../request_handling/exceptions.dart';
+import '../request_handling/response.dart';
+import 'cache_service.dart';
 import 'config.dart';
 import 'firestore.dart';
 import 'gerrit_service.dart';
 import 'github_service.dart';
 import 'scheduler.dart';
+import 'scheduler/process_check_run_result.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -55,11 +60,10 @@ class PullRequestManager {
   final GerritService gerritService;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
 
-  final PullRequestOperationQueue _queue = PullRequestOperationQueue();
-
-  late final bool _isPrivileged;
-  late String _latestSha;
+  final bool _isPrivileged;
+  String _latestSha;
   String? _scheduledSha;
+  bool _isDirty = false;
 
   PullRequestManager._({
     required this.slug,
@@ -69,69 +73,273 @@ class PullRequestManager {
     required this.scheduler,
     required this.gerritService,
     required this.pullRequestLabelProcessorProvider,
-  });
+    required bool isPrivileged,
+    required String latestSha,
+    String? scheduledSha,
+  }) : _isPrivileged = isPrivileged,
+       _latestSha = latestSha,
+       _scheduledSha = scheduledSha;
 
-  /// Kicks off asynchronous initialization in the queue.
-  void _initialize(PullRequestEvent event) {
-    _addEvent(() async {
-      final documentId = PullRequestState.getDocumentId(slug, prNumber);
-      final name =
-          '$kDocumentParent/${PullRequestState.kCollectionId}/$documentId';
+  /// Runs an action with a distributed lock on the pull request.
+  static Future<T> _runWithLock<T>({
+    required PullRequestEvent event,
+    required CacheService cache,
+    required Future<T> Function() action,
+  }) async {
+    final pr = event.pullRequest!;
+    final slug = event.repository!.slug();
+    final prNumber = pr.number!;
+    final lockKey = 'pr_lock_${slug.owner}_${slug.name}_$prNumber';
+    final lockValue = Uint8List.fromList('l'.codeUnits);
 
-      try {
-        final doc = await firestore.getDocument(name);
-        final state = PullRequestState.fromDocument(doc);
-        _isPrivileged = state.isPrivileged ?? false;
-        _latestSha = state.latestSha ?? event.pullRequest!.head!.sha!;
-        _scheduledSha = state.scheduledSha;
-        log.info(
-          'Hydrated PullRequestManager for $slug/$prNumber: isPrivileged=$_isPrivileged, latestSha=$_latestSha, scheduledSha=$_scheduledSha',
+    // Attempt to acquire lock
+    final existingLock = await cache.getOrCreate(
+      'pr_locks',
+      lockKey,
+      createFn: null,
+    );
+    if (existingLock != null) {
+      throw const ServiceUnavailable('PR is locked by another instance');
+    }
+    await cache.set(
+      'pr_locks',
+      lockKey,
+      lockValue,
+      ttl: const Duration(minutes: 5),
+    );
+
+    try {
+      return await action();
+    } finally {
+      await cache.purge('pr_locks', lockKey);
+    }
+  }
+
+  static Future<void> handleOpened(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final manager = await PullRequestManager._create(
+          slug: event.repository!.slug(),
+          prNumber: event.pullRequest!.number!,
+          firestore: context.firestore,
+          config: context.config,
+          scheduler: context.scheduler,
+          gerritService: context.gerritService,
+          pullRequestLabelProcessorProvider:
+              context.pullRequestLabelProcessorProvider,
+          event: event,
         );
-      } on DetailedApiRequestError catch (e) {
-        if (e.status != HttpStatus.notFound) {
-          rethrow;
-        }
+        await manager._handleOpened(event);
+        await manager.persist();
+      },
+    );
+  }
 
-        // Document not found, initialize as new
-        final pr = event.pullRequest!;
-        final author = pr.user!.login!;
-        final githubService = await config.createGithubService(slug);
-        final isRoller = config.rollerAccounts.contains(author);
-        final isFlutterHacker = await githubService.isTeamMember(
-          'flutter-hackers',
-          author,
-          slug.owner,
+  static Future<void> handleSynchronize(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final manager = await PullRequestManager._create(
+          slug: event.repository!.slug(),
+          prNumber: event.pullRequest!.number!,
+          firestore: context.firestore,
+          config: context.config,
+          scheduler: context.scheduler,
+          gerritService: context.gerritService,
+          pullRequestLabelProcessorProvider:
+              context.pullRequestLabelProcessorProvider,
+          event: event,
         );
-        _isPrivileged = isRoller || isFlutterHacker;
-        _latestSha = pr.head!.sha!;
+        await manager._handleSynchronize(event);
+        await manager.persist();
+      },
+    );
+  }
 
-        // Persist initial state using the specific document ID!
-        final state = PullRequestState()
-          ..slug = slug
-          ..number = prNumber
-          ..isPrivileged = _isPrivileged
-          ..latestSha = _latestSha;
-
-        final document = Document(fields: state.fields);
-        await firestore.createDocument(
-          document,
-          collectionId: PullRequestState.kCollectionId,
-          documentId: documentId,
+  static Future<void> handleEdited(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final manager = await PullRequestManager._create(
+          slug: event.repository!.slug(),
+          prNumber: event.pullRequest!.number!,
+          firestore: context.firestore,
+          config: context.config,
+          scheduler: context.scheduler,
+          gerritService: context.gerritService,
+          pullRequestLabelProcessorProvider:
+              context.pullRequestLabelProcessorProvider,
+          event: event,
         );
-        log.info('Created initial PullRequestState for $slug/$prNumber');
+        await manager._handleEdited(event);
+        await manager.persist();
+      },
+    );
+  }
+
+  static Future<void> handleReopened(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final manager = await PullRequestManager._create(
+          slug: event.repository!.slug(),
+          prNumber: event.pullRequest!.number!,
+          firestore: context.firestore,
+          config: context.config,
+          scheduler: context.scheduler,
+          gerritService: context.gerritService,
+          pullRequestLabelProcessorProvider:
+              context.pullRequestLabelProcessorProvider,
+          event: event,
+        );
+        await manager._handleReopened(event);
+        await manager.persist();
+      },
+    );
+  }
+
+  static Future<void> handleLabeled(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+    String? labelName,
+    int? labelId,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final manager = await PullRequestManager._create(
+          slug: event.repository!.slug(),
+          prNumber: event.pullRequest!.number!,
+          firestore: context.firestore,
+          config: context.config,
+          scheduler: context.scheduler,
+          gerritService: context.gerritService,
+          pullRequestLabelProcessorProvider:
+              context.pullRequestLabelProcessorProvider,
+          event: event,
+        );
+        await manager._handleLabeled(event, labelName, labelId);
+        await manager.persist();
+      },
+    );
+  }
+
+  static Future<Response> handleClosed(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+    Future<ProcessCheckRunResult> Function(PullRequestEvent) processClosedFn,
+  ) async {
+    return await _runWithLock<Response>(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final result = await processClosedFn(event);
+        return result.toResponse();
+      },
+    );
+  }
+
+  /// Creates and hydrates a [PullRequestManager] instance.
+  static Future<PullRequestManager> _create({
+    required RepositorySlug slug,
+    required int prNumber,
+    required FirestoreService firestore,
+    required Config config,
+    required Scheduler scheduler,
+    required GerritService gerritService,
+    required PullRequestLabelProcessorProvider
+    pullRequestLabelProcessorProvider,
+    required PullRequestEvent event,
+  }) async {
+    final documentId = PullRequestState.getDocumentId(slug, prNumber);
+    final name =
+        '$kDocumentParent/${PullRequestState.kCollectionId}/$documentId';
+
+    bool isPrivileged;
+    String latestSha;
+    String? scheduledSha;
+
+    try {
+      final doc = await firestore.getDocument(name);
+      final state = PullRequestState.fromDocument(doc);
+      isPrivileged = state.isPrivileged ?? false;
+      latestSha = state.latestSha ?? event.pullRequest!.head!.sha!;
+      scheduledSha = state.scheduledSha;
+      log.info(
+        'Hydrated PullRequestManager for $slug/$prNumber: isPrivileged=$isPrivileged, latestSha=$latestSha, scheduledSha=$scheduledSha',
+      );
+    } on DetailedApiRequestError catch (e) {
+      if (e.status != HttpStatus.notFound) {
+        rethrow;
       }
-    });
+
+      // Document not found, initialize as new
+      final pr = event.pullRequest!;
+      final author = pr.user!.login!;
+      final githubService = await config.createGithubService(slug);
+      final isRoller = config.rollerAccounts.contains(author);
+      final isFlutterHacker = await githubService.isTeamMember(
+        'flutter-hackers',
+        author,
+        slug.owner,
+      );
+      isPrivileged = isRoller || isFlutterHacker;
+      latestSha = pr.head!.sha!;
+
+      // Persist initial state using the specific document ID!
+      final state = PullRequestState()
+        ..slug = slug
+        ..number = prNumber
+        ..isPrivileged = isPrivileged
+        ..latestSha = latestSha;
+
+      final document = Document(fields: state.fields);
+      await firestore.createDocument(
+        document,
+        collectionId: PullRequestState.kCollectionId,
+        documentId: documentId,
+      );
+      log.info('Created initial PullRequestState for $slug/$prNumber');
+    }
+
+    return PullRequestManager._(
+      slug: slug,
+      prNumber: prNumber,
+      firestore: firestore,
+      config: config,
+      scheduler: scheduler,
+      gerritService: gerritService,
+      pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
+      isPrivileged: isPrivileged,
+      latestSha: latestSha,
+      scheduledSha: scheduledSha,
+    );
   }
 
-  bool get isQueueEmpty => _queue.isEmpty;
-
-  /// Adds an event to the queue to be processed sequentially.
-  Future<void> _addEvent(Future<void> Function() operation) {
-    return _queue.add(operation);
-  }
-
-  /// Persists the current state to Firestore.
+  /// Persists the current state to Firestore if modified.
   Future<void> persist() async {
+    if (!_isDirty) {
+      return;
+    }
+
     final documentId = PullRequestState.getDocumentId(slug, prNumber);
     final name =
         '$kDocumentParent/${PullRequestState.kCollectionId}/$documentId';
@@ -147,6 +355,7 @@ class PullRequestManager {
 
     await firestore.writeViaTransaction(documentsToWrites([document]));
     log.info('Persisted PullRequestState for $slug/$prNumber');
+    _isDirty = false;
   }
 
   /// The latest SHA that we have processed for this PR.
@@ -154,7 +363,7 @@ class PullRequestManager {
   set latestSha(String value) {
     if (_latestSha != value) {
       _latestSha = value;
-      _addEvent(persist);
+      _isDirty = true;
     }
   }
 
@@ -163,97 +372,86 @@ class PullRequestManager {
   set scheduledSha(String? value) {
     if (_scheduledSha != value) {
       _scheduledSha = value;
-      _addEvent(persist);
+      _isDirty = true;
     }
   }
 
   /// Handles PR opened event.
-  Future<void> handleOpened(PullRequestEvent event) async {
-    await _addEvent(() async {
-      final pr = event.pullRequest!;
-      final sha = pr.head!.sha!;
-      latestSha = sha; // Update latest SHA.
+  Future<void> _handleOpened(PullRequestEvent event) async {
+    final pr = event.pullRequest!;
+    final sha = pr.head!.sha!;
+    latestSha = sha; // Update latest SHA.
 
-      if (!pr.draft! && _isPrivileged) {
-        final gitHubClient = await config.createGitHubClient(pullRequest: pr);
-        await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, ['CICD']);
-        log.debug('Added CICD label to PR $pr.number');
+    if (!pr.draft! && _isPrivileged) {
+      final gitHubClient = await config.createGitHubClient(pullRequest: pr);
+      await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, ['CICD']);
+      log.debug('Added CICD label to PR $pr.number');
+      await _scheduleIfMergeable(event);
+    } else {
+      await scheduler.createAwaitingCicdLabelCheckRun(slug, sha);
+    }
+
+    await checkForTests(event);
+    await _tryReleaseApproval(event);
+  }
+
+  /// Handles PR synchronize event.
+  Future<void> _handleSynchronize(PullRequestEvent event) async {
+    final pr = event.pullRequest!;
+    final sha = pr.head!.sha!;
+    latestSha = sha; // Update latest SHA.
+
+    final hasLabel =
+        pr.labels?.any((IssueLabel l) => l.name == Config.kCicdLabel) ?? false;
+    final isPrivilegedUser = _isPrivileged;
+
+    if (isPrivilegedUser) {
+      if (hasLabel) {
         await _scheduleIfMergeable(event);
       } else {
         await scheduler.createAwaitingCicdLabelCheckRun(slug, sha);
       }
-
-      await checkForTests(event);
-      await _tryReleaseApproval(event);
-    });
-  }
-
-  /// Handles PR synchronize event.
-  Future<void> handleSynchronize(PullRequestEvent event) async {
-    await _addEvent(() async {
-      final pr = event.pullRequest!;
-      final sha = pr.head!.sha!;
-      latestSha = sha; // Update latest SHA.
-
-      final hasLabel =
-          pr.labels?.any((IssueLabel l) => l.name == Config.kCicdLabel) ??
-          false;
-      final isPrivilegedUser = _isPrivileged;
-
-      if (isPrivilegedUser) {
-        if (hasLabel) {
-          await _scheduleIfMergeable(event);
-        } else {
-          await scheduler.createAwaitingCicdLabelCheckRun(slug, sha);
-        }
-      } else {
-        if (hasLabel) {
-          final githubService = await config.createGithubService(slug);
-          await githubService.removeLabel(slug, pr.number!, Config.kCicdLabel);
-          log.debug('Removed CICD label from PR ${pr.number}');
-        }
-        await scheduler.createAwaitingCicdLabelCheckRun(slug, sha);
+    } else {
+      if (hasLabel) {
+        final githubService = await config.createGithubService(slug);
+        await githubService.removeLabel(slug, pr.number!, Config.kCicdLabel);
+        log.debug('Removed CICD label from PR ${pr.number}');
       }
-    });
+      await scheduler.createAwaitingCicdLabelCheckRun(slug, sha);
+    }
   }
 
   /// Handles PR edited event.
-  Future<void> handleEdited(PullRequestEvent event) async {
-    await _addEvent(() async {
-      await checkForTests(event);
-    });
+  Future<void> _handleEdited(PullRequestEvent event) async {
+    await checkForTests(event);
   }
 
   /// Handles PR reopened event.
-  Future<void> handleReopened(PullRequestEvent event) async {
-    await _addEvent(() async {
-      final pr = event.pullRequest!;
-      await _warnThatANewCommitIsNeeded(event);
-      await _processLabels(pr);
-      await _updatePullRequest(pr);
-    });
+  Future<void> _handleReopened(PullRequestEvent event) async {
+    final pr = event.pullRequest!;
+    await _warnThatANewCommitIsNeeded(event);
+    await _processLabels(pr);
+    await _updatePullRequest(pr);
   }
 
   /// Handles PR labeled event.
-  Future<void> handleLabeled(
+  Future<void> _handleLabeled(
     PullRequestEvent event,
     String? labelName,
     int? labelId,
   ) async {
-    await _addEvent(() async {
-      final pr = event.pullRequest!;
-      final sha = pr.head!.sha!;
+    final pr = event.pullRequest!;
+    final sha = pr.head!.sha!;
 
-      if (labelName == Config.kCicdLabel &&
-          Config.kCicdLabelIds.contains(labelId)) {
-        log.info('new CICD label added - scheduling tests');
-        await scheduler.resolveAwaitingCicdLabelCheckRun(slug, sha);
-        await _scheduleIfMergeable(event);
-      }
+    if (labelName == Config.kCicdLabel &&
+        Config.kCicdLabelIds.contains(labelId)) {
+      log.info('new CICD label added - scheduling tests');
+      await scheduler.resolveAwaitingCicdLabelCheckRun(slug, sha);
+      await _scheduleIfMergeable(event);
+    }
 
-      await _processLabels(pr);
-      await _updatePullRequest(pr);
-    });
+    await _processLabels(pr);
+    await _updatePullRequest(pr);
   }
 
   Future<void> checkForTests(PullRequestEvent pullRequestEvent) async {
@@ -800,99 +998,22 @@ class PullRequestManager {
   }
 }
 
-/// A helper to ensure sequential execution of asynchronous tasks.
-class PullRequestOperationQueue {
-  Future<void> _currentOperation = Future.value();
-  int _pendingOperations = 0;
-
-  bool get isEmpty => _pendingOperations == 0;
-
-  Future<void> add(Future<void> Function() operation) {
-    final completer = Completer<void>();
-    _pendingOperations++;
-    _currentOperation = _currentOperation.then((_) async {
-      try {
-        await operation();
-        completer.complete();
-      } catch (e, s) {
-        log.warn('Error in PullRequestOperationQueue', e, s);
-        completer.completeError(e, s);
-      } finally {
-        _pendingOperations--;
-      }
-    });
-    return completer.future;
-  }
-}
-
-/// LRU Cache for [PullRequestManager] instances.
-class PullRequestManagerCache {
-  final int capacity;
+class PullRequestEventContext {
+  final CacheService cache;
   final FirestoreService firestore;
   final Config config;
   final Scheduler scheduler;
   final GerritService gerritService;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
-  final Map<String, PullRequestManager> _cache = {};
 
-  PullRequestManagerCache({
-    required this.capacity,
+  PullRequestEventContext({
+    required this.cache,
     required this.firestore,
     required this.config,
     required this.scheduler,
     required this.gerritService,
     required this.pullRequestLabelProcessorProvider,
   });
-
-  PullRequestManager getOrCreate(PullRequestEvent event) {
-    final pr = event.pullRequest!;
-    final slug = event.repository!.slug();
-    final prNumber = pr.number!;
-
-    final key = '${slug.owner}_${slug.name}_$prNumber';
-
-    // 1. Check cache
-    final manager = _cache.remove(key);
-    if (manager != null) {
-      _cache[key] = manager; // Move to end
-      return manager;
-    }
-
-    // 2. Create new synchronously
-    final newManager = PullRequestManager._(
-      slug: slug,
-      prNumber: prNumber,
-      firestore: firestore,
-      config: config,
-      scheduler: scheduler,
-      gerritService: gerritService,
-      pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
-    );
-
-    newManager._initialize(event);
-
-    // Eviction logic
-    if (_cache.length >= capacity) {
-      // Try to evict the least recently used
-      String? keyToEvict;
-      for (final k in _cache.keys) {
-        final m = _cache[k]!;
-        if (m.isQueueEmpty) {
-          keyToEvict = k;
-          break;
-        }
-      }
-      if (keyToEvict != null) {
-        _cache.remove(keyToEvict);
-        log.info('Evicted PullRequestManager for $keyToEvict');
-      } else {
-        log.warn('Cache full, but all managers are busy. Not evicting.');
-      }
-    }
-
-    _cache[key] = newManager;
-    return newManager;
-  }
 }
 
 typedef PullRequestLabelProcessorProvider =
