@@ -31,3 +31,32 @@ flowchart TD
     Label_Present -- Yes --> Start_Pre
     Label_Present -- No --> Create_Awaiting
 ```
+
+## Alternative State Machine Diagram (PlantUML)
+
+```plantuml
+@startuml
+state PR {
+  state Waiting
+  Waiting : entry / Create Awaiting Check Run
+  Waiting : exit / resolve(awaiting check)
+
+  state Running
+  Running: entry/ Start Presubmits
+
+  state if_priv2 <<choice>>
+  Running --> if_priv2: onPushed
+  if_priv2 --> Running: isPrivileged && labeled(CICD)
+  if_priv2 --> Waiting : default: remove(CICD)
+
+  state if_draft <<choice>>
+  PR --> if_draft: openned
+
+  if_draft --> Waiting : isDraft
+  if_draft --> Running: isPrivileged
+  if_draft --> Waiting : default
+
+  Waiting --> Running: labeled(CICD)
+}
+@enduml
+```

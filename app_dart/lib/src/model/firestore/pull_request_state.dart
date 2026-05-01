@@ -40,7 +40,7 @@ final class PullRequestState extends AppDocument<PullRequestState> {
 
   set isPrivileged(bool? value) {
     if (value != null) {
-      fields[kIsPrivilegedField] = Value(booleanValue: value);
+      fields[kIsPrivilegedField] = value.toValue();
     }
   }
 
@@ -49,7 +49,7 @@ final class PullRequestState extends AppDocument<PullRequestState> {
 
   set latestSha(String? value) {
     if (value != null) {
-      fields[kLatestShaField] = Value(stringValue: value);
+      fields[kLatestShaField] = value.toValue();
     }
   }
 
@@ -58,7 +58,7 @@ final class PullRequestState extends AppDocument<PullRequestState> {
 
   set scheduledSha(String? value) {
     if (value != null) {
-      fields[kScheduledShaField] = Value(stringValue: value);
+      fields[kScheduledShaField] = value.toValue();
     }
   }
 
@@ -75,11 +75,11 @@ final class PullRequestState extends AppDocument<PullRequestState> {
   int get number => int.parse(fields[kNumberField]!.integerValue!);
 
   set number(int value) {
-    fields[kNumberField] = Value(integerValue: '$value');
+    fields[kNumberField] = value.toValue();
   }
 
   /// Generates the document ID for a PR.
   static String getDocumentId(RepositorySlug slug, int number) {
-    return '${slug.owner}_${slug.name}_$number';
+    return '${slug.owner}\u001F${slug.name}\u001F$number';
   }
 }
