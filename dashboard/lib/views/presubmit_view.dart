@@ -591,7 +591,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                             ),
                             const SizedBox(width: 8),
                           ],
-                          const Text('Analize Logs with Gemini'),
+                          const Text('Analyze Logs with Gemini'),
                         ],
                       ),
                     ),
