@@ -538,7 +538,7 @@ void main() {
 
       final analyzeButton = find.widgetWithText(
         ElevatedButton,
-        'Analize Logs with Gemini',
+        'Analyze Logs with Gemini',
       );
       expect(analyzeButton, findsOneWidget);
 
