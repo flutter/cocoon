@@ -26,6 +26,9 @@ closeMqGuardAfterPresubmit: true
 # Whether to allow the tree status to be suppressed for specific failed tests.
 dynamicTestSuppression: true
 
+# The Gemini model to use for log analysis.
+geminiModel: gemini-3-flash-preview
+
 # Whether to allow unified check run flow to specific users or to everyone.
 unifiedCheckRunFlow:
   useForAll: false

@@ -39,6 +39,7 @@ final class DynamicConfig {
     closeMqGuardAfterPresubmit: false,
     unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
     dynamicTestSuppression: false,
+    geminiModel: 'gemini-3-flash-preview',
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -69,6 +70,10 @@ final class DynamicConfig {
   @JsonKey()
   final bool dynamicTestSuppression;
 
+  /// The Gemini model to use for log analysis.
+  @JsonKey()
+  final String geminiModel;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
     required this.ciYaml,
@@ -76,6 +81,7 @@ final class DynamicConfig {
     required this.closeMqGuardAfterPresubmit,
     required this.unifiedCheckRunFlow,
     required this.dynamicTestSuppression,
+    required this.geminiModel,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -88,6 +94,7 @@ final class DynamicConfig {
     bool? closeMqGuardAfterPresubmit,
     UnifiedCheckRunFlow? unifiedCheckRunFlow,
     bool? dynamicTestSuppression,
+    String? geminiModel,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -102,6 +109,7 @@ final class DynamicConfig {
           unifiedCheckRunFlow ?? defaultInstance.unifiedCheckRunFlow,
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
+      geminiModel: geminiModel ?? defaultInstance.geminiModel,
     );
   }
 

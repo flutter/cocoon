@@ -311,6 +311,18 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
+  /// Stores the log analysis result for a [PresubmitJob].
+  static Future<void> storeLogAnalysis({
+    required FirestoreService firestoreService,
+    required PresubmitJob job,
+    required String analysis,
+  }) async {
+    job.logAnalysis = analysis;
+    await firestoreService.writeViaTransaction(
+      documentsToWrites([job], exists: true),
+    );
+  }
+
   /// Returns the latest [PresubmitGuard] for the specified github [checkRunId].
   static Future<PresubmitGuard?> getLatestPresubmitGuardForCheckRun({
     required FirestoreService firestoreService,
