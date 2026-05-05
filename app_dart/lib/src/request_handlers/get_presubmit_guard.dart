@@ -83,6 +83,7 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
       checkRunId: first.checkRunId,
       author: first.author,
       guardStatus: guardStatus,
+      enableGeminiLogAnalysis: config.flags.enableGeminiLogAnalysis,
       stages: [
         for (final g in guards)
           rpc_model.PresubmitGuardStage(

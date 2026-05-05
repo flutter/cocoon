@@ -22,6 +22,7 @@ final class PresubmitGuardResponse {
     required this.author,
     required this.stages,
     required this.guardStatus,
+    this.enableGeminiLogAnalysis = false,
   });
 
   /// The pull request number.
@@ -38,6 +39,10 @@ final class PresubmitGuardResponse {
 
   /// The overall status of the presubmit guard across all stages.
   final GuardStatus guardStatus;
+
+  /// Whether Gemini log analysis is enabled.
+  @JsonKey(defaultValue: false)
+  final bool enableGeminiLogAnalysis;
 
   /// Creates a [PresubmitGuardResponse] from a JSON map.
   factory PresubmitGuardResponse.fromJson(Map<String, Object?> json) =>

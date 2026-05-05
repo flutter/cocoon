@@ -476,6 +476,7 @@ void main() {
         author: 'dash',
         guardStatus: GuardStatus.failed,
         checkRunId: 456,
+        enableGeminiLogAnalysis: true,
         stages: [
           PresubmitGuardStage(
             name: 'Engine',

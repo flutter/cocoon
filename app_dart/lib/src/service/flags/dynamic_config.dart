@@ -37,6 +37,7 @@ final class DynamicConfig {
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
+    enableGeminiLogAnalysis: false,
     unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
@@ -62,6 +63,10 @@ final class DynamicConfig {
   @JsonKey()
   final bool closeMqGuardAfterPresubmit;
 
+  /// Whether to enable Gemini log analysis feature.
+  @JsonKey()
+  final bool enableGeminiLogAnalysis;
+
   /// Flags related tp unified check-run flow configuration.
   @JsonKey()
   final UnifiedCheckRunFlow unifiedCheckRunFlow;
@@ -79,6 +84,7 @@ final class DynamicConfig {
     required this.ciYaml,
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
+    required this.enableGeminiLogAnalysis,
     required this.unifiedCheckRunFlow,
     required this.dynamicTestSuppression,
     required this.geminiModel,
@@ -92,6 +98,7 @@ final class DynamicConfig {
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
+    bool? enableGeminiLogAnalysis,
     UnifiedCheckRunFlow? unifiedCheckRunFlow,
     bool? dynamicTestSuppression,
     String? geminiModel,
@@ -105,6 +112,8 @@ final class DynamicConfig {
       closeMqGuardAfterPresubmit:
           closeMqGuardAfterPresubmit ??
           defaultInstance.closeMqGuardAfterPresubmit,
+      enableGeminiLogAnalysis:
+          enableGeminiLogAnalysis ?? defaultInstance.enableGeminiLogAnalysis,
       unifiedCheckRunFlow:
           unifiedCheckRunFlow ?? defaultInstance.unifiedCheckRunFlow,
       dynamicTestSuppression:

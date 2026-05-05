@@ -23,6 +23,9 @@ contentAwareHashing:
 # instead of doing that as part of the `check_run` GitHub event handling.
 closeMqGuardAfterPresubmit: true
 
+# Whether to enable Gemini log analysis feature.
+enableGeminiLogAnalysis: true
+
 # Whether to allow the tree status to be suppressed for specific failed tests.
 dynamicTestSuppression: true
 
@@ -35,4 +38,7 @@ unifiedCheckRunFlow:
   useForUsers:
     - ievdokdm
     - eyebrowsoffire
+    - andywolff
+    - camsim99
+    - justinmc
 ''';

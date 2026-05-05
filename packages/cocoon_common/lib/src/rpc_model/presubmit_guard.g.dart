@@ -16,6 +16,7 @@ PresubmitGuardResponse _$PresubmitGuardResponseFromJson(
       .map((e) => PresubmitGuardStage.fromJson(e as Map<String, dynamic>))
       .toList(),
   guardStatus: $enumDecode(_$GuardStatusEnumMap, json['guard_status']),
+  enableGeminiLogAnalysis: json['enable_gemini_log_analysis'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$PresubmitGuardResponseToJson(
@@ -26,6 +27,7 @@ Map<String, dynamic> _$PresubmitGuardResponseToJson(
   'author': instance.author,
   'stages': instance.stages,
   'guard_status': instance.guardStatus,
+  'enable_gemini_log_analysis': instance.enableGeminiLogAnalysis,
 };
 
 const _$GuardStatusEnumMap = {

@@ -418,4 +418,65 @@ void main() {
       expect(presubmitState.sha, 'latest');
     },
   );
+
+  group('canAnalyzeLog', () {
+    final failedJob = PresubmitJobResponse(
+      attemptNumber: 1,
+      jobName: 'check1',
+      creationTime: 0,
+      status: TaskStatus.failed,
+      buildId: 12345,
+    );
+
+    test('returns false when enableGeminiLogAnalysis is false', () {
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [],
+        enableGeminiLogAnalysis: false,
+      );
+      presubmitState.setGuardResponseForTest(guardResponse);
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      expect(presubmitState.canAnalyzeLog(failedJob), isFalse);
+    });
+
+    test(
+      'returns true when enableGeminiLogAnalysis is true and other conditions met',
+      () {
+        const guardResponse = PresubmitGuardResponse(
+          prNum: 123,
+          author: 'dash',
+          guardStatus: GuardStatus.failed,
+          checkRunId: 456,
+          stages: [],
+          enableGeminiLogAnalysis: true,
+        );
+        presubmitState.setGuardResponseForTest(guardResponse);
+        when(mockAuthService.isAuthenticated).thenReturn(true);
+
+        expect(presubmitState.canAnalyzeLog(failedJob), isTrue);
+      },
+    );
+
+    test(
+      'returns false when enableGeminiLogAnalysis is true but user is not authenticated',
+      () {
+        const guardResponse = PresubmitGuardResponse(
+          prNum: 123,
+          author: 'dash',
+          guardStatus: GuardStatus.failed,
+          checkRunId: 456,
+          stages: [],
+          enableGeminiLogAnalysis: true,
+        );
+        presubmitState.setGuardResponseForTest(guardResponse);
+        when(mockAuthService.isAuthenticated).thenReturn(false);
+
+        expect(presubmitState.canAnalyzeLog(failedJob), isFalse);
+      },
+    );
+  });
 }

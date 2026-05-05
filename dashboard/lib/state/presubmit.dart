@@ -538,6 +538,9 @@ class PresubmitState extends ChangeNotifier {
 
   /// Whether the user can trigger log analysis for a specific job.
   bool canAnalyzeLog(PresubmitJobResponse job) {
+    if (_guardResponse?.enableGeminiLogAnalysis != true) {
+      return false;
+    }
     if (!authService.isAuthenticated || isLoading) {
       return false;
     }
