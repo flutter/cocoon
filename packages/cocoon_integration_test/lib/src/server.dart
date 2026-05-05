@@ -6,6 +6,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/log_analyzer.dart';
 import 'package:retry/retry.dart';
 
 import '../testing.dart';
@@ -92,6 +93,7 @@ class IntegrationServer {
       ciYamlFetcher: this.ciYamlFetcher,
       buildStatusService: this.buildStatusService,
       contentAwareHashService: this.contentAwareHashService,
+      logAnalyzer: FakeLogAnalyzer(),
     );
   }
 

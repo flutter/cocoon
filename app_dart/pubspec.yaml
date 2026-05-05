@@ -29,6 +29,8 @@ dependencies:
   file: ^7.0.1
   fixnum: 1.1.1
   gcloud: 0.8.19
+  genkit: ^0.13.0
+  genkit_google_genai: ^0.2.5
   github: 9.25.0
   googleapis: 14.0.0
   googleapis_auth: 2.0.0

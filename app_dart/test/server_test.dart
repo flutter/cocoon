@@ -6,6 +6,7 @@ import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
+import 'package:cocoon_service/src/service/log_analyzer.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -43,6 +44,7 @@ void main() {
       contentAwareHashService: FakeContentAwareHashService(
         config: FakeConfig(webhookKeyValue: 'fake-secret'),
       ),
+      logAnalyzer: FakeLogAnalyzer(),
     );
   });
 }

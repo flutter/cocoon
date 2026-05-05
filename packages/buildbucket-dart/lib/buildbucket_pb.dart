@@ -27,6 +27,8 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/build.pb.dart'
         Build_Input,
         Build_Output,
         BuildInfra_Buildbucket_Agent_Source_DataType;
+export 'src/generated/go.chromium.org/luci/buildbucket/proto/step.pb.dart'
+    show Step, Step_MergeBuild;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/builds_service.pb.dart'
     show
         GetBuildRequest,
@@ -77,7 +79,8 @@ export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pb.dart'
         CacheEntry,
         GitilesCommit,
         GerritChange,
-        Executable;
+        Executable,
+        Log;
 export 'src/generated/go.chromium.org/luci/common/proto/structmask/structmask.pb.dart'
     show StructMask;
 export 'src/generated/go.chromium.org/luci/buildbucket/proto/common.pbenum.dart';
