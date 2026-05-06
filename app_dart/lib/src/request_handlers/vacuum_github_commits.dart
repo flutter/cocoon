@@ -34,7 +34,13 @@ final class VacuumGithubCommits extends ApiRequestHandler {
   Future<Response> get(Request request) async {
     final Iterable<gh.RepositorySlug> repos;
     if (request.uri.queryParameters[_paramRepo] case final specific?) {
-      repos = [gh.RepositorySlug.full(specific)];
+      final repo = gh.RepositorySlug.full(specific);
+      if (!config.supportedRepos.contains(repo)) {
+        return Response.json({
+          'error': 'repo not found: $repo',
+        }, statusCode: 404);
+      }
+      repos = [repo];
     } else {
       repos = config.supportedRepos;
     }
