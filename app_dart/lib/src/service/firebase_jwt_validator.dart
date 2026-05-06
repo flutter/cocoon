@@ -67,7 +67,7 @@ interface class FirebaseJwtValidator {
     return TokenInfo.fromJson(jwt.claims.toJson());
   }
 
-  bool _ensureNoPublicKeys(String jwtString) {
+  void _ensureNoPublicKeys(String jwtString) {
     final jwt = JoseObject.fromCompactSerialization(jwtString);
     final header = jwt.commonProtectedHeader;
     if (header['jwk'] case final publicKey?) {
@@ -77,7 +77,6 @@ interface class FirebaseJwtValidator {
     if (header['kid'] == null) {
       throw JwtException('Required `kid` field missing');
     }
-    return true;
   }
 
   @visibleForTesting
