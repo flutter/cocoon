@@ -23,6 +23,9 @@ class FakeDashboardAuthentication implements DashboardAuthentication {
       throw const Unauthenticated('Not authenticated');
     }
   }
+
+  @override
+  DashboardAuthentication get onlyCron => this;
 }
 
 // ignore: must_be_immutable

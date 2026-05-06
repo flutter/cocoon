@@ -16,6 +16,7 @@ void main() {
       config: FakeConfig(webhookKeyValue: 'fake-secret'),
       cache: CacheService(inMemory: true),
       dashboardAuthProvider: FakeDashboardAuthentication(),
+      cronAuthProvider: FakeDashboardAuthentication(),
       presubmitAuthProvider: FakeDashboardAuthentication(),
       swarmingAuthProvider: FakeDashboardAuthentication(),
       branchService: BranchService(

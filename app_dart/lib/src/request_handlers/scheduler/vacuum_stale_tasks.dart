@@ -15,6 +15,7 @@ import 'package:meta/meta.dart';
 import '../../../cocoon_service.dart';
 import '../../model/commit_ref.dart';
 import '../../model/firestore/task.dart' as fs;
+import '../../request_handling/api_request_handler.dart';
 import '../../service/firestore/commit_and_tasks.dart';
 
 /// Vacuum stale tasks.
@@ -23,9 +24,10 @@ import '../../service/firestore/commit_and_tasks.dart';
 /// being stuck as "In Progress," this will return tasks to "New" if they have
 /// no updates after 3 hours.
 @immutable
-final class VacuumStaleTasks extends RequestHandler {
+final class VacuumStaleTasks extends ApiRequestHandler {
   const VacuumStaleTasks({
     required super.config,
+    required super.authenticationProvider,
     required LuciBuildService luciBuildService,
     required FirestoreService firestore,
     required BranchService branchService,

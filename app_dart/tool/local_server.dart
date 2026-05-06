@@ -114,6 +114,7 @@ Future<void> main() async {
     bigQuery: bigQuery,
     cache: cache,
     dashboardAuthProvider: dashboardAuthProvider,
+    cronAuthProvider: dashboardAuthProvider.onlyCron,
     presubmitAuthProvider: presubmitAuthProvider,
     branchService: branchService,
     buildBucketClient: buildBucketClient,

@@ -47,6 +47,7 @@ void main() {
 
     handler = BatchBackfiller(
       config: config,
+      authenticationProvider: FakeDashboardAuthentication(),
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: fakeLuciBuildService,
       backfillerStrategy: const _NaiveBackfillStrategy(),

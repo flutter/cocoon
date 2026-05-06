@@ -16,6 +16,7 @@ class IntegrationServer {
     FakeFirestoreService? firestore,
     FakeBigQueryService? bigQuery,
     FakeDashboardAuthentication? dashboardAuthProvider,
+    FakeDashboardAuthentication? cronAuthProvider,
     FakeDashboardAuthentication? presubmitAuthProvider,
     FakeDashboardAuthentication? swarmingAuthProvider,
     FakeGerritService? gerritService,
@@ -39,6 +40,7 @@ class IntegrationServer {
     this.bigQuery = bigQuery ?? FakeBigQueryService();
     this.dashboardAuthProvider =
         dashboardAuthProvider ?? FakeDashboardAuthentication();
+    this.cronAuthProvider = cronAuthProvider ?? FakeDashboardAuthentication();
     this.presubmitAuthProvider =
         presubmitAuthProvider ?? FakeDashboardAuthentication();
     this.swarmingAuthProvider =
@@ -70,6 +72,7 @@ class IntegrationServer {
       bigQuery: this.bigQuery,
       cache: this.cache,
       dashboardAuthProvider: this.dashboardAuthProvider,
+      cronAuthProvider: this.cronAuthProvider,
       presubmitAuthProvider: this.presubmitAuthProvider,
       swarmingAuthProvider: this.swarmingAuthProvider,
       branchService: BranchService(
@@ -97,6 +100,7 @@ class IntegrationServer {
   late final FakeFirestoreService firestore;
   late final FakeBigQueryService bigQuery;
   late final FakeDashboardAuthentication dashboardAuthProvider;
+  late final FakeDashboardAuthentication cronAuthProvider;
   late final FakeDashboardAuthentication presubmitAuthProvider;
   late final FakeDashboardAuthentication swarmingAuthProvider;
   late final FakeGerritService gerritService;

@@ -37,6 +37,7 @@ Server createServer({
   required CacheService cache,
   required AuthenticationProvider dashboardAuthProvider,
   required AuthenticationProvider swarmingAuthProvider,
+  required AuthenticationProvider cronAuthProvider,
   required BranchService branchService,
   required BuildBucketClient buildBucketClient,
   required LuciBuildService luciBuildService,
@@ -119,7 +120,7 @@ Server createServer({
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       buildStatusService: buildStatusService,
       firestore: firestore,
       bigQuery: bigQuery,
@@ -223,6 +224,7 @@ Server createServer({
     ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
+      authenticationProvider: cronAuthProvider,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
       firestore: firestore,
@@ -235,36 +237,37 @@ Server createServer({
         ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,
+      authenticationProvider: cronAuthProvider,
       luciBuildService: luciBuildService,
       firestore: firestore,
       branchService: branchService,
     ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       bigQuery: bigQuery,
       ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       bigQuery: bigQuery,
       testSuppression: suppressionService,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       bigQuery: bigQuery,
       testSuppression: suppressionService,
     ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       scheduler: scheduler,
     ),
     '/api/v2/vacuum-github-commits': VacuumGithubCommits(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       scheduler: scheduler,
     ),
 

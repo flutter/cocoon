@@ -46,25 +46,42 @@ import 'exceptions.dart';
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
 interface class DashboardAuthentication implements AuthenticationProvider {
-  DashboardAuthentication({
+  factory DashboardAuthentication({
     required CacheService cache,
     required FirebaseJwtValidator firebaseJwtValidator,
     required FirestoreService firestore,
     ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
     HttpClientProvider httpClientProvider = Providers.freshHttpClient,
   }) {
-    _authenticationChain.addAll([
-      DashboardCronAuthentication(clientContextProvider: clientContextProvider),
-      DashboardFirebaseAuthentication(
-        cache: cache,
-        validator: firebaseJwtValidator,
-        clientContextProvider: clientContextProvider,
-        firestore: firestore,
-      ),
-    ]);
+    return DashboardAuthentication.forProviders(
+      authProviders: [
+        DashboardCronAuthentication(
+          clientContextProvider: clientContextProvider,
+        ),
+        DashboardFirebaseAuthentication(
+          cache: cache,
+          validator: firebaseJwtValidator,
+          clientContextProvider: clientContextProvider,
+          firestore: firestore,
+        ),
+      ],
+    );
   }
 
-  final _authenticationChain = <AuthenticationProvider>[];
+  /// Creates an AuthenticationProvider with a chain of responsibility.
+  DashboardAuthentication.forProviders({
+    required List<AuthenticationProvider> authProviders,
+  }) : _authenticationChain = authProviders;
+
+  /// Returns a version of this authentication with only the cron provider.
+  DashboardAuthentication get onlyCron {
+    final cronAuth = _authenticationChain.firstWhere(
+      (ac) => ac is DashboardCronAuthentication,
+    );
+    return DashboardAuthentication.forProviders(authProviders: [cronAuth]);
+  }
+
+  final List<AuthenticationProvider> _authenticationChain;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].
