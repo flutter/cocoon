@@ -189,6 +189,13 @@ final class Target {
         .toList();
     mergedProperties['bringup'] = _value.bringup;
 
+    // Do not allow configurations to set values of properties that affect the
+    // location of the sources checked out by the LUCI recipes.
+    const checkoutProperties = <String>['git_ref', 'git_url'];
+    for (var property in checkoutProperties) {
+      mergedProperties.remove(property);
+    }
+
     return mergedProperties;
   }
 
