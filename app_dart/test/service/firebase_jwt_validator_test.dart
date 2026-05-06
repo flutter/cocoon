@@ -319,8 +319,9 @@ void main() {
   });
 }
 
-Matcher jwtException(String message) =>
-    throwsA(isA<JwtException>().having((r) => r.message, 'message', message));
+Matcher jwtException(String message) => throwsA(
+  isA<JwtException>().having((r) => r.message, 'message', contains(message)),
+);
 
 const pemKeysString = r'''{
   "857081ca9cbb37c23498dd3943bf371a05883d28": "-----BEGIN CERTIFICATE-----\nMIIDHDCCAgSgAwIBAgIIOBNPkX+Mt1wwDQYJKoZIhvcNAQEFBQAwMTEvMC0GA1UE\nAwwmc2VjdXJldG9rZW4uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wHhcNMjUw\nNDA5MDczMzA0WhcNMjUwNDI1MTk0ODA0WjAxMS8wLQYDVQQDDCZzZWN1cmV0b2tl\nbi5zeXN0ZW0uZ3NlcnZpY2VhY2NvdW50LmNvbTCCASIwDQYJKoZIhvcNAQEBBQAD\nggEPADCCAQoCggEBAMSZYAER4kpUeokjt8runwdE5+IWn8+htnXm22W3UuRfT2nI\n6sOCESNwvqu9jGgyQMuP7HNGFoT4atg3DmEQcXxzdOSvz0dJfk3JjMiFggxScpq5\nZ1m54/GJt7U2oX2RriwVzNfyCxnKwGAp5L6ViNijX0iv2zyZeaJhxz8ZVwrEgpSd\nS1uk5MVblaiIDrV6KsJ0ES4cDm0WhdgLXE3lMjY8jPlumf6jIPTAuYuuTzPPXSnJ\nQuEm0s8mloLYwniX21HAkvvGxa82R7N/xwZRUhKSq9d9NDrO9twCQlt9CRPB7XpU\nGq0dgT8ja7Ker3Zh6yRmbAbgtkOeIUB0lRzcQvsCAwEAAaM4MDYwDAYDVR0TAQH/\nBAIwADAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwIwDQYJ\nKoZIhvcNAQEFBQADggEBACcCmjn3Z+FE8wR8/bvIz7AKJffgwDSzajrBMOHQid5g\nF6RxfRsoa32AvP6k0JUAVxpys+H1WEj+9sgaMYD6R067v8B8LnofNGwrUn17Y5NY\nPQuK3Gda6uA4SHOUNphiasYqnEpQT5ch+9Y5zs4cjUfz+JbRR8VOnbO7WhAqDdA/\nvtgMaMo9ImhF+Zig/ZS81OVZPNMLP9UZo6V/1n/boL+MSBqm2b8UR/6mN0+R34fK\nJJ3EtrhhA2uq1WOsZqop26vGBLkL9kHZqKVyATkS7mZL/kg7emgqw6JmD4DL43AS\ndqiX4OeivdvnsQYU6R0ZKqvRwjaZcl94rpmxjwPWjH0=\n-----END CERTIFICATE-----\n",

@@ -61,7 +61,7 @@ interface class FirebaseJwtValidator {
     try {
       jwt = await JsonWebToken.decodeAndVerify(jwtString, _keyStore);
     } catch (e) {
-      throw JwtException('Unable to decode and verify');
+      throw JwtException('Unable to decode and verify: $e');
     }
     verifyJwtClaims(jwt.claims, now);
     return TokenInfo.fromJson(jwt.claims.toJson());
