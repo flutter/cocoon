@@ -36,17 +36,31 @@ Future<void> main() async {
   final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
 
   final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
-  final dashboardAuthProvider = DashboardAuthentication(
+
+  const cronAuthentication = DashboardCronAuthentication();
+  final firebaseAuthentication = DashboardFirebaseAuthentication(
     cache: cache,
-    firebaseJwtValidator: firebaseJwtValidator,
+    validator: firebaseJwtValidator,
     firestore: firestore,
   );
-  final presubmitAuthProvider = PresubmitAuthentication(
+  final githubAuthentication = GithubAuthentication(
     cache: cache,
     config: config,
-    firebaseJwtValidator: firebaseJwtValidator,
-    firestore: firestore,
+    validator: firebaseJwtValidator,
   );
+
+  final cronAuthProvider = ChainOfAuthentication.forProviders([
+    cronAuthentication,
+  ]);
+  final dashboardAuthProvider = ChainOfAuthentication.forProviders([
+    cronAuthentication,
+    firebaseAuthentication,
+  ]);
+  final presubmitAuthProvider = ChainOfAuthentication.forProviders([
+    firebaseAuthentication,
+    githubAuthentication,
+  ]);
+
   final AuthenticationProvider swarmingAuthProvider =
       SwarmingAuthenticationProvider(config: config);
 
@@ -114,7 +128,7 @@ Future<void> main() async {
     bigQuery: bigQuery,
     cache: cache,
     dashboardAuthProvider: dashboardAuthProvider,
-    cronAuthProvider: dashboardAuthProvider.onlyCron,
+    cronAuthProvider: cronAuthProvider,
     presubmitAuthProvider: presubmitAuthProvider,
     branchService: branchService,
     buildBucketClient: buildBucketClient,

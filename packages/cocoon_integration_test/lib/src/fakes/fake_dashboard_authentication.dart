@@ -6,7 +6,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 
 // ignore: must_be_immutable
-class FakeDashboardAuthentication implements DashboardAuthentication {
+class FakeDashboardAuthentication implements ChainOfAuthentication {
   FakeDashboardAuthentication({
     FakeClientContext? clientContext,
     this.authenticated = true,
@@ -23,9 +23,6 @@ class FakeDashboardAuthentication implements DashboardAuthentication {
       throw const Unauthenticated('Not authenticated');
     }
   }
-
-  @override
-  DashboardAuthentication get onlyCron => this;
 }
 
 // ignore: must_be_immutable
