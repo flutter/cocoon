@@ -246,6 +246,77 @@ void main() {
     );
     expect(token.emailIsVerified, true);
   });
+
+  group('decodeAndVerify', () {
+    late FirebaseJwtValidator validator;
+    late CacheService cache;
+
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      validator = FirebaseJwtValidator(
+        cache: cache,
+        now: () => rightNow,
+        client: MockClient((req) async {
+          if (req.url == FirebaseJwtValidator.firebasePEMKeysUri) {
+            return http.Response(pemKeysSingleString, 200);
+          }
+          return http.Response('', 404);
+        }),
+      );
+    });
+
+    test('fails if JWT has a public key in header', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('jwk', key.toJson())
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Public key in JWT not allowed: ${key.toJson()}'),
+      );
+    });
+
+    test('fails if JWT is missing kid', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Required `kid` field missing'),
+      );
+    });
+
+    test('passes _ensureNoPublicKeys if kid is present', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {
+          'exp': afterNow,
+          'iat': beforeNow,
+          'auth_time': beforeNow,
+          'aud': ['flutter-dashboard'],
+          'iss': 'https://securetoken.google.com/flutter-dashboard',
+          'sub': 'abcdef',
+        }
+        ..setProtectedHeader('kid', '71115235a6c61454efdedc45a77e4351367eebe0')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Unable to decode and verify'),
+      );
+    });
+  });
 }
 
 Matcher jwtException(String message) =>

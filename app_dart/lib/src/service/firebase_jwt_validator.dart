@@ -52,10 +52,32 @@ interface class FirebaseJwtValidator {
     // Maybe fetch the PEM keys.
     await maybeRefreshKeyStore();
 
+    // This checks that JWTs are not self-signed and have a `kid` field
+    _ensureNoPublicKeys(jwtString);
+
     // This will throw if the JWT wasn't signed correctly.
-    final jwt = await JsonWebToken.decodeAndVerify(jwtString, _keyStore);
+
+    final JsonWebToken jwt;
+    try {
+      jwt = await JsonWebToken.decodeAndVerify(jwtString, _keyStore);
+    } catch (e) {
+      throw JwtException('Unable to decode and verify');
+    }
     verifyJwtClaims(jwt.claims, now);
     return TokenInfo.fromJson(jwt.claims.toJson());
+  }
+
+  bool _ensureNoPublicKeys(String jwtString) {
+    final jwt = JoseObject.fromCompactSerialization(jwtString);
+    final header = jwt.commonProtectedHeader;
+    if (header['jwk'] case final publicKey?) {
+      throw JwtException('Public key in JWT not allowed: $publicKey');
+    }
+
+    if (header['kid'] == null) {
+      throw JwtException('Required `kid` field missing');
+    }
+    return true;
   }
 
   @visibleForTesting
