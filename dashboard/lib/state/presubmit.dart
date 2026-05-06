@@ -369,16 +369,6 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
-  /// Triggers a data fetch regardless of whether parameters have changed.
-  void fetch() {
-    if (pr != null && _lastFetchedPr != pr) {
-      unawaited(fetchAvailableShas());
-    }
-    if (sha != null && _lastFetchedSha != sha) {
-      unawaited(fetchGuardStatus());
-    }
-  }
-
   /// Selects a specific job and fetches its details.
   void selectJob(String jobName) {
     if (_selectedJob == jobName) return;
@@ -546,9 +536,17 @@ class PresubmitState extends ChangeNotifier {
     refreshTimer = null;
   }
 
+  /// Fetches the latest data for the current view.
+  ///
+  /// This method is called periodically to refresh the data.
   void _fetchRefreshUpdate() {
     if (!_active) return;
-    fetch();
+    if (pr != null) {
+      unawaited(fetchAvailableShas());
+    }
+    if (sha != null) {
+      unawaited(fetchGuardStatus());
+    }
     if (_selectedJob != null) {
       unawaited(fetchJobDetails());
     }
