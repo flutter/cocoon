@@ -561,7 +561,7 @@ class AppEngineCocoonService implements CocoonService {
     required int buildId,
     String owner = 'flutter',
   }) async {
-    if (idToken == null || idToken.isEmpty) {
+    if (idToken case null || '') {
       return const CocoonResponse<void>.error(
         'Sign in to analyze logs',
         statusCode: HttpStatus.unauthorized,
