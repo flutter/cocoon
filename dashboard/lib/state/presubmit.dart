@@ -69,7 +69,7 @@ class PresubmitState extends ChangeNotifier {
   String? get jobNameFilter => _jobNameFilter;
   String? _jobNameFilter;
 
-  String get insuficientPermissionMessage =>
+  String get insufficientPermissionMessage =>
       'User has no write permission to $repo github repo.';
 
   /// Whether any filter is currently applied.
@@ -468,7 +468,7 @@ class PresubmitState extends ChangeNotifier {
     );
 
     if (response.statusCode == 401 && authService.isAuthenticated) {
-      return insuficientPermissionMessage;
+      return insufficientPermissionMessage;
     }
 
     _isJobsLoading = false;
@@ -493,7 +493,7 @@ class PresubmitState extends ChangeNotifier {
     );
 
     if (response.statusCode == 401 && authService.isAuthenticated) {
-      return insuficientPermissionMessage;
+      return insufficientPermissionMessage;
     }
 
     _isRerunningAll = false;
@@ -564,7 +564,7 @@ class PresubmitState extends ChangeNotifier {
     );
 
     if (response.statusCode == 401 && authService.isAuthenticated) {
-      return insuficientPermissionMessage;
+      return insufficientPermissionMessage;
     }
 
     return response.error;
