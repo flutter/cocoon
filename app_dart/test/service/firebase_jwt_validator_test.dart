@@ -267,6 +267,22 @@ void main() {
 
     test('fails if JWT has a public key in header', () async {
       // HMAC signing
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('jwk', key.toJson())
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Public key in JWT not allowed: ${key.toJson()}'),
+      );
+    });
+
+    test('fails if JWT algorithm is not firebase approved', () async {
       final key = JsonWebKey.generate('HS256');
       final builder = JsonWebSignatureBuilder()
         ..jsonContent = {'sub': '123'}
@@ -279,22 +295,6 @@ void main() {
       await expectLater(
         validator.decodeAndVerify(jwtString),
         jwtException('Bad algorithm'),
-      );
-    });
-
-    test('fails if JWT algorithm is not firebase approved', () async {
-      final key = JsonWebKey.generate('RS257');
-      final builder = JsonWebSignatureBuilder()
-        ..jsonContent = {'sub': '123'}
-        ..setProtectedHeader('jwk', key.toJson())
-        ..setProtectedHeader('kid', 'some-kid')
-        ..addRecipient(key, algorithm: 'RS256');
-      final jws = builder.build();
-      final jwtString = jws.toCompactSerialization();
-
-      await expectLater(
-        validator.decodeAndVerify(jwtString),
-        jwtException('Public key in JWT not allowed: ${key.toJson()}'),
       );
     });
 
