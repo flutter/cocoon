@@ -9,6 +9,7 @@ resolution: workspace
 
 dependencies:
   collection: ^1.19.1
+  fixnum: ^1.1.0
   json_annotation: ^4.9.0
   meta: ^1.16.0
   stack_trace: ^1.12.1

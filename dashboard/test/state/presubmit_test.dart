@@ -5,6 +5,7 @@
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -425,7 +426,7 @@ void main() {
       jobName: 'check1',
       creationTime: 0,
       status: TaskStatus.failed,
-      buildId: 12345,
+      buildId: Int64(12345),
     );
 
     test('returns false when enableGeminiLogAnalysis is false', () {

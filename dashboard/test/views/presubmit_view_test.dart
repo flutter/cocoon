@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -506,7 +507,7 @@ void main() {
             creationTime: 0,
             status: TaskStatus.failed,
             summary: 'Test failed: Unit Tests',
-            buildId: 789,
+            buildId: Int64(789),
             // logAnalysis is null by default
           ),
         ]),
@@ -518,7 +519,7 @@ void main() {
           idToken: anyNamed('idToken'),
           repo: anyNamed('repo'),
           pr: anyNamed('pr'),
-          buildId: 789,
+          buildId: Int64(789),
         ),
       ).thenAnswer((_) => analyzeCompleter.future);
 

@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
@@ -169,14 +170,14 @@ void main() {
       });
 
       test('updates check status and remaining count on success', () async {
-        final state = const PresubmitJobState(
+        final state = PresubmitJobState(
           jobName: 'linux',
           status: TaskStatus.succeeded,
           attemptNumber: 1,
           startTime: 2000,
           endTime: 3000,
           buildNumber: 456,
-          buildId: 98765,
+          buildId: Int64(98765),
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -201,7 +202,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.succeeded);
         expect(checkDoc.endTime, 3000);
         expect(checkDoc.buildNumber, 456);
-        expect(checkDoc.buildId, 98765);
+        expect(checkDoc.buildId, Int64(98765));
       });
 
       test(
@@ -293,13 +294,13 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.missing);
       });
       test('updates check status and build number on inProgress', () async {
-        final state = const PresubmitJobState(
+        final state = PresubmitJobState(
           jobName: 'linux',
           status: TaskStatus.inProgress,
           attemptNumber: 1,
           startTime: 2000,
           buildNumber: 456,
-          buildId: 98765,
+          buildId: Int64(98765),
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -322,7 +323,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.inProgress);
         expect(checkDoc.startTime, 2000);
         expect(checkDoc.buildNumber, 456);
-        expect(checkDoc.buildId, 98765);
+        expect(checkDoc.buildId, Int64(98765));
       });
     });
     group('reInitializeFailedChecks', () {

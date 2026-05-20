@@ -27,7 +27,10 @@ PresubmitJobResponse _$PresubmitJobResponseFromJson(
       ),
       summary: $checkedConvert('summary', (v) => v as String?),
       buildNumber: $checkedConvert('build_number', (v) => (v as num?)?.toInt()),
-      buildId: $checkedConvert('build_id', (v) => (v as num?)?.toInt()),
+      buildId: $checkedConvert(
+        'build_id',
+        (v) => const Int64Converter().fromJson(v),
+      ),
       logAnalysis: $checkedConvert('log_analysis', (v) => v as String?),
     );
     return val;
@@ -55,7 +58,7 @@ Map<String, dynamic> _$PresubmitJobResponseToJson(
   'status': instance.status,
   'summary': ?instance.summary,
   'build_number': ?instance.buildNumber,
-  'build_id': ?instance.buildId,
+  'build_id': ?const Int64Converter().toJson(instance.buildId),
   'log_analysis': ?instance.logAnalysis,
 };
 

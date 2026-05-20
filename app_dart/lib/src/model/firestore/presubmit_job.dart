@@ -7,6 +7,7 @@ library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
@@ -170,7 +171,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
     required int attemptNumber,
     required int creationTime,
     int? buildNumber,
-    int? buildId,
+    Int64? buildId,
     int? startTime,
     int? endTime,
     String? summary,
@@ -248,8 +249,8 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
   int? get buildNumber => fields[fieldBuildNumber] != null
       ? int.parse(fields[fieldBuildNumber]!.integerValue!)
       : null;
-  int? get buildId => fields[fieldBuildId] != null
-      ? int.parse(fields[fieldBuildId]!.integerValue!)
+  Int64? get buildId => fields[fieldBuildId] != null
+      ? Int64.parseInt(fields[fieldBuildId]!.integerValue!)
       : null;
   int? get startTime => fields[fieldStartTime] != null
       ? int.parse(fields[fieldStartTime]!.integerValue!)
@@ -285,7 +286,7 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
     }
   }
 
-  set buildId(int? buildId) {
+  set buildId(Int64? buildId) {
     if (buildId == null) {
       fields.remove(fieldBuildId);
     } else {

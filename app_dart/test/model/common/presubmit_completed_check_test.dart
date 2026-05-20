@@ -76,7 +76,7 @@ void main() {
       expect(check.isUnifiedCheckRun, true);
       expect(check.checkRun.name, Config.kFlutterPresubmitsName);
       expect(check.buildNumber, 0);
-      expect(check.buildId, 98765);
+      expect(check.buildId, Int64(98765));
     });
 
     test('fromBuild creates correct legacy check', () {
@@ -112,7 +112,7 @@ void main() {
       expect(check.isUnifiedCheckRun, false);
       expect(check.checkRun.name, 'test_builder');
       expect(check.buildNumber, 1234);
-      expect(check.buildId, 98765);
+      expect(check.buildId, Int64(98765));
     });
   });
 }

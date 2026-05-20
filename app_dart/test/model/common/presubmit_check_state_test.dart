@@ -28,7 +28,7 @@ void main() {
       expect(state.jobName, 'linux_test');
       expect(state.status, TaskStatus.succeeded);
       expect(state.buildNumber, 12345);
-      expect(state.buildId, 67890);
+      expect(state.buildId, Int64(67890));
     });
   });
 }

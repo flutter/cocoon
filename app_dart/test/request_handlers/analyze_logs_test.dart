@@ -87,7 +87,7 @@ void main() {
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
-      buildId: 123,
+      buildId: Int64(123),
     );
     firestore.putDocument(failedCheck);
 
@@ -168,7 +168,7 @@ void main() {
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
-      buildId: 456, // Different build ID
+      buildId: Int64(456), // Different build ID
     );
     firestore.putDocument(failedCheck);
 
@@ -210,7 +210,7 @@ void main() {
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
-      buildId: 123,
+      buildId: Int64(123),
     );
     firestore.putDocument(failedCheck);
 

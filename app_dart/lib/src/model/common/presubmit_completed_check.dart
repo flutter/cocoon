@@ -4,6 +4,7 @@
 
 import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -41,7 +42,7 @@ class PresubmitCompletedJob {
   final int? endTime;
   final String? summary;
   final int? buildNumber;
-  final int? buildId;
+  final Int64? buildId;
 
   const PresubmitCompletedJob({
     required this.name,
@@ -110,7 +111,7 @@ class PresubmitCompletedJob {
       endTime: build.endTime.toDateTime().millisecondsSinceEpoch,
       summary: build.summaryMarkdown,
       buildNumber: build.number,
-      buildId: build.id.toInt(),
+      buildId: build.id,
     );
   }
 

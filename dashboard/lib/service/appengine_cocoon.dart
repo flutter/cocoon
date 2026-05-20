@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
@@ -558,7 +559,7 @@ class AppEngineCocoonService implements CocoonService {
     required String? idToken,
     required String repo,
     required int pr,
-    required int buildId,
+    required Int64 buildId,
     String owner = 'flutter',
   }) async {
     if (idToken case null || '') {
@@ -576,7 +577,7 @@ class AppEngineCocoonService implements CocoonService {
         'owner': owner,
         'repo': repo,
         'pr': pr,
-        'build_id': buildId,
+        'build_id': buildId.toString(),
       }),
     );
 
