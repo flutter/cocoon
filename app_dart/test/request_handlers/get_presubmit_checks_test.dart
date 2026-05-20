@@ -84,7 +84,7 @@ void main() {
         endTime: 120,
         summary: 'all good',
         buildNumber: 456,
-        buildId: Int64(98765),
+        buildId: Int64.MAX_VALUE,
         logAnalysis: 'log analysis result',
       );
       await firestoreService.writeViaTransaction(
@@ -103,7 +103,7 @@ void main() {
       expect(jobs[0].jobName, 'linux');
       expect(jobs[0].status, TaskStatus.succeeded);
       expect(jobs[0].buildNumber, 456);
-      expect(jobs[0].buildId, Int64(98765));
+      expect(jobs[0].buildId, Int64.MAX_VALUE);
       expect(jobs[0].logAnalysis, 'log analysis result');
     });
 

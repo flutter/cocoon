@@ -132,7 +132,7 @@ void main() {
         attemptNumber: 1,
         creationTime: 1000,
         buildNumber: 456,
-        buildId: Int64(789),
+        buildId: Int64.MAX_VALUE,
         startTime: 2000,
         endTime: 3000,
         summary: 'Success',
@@ -170,7 +170,7 @@ void main() {
       expect(loadedCheck.attemptNumber, 1);
       expect(loadedCheck.creationTime, 1000);
       expect(loadedCheck.buildNumber, 456);
-      expect(loadedCheck.buildId, Int64(789));
+      expect(loadedCheck.buildId, Int64.MAX_VALUE);
       expect(loadedCheck.startTime, 2000);
       expect(loadedCheck.endTime, 3000);
       expect(loadedCheck.summary, 'Success');
@@ -185,7 +185,7 @@ void main() {
       );
 
       final build = bbv2.Build(
-        id: Int64(789),
+        id: Int64.MAX_VALUE,
         number: 456,
         createTime: bbv2.Timestamp(seconds: Int64(2000)),
         startTime: bbv2.Timestamp(seconds: Int64(2100)),
@@ -196,7 +196,7 @@ void main() {
       check.updateFromBuild(build);
 
       expect(check.buildNumber, 456);
-      expect(check.buildId, Int64(789));
+      expect(check.buildId, Int64.MAX_VALUE);
       expect(check.creationTime, 2000000); // seconds to millis
       expect(check.startTime, 2100000);
       expect(check.endTime, 2200000);
@@ -246,8 +246,8 @@ void main() {
         creationTime: 1000,
       );
 
-      check.buildId = Int64(789);
-      expect(check.buildId, Int64(789));
+      check.buildId = Int64.MAX_VALUE;
+      expect(check.buildId, Int64.MAX_VALUE);
 
       check.buildId = null;
       expect(check.buildId, isNull);

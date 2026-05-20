@@ -14,7 +14,7 @@ void main() {
   group('PresubmitJobState', () {
     test('BuildToPresubmitJobState extension maps build number', () {
       final build = bbv2.Build(
-        id: Int64(67890),
+        id: Int64.MAX_VALUE,
         builder: bbv2.BuilderID(builder: 'linux_test'),
         status: bbv2.Status.SUCCESS,
         number: 12345,
@@ -28,7 +28,7 @@ void main() {
       expect(state.jobName, 'linux_test');
       expect(state.status, TaskStatus.succeeded);
       expect(state.buildNumber, 12345);
-      expect(state.buildId, Int64(67890));
+      expect(state.buildId, Int64.MAX_VALUE);
     });
   });
 }

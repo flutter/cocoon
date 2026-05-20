@@ -170,14 +170,14 @@ void main() {
       });
 
       test('updates check status and remaining count on success', () async {
-        final state = PresubmitJobState(
+        final state = const PresubmitJobState(
           jobName: 'linux',
           status: TaskStatus.succeeded,
           attemptNumber: 1,
           startTime: 2000,
           endTime: 3000,
           buildNumber: 456,
-          buildId: Int64(98765),
+          buildId: Int64.MAX_VALUE,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -202,7 +202,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.succeeded);
         expect(checkDoc.endTime, 3000);
         expect(checkDoc.buildNumber, 456);
-        expect(checkDoc.buildId, Int64(98765));
+        expect(checkDoc.buildId, Int64.MAX_VALUE);
       });
 
       test(
@@ -294,13 +294,13 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.missing);
       });
       test('updates check status and build number on inProgress', () async {
-        final state = PresubmitJobState(
+        final state = const PresubmitJobState(
           jobName: 'linux',
           status: TaskStatus.inProgress,
           attemptNumber: 1,
           startTime: 2000,
           buildNumber: 456,
-          buildId: Int64(98765),
+          buildId: Int64.MAX_VALUE,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -323,7 +323,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.inProgress);
         expect(checkDoc.startTime, 2000);
         expect(checkDoc.buildNumber, 456);
-        expect(checkDoc.buildId, Int64(98765));
+        expect(checkDoc.buildId, Int64.MAX_VALUE);
       });
     });
     group('reInitializeFailedChecks', () {

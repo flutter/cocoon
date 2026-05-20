@@ -484,7 +484,7 @@ class DataSeeder {
       attemptNumber: attemptNumber,
       creationTime: creationTime,
       buildNumber: 1337 + attemptNumber,
-      buildId: Int64(24567 + attemptNumber),
+      buildId: Int64.MAX_VALUE - 4775807 + attemptNumber,
       summary: switch (status) {
         .succeeded =>
           '[INFO] Starting task $jobName...\n[SUCCESS] All tests passed (452/452)',

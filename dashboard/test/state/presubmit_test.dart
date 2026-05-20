@@ -426,7 +426,7 @@ void main() {
       jobName: 'check1',
       creationTime: 0,
       status: TaskStatus.failed,
-      buildId: Int64(12345),
+      buildId: Int64.MAX_VALUE,
     );
 
     test('returns false when enableGeminiLogAnalysis is false', () {
