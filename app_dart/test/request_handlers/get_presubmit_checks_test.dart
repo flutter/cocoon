@@ -103,7 +103,7 @@ void main() {
       expect(jobs[0].jobName, 'linux');
       expect(jobs[0].status, TaskStatus.succeeded);
       expect(jobs[0].buildNumber, 456);
-      expect(jobs[0].buildId, Int64.MAX_VALUE);
+      expect(jobs[0].buildId, Int64.MAX_VALUE.toString());
       expect(jobs[0].logAnalysis, 'log analysis result');
     });
 

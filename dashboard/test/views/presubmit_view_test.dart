@@ -507,7 +507,7 @@ void main() {
             creationTime: 0,
             status: TaskStatus.failed,
             summary: 'Test failed: Unit Tests',
-            buildId: Int64(789),
+            buildId: '789',
             // logAnalysis is null by default
           ),
         ]),

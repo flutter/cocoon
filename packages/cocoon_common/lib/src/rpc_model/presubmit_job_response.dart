@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:fixnum/fixnum.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
@@ -67,35 +66,11 @@ final class PresubmitJobResponse extends Model {
   final int? buildNumber;
 
   /// The LUCI build ID.
-  @Int64Converter()
-  final Int64? buildId;
+  final String? buildId;
 
   /// The log analysis result.
   final String? logAnalysis;
 
   @override
   Map<String, Object?> toJson() => _$PresubmitJobResponseToJson(this);
-}
-
-/// A JSON converter for [Int64] fields that supports deserializing both strings
-/// and numbers, and serializes back to string to preserve precision.
-class Int64Converter implements JsonConverter<Int64?, Object?> {
-  const Int64Converter();
-
-  @override
-  Int64? fromJson(Object? json) {
-    if (json == null) {
-      return null;
-    }
-    if (json is String) {
-      return Int64.parseInt(json);
-    }
-    if (json is num) {
-      return Int64(json.toInt());
-    }
-    throw FormatException('Cannot convert $json to Int64');
-  }
-
-  @override
-  Object? toJson(Int64? object) => object?.toString();
 }
