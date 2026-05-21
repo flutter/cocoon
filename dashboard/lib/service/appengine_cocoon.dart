@@ -577,7 +577,7 @@ class AppEngineCocoonService implements CocoonService {
         'owner': owner,
         'repo': repo,
         'pr': pr,
-        'build_id': buildId.toString(),
+        'build_id': '$buildId',
       }),
     );
 

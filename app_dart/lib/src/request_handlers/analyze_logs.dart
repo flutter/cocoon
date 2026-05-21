@@ -54,15 +54,11 @@ final class AnalyzeLogs extends ApiRequestHandler {
     final owner = requestData[kOwnerParam] as String? ?? 'flutter';
     final repo = requestData[kRepoParam] as String? ?? 'flutter';
     final prNumber = requestData[kPrParam] as int;
-    final rawBuildId = requestData[kBuildIdParam];
-    final Int64 buildId;
-    if (rawBuildId is String) {
-      buildId = Int64.parseInt(rawBuildId);
-    } else if (rawBuildId is int) {
-      buildId = Int64(rawBuildId);
-    } else {
-      throw const BadRequestException('Invalid or missing build_id.');
-    }
+    final buildId = switch (requestData[kBuildIdParam]) {
+      final String s => Int64.parseInt(s),
+      final int i => Int64(i),
+      _ => throw const BadRequestException('Invalid or missing build_id.'),
+    };
 
     final slug = RepositorySlug(owner, repo);
 
