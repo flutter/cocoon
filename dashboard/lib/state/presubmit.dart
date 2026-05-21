@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 
 import '../logic/task_sorting.dart';
@@ -560,7 +561,7 @@ class PresubmitState extends ChangeNotifier {
       idToken: await authService.idToken,
       repo: repo,
       pr: int.parse(pr!),
-      buildId: job.buildId!,
+      buildId: Int64.parseInt(job.buildId!),
     );
 
     if (response.statusCode == 401 && authService.isAuthenticated) {

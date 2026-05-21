@@ -54,7 +54,11 @@ final class AnalyzeLogs extends ApiRequestHandler {
     final owner = requestData[kOwnerParam] as String? ?? 'flutter';
     final repo = requestData[kRepoParam] as String? ?? 'flutter';
     final prNumber = requestData[kPrParam] as int;
-    final buildId = requestData[kBuildIdParam] as int;
+    final buildId = switch (requestData[kBuildIdParam]) {
+      final String s => Int64.parseInt(s),
+      final int i => Int64(i),
+      _ => throw const BadRequestException('Invalid or missing build_id.'),
+    };
 
     final slug = RepositorySlug(owner, repo);
 
@@ -79,13 +83,13 @@ final class AnalyzeLogs extends ApiRequestHandler {
     final job = jobs.firstWhereOrNull((j) => j.buildId == buildId);
     if (job == null) {
       throw BadRequestException(
-        'Job with build_id $buildId does not belong to the latest presubmit guard for PR $slug/#$prNumber',
+        'Job with build_id $buildId does not belong to the latest check-run with id ${guard.checkRunId}.',
       );
     }
 
     // 2. Call _luciBuildService.getBuildById providing buildId and BuildMask.
     final build = await _luciBuildService.getBuildById(
-      Int64(buildId),
+      buildId,
       buildMask: bbv2.BuildMask(
         fields: bbv2.FieldMask(paths: ['steps', 'tags']),
       ),

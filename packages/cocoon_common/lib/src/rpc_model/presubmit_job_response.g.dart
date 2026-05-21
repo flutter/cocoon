@@ -27,7 +27,7 @@ PresubmitJobResponse _$PresubmitJobResponseFromJson(
       ),
       summary: $checkedConvert('summary', (v) => v as String?),
       buildNumber: $checkedConvert('build_number', (v) => (v as num?)?.toInt()),
-      buildId: $checkedConvert('build_id', (v) => (v as num?)?.toInt()),
+      buildId: $checkedConvert('build_id', (v) => v as String?),
       logAnalysis: $checkedConvert('log_analysis', (v) => v as String?),
     );
     return val;

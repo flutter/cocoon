@@ -66,7 +66,7 @@ final class PresubmitJobResponse extends Model {
   final int? buildNumber;
 
   /// The LUCI build ID.
-  final int? buildId;
+  final String? buildId;
 
   /// The log analysis result.
   final String? logAnalysis;

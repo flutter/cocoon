@@ -6,17 +6,18 @@
 import 'dart:async' as _i8;
 import 'dart:convert' as _i9;
 import 'dart:typed_data' as _i11;
-import 'dart:ui' as _i16;
+import 'dart:ui' as _i17;
 
 import 'package:cocoon_common/rpc_model.dart' as _i12;
-import 'package:cocoon_common/task_status.dart' as _i13;
+import 'package:cocoon_common/task_status.dart' as _i14;
 import 'package:firebase_auth/firebase_auth.dart' as _i7;
 import 'package:firebase_core/firebase_core.dart' as _i6;
+import 'package:fixnum/fixnum.dart' as _i13;
 import 'package:flutter_dashboard/logic/brooks.dart' as _i5;
 import 'package:flutter_dashboard/service/cocoon.dart' as _i3;
 import 'package:flutter_dashboard/service/firebase_auth.dart' as _i4;
-import 'package:flutter_dashboard/service/scenarios.dart' as _i14;
-import 'package:flutter_dashboard/state/build.dart' as _i15;
+import 'package:flutter_dashboard/service/scenarios.dart' as _i15;
+import 'package:flutter_dashboard/state/build.dart' as _i16;
 import 'package:http/http.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i10;
@@ -480,7 +481,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
     required String? idToken,
     required String? repo,
     required int? pr,
-    required int? buildId,
+    required _i13.Int64? buildId,
     String? owner = 'flutter',
   }) =>
       (super.noSuchMethod(
@@ -540,7 +541,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
     required String? commitSha,
     required String? repo,
     required String? branch,
-    Iterable<_i13.TaskStatus>? include,
+    Iterable<_i14.TaskStatus>? include,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#rerunCommit, [], {
@@ -769,7 +770,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
           as _i8.Future<_i3.CocoonResponse<List<_i12.PresubmitGuardSummary>>>);
 
   @override
-  void resetScenario(_i14.Scenario? scenario) => super.noSuchMethod(
+  void resetScenario(_i15.Scenario? scenario) => super.noSuchMethod(
     Invocation.method(#resetScenario, [scenario]),
     returnValueForMissingStub: null,
   );
@@ -778,7 +779,7 @@ class MockCocoonService extends _i1.Mock implements _i3.CocoonService {
 /// A class which mocks [BuildState].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBuildState extends _i1.Mock implements _i15.BuildState {
+class MockBuildState extends _i1.Mock implements _i16.BuildState {
   MockBuildState() {
     _i1.throwOnMissingStub(this);
   }
@@ -898,7 +899,7 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
           as bool);
 
   @override
-  _i8.Future<void> resetScenario(_i14.Scenario? scenario) =>
+  _i8.Future<void> resetScenario(_i15.Scenario? scenario) =>
       (super.noSuchMethod(
             Invocation.method(#resetScenario, [scenario]),
             returnValue: _i8.Future<void>.value(),
@@ -907,13 +908,13 @@ class MockBuildState extends _i1.Mock implements _i15.BuildState {
           as _i8.Future<void>);
 
   @override
-  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
@@ -1085,13 +1086,13 @@ class MockFirebaseAuthService extends _i1.Mock
           as _i8.Future<void>);
 
   @override
-  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );

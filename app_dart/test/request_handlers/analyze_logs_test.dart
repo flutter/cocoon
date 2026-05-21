@@ -87,12 +87,12 @@ void main() {
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
-      buildId: 123,
+      buildId: Int64.MAX_VALUE,
     );
     firestore.putDocument(failedCheck);
 
     final build = bbv2.Build.create()
-      ..id = Int64(123)
+      ..id = Int64.MAX_VALUE
       ..steps.addAll([
         bbv2.Step.create()
           ..name = 'step1'
@@ -111,7 +111,7 @@ void main() {
 
     when(
       mockLuciBuildService.getBuildById(
-        Int64(123),
+        Int64.MAX_VALUE,
         buildMask: anyNamed('buildMask'),
       ),
     ).thenAnswer((_) async => build);
@@ -120,7 +120,7 @@ void main() {
       'owner': 'flutter',
       'repo': 'flutter',
       'pr': pullRequest.number!,
-      'build_id': 123,
+      'build_id': '9223372036854775807',
     };
 
     final response = await tester.post(handler);
@@ -137,7 +137,7 @@ void main() {
       'owner': 'flutter',
       'repo': 'flutter',
       'pr': 123,
-      'build_id': 123,
+      'build_id': '9223372036854775807',
     };
 
     await expectLater(tester.post(handler), throwsA(isA<NotFoundException>()));
@@ -168,7 +168,7 @@ void main() {
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
-      buildId: 456, // Different build ID
+      buildId: Int64(456), // Different build ID
     );
     firestore.putDocument(failedCheck);
 
@@ -176,7 +176,7 @@ void main() {
       'owner': 'flutter',
       'repo': 'flutter',
       'pr': pullRequest.number!,
-      'build_id': 123, // Requested build ID
+      'build_id': '9223372036854775807', // Requested build ID
     };
 
     await expectLater(
@@ -210,12 +210,12 @@ void main() {
       status: TaskStatus.failed,
       attemptNumber: 1,
       creationTime: 1,
-      buildId: 123,
+      buildId: Int64.MAX_VALUE,
     );
     firestore.putDocument(failedCheck);
 
     final build = bbv2.Build.create()
-      ..id = Int64(123)
+      ..id = Int64.MAX_VALUE
       ..steps.addAll([
         bbv2.Step.create()
           ..name = 'step1'
@@ -224,7 +224,7 @@ void main() {
 
     when(
       mockLuciBuildService.getBuildById(
-        Int64(123),
+        Int64.MAX_VALUE,
         buildMask: anyNamed('buildMask'),
       ),
     ).thenAnswer((_) async => build);
@@ -233,7 +233,7 @@ void main() {
       'owner': 'flutter',
       'repo': 'flutter',
       'pr': pullRequest.number!,
-      'build_id': 123,
+      'build_id': '9223372036854775807',
     };
 
     await expectLater(tester.post(handler), throwsA(isA<NotFoundException>()));
