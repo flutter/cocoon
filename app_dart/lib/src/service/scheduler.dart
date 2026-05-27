@@ -795,7 +795,7 @@ $s
           (Target target) => switch (stage) {
             CiStage.fusionEngineBuild => target.isReleaseBuild,
             CiStage.fusionTests => !target.isReleaseBuild,
-            _ => true,
+            _ => true, // Include all targets for non-flutter repositories
           },
         );
 
