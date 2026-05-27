@@ -453,6 +453,20 @@ class Scheduler {
           // See https://github.com/flutter/flutter/issues/165810.
           engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
+          // For non-flutter repos, if unified check run flow is enabled, create
+          // a staging document to track presubmit tests.
+          if (isUnifiedCheckRun) {
+            await UnifiedCheckRun.initializeCiStagingDocument(
+              firestoreService: _firestore,
+              slug: slug,
+              sha: sha,
+              stage: CiStage.genericTests,
+              tasks: [...presubmitTriggerTargets.map((t) => t.name)],
+              pullRequest: pullRequest,
+              config: _config,
+              checkRun: lock,
+            );
+          }
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
           );
@@ -781,6 +795,7 @@ $s
           (Target target) => switch (stage) {
             CiStage.fusionEngineBuild => target.isReleaseBuild,
             CiStage.fusionTests => !target.isReleaseBuild,
+            _ => true,
           },
         );
 
@@ -1261,6 +1276,11 @@ detailsUrl: $detailsUrl
           sha: check.sha,
           logCrumb: logCrumb,
         );
+      case CiStage.genericTests:
+        // generic tests do not have a staging document nor are associated
+        // with a merge group - they are only used to collect commit stats.
+        log.warn('$logCrumb: generic tests have no merge queue guard.');
+        break;
     }
     return true;
   }
@@ -1337,6 +1357,7 @@ detailsUrl: $detailsUrl
           (Target target) => switch (stage) {
             CiStage.fusionEngineBuild => target.isReleaseBuild,
             CiStage.fusionTests => !target.isReleaseBuild,
+            _ => true,
           },
         );
     return [...presubmitTargets];

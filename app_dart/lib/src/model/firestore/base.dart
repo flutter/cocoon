@@ -13,7 +13,10 @@ enum CiStage implements Comparable<CiStage> {
   fusionEngineBuild('engine'),
 
   /// All non-engine artifact tests (engine & framework)
-  fusionTests('fusion');
+  fusionTests('fusion'),
+
+  /// All tests artifacts from non-flutter repositories
+  genericTests('generic');
 
   const CiStage(this.name);
 
