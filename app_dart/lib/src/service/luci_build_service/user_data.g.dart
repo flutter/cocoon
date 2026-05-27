@@ -69,6 +69,7 @@ Map<String, dynamic> _$PresubmitUserDataToJson(_PresubmitUserData instance) =>
 const _$CiStageEnumMap = {
   CiStage.fusionEngineBuild: 'fusionEngineBuild',
   CiStage.fusionTests: 'fusionTests',
+  CiStage.genericTests: 'genericTests',
 };
 
 PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>

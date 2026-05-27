@@ -295,6 +295,9 @@ class LuciBuildService {
       // We need to store PR to checkrun mapping in order to get PR later in
       // [Scheduler.proceedUnifiedCheckRunToTestingStage] method
       checkRuns.add(checkRunGuard);
+      log.info(
+        'Created unified check run ${checkRunGuard.id} for PR# ${pullRequest.number}',
+      );
     }
 
     for (final MapEntry(key: target, value: attemptNumber) in targets.entries) {
