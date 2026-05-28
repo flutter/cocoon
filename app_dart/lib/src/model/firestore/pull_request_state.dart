@@ -41,6 +41,8 @@ final class PullRequestState extends AppDocument<PullRequestState> {
   set isPrivileged(bool? value) {
     if (value != null) {
       fields[kIsPrivilegedField] = value.toValue();
+    } else {
+      fields.remove(kIsPrivilegedField);
     }
   }
 
@@ -50,6 +52,8 @@ final class PullRequestState extends AppDocument<PullRequestState> {
   set latestSha(String? value) {
     if (value != null) {
       fields[kLatestShaField] = value.toValue();
+    } else {
+      fields.remove(kLatestShaField);
     }
   }
 
@@ -59,6 +63,8 @@ final class PullRequestState extends AppDocument<PullRequestState> {
   set scheduledSha(String? value) {
     if (value != null) {
       fields[kScheduledShaField] = value.toValue();
+    } else {
+      fields.remove(kScheduledShaField);
     }
   }
 
