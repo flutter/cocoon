@@ -39,8 +39,7 @@ dependencies:
   json_annotation: ^4.9.0
   meta: any # Match Flutter SDK
   provider: 6.1.5 # Rolled by dependabot
-  # TODO(chunhtai): Avoid using pinning once sign_in_button is updated to use font_awesome_flutter >= 11.0.0
-  sign_in_button: 4.0.1
+  sign_in_button: 5.0.0
   truncate: 3.0.1 # Rolled by dependabot
   url_launcher: 6.3.2 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
