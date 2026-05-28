@@ -92,21 +92,20 @@ class PullRequestManager {
     final lockKey = 'pr_lock_${slug.owner}_${slug.name}_$prNumber';
     final lockValue = Uint8List.fromList('l'.codeUnits);
 
-    // Attempt to acquire lock
-    final existingLock = await cache.getOrCreate(
+    var lockAcquired = false;
+    await cache.getOrCreate(
       'pr_locks',
       lockKey,
-      createFn: null,
-    );
-    if (existingLock != null) {
-      throw const ServiceUnavailable('PR is locked by another instance');
-    }
-    await cache.set(
-      'pr_locks',
-      lockKey,
-      lockValue,
+      createFn: () async {
+        lockAcquired = true;
+        return lockValue;
+      },
       ttl: const Duration(minutes: 5),
     );
+
+    if (!lockAcquired) {
+      throw const ServiceUnavailable('PR is locked by another instance');
+    }
 
     try {
       return await action();
