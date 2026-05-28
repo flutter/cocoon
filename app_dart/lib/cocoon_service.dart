@@ -60,4 +60,5 @@ export 'src/service/flags/dynamic_config.dart';
 export 'src/service/gerrit_service.dart';
 export 'src/service/github_checks_service.dart';
 export 'src/service/luci_build_service.dart';
+export 'src/service/pull_request_manager.dart';
 export 'src/service/scheduler.dart';
