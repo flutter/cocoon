@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:fixnum/fixnum.dart';
 import 'package:googleapis/firestore/v1.dart';
 
 extension StringToValue on String {
@@ -9,6 +10,10 @@ extension StringToValue on String {
 }
 
 extension IntToValue on int {
+  Value toValue() => Value(integerValue: '$this');
+}
+
+extension Int64ToValue on Int64 {
   Value toValue() => Value(integerValue: '$this');
 }
 
@@ -29,6 +34,7 @@ extension ListToValue on List {
         switch (t) {
           String() => t.toValue(),
           int() => t.toValue(),
+          Int64() => t.toValue(),
           bool() => t.toValue(),
           DateTime() => t.toValue(),
           Map<String, dynamic>() => t.toValue(),
@@ -49,6 +55,7 @@ extension MapToValue on Map<String, dynamic> {
         key: switch (value) {
           String() => value.toValue(),
           int() => value.toValue(),
+          Int64() => value.toValue(),
           bool() => value.toValue(),
           DateTime() => value.toValue(),
           Map<String, dynamic>() => value.toValue(),

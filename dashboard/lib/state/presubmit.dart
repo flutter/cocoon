@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 
 import '../logic/task_sorting.dart';
@@ -68,6 +69,9 @@ class PresubmitState extends ChangeNotifier {
   /// The current job name filter (regex).
   String? get jobNameFilter => _jobNameFilter;
   String? _jobNameFilter;
+
+  String get insufficientPermissionMessage =>
+      'User has no write permission to $repo github repo.';
 
   /// Whether any filter is currently applied.
   bool get isAnyFilterApplied {
@@ -369,16 +373,6 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
-  /// Triggers a data fetch regardless of whether parameters have changed.
-  void fetch() {
-    if (pr != null && _lastFetchedPr != pr) {
-      unawaited(fetchAvailableShas());
-    }
-    if (sha != null && _lastFetchedSha != sha) {
-      unawaited(fetchGuardStatus());
-    }
-  }
-
   /// Selects a specific job and fetches its details.
   void selectJob(String jobName) {
     if (_selectedJob == jobName) return;
@@ -474,6 +468,10 @@ class PresubmitState extends ChangeNotifier {
       jobName: jobName,
     );
 
+    if (response.statusCode == 401 && authService.isAuthenticated) {
+      return insufficientPermissionMessage;
+    }
+
     _isJobsLoading = false;
     if (response.error == null) {
       // Trigger a refresh after a small delay to allow the backend to update
@@ -494,6 +492,10 @@ class PresubmitState extends ChangeNotifier {
       repo: repo,
       pr: int.parse(pr!),
     );
+
+    if (response.statusCode == 401 && authService.isAuthenticated) {
+      return insufficientPermissionMessage;
+    }
 
     _isRerunningAll = false;
     if (response.error == null) {
@@ -535,6 +537,40 @@ class PresubmitState extends ChangeNotifier {
         false;
   }
 
+  /// Whether the user can trigger log analysis for a specific job.
+  bool canAnalyzeLog(PresubmitJobResponse job) {
+    if (_guardResponse?.enableGeminiLogAnalysis != true) {
+      return false;
+    }
+    if (!authService.isAuthenticated || isLoading) {
+      return false;
+    }
+    if (job.status != TaskStatus.failed &&
+        job.status != TaskStatus.infraFailure) {
+      return false;
+    }
+    return job.buildId != null &&
+        (job.logAnalysis == null || job.logAnalysis!.trim().isEmpty);
+  }
+
+  /// Triggers log analysis for a job.
+  Future<String?> analyzeLogs(PresubmitJobResponse job) async {
+    if (pr == null) return 'No PR selected';
+
+    final response = await cocoonService.analyzeLogs(
+      idToken: await authService.idToken,
+      repo: repo,
+      pr: int.parse(pr!),
+      buildId: Int64.parseInt(job.buildId!),
+    );
+
+    if (response.statusCode == 401 && authService.isAuthenticated) {
+      return insufficientPermissionMessage;
+    }
+
+    return response.error;
+  }
+
   void resume() {
     if (!_active) return;
     _startTimer();
@@ -546,9 +582,17 @@ class PresubmitState extends ChangeNotifier {
     refreshTimer = null;
   }
 
+  /// Fetches the latest data for the current view.
+  ///
+  /// This method is called periodically to refresh the data.
   void _fetchRefreshUpdate() {
     if (!_active) return;
-    fetch();
+    if (pr != null) {
+      unawaited(fetchAvailableShas());
+    }
+    if (sha != null) {
+      unawaited(fetchGuardStatus());
+    }
     if (_selectedJob != null) {
       unawaited(fetchJobDetails());
     }

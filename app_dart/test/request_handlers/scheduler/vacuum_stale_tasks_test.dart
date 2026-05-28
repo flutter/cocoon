@@ -43,6 +43,7 @@ void main() {
       tester = RequestHandlerTester();
       handler = VacuumStaleTasks(
         config: FakeConfig(),
+        authenticationProvider: FakeDashboardAuthentication(),
         luciBuildService: luciBuildService,
         firestore: firestore,
         branchService: branchService,

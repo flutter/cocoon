@@ -305,7 +305,9 @@ class _PreSubmitViewState extends State<PreSubmitView>
                                         'Select a job to view execution details.',
                                       ),
                                     )
-                                  : const _JobDetailsViewerPane(),
+                                  : _JobDetailsViewerPane(
+                                      onError: _showErrorDialog,
+                                    ),
                             ),
                           ],
                         ),
@@ -320,7 +322,9 @@ class _PreSubmitViewState extends State<PreSubmitView>
 }
 
 class _JobDetailsViewerPane extends StatefulWidget {
-  const _JobDetailsViewerPane();
+  const _JobDetailsViewerPane({required this.onError});
+
+  final ValueChanged<String> onError;
 
   @override
   State<_JobDetailsViewerPane> createState() => _JobDetailsViewerPaneState();
@@ -328,18 +332,27 @@ class _JobDetailsViewerPane extends StatefulWidget {
 
 class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
   int _selectedAttemptIndex = 0;
+  int _selectedDetailTabIndex = 0;
+  String? _lastJobName;
+  bool _isAnalyzing = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final presubmitState = Provider.of<PresubmitState>(context);
+    final jobName = presubmitState.selectedJob;
+
+    if (_lastJobName != jobName) {
+      _lastJobName = jobName;
+      _selectedAttemptIndex = 0;
+      _selectedDetailTabIndex = 0;
+    }
 
     return AnimatedBuilder(
       animation: presubmitState,
       builder: (context, _) {
         final repo = presubmitState.repo;
-        final jobName = presubmitState.selectedJob;
         final jobs = presubmitState.jobs;
         final isLoading = presubmitState.isLoading;
 
@@ -360,6 +373,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
         }
 
         final selectedJob = jobs[_selectedAttemptIndex];
+        final hasLogAnalysis =
+            selectedJob.logAnalysis != null &&
+            selectedJob.logAnalysis!.isNotEmpty;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,22 +464,33 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                border: Border(bottom: BorderSide(color: borderColor)),
+              ),
               child: Row(
                 children: [
-                  Text(
-                    'Execution Details',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Spacer(),
-                  Text(
+                  if (hasLogAnalysis) ...[
+                    _buildDetailTab('Log Analysis', 0, isDark),
+                    _buildDetailTab('Execution Details', 1, isDark),
+                  ] else
+                    const Text(
+                      'Execution Details',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  const Spacer(),
+                  const Text(
                     'Raw output',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 12),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -476,9 +503,11 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 width: double.infinity,
                 child: SingleChildScrollView(
                   child: Text(
-                    selectedJob.summary?.trim().isEmpty ?? true
-                        ? _getDefaultJobDetails(selectedJob)
-                        : selectedJob.summary!,
+                    hasLogAnalysis && _selectedDetailTabIndex == 0
+                        ? selectedJob.logAnalysis!
+                        : (selectedJob.summary?.trim().isEmpty ?? true
+                              ? _getDefaultJobDetails(selectedJob)
+                              : selectedJob.summary!),
                     style: const TextStyle(
                       fontFamily: 'monospace',
                       fontSize: 13,
@@ -489,48 +518,119 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
             ),
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: ElevatedButton(
-                onPressed: selectedJob.buildNumber == null
-                    ? null
-                    : () async => await launchUrl(
-                        Uri.parse(
-                          generatePreSubmitBuildLogUrl(
-                            buildName: selectedJob.jobName,
-                            buildNumber: selectedJob.buildNumber!,
+              child: Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: selectedJob.buildNumber == null
+                        ? null
+                        : () async => await launchUrl(
+                            Uri.parse(
+                              generatePreSubmitBuildLogUrl(
+                                buildName: selectedJob.jobName,
+                                buildNumber: selectedJob.buildNumber!,
+                              ),
+                            ),
+                          ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.open_in_new,
+                          size: 18,
+                          color: selectedJob.buildNumber == null
+                              ? Colors.grey
+                              : (isDark
+                                    ? const Color(0xFF58A6FF)
+                                    : const Color(0xFF0969DA)),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'View more details on LUCI UI',
+                          style: TextStyle(
+                            color: selectedJob.buildNumber == null
+                                ? Colors.grey
+                                : (isDark
+                                      ? const Color(0xFF58A6FF)
+                                      : const Color(0xFF0969DA)),
+                            fontSize: 14,
                           ),
                         ),
-                      ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.open_in_new,
-                      size: 18,
-                      color: selectedJob.buildNumber == null
-                          ? Colors.grey
-                          : (isDark
-                                ? const Color(0xFF58A6FF)
-                                : const Color(0xFF0969DA)),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'View more details on LUCI UI',
-                      style: TextStyle(
-                        color: selectedJob.buildNumber == null
-                            ? Colors.grey
-                            : (isDark
-                                  ? const Color(0xFF58A6FF)
-                                  : const Color(0xFF0969DA)),
-                        fontSize: 14,
+                  ),
+                  if (presubmitState.canAnalyzeLog(selectedJob)) ...[
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: _isAnalyzing
+                          ? null
+                          : () async {
+                              setState(() => _isAnalyzing = true);
+                              try {
+                                final error = await presubmitState.analyzeLogs(
+                                  selectedJob,
+                                );
+                                if (error == null) {
+                                  await presubmitState.fetchJobDetails();
+                                } else {
+                                  widget.onError(error);
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isAnalyzing = false);
+                                }
+                              }
+                            },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_isAnalyzing) ...[
+                            const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          const Text('Analyze Logs with Gemini'),
+                        ],
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
             ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDetailTab(String label, int index, bool isDark) {
+    final isSelected = _selectedDetailTabIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _selectedDetailTabIndex = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected
+                ? (isDark ? Colors.white : Colors.black)
+                : (isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280)),
+          ),
+        ),
+      ),
     );
   }
 

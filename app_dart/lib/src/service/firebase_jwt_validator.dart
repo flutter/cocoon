@@ -52,10 +52,56 @@ interface class FirebaseJwtValidator {
     // Maybe fetch the PEM keys.
     await maybeRefreshKeyStore();
 
+    // This checks that JWTs are not self-signed and have a `kid` field
+    _ensureNoPublicKeys(jwtString);
+
     // This will throw if the JWT wasn't signed correctly.
-    final jwt = await JsonWebToken.decodeAndVerify(jwtString, _keyStore);
+
+    final JsonWebToken jwt;
+    try {
+      jwt = await JsonWebToken.decodeAndVerify(
+        jwtString,
+        _keyStore,
+        allowedArguments: [
+          // Firebase Verify ID Tokens: https://firebase.google.com/docs/auth/admin/verify-id-tokens
+          'RS256',
+        ],
+      );
+    } catch (e) {
+      throw JwtException('Unable to decode and verify: $e');
+    }
     verifyJwtClaims(jwt.claims, now);
     return TokenInfo.fromJson(jwt.claims.toJson());
+  }
+
+  void _ensureNoPublicKeys(String jwtString) {
+    final jwt = JoseObject.fromCompactSerialization(jwtString);
+    final header = jwt.commonProtectedHeader;
+    // Firebase Verify ID Tokens: https://firebase.google.com/docs/auth/admin/verify-id-tokens
+    if (header['alg'] != 'RS256') {
+      throw JwtException('Bad algorithm');
+    }
+    if (header['jwk'] case final publicKey?) {
+      throw JwtException('Public key in JWT not allowed: $publicKey');
+    }
+    if (header['jku'] != null) {
+      throw JwtException('JWK Set URL not allowed');
+    }
+    if (header['x5u'] != null) {
+      throw JwtException('x5u not allowed');
+    }
+    if (header['x5c'] != null) {
+      throw JwtException('x5c not allowed');
+    }
+    if (header['x5t'] != null) {
+      throw JwtException('x5t not allowed');
+    }
+    if (header['x5t#S256'] != null) {
+      throw JwtException('x5t#S256 not allowed');
+    }
+    if (header['kid'] == null) {
+      throw JwtException('Required `kid` field missing');
+    }
   }
 
   @visibleForTesting

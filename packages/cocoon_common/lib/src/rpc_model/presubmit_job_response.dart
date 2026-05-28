@@ -28,6 +28,8 @@ final class PresubmitJobResponse extends Model {
     required this.status,
     this.summary,
     this.buildNumber,
+    this.buildId,
+    this.logAnalysis,
   });
 
   /// Creates a [PresubmitJobResponse] from [json] representation.
@@ -62,6 +64,12 @@ final class PresubmitJobResponse extends Model {
 
   /// The LUCI build number.
   final int? buildNumber;
+
+  /// The LUCI build ID.
+  final String? buildId;
+
+  /// The log analysis result.
+  final String? logAnalysis;
 
   @override
   Map<String, Object?> toJson() => _$PresubmitJobResponseToJson(this);

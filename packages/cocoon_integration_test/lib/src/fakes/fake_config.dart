@@ -23,6 +23,7 @@ class FakeConfig implements Config {
     this.maxFilesChangedForSkippingEnginePhaseValue,
     this.oauthClientIdValue,
     this.githubOAuthTokenValue,
+    this.geminiLogAnalyzerKeyValue,
     this.mergeConflictPullRequestMessageValue =
         'default mergeConflictPullRequestMessageValue',
     this.missingTestsPullRequestMessageValue =
@@ -66,6 +67,7 @@ class FakeConfig implements Config {
   int? batchSizeValue;
   String? oauthClientIdValue;
   String? githubOAuthTokenValue;
+  String? geminiLogAnalyzerKeyValue;
   String mergeConflictPullRequestMessageValue;
   String missingTestsPullRequestMessageValue;
   String? wrongBaseBranchPullRequestMessageValue;
@@ -175,6 +177,10 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubOAuthToken async => githubOAuthTokenValue ?? 'token';
+
+  @override
+  Future<String> get geminiLogAnalyzerKey async =>
+      geminiLogAnalyzerKeyValue ?? 'fake-gemini-key';
 
   @override
   String get mergeConflictPullRequestMessage =>

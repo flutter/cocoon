@@ -55,6 +55,19 @@ void main() {
     expect(githubToken, 'githubToken');
   });
 
+  test('geminiLogAnalyzerKey pulls from cache', () async {
+    const secretValue = 'my-gemini-key';
+    final cachedValue = Uint8List.fromList(secretValue.codeUnits);
+    await cacheService.set(
+      Config.configCacheName,
+      'APP_DART_GEMINI_LOG_ANALYZER_KEY',
+      cachedValue,
+    );
+
+    final key = await config.geminiLogAnalyzerKey;
+    expect(key, equals('my-gemini-key'));
+  });
+
   test('Returns the right flutter gold alert', () {
     expect(
       config.flutterGoldAlertConstant(RepositorySlug.full('flutter/flutter')),

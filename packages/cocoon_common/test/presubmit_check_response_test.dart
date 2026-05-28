@@ -38,5 +38,21 @@ void main() {
       final backToJson = response.toJson();
       expect(backToJson.containsKey('build_number'), isFalse);
     });
+
+    test('toJson and fromJson handles buildId as String', () {
+      final json = {
+        'attempt_number': 1,
+        'job_name': 'linux',
+        'creation_time': 1000,
+        'status': '${TaskStatus.succeeded}',
+        'build_id': '9223372036854775807',
+      };
+
+      final response = PresubmitJobResponse.fromJson(json);
+      expect(response.buildId, '9223372036854775807');
+
+      final backToJson = response.toJson();
+      expect(backToJson['build_id'], '9223372036854775807');
+    });
   });
 }

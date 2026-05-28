@@ -98,6 +98,18 @@ void main() {
     expect(await body.body.toList(), isEmpty);
   });
 
+  test('fails on unsupported repo', () async {
+    config.supportedReposValue = {RepositorySlug('flutter', 'cocoon')};
+
+    tester.request.uri = tester.request.uri.replace(
+      queryParameters: {'repo': 'flutter/flutter'},
+    );
+
+    final response = await tester.get(handler);
+    expect(response.statusCode, 404);
+    expect(await response.body.toList(), isNotEmpty);
+  });
+
   test('succeeds on specific repo and branch set', () async {
     fakeGithubCommitShas = ['123'];
     config.supportedReposValue = {RepositorySlug('flutter', 'cocoon')};

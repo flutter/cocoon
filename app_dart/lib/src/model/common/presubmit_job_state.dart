@@ -7,6 +7,7 @@ library;
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 
 import '../../service/luci_build_service/build_tags.dart';
 import '../bbv2_extension.dart';
@@ -20,6 +21,7 @@ class PresubmitJobState {
   final int? endTime;
   final String? summary;
   final int? buildNumber;
+  final Int64? buildId;
 
   const PresubmitJobState({
     required this.jobName,
@@ -29,6 +31,7 @@ class PresubmitJobState {
     this.endTime,
     this.summary,
     this.buildNumber,
+    this.buildId,
   });
 }
 
@@ -41,5 +44,6 @@ extension BuildToPresubmitJobState on bbv2.Build {
     endTime: endTime.toDateTime().millisecondsSinceEpoch,
     summary: summaryMarkdown,
     buildNumber: number,
+    buildId: id,
   );
 }

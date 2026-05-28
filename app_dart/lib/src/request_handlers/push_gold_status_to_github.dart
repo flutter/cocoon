@@ -136,7 +136,6 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
       checkRuns = checkRuns ?? <Map<String, dynamic>>[];
       log.debug('This PR has ${checkRuns.length} checks.');
       for (var checkRun in checkRuns) {
-        log.debug('Check run: $checkRun');
         final name = checkRun['name'].toLowerCase() as String;
         if (slug == Config.flutterSlug) {
           if (const <String>[
@@ -160,8 +159,13 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
             runsGoldenFileTests = true;
           }
         }
-        if (checkRun['conclusion'] == null ||
-            checkRun['conclusion'].toUpperCase() != 'SUCCESS') {
+        const successfulConclusion = {'SUCCESS', 'NEUTRAL'};
+
+        if (checkRun['status']?.toUpperCase() != 'COMPLETED' ||
+            !successfulConclusion.contains(
+              checkRun['conclusion']?.toUpperCase(),
+            )) {
+          log.debug('Incomplete check run: $checkRun');
           incompleteChecks.add(name);
         }
       }

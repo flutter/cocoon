@@ -208,6 +208,52 @@ void main() {
     });
 
     test(
+      'ValidateCheckRuns de-dupes checkRuns and uses latest startedAt.',
+      () async {
+        githubService.checkRunsData = dedupedCheckRunsSuccessMock;
+        final checkRuns = await githubService.getCheckRuns(slug, 'ref');
+        const allSuccess = true;
+
+        expect(
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            PullRequestState.open,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isTrue,
+        );
+        expect(failures, isEmpty);
+      },
+    );
+
+    test(
+      'ValidateCheckRuns de-dupes checkRuns and uses latest startedAt (failure).',
+      () async {
+        githubService.checkRunsData = dedupedCheckRunsFailureMock;
+        final checkRuns = await githubService.getCheckRuns(slug, 'ref');
+        const allSuccess = true;
+
+        expect(
+          ciSuccessful.validateCheckRuns(
+            slug,
+            prNumber,
+            PullRequestState.open,
+            checkRuns,
+            failures,
+            allSuccess,
+            Author(login: 'testAuthor'),
+          ),
+          isFalse,
+        );
+        expect(failures, hasLength(1));
+      },
+    );
+
+    test(
       'ValidateCheckRuns allSucces false but no failures recorded.',
       () async {
         /// This test just checks that a checkRun that has not yet completed and

@@ -232,8 +232,34 @@ class CiSuccessful extends Validation {
   ) {
     log.info('Validating name: ${slug.name}/$prNumber, checkRuns: $checkRuns');
 
+    // Deduplicate check runs by name, keeping the most recent one.
+    // Duplications can happen for example if a workflow is triggered by a label event.
+    // If the workflow has run more than once on the same commit, every result
+    // is included in this initial pull of check runs for the given commit.
+    final uniqueCheckRuns = <String, github.CheckRun>{};
+    log.info('Deduplicating check runs...');
+    for (final checkRun in checkRuns) {
+      final name = checkRun.name;
+      if (name == null) {
+        continue;
+      }
+      final existing = uniqueCheckRuns[name];
+      if (existing == null) {
+        uniqueCheckRuns[name] = checkRun;
+      } else {
+        final existingStartedAt = existing.startedAt;
+        final currentStartedAt = checkRun.startedAt;
+        if (currentStartedAt.isAfter(existingStartedAt)) {
+          uniqueCheckRuns[name] = checkRun;
+          log.info(
+            'Replaced ${existing.name} (${existing.startedAt}) with newer ${checkRun.name} (${checkRun.startedAt})',
+          );
+        }
+      }
+    }
+
     final staleCheckRuns = <github.CheckRun>[];
-    for (var checkRun in checkRuns) {
+    for (var checkRun in uniqueCheckRuns.values) {
       final name = checkRun.name;
 
       if (checkRun.name == Config.kMergeQueueLockName) {

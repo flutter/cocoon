@@ -13,6 +13,7 @@ import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:test/test.dart';
@@ -176,6 +177,7 @@ void main() {
           startTime: 2000,
           endTime: 3000,
           buildNumber: 456,
+          buildId: Int64.MAX_VALUE,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -200,6 +202,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.succeeded);
         expect(checkDoc.endTime, 3000);
         expect(checkDoc.buildNumber, 456);
+        expect(checkDoc.buildId, Int64.MAX_VALUE);
       });
 
       test(
@@ -297,6 +300,7 @@ void main() {
           attemptNumber: 1,
           startTime: 2000,
           buildNumber: 456,
+          buildId: Int64.MAX_VALUE,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -319,6 +323,7 @@ void main() {
         expect(checkDoc.status, TaskStatus.inProgress);
         expect(checkDoc.startTime, 2000);
         expect(checkDoc.buildNumber, 456);
+        expect(checkDoc.buildId, Int64.MAX_VALUE);
       });
     });
     group('reInitializeFailedChecks', () {

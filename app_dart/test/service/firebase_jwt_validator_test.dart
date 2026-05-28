@@ -246,10 +246,179 @@ void main() {
     );
     expect(token.emailIsVerified, true);
   });
+
+  group('decodeAndVerify', () {
+    late FirebaseJwtValidator validator;
+    late CacheService cache;
+
+    setUp(() {
+      cache = CacheService(inMemory: true);
+      validator = FirebaseJwtValidator(
+        cache: cache,
+        now: () => rightNow,
+        client: MockClient((req) async {
+          if (req.url == FirebaseJwtValidator.firebasePEMKeysUri) {
+            return http.Response(pemKeysSingleString, 200);
+          }
+          return http.Response('', 404);
+        }),
+      );
+    });
+
+    test('fails if JWT has a public key in header', () async {
+      // HMAC signing
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('jwk', key.toJson())
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Public key in JWT not allowed: ${key.toJson()}'),
+      );
+    });
+
+    test('fails if JWT algorithm is not firebase approved', () async {
+      final key = JsonWebKey.generate('HS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('jwk', key.toJson())
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'HS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Bad algorithm'),
+      );
+    });
+
+    test('fails if JWT has jku in header', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('jku', 'https://example.com/keys.json')
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('JWK Set URL not allowed'),
+      );
+    });
+
+    test('fails if JWT has x5u in header', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('x5u', 'https://example.com/cert.pem')
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('x5u not allowed'),
+      );
+    });
+
+    test('fails if JWT has x5c in header', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('x5c', ['cert1', 'cert2'])
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('x5c not allowed'),
+      );
+    });
+
+    test('fails if JWT has x5t in header', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('x5t', 'thumbprint')
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('x5t not allowed'),
+      );
+    });
+
+    test('fails if JWT has x5t#S256 in header', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..setProtectedHeader('x5t#S256', 'thumbprint256')
+        ..setProtectedHeader('kid', 'some-kid')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('x5t#S256 not allowed'),
+      );
+    });
+
+    test('fails if JWT is missing kid', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {'sub': '123'}
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Required `kid` field missing'),
+      );
+    });
+
+    test('passes _ensureNoPublicKeys if kid is present', () async {
+      final key = JsonWebKey.generate('RS256');
+      final builder = JsonWebSignatureBuilder()
+        ..jsonContent = {
+          'exp': afterNow,
+          'iat': beforeNow,
+          'auth_time': beforeNow,
+          'aud': ['flutter-dashboard'],
+          'iss': 'https://securetoken.google.com/flutter-dashboard',
+          'sub': 'abcdef',
+        }
+        ..setProtectedHeader('kid', '71115235a6c61454efdedc45a77e4351367eebe0')
+        ..addRecipient(key, algorithm: 'RS256');
+      final jws = builder.build();
+      final jwtString = jws.toCompactSerialization();
+
+      await expectLater(
+        validator.decodeAndVerify(jwtString),
+        jwtException('Unable to decode and verify'),
+      );
+    });
+  });
 }
 
-Matcher jwtException(String message) =>
-    throwsA(isA<JwtException>().having((r) => r.message, 'message', message));
+Matcher jwtException(String message) => throwsA(
+  isA<JwtException>().having((r) => r.message, 'message', contains(message)),
+);
 
 const pemKeysString = r'''{
   "857081ca9cbb37c23498dd3943bf371a05883d28": "-----BEGIN CERTIFICATE-----\nMIIDHDCCAgSgAwIBAgIIOBNPkX+Mt1wwDQYJKoZIhvcNAQEFBQAwMTEvMC0GA1UE\nAwwmc2VjdXJldG9rZW4uc3lzdGVtLmdzZXJ2aWNlYWNjb3VudC5jb20wHhcNMjUw\nNDA5MDczMzA0WhcNMjUwNDI1MTk0ODA0WjAxMS8wLQYDVQQDDCZzZWN1cmV0b2tl\nbi5zeXN0ZW0uZ3NlcnZpY2VhY2NvdW50LmNvbTCCASIwDQYJKoZIhvcNAQEBBQAD\nggEPADCCAQoCggEBAMSZYAER4kpUeokjt8runwdE5+IWn8+htnXm22W3UuRfT2nI\n6sOCESNwvqu9jGgyQMuP7HNGFoT4atg3DmEQcXxzdOSvz0dJfk3JjMiFggxScpq5\nZ1m54/GJt7U2oX2RriwVzNfyCxnKwGAp5L6ViNijX0iv2zyZeaJhxz8ZVwrEgpSd\nS1uk5MVblaiIDrV6KsJ0ES4cDm0WhdgLXE3lMjY8jPlumf6jIPTAuYuuTzPPXSnJ\nQuEm0s8mloLYwniX21HAkvvGxa82R7N/xwZRUhKSq9d9NDrO9twCQlt9CRPB7XpU\nGq0dgT8ja7Ker3Zh6yRmbAbgtkOeIUB0lRzcQvsCAwEAAaM4MDYwDAYDVR0TAQH/\nBAIwADAOBgNVHQ8BAf8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwIwDQYJ\nKoZIhvcNAQEFBQADggEBACcCmjn3Z+FE8wR8/bvIz7AKJffgwDSzajrBMOHQid5g\nF6RxfRsoa32AvP6k0JUAVxpys+H1WEj+9sgaMYD6R067v8B8LnofNGwrUn17Y5NY\nPQuK3Gda6uA4SHOUNphiasYqnEpQT5ch+9Y5zs4cjUfz+JbRR8VOnbO7WhAqDdA/\nvtgMaMo9ImhF+Zig/ZS81OVZPNMLP9UZo6V/1n/boL+MSBqm2b8UR/6mN0+R34fK\nJJ3EtrhhA2uq1WOsZqop26vGBLkL9kHZqKVyATkS7mZL/kg7emgqw6JmD4DL43AS\ndqiX4OeivdvnsQYU6R0ZKqvRwjaZcl94rpmxjwPWjH0=\n-----END CERTIFICATE-----\n",

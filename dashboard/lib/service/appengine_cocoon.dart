@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:http/http.dart' as http;
 
@@ -540,6 +541,43 @@ class AppEngineCocoonService implements CocoonService {
         'repo': repo,
         'pr': pr,
         'job_name': jobName,
+      }),
+    );
+
+    if (response.statusCode == HttpStatus.ok) {
+      return const CocoonResponse.data(null);
+    }
+
+    return CocoonResponse.error(
+      'HTTP Code: ${response.statusCode}, ${response.body}',
+      statusCode: response.statusCode,
+    );
+  }
+
+  @override
+  Future<CocoonResponse<void>> analyzeLogs({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    required Int64 buildId,
+    String owner = 'flutter',
+  }) async {
+    if (idToken case null || '') {
+      return const CocoonResponse<void>.error(
+        'Sign in to analyze logs',
+        statusCode: HttpStatus.unauthorized,
+      );
+    }
+
+    final analyzeUrl = apiEndpoint('/api/analyze-logs');
+    final response = await _client.post(
+      analyzeUrl,
+      headers: {'X-Flutter-IdToken': idToken},
+      body: jsonEncode({
+        'owner': owner,
+        'repo': repo,
+        'pr': pr,
+        'build_id': '$buildId',
       }),
     );
 

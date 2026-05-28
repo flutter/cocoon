@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
@@ -367,6 +368,200 @@ void main() {
         ),
         findsOneWidget,
       );
+    },
+  );
+
+  testWidgets('PreSubmitView displays Log Analysis tab when present', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(2000, 1080);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    const mockSha = 'decaf_3_real_sha';
+    const guardResponse = PresubmitGuardResponse(
+      prNum: 123,
+      author: 'dash',
+      guardStatus: GuardStatus.failed,
+      checkRunId: 456,
+      stages: [
+        PresubmitGuardStage(
+          name: 'Engine',
+          createdAt: 0,
+          builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+        ),
+      ],
+    );
+
+    when(
+      mockCocoonService.fetchPresubmitGuard(
+        repo: anyNamed('repo'),
+        sha: mockSha,
+      ),
+    ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+    when(
+      mockCocoonService.fetchPresubmitJobDetails(
+        checkRunId: anyNamed('checkRunId'),
+        jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
+      ),
+    ).thenAnswer(
+      (_) async => CocoonResponse.data([
+        PresubmitJobResponse(
+          attemptNumber: 1,
+          jobName: 'Mac mac_host_engine 1',
+          creationTime: 0,
+          status: TaskStatus.failed,
+          summary: 'Test failed: Unit Tests',
+          logAnalysis: 'Found 2 flakiness candidates',
+        ),
+      ]),
+    );
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+      );
+      for (var i = 0; i < 50; i++) {
+        await tester.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find.textContaining('by dash').evaluate().isNotEmpty) break;
+      }
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('PR #123'), findsOneWidget);
+
+    await tester.tap(find.textContaining('mac_host_engine').first);
+    await tester.runAsync(() async {
+      for (var i = 0; i < 50; i++) {
+        await tester.pump();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        if (find
+            .textContaining('Found 2 flakiness candidates')
+            .evaluate()
+            .isNotEmpty) {
+          break;
+        }
+      }
+    });
+    await tester.pumpAndSettle();
+
+    // Verify Log Analysis content is shown by default
+    expect(find.textContaining('Found 2 flakiness candidates'), findsOneWidget);
+    expect(find.text('Log Analysis'), findsOneWidget);
+    expect(find.text('Execution Details'), findsOneWidget);
+
+    // Switch to Execution Details tab
+    await tester.tap(find.text('Execution Details'));
+    await tester.pumpAndSettle();
+
+    // Verify Execution Details content is shown
+    expect(find.textContaining('Test failed: Unit Tests'), findsOneWidget);
+  });
+
+  testWidgets(
+    'PreSubmitView displays Analyze Logs button when conditions are met',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      const mockSha = 'decaf_3_real_sha';
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        enableGeminiLogAnalysis: true,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: mockSha,
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      when(
+        mockCocoonService.fetchPresubmitJobDetails(
+          checkRunId: anyNamed('checkRunId'),
+          jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse.data([
+          PresubmitJobResponse(
+            attemptNumber: 1,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: 0,
+            status: TaskStatus.failed,
+            summary: 'Test failed: Unit Tests',
+            buildId: '789',
+            // logAnalysis is null by default
+          ),
+        ]),
+      );
+
+      final analyzeCompleter = Completer<CocoonResponse<void>>();
+      when(
+        mockCocoonService.analyzeLogs(
+          idToken: anyNamed('idToken'),
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+          buildId: Int64(789),
+        ),
+      ).thenAnswer((_) => analyzeCompleter.future);
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('by dash').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('mac_host_engine').first);
+      await tester.pumpAndSettle();
+
+      final analyzeButton = find.widgetWithText(
+        ElevatedButton,
+        'Analyze Logs with Gemini',
+      );
+      expect(analyzeButton, findsOneWidget);
+
+      // Click button
+      await tester.tap(analyzeButton);
+      await tester.pump(); // Trigger rebuild to show loading
+
+      // Verify button is disabled
+      expect(tester.widget<ElevatedButton>(analyzeButton).onPressed, isNull);
+
+      // Complete API call successfully
+      analyzeCompleter.complete(const CocoonResponse.data(null));
+      await tester.pumpAndSettle();
+
+      // Verify fetchJobDetails was called
+      verify(
+        mockCocoonService.fetchPresubmitJobDetails(
+          checkRunId: 456,
+          jobName: 'Mac mac_host_engine 1',
+        ),
+      ).called(greaterThan(1));
     },
   );
 

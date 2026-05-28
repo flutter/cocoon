@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'cocoon_service.dart';
+import 'src/request_handlers/analyze_logs.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/get_presubmit_guard.dart';
 import 'src/request_handlers/get_presubmit_guard_summaries.dart';
@@ -24,6 +25,7 @@ import 'src/service/build_status_service.dart';
 import 'src/service/commit_service.dart';
 import 'src/service/content_aware_hash_service.dart';
 import 'src/service/discord_service.dart';
+import 'src/service/log_analyzer.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
 import 'src/service/test_suppression.dart';
 
@@ -37,6 +39,7 @@ Server createServer({
   required CacheService cache,
   required AuthenticationProvider dashboardAuthProvider,
   required AuthenticationProvider swarmingAuthProvider,
+  required AuthenticationProvider cronAuthProvider,
   required BranchService branchService,
   required BuildBucketClient buildBucketClient,
   required LuciBuildService luciBuildService,
@@ -48,6 +51,7 @@ Server createServer({
   required BuildStatusService buildStatusService,
   required ContentAwareHashService contentAwareHashService,
   required AuthenticationProvider presubmitAuthProvider,
+  required LogAnalyzer logAnalyzer,
 }) {
   final githubWebhook = GithubWebhook(
     config: config,
@@ -63,6 +67,13 @@ Server createServer({
   );
 
   final handlers = <String, RequestHandler>{
+    '/api/analyze-logs': AnalyzeLogs(
+      config: config,
+      authenticationProvider: presubmitAuthProvider,
+      luciBuildService: luciBuildService,
+      firestore: firestore,
+      logAnalyzer: logAnalyzer,
+    ),
     '/api/create-branch': CreateBranch(
       branchService: branchService,
       config: config,
@@ -119,7 +130,7 @@ Server createServer({
     ),
     '/api/push-build-status-to-github': PushBuildStatusToGithub(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       buildStatusService: buildStatusService,
       firestore: firestore,
       bigQuery: bigQuery,
@@ -223,6 +234,7 @@ Server createServer({
     ),
     '/api/scheduler/batch-backfiller': BatchBackfiller(
       config: config,
+      authenticationProvider: cronAuthProvider,
       ciYamlFetcher: ciYamlFetcher,
       luciBuildService: luciBuildService,
       firestore: firestore,
@@ -235,36 +247,37 @@ Server createServer({
         ),
     '/api/scheduler/vacuum-stale-tasks': VacuumStaleTasks(
       config: config,
+      authenticationProvider: cronAuthProvider,
       luciBuildService: luciBuildService,
       firestore: firestore,
       branchService: branchService,
     ),
     '/api/update_existing_flaky_issues': UpdateExistingFlakyIssue(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       bigQuery: bigQuery,
       ciYamlFetcher: ciYamlFetcher,
     ),
     '/api/check_flaky_builders': CheckFlakyBuilders(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       bigQuery: bigQuery,
       testSuppression: suppressionService,
     ),
     '/api/file_flaky_issue_and_pr': FileFlakyIssueAndPR(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       bigQuery: bigQuery,
       testSuppression: suppressionService,
     ),
     '/api/vacuum-github-commits': VacuumGithubCommits(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       scheduler: scheduler,
     ),
     '/api/v2/vacuum-github-commits': VacuumGithubCommits(
       config: config,
-      authenticationProvider: dashboardAuthProvider,
+      authenticationProvider: cronAuthProvider,
       scheduler: scheduler,
     ),
 

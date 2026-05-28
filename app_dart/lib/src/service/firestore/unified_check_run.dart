@@ -311,6 +311,18 @@ final class UnifiedCheckRun {
     )).firstOrNull;
   }
 
+  /// Stores the log analysis result for a [PresubmitJob].
+  static Future<void> storeLogAnalysis({
+    required FirestoreService firestoreService,
+    required PresubmitJob job,
+    required String analysis,
+  }) async {
+    job.logAnalysis = analysis;
+    await firestoreService.writeViaTransaction(
+      documentsToWrites([job], exists: true),
+    );
+  }
+
   /// Returns the latest [PresubmitGuard] for the specified github [checkRunId].
   static Future<PresubmitGuard?> getLatestPresubmitGuardForCheckRun({
     required FirestoreService firestoreService,
@@ -584,6 +596,7 @@ final class UnifiedCheckRun {
       } else if (state.status == TaskStatus.inProgress) {
         presubmitJob.startTime = state.startTime!;
         presubmitJob.buildNumber = state.buildNumber;
+        presubmitJob.buildId = state.buildId;
         // If the job is not completed, update the status.
         if (!status.isComplete) {
           status = state.status;
@@ -622,6 +635,7 @@ final class UnifiedCheckRun {
           presubmitJob.endTime = state.endTime!;
           presubmitJob.summary = state.summary;
           presubmitJob.buildNumber = state.buildNumber;
+          presubmitJob.buildId = state.buildId;
         } else {
           status = state.status;
           valid = true;

@@ -11,6 +11,7 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_job.dart' as fs;
 import 'package:cocoon_service/src/request_handlers/get_presubmit_jobs.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
@@ -83,6 +84,8 @@ void main() {
         endTime: 120,
         summary: 'all good',
         buildNumber: 456,
+        buildId: Int64.MAX_VALUE,
+        logAnalysis: 'log analysis result',
       );
       await firestoreService.writeViaTransaction(
         documentsToWrites([job], exists: false),
@@ -100,6 +103,8 @@ void main() {
       expect(jobs[0].jobName, 'linux');
       expect(jobs[0].status, TaskStatus.succeeded);
       expect(jobs[0].buildNumber, 456);
+      expect(jobs[0].buildId, Int64.MAX_VALUE.toString());
+      expect(jobs[0].logAnalysis, 'log analysis result');
     });
 
     test('returns checks when found with owner and repo', () async {

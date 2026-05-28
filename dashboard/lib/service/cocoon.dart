@@ -5,6 +5,7 @@
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/cocoon_integration_test.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 
 import 'appengine_cocoon.dart';
@@ -79,6 +80,15 @@ abstract class CocoonService {
     required String repo,
     required int pr,
     required String jobName,
+    String owner = 'flutter',
+  });
+
+  /// Analyze logs for the given failed job.
+  Future<CocoonResponse<void>> analyzeLogs({
+    required String? idToken,
+    required String repo,
+    required int pr,
+    required Int64 buildId,
     String owner = 'flutter',
   });
 

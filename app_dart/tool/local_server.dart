@@ -10,21 +10,23 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
-
 import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
 import 'package:cocoon_service/src/service/get_files_changed.dart';
+import 'package:cocoon_service/src/service/log_analyzer.dart';
 import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:http/http.dart' as http;
 
 Future<void> main() async {
   final cache = CacheService(inMemory: false);
+  final secretManager = FakeSecretManager();
+  secretManager.putString('APP_DART_GEMINI_LOG_ANALYZER_KEY', 'dummy_key');
   final config = Config(
     cache,
-    FakeSecretManager(),
+    secretManager,
     initialConfig: DynamicConfig.fromJson({}),
     httpClient: MappingHttpClient(http.Client()),
   );
@@ -36,17 +38,31 @@ Future<void> main() async {
   final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
 
   final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
-  final dashboardAuthProvider = DashboardAuthentication(
+
+  const cronAuthentication = DashboardCronAuthentication();
+  final firebaseAuthentication = DashboardFirebaseAuthentication(
     cache: cache,
-    firebaseJwtValidator: firebaseJwtValidator,
+    validator: firebaseJwtValidator,
     firestore: firestore,
   );
-  final presubmitAuthProvider = PresubmitAuthentication(
+  final githubAuthentication = GithubAuthentication(
     cache: cache,
     config: config,
-    firebaseJwtValidator: firebaseJwtValidator,
-    firestore: firestore,
+    validator: firebaseJwtValidator,
   );
+
+  final cronAuthProvider = ChainOfAuthentication.forProviders([
+    cronAuthentication,
+  ]);
+  final dashboardAuthProvider = ChainOfAuthentication.forProviders([
+    cronAuthentication,
+    firebaseAuthentication,
+  ]);
+  final presubmitAuthProvider = ChainOfAuthentication.forProviders([
+    firebaseAuthentication,
+    githubAuthentication,
+  ]);
+
   final AuthenticationProvider swarmingAuthProvider =
       SwarmingAuthenticationProvider(config: config);
 
@@ -114,6 +130,7 @@ Future<void> main() async {
     bigQuery: bigQuery,
     cache: cache,
     dashboardAuthProvider: dashboardAuthProvider,
+    cronAuthProvider: cronAuthProvider,
     presubmitAuthProvider: presubmitAuthProvider,
     branchService: branchService,
     buildBucketClient: buildBucketClient,
@@ -126,6 +143,7 @@ Future<void> main() async {
     ciYamlFetcher: ciYamlFetcher,
     buildStatusService: buildStatusService,
     contentAwareHashService: contentHashService,
+    logAnalyzer: FakeLogAnalyzer(),
   );
 
   return runAppEngine(

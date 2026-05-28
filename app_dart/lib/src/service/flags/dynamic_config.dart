@@ -37,8 +37,10 @@ final class DynamicConfig {
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
+    enableGeminiLogAnalysis: false,
     unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
     dynamicTestSuppression: false,
+    geminiModel: 'gemini-3-flash-preview',
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -61,6 +63,10 @@ final class DynamicConfig {
   @JsonKey()
   final bool closeMqGuardAfterPresubmit;
 
+  /// Whether to enable Gemini log analysis feature.
+  @JsonKey()
+  final bool enableGeminiLogAnalysis;
+
   /// Flags related tp unified check-run flow configuration.
   @JsonKey()
   final UnifiedCheckRunFlow unifiedCheckRunFlow;
@@ -69,13 +75,19 @@ final class DynamicConfig {
   @JsonKey()
   final bool dynamicTestSuppression;
 
+  /// The Gemini model to use for log analysis.
+  @JsonKey()
+  final String geminiModel;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
     required this.ciYaml,
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
+    required this.enableGeminiLogAnalysis,
     required this.unifiedCheckRunFlow,
     required this.dynamicTestSuppression,
+    required this.geminiModel,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -86,8 +98,10 @@ final class DynamicConfig {
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
+    bool? enableGeminiLogAnalysis,
     UnifiedCheckRunFlow? unifiedCheckRunFlow,
     bool? dynamicTestSuppression,
+    String? geminiModel,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -98,10 +112,13 @@ final class DynamicConfig {
       closeMqGuardAfterPresubmit:
           closeMqGuardAfterPresubmit ??
           defaultInstance.closeMqGuardAfterPresubmit,
+      enableGeminiLogAnalysis:
+          enableGeminiLogAnalysis ?? defaultInstance.enableGeminiLogAnalysis,
       unifiedCheckRunFlow:
           unifiedCheckRunFlow ?? defaultInstance.unifiedCheckRunFlow,
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
+      geminiModel: geminiModel ?? defaultInstance.geminiModel,
     );
   }
 

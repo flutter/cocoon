@@ -15,9 +15,9 @@ import '../model/google/token_info.dart';
 import '../service/firebase_jwt_validator.dart';
 import 'exceptions.dart';
 
-/// Class capable of authenticating [Request]s from the Dashboard
+/// Class capable of authenticating [Request]s from multiple sources.
 ///
-/// There are two types of authentication this class supports:
+/// There are three types of authentication this class can chain:
 ///
 ///  1. If the request has the `'X-Appengine-Cron'` HTTP header set to "true",
 ///     then the request will be authenticated as an App Engine cron job.
@@ -37,6 +37,9 @@ import 'exceptions.dart';
 ///     User accounts are only authorized if the user is either a "@google.com"
 ///     account or is an [AllowedAccount] in Cocoon's Firestore.
 ///
+///  3. If the request has github.com token, then the request will be authenticated
+///     as a GitHub user account.
+///
 /// If none of the above authentication methods yield an authenticated
 /// request, then the request is unauthenticated, and any call to
 /// [authenticate] will throw an [Unauthenticated] exception.
@@ -45,26 +48,12 @@ import 'exceptions.dart';
 ///
 ///  * <https://cloud.google.com/appengine/docs/standard/python/reference/request-response-headers>
 @immutable
-interface class DashboardAuthentication implements AuthenticationProvider {
-  DashboardAuthentication({
-    required CacheService cache,
-    required FirebaseJwtValidator firebaseJwtValidator,
-    required FirestoreService firestore,
-    ClientContextProvider clientContextProvider = Providers.serviceScopeContext,
-    HttpClientProvider httpClientProvider = Providers.freshHttpClient,
-  }) {
-    _authenticationChain.addAll([
-      DashboardCronAuthentication(clientContextProvider: clientContextProvider),
-      DashboardFirebaseAuthentication(
-        cache: cache,
-        validator: firebaseJwtValidator,
-        clientContextProvider: clientContextProvider,
-        firestore: firestore,
-      ),
-    ]);
-  }
+interface class ChainOfAuthentication implements AuthenticationProvider {
+  /// Creates an AuthenticationProvider with a chain of responsibility.
+  ChainOfAuthentication.forProviders(List<AuthenticationProvider> authProviders)
+    : _authenticationChain = authProviders;
 
-  final _authenticationChain = <AuthenticationProvider>[];
+  final List<AuthenticationProvider> _authenticationChain;
 
   /// Authenticates the specified [request] and returns the associated
   /// [AuthenticatedContext].

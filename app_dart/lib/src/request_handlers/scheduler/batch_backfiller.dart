@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import '../../../cocoon_service.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
 import '../../model/firestore/task.dart' as fs;
+import '../../request_handling/api_request_handler.dart';
 import '../../request_handling/exceptions.dart';
 import '../../service/firestore/commit_and_tasks.dart';
 import '../../service/luci_build_service/pending_task.dart';
@@ -25,10 +26,11 @@ import 'backfill_strategy.dart';
 ///
 /// Targets that have a [BatchPolicy] need to have backfilling enabled to ensure that ToT is always being tested.
 @immutable
-final class BatchBackfiller extends RequestHandler {
+final class BatchBackfiller extends ApiRequestHandler {
   /// Creates a subscription for sending BuildBucket requests.
   const BatchBackfiller({
     required super.config,
+    required super.authenticationProvider,
     required CiYamlFetcher ciYamlFetcher,
     required LuciBuildService luciBuildService,
     required FirestoreService firestore,

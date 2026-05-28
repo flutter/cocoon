@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/cocoon_integration_test.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:uuid/uuid.dart';
@@ -483,6 +484,7 @@ class DataSeeder {
       attemptNumber: attemptNumber,
       creationTime: creationTime,
       buildNumber: 1337 + attemptNumber,
+      buildId: Int64.MAX_VALUE - 4775807 + attemptNumber,
       summary: switch (status) {
         .succeeded =>
           '[INFO] Starting task $jobName...\n[SUCCESS] All tests passed (452/452)',
@@ -501,6 +503,11 @@ class DataSeeder {
       },
       startTime: creationTime + 30000,
       endTime: creationTime + 60000,
+      logAnalysis: switch (status) {
+        .failed =>
+          'Based on my analysis of the provided LUCI logs and the context of the changes in this PR, here is the breakdown of the build failure:\n\n ### 1. Identify the specific test or command that failed for $jobName \n...',
+        _ => null,
+      },
     );
   }
 

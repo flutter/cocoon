@@ -147,6 +147,22 @@ void main() {
         );
         expect(target.tags, isEmpty);
       });
+
+      test('properties that affect source checkouts are filtered', () {
+        final target = generateTarget(
+          1,
+          platform: 'Linux_build_test',
+          properties: <String, String>{
+            'git_url': 'https://github.com/flutter/flutter',
+            'git_ref': 'refs/pull/12345/head',
+            'recipe': 'devicelab/devicelab',
+          },
+        );
+        final properties = target.getProperties();
+        expect(properties, contains('recipe'));
+        expect(properties, isNot(contains('git_url')));
+        expect(properties, isNot(contains('git_ref')));
+      });
     });
 
     group('dimensions', () {
