@@ -2775,6 +2775,47 @@ targets:
         );
       });
 
+      test(
+        'creates presubmit_guard document for flutter/packages when unified check run flow is enabled',
+        () async {
+          getFilesChanged.cannedFiles = ['README.md'];
+          config.dynamicConfig = DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          );
+
+          when(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).thenAnswer((Invocation invocation) async {
+            return generateCheckRun(
+              invocation.positionalArguments[2].hashCode,
+              name: invocation.positionalArguments[3] as String,
+            );
+          });
+
+          final pr = generatePullRequest(branch: 'main', repo: 'packages');
+          await scheduler.triggerPresubmitTargets(pullRequest: pr);
+
+          // Make sure that for flutter/packages, presubmit_guard document
+          // is created in the Firestore with stage CiStage.genericTests.
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          expect(guards, isNotEmpty);
+          final guard = PresubmitGuard.fromDocument(guards.first);
+          expect(guard.slug, pr.base!.repo!.slug());
+          expect(guard.prNum, pr.number);
+          expect(guard.stage, CiStage.genericTests);
+          expect(guard.commitSha, pr.head!.sha);
+          expect(guard.jobs['Linux A'], TaskStatus.waitingForBackfill);
+        },
+      );
+
       test('Do not schedule other targets on revert request.', () async {
         final releasePullRequest = generatePullRequest(
           labels: [IssueLabel(name: 'revert of')],

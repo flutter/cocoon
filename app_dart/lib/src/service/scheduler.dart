@@ -454,7 +454,7 @@ class Scheduler {
           engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
           // For non-flutter repos, if unified check run flow is enabled, create
-          // a staging document to track presubmit tests.
+          // a presubmit_guard document to track presubmit tests.
           if (isUnifiedCheckRun) {
             await UnifiedCheckRun.initializeCiStagingDocument(
               firestoreService: _firestore,
