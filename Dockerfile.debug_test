@@ -1,0 +1,99 @@
+# Copyright 2022 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+FROM debian:trixie-slim
+
+# Install Dependencies.
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        dnsutils \
+        git \
+        openssh-client \
+        unzip \
+        gpg \
+        jq \
+        procps \
+        nodejs \
+        npm \
+    ; \
+    rm -rf /var/lib/apt/lists/*
+
+# Create the `flutter` user and group.
+RUN groupadd -r flutter && useradd -r -g flutter flutter
+
+# Create folders for home / flutter / test.
+
+ENV FLUTTER_ROOT="/opt/flutter"
+ENV TEST_ANALYZER="/opt/testanalyzer"
+
+RUN mkdir -p /home/flutter && \
+    chown -R flutter:flutter /home/flutter
+
+RUN mkdir -p "${FLUTTER_ROOT}" && \
+    chown -R flutter:flutter "${FLUTTER_ROOT}"
+
+RUN mkdir -p "${TEST_ANALYZER}" && \
+    chown -R flutter:flutter "${TEST_ANALYZER}"
+
+# Switch users for the rest of the file.
+USER flutter
+
+# Clone flutter repository and set up the environment.
+RUN git clone https://github.com/flutter/flutter "${FLUTTER_ROOT}"
+ENV PATH="${FLUTTER_ROOT}/bin:${PATH}"
+
+WORKDIR "$FLUTTER_ROOT"
+
+# Disable analytics and crash reporting, disable all the other platforms except web.
+RUN flutter config              \
+    --no-analytics              \
+    --enable-web                \
+    --no-enable-linux-desktop   \
+    --no-enable-macos-desktop   \
+    --no-enable-windows-desktop \
+    --no-enable-android         \
+    --no-enable-ios             \
+    --no-enable-fuchsia         
+
+# Only download the websdk
+RUN flutter precache --web
+
+# Perform a doctor run.
+RUN flutter doctor -v
+
+# Install Gemini CLI in the flutter home directory and update path.
+WORKDIR /home/flutter
+ENV PATH="/home/flutter/node_modules/.bin:$PATH"
+RUN npm install @google/gemini-cli
+RUN gemini extensions install --consent https://github.com/gemini-cli-extensions/flutter
+
+# Pre-setup Gemini to use API key authentication
+RUN <<EOF cat > /home/flutter/.gemini/settings.json
+{
+  "security": {
+    "auth": {
+      "selectedType": "gemini-api-key"
+    }
+  }
+}
+EOF
+
+# Copy the testanalyzer script
+WORKDIR "${TEST_ANALYZER}"
+COPY --chown=flutter:flutter  packages/testanalyzer .
+
+# Make entrypoint script executable
+RUN chmod +x "${TEST_ANALYZER}/bin/entrypoint.sh"
+
+# Set up environment variables placeholders
+ENV GEMINI_API_KEY=""
+ENV FAILING_TEST=""
+ENV BUILD_NUMBER=""
+ENV PR_NUMBER=""
+ENV TEST_ENV="try"
+
+ENTRYPOINT [ "/opt/testanalyzer/bin/entrypoint.sh" ]
