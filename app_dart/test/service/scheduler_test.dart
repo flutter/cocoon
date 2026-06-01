@@ -4292,7 +4292,7 @@ targets:
       });
 
       test(
-        'closes merge queue guard in non-fusion (packages) success',
+        'closes merge queue guard in merge group success for non-fusion repos',
         () async {
           final pullRequest = generatePullRequest(repo: 'packages');
           final checkRunGuard = generateCheckRun(
