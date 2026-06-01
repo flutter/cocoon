@@ -4299,6 +4299,94 @@ targets:
         final guard = PresubmitGuard.fromDocument(guards.single);
         expect(guard.remainingJobs, 0);
       });
+
+      test(
+        'closes merge queue guard in merge group success for non-fusion repos',
+        () async {
+          final pullRequest = generatePullRequest(repo: 'packages');
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: Config.kFlutterPresubmitsName,
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          // Initialize presubmit guard for genericTests stage
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: checkRunGuard,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.genericTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingJobs: 1,
+              failedJobs: 0,
+            ),
+          );
+
+          // Initialize check run for the task
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.genericTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.SUCCESS,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(
+                key: 'buildset',
+                value: 'sha/git/${pullRequest.head!.sha!}',
+              ),
+            ],
+          );
+
+          final check = PresubmitCompletedJob.fromBuild(build, userData);
+
+          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: anyNamed('status'),
+              conclusion: CheckRunConclusion.success, // Merge queue success
+              output: anyNamed('output'),
+            ),
+          ).called(1);
+
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          final guard = PresubmitGuard.fromDocument(guards.single);
+          expect(guard.remainingJobs, 0);
+        },
+      );
     });
   });
 

@@ -87,7 +87,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     final builderName = build.builder.builder;
     final tagSet = BuildTags.fromStringPairs(build.tags);
 
-    log.info('Available tags: $tagSet');
+    log.info('Available tags: ${build.tags}');
 
     // Skip status update if we can not get the sha tag.
     if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
@@ -95,7 +95,9 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       return Response.emptyOk;
     }
 
-    log.info('Setting status (${build.status}) for $builderName');
+    log.info(
+      'Setting status (${build.status}) for build id: ${build.id} named: $builderName',
+    );
 
     if (!pubSubCallBack.hasUserData()) {
       log.info('No user data was found in this request');
@@ -103,8 +105,10 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     }
 
     final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
+    log.info('User Data Json: ${userData.toJson()}');
     var rescheduled = false;
     final isUnifiedCheckRun = userData.guardCheckRunId != null;
+    log.info('Unified Check Run ${isUnifiedCheckRun ? 'Enabled' : 'Disabled'}');
     if (build.status.isTaskFailed()) {
       if (isUnifiedCheckRun) {
         // If failed we need summaryMarkdown. For github check run flow this
