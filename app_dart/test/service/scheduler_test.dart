@@ -2813,6 +2813,26 @@ targets:
           expect(guard.stage, CiStage.genericTests);
           expect(guard.commitSha, pr.head!.sha);
           expect(guard.jobs['Linux A'], TaskStatus.waitingForBackfill);
+
+          // Verify that the "Flutter Presubmits" check run is not immediately succeeded.
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kFlutterPresubmitsName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          );
         },
       );
 

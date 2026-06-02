@@ -366,7 +366,7 @@ class Scheduler {
     do {
       try {
         final sha = pullRequest.head!.sha!;
-        if (!isFusion) {
+        if (!isFusion && !isUnifiedCheckRun) {
           unlockMergeGroup = true;
         }
 
