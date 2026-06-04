@@ -509,7 +509,7 @@ class DataSeeder {
 Based on the PR description and the provided log metadata for the failed LUCI build, here is the analysis of the failure.
 
 ### 1. Specific Test Failure
-The failure occurred in the **Web Long Running Tests (Shard 4, Subshard 5)**. 
+The failure occurred in the **Web Long Running Tests (Shard 4, Subshard 5)**.
 Specifically, the test failing is:
 **`packages/flutter/test/widgets/media_query_test.dart`** (or a related widget test involving view padding/system overlays).
 
@@ -517,7 +517,7 @@ Specifically, the test failing is:
 While the full raw log is quite large, the failure block follows **Pattern C**:
 
 ```text
-08:42 +412 -1: /b/s/w/ir/x/w/flutter/packages/flutter/test/widgets/media_query_test.dart: MediaQuery.fromView padding and viewPadding 
+08:42 +412 -1: /b/s/w/ir/x/w/flutter/packages/flutter/test/widgets/media_query_test.dart: MediaQuery.fromView padding and viewPadding
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following assertion was thrown running a test:
 Expected: <0.0>
@@ -532,7 +532,7 @@ The test description was:
 ### 3. Root Cause
 The root cause is a **platform-leaking logic change** in the PR.
 
-PR #181051 modifies how the Flutter Framework handles `WindowPadding` and `SystemUiOverlayStyle` to support **Android 15's mandatory edge-to-edge display**. 
+PR #181051 modifies how the Flutter Framework handles `WindowPadding` and `SystemUiOverlayStyle` to support **Android 15's mandatory edge-to-edge display**.
 
 The PR likely modified shared logic in `packages/flutter/lib/src/widgets/binding.dart` or `packages/flutter/lib/src/services/system_chrome.dart`. Because the Web engine and the mobile engines share parts of the `WindowPadding` and `MediaQuery` calculation logic, a change intended to "default to transparent/edge-to-edge" on Android 15 is being applied to the Web platform during tests.
 
