@@ -363,10 +363,11 @@ class Scheduler {
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
     final isFusion = slug == Config.flutterSlug;
+    final isPackages = slug == Config.packagesSlug;
     do {
       try {
         final sha = pullRequest.head!.sha!;
-        if (!isFusion && !isUnifiedCheckRun) {
+        if (!isFusion && !(isPackages && isUnifiedCheckRun)) {
           unlockMergeGroup = true;
         }
 

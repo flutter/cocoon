@@ -2836,6 +2836,56 @@ targets:
         },
       );
 
+      test(
+        'unlocks merge group for cocoon when unified check run flow is enabled',
+        () async {
+          getFilesChanged.cannedFiles = ['README.md'];
+          config.dynamicConfig = DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          );
+
+          when(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).thenAnswer((Invocation invocation) async {
+            return generateCheckRun(
+              invocation.positionalArguments[2].hashCode,
+              name: invocation.positionalArguments[3] as String,
+            );
+          });
+
+          final pr = generatePullRequest(branch: 'main', repo: 'cocoon');
+          await scheduler.triggerPresubmitTargets(pullRequest: pr);
+
+          // Verify that the "Flutter Presubmits" check run is immediately succeeded.
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kFlutterPresubmitsName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).called(1);
+        },
+      );
+
       test('Do not schedule other targets on revert request.', () async {
         final releasePullRequest = generatePullRequest(
           labels: [IssueLabel(name: 'revert of')],
