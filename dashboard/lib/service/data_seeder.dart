@@ -505,7 +505,56 @@ class DataSeeder {
       endTime: creationTime + 60000,
       logAnalysis: switch (status) {
         .failed =>
-          'Based on my analysis of the provided LUCI logs and the context of the changes in this PR, here is the breakdown of the build failure:\n\n ### 1. Identify the specific test or command that failed for $jobName \n...',
+'''
+Based on the PR description and the provided log metadata for the failed LUCI build, here is the analysis of the failure.
+
+### 1. Specific Test Failure
+The failure occurred in the **Web Long Running Tests (Shard 4, Subshard 5)**. 
+Specifically, the test failing is:
+**`packages/flutter/test/widgets/media_query_test.dart`** (or a related widget test involving view padding/system overlays).
+
+### 2. Error Message / Crash Log
+While the full raw log is quite large, the failure block follows **Pattern C**:
+
+```text
+08:42 +412 -1: /b/s/w/ir/x/w/flutter/packages/flutter/test/widgets/media_query_test.dart: MediaQuery.fromView padding and viewPadding 
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+Expected: <0.0>
+  Actual: <24.0>
+
+...
+The test description was:
+  MediaQuery.fromView padding and viewPadding
+...
+```
+
+### 3. Root Cause
+The root cause is a **platform-leaking logic change** in the PR.
+
+PR #181051 modifies how the Flutter Framework handles `WindowPadding` and `SystemUiOverlayStyle` to support **Android 15's mandatory edge-to-edge display**. 
+
+The PR likely modified shared logic in `packages/flutter/lib/src/widgets/binding.dart` or `packages/flutter/lib/src/services/system_chrome.dart`. Because the Web engine and the mobile engines share parts of the `WindowPadding` and `MediaQuery` calculation logic, a change intended to "default to transparent/edge-to-edge" on Android 15 is being applied to the Web platform during tests.
+
+In this specific shard, the Web test expects the "status bar" padding to be `0.0` (standard for web/desktop browser environments), but the new logic is causing the framework to report a default padding (e.g., `24.0`) as if it were running on a mobile device requiring safe-area insets.
+
+### 4. Suggested Fix
+Ensure that the new Edge-to-Edge defaults and padding overrides are strictly guarded by a check for `TargetPlatform.android`.
+
+**In `packages/flutter/lib/src/widgets/binding.dart` (or the relevant file):**
+Locate where the default `SystemUiOverlayStyle` or `ViewConfiguration` is set and ensure it only applies the Android 15 specific behavior when the host platform is actually Android.
+
+```dart
+// Suggested guard
+if (defaultTargetPlatform == TargetPlatform.android) {
+  // Apply Android 15 edge-to-edge logic
+} else {
+  // Maintain existing behavior for Web/Desktop/iOS
+}
+```
+
+Additionally, if the change to the default padding is intended to be global across the framework, the `media_query_test.dart` needs to be updated to expect the new default values on all platforms, including Web. However, given this is an Android-specific requirement, the logic should most likely be restricted to that platform.
+''',
         _ => null,
       },
     );

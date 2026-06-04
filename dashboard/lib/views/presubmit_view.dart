@@ -10,6 +10,7 @@ import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -502,7 +503,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ),
                 width: double.infinity,
                 child: SingleChildScrollView(
-                  child: Text(
+                  child: GptMarkdown(
                     hasLogAnalysis && _selectedDetailTabIndex == 0
                         ? selectedJob.logAnalysis!
                         : (selectedJob.summary?.trim().isEmpty ?? true
