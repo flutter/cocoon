@@ -34,6 +34,7 @@ dependencies:
   google_sign_in_platform_interface: ^3.0.0
   google_sign_in_web: ^1.0.0
   googleapis: ^14.0.0
+  gpt_markdown: ^1.1.7
   http: 1.6.0 # Rolled by dependabot
   intl: ^0.20.2
   json_annotation: ^4.9.0
