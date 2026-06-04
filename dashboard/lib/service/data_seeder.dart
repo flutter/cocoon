@@ -505,7 +505,7 @@ class DataSeeder {
       endTime: creationTime + 60000,
       logAnalysis: switch (status) {
         .failed =>
-'''
+          '''
 Based on the PR description and the provided log metadata for the failed LUCI build, here is the analysis of the failure.
 
 ### 1. Specific Test Failure

@@ -3943,11 +3943,9 @@ targets:
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux engine_build'],
-          reason: 'Should still run engine phase',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux engine_build',
+        ], reason: 'Should still run engine phase');
       });
 
       test('still runs engine builds (engine/**)', () async {
@@ -3958,11 +3956,9 @@ targets:
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux engine_build'],
-          reason: 'Should still run engine phase',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux engine_build',
+        ], reason: 'Should still run engine phase');
       });
 
       test(
@@ -3979,11 +3975,9 @@ targets:
           );
 
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-          expect(
-            fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-            ['Linux engine_build'],
-            reason: 'Should still run engine phase',
-          );
+          expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+            'Linux engine_build',
+          ], reason: 'Should still run engine phase');
         },
       );
 
@@ -3999,11 +3993,10 @@ targets:
           ),
           reason: 'Should use the base ref for the engine artifacts',
         );
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux A', 'Linux analyze'],
-          reason: 'Should skip Linux engine_build',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux A',
+          'Linux analyze',
+        ], reason: 'Should skip Linux engine_build');
 
         expect(
           firestore,
@@ -4032,11 +4025,9 @@ targets:
           ),
           reason: 'Should use the base ref for the engine artifacts',
         );
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux analyze'],
-          reason: 'Only scheduled a special-cased build',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux analyze',
+        ], reason: 'Only scheduled a special-cased build');
       });
     });
     group('process unified check run', () {
