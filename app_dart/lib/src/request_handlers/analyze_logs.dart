@@ -45,6 +45,9 @@ final class AnalyzeLogs extends ApiRequestHandler {
   static const String kRepoParam = 'repo';
   static const String kPrParam = 'pr';
   static const String kBuildIdParam = 'build_id';
+  // Match pattern for extracting subBuildId from summaryMarkdown.
+  // Expected summaryMarkdown formated as:
+  // "  * [<subbuildId>](https://cr-buildbucket.appspot.com/build/<subbuildId>)"
   static final RegExp kSubbuildPattern = RegExp(r'\[(\d+)\]');
 
   @override
@@ -190,7 +193,7 @@ Links to Logs: ${stdoutLogs.join('\n')}
     return Response.emptyOk;
   }
 
-  /// Retrieves stdout logs and the build object for a given build ID.
+  /// Recursively extract logs of failed steps in build or its subbuilds.
   ///
   /// Calls [_luciBuildService.getBuildById] and extracts failure logs.
   Future<({List<String> stdoutLogs, bbv2.Build build})> getBuildStepLogs({
@@ -204,7 +207,7 @@ Links to Logs: ${stdoutLogs.join('\n')}
       ),
     );
 
-    // Recursively extract logs of failed steps in build or its subbuilds.
+    // try to extract logs of failed steps in build or its subbuilds.
     final stdoutLogs = <String>[];
     for (final step in build.steps) {
       if (step.status == bbv2.Status.FAILURE ||
