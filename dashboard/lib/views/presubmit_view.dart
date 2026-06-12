@@ -264,14 +264,16 @@ class _PreSubmitViewState extends State<PreSubmitView>
                 ),
                 const SizedBox(width: 8),
               ],
-              SizedBox(
-                width: 300,
-                child: ShaSelector(
-                  availableShas: availableSummaries,
-                  selectedSha: sha,
-                  onShaSelected: (newSha) {
-                    presubmitState.update(repo: repo, pr: pr, sha: newSha);
-                  },
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  child: ShaSelector(
+                    availableShas: availableSummaries,
+                    selectedSha: sha,
+                    onShaSelected: (newSha) {
+                      presubmitState.update(repo: repo, pr: pr, sha: newSha);
+                    },
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
