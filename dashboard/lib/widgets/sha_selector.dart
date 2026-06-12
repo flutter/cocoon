@@ -25,10 +25,7 @@ class ShaSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final appBarColor = theme.appBarTheme.backgroundColor ?? theme.primaryColor;
-    final borderColor = isDark
-        ? const Color(0xFF333333)
-        : Colors.white54;
+    final borderColor = isDark ? const Color(0xFF333333) : Colors.white54;
 
     return Container(
       height: 32,
@@ -36,7 +33,7 @@ class ShaSelector extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(6),
-        color: isDark ? theme.scaffoldBackgroundColor : appBarColor,
+        color: theme.appBarTheme.backgroundColor,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
