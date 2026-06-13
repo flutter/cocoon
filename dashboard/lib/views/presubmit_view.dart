@@ -258,9 +258,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
                         },
                   icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Re-run failed'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
                 ),
                 const SizedBox(width: 8),
               ],
