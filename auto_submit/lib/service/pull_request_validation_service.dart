@@ -4,7 +4,6 @@
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
-import 'package:retry/retry.dart';
 
 import '../model/auto_submit_query_result.dart';
 import '../model/pull_request_data_types.dart';
@@ -20,9 +19,9 @@ import 'validation_service.dart';
 class PullRequestValidationService extends ValidationService {
   PullRequestValidationService(
     Config config, {
-    RetryOptions? retryOptions,
+    super.retryOptions,
     required this.subscription,
-  }) : super(config, retryOptions: retryOptions) {
+  }) : super(config) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
