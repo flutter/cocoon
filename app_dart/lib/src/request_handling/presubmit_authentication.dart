@@ -49,7 +49,7 @@ class GithubAuthentication implements AuthenticationProvider {
       if (request.header('X-Flutter-IdToken') case final idTokenFromHeader?) {
         final token = await _validator.decodeAndVerify(idTokenFromHeader);
         log.info('authing with github.com');
-        return authenticateGithub(
+        return await authenticateGithub(
           token,
           clientContext: _clientContextProvider(),
         );

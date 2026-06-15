@@ -151,8 +151,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    Theme.of(context);
     final presubmitState = Provider.of<PresubmitState>(context);
 
     return AnimatedBuilder(
@@ -258,20 +257,20 @@ class _PreSubmitViewState extends State<PreSubmitView>
                         },
                   icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Re-run failed'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
                 ),
                 const SizedBox(width: 8),
               ],
-              SizedBox(
-                width: 300,
-                child: ShaSelector(
-                  availableShas: availableSummaries,
-                  selectedSha: sha,
-                  onShaSelected: (newSha) {
-                    presubmitState.update(repo: repo, pr: pr, sha: newSha);
-                  },
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  child: ShaSelector(
+                    availableShas: availableSummaries,
+                    selectedSha: sha,
+                    onShaSelected: (newSha) {
+                      presubmitState.update(repo: repo, pr: pr, sha: newSha);
+                    },
+                  ),
                 ),
               ),
               const SizedBox(width: 8),

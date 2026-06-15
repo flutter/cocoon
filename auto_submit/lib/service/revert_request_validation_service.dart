@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 import 'package:meta/meta.dart';
-import 'package:retry/retry.dart';
 
 import '../action/git_cli_revert_method.dart';
 import '../action/revert_method.dart';
@@ -32,10 +31,10 @@ enum RevertProcessMethod { revert, revertOf, none }
 class RevertRequestValidationService extends ValidationService {
   RevertRequestValidationService(
     Config config, {
-    RetryOptions? retryOptions,
+    super.retryOptions,
     RevertMethod? revertMethod,
   }) : revertMethod = revertMethod ?? GitCliRevertMethod(),
-       super(config, retryOptions: retryOptions) {
+       super(config) {
     /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }

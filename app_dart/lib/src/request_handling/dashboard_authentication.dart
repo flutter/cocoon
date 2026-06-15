@@ -109,7 +109,7 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
       if (request.header('X-Flutter-IdToken') case final idTokenFromHeader?) {
         final token = await _validator.decodeAndVerify(idTokenFromHeader);
         log.info('authed with firebase: ${token.email}');
-        return authenticateFirebase(
+        return await authenticateFirebase(
           token,
           clientContext: _clientContextProvider(),
         );
