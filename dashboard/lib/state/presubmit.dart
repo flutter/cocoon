@@ -118,6 +118,7 @@ class PresubmitState extends ChangeNotifier {
   PresubmitGuardResponse? get filteredGuardResponse {
     return filterResponse(_guardResponse);
   }
+
   /// Whether "Re-run failed" is currently in progress.
   bool get isRerunningAll => _isRerunningAll;
 
