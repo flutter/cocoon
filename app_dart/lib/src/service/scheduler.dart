@@ -117,9 +117,17 @@ class Scheduler {
       'If you need to merge your PR without tests (a rare situation, typically '
       'an emergency), then you can use the `emergency` label.';
 
-  /// Briefly describes what the "Flutter Presubmits" check is for.
-  static const String kFlutterPresubmitsDescription =
-      'Flutter Presubmits unified check run.';
+  /// Briefly describes what the "Dashboard Checks" check is for.
+  static const String kDashboardChecksDescription =
+      'Dashboard Checks is a set of presubmit jobs to ensure nothing breaks '
+      'when changes are landed. For details on individual job executions, '
+      'please see the presubmit dashboard via the link below. It becomes '
+      'green automatically when all jobs successfully complete. If it fails, '
+      'you can view failure details, get execution logs, and re-run failed '
+      'jobs on the presubmit dashboard page. If you suspect that this check is '
+      'not working correctly, contact #hackers-infra on Discord. If you need '
+      'to merge your PR without presubmit checks (a rare situation, typically '
+      'an emergency), then you can use the `emergency` label.';
 
   /// Ensure [commits] exist in Cocoon.
   ///
@@ -872,10 +880,10 @@ $s
           _config,
           slug,
           headSha,
-          Config.kFlutterPresubmitsName,
+          Config.kDashboardCheckName,
           output: const CheckRunOutput(
-            title: Config.kFlutterPresubmitsName,
-            summary: kFlutterPresubmitsDescription,
+            title: Config.kDashboardCheckName,
+            summary: kDashboardChecksDescription,
           ),
           detailsUrl: isUnifiedCheckRun ? detailsUrl : null,
         );
@@ -891,7 +899,7 @@ $s
       );
       return flutterPresubmits;
     } else {
-      // Skip Flutter Presubmits
+      // Skip Unified Check Run
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
         slug,
@@ -1670,7 +1678,7 @@ $stacktrace
     final name = checkRunEvent.checkRun!.name;
     var success = false;
     if (name == Config.kMergeQueueLockName ||
-        name == Config.kFlutterPresubmitsName) {
+        name == Config.kDashboardCheckName) {
       final slug = checkRunEvent.repository!.slug();
       final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
       log.debug(

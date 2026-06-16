@@ -3061,12 +3061,12 @@ void foo() {
                 ),
                 logThat(
                   message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Flutter Presubmits for emergency',
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Dashboard Checks for emergency',
                   ),
                 ),
                 logThat(
                   message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Flutter Presubmits" check run is missing.',
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Dashboard Checks" check run is missing.',
                   ),
                 ),
               ]),
@@ -3075,16 +3075,14 @@ void foo() {
         },
       );
 
-      test(
-        'applies emergency label on approved PRs (Flutter Presubmits only)',
-        () async {
-          final pullRequest = generatePullRequest(
-            number: 123,
-            headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
-            labels: [IssueLabel(name: 'emergency')],
-          );
+      test('applies emergency label on approved PRs (Dashboard Checks only)', () async {
+        final pullRequest = generatePullRequest(
+          number: 123,
+          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          labels: [IssueLabel(name: 'emergency')],
+        );
 
-          githubService.checkRunsMock = '''{
+        githubService.checkRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -3094,7 +3092,7 @@ void foo() {
       "details_url": "https://example.com",
       "status": "in_progress",
       "started_at": "2018-05-04T01:14:52Z",
-      "name": "Flutter Presubmits",
+      "name": "Dashboard Checks",
       "check_suite": {
         "id": 5
       }
@@ -3102,43 +3100,42 @@ void foo() {
   ]
 }''';
 
-          final pullRequestLabelProcessor = PullRequestLabelProcessor(
-            config: config,
-            githubService: githubService,
-            pullRequest: pullRequest,
-          );
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
 
-          await pullRequestLabelProcessor.processLabels();
+        await pullRequestLabelProcessor.processLabels();
 
-          expect(
-            log,
-            bufferedLoggerOf(
-              containsAll([
-                logThat(
-                  message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
-                  ),
+        expect(
+          log,
+          bufferedLoggerOf(
+            containsAll([
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
                 ),
-                logThat(
-                  message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
-                  ),
+              ),
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
                 ),
-                logThat(
-                  message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Flutter Presubmits for emergency',
-                  ),
+              ),
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Dashboard Checks for emergency',
                 ),
-                logThat(
-                  message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Flutter Presubmits", allowing it to land as an emergency.',
-                  ),
+              ),
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Dashboard Checks", allowing it to land as an emergency.',
                 ),
-              ]),
-            ),
-          );
-        },
-      );
+              ),
+            ]),
+          ),
+        );
+      });
 
       test(
         'logs and gracefully skips emergency label on missing checkruns',
@@ -3191,12 +3188,12 @@ void foo() {
                 ),
                 logThat(
                   message: contains(
-                    'attempting to unlock the Flutter Presubmits for emergency',
+                    'attempting to unlock the Dashboard Checks for emergency',
                   ),
                 ),
                 logThat(
                   message: contains(
-                    'failed to process the emergency label. "Flutter Presubmits" check run is missing.',
+                    'failed to process the emergency label. "Dashboard Checks" check run is missing.',
                   ),
                 ),
               ]),

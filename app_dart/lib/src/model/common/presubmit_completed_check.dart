@@ -123,7 +123,7 @@ class PresubmitCompletedJob {
   cocoon_checks.CheckRun get checkRun {
     return cocoon_checks.CheckRun(
       id: checkRunId,
-      name: isUnifiedCheckRun ? Config.kFlutterPresubmitsName : name,
+      name: isUnifiedCheckRun ? Config.kDashboardCheckName : name,
       headSha: sha,
       conclusion: status.toConclusion(),
       checkSuite: CheckSuite(
