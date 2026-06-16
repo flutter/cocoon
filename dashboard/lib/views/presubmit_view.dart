@@ -155,9 +155,8 @@ class _PreSubmitViewState extends State<PreSubmitView>
     return AnimatedBuilder(
       animation: presubmitState,
       builder: (context, _) {
-        final params = widget.queryParameters ?? {};
-        final pr = presubmitState.pr ?? params['pr'];
-        final sha = presubmitState.sha ?? params['sha'];
+        final pr = presubmitState.pr;
+        final sha = presubmitState.sha;
         final repo = presubmitState.repo;
 
         final guardResponse = presubmitState.guardResponse;
