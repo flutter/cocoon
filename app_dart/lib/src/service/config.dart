@@ -82,7 +82,7 @@ interface class Config extends DynamicallyUpdatedConfig {
   static const String kMergeQueueLockName = 'Merge Queue Guard';
 
   /// A required check that stays in pending state until all presubmit checks pass
-  /// for users opted into the dashboard checks flow.
+  /// for users opted into the unified checkrun flow.
   static const String kDashboardCheckName = 'Dashboard Checks';
 
   final CacheService _cache;
