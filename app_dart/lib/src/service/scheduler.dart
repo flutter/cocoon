@@ -899,7 +899,7 @@ $s
       );
       return flutterPresubmits;
     } else {
-      // Skip Unified Check Run
+      // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
         slug,
