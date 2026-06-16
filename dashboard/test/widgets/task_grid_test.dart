@@ -319,9 +319,10 @@ void main() {
 
   testWidgets('Task name filter affects grid', (WidgetTester tester) async {
     // Default filters
-    await testGrid(tester, null, 27, 100);
-    await testGrid(tester, TaskGridFilter(), 27, 100);
-    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 100);
+    await testGrid(tester, null, 27, 101);
+    await testGrid(tester, TaskGridFilter(), 27, 101);
+    await testGrid(tester, TaskGridFilter.fromMap(null), 27, 101);
+    await testGrid(tester, TaskGridFilter()..showBringup = false, 27, 100);
 
     // QualifiedTask (column) filters
     await testGrid(
@@ -336,20 +337,20 @@ void main() {
       tester,
       TaskGridFilter()..authorFilter = RegExp('yegor'),
       4,
-      100,
+      101,
     );
     await testGrid(
       tester,
       TaskGridFilter()..messageFilter = RegExp('developer'),
       18,
-      100,
+      101,
     );
     await testGrid(
       tester,
       TaskGridFilter()
         ..hashFilter = RegExp('fb75b2b671c7702b549a80a420144097f4fab5a9'),
       2, // codefu: these are magic numbers and this test is bad.
-      100,
+      101,
     );
   });
 
