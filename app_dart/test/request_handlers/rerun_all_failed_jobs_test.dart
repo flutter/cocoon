@@ -67,7 +67,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kUnifiedCheckRunName),
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
       ],
     );
 
@@ -139,7 +139,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kUnifiedCheckRunName),
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
       ],
     );
 
@@ -190,7 +190,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kUnifiedCheckRunName),
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
       ],
     );
 

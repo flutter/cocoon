@@ -65,11 +65,11 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       pullRequest = await PrCheckRuns.findPullRequestFor(
         _firestore,
         guard.checkRunId,
-        Config.kUnifiedCheckRunName,
+        Config.kDashboardCheckName,
       );
     } catch (e) {
       throw NotFoundException(
-        'No pull request found for ${Config.kUnifiedCheckRunName} with ${guard.checkRunId} id',
+        'No pull request found for ${Config.kDashboardCheckName} with ${guard.checkRunId} id',
       );
     }
 

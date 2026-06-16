@@ -117,9 +117,9 @@ class Scheduler {
       'If you need to merge your PR without tests (a rare situation, typically '
       'an emergency), then you can use the `emergency` label.';
 
-  /// Briefly describes what the "Unified Check Run" check is for.
-  static const String kUnifiedCheckRunDescription =
-      'Unified Check Run is a presubmit checks for Engine and Flutter to '
+  /// Briefly describes what the "Dashboard Checks" check is for.
+  static const String kDashboardChecksDescription =
+      'Dashboard Checks is a presubmit checks for Engine and Flutter to '
       'ensure nothing breaks when changes are landed. '
       'It becomes green automatically when all checks pass. '
       'No manual action is required. If you suspect that this check is not '
@@ -879,10 +879,10 @@ $s
           _config,
           slug,
           headSha,
-          Config.kUnifiedCheckRunName,
+          Config.kDashboardCheckName,
           output: const CheckRunOutput(
-            title: Config.kUnifiedCheckRunName,
-            summary: kUnifiedCheckRunDescription,
+            title: Config.kDashboardCheckName,
+            summary: kDashboardChecksDescription,
           ),
           detailsUrl: isUnifiedCheckRun ? detailsUrl : null,
         );
@@ -1677,7 +1677,7 @@ $stacktrace
     final name = checkRunEvent.checkRun!.name;
     var success = false;
     if (name == Config.kMergeQueueLockName ||
-        name == Config.kUnifiedCheckRunName) {
+        name == Config.kDashboardCheckName) {
       final slug = checkRunEvent.repository!.slug();
       final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
       log.debug(

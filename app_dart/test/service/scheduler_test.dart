@@ -938,7 +938,7 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested Unified Check Run check is ignored', () async {
+      test('rerequested dashboard check is ignored', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
@@ -1004,7 +1004,7 @@ void main() {
         });
         final checkRunEventJson =
             jsonDecode(checkRunString()) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Config.kUnifiedCheckRunName;
+        checkRunEventJson['check_run']['name'] = Config.kDashboardCheckName;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
@@ -1017,7 +1017,7 @@ void main() {
             any,
             any,
             any,
-            Config.kUnifiedCheckRunName,
+            Config.kDashboardCheckName,
             output: anyNamed('output'),
           ),
         );
@@ -2757,10 +2757,10 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Config.kUnifiedCheckRunName,
+            Config.kDashboardCheckName,
             const CheckRunOutput(
-              title: Config.kUnifiedCheckRunName,
-              summary: Scheduler.kUnifiedCheckRunDescription,
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
             ),
             Config.kCiYamlCheckName,
             const CheckRunOutput(
@@ -2823,7 +2823,7 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
-                  Config.kUnifiedCheckRunName,
+                  Config.kDashboardCheckName,
                 ),
               ),
               status: CheckRunStatus.completed,
@@ -2873,7 +2873,7 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
-                  Config.kUnifiedCheckRunName,
+                  Config.kDashboardCheckName,
                 ),
               ),
               status: CheckRunStatus.completed,
@@ -2912,10 +2912,10 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Config.kUnifiedCheckRunName,
+            Config.kDashboardCheckName,
             const CheckRunOutput(
-              title: Config.kUnifiedCheckRunName,
-              summary: Scheduler.kUnifiedCheckRunDescription,
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
             ),
             Config.kCiYamlCheckName,
             // No other targets should be created.
@@ -3069,10 +3069,10 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
-              Config.kUnifiedCheckRunName,
+              Config.kDashboardCheckName,
               const CheckRunOutput(
-                title: Config.kUnifiedCheckRunName,
-                summary: Scheduler.kUnifiedCheckRunDescription,
+                title: Config.kDashboardCheckName,
+                summary: Scheduler.kDashboardChecksDescription,
               ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
@@ -3115,10 +3115,10 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
-              Config.kUnifiedCheckRunName,
+              Config.kDashboardCheckName,
               const CheckRunOutput(
-                title: Config.kUnifiedCheckRunName,
-                summary: Scheduler.kUnifiedCheckRunDescription,
+                title: Config.kDashboardCheckName,
+                summary: Scheduler.kDashboardChecksDescription,
               ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
@@ -3189,7 +3189,7 @@ targets:
 
         expect(capturedUpdates, <(String, CheckRunStatus, CheckRunConclusion)>[
           (
-            Config.kUnifiedCheckRunName,
+            Config.kDashboardCheckName,
             CheckRunStatus.completed,
             CheckRunConclusion.success,
           ),
@@ -4115,7 +4115,7 @@ targets:
         final pullRequest = generatePullRequest();
         final checkRunGuard = generateCheckRun(
           1234,
-          name: Config.kUnifiedCheckRunName,
+          name: Config.kDashboardCheckName,
         );
 
         await PrCheckRuns.initializeDocument(
@@ -4376,7 +4376,7 @@ targets:
           final pullRequest = generatePullRequest(repo: 'packages');
           final checkRunGuard = generateCheckRun(
             1234,
-            name: Config.kUnifiedCheckRunName,
+            name: Config.kDashboardCheckName,
             startedAt: DateTime.now(),
           );
 
