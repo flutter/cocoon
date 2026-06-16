@@ -119,14 +119,14 @@ class Scheduler {
 
   /// Briefly describes what the "Unified Check Run" check is for.
   static const String kUnifiedCheckRunDescription =
-      'Unified Check Run is a set presubmit tests for Engine and Flutter to '
+      'Unified Check Run is a presubmit checks for Engine and Flutter to '
       'ensure nothing breaks when changes are landed. '
-      'For details of the individual task execution please see the link below.'
-      'It becomes green automatically when all tests pass. '
+      'It becomes green automatically when all checks pass. '
       'No manual action is required. If you suspect that this check is not '
       'working correctly, contact #hackers-infra on Discord. '
-      'If you need to merge your PR without tests (a rare situation, typically '
-      'an emergency), then you can use the `emergency` label.';
+      'If you need to merge your PR without presubmit checks (a rare situation, '
+      'typically an emergency), then you can use the `emergency` label. '
+      'For details of the individual checks execution please see the link below.';
 
   /// Ensure [commits] exist in Cocoon.
   ///
