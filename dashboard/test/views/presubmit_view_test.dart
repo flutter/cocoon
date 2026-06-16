@@ -135,11 +135,7 @@ void main() {
   });
 
   Widget createPreSubmitView(Map<String, String> queryParameters) {
-    presubmitState.syncUpdate(
-      repo: queryParameters['repo'],
-      pr: queryParameters['pr'],
-      sha: queryParameters['sha'],
-    );
+    presubmitState.syncUpdate(queryParameters);
     return Material(
       child: StateProvider(
         buildState: buildState,

@@ -8,6 +8,7 @@ import 'package:cocoon_common/build_log_url.dart';
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
@@ -46,10 +47,12 @@ final class PreSubmitView extends StatefulWidget {
 class _PreSubmitViewState extends State<PreSubmitView>
     with WidgetsBindingObserver {
   PresubmitState? _presubmitState;
+  late Map<String, String> _currentQueryParams;
 
   @override
   void initState() {
     super.initState();
+    _currentQueryParams = widget.queryParameters ?? {};
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -85,6 +88,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
   void didUpdateWidget(PreSubmitView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.queryParameters != oldWidget.queryParameters) {
+      _currentQueryParams = widget.queryParameters ?? {};
       _triggerUpdate();
     }
   }
@@ -92,22 +96,20 @@ class _PreSubmitViewState extends State<PreSubmitView>
   void _onStateChanged() {
     if (!mounted || !widget.syncNavigation) return;
     final state = _presubmitState!;
-    final params = widget.queryParameters ?? {};
 
-    // If the state has a SHA that is different from the URL, update the URL.
-    if (state.sha != null && state.sha != params['sha']) {
+    if (!mapEquals(_currentQueryParams, state.queryParameters)) {
       _updateNavigation();
     }
   }
 
   void _updateNavigation() {
     final state = _presubmitState!;
-    final params = Map<String, String>.from(widget.queryParameters ?? {});
-    params['repo'] = state.repo;
-    if (state.pr != null) params['pr'] = state.pr!;
-    if (state.sha != null) params['sha'] = state.sha!;
+    _currentQueryParams = Map<String, String>.from(state.queryParameters);
 
-    final uri = Uri(path: PreSubmitView.routeName, queryParameters: params);
+    final uri = Uri(
+      path: PreSubmitView.routeName,
+      queryParameters: _currentQueryParams.isEmpty ? null : _currentQueryParams,
+    );
 
     // Update the URL without triggering a full navigation/rebuild cycle.
     SystemNavigator.routeInformationUpdated(uri: uri, replace: true);
@@ -115,12 +117,8 @@ class _PreSubmitViewState extends State<PreSubmitView>
 
   void _triggerUpdate() {
     final params = widget.queryParameters ?? {};
-    final repo = params['repo'] ?? 'flutter';
-    final sha = params['sha'];
-    final pr = params['pr'];
-
     final state = Provider.of<PresubmitState>(context, listen: false);
-    state.syncUpdate(repo: repo, pr: pr, sha: sha);
+    state.syncUpdate(params);
 
     // Schedule fetch outside of build phase to avoid notify-during-build
     Future.microtask(() {

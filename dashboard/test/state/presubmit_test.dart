@@ -480,4 +480,55 @@ void main() {
       },
     );
   });
+
+  group('query parameters as source of truth', () {
+    test('filters and job read from and written to query parameters', () {
+      final state = PresubmitState(
+        authService: mockAuthService,
+        cocoonService: mockCocoonService,
+      );
+
+      final guardResponse = const PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'stage1',
+            createdAt: 0,
+            builds: {
+              'Mac my_job': TaskStatus.succeeded,
+            },
+          ),
+        ],
+      );
+      state.setGuardResponseForTest(guardResponse);
+
+      expect(state.selectedStatuses, TaskStatus.values.toSet());
+      expect(state.jobNameFilter, isNull);
+
+      state.updateFilters(
+        statuses: {TaskStatus.failed, TaskStatus.inProgress},
+        platforms: {'Mac', 'Linux'},
+        jobNameFilter: '.*test.*',
+      );
+
+      expect(state.queryParameters['statuses'], 'Failed,In%20Progress');
+      expect(state.queryParameters['platforms'], 'Mac,Linux');
+      expect(state.queryParameters['regex'], '.*test.*');
+
+      state.syncUpdate({
+        'statuses': 'Succeeded',
+        'platforms': 'Mac',
+        'regex': '.*my_job.*',
+        'job': 'Mac%20my_job',
+      });
+
+      expect(state.selectedStatuses, {TaskStatus.succeeded});
+      expect(state.selectedPlatforms, {'Mac'});
+      expect(state.jobNameFilter, '.*my_job.*');
+      expect(state.selectedJob, 'Mac my_job');
+    });
+  });
 }
