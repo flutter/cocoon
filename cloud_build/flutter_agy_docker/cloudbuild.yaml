@@ -22,7 +22,7 @@ steps:
       # Also tag it as latest in Artifact Registry
       - '-t'
       - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest'
-      - '.'
+      - 'cloud_build/flutter_agy_docker'
 
 # Define the default version here so manual triggers still work
 substitutions:
