@@ -124,11 +124,12 @@ class Scheduler {
       'please see the presubmit dashboard following the link below. It becomes '
       'green automatically when all jobs successfully complete. If it failed '
       'you can see failure details, get the execution logs and re-run the '
-      'failed jobs on the presubmit dashboard following the link below. If you '
-      'suspect that this check is not working correctly, contact '
-      '#hackers-infra on Discord. If you need to merge your PR without '
-      'presubmit checks (a rare situation, typically an emergency), then you '
-      'can use the `emergency` label.';
+      'failed jobs on the presubmit dashboard page by following the link '
+      'below. If you suspect that this check is not working correctly, '
+      'contact #hackers-infra on Discord. If you need to merge your PR '
+      'without presubmit checks (a rare situation, typically an emergency), '
+      'then you can use the `emergency` label.';
+  
 
   /// Ensure [commits] exist in Cocoon.
   ///
