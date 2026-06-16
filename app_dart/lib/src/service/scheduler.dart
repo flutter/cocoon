@@ -117,9 +117,16 @@ class Scheduler {
       'If you need to merge your PR without tests (a rare situation, typically '
       'an emergency), then you can use the `emergency` label.';
 
-  /// Briefly describes what the "Flutter Presubmits" check is for.
-  static const String kFlutterPresubmitsDescription =
-      'Flutter Presubmits unified check run.';
+  /// Briefly describes what the "Unified Check Run" check is for.
+  static const String kUnifiedCheckRunDescription =
+      'Unified Check Run is a set presubmit tests for Engine and Flutter to '
+      'ensure nothing breaks when changes are landed. '
+      'For details of the individual task execution please see the link below.'
+      'It becomes green automatically when all tests pass. '
+      'No manual action is required. If you suspect that this check is not '
+      'working correctly, contact #hackers-infra on Discord. '
+      'If you need to merge your PR without tests (a rare situation, typically '
+      'an emergency), then you can use the `emergency` label.';
 
   /// Ensure [commits] exist in Cocoon.
   ///
@@ -872,10 +879,10 @@ $s
           _config,
           slug,
           headSha,
-          Config.kFlutterPresubmitsName,
+          Config.kUnifiedCheckRunName,
           output: const CheckRunOutput(
-            title: Config.kFlutterPresubmitsName,
-            summary: kFlutterPresubmitsDescription,
+            title: Config.kUnifiedCheckRunName,
+            summary: kUnifiedCheckRunDescription,
           ),
           detailsUrl: isUnifiedCheckRun ? detailsUrl : null,
         );
@@ -891,7 +898,7 @@ $s
       );
       return flutterPresubmits;
     } else {
-      // Skip Flutter Presubmits
+      // Skip Unified Check Run
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
         slug,
@@ -1670,7 +1677,7 @@ $stacktrace
     final name = checkRunEvent.checkRun!.name;
     var success = false;
     if (name == Config.kMergeQueueLockName ||
-        name == Config.kFlutterPresubmitsName) {
+        name == Config.kUnifiedCheckRunName) {
       final slug = checkRunEvent.repository!.slug();
       final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
       log.debug(

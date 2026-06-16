@@ -3061,12 +3061,12 @@ void foo() {
                 ),
                 logThat(
                   message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Flutter Presubmits for emergency',
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Unified Check Run for emergency',
                   ),
                 ),
                 logThat(
                   message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Flutter Presubmits" check run is missing.',
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Unified Check Run" check run is missing.',
                   ),
                 ),
               ]),
@@ -3076,7 +3076,7 @@ void foo() {
       );
 
       test(
-        'applies emergency label on approved PRs (Flutter Presubmits only)',
+        'applies emergency label on approved PRs (Unified Check Run only)',
         () async {
           final pullRequest = generatePullRequest(
             number: 123,
@@ -3094,7 +3094,7 @@ void foo() {
       "details_url": "https://example.com",
       "status": "in_progress",
       "started_at": "2018-05-04T01:14:52Z",
-      "name": "Flutter Presubmits",
+      "name": "Unified Check Run",
       "check_suite": {
         "id": 5
       }
@@ -3126,12 +3126,12 @@ void foo() {
                 ),
                 logThat(
                   message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Flutter Presubmits for emergency',
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Unified Check Run for emergency',
                   ),
                 ),
                 logThat(
                   message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Flutter Presubmits", allowing it to land as an emergency.',
+                    'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Unified Check Run", allowing it to land as an emergency.',
                   ),
                 ),
               ]),
@@ -3191,12 +3191,12 @@ void foo() {
                 ),
                 logThat(
                   message: contains(
-                    'attempting to unlock the Flutter Presubmits for emergency',
+                    'attempting to unlock the Unified Check Run for emergency',
                   ),
                 ),
                 logThat(
                   message: contains(
-                    'failed to process the emergency label. "Flutter Presubmits" check run is missing.',
+                    'failed to process the emergency label. "Unified Check Run" check run is missing.',
                   ),
                 ),
               ]),

@@ -938,7 +938,7 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested flutter presubmits check is ignored', () async {
+      test('rerequested Unified Check Run check is ignored', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
@@ -1004,7 +1004,7 @@ void main() {
         });
         final checkRunEventJson =
             jsonDecode(checkRunString()) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Config.kFlutterPresubmitsName;
+        checkRunEventJson['check_run']['name'] = Config.kUnifiedCheckRunName;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
@@ -1017,7 +1017,7 @@ void main() {
             any,
             any,
             any,
-            Config.kFlutterPresubmitsName,
+            Config.kUnifiedCheckRunName,
             output: anyNamed('output'),
           ),
         );
@@ -2757,10 +2757,10 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Config.kFlutterPresubmitsName,
+            Config.kUnifiedCheckRunName,
             const CheckRunOutput(
-              title: Config.kFlutterPresubmitsName,
-              summary: Scheduler.kFlutterPresubmitsDescription,
+              title: Config.kUnifiedCheckRunName,
+              summary: Scheduler.kUnifiedCheckRunDescription,
             ),
             Config.kCiYamlCheckName,
             const CheckRunOutput(
@@ -2814,7 +2814,7 @@ targets:
           expect(guard.commitSha, pr.head!.sha);
           expect(guard.jobs['Linux A'], TaskStatus.waitingForBackfill);
 
-          // Verify that the "Flutter Presubmits" check run is not immediately succeeded.
+          // Verify that the "Unified Check Run" check run is not immediately succeeded.
           verifyNever(
             mockGithubChecksUtil.updateCheckRun(
               any,
@@ -2823,7 +2823,7 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
-                  Config.kFlutterPresubmitsName,
+                  Config.kUnifiedCheckRunName,
                 ),
               ),
               status: CheckRunStatus.completed,
@@ -2864,7 +2864,7 @@ targets:
           final pr = generatePullRequest(branch: 'main', repo: 'cocoon');
           await scheduler.triggerPresubmitTargets(pullRequest: pr);
 
-          // Verify that the "Flutter Presubmits" check run is immediately succeeded.
+          // Verify that the "Unified Check Run" check run is immediately succeeded.
           verify(
             mockGithubChecksUtil.updateCheckRun(
               any,
@@ -2873,7 +2873,7 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
-                  Config.kFlutterPresubmitsName,
+                  Config.kUnifiedCheckRunName,
                 ),
               ),
               status: CheckRunStatus.completed,
@@ -2912,10 +2912,10 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Config.kFlutterPresubmitsName,
+            Config.kUnifiedCheckRunName,
             const CheckRunOutput(
-              title: Config.kFlutterPresubmitsName,
-              summary: Scheduler.kFlutterPresubmitsDescription,
+              title: Config.kUnifiedCheckRunName,
+              summary: Scheduler.kUnifiedCheckRunDescription,
             ),
             Config.kCiYamlCheckName,
             // No other targets should be created.
@@ -3069,10 +3069,10 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
-              Config.kFlutterPresubmitsName,
+              Config.kUnifiedCheckRunName,
               const CheckRunOutput(
-                title: Config.kFlutterPresubmitsName,
-                summary: Scheduler.kFlutterPresubmitsDescription,
+                title: Config.kUnifiedCheckRunName,
+                summary: Scheduler.kUnifiedCheckRunDescription,
               ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
@@ -3115,10 +3115,10 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
-              Config.kFlutterPresubmitsName,
+              Config.kUnifiedCheckRunName,
               const CheckRunOutput(
-                title: Config.kFlutterPresubmitsName,
-                summary: Scheduler.kFlutterPresubmitsDescription,
+                title: Config.kUnifiedCheckRunName,
+                summary: Scheduler.kUnifiedCheckRunDescription,
               ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
@@ -3189,7 +3189,7 @@ targets:
 
         expect(capturedUpdates, <(String, CheckRunStatus, CheckRunConclusion)>[
           (
-            Config.kFlutterPresubmitsName,
+            Config.kUnifiedCheckRunName,
             CheckRunStatus.completed,
             CheckRunConclusion.success,
           ),
@@ -4115,7 +4115,7 @@ targets:
         final pullRequest = generatePullRequest();
         final checkRunGuard = generateCheckRun(
           1234,
-          name: Config.kFlutterPresubmitsName,
+          name: Config.kUnifiedCheckRunName,
         );
 
         await PrCheckRuns.initializeDocument(
@@ -4376,7 +4376,7 @@ targets:
           final pullRequest = generatePullRequest(repo: 'packages');
           final checkRunGuard = generateCheckRun(
             1234,
-            name: Config.kFlutterPresubmitsName,
+            name: Config.kUnifiedCheckRunName,
             startedAt: DateTime.now(),
           );
 
