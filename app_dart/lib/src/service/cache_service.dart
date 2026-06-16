@@ -145,7 +145,7 @@ class CacheService {
   }) async {
     await m.acquire();
     try {
-      return set(subcacheName, key, value, ttl: ttl);
+      return await set(subcacheName, key, value, ttl: ttl);
     } finally {
       m.release();
     }
@@ -161,7 +161,7 @@ class CacheService {
     await m.acquire();
     try {
       final subcache = cache.withPrefix(subcacheName);
-      return subcache[key].purge(retries: maxCacheGetAttempts);
+      await subcache[key].purge(retries: maxCacheGetAttempts);
     } finally {
       m.release();
     }

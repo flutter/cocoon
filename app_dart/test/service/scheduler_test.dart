@@ -2775,6 +2775,117 @@ targets:
         );
       });
 
+      test(
+        'creates presubmit_guard document for flutter/packages when unified check run flow is enabled',
+        () async {
+          getFilesChanged.cannedFiles = ['README.md'];
+          config.dynamicConfig = DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          );
+
+          when(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).thenAnswer((Invocation invocation) async {
+            return generateCheckRun(
+              invocation.positionalArguments[2].hashCode,
+              name: invocation.positionalArguments[3] as String,
+            );
+          });
+
+          final pr = generatePullRequest(branch: 'main', repo: 'packages');
+          await scheduler.triggerPresubmitTargets(pullRequest: pr);
+
+          // Make sure that for flutter/packages, presubmit_guard document
+          // is created in the Firestore with stage CiStage.genericTests.
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          expect(guards, isNotEmpty);
+          final guard = PresubmitGuard.fromDocument(guards.first);
+          expect(guard.slug, pr.base!.repo!.slug());
+          expect(guard.prNum, pr.number);
+          expect(guard.stage, CiStage.genericTests);
+          expect(guard.commitSha, pr.head!.sha);
+          expect(guard.jobs['Linux A'], TaskStatus.waitingForBackfill);
+
+          // Verify that the "Flutter Presubmits" check run is not immediately succeeded.
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kFlutterPresubmitsName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          );
+        },
+      );
+
+      test(
+        'unlocks merge group for cocoon when unified check run flow is enabled',
+        () async {
+          getFilesChanged.cannedFiles = ['README.md'];
+          config.dynamicConfig = DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          );
+
+          when(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).thenAnswer((Invocation invocation) async {
+            return generateCheckRun(
+              invocation.positionalArguments[2].hashCode,
+              name: invocation.positionalArguments[3] as String,
+            );
+          });
+
+          final pr = generatePullRequest(branch: 'main', repo: 'cocoon');
+          await scheduler.triggerPresubmitTargets(pullRequest: pr);
+
+          // Verify that the "Flutter Presubmits" check run is immediately succeeded.
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kFlutterPresubmitsName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).called(1);
+        },
+      );
+
       test('Do not schedule other targets on revert request.', () async {
         final releasePullRequest = generatePullRequest(
           labels: [IssueLabel(name: 'revert of')],
@@ -4258,6 +4369,94 @@ targets:
         final guard = PresubmitGuard.fromDocument(guards.single);
         expect(guard.remainingJobs, 0);
       });
+
+      test(
+        'closes merge queue guard in merge group success for non-fusion repos',
+        () async {
+          final pullRequest = generatePullRequest(repo: 'packages');
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: Config.kFlutterPresubmitsName,
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          // Initialize presubmit guard for genericTests stage
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: checkRunGuard,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.genericTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingJobs: 1,
+              failedJobs: 0,
+            ),
+          );
+
+          // Initialize check run for the task
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.genericTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.SUCCESS,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(
+                key: 'buildset',
+                value: 'sha/git/${pullRequest.head!.sha!}',
+              ),
+            ],
+          );
+
+          final check = PresubmitCompletedJob.fromBuild(build, userData);
+
+          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: anyNamed('status'),
+              conclusion: CheckRunConclusion.success, // Merge queue success
+              output: anyNamed('output'),
+            ),
+          ).called(1);
+
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          final guard = PresubmitGuard.fromDocument(guards.single);
+          expect(guard.remainingJobs, 0);
+        },
+      );
     });
   });
 

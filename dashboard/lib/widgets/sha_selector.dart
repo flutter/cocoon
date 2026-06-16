@@ -25,9 +25,7 @@ class ShaSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark
-        ? const Color(0xFF333333)
-        : const Color(0xFFD1D5DB);
+    final borderColor = isDark ? const Color(0xFF333333) : Colors.white54;
 
     return Container(
       height: 32,
@@ -35,7 +33,7 @@ class ShaSelector extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(6),
-        color: theme.scaffoldBackgroundColor,
+        color: theme.appBarTheme.backgroundColor,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -43,11 +41,29 @@ class ShaSelector extends StatelessWidget {
           isDense: true,
           value: selectedSha,
           icon: const Icon(Icons.expand_more, size: 16),
+          iconEnabledColor: Colors.white,
           style: TextStyle(
             fontFamily: 'monospace',
             fontSize: 13,
-            color: isDark ? Colors.white : Colors.black,
+            color: isDark ? Colors.white : Colors.black87,
           ),
+          selectedItemBuilder: (BuildContext context) {
+            return availableShas.map<Widget>((summary) {
+              final sha = summary.headSha;
+              final shortSha = sha.length > 7 ? sha.substring(0, 7) : sha;
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  shortSha,
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 13,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            }).toList();
+          },
           onChanged: (value) {
             if (value != null) {
               onShaSelected(value);

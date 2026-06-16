@@ -146,7 +146,7 @@ interface class ContentAwareHashService {
         final transaction = await _firestore.beginTransaction();
 
         try {
-          return _updateFirestore(transaction, hash, headSha);
+          return await _updateFirestore(transaction, hash, headSha);
         } catch (e, s) {
           log.warn(
             'CAHS(headSha: $headSha, hash: $hash): failure to read/modify to firestore',

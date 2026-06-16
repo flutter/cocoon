@@ -45,6 +45,10 @@ final class AnalyzeLogs extends ApiRequestHandler {
   static const String kRepoParam = 'repo';
   static const String kPrParam = 'pr';
   static const String kBuildIdParam = 'build_id';
+  // Match pattern for extracting subBuildId from summaryMarkdown.
+  // Expected summaryMarkdown formated as:
+  // "  * [<subbuildId>](https://cr-buildbucket.appspot.com/build/<subbuildId>)"
+  static final RegExp kSubbuildPattern = RegExp(r'\[(\d+)\]');
 
   @override
   Future<Response> post(Request request) async {
@@ -87,26 +91,7 @@ final class AnalyzeLogs extends ApiRequestHandler {
       );
     }
 
-    // 2. Call _luciBuildService.getBuildById providing buildId and BuildMask.
-    final build = await _luciBuildService.getBuildById(
-      buildId,
-      buildMask: bbv2.BuildMask(
-        fields: bbv2.FieldMask(paths: ['steps', 'tags']),
-      ),
-    );
-
-    // 3. Extract logs and tags.
-    final stdoutLogs = <String>[];
-    for (final step in build.steps) {
-      if (step.status == bbv2.Status.FAILURE ||
-          step.status == bbv2.Status.INFRA_FAILURE) {
-        for (final log in step.logs) {
-          if (log.name == 'stdout') {
-            stdoutLogs.add(log.url);
-          }
-        }
-      }
-    }
+    final (:stdoutLogs, :build) = await getBuildStepLogs(buildId: buildId);
     if (stdoutLogs.isEmpty) {
       throw NotFoundException('Logs Not Found for BuildId: $buildId');
     }
@@ -206,5 +191,45 @@ Links to Logs: ${stdoutLogs.join('\n')}
     }
 
     return Response.emptyOk;
+  }
+
+  /// Recursively extract logs of failed steps in build or its subbuilds.
+  ///
+  /// Calls [_luciBuildService.getBuildById] and extracts failure logs.
+  Future<({List<String> stdoutLogs, bbv2.Build build})> getBuildStepLogs({
+    required Int64 buildId,
+  }) async {
+    // Call _luciBuildService.getBuildById providing buildId and BuildMask.
+    final build = await _luciBuildService.getBuildById(
+      buildId,
+      buildMask: bbv2.BuildMask(
+        fields: bbv2.FieldMask(paths: ['steps', 'tags']),
+      ),
+    );
+
+    // try to extract logs of failed steps in build or its subbuilds.
+    final stdoutLogs = <String>[];
+    for (final step in build.steps) {
+      if (step.status == bbv2.Status.FAILURE ||
+          step.status == bbv2.Status.INFRA_FAILURE) {
+        if (step.logs.isNotEmpty) {
+          for (final log in step.logs) {
+            if (log.name == 'stdout') {
+              stdoutLogs.add(log.url);
+            }
+          }
+        } else if (kSubbuildPattern.hasMatch(step.summaryMarkdown)) {
+          // if subbuild failed, recursively get logs from it.
+          final match = kSubbuildPattern.firstMatch(step.summaryMarkdown);
+          if (match != null) {
+            final subbuildId = Int64.parseInt(match.group(1)!);
+            stdoutLogs.addAll(
+              (await getBuildStepLogs(buildId: subbuildId)).stdoutLogs,
+            );
+          }
+        }
+      }
+    }
+    return (stdoutLogs: stdoutLogs, build: build);
   }
 }

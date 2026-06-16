@@ -363,10 +363,11 @@ class Scheduler {
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
     final isFusion = slug == Config.flutterSlug;
+    final isPackages = slug == Config.packagesSlug;
     do {
       try {
         final sha = pullRequest.head!.sha!;
-        if (!isFusion) {
+        if (!isFusion && !(isPackages && isUnifiedCheckRun)) {
           unlockMergeGroup = true;
         }
 
@@ -454,7 +455,7 @@ class Scheduler {
           engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
           // For non-flutter repos, if unified check run flow is enabled, create
-          // a staging document to track presubmit tests.
+          // a presubmit_guard document to track presubmit tests.
           if (isUnifiedCheckRun) {
             await UnifiedCheckRun.initializeCiStagingDocument(
               firestoreService: _firestore,
@@ -476,7 +477,7 @@ class Scheduler {
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
           checkRunGuard: lock,
-          stage: CiStage.fusionEngineBuild,
+          stage: isFusion ? CiStage.fusionEngineBuild : CiStage.genericTests,
         );
       } on FormatException catch (e, s) {
         log.warn(
@@ -1122,7 +1123,7 @@ detailsUrl: $detailsUrl
         'checkCompleted(${check.name}, $flow, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
 
     final isFusion = check.slug == Config.flutterSlug;
-    if (!isFusion) {
+    if (!isFusion && !check.isUnifiedCheckRun) {
       return true;
     }
 
@@ -1277,9 +1278,18 @@ detailsUrl: $detailsUrl
           logCrumb: logCrumb,
         );
       case CiStage.genericTests:
-        // generic tests do not have a staging document nor are associated
-        // with a merge group - they are only used to collect commit stats.
-        log.warn('$logCrumb: generic tests have no merge queue guard.');
+        if (check.isUnifiedCheckRun) {
+          await _closeSuccessfulTestStage(
+            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            slug: check.slug,
+            sha: check.sha,
+            logCrumb: logCrumb,
+          );
+        } else {
+          // generic tests do not have a staging document nor are associated
+          // with a merge group - they are only used to collect commit stats.
+          log.warn('$logCrumb: generic tests have no merge queue guard.');
+        }
         break;
     }
     return true;
