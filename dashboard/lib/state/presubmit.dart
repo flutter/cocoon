@@ -18,10 +18,7 @@ import '../service/firebase_auth.dart';
 /// This state manages the data for a specific Pull Request (PR) or commit SHA,
 /// including available SHAs, guard status, and individual job results.
 class PresubmitState extends ChangeNotifier {
-  PresubmitState({
-    required this.cocoonService,
-    required this.authService,
-  }) {
+  PresubmitState({required this.cocoonService, required this.authService}) {
     authService.addListener(onAuthChanged);
   }
 
