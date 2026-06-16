@@ -3075,16 +3075,14 @@ void foo() {
         },
       );
 
-      test(
-        'applies emergency label on approved PRs (Dashboard Checks only)',
-        () async {
-          final pullRequest = generatePullRequest(
-            number: 123,
-            headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
-            labels: [IssueLabel(name: 'emergency')],
-          );
+      test('applies emergency label on approved PRs (Dashboard Checks only)', () async {
+        final pullRequest = generatePullRequest(
+          number: 123,
+          headSha: '6dcb09b5b57875f334f61aebed695e2e4193db5e',
+          labels: [IssueLabel(name: 'emergency')],
+        );
 
-          githubService.checkRunsMock = '''{
+        githubService.checkRunsMock = '''{
   "total_count": 1,
   "check_runs": [
     {
@@ -3102,43 +3100,42 @@ void foo() {
   ]
 }''';
 
-          final pullRequestLabelProcessor = PullRequestLabelProcessor(
-            config: config,
-            githubService: githubService,
-            pullRequest: pullRequest,
-          );
+        final pullRequestLabelProcessor = PullRequestLabelProcessor(
+          config: config,
+          githubService: githubService,
+          pullRequest: pullRequest,
+        );
 
-          await pullRequestLabelProcessor.processLabels();
+        await pullRequestLabelProcessor.processLabels();
 
-          expect(
-            log,
-            bufferedLoggerOf(
-              containsAll([
-                logThat(
-                  message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
-                  ),
+        expect(
+          log,
+          bufferedLoggerOf(
+            containsAll([
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Merge Queue Guard for emergency',
                 ),
-                logThat(
-                  message: equals(
-                    'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
-                  ),
+              ),
+              logThat(
+                message: equals(
+                  'PullRequestLabelProcessor(flutter/flutter/pull/123): failed to process the emergency label. "Merge Queue Guard" check run is missing.',
                 ),
-                logThat(
-                  message: equals(
+              ),
+              logThat(
+                message: equals(
                   'PullRequestLabelProcessor(flutter/flutter/pull/123): attempting to unlock the Dashboard Checks for emergency',
-                  ),
                 ),
-                logThat(
-                  message: equals(
+              ),
+              logThat(
+                message: equals(
                   'PullRequestLabelProcessor(flutter/flutter/pull/123): unlocked "Dashboard Checks", allowing it to land as an emergency.',
-                  ),
                 ),
-              ]),
-            ),
-          );
-        },
-      );
+              ),
+            ]),
+          ),
+        );
+      });
 
       test(
         'logs and gracefully skips emergency label on missing checkruns',
