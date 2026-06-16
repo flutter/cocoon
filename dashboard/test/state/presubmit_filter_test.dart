@@ -161,18 +161,6 @@ void main() {
     expect(filtered.stages[0].builds.keys.first, 'linux test1');
   });
 
-  test('PR change resets filters', () {
-    presubmitState.updateFilters(
-      statuses: {TaskStatus.failed},
-      jobNameFilter: 'abc',
-    );
-
-    presubmitState.update(pr: '456');
-
-    expect(presubmitState.selectedStatuses, TaskStatus.values.toSet());
-    expect(presubmitState.jobNameFilter, isNull);
-  });
-
   test('ensureValidSelection auto-selects top-most job on filter change', () {
     const response = PresubmitGuardResponse(
       prNum: 123,

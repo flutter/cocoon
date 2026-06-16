@@ -414,6 +414,127 @@ class DataSeeder {
     );
     checks.addAll(fusionChecks);
 
+    // 5678 PR Data
+    final prNum2 = 5678;
+    final packagesSlug = RepositorySlug('flutter', 'packages');
+    checkRunId = 567801;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[1],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[2],
+        status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        headSha: '5678_1_mock_sha',
+        checkRunId: checkRunId,
+        prNum: prNum2,
+        author: _authors[1],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        jobs: _getLatestjobstatuses(engineChecks),
+        slug: packagesSlug,
+      ),
+    );
+    checks.addAll(engineChecks);
+
+    creationTime = creationTime + 100000;
+    fusionChecks = [
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: fusionjobs[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: fusionjobs[1],
+        status: TaskStatus.inProgress,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        headSha: '5678_1_mock_sha',
+        checkRunId: checkRunId,
+        prNum: prNum2,
+        author: _authors[1],
+        stage: CiStage.fusionTests,
+        creationTime: creationTime,
+        jobs: _getLatestjobstatuses(fusionChecks),
+        slug: packagesSlug,
+      ),
+    );
+    checks.addAll(fusionChecks);
+
+    // Second SHA for PR 5678
+    checkRunId = 567802;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[1],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        headSha: '5678_2_mock_sha',
+        checkRunId: checkRunId,
+        prNum: prNum2,
+        author: _authors[1],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        jobs: _getLatestjobstatuses(engineChecks),
+        slug: packagesSlug,
+      ),
+    );
+    checks.addAll(engineChecks);
+
     final prCheckRuns = <PrCheckRuns>[];
     for (final guard in guards) {
       prCheckRuns.add(_createPrCheckRuns(guard));
@@ -444,8 +565,9 @@ class DataSeeder {
     required CiStage stage,
     required int creationTime,
     required Map<String, TaskStatus> jobs,
+    RepositorySlug? slug,
   }) {
-    final slug = RepositorySlug('flutter', 'flutter');
+    final effectiveSlug = slug ?? RepositorySlug('flutter', 'flutter');
     final failedJobs = jobs.values.where((status) => status.isFailure).length;
     final remainingJobs = jobs.values
         .where((status) => !status.isComplete)
@@ -458,7 +580,7 @@ class DataSeeder {
         startedAt: DateTime.fromMillisecondsSinceEpoch(creationTime),
       ),
       headSha: headSha,
-      slug: slug,
+      slug: effectiveSlug,
       prNum: prNum,
       stage: stage,
       creationTime: creationTime,
@@ -475,9 +597,10 @@ class DataSeeder {
     required TaskStatus status,
     required int creationTime,
     int attemptNumber = 1,
+    RepositorySlug? slug,
   }) {
     return PresubmitJob(
-      slug: RepositorySlug('flutter', 'flutter'),
+      slug: slug ?? RepositorySlug('flutter', 'flutter'),
       checkRunId: checkRunId,
       jobName: jobName,
       status: status,
