@@ -2814,7 +2814,7 @@ targets:
           expect(guard.commitSha, pr.head!.sha);
           expect(guard.jobs['Linux A'], TaskStatus.waitingForBackfill);
 
-          // Verify that the "Unified Check Run" check run is not immediately succeeded.
+          // Verify that the "Dashboard Checks" check run is not immediately succeeded.
           verifyNever(
             mockGithubChecksUtil.updateCheckRun(
               any,
@@ -2864,7 +2864,7 @@ targets:
           final pr = generatePullRequest(branch: 'main', repo: 'cocoon');
           await scheduler.triggerPresubmitTargets(pullRequest: pr);
 
-          // Verify that the "Unified Check Run" check run is immediately succeeded.
+          // Verify that the "Dashboard Checks" check run is immediately succeeded.
           verify(
             mockGithubChecksUtil.updateCheckRun(
               any,
