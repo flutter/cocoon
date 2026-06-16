@@ -31,3 +31,6 @@ substitutions:
 images:
   - 'us-central1-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION'
   - 'us-central1-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
