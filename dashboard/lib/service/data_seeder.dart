@@ -414,6 +414,115 @@ class DataSeeder {
     );
     checks.addAll(fusionChecks);
 
+    // 5678 PR Data
+    final prNum2 = 5678;
+    checkRunId = 567801;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[1],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[2],
+        status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        headSha: '5678_1_mock_sha',
+        checkRunId: checkRunId,
+        prNum: prNum2,
+        author: _authors[1],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        jobs: _getLatestjobstatuses(engineChecks),
+      ),
+    );
+    checks.addAll(engineChecks);
+
+    creationTime = creationTime + 100000;
+    fusionChecks = [
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: fusionjobs[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: fusionjobs[1],
+        status: TaskStatus.inProgress,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        headSha: '5678_1_mock_sha',
+        checkRunId: checkRunId,
+        prNum: prNum2,
+        author: _authors[1],
+        stage: CiStage.fusionTests,
+        creationTime: creationTime,
+        jobs: _getLatestjobstatuses(fusionChecks),
+      ),
+    );
+    checks.addAll(fusionChecks);
+
+    // Second SHA for PR 5678
+    checkRunId = 567802;
+    creationTime = creationTime + 100000;
+    engineChecks = [
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[0],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[1],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: enginejobs[2],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+      ),
+    ];
+    guards.add(
+      _createPresubmitGuard(
+        headSha: '5678_2_mock_sha',
+        checkRunId: checkRunId,
+        prNum: prNum2,
+        author: _authors[1],
+        stage: CiStage.fusionEngineBuild,
+        creationTime: creationTime,
+        jobs: _getLatestjobstatuses(engineChecks),
+      ),
+    );
+    checks.addAll(engineChecks);
+
     final prCheckRuns = <PrCheckRuns>[];
     for (final guard in guards) {
       prCheckRuns.add(_createPrCheckRuns(guard));
