@@ -101,7 +101,7 @@ RUN set -eux; \
     apt-get update && apt-get install -y gh; \
     # binary yq
     wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64; \
-    chmod a+x /usr/local/bin/yq; \    
+    chmod a+x /usr/local/bin/yq; \
     locale-gen en_US.UTF-8; \
     ln -s $(which fdfind) /usr/local/bin/fd; \
     ln -s $(which batcat) /usr/local/bin/bat; \
@@ -176,8 +176,8 @@ RUN mkdir -p /home/coder/.config/byobu && \
     { \
       echo 'alias agyolo="agy --dangerously-skip-permissions"'; \
     } >> /home/coder/.zshrc
-    
-RUN mkdir -p /home/coder/.vim/pack/dart-lang/start && \    
+
+RUN mkdir -p /home/coder/.vim/pack/dart-lang/start && \
     git clone https://github.com/dart-lang/dart-vim-plugin /home/coder/.vim/pack/dart-lang/start/dart-vim-plugin
 
 RUN git config --global --add safe.directory /app && \
