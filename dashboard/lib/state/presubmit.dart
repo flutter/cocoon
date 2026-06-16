@@ -21,60 +21,67 @@ class PresubmitState extends ChangeNotifier {
   PresubmitState({
     required this.cocoonService,
     required this.authService,
-    String? pr,
-    String? sha,
   }) {
-    if (pr != null) _queryParams['pr'] = pr;
-    if (sha != null) _queryParams['sha'] = sha;
     authService.addListener(onAuthChanged);
-    if (pr != null || sha != null) {
-      unawaited(fetchIfNeeded());
-    }
   }
 
   final CocoonService cocoonService;
   final FirebaseAuthService authService;
 
-  final Map<String, String> _queryParams = {};
-  Map<String, String> get queryParameters => _queryParams;
+  Map<String, String> get queryParameters {
+    final params = <String, String>{};
+    params['repo'] = _repo;
+    if (_pr != null) params['pr'] = _pr!;
+    if (_sha != null) params['sha'] = _sha!;
+    if (_selectedJob != null) {
+      params['job'] = Uri.encodeComponent(_selectedJob!);
+    }
+    if (!setEquals(_selectedStatuses, TaskStatus.values.toSet())) {
+      params['statuses'] = _selectedStatuses
+          .map((s) => Uri.encodeComponent(s.value))
+          .join(',');
+    }
+    if (_availablePlatforms.isNotEmpty &&
+        !setEquals(_selectedPlatforms, _availablePlatforms)) {
+      params['platforms'] = _selectedPlatforms
+          .map(Uri.encodeComponent)
+          .join(',');
+    }
+    if (_jobNameFilter != null && _jobNameFilter!.isNotEmpty) {
+      params['regex'] = Uri.encodeComponent(_jobNameFilter!);
+    }
+    return params;
+  }
 
-  /// The repository name (e.g., 'flutter', 'packages').
-  String get repo => _queryParams['repo'] ?? 'flutter';
+  String _repo = 'flutter';
+  String get repo => _repo;
   set repo(String value) {
-    if (repo != value) {
-      _queryParams['repo'] = value;
+    if (_repo != value) {
+      _repo = value;
       notifyListeners();
     }
   }
 
-  /// The pull request number string.
-  String? get pr => _queryParams['pr'];
+  String? _pr;
+  String? get pr => _pr;
   set pr(String? value) {
-    if (pr != value) {
-      if (value == null) {
-        _queryParams.remove('pr');
-      } else {
-        _queryParams['pr'] = value;
-      }
+    if (_pr != value) {
+      _pr = value;
       _availableSummaries = [];
       _lastFetchedPr = null;
       notifyListeners();
     }
   }
 
-  /// The commit SHA string.
-  String? get sha => _queryParams['sha'];
+  String? _sha;
+  String? get sha => _sha;
   set sha(String? value) {
-    if (sha != value) {
-      if (value == null) {
-        _queryParams.remove('sha');
-      } else {
-        _queryParams['sha'] = value;
-      }
+    if (_sha != value) {
+      _sha = value;
       _guardResponse = null;
       _lastFetchedSha = null;
       _jobs = null;
-      _queryParams.remove('job');
+      _selectedJob = null;
       if (value == null) {
         _lastFetchedPr = null;
       }
@@ -98,46 +105,24 @@ class PresubmitState extends ChangeNotifier {
   bool get isRerunningAll => _isRerunningAll;
   bool _isRerunningAll = false;
 
-  /// The currently selected task statuses for filtering.
-  Set<TaskStatus> get selectedStatuses {
-    final statusesParam = _queryParams['statuses'];
-    if (statusesParam == null || statusesParam.isEmpty) {
-      return TaskStatus.values.toSet();
-    }
-    return statusesParam
-        .split(',')
-        .map((s) => TaskStatus.tryFrom(Uri.decodeComponent(s)))
-        .whereType<TaskStatus>()
-        .toSet();
-  }
+  Set<TaskStatus> _selectedStatuses = TaskStatus.values.toSet();
+  Set<TaskStatus> get selectedStatuses => _selectedStatuses;
 
-  /// The currently selected platforms for filtering.
-  Set<String> get selectedPlatforms {
-    final platformsParam = _queryParams['platforms'];
-    if (platformsParam == null || platformsParam.isEmpty) {
-      return _availablePlatforms.toSet();
-    }
-    return platformsParam
-        .split(',')
-        .map((p) => Uri.decodeComponent(p))
-        .toSet();
-  }
+  Set<String> _selectedPlatforms = <String>{};
+  Set<String> get selectedPlatforms => _selectedPlatforms;
 
-  /// The current job name filter (regex).
-  String? get jobNameFilter {
-    final regexParam = _queryParams['regex'];
-    if (regexParam == null || regexParam.isEmpty) return null;
-    return Uri.decodeComponent(regexParam);
-  }
+  String? _jobNameFilter;
+  String? get jobNameFilter => _jobNameFilter;
 
   String get insufficientPermissionMessage =>
       'User has no write permission to $repo github repo.';
 
   /// Whether any filter is currently applied.
   bool get isAnyFilterApplied {
-    return _queryParams.containsKey('statuses') ||
-        _queryParams.containsKey('platforms') ||
-        _queryParams.containsKey('regex');
+    return _selectedStatuses.length < TaskStatus.values.length ||
+        (_availablePlatforms.isNotEmpty &&
+            _selectedPlatforms.length < _availablePlatforms.length) ||
+        (_jobNameFilter != null && _jobNameFilter!.isNotEmpty);
   }
 
   /// All unique platforms derived from the current [guardResponse].
@@ -151,30 +136,13 @@ class PresubmitState extends ChangeNotifier {
     String? jobNameFilter,
   }) {
     if (statuses != null) {
-      if (statuses.length == TaskStatus.values.length) {
-        _queryParams.remove('statuses');
-      } else {
-        _queryParams['statuses'] = statuses
-            .map((s) => Uri.encodeComponent(s.value))
-            .join(',');
-      }
+      _selectedStatuses = statuses;
     }
     if (platforms != null) {
-      if (_availablePlatforms.isNotEmpty &&
-          platforms.length == _availablePlatforms.length) {
-        _queryParams.remove('platforms');
-      } else {
-        _queryParams['platforms'] = platforms
-            .map((p) => Uri.encodeComponent(p))
-            .join(',');
-      }
+      _selectedPlatforms = platforms;
     }
     if (jobNameFilter != null) {
-      if (jobNameFilter.trim().isEmpty) {
-        _queryParams.remove('regex');
-      } else {
-        _queryParams['regex'] = Uri.encodeComponent(jobNameFilter);
-      }
+      _jobNameFilter = jobNameFilter;
     }
     _ensureValidSelection();
     notifyListeners();
@@ -182,9 +150,13 @@ class PresubmitState extends ChangeNotifier {
 
   /// Reset all filters to their default values and notify listeners.
   void clearFilters() {
-    _queryParams.remove('statuses');
-    _queryParams.remove('platforms');
-    _queryParams.remove('regex');
+    _selectedStatuses = TaskStatus.values.toSet();
+    if (_availablePlatforms.isNotEmpty) {
+      _selectedPlatforms = Set.from(_availablePlatforms);
+    } else {
+      _selectedPlatforms = <String>{};
+    }
+    _jobNameFilter = null;
     _ensureValidSelection();
     notifyListeners();
   }
@@ -194,7 +166,7 @@ class PresubmitState extends ChangeNotifier {
     if (filtered == null ||
         filtered.stages.isEmpty ||
         filtered.stages.every((s) => s.builds.isEmpty)) {
-      _setSelectedJob(null);
+      _selectedJob = null;
       _jobs = null;
       return;
     }
@@ -223,7 +195,7 @@ class PresubmitState extends ChangeNotifier {
         }
       }
 
-      _setSelectedJob(topMost);
+      _selectedJob = topMost;
       _jobs = null;
       if (topMost != null) {
         unawaited(fetchJobDetails());
@@ -245,6 +217,12 @@ class PresubmitState extends ChangeNotifier {
       }
     }
 
+    if (_availablePlatforms.isEmpty ||
+        _selectedPlatforms.isEmpty ||
+        setEquals(_selectedPlatforms, _availablePlatforms)) {
+      _selectedPlatforms = Set.from(newAvailablePlatforms);
+    }
+
     _availablePlatforms = newAvailablePlatforms;
   }
 
@@ -260,15 +238,15 @@ class PresubmitState extends ChangeNotifier {
     PresubmitGuardResponse? response, {
     Set<TaskStatus>? statuses,
     Set<String>? platforms,
-    String? jobNameFilter,
+    String? filter,
   }) {
     if (response == null) {
       return null;
     }
 
-    final effectiveStatuses = statuses ?? this.selectedStatuses;
-    final effectivePlatforms = platforms ?? this.selectedPlatforms;
-    final effectiveJobNameFilter = jobNameFilter ?? this.jobNameFilter;
+    final effectiveStatuses = statuses ?? selectedStatuses;
+    final effectivePlatforms = platforms ?? selectedPlatforms;
+    final effectiveFilter = filter ?? jobNameFilter;
 
     final filteredStages = <PresubmitGuardStage>[];
     for (final stage in response.stages) {
@@ -290,10 +268,9 @@ class PresubmitState extends ChangeNotifier {
         }
 
         // Regex filter
-        if (effectiveJobNameFilter != null &&
-            effectiveJobNameFilter.isNotEmpty) {
+        if (effectiveFilter != null && effectiveFilter.isNotEmpty) {
           try {
-            final regex = RegExp(effectiveJobNameFilter, caseSensitive: false);
+            final regex = RegExp(effectiveFilter, caseSensitive: false);
             if (!regex.hasMatch(jobName)) {
               continue;
             }
@@ -329,9 +306,7 @@ class PresubmitState extends ChangeNotifier {
   @visibleForTesting
   void setGuardResponseForTest(PresubmitGuardResponse response) {
     _guardResponse = response;
-    if (pr == null) {
-      _queryParams['pr'] = response.prNum.toString();
-    }
+    _pr ??= response.prNum.toString();
     _updateSelectedPlatforms();
     _ensureValidSelection();
     notifyListeners();
@@ -342,19 +317,8 @@ class PresubmitState extends ChangeNotifier {
   List<PresubmitGuardSummary> _availableSummaries = [];
 
   /// The currently selected job name.
-  String? get selectedJob {
-    final jobParam = _queryParams['job'];
-    if (jobParam == null || jobParam.isEmpty) return null;
-    return Uri.decodeComponent(jobParam);
-  }
-
-  void _setSelectedJob(String? jobName) {
-    if (jobName == null) {
-      _queryParams.remove('job');
-    } else {
-      _queryParams['job'] = Uri.encodeComponent(jobName);
-    }
-  }
+  String? _selectedJob;
+  String? get selectedJob => _selectedJob;
 
   /// The jobs/logs for the current [selectedJob].
   List<PresubmitJobResponse>? get jobs => _jobs;
@@ -409,78 +373,71 @@ class PresubmitState extends ChangeNotifier {
     var changed = false;
 
     final newRepo = newParams['repo'] ?? 'flutter';
-    if (repo != newRepo) {
-      _queryParams['repo'] = newRepo;
+    if (_repo != newRepo) {
+      _repo = newRepo;
       changed = true;
     }
 
     final newPr = newParams['pr'];
-    if (pr != newPr) {
-      if (newPr == null) {
-        _queryParams.remove('pr');
-      } else {
-        _queryParams['pr'] = newPr;
-      }
+    if (_pr != newPr) {
+      _pr = newPr;
       changed = true;
       _availableSummaries = [];
       _lastFetchedPr = null;
     }
 
     final newSha = newParams['sha'];
-    if (sha != newSha) {
-      if (newSha == null) {
-        _queryParams.remove('sha');
-      } else {
-        _queryParams['sha'] = newSha;
-      }
+    if (_sha != newSha) {
+      _sha = newSha;
       changed = true;
       _guardResponse = null;
       _lastFetchedSha = null;
       _jobs = null;
-      _queryParams.remove('job');
+      _selectedJob = null;
       if (newSha == null) {
         _lastFetchedPr = null;
       }
     }
 
-    final newJob = newParams['job'];
-    if (newJob != _queryParams['job']) {
-      if (newJob == null) {
-        _queryParams.remove('job');
-      } else {
-        _queryParams['job'] = newJob;
-      }
+    final newJobParam = newParams['job'];
+    final newJob = newJobParam != null
+        ? Uri.decodeComponent(newJobParam)
+        : null;
+    if (_selectedJob != newJob) {
+      _selectedJob = newJob;
       _jobs = null;
       changed = true;
     }
 
-    final newStatuses = newParams['statuses'];
-    if (newStatuses != _queryParams['statuses']) {
-      if (newStatuses == null) {
-        _queryParams.remove('statuses');
-      } else {
-        _queryParams['statuses'] = newStatuses;
-      }
+    final newStatusesParam = newParams['statuses'];
+    final newStatuses = newStatusesParam != null && newStatusesParam.isNotEmpty
+        ? newStatusesParam
+              .split(',')
+              .map((s) => TaskStatus.tryFrom(Uri.decodeComponent(s)))
+              .whereType<TaskStatus>()
+              .toSet()
+        : TaskStatus.values.toSet();
+    if (!setEquals(_selectedStatuses, newStatuses)) {
+      _selectedStatuses = newStatuses;
       changed = true;
     }
 
-    final newPlatforms = newParams['platforms'];
-    if (newPlatforms != _queryParams['platforms']) {
-      if (newPlatforms == null) {
-        _queryParams.remove('platforms');
-      } else {
-        _queryParams['platforms'] = newPlatforms;
-      }
+    final newPlatformsParam = newParams['platforms'];
+    final newPlatforms =
+        newPlatformsParam != null && newPlatformsParam.isNotEmpty
+        ? newPlatformsParam.split(',').map(Uri.decodeComponent).toSet()
+        : _availablePlatforms.toSet();
+    if (!setEquals(_selectedPlatforms, newPlatforms)) {
+      _selectedPlatforms = newPlatforms;
       changed = true;
     }
 
-    final newRegex = newParams['regex'];
-    if (newRegex != _queryParams['regex']) {
-      if (newRegex == null) {
-        _queryParams.remove('regex');
-      } else {
-        _queryParams['regex'] = newRegex;
-      }
+    final newRegexParam = newParams['regex'];
+    final newRegex = newRegexParam != null && newRegexParam.isNotEmpty
+        ? Uri.decodeComponent(newRegexParam)
+        : null;
+    if (_jobNameFilter != newRegex) {
+      _jobNameFilter = newRegex;
       changed = true;
     }
 
@@ -492,19 +449,17 @@ class PresubmitState extends ChangeNotifier {
 
   /// Explicitly updates parameters and triggers a fetch.
   void update({String? repo, String? pr, String? sha}) {
-    final newParams = Map<String, String>.from(_queryParams);
-    if (repo != null) newParams['repo'] = repo;
+    if (repo != null) this.repo = repo;
     if (pr != null) {
-      newParams['pr'] = pr;
+      this.pr = pr;
     } else {
-      newParams.remove('pr');
+      this.pr = null;
     }
     if (sha != null) {
-      newParams['sha'] = sha;
+      this.sha = sha;
     } else {
-      newParams.remove('sha');
+      this.sha = null;
     }
-    syncUpdate(newParams);
     unawaited(fetchIfNeeded());
   }
 
@@ -527,7 +482,7 @@ class PresubmitState extends ChangeNotifier {
   /// Selects a specific job and fetches its details.
   void selectJob(String jobName) {
     if (selectedJob == jobName) return;
-    _setSelectedJob(jobName);
+    _selectedJob = jobName;
     _jobs = null;
     notifyListeners();
     unawaited(fetchJobDetails());

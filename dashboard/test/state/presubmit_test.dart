@@ -286,8 +286,8 @@ void main() {
       final localPresubmitState = PresubmitState(
         cocoonService: mockCocoonService,
         authService: mockAuthService,
-        pr: '123',
       );
+      localPresubmitState.syncUpdate({'pr': '123'});
       // Wait for constructor fetch
       await Future<void>.delayed(Duration.zero);
       clearInteractions(mockCocoonService);
@@ -316,8 +316,9 @@ void main() {
       final localPresubmitState = PresubmitState(
         cocoonService: mockCocoonService,
         authService: mockAuthService,
-        pr: '123',
       );
+      localPresubmitState.syncUpdate({'pr': '123'});
+      await localPresubmitState.fetchIfNeeded();
       await Future<void>.delayed(Duration.zero);
       clearInteractions(mockCocoonService);
 
@@ -497,9 +498,7 @@ void main() {
           PresubmitGuardStage(
             name: 'stage1',
             createdAt: 0,
-            builds: {
-              'Mac my_job': TaskStatus.succeeded,
-            },
+            builds: {'Mac my_job': TaskStatus.succeeded},
           ),
         ],
       );
