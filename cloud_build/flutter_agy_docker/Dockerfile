@@ -87,13 +87,15 @@ ENV TZ="America/Los_Angeles" \
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        ca-certificates curl dnsutils dos2unix git openssh-client unzip \
+        ca-certificates curl dnsutils dos2unix openssh-client unzip \
         tmux byobu vim sudo xz-utils tzdata locales jq ripgrep \
         fd-find fzf bat btop zsh build-essential procps file wget \
         less rsync software-properties-common lrzsz; \
     # Install trzsz via PPA
     add-apt-repository ppa:trzsz/ppa -y; \
-    apt-get update && apt-get install -y trzsz; \
+    add-apt-repository ppa:git-core/ppa -y; \
+    apt-get update; \
+    apt-get install -y trzsz git; \
     # install github
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg; \
     chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg; \
