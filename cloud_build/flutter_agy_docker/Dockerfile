@@ -111,11 +111,12 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*; \
     echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-
 # 3. User setup and directory creation
+# Evict the default ubuntu user to free up UID/GID 1000
 # Using -m automatically creates the home directory securely.
-RUN groupadd -r coder && \
-    useradd -r -m -g coder coder && \
+RUN (userdel -r ubuntu 2>/dev/null || true) && \
+    groupadd -g 1000 coder && \
+    useradd -u 1000 -g 1000 -m coder && \
     mkdir -p /app /opt/flutter /home/linuxbrew/.linuxbrew && \
     chown -R coder:coder /app /opt /home/linuxbrew
 
