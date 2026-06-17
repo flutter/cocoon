@@ -1241,7 +1241,7 @@ detailsUrl: $detailsUrl
           summary: _githubChecksService.getGithubSummaryWithHeader('''
 **[Failed Checks Details]($detailsUrl)**
 
-''', kMergeQueueLockDescription),
+''', kDashboardChecksDescription),
           details:
               'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
           detailsUrl: detailsUrl,
