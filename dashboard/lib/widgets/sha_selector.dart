@@ -114,10 +114,7 @@ class ShaSelector extends StatelessWidget {
           child: Text(
             dateStr,
             textAlign: TextAlign.right,
-            style: TextStyle(
-              fontSize: 11,
-              color: subTextColor,
-            ),
+            style: TextStyle(fontSize: 11, color: subTextColor),
           ),
         ),
         const SizedBox(width: 8),
@@ -125,10 +122,7 @@ class ShaSelector extends StatelessWidget {
           width: 40,
           child: Text(
             timeStr,
-            style: TextStyle(
-              fontSize: 11,
-              color: subTextColor,
-            ),
+            style: TextStyle(fontSize: 11, color: subTextColor),
           ),
         ),
         const SizedBox(width: 8),

@@ -1118,123 +1118,124 @@ void main() {
       ]);
     });
 
-    testWidgets('PreSubmitView with default Settings property sheet, light mode', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(1080, 2280);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    testWidgets(
+      'PreSubmitView with default Settings property sheet, light mode',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1080, 2280);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-      await precacheTaskIcons(tester);
+        await precacheTaskIcons(tester);
 
-      const guardResponse = PresubmitGuardResponse(
-        prNum: 123,
-        author: 'dash',
-        guardStatus: GuardStatus.failed,
-        checkRunId: 456,
-        stages: [
-          PresubmitGuardStage(
-            name: 'Engine',
-            createdAt: 0,
-            builds: {
-              'linux_analyze': TaskStatus.succeeded,
-              'linux_bot': TaskStatus.failed,
-              'mac_bot': TaskStatus.inProgress,
-              'win_bot': TaskStatus.waitingForBackfill,
-            },
-          ),
-        ],
-      );
-
-      when(
-        mockCocoonService.fetchPresubmitGuard(
-          repo: 'flutter',
-          sha: 'decaf_3_real_sha',
-        ),
-      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
-
-      await tester.runAsync(() async {
-        await tester.pumpWidget(
-          createPreSubmitView({
-            'repo': 'flutter',
-            'pr': '123',
-            'sha': 'decaf_3_real_sha',
-          }),
+        const guardResponse = PresubmitGuardResponse(
+          prNum: 123,
+          author: 'dash',
+          guardStatus: GuardStatus.failed,
+          checkRunId: 456,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: 0,
+              builds: {
+                'linux_analyze': TaskStatus.succeeded,
+                'linux_bot': TaskStatus.failed,
+                'mac_bot': TaskStatus.inProgress,
+                'win_bot': TaskStatus.waitingForBackfill,
+              },
+            ),
+          ],
         );
-        for (var i = 0; i < 20; i++) {
-          await tester.pump();
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-          if (find.textContaining('linux_analyze').evaluate().isNotEmpty) break;
-        }
-      });
-      await tester.pump();
 
-      await expectGoldenMatches(
-        find.byType(PreSubmitView),
-        'presubmit_view.default.png',
-      );
-    });
-
-    testWidgets('PreSubmitView with default Settings property sheet, dark mode', (
-      WidgetTester tester,
-    ) async {
-      tester.view.physicalSize = const Size(1080, 2280);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await precacheTaskIcons(tester);
-
-      const guardResponse = PresubmitGuardResponse(
-        prNum: 123,
-        author: 'dash',
-        guardStatus: GuardStatus.failed,
-        checkRunId: 456,
-        stages: [
-          PresubmitGuardStage(
-            name: 'Engine',
-            createdAt: 0,
-            builds: {
-              'linux_analyze': TaskStatus.succeeded,
-              'linux_bot': TaskStatus.failed,
-              'mac_bot': TaskStatus.inProgress,
-              'win_bot': TaskStatus.waitingForBackfill,
-            },
+        when(
+          mockCocoonService.fetchPresubmitGuard(
+            repo: 'flutter',
+            sha: 'decaf_3_real_sha',
           ),
-        ],
-      );
+        ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
-      when(
-        mockCocoonService.fetchPresubmitGuard(
-          repo: 'flutter',
-          sha: 'decaf_3_real_sha',
-        ),
-      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
-
-      await tester.runAsync(() async {
-        await tester.pumpWidget(
-          createPreSubmitView(
-            {
+        await tester.runAsync(() async {
+          await tester.pumpWidget(
+            createPreSubmitView({
               'repo': 'flutter',
               'pr': '123',
               'sha': 'decaf_3_real_sha',
-            },
-            theme: ThemeData.dark(useMaterial3: false),
-          ),
-        );
-        for (var i = 0; i < 20; i++) {
-          await tester.pump();
-          await Future<void>.delayed(const Duration(milliseconds: 50));
-          if (find.textContaining('linux_analyze').evaluate().isNotEmpty) break;
-        }
-      });
-      await tester.pump();
+            }),
+          );
+          for (var i = 0; i < 20; i++) {
+            await tester.pump();
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            if (find.textContaining('linux_analyze').evaluate().isNotEmpty)
+              break;
+          }
+        });
+        await tester.pump();
 
-      await expectGoldenMatches(
-        find.byType(PreSubmitView),
-        'presubmit_view.default.dark.png',
-      );
-    });
+        await expectGoldenMatches(
+          find.byType(PreSubmitView),
+          'presubmit_view.default.png',
+        );
+      },
+    );
+
+    testWidgets(
+      'PreSubmitView with default Settings property sheet, dark mode',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1080, 2280);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await precacheTaskIcons(tester);
+
+        const guardResponse = PresubmitGuardResponse(
+          prNum: 123,
+          author: 'dash',
+          guardStatus: GuardStatus.failed,
+          checkRunId: 456,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: 0,
+              builds: {
+                'linux_analyze': TaskStatus.succeeded,
+                'linux_bot': TaskStatus.failed,
+                'mac_bot': TaskStatus.inProgress,
+                'win_bot': TaskStatus.waitingForBackfill,
+              },
+            ),
+          ],
+        );
+
+        when(
+          mockCocoonService.fetchPresubmitGuard(
+            repo: 'flutter',
+            sha: 'decaf_3_real_sha',
+          ),
+        ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+        await tester.runAsync(() async {
+          await tester.pumpWidget(
+            createPreSubmitView({
+              'repo': 'flutter',
+              'pr': '123',
+              'sha': 'decaf_3_real_sha',
+            }, theme: ThemeData.dark(useMaterial3: false)),
+          );
+          for (var i = 0; i < 20; i++) {
+            await tester.pump();
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            if (find.textContaining('linux_analyze').evaluate().isNotEmpty)
+              break;
+          }
+        });
+        await tester.pump();
+
+        await expectGoldenMatches(
+          find.byType(PreSubmitView),
+          'presubmit_view.default.dark.png',
+        );
+      },
+    );
   });
 }
