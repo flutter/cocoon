@@ -49,18 +49,10 @@ class ShaSelector extends StatelessWidget {
           ),
           selectedItemBuilder: (BuildContext context) {
             return availableShas.map<Widget>((summary) {
-              final sha = summary.headSha;
-              final shortSha = sha.length > 7 ? sha.substring(0, 7) : sha;
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  shortSha,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    color: Colors.white,
-                  ),
-                ),
+              return _buildSummaryRow(
+                summary,
+                isDark: isDark,
+                isSelected: true,
               );
             }).toList();
           },
@@ -70,60 +62,82 @@ class ShaSelector extends StatelessWidget {
             }
           },
           items: availableShas.map((summary) {
-            final sha = summary.headSha;
-            final status = summary.guardStatus;
-            final creationTime = DateTime.fromMillisecondsSinceEpoch(
-              summary.creationTime,
-            ).toLocal();
-            final dateStr = DateFormat.yMd().format(creationTime);
-            final timeStr = DateFormat.Hm().format(creationTime);
-
             return DropdownMenuItem<String>(
-              value: sha,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      sha.length > 7 ? sha.substring(0, 7) : sha,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      dateStr,
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 40,
-                    child: Text(
-                      timeStr,
-                      //textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 80,
-                    height: 20,
-                    child: GuardStatus(status: status.value),
-                  ),
-                ],
+              value: summary.headSha,
+              child: _buildSummaryRow(
+                summary,
+                isDark: isDark,
+                isSelected: false,
               ),
             );
           }).toList(),
         ),
       ),
+    );
+  }
+
+  Widget _buildSummaryRow(
+    PresubmitGuardSummary summary, {
+    required bool isDark,
+    required bool isSelected,
+  }) {
+    final sha = summary.headSha;
+    final status = summary.guardStatus;
+    final creationTime = DateTime.fromMillisecondsSinceEpoch(
+      summary.creationTime,
+    ).toLocal();
+    final dateStr = DateFormat.yMd().format(creationTime);
+    final timeStr = DateFormat.Hm().format(creationTime);
+
+    final subTextColor = isSelected
+        ? Colors.white70
+        : (isDark ? Colors.grey[400] : Colors.grey[600]);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            sha.length > 7 ? sha.substring(0, 7) : sha,
+            style: isSelected
+                ? const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 13,
+                    color: Colors.white,
+                  )
+                : null,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 60,
+          child: Text(
+            dateStr,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 11,
+              color: subTextColor,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 40,
+          child: Text(
+            timeStr,
+            style: TextStyle(
+              fontSize: 11,
+              color: subTextColor,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 80,
+          height: 20,
+          child: GuardStatus(status: status.value),
+        ),
+      ],
     );
   }
 }
