@@ -31,20 +31,20 @@ You can run the container in any project folder. The current working directory (
 ### For x86 / Intel:
 ```shell
 podman run --userns=keep-id:uid=1000,gid=1000 -it \
-  -v ".:/app:Z" \
+  -v ".:/app:z" \
   -v "dart_tool_cache:/app/.dart_tool" \
   -v "dart_build_cache:/app/build" \
-  -v "$USER/.gemini:/home/coder/.gemini:Z" \
+  -v "$USER/.gemini:/home/coder/.gemini:z" \
   flutter_docker:latest
 ```
 
 ### For Apple Silicon (using podman):
 ```shell
 podman run --platform linux/amd64 --userns=keep-id:uid=1000,gid=1000 -it \
-  -v "${PWD}:/app:Z" \
+  -v "${PWD}:/app:z" \
   -v "dart_tool_cache:/app/.dart_tool" \
   -v "dart_build_cache:/app/build" \
-  -v "$USER/.gemini:/home/coder/.gemini:Z" \
+  -v "$USER/.gemini:/home/coder/.gemini:z" \
   flutter_docker:latest
 ```
 

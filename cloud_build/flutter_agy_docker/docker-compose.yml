@@ -16,10 +16,10 @@ services:
     tty: true
     userns_mode: "keep-id:uid=1000,gid=1000"
     volumes:
-      - ${PWD}:/app:Z
+      - ${PWD}:/app:z
       - dart_tool_cache:/app/.dart_tool
       - dart_build_cache:/app/build
-      - ${HOME:-$USERPROFILE}/.gemini:/home/coder/.gemini:Z
+      - ${HOME:-$USERPROFILE}/.gemini:/home/coder/.gemini:z
 
 volumes:
   dart_tool_cache:
