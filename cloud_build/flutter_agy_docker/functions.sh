@@ -10,7 +10,7 @@
 _coder_env_name() {
   local name=${1:-$(basename "$PWD")}
   # Replace spaces with underscores and remove any characters not allowed in container names
-  local sanitized=$(echo "$name" | tr '[:space:]' '_' | tr -cd 'a-zA-Z0-9_.-')
+  local sanitized=$(printf "%s" "$name" | tr '[:space:]' '_' | tr -cd 'a-zA-Z0-9_.-')
   echo "${sanitized:-coder-env}"
 }
 
