@@ -185,7 +185,8 @@ RUN mkdir -p /home/coder/.vim/pack/dart-lang/start && \
 
 RUN git config --global --add safe.directory /app && \
     git config --global core.editor vim && \
-    git config --global pull.rebase true
+    git config --global pull.rebase true && \
+    git config --global worktree.useRelativePaths true
 
 WORKDIR /app
 ENTRYPOINT [ "/usr/bin/byobu" ]
