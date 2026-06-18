@@ -11,7 +11,7 @@ services:
     image: us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest
     platform: linux/amd64
     # Dynamically reads the environment variable
-    container_name: ${ENV_NAME}
+    container_name: ${ENV_NAME:-coder-env}
     stdin_open: true
     tty: true
     userns_mode: "keep-id:uid=1000,gid=1000"
