@@ -1,0 +1,26 @@
+# Copyright 2022 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This docker-compose file can be used to support the "coder-up" / "coder-attach"
+# commands in this folder.
+#
+# Copy it to:  ~/.config/coder-env/docker-compose.yml
+services:
+  dev:
+    image: us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest
+    platform: linux/amd64
+    # Dynamically reads the environment variable
+    container_name: ${ENV_NAME}
+    stdin_open: true
+    tty: true
+    userns_mode: "keep-id:uid=1000,gid=1000"
+    volumes:
+      - ${PWD}:/app:Z
+      - dart_tool_cache:/app/.dart_tool
+      - dart_build_cache:/app/build
+      - ${HOME:-$USERPROFILE}/.gemini:/home/coder/.gemini:Z
+
+volumes:
+  dart_tool_cache:
+  dart_build_cache:
