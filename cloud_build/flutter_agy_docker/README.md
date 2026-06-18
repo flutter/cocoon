@@ -117,11 +117,12 @@ Install the following extensions in VS Code:
 
 ### Using Git Worktrees
 
-When using Git worktrees within the container, you must configure Git to use relative paths. Failure to do so may result in broken worktree references because absolute paths differ between the host and the container.
+When using Git worktrees with this container, you must configure Git to use relative paths. Failure to do so will result in broken worktree references because absolute paths differ between your host machine and the container.
 
-To configure Git to use relative paths, run the following command or ensure it's set in your container:
+To configure Git to use relative paths, run the following command on your **host machine** (not inside the container):
 
 ```shell
 git config --global worktree.useRelativePaths true && git worktree repair
 ```
 
+After repairing, ensure you run `podman run` (or `coder-up`) from the **root of the worktree** so that the container mounts the correct paths.
