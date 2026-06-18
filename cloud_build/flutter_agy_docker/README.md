@@ -112,3 +112,16 @@ Install the following extensions in VS Code:
 3. Once the SSH connection is established, open the Command Palette again.
 4. Select **Dev Containers: Attach to Running Container...**
 5. Choose the running container on the remote machine.
+
+## 7. FAQ & Troubleshooting
+
+### Using Git Worktrees
+
+When using Git worktrees within the container, you must configure Git to use relative paths. Failure to do so may result in broken worktree references because absolute paths differ between the host and the container.
+
+To configure relative paths and repair any existing broken worktrees, run the following command:
+
+```shell
+git config --global worktree.useRelativePaths true && git worktree repair
+```
+
