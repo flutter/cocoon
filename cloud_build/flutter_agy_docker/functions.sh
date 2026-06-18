@@ -1,4 +1,5 @@
-# Copyright 2022 The Flutter Authors. All rights reserved.
+#!/usr/bin/env bash
+# Copyright 2026 The Flutter Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -15,7 +16,6 @@ coder-up() {
   # 1. Spin up the environment cleanly in the background
   ENV_NAME="$env_name" podman-compose -p "$env_name" -f ~/.config/coder-env/docker-compose.yml up -d
 }
-
 
 # Enter the container
 coder-attach() {
