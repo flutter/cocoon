@@ -73,6 +73,19 @@ class DataSeeder {
       'Mac_arm64 run_debug_test_macos',
       'Linux_android_emu android views',
     ];
+    final genericjobs = [
+      'Linux analyze_legacy N-1',
+      'Mac_arm64 ios_platform_tests_shard_1 master',
+      'Mac_arm64 ios_platform_tests_shard_2 master',
+      'Windows_x64 dart_unit_tests_shard_1 master',
+      'Windows_x64 dart_unit_tests_shard_2 master',
+      'Linux_web web_platform_tests_shard_1 master',
+      'Linux_web web_platform_tests_shard_2 master',
+      'Linux_desktop platform_tests_shard_1 master',
+      'Linux_desktop platform_tests_shard_2 master',
+      'Linux_android android_device_tests_shard_1 master',
+      'Linux_android android_device_tests_shard_2 master',
+    ];
     var engineChecks = [
       _createPresubmitJob(
         checkRunId: checkRunId,
@@ -419,10 +432,10 @@ class DataSeeder {
     final packagesSlug = RepositorySlug('flutter', 'packages');
     checkRunId = 567801;
     creationTime = creationTime + 100000;
-    engineChecks = [
+    var genericChecks = [
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: enginejobs[0],
+        jobName: genericjobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -430,7 +443,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: enginejobs[1],
+        jobName: genericjobs[1],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -438,32 +451,15 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: enginejobs[2],
-        status: TaskStatus.failed,
+        jobName: genericjobs[2],
+        status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
         slug: packagesSlug,
       ),
-    ];
-    guards.add(
-      _createPresubmitGuard(
-        headSha: '5678_1_mock_sha',
-        checkRunId: checkRunId,
-        prNum: prNum2,
-        author: _authors[1],
-        stage: CiStage.fusionEngineBuild,
-        creationTime: creationTime,
-        jobs: _getLatestjobstatuses(engineChecks),
-        slug: packagesSlug,
-      ),
-    );
-    checks.addAll(engineChecks);
-
-    creationTime = creationTime + 100000;
-    fusionChecks = [
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: fusionjobs[0],
+        jobName: genericjobs[3],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -471,34 +467,82 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: fusionjobs[1],
+        jobName: genericjobs[4],
         status: TaskStatus.inProgress,
         attemptNumber: 1,
         creationTime: creationTime,
         slug: packagesSlug,
       ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: genericjobs[5],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: genericjobs[6],
+        status: TaskStatus.waitingForBackfill,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: genericjobs[7],
+        status: TaskStatus.waitingForBackfill,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: genericjobs[8],
+        status: TaskStatus.succeeded,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: genericjobs[9],
+        status: TaskStatus.cancelled,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
+      _createPresubmitJob(
+        checkRunId: checkRunId,
+        jobName: genericjobs[10],
+        status: TaskStatus.cancelled,
+        attemptNumber: 1,
+        creationTime: creationTime,
+        slug: packagesSlug,
+      ),
     ];
     guards.add(
       _createPresubmitGuard(
-        headSha: '5678_1_mock_sha',
+        headSha: '5678a_1_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum2,
-        author: _authors[1],
-        stage: CiStage.fusionTests,
+        author: _authors[3],
+        stage: CiStage.genericTests,
         creationTime: creationTime,
-        jobs: _getLatestjobstatuses(fusionChecks),
+        jobs: _getLatestjobstatuses(genericChecks),
         slug: packagesSlug,
       ),
     );
-    checks.addAll(fusionChecks);
+    checks.addAll(genericChecks);
 
     // Second SHA for PR 5678
     checkRunId = 567802;
     creationTime = creationTime + 100000;
-    engineChecks = [
+    genericChecks = [
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: enginejobs[0],
+        jobName: genericjobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -506,7 +550,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: enginejobs[1],
+        jobName: genericjobs[1],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -514,7 +558,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: enginejobs[2],
+        jobName: genericjobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -523,17 +567,17 @@ class DataSeeder {
     ];
     guards.add(
       _createPresubmitGuard(
-        headSha: '5678_2_mock_sha',
+        headSha: '5678a_2_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum2,
         author: _authors[1],
-        stage: CiStage.fusionEngineBuild,
+        stage: CiStage.genericTests,
         creationTime: creationTime,
-        jobs: _getLatestjobstatuses(engineChecks),
+        jobs: _getLatestjobstatuses(genericChecks),
         slug: packagesSlug,
       ),
     );
-    checks.addAll(engineChecks);
+    checks.addAll(genericChecks);
 
     final prCheckRuns = <PrCheckRuns>[];
     for (final guard in guards) {
