@@ -8,7 +8,7 @@
 FROM ubuntu:24.04 AS flutter-fetcher
 
 # 1. Define the ARG with a fallback default version
-ARG FLUTTER_VERSION="3.44.2"
+ARG FLUTTER_VERSION="3.44.3"
 
 ENV TZ="America/Los_Angeles" \
     DEBIAN_FRONTEND=noninteractive \
