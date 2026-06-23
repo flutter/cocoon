@@ -50,8 +50,6 @@ class LuciBuildService {
        _firestore = firestore;
 
   final BuildBucketClient _buildBucketClient;
-  @visibleForTesting
-  BuildBucketClient get buildBucketClient => _buildBucketClient;
   final CacheService _cache;
   final Config _config;
   final GithubChecksUtil _githubChecksUtil;

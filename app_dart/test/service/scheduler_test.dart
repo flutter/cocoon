@@ -771,12 +771,13 @@ void main() {
           ).thenAnswer((_) async => []);
           final mockGithubClient = MockGitHub();
           config = FakeConfig(githubService: mockGithubService);
+          final fakeBb = FakeBuildBucketClient();
           final fakeLuci = FakeLuciBuildService(
             config: config,
             githubChecksUtil: mockGithubChecksUtil,
             firestore: firestore,
+            buildBucketClient: fakeBb,
           );
-          final fakeBb = fakeLuci.buildBucketClient as FakeBuildBucketClient;
           fakeBb.batchResponse = (request, _) async {
             return bbv2.BatchResponse(
               responses: [
