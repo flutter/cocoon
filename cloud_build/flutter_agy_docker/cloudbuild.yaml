@@ -22,7 +22,7 @@ steps:
       - '-t'
       - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest'
       - '-f'
-      - 'Dockerfile.base'
+      - 'cloud_build/flutter_agy_docker/Dockerfile.base'
       - 'cloud_build/flutter_agy_docker'
 
   # ==========================================
@@ -47,7 +47,7 @@ steps:
       - '-t'
       - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest'
       - '-f'
-      - 'Dockerfile'
+      - 'cloud_build/flutter_agy_docker/Dockerfile'
       - 'cloud_build/flutter_agy_docker'
 
 substitutions:

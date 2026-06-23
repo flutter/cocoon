@@ -14,7 +14,6 @@ ARG CACHE_BUSTER=1
 # 2. OS Dependencies & Upgrades
 RUN set -eux; \
     apt-get update; \
-    apt-get upgrade -y; \
     apt-get install -y --no-install-recommends \
         ca-certificates curl dnsutils dos2unix openssh-client unzip \
         tmux byobu vim sudo xz-utils tzdata locales jq ripgrep \
