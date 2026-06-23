@@ -148,8 +148,9 @@ class FakeBuildBucketClient extends BuildBucketClient {
           ),
         );
       } else if (request.hasSearchBuilds()) {
-        final isPresubmitShaQuery = request.searchBuilds.predicate.tags
-            .any((p) => p.value.startsWith('sha/git/'));
+        final isPresubmitShaQuery = request.searchBuilds.predicate.tags.any(
+          (p) => p.value.startsWith('sha/git/'),
+        );
         // Note that you cannot get builds from the searchBuildResponse.
         batchResponseResponses.add(
           bbv2.BatchResponse_Response(
@@ -165,7 +166,10 @@ class FakeBuildBucketClient extends BuildBucketClient {
                           project: 'flutter',
                         ),
                         tags: <bbv2.StringPair>[
-                          bbv2.StringPair(key: 'buildset', value: 'pr/git/12345'),
+                          bbv2.StringPair(
+                            key: 'buildset',
+                            value: 'pr/git/12345',
+                          ),
                           bbv2.StringPair(
                             key: 'cipd_version',
                             value: 'refs/heads/main',
@@ -177,7 +181,9 @@ class FakeBuildBucketClient extends BuildBucketClient {
                         ],
                         input: bbv2.Build_Input(
                           properties: bbv2.Struct(
-                            fields: {'bringup': bbv2.Value(stringValue: 'true')},
+                            fields: {
+                              'bringup': bbv2.Value(stringValue: 'true'),
+                            },
                           ),
                         ),
                       ),

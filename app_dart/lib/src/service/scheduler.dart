@@ -350,7 +350,7 @@ class Scheduler {
     final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
       pullRequest.user!.login!,
     );
-    
+
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info(
       'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
