@@ -73,7 +73,7 @@ class DataSeeder {
       'Mac_arm64 run_debug_test_macos',
       'Linux_android_emu android views',
     ];
-    final genericjobs = [
+    final genericJobs = [
       'Linux analyze_legacy N-1',
       'Mac_arm64 ios_platform_tests_shard_1 master',
       'Mac_arm64 ios_platform_tests_shard_2 master',
