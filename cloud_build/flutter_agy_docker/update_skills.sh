@@ -21,9 +21,32 @@ REPOS=(
 
 # Parse arguments
 TARGET_DIR="$HOME/.gemini/config/skills"
-if [[ "$1" == "--local" ]]; then
-  TARGET_DIR=".agents/skills"
-fi
+FORCE_OVERRIDE=0
+SKIP_GIT_CHECK=0
+
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --local)
+      TARGET_DIR=".agents/skills"
+      ;;
+    --force|-f)
+      FORCE_OVERRIDE=1
+      ;;
+    --skip-git-check|-s)
+      SKIP_GIT_CHECK=1
+      ;;
+    -*)
+      # Handle combined short flags
+      if [[ "$1" == *f* ]]; then
+        FORCE_OVERRIDE=1
+      fi
+      if [[ "$1" == *s* ]]; then
+        SKIP_GIT_CHECK=1
+      fi
+      ;;
+  esac
+  shift
+done
 
 mkdir -p "$TARGET_DIR/.versions"
 TMP_DIR=$(mktemp -d)
@@ -57,7 +80,7 @@ for REPO in "${REPOS[@]}"; do
     CURRENT_SHA=$(cat "$VERSION_FILE")
   fi
 
-  if [ "$LATEST_SHA" == "$CURRENT_SHA" ]; then
+  if [ "$LATEST_SHA" == "$CURRENT_SHA" ] && [ "$SKIP_GIT_CHECK" -eq 0 ]; then
     echo "[=] $REPO is up to date."
     continue
   fi
@@ -90,6 +113,11 @@ for REPO in "${REPOS[@]}"; do
       
       if [ "$SKILL_HASH" != "$CURRENT_SKILL_HASH" ]; then
         # Action required
+        if [ -e "$TARGET_DIR/$SKILL_NAME" ] && [ -z "$CURRENT_SKILL_HASH" ] && [ "$FORCE_OVERRIDE" -eq 0 ]; then
+          echo "[!] Warning: $TARGET_DIR/$SKILL_NAME already exists but is not tracked by this tool. Skipping."
+          continue
+        fi
+
         rm -rf "$TARGET_DIR/$SKILL_NAME"
         cp -R "$SKILL_TMP" "$TARGET_DIR/"
         echo "$SKILL_HASH" > "$SKILL_VERSION_FILE"
