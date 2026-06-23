@@ -44,4 +44,5 @@ unifiedCheckRunFlow:
     - loic-sharma
     - vashworth
     - mboetger
+    - justinmc
 ''';
