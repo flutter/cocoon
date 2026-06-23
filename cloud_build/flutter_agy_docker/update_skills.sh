@@ -63,10 +63,10 @@ UPDATED_SKILLS=0
 
 for REPO in "${REPOS[@]}"; do
   CHECKED_REPOS=$((CHECKED_REPOS + 1))
-  
+
   # Fetch latest SHA using git ls-remote (very fast, no full clone needed)
   LATEST_SHA=$(git ls-remote "https://github.com/$REPO" HEAD | awk '{print $1}')
-  
+
   if [ -z "$LATEST_SHA" ]; then
     echo "[-] Failed to fetch latest SHA for $REPO"
     continue
@@ -94,23 +94,23 @@ for REPO in "${REPOS[@]}"; do
   # Now check if there is a skills folder in the repo
   if [ -d "$REPO_TMP/skills" ]; then
     REPO_UPDATED=0
-    
+
     # Use git ls-tree to get hashes of all folders in skills/
     # Output format: 040000 tree <hash>    skills/<name>
     while read -r _ _ SKILL_HASH SKILL_PATH; do
       SKILL_NAME=$(basename "$SKILL_PATH")
       SKILL_TMP="$REPO_TMP/$SKILL_PATH"
-      
+
       # Make sure it's actually a directory
       [ -d "$SKILL_TMP" ] || continue
-      
+
       SKILL_VERSION_FILE="$TARGET_DIR/.versions/${REPO_SAFE_NAME}_${SKILL_NAME}.sha"
-      
+
       CURRENT_SKILL_HASH=""
       if [ -f "$SKILL_VERSION_FILE" ]; then
         CURRENT_SKILL_HASH=$(cat "$SKILL_VERSION_FILE")
       fi
-      
+
       if [ "$SKILL_HASH" != "$CURRENT_SKILL_HASH" ]; then
         # Action required
         if [ -e "$TARGET_DIR/$SKILL_NAME" ] && [ -z "$CURRENT_SKILL_HASH" ] && [ "$FORCE_OVERRIDE" -eq 0 ]; then
@@ -121,18 +121,18 @@ for REPO in "${REPOS[@]}"; do
         rm -rf "$TARGET_DIR/$SKILL_NAME"
         cp -R "$SKILL_TMP" "$TARGET_DIR/"
         echo "$SKILL_HASH" > "$SKILL_VERSION_FILE"
-        
+
         if [ -z "$CURRENT_SKILL_HASH" ]; then
           echo "    - @[$TARGET_DIR/$SKILL_NAME] was added"
         else
           echo "    - @[$TARGET_DIR/$SKILL_NAME] was updated"
         fi
-        
+
         UPDATED_SKILLS=$((UPDATED_SKILLS + 1))
         REPO_UPDATED=1
       fi
     done < <(cd "$REPO_TMP" && git ls-tree HEAD skills/)
-    
+
     # Save the repo SHA so we don't redownload next time unless it changes
     echo "$LATEST_SHA" > "$VERSION_FILE"
     if [ "$REPO_UPDATED" -eq 1 ]; then
