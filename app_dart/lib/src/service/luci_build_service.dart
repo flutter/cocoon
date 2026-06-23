@@ -114,6 +114,21 @@ class LuciBuildService {
     );
   }
 
+  /// Fetches an Iterable of try BuildBucket [Build]s for a given [sha].
+  Future<Iterable<bbv2.Build>> getTryBuildsBySha({
+    required String sha,
+    String? builderName,
+  }) async {
+    return _getBuilds(
+      builderName: builderName,
+      bucket: 'try',
+      tags: BuildTags([
+        ByPresubmitCommitBuildSetBuildTag(commitSha: sha),
+        UserAgentBuildTag.flutterCocoon,
+      ]),
+    );
+  }
+
   /// Fetches an Iterable of prod BuildBucket [Build]s.
   ///
   /// Returns an Iterable of prod BuildBucket [Build]s for a given

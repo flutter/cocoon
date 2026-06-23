@@ -336,6 +336,23 @@ class Scheduler {
     String reason = 'Newer commit available',
     List<String>? builderTriggerList,
   }) async {
+    // To avoid re-running all checks if the CICD label is removed and added
+    // after presubmits have started, check if builds already exist for the
+    // current SHA. If builds already exist, there is no need to cancel them
+    // and create new ones.
+    final sha = pullRequest.head!.sha!;
+    final tryBuilds = await _luciBuildService.getTryBuildsBySha(sha: sha);
+    if (tryBuilds.isNotEmpty) {
+      log.info(
+        'CICD label was already applied to pr:${pullRequest.number} for sha:$sha and ${tryBuilds.length} jobs have been already scheduled, skipping.',
+      );
+      return;
+    }
+
+    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
+      pullRequest.user!.login!,
+    );
+
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info(
       'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
@@ -344,20 +361,16 @@ class Scheduler {
 
     final slug = pullRequest.base!.repo!.slug();
 
-    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
-      pullRequest.user!.login!,
-    );
-
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
     // the PR and to the merge group, and so it must be completed in both cases.
     final lock = await lockMergeGroupChecks(
       slug,
-      pullRequest.head!.sha!,
+      sha,
       // Override details url of merge queue guard check for users with unified
       // check run flow enabled
       detailsUrl: isUnifiedCheckRun
-          ? 'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=${pullRequest.head!.sha}'
+          ? 'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha'
           : null,
       isUnifiedCheckRun: isUnifiedCheckRun,
     );
@@ -374,7 +387,6 @@ class Scheduler {
     final isPackages = slug == Config.packagesSlug;
     do {
       try {
-        final sha = pullRequest.head!.sha!;
         if (!isFusion && !(isPackages && isUnifiedCheckRun)) {
           unlockMergeGroup = true;
         }
@@ -521,10 +533,10 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      await unlockMergeQueueGuard(slug, pullRequest.head!.sha!, lock);
+      await unlockMergeQueueGuard(slug, sha, lock);
     }
     log.info(
-      'Finished triggering builds for: pr ${pullRequest.number}, commit ${pullRequest.base!.sha}, branch ${pullRequest.head!.ref} and slug $slug}',
+      'Finished triggering builds for: pr ${pullRequest.number}, commit $sha, branch ${pullRequest.head!.ref} and slug $slug}',
     );
   }
 
