@@ -5,6 +5,9 @@
 
 set -e
 
+# Fail immediately if asking for authorization
+GIT_TERMINAL_PROMPT=0
+
 # Configuration
 # Allow appending custom repositories via AGY_SKILL_REPOS env var
 # Example: export AGY_SKILL_REPOS="myorg/skills another/skills"
