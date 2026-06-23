@@ -1,0 +1,55 @@
+# Copyright 2022 The Flutter Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# ==========================================
+# STAGE 1: The Heavy Downloader
+# ==========================================
+FROM ubuntu:24.04 AS flutter-fetcher
+
+# 1. Define the ARG with a fallback default version
+ARG FLUTTER_VERSION="3.44.2"
+
+ENV TZ="America/Los_Angeles" \
+    DEBIAN_FRONTEND=noninteractive \
+    FLUTTER_ROOT="/opt/flutter" \
+    PATH="/opt/flutter/bin:/home/coder/.local/bin:${PATH}" \
+    LANG="en_US.UTF-8" \
+    LANGUAGE="en_US:en" \
+    LC_ALL="en_US.UTF-8" \
+    TERM="xterm-256color" \
+    COLORTERM="truecolor" \
+    SHELL="/usr/bin/zsh"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl ca-certificates xz-utils git unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Evict the default ubuntu user and create the target user
+RUN (userdel -r ubuntu 2>/dev/null || true) && \
+    groupadd -g 1000 coder && \
+    useradd -u 1000 -g 1000 -m coder && \
+    mkdir -p /app /opt/flutter /home/linuxbrew/.linuxbrew && \
+    chown -R coder:coder /app /opt /home/linuxbrew
+
+USER coder
+
+WORKDIR /opt
+
+RUN curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ
+
+# 2. Lock in configuration and force the massive SDK downloads
+ENV PATH="/opt/flutter/bin:${PATH}"
+RUN flutter config \
+        --enable-web \
+        --no-enable-linux-desktop \
+        --no-enable-macos-desktop \
+        --no-enable-windows-desktop \
+        --no-enable-android \
+        --no-enable-ios \
+        --no-enable-fuchsia && \
+    flutter precache --web && \
+    flutter --version && \
+    flutter --enable-analytics && dart --enable-analytics
+
