@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 # Start from the custom flutter_base image.
-ARG FLUTTER_VERSION="3.44.2"
+ARG FLUTTER_VERSION="3.44.3"
 FROM us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:${FLUTTER_VERSION}
 
 USER root
