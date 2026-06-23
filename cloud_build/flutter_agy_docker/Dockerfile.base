@@ -52,4 +52,3 @@ RUN flutter config \
     flutter precache --web && \
     flutter --version && \
     flutter --enable-analytics && dart --enable-analytics
-
