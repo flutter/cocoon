@@ -11,6 +11,7 @@ steps:
     args: ['-c', 'docker pull us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest || exit 0']
 
   - name: 'gcr.io/cloud-builders/docker'
+    dir: 'cloud_build/flutter_agy_docker/'
     args:
       - 'build'
       - '--cache-from'
@@ -22,8 +23,8 @@ steps:
       - '-t'
       - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest'
       - '-f'
-      - 'cloud_build/flutter_agy_docker/Dockerfile.base'
-      - 'cloud_build/flutter_agy_docker'
+      - 'Dockerfile.base'
+      - '.'
 
   # ==========================================
   # STEP 2: Build the Auto-Updating Dev Image
@@ -33,6 +34,7 @@ steps:
     args: ['-c', 'docker pull us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest || exit 0']
 
   - name: 'gcr.io/cloud-builders/docker'
+    dir: 'cloud_build/flutter_agy_docker/'
     args:
       - 'build'
       - '--cache-from'
@@ -47,8 +49,8 @@ steps:
       - '-t'
       - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest'
       - '-f'
-      - 'cloud_build/flutter_agy_docker/Dockerfile'
-      - 'cloud_build/flutter_agy_docker'
+      - 'Dockerfile'
+      - '.'
 
 substitutions:
   _FLUTTER_VERSION: "3.44.3"

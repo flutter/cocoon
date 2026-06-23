@@ -224,6 +224,7 @@ const Set<String> kExecutableAllowlist = <String>{
   'cloud_build/deploy_auto_submit.sh',
   'cloud_build/deploy_cron_jobs.sh',
   'cloud_build/get_docker_image_provenance.sh',
+  'cloud_build/flutter_agy_docker/update_skills.sh',
   'cloud_build/verify_provenance.sh',
   'dev/provision_salt.sh',
   'dev/prs_to_main.sh',
