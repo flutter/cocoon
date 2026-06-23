@@ -236,7 +236,7 @@ class DataSeeder {
         headSha: 'decaf_3_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum,
-        author: _authors[3],
+        author: _authors[2],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
         jobs: _getLatestjobstatuses(engineChecks),
@@ -287,7 +287,7 @@ class DataSeeder {
         headSha: 'decaf_3_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum,
-        author: _authors[3],
+        author: _authors[2],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
         jobs: _getLatestjobstatuses(fusionChecks),
@@ -326,7 +326,7 @@ class DataSeeder {
         headSha: 'deafcab_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum,
-        author: _authors[4],
+        author: _authors[3],
         stage: CiStage.fusionEngineBuild,
         creationTime: creationTime,
         jobs: _getLatestjobstatuses(engineChecks),
@@ -419,7 +419,7 @@ class DataSeeder {
         headSha: 'deafcab_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum,
-        author: _authors[4],
+        author: _authors[3],
         stage: CiStage.fusionTests,
         creationTime: creationTime,
         jobs: _getLatestjobstatuses(fusionChecks),
@@ -435,7 +435,7 @@ class DataSeeder {
     var genericChecks = [
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[0],
+        jobName: genericJobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -443,7 +443,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[1],
+        jobName: genericJobs[1],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -451,7 +451,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[2],
+        jobName: genericJobs[2],
         status: TaskStatus.skipped,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -459,7 +459,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[3],
+        jobName: genericJobs[3],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -467,7 +467,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[4],
+        jobName: genericJobs[4],
         status: TaskStatus.inProgress,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -475,7 +475,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[5],
+        jobName: genericJobs[5],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -483,7 +483,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[6],
+        jobName: genericJobs[6],
         status: TaskStatus.waitingForBackfill,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -491,7 +491,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[7],
+        jobName: genericJobs[7],
         status: TaskStatus.waitingForBackfill,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -499,7 +499,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[8],
+        jobName: genericJobs[8],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -507,7 +507,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[9],
+        jobName: genericJobs[9],
         status: TaskStatus.cancelled,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -515,7 +515,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[10],
+        jobName: genericJobs[10],
         status: TaskStatus.cancelled,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -527,7 +527,7 @@ class DataSeeder {
         headSha: '5678a_1_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum2,
-        author: _authors[3],
+        author: _authors[4],
         stage: CiStage.genericTests,
         creationTime: creationTime,
         jobs: _getLatestjobstatuses(genericChecks),
@@ -542,7 +542,7 @@ class DataSeeder {
     genericChecks = [
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[0],
+        jobName: genericJobs[0],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -550,7 +550,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[1],
+        jobName: genericJobs[1],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -558,7 +558,7 @@ class DataSeeder {
       ),
       _createPresubmitJob(
         checkRunId: checkRunId,
-        jobName: genericjobs[2],
+        jobName: genericJobs[2],
         status: TaskStatus.succeeded,
         attemptNumber: 1,
         creationTime: creationTime,
@@ -570,7 +570,7 @@ class DataSeeder {
         headSha: '5678a_2_mock_sha',
         checkRunId: checkRunId,
         prNum: prNum2,
-        author: _authors[1],
+        author: _authors[4],
         stage: CiStage.genericTests,
         creationTime: creationTime,
         jobs: _getLatestjobstatuses(genericChecks),
