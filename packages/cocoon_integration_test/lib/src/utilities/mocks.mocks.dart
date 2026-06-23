@@ -925,6 +925,19 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as _i13.Future<String>);
 
   @override
+  _i13.Future<String> get geminiLogAnalyzerKey =>
+      (super.noSuchMethod(
+            Invocation.getter(#geminiLogAnalyzerKey),
+            returnValue: _i13.Future<String>.value(
+              _i20.dummyValue<String>(
+                this,
+                Invocation.getter(#geminiLogAnalyzerKey),
+              ),
+            ),
+          )
+          as _i13.Future<String>);
+
+  @override
   String get wrongBaseBranchPullRequestMessage =>
       (super.noSuchMethod(
             Invocation.getter(#wrongBaseBranchPullRequestMessage),
@@ -4102,6 +4115,20 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
       (super.noSuchMethod(
             Invocation.method(#getTryBuildsByPullRequest, [], {
               #pullRequest: pullRequest,
+            }),
+            returnValue: _i13.Future<Iterable<_i6.Build>>.value(<_i6.Build>[]),
+          )
+          as _i13.Future<Iterable<_i6.Build>>);
+
+  @override
+  _i13.Future<Iterable<_i6.Build>> getTryBuildsBySha({
+    required String? sha,
+    String? builderName,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTryBuildsBySha, [], {
+              #sha: sha,
+              #builderName: builderName,
             }),
             returnValue: _i13.Future<Iterable<_i6.Build>>.value(<_i6.Build>[]),
           )

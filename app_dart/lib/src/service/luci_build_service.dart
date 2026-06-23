@@ -50,6 +50,8 @@ class LuciBuildService {
        _firestore = firestore;
 
   final BuildBucketClient _buildBucketClient;
+  @visibleForTesting
+  BuildBucketClient get buildBucketClient => _buildBucketClient;
   final CacheService _cache;
   final Config _config;
   final GithubChecksUtil _githubChecksUtil;
@@ -109,6 +111,21 @@ class LuciBuildService {
           slugOwner: slug.owner,
           slugName: slug.name,
         ),
+        UserAgentBuildTag.flutterCocoon,
+      ]),
+    );
+  }
+
+  /// Fetches an Iterable of try BuildBucket [Build]s for a given [sha].
+  Future<Iterable<bbv2.Build>> getTryBuildsBySha({
+    required String sha,
+    String? builderName,
+  }) async {
+    return _getBuilds(
+      builderName: builderName,
+      bucket: 'try',
+      tags: BuildTags([
+        ByPresubmitCommitBuildSetBuildTag(commitSha: sha),
         UserAgentBuildTag.flutterCocoon,
       ]),
     );

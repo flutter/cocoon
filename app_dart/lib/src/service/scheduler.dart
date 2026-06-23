@@ -336,6 +336,21 @@ class Scheduler {
     String reason = 'Newer commit available',
     List<String>? builderTriggerList,
   }) async {
+    // To avoid re-running all checks if the CICD label is removed and added
+    // after presubmits have started, check if builds already exist for the
+    // current SHA. If builds already exist, there is no need to cancel them
+    // and create new ones.
+    final tryBuilds = await _luciBuildService.getTryBuildsBySha(
+      sha: pullRequest.head!.sha!,
+    );
+    if (tryBuilds.isNotEmpty) {
+      return;
+    }
+
+    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
+      pullRequest.user!.login!,
+    );
+    
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info(
       'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
@@ -343,10 +358,6 @@ class Scheduler {
     await cancelPreSubmitTargets(pullRequest: pullRequest, reason: reason);
 
     final slug = pullRequest.base!.repo!.slug();
-
-    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
-      pullRequest.user!.login!,
-    );
 
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
