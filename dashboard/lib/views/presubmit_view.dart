@@ -186,7 +186,6 @@ class _PreSubmitViewState extends State<PreSubmitView>
             : sha;
         final isMobile =
             widget.isMobile ||
-            presubmitState.isMobile ||
             MediaQuery.of(context).size.width < 600;
         if (presubmitState.isMobile != isMobile) {
           Future.microtask(() {
