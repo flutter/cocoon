@@ -195,7 +195,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
         }
         final title = guardResponse != null
             ? (isMobile
-                  ? 'PR #${guardResponse.prNum}'
+                  ? '${guardResponse.prNum}'
                   : 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)')
             : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
 
@@ -462,14 +462,12 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: widget.isMobile
-                  ? const EdgeInsets.symmetric(vertical: 8)
-                  : const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (widget.isMobile) ...[
+            if (widget.isMobile) ...[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     ElevatedButton(
                       onPressed: () => presubmitState.selectJob(null),
                       child: Row(
@@ -496,8 +494,18 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
                   ],
+                ),
+              ),
+              const Divider(height: 1, thickness: 1),
+            ],
+            Padding(
+              padding: widget.isMobile
+                  ? const EdgeInsets.symmetric(horizontal: 8)
+                  : const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
                     '$repo / $jobName',
                     style: const TextStyle(
@@ -520,7 +528,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
             ),
             Container(
               height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: widget.isMobile
+                  ? const EdgeInsets.symmetric(horizontal: 8)
+                  : const EdgeInsets.symmetric(horizontal: 24),
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 border: Border(bottom: BorderSide(color: borderColor)),
@@ -589,7 +599,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
 
             Container(
               height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: widget.isMobile
+                  ? const EdgeInsets.symmetric(horizontal: 8)
+                  : const EdgeInsets.symmetric(horizontal: 24),
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 border: Border(bottom: BorderSide(color: borderColor)),
@@ -624,7 +636,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
             const SizedBox(height: 12),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
+                margin: widget.isMobile
+                    ? const EdgeInsets.all(8.0)
+                    : const EdgeInsets.all(24.0),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: theme.scaffoldBackgroundColor,
@@ -648,7 +662,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: widget.isMobile
+                  ? const EdgeInsets.all(8.0)
+                  : const EdgeInsets.all(24.0),
               child: Wrap(
                 spacing: 16,
                 runSpacing: 12,
