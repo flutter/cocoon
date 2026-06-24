@@ -105,6 +105,7 @@ class PresubmitState extends ChangeNotifier {
     if (!_isMobile && _selectedJob == null) {
       _ensureValidSelection();
     }
+    notifyListeners();
   }
 
   /// The currently selected job name.
