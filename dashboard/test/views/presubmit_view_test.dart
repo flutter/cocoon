@@ -888,14 +888,14 @@ void main() {
       await tester.pumpAndSettle();
 
       final rerunAllButton = find.widgetWithText(TextButton, 'Re-run failed');
-      final rerunButton = find.widgetWithIcon(IconButton, Icons.refresh);
+      final rerunButton = find.widgetWithText(TextButton, 'Re-run');
 
       expect(rerunAllButton, findsOneWidget);
       expect(rerunButton, findsOneWidget);
 
       // Verify buttons are disabled (onPressed is null)
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNull);
-      expect(tester.widget<IconButton>(rerunButton).onPressed, isNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNull);
     });
 
     testWidgets('Re-run buttons are enabled when authenticated', (
@@ -946,10 +946,10 @@ void main() {
       await tester.pumpAndSettle();
 
       final rerunAllButton = find.widgetWithText(TextButton, 'Re-run failed');
-      final rerunButton = find.widgetWithIcon(IconButton, Icons.refresh);
+      final rerunButton = find.widgetWithText(TextButton, 'Re-run');
 
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNotNull);
-      expect(tester.widget<IconButton>(rerunButton).onPressed, isNotNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);
     });
 
     testWidgets('Re-run buttons are disabled while re-running', (
@@ -1009,13 +1009,13 @@ void main() {
       await tester.pumpAndSettle();
 
       final rerunAllButton = find.widgetWithText(TextButton, 'Re-run failed');
-      final rerunButton = find.widgetWithIcon(IconButton, Icons.refresh);
+      final rerunButton = find.widgetWithText(TextButton, 'Re-run');
 
       // Start re-running
       final rerunFuture = presubmitState.rerunAllFailedJobs();
       await tester.pump();
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNull);
-      expect(tester.widget<IconButton>(rerunButton).onPressed, isNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNull);
 
       // Finish re-running
       rerunCompleter.complete(const CocoonResponse<void>.data(null));
@@ -1025,7 +1025,7 @@ void main() {
       ); // Pump time for the refresh timer
 
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNotNull);
-      expect(tester.widget<IconButton>(rerunButton).onPressed, isNotNull);
+      expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);
     });
   });
 

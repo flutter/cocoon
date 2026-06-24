@@ -340,8 +340,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             children: [
-              Flexible(
-                child: TextButton.icon(
+              TextButton.icon(
                   icon: Icon(
                     presubmitState.isAnyFilterApplied
                         ? Icons.filter_alt
@@ -358,7 +357,6 @@ class _PreSubmitViewState extends State<PreSubmitView>
                       builder: (context) => const FilterDialog(),
                     );
                   },
-                ),
               ),
               const Spacer(),
               if (isLatestSha)
@@ -500,9 +498,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
               const Divider(height: 1, thickness: 1),
             ],
             Padding(
-              padding: widget.isMobile
-                  ? const EdgeInsets.symmetric(horizontal: 8)
-                  : const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -528,9 +524,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
             ),
             Container(
               height: 40,
-              padding: widget.isMobile
-                  ? const EdgeInsets.symmetric(horizontal: 8)
-                  : const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 border: Border(bottom: BorderSide(color: borderColor)),
@@ -599,9 +593,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
 
             Container(
               height: 40,
-              padding: widget.isMobile
-                  ? const EdgeInsets.symmetric(horizontal: 8)
-                  : const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 border: Border(bottom: BorderSide(color: borderColor)),
@@ -633,13 +625,11 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            //const SizedBox(height: 12),
             Expanded(
               child: Container(
-                margin: widget.isMobile
-                    ? const EdgeInsets.all(8.0)
-                    : const EdgeInsets.all(24.0),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: theme.scaffoldBackgroundColor,
                   border: Border.all(color: borderColor),
@@ -662,9 +652,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
               ),
             ),
             Padding(
-              padding: widget.isMobile
-                  ? const EdgeInsets.all(8.0)
-                  : const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
               child: Wrap(
                 spacing: 16,
                 runSpacing: 12,
