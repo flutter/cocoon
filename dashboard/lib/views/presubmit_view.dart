@@ -270,22 +270,22 @@ class _PreSubmitViewState extends State<PreSubmitView>
                       child: SelectionArea(
                         child: isMobile
                             ? (selectedJob == null
-                                ? (guardResponse != null
-                                    ? _buildJobsSidebarPane(
-                                        presubmitState: presubmitState,
-                                        isMobile: true,
-                                        guardResponse: guardResponse,
-                                        isLatestSha: isLatestSha,
-                                        isDark: isDark,
-                                        selectedJob: selectedJob,
-                                      )
-                                    : const Center(
-                                        child: Text('No stages available.'),
-                                      ))
-                                : _JobDetailsViewerPane(
-                                    isMobile: true,
-                                    onError: _showErrorDialog,
-                                  ))
+                                  ? (guardResponse != null
+                                        ? _buildJobsSidebarPane(
+                                            presubmitState: presubmitState,
+                                            isMobile: true,
+                                            guardResponse: guardResponse,
+                                            isLatestSha: isLatestSha,
+                                            isDark: isDark,
+                                            selectedJob: selectedJob,
+                                          )
+                                        : const Center(
+                                            child: Text('No stages available.'),
+                                          ))
+                                  : _JobDetailsViewerPane(
+                                      isMobile: true,
+                                      onError: _showErrorDialog,
+                                    ))
                             : Row(
                                 children: [
                                   if (guardResponse != null)
@@ -302,7 +302,8 @@ class _PreSubmitViewState extends State<PreSubmitView>
                                     ),
                                   const VerticalDivider(width: 1, thickness: 1),
                                   Expanded(
-                                    child: (selectedJob == null ||
+                                    child:
+                                        (selectedJob == null ||
                                             guardResponse == null)
                                         ? const Center(
                                             child: Text(
@@ -346,7 +347,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
                         ? Icons.filter_alt
                         : Icons.filter_alt_outlined,
                   ),
-                  label: const Text('Filter jobs'),
+                  label: const Text('Filter jobs', softWrap: false),
                   style: TextButton.styleFrom(
                     minimumSize: const Size(64, 18),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -367,18 +368,18 @@ class _PreSubmitViewState extends State<PreSubmitView>
                     onPressed: (!presubmitState.canRerunAllFailedJobs)
                         ? null
                         : () async {
-                            final error =
-                                await presubmitState.rerunAllFailedJobs();
+                            final error = await presubmitState
+                                .rerunAllFailedJobs();
                             if (!mounted) return;
                             if (error != null) {
                               await _showErrorDialog(error);
                             }
                           },
                     icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Re-run failed'),
+                    label: const Text('Re-run failed', softWrap: false),
                     style: TextButton.styleFrom(
                       minimumSize: const Size(64, 18),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       foregroundColor: isDark
                           ? const Color(0xFF58A6FF)
                           : const Color(0xFF0969DA),
@@ -686,8 +687,8 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                               color: selectedJob.buildNumber == null
                                   ? Colors.grey
                                   : (isDark
-                                      ? const Color(0xFF58A6FF)
-                                      : const Color(0xFF0969DA)),
+                                        ? const Color(0xFF58A6FF)
+                                        : const Color(0xFF0969DA)),
                               fontSize: 14,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -990,7 +991,7 @@ class _JobItem extends StatelessWidget {
             if (isLatestSha &&
                 (status == TaskStatus.failed ||
                     status == TaskStatus.infraFailure))
-              IconButton(
+              TextButton.icon(
                 onPressed: (!presubmitState.canRerunFailedJob(name))
                     ? null
                     : () async {
@@ -1000,10 +1001,13 @@ class _JobItem extends StatelessWidget {
                         }
                       },
                 icon: const Icon(Icons.refresh, size: 18),
-                tooltip: 'Re-run',
-                color: isDark
-                    ? const Color(0xFF58A6FF)
-                    : const Color(0xFF0969DA),
+                label: const Text('Re-run'),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(64, 8),
+                  foregroundColor: isDark
+                      ? const Color(0xFF58A6FF)
+                      : const Color(0xFF0969DA),
+                ),
               ),
           ],
         ),
