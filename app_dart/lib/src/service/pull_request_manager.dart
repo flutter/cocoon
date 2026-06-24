@@ -1061,7 +1061,7 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
         ) ??
         false;
     if (hasEmergencyLabel) {
-      // The merge guard and Flutter Presubmits check can be unlocked without approval checks because:
+      // The merge queue guard and dashboard checks can be unlocked without approval checks because:
       //
       // * For manual merges the GitHub repo settings already require minimum
       //   approvals before the PR can be submitted.
@@ -1075,7 +1075,7 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
 
   Future<void> _unlockCheckrunsForEmergency() async {
     await _unlockCheckrun(Config.kMergeQueueLockName);
-    await _unlockCheckrun(Config.kFlutterPresubmitsName);
+    await _unlockCheckrun(Config.kDashboardCheckName);
 
     // Let the developer know what is happening with the MQ when this label is found the first time.
     try {

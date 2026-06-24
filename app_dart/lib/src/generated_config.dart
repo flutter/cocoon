@@ -41,4 +41,8 @@ unifiedCheckRunFlow:
     - andywolff
     - camsim99
     - walley892
+    - loic-sharma
+    - vashworth
+    - mboetger
+    - justinmc
 ''';

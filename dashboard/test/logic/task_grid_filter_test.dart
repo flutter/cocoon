@@ -20,7 +20,7 @@ void main() {
     expect(filter.messageFilter, null);
     expect(filter.hashFilter, null);
     expect(filter.showiOS, true);
-    expect(filter.showBringup, false);
+    expect(filter.showBringup, true);
 
     expect(
       filter.matchesTask(
@@ -129,6 +129,7 @@ void main() {
       TaskGridFilter()..messageFilter = RegExp('foo'),
       TaskGridFilter()..hashFilter = RegExp('foo'),
       TaskGridFilter()..showLinux = false,
+      TaskGridFilter()..showBringup = false,
     ];
     for (final filter in nonDefaultFilters) {
       expect(filter, isNot(equals(defaultFilter)));
@@ -146,7 +147,10 @@ void main() {
   });
 
   test('bringup filter show all tasks', () {
-    final filters = <TaskGridFilter>[TaskGridFilter()..showBringup = true];
+    final filters = <TaskGridFilter>[
+      TaskGridFilter(),
+      TaskGridFilter()..showBringup = true,
+    ];
     for (final filter in filters) {
       expect(
         filter.matchesTask(

@@ -74,7 +74,7 @@ void main() {
       expect(check.checkSuiteId, 456);
       expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
       expect(check.isUnifiedCheckRun, true);
-      expect(check.checkRun.name, Config.kFlutterPresubmitsName);
+      expect(check.checkRun.name, Config.kDashboardCheckName);
       expect(check.buildNumber, 0);
       expect(check.buildId, Int64.MAX_VALUE);
     });

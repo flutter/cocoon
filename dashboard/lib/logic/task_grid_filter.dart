@@ -87,7 +87,6 @@ class TaskGridFilter extends FilterPropertySource {
   final BoolFilterProperty _bringUpProperty = BoolFilterProperty(
     fieldName: 'showBringup',
     label: 'Bring Up',
-    value: false,
   );
 
   // [_allProperties] is a LinkedHashMap so we can trust its iteration order

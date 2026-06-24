@@ -76,7 +76,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kFlutterPresubmitsName),
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
       ],
     );
 
@@ -157,7 +157,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kFlutterPresubmitsName),
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
       ],
     );
 
@@ -199,7 +199,7 @@ void main() {
       firestoreService: firestore,
       pullRequest: pullRequest,
       checks: [
-        generateCheckRun(guard.checkRunId, name: Config.kFlutterPresubmitsName),
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
       ],
     );
 

@@ -659,6 +659,15 @@ void main() {
     group('process check run', () {
       test('rerequested ci.yaml check retriggers presubmit', () async {
         final mockGithubService = MockGithubService();
+        when(
+          mockGithubService.getCheckRunsFiltered(
+            slug: anyNamed('slug'),
+            ref: anyNamed('ref'),
+            checkName: anyNamed('checkName'),
+            status: anyNamed('status'),
+            filter: anyNamed('filter'),
+          ),
+        ).thenAnswer((_) async => []);
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
         scheduler = Scheduler(
@@ -746,6 +755,102 @@ void main() {
           mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).called(1);
       });
+
+      test(
+        'check runs are not canceled and not created new if build exists for current sha',
+        () async {
+          final mockGithubService = MockGithubService();
+          when(
+            mockGithubService.getCheckRunsFiltered(
+              slug: anyNamed('slug'),
+              ref: anyNamed('ref'),
+              checkName: anyNamed('checkName'),
+              status: anyNamed('status'),
+              filter: anyNamed('filter'),
+            ),
+          ).thenAnswer((_) async => []);
+          final mockGithubClient = MockGitHub();
+          config = FakeConfig(githubService: mockGithubService);
+          final fakeBb = FakeBuildBucketClient();
+          final fakeLuci = FakeLuciBuildService(
+            config: config,
+            githubChecksUtil: mockGithubChecksUtil,
+            firestore: firestore,
+            buildBucketClient: fakeBb,
+          );
+          fakeBb.batchResponse = (request, _) async {
+            return bbv2.BatchResponse(
+              responses: [
+                bbv2.BatchResponse_Response(
+                  searchBuilds: bbv2.SearchBuildsResponse(
+                    builds: [bbv2.Build(id: Int64(1))],
+                  ),
+                ),
+              ],
+            );
+          };
+          scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
+            cache: cache,
+            config: config,
+            githubChecksService: GithubChecksService(
+              config,
+              githubChecksUtil: mockGithubChecksUtil,
+            ),
+            getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
+            luciBuildService: fakeLuci,
+            contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
+          );
+          when(mockGithubService.github).thenReturn(mockGithubClient);
+          when(
+            mockGithubService.searchIssuesAndPRs(
+              any,
+              any,
+              sort: anyNamed('sort'),
+              pages: anyNamed('pages'),
+            ),
+          ).thenAnswer((_) async => [generateIssue(3)]);
+          when(
+            mockGithubChecksUtil.listCheckSuitesForRef(
+              any,
+              any,
+              ref: anyNamed('ref'),
+            ),
+          ).thenAnswer(
+            (_) async => [
+              // From check_run.check_suite.id in [checkRunString].
+              generateCheckSuite(668083231),
+            ],
+          );
+          when(mockGithubService.getPullRequest(any, any)).thenAnswer(
+            (_) async => generatePullRequest(repo: 'packages', branch: 'main'),
+          );
+          getFilesChanged.cannedFiles = ['abc/def'];
+          final checkRunEventJson =
+              jsonDecode(checkRunString(repository: 'flutter'))
+                  as Map<String, dynamic>;
+          checkRunEventJson['check_run']['name'] = Config.kCiYamlCheckName;
+          final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+            checkRunEventJson,
+          );
+          expect(
+            await scheduler.processCheckRun(checkRunEvent),
+            const ProcessCheckRunResult.success(),
+          );
+          verifyNever(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+            ),
+          );
+        },
+      );
 
       test(
         'rerequested fusion (engine) ci.yaml check retriggers presubmit',
@@ -938,7 +1043,7 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested flutter presubmits check is ignored', () async {
+      test('rerequested dashboard check is ignored', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
@@ -1004,7 +1109,7 @@ void main() {
         });
         final checkRunEventJson =
             jsonDecode(checkRunString()) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Config.kFlutterPresubmitsName;
+        checkRunEventJson['check_run']['name'] = Config.kDashboardCheckName;
         final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
           checkRunEventJson,
         );
@@ -1017,7 +1122,7 @@ void main() {
             any,
             any,
             any,
-            Config.kFlutterPresubmitsName,
+            Config.kDashboardCheckName,
             output: anyNamed('output'),
           ),
         );
@@ -2757,10 +2862,10 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Config.kFlutterPresubmitsName,
+            Config.kDashboardCheckName,
             const CheckRunOutput(
-              title: Config.kFlutterPresubmitsName,
-              summary: Scheduler.kFlutterPresubmitsDescription,
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
             ),
             Config.kCiYamlCheckName,
             const CheckRunOutput(
@@ -2814,7 +2919,7 @@ targets:
           expect(guard.commitSha, pr.head!.sha);
           expect(guard.jobs['Linux A'], TaskStatus.waitingForBackfill);
 
-          // Verify that the "Flutter Presubmits" check run is not immediately succeeded.
+          // Verify that the "Dashboard Checks" check run is not immediately succeeded.
           verifyNever(
             mockGithubChecksUtil.updateCheckRun(
               any,
@@ -2823,7 +2928,7 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
-                  Config.kFlutterPresubmitsName,
+                  Config.kDashboardCheckName,
                 ),
               ),
               status: CheckRunStatus.completed,
@@ -2864,7 +2969,7 @@ targets:
           final pr = generatePullRequest(branch: 'main', repo: 'cocoon');
           await scheduler.triggerPresubmitTargets(pullRequest: pr);
 
-          // Verify that the "Flutter Presubmits" check run is immediately succeeded.
+          // Verify that the "Dashboard Checks" check run is immediately succeeded.
           verify(
             mockGithubChecksUtil.updateCheckRun(
               any,
@@ -2873,7 +2978,7 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
-                  Config.kFlutterPresubmitsName,
+                  Config.kDashboardCheckName,
                 ),
               ),
               status: CheckRunStatus.completed,
@@ -2912,10 +3017,10 @@ targets:
               title: Config.kMergeQueueLockName,
               summary: Scheduler.kMergeQueueLockDescription,
             ),
-            Config.kFlutterPresubmitsName,
+            Config.kDashboardCheckName,
             const CheckRunOutput(
-              title: Config.kFlutterPresubmitsName,
-              summary: Scheduler.kFlutterPresubmitsDescription,
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
             ),
             Config.kCiYamlCheckName,
             // No other targets should be created.
@@ -3023,6 +3128,15 @@ targets:
         'triggers all presubmit build checks when diff cannot be found',
         () async {
           final mockGithubService = MockGithubService();
+          when(
+            mockGithubService.getCheckRunsFiltered(
+              slug: anyNamed('slug'),
+              ref: anyNamed('ref'),
+              checkName: anyNamed('checkName'),
+              status: anyNamed('status'),
+              filter: anyNamed('filter'),
+            ),
+          ).thenAnswer((_) async => []);
           getFilesChanged.cannedFiles = null;
           scheduler = Scheduler(
             githubService: config.githubService ?? FakeGithubService(),
@@ -3069,10 +3183,10 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
-              Config.kFlutterPresubmitsName,
+              Config.kDashboardCheckName,
               const CheckRunOutput(
-                title: Config.kFlutterPresubmitsName,
-                summary: Scheduler.kFlutterPresubmitsDescription,
+                title: Config.kDashboardCheckName,
+                summary: Scheduler.kDashboardChecksDescription,
               ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
@@ -3115,10 +3229,10 @@ targets:
                 title: Config.kMergeQueueLockName,
                 summary: Scheduler.kMergeQueueLockDescription,
               ),
-              Config.kFlutterPresubmitsName,
+              Config.kDashboardCheckName,
               const CheckRunOutput(
-                title: Config.kFlutterPresubmitsName,
-                summary: Scheduler.kFlutterPresubmitsDescription,
+                title: Config.kDashboardCheckName,
+                summary: Scheduler.kDashboardChecksDescription,
               ),
               Config.kCiYamlCheckName,
               const CheckRunOutput(
@@ -3189,7 +3303,7 @@ targets:
 
         expect(capturedUpdates, <(String, CheckRunStatus, CheckRunConclusion)>[
           (
-            Config.kFlutterPresubmitsName,
+            Config.kDashboardCheckName,
             CheckRunStatus.completed,
             CheckRunConclusion.success,
           ),
@@ -3293,7 +3407,22 @@ targets:
         ).thenAnswer((inv) async {
           return [];
         });
+        when(
+          luci.getTryBuildsBySha(
+            sha: anyNamed('sha'),
+            builderName: anyNamed('builderName'),
+          ),
+        ).thenAnswer((_) async => []);
         final mockGithubService = MockGithubService();
+        when(
+          mockGithubService.getCheckRunsFiltered(
+            slug: anyNamed('slug'),
+            ref: anyNamed('ref'),
+            checkName: anyNamed('checkName'),
+            status: anyNamed('status'),
+            filter: anyNamed('filter'),
+          ),
+        ).thenAnswer((_) async => []);
         final checkRuns = <CheckRun>[];
         when(
           mockGithubChecksUtil.createCheckRun(
@@ -3958,6 +4087,15 @@ targets:
 
       setUp(() {
         mockGithubService = MockGithubService();
+        when(
+          mockGithubService.getCheckRunsFiltered(
+            slug: anyNamed('slug'),
+            ref: anyNamed('ref'),
+            checkName: anyNamed('checkName'),
+            status: anyNamed('status'),
+            filter: anyNamed('filter'),
+          ),
+        ).thenAnswer((_) async => []);
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
         ciYamlFetcher.setCiYamlFrom(
           singleCiYamlWithLinuxAnalyze,
@@ -4093,6 +4231,7 @@ targets:
       late _CapturingFakeLuciBuildService fakeLuciBuildService;
 
       setUp(() {
+        config.githubService = FakeGithubService();
         fakeLuciBuildService = _CapturingFakeLuciBuildService();
         scheduler = Scheduler(
           githubService: config.githubService ?? FakeGithubService(),
@@ -4115,7 +4254,7 @@ targets:
         final pullRequest = generatePullRequest();
         final checkRunGuard = generateCheckRun(
           1234,
-          name: Config.kFlutterPresubmitsName,
+          name: Config.kDashboardCheckName,
         );
 
         await PrCheckRuns.initializeDocument(
@@ -4376,7 +4515,7 @@ targets:
           final pullRequest = generatePullRequest(repo: 'packages');
           final checkRunGuard = generateCheckRun(
             1234,
-            name: Config.kFlutterPresubmitsName,
+            name: Config.kDashboardCheckName,
             startedAt: DateTime.now(),
           );
 
@@ -4540,4 +4679,10 @@ final class _CapturingFakeLuciBuildService extends Fake
     required PullRequest pullRequest,
     required String reason,
   }) async {}
+
+  @override
+  Future<Iterable<bbv2.Build>> getTryBuildsBySha({
+    required String sha,
+    String? builderName,
+  }) async => [];
 }

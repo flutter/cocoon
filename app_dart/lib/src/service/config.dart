@@ -83,7 +83,7 @@ interface class Config extends DynamicallyUpdatedConfig {
 
   /// A required check that stays in pending state until all presubmit checks pass
   /// for users opted into the unified checkrun flow.
-  static const String kFlutterPresubmitsName = 'Flutter Presubmits';
+  static const String kDashboardCheckName = 'Dashboard Checks';
 
   final CacheService _cache;
   final SecretManager _secrets;
