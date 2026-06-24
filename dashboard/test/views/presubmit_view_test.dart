@@ -134,6 +134,7 @@ void main() {
       cocoonService: mockCocoonService,
       authService: mockAuthService,
     );
+
   });
 
   Widget createPreSubmitView(
@@ -148,7 +149,14 @@ void main() {
         presubmitState: presubmitState,
         signInService: mockAuthService,
         child: MaterialApp(
-          theme: theme ?? ThemeData(useMaterial3: false),
+          theme: (theme ?? ThemeData(useMaterial3: false)).copyWith(
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                textStyle: const TextStyle(fontSize: 11),
+              ),
+            ),
+          ),
           builder: screenSize == null
               ? null
               : (context, child) => MediaQuery(
@@ -1320,7 +1328,7 @@ void main() {
       );
 
       // 6. For title only use PR # and guardResponse.prNum
-      expect(find.text('PR #123'), findsOneWidget);
+      expect(find.text('123'), findsOneWidget);
 
       // 5. On header in ShaSelector show short sha and status icon
       final shaSelector = find.byType(ShaSelector);

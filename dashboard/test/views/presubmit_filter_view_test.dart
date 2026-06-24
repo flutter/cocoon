@@ -104,6 +104,14 @@ void main() {
         presubmitState: presubmitState,
         signInService: mockAuthService,
         child: MaterialApp(
+          theme: ThemeData(useMaterial3: false).copyWith(
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                textStyle: const TextStyle(fontSize: 11),
+              ),
+            ),
+          ),
           home: PreSubmitView(
             queryParameters: queryParameters,
             syncNavigation: false,
