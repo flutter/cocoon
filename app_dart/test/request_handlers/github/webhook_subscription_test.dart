@@ -4150,23 +4150,30 @@ void foo() {
       final slug = Config.flutterSlug;
       const prNumber = 123;
       final lockKey = 'pr_lock_${slug.owner}_${slug.name}_$prNumber';
-      final lockValue = Uint8List.fromList('l'.codeUnits);
-
-      // Pre-populate cache to simulate lock held by another instance
-      await cache.set('pr_locks', lockKey, lockValue);
 
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: prNumber,
       );
 
-      try {
-        await tester.post(webhook);
-        fail('Should have thrown ServiceUnavailable');
-      } on ServiceUnavailable catch (e) {
-        expect(e.statusCode, HttpStatus.serviceUnavailable);
-        expect(e.message, contains('PR is locked by another instance'));
-      }
+      // Pre-acquire lock to simulate lock held by another instance
+      var lockAcquired = false;
+      await cache.tryLock(
+        lockKey,
+        () async {
+          lockAcquired = true;
+          try {
+            await tester.post(webhook);
+            fail('Should have thrown ServiceUnavailable');
+          } on ServiceUnavailable catch (e) {
+            expect(e.statusCode, HttpStatus.serviceUnavailable);
+            expect(e.message, contains('PR is locked by another instance'));
+          }
+        },
+        const Duration(minutes: 5),
+      );
+
+      expect(lockAcquired, isTrue);
     });
   });
 }

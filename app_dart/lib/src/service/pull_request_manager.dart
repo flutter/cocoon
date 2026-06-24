@@ -90,28 +90,22 @@ class PullRequestManager {
     final slug = event.repository!.slug();
     final prNumber = pr.number!;
     final lockKey = 'pr_lock_${slug.owner}_${slug.name}_$prNumber';
-    final lockValue = Uint8List.fromList('l'.codeUnits);
 
-    var lockAcquired = false;
-    await cache.getOrCreate(
-      'pr_locks',
+    T? result;
+    final lockAcquired = await cache.tryLock(
       lockKey,
-      createFn: () async {
-        lockAcquired = true;
-        return lockValue;
+      () async {
+        result = await action();
       },
-      ttl: const Duration(minutes: 5),
+      const Duration(minutes: 5),
+      3, // Retry up to 3 times with exponential backoff under contention
     );
 
     if (!lockAcquired) {
       throw const ServiceUnavailable('PR is locked by another instance');
     }
 
-    try {
-      return await action();
-    } finally {
-      await cache.purge('pr_locks', lockKey);
-    }
+    return result as T;
   }
 
   static Future<void> handleOpened(
