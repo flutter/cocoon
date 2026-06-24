@@ -27,28 +27,44 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Evict the default ubuntu user and create the target user
-RUN (userdel -r ubuntu 2>/dev/null || true) && \
-    groupadd -g 1000 coder && \
-    useradd -u 1000 -g 1000 -m coder && \
-    mkdir -p /app /opt/flutter /home/linuxbrew/.linuxbrew && \
-    chown -R coder:coder /app /opt /home/linuxbrew
+RUN set -ex; \
+    (userdel -r ubuntu 2>/dev/null || true); \
+    groupadd -g 1000 coder; \
+    useradd -u 1000 -g 1000 -m coder;  \
+    mkdir -p /app /opt/flutter /home/linuxbrew/.linuxbrew; \
+    chown -R coder:coder /app /opt /home/linuxbrew;
 
 USER coder
 
-WORKDIR /opt
-
-RUN curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ
-
-# 2. Lock in configuration and force the massive SDK downloads
-ENV PATH="/opt/flutter/bin:${PATH}"
-RUN flutter config \
+RUN set -ex; \
+    export PATH="/opt/flutter/bin:${PATH}"; \
+    # 1. Download and uncompress the flutter tool
+    curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ --no-same-owner -C /opt; \
+    # 2. Run config to ONLY ENABLE web (and disable everything else)
+    flutter config \
         --enable-web \
         --no-enable-linux-desktop \
         --no-enable-macos-desktop \
         --no-enable-windows-desktop \
         --no-enable-android \
         --no-enable-ios \
-        --no-enable-fuchsia && \
-    flutter precache --web && \
-    flutter --version && \
-    flutter --enable-analytics && dart --enable-analytics
+        --no-enable-fuchsia; \
+    \
+    # 3. Precache only the web artifacts
+    flutter precache --web; \
+    \
+    # 4. Delete the heavy cache/artifacts/engine folder and test/gallery waste
+    rm -rf /opt/flutter/bin/cache/artifacts/engine; \
+    rm -rf /home/coder/.pub-cache/hosted/pub.dev/flutter_gallery_assets*; \
+    rm -rf /home/coder/.pub-cache/hosted/pub.dev/googleapis*; \
+    \
+    # 5. Run doctor to finalize setup and verify web artifacts
+    /opt/flutter/bin/flutter doctor -v; \
+    \
+    # 6. Log some stuff and setup analytics (user == human)
+    flutter --version ; \
+    flutter --enable-analytics; \
+    dart --enable-analytics;
+
+# 2. Lock in configuration and force the massive SDK downloads
+ENV PATH="/opt/flutter/bin:${PATH}"
