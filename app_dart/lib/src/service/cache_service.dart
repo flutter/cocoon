@@ -8,7 +8,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cocoon_server/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:redis/redis.dart';
 
@@ -223,7 +222,7 @@ class CacheService {
       return;
     }
 
-    const String releaseLockScript = '''
+    const releaseLockScript = '''
       if redis.call("get", KEYS[1]) == ARGV[1] then
           return redis.call("del", KEYS[1])
       else
