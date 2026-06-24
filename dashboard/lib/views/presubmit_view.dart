@@ -198,131 +198,140 @@ class _PreSubmitViewState extends State<PreSubmitView>
                       : 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)')
                 : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
 
-        var statusText = (pr != null ? 'Pending' : 'Loading...');
-        if (guardResponse != null) {
-          statusText = guardResponse.guardStatus.value;
-        } else if (sha != null) {
-          final summary = presubmitState.availableSummaries.firstWhere(
-            (s) => s.headSha == sha,
-            orElse: () => const PresubmitGuardSummary(
-              headSha: '',
-              creationTime: 0,
-              guardStatus: GuardStatus.waitingForBackfill,
-            ),
-          );
-          if (summary.headSha.isNotEmpty) {
-            statusText = summary.guardStatus.value;
-          }
-        }
+            var statusText = (pr != null ? 'Pending' : 'Loading...');
+            if (guardResponse != null) {
+              statusText = guardResponse.guardStatus.value;
+            } else if (sha != null) {
+              final summary = presubmitState.availableSummaries.firstWhere(
+                (s) => s.headSha == sha,
+                orElse: () => const PresubmitGuardSummary(
+                  headSha: '',
+                  creationTime: 0,
+                  guardStatus: GuardStatus.waitingForBackfill,
+                ),
+              );
+              if (summary.headSha.isNotEmpty) {
+                statusText = summary.guardStatus.value;
+              }
+            }
 
-        final isLatestSha =
-            pr != null &&
-            presubmitState.availableSummaries.isNotEmpty &&
-            sha == presubmitState.availableSummaries.first.headSha;
+            final isLatestSha =
+                pr != null &&
+                presubmitState.availableSummaries.isNotEmpty &&
+                sha == presubmitState.availableSummaries.first.headSha;
 
-        return Scaffold(
-          appBar: CocoonAppBar(
-            title: Row(
-              children: [
-                Flexible(
-                  child: SelectionArea(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+            return Scaffold(
+              appBar: CocoonAppBar(
+                title: Row(
+                  children: [
+                    Flexible(
+                      child: SelectionArea(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (!isMobile) ...[
+                      const SizedBox(width: 16),
+                      pw.GuardStatus(status: statusText),
+                    ],
+                  ],
+                ),
+                actions: [
+                  Center(
+                    child: SizedBox(
+                      width: isMobile ? 120 : 300,
+                      child: ShaSelector(
+                        availableShas: availableSummaries,
+                        selectedSha: sha,
+                        isMobile: isMobile,
+                        onShaSelected: (newSha) {
+                          presubmitState.update(
+                            repo: repo,
+                            pr: pr,
+                            sha: newSha,
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-                if (!isMobile) ...[
-                  const SizedBox(width: 16),
-                  pw.GuardStatus(status: statusText),
+                  const SizedBox(width: 8),
                 ],
-              ],
-            ),
-            actions: [
-              Center(
-                child: SizedBox(
-                  width: isMobile ? 120 : 300,
-                  child: ShaSelector(
-                    availableShas: availableSummaries,
-                    selectedSha: sha,
-                    isMobile: isMobile,
-                    onShaSelected: (newSha) {
-                      presubmitState.update(repo: repo, pr: pr, sha: newSha);
-                    },
-                  ),
-                ),
               ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          drawer: const DashboardNavigationDrawer(),
-          body: isLoading && guardResponse == null
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  children: [
-                    const Divider(height: 1, thickness: 1),
-                    Expanded(
-                      child: SelectionArea(
-                        child: isMobile
-                            ? (selectedJob == null
-                                  ? (guardResponse != null
-                                        ? _buildJobsSidebarPane(
+              drawer: const DashboardNavigationDrawer(),
+              body: isLoading && guardResponse == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      children: [
+                        const Divider(height: 1, thickness: 1),
+                        Expanded(
+                          child: SelectionArea(
+                            child: isMobile
+                                ? (selectedJob == null
+                                      ? (guardResponse != null
+                                            ? _buildJobsSidebarPane(
+                                                presubmitState: presubmitState,
+                                                isMobile: true,
+                                                guardResponse: guardResponse,
+                                                isLatestSha: isLatestSha,
+                                                isDark: isDark,
+                                                selectedJob: selectedJob,
+                                              )
+                                            : const Center(
+                                                child: Text(
+                                                  'No stages available.',
+                                                ),
+                                              ))
+                                      : _JobDetailsViewerPane(
+                                          isMobile: true,
+                                          onError: _showErrorDialog,
+                                        ))
+                                : Row(
+                                    children: [
+                                      if (guardResponse != null)
+                                        SizedBox(
+                                          width: 350,
+                                          child: _buildJobsSidebarPane(
                                             presubmitState: presubmitState,
-                                            isMobile: true,
+                                            isMobile: false,
                                             guardResponse: guardResponse,
                                             isLatestSha: isLatestSha,
                                             isDark: isDark,
                                             selectedJob: selectedJob,
-                                          )
-                                        : const Center(
-                                            child: Text('No stages available.'),
-                                          ))
-                                  : _JobDetailsViewerPane(
-                                      isMobile: true,
-                                      onError: _showErrorDialog,
-                                    ))
-                            : Row(
-                                children: [
-                                  if (guardResponse != null)
-                                    SizedBox(
-                                      width: 350,
-                                      child: _buildJobsSidebarPane(
-                                        presubmitState: presubmitState,
-                                        isMobile: false,
-                                        guardResponse: guardResponse,
-                                        isLatestSha: isLatestSha,
-                                        isDark: isDark,
-                                        selectedJob: selectedJob,
-                                      ),
-                                    ),
-                                  const VerticalDivider(width: 1, thickness: 1),
-                                  Expanded(
-                                    child:
-                                        (selectedJob == null ||
-                                            guardResponse == null)
-                                        ? const Center(
-                                            child: Text(
-                                              'Select a job to view execution details.',
-                                            ),
-                                          )
-                                        : _JobDetailsViewerPane(
-                                            isMobile: false,
-                                            onError: _showErrorDialog,
                                           ),
+                                        ),
+                                      const VerticalDivider(
+                                        width: 1,
+                                        thickness: 1,
+                                      ),
+                                      Expanded(
+                                        child:
+                                            (selectedJob == null ||
+                                                guardResponse == null)
+                                            ? const Center(
+                                                child: Text(
+                                                  'Select a job to view execution details.',
+                                                ),
+                                              )
+                                            : _JobDetailsViewerPane(
+                                                isMobile: false,
+                                                onError: _showErrorDialog,
+                                              ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+            );
+          },
         );
-      },
-    );
       },
     );
   }
