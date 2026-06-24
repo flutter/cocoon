@@ -682,20 +682,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                                     : const Color(0xFF0969DA)),
                         ),
                         const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            'View more details on LUCI UI',
-                            style: TextStyle(
-                              color: selectedJob.buildNumber == null
-                                  ? Colors.grey
-                                  : (isDark
-                                        ? const Color(0xFF58A6FF)
-                                        : const Color(0xFF0969DA)),
-                              fontSize: 14,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+                        Text(\n                          'View more details on LUCI UI',\n                          style: TextStyle(\n                            color: selectedJob.buildNumber == null\n                                ? Colors.grey\n                                : (isDark\n                                      ? const Color(0xFF58A6FF)\n                                      : const Color(0xFF0969DA)),\n                            fontSize: 14,\n                          ),\n                        )
                       ],
                     ),
                   ),
