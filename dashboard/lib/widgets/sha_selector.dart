@@ -180,9 +180,7 @@ class ShaSelector extends StatelessWidget {
         height: 14,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            TaskBox.statusColor[taskStatus] ?? const Color(0xFFD29922),
-          ),
+          color: TaskBox.statusColor[taskStatus] ?? const Color(0xFFD29922),
         ),
       );
     }
