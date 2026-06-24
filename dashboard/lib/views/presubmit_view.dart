@@ -337,7 +337,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.fromLTRB(2, 8, 4, 8),
           child: Row(
             children: [
               TextButton.icon(
