@@ -32,6 +32,7 @@ final class PreSubmitView extends StatefulWidget {
     super.key,
     this.queryParameters,
     this.syncNavigation = true,
+    this.isMobile = false,
   });
 
   static const String routeSegment = 'presubmit';
@@ -39,6 +40,7 @@ final class PreSubmitView extends StatefulWidget {
 
   final Map<String, String>? queryParameters;
   final bool syncNavigation;
+  final bool isMobile;
 
   @override
   State<PreSubmitView> createState() => _PreSubmitViewState();
@@ -65,6 +67,8 @@ class _PreSubmitViewState extends State<PreSubmitView>
       _presubmitState = newState;
       _presubmitState?.addListener(_onStateChanged);
     }
+    final isMobile = widget.isMobile || MediaQuery.of(context).size.width < 600;
+    _presubmitState?.setMobile(isMobile);
     _triggerUpdate();
   }
 
@@ -149,7 +153,8 @@ class _PreSubmitViewState extends State<PreSubmitView>
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final presubmitState = Provider.of<PresubmitState>(context);
 
     return AnimatedBuilder(
@@ -179,8 +184,19 @@ class _PreSubmitViewState extends State<PreSubmitView>
         final shortSha = (sha != null && sha.length > 7)
             ? sha.substring(0, 7)
             : sha;
+        final isMobile =
+            widget.isMobile ||
+            presubmitState.isMobile ||
+            MediaQuery.of(context).size.width < 600;
+        if (presubmitState.isMobile != isMobile) {
+          Future.microtask(() {
+            if (mounted) presubmitState.setMobile(isMobile);
+          });
+        }
         final title = guardResponse != null
-            ? 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)'
+            ? (isMobile
+                  ? 'PR #${guardResponse.prNum}'
+                  : 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)')
             : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
 
         var statusText = (pr != null ? 'Pending' : 'Loading...');
@@ -221,49 +237,20 @@ class _PreSubmitViewState extends State<PreSubmitView>
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                pw.GuardStatus(status: statusText),
+                if (!isMobile) ...[
+                  const SizedBox(width: 16),
+                  pw.GuardStatus(status: statusText),
+                ],
               ],
             ),
             actions: [
-              IconButton(
-                icon: Icon(
-                  presubmitState.isAnyFilterApplied
-                      ? Icons.filter_alt
-                      : Icons.filter_alt_outlined,
-                ),
-                tooltip: 'Filter jobs',
-                onPressed: () {
-                  showDialog<void>(
-                    context: context,
-                    builder: (context) => const FilterDialog(),
-                  );
-                },
-              ),
-              if (isLatestSha) ...[
-                TextButton.icon(
-                  onPressed: (!presubmitState.canRerunAllFailedJobs)
-                      ? null
-                      : () async {
-                          final error = await presubmitState
-                              .rerunAllFailedJobs();
-                          if (!mounted) return;
-                          if (error != null) {
-                            await _showErrorDialog(error);
-                          }
-                        },
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Re-run failed'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.white),
-                ),
-                const SizedBox(width: 8),
-              ],
               Center(
                 child: SizedBox(
-                  width: 300,
+                  width: isMobile ? 120 : 300,
                   child: ShaSelector(
                     availableShas: availableSummaries,
                     selectedSha: sha,
+                    isMobile: isMobile,
                     onShaSelected: (newSha) {
                       presubmitState.update(repo: repo, pr: pr, sha: newSha);
                     },
@@ -281,33 +268,54 @@ class _PreSubmitViewState extends State<PreSubmitView>
                     const Divider(height: 1, thickness: 1),
                     Expanded(
                       child: SelectionArea(
-                        child: Row(
-                          children: [
-                            if (guardResponse != null)
-                              _JobsSidebar(
-                                guardResponse:
-                                    presubmitState.filteredGuardResponse ??
-                                    guardResponse,
-                                selectedJob: selectedJob,
-                                isLatestSha: isLatestSha,
-                                onJobSelected: presubmitState.selectJob,
-                                onError: _showErrorDialog,
-                              ),
-                            const VerticalDivider(width: 1, thickness: 1),
-                            Expanded(
-                              child:
-                                  (selectedJob == null || guardResponse == null)
-                                  ? const Center(
-                                      child: Text(
-                                        'Select a job to view execution details.',
+                        child: isMobile
+                            ? (selectedJob == null
+                                ? (guardResponse != null
+                                    ? _buildJobsSidebarPane(
+                                        presubmitState: presubmitState,
+                                        isMobile: true,
+                                        guardResponse: guardResponse,
+                                        isLatestSha: isLatestSha,
+                                        isDark: isDark,
+                                        selectedJob: selectedJob,
+                                      )
+                                    : const Center(
+                                        child: Text('No stages available.'),
+                                      ))
+                                : _JobDetailsViewerPane(
+                                    isMobile: true,
+                                    onError: _showErrorDialog,
+                                  ))
+                            : Row(
+                                children: [
+                                  if (guardResponse != null)
+                                    SizedBox(
+                                      width: 350,
+                                      child: _buildJobsSidebarPane(
+                                        presubmitState: presubmitState,
+                                        isMobile: false,
+                                        guardResponse: guardResponse,
+                                        isLatestSha: isLatestSha,
+                                        isDark: isDark,
+                                        selectedJob: selectedJob,
                                       ),
-                                    )
-                                  : _JobDetailsViewerPane(
-                                      onError: _showErrorDialog,
                                     ),
-                            ),
-                          ],
-                        ),
+                                  const VerticalDivider(width: 1, thickness: 1),
+                                  Expanded(
+                                    child: (selectedJob == null ||
+                                            guardResponse == null)
+                                        ? const Center(
+                                            child: Text(
+                                              'Select a job to view execution details.',
+                                            ),
+                                          )
+                                        : _JobDetailsViewerPane(
+                                            isMobile: false,
+                                            onError: _showErrorDialog,
+                                          ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                   ],
@@ -316,12 +324,92 @@ class _PreSubmitViewState extends State<PreSubmitView>
       },
     );
   }
+
+  Widget _buildJobsSidebarPane({
+    required PresubmitState presubmitState,
+    required bool isMobile,
+    required PresubmitGuardResponse guardResponse,
+    required bool isLatestSha,
+    required bool isDark,
+    required String? selectedJob,
+  }) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Flexible(
+                child: TextButton.icon(
+                  icon: Icon(
+                    presubmitState.isAnyFilterApplied
+                        ? Icons.filter_alt
+                        : Icons.filter_alt_outlined,
+                  ),
+                  label: const Text('Filter jobs'),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(64, 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                  ),
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) => const FilterDialog(),
+                    );
+                  },
+                ),
+              ),
+              const Spacer(),
+              if (isLatestSha)
+                Flexible(
+                  child: TextButton.icon(
+                    onPressed: (!presubmitState.canRerunAllFailedJobs)
+                        ? null
+                        : () async {
+                            final error =
+                                await presubmitState.rerunAllFailedJobs();
+                            if (!mounted) return;
+                            if (error != null) {
+                              await _showErrorDialog(error);
+                            }
+                          },
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Re-run failed'),
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(64, 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      foregroundColor: isDark
+                          ? const Color(0xFF58A6FF)
+                          : const Color(0xFF0969DA),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const Divider(height: 1, thickness: 1),
+        Expanded(
+          child: _JobsSidebar(
+            guardResponse:
+                presubmitState.filteredGuardResponse ?? guardResponse,
+            selectedJob: selectedJob,
+            isLatestSha: isLatestSha,
+            isMobile: isMobile,
+            onJobSelected: presubmitState.selectJob,
+            onError: _showErrorDialog,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _JobDetailsViewerPane extends StatefulWidget {
-  const _JobDetailsViewerPane({required this.onError});
+  const _JobDetailsViewerPane({required this.onError, this.isMobile = false});
 
   final ValueChanged<String> onError;
+  final bool isMobile;
 
   @override
   State<_JobDetailsViewerPane> createState() => _JobDetailsViewerPaneState();
@@ -382,6 +470,35 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (widget.isMobile) ...[
+                    ElevatedButton(
+                      onPressed: () => presubmitState.selectJob(null),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.arrow_back,
+                            size: 18,
+                            color: isDark
+                                ? const Color(0xFF58A6FF)
+                                : const Color(0xFF0969DA),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'Back to jobs',
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFF58A6FF)
+                                    : const Color(0xFF0969DA),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   Text(
                     '$repo / $jobName',
                     style: const TextStyle(
@@ -411,44 +528,53 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
               ),
               child: Row(
                 children: [
-                  ...jobs.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final job = entry.value;
-                    final isSelected = _selectedAttemptIndex == index;
-                    return InkWell(
-                      onTap: () =>
-                          setState(() => _selectedAttemptIndex = index),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: isSelected
-                                  ? const Color(0xFF3B82F6)
-                                  : Colors.transparent,
-                              width: 2,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: jobs.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final job = entry.value;
+                          final isSelected = _selectedAttemptIndex == index;
+                          return InkWell(
+                            onTap: () =>
+                                setState(() => _selectedAttemptIndex = index),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: isSelected
+                                        ? const Color(0xFF3B82F6)
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                '#${job.attemptNumber}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? (isDark ? Colors.white : Colors.black)
+                                      : (isDark
+                                            ? const Color(0xFF8B949E)
+                                            : const Color(0xFF6B7280)),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        child: Text(
-                          '#${job.attemptNumber}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                            color: isSelected
-                                ? (isDark ? Colors.white : Colors.black)
-                                : (isDark
-                                      ? const Color(0xFF8B949E)
-                                      : const Color(0xFF6B7280)),
-                          ),
-                        ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }),
-                  const Spacer(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   const Text(
                     'BUILD HISTORY',
                     style: TextStyle(
@@ -471,15 +597,24 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
               ),
               child: Row(
                 children: [
-                  if (hasLogAnalysis) ...[
-                    _buildDetailTab('Log Analysis', 0, isDark),
-                    _buildDetailTab('Execution Details', 1, isDark),
-                  ] else
-                    const Text(
-                      'Execution Details',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          if (hasLogAnalysis) ...[
+                            _buildDetailTab('Log Analysis', 0, isDark),
+                            _buildDetailTab('Execution Details', 1, isDark),
+                          ] else
+                            const Text(
+                              'Execution Details',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                        ],
+                      ),
                     ),
-                  const Spacer(),
+                  ),
+                  const SizedBox(width: 8),
                   const Text(
                     'Raw output',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -515,7 +650,10 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
             ),
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Row(
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   ElevatedButton(
                     onPressed: selectedJob.buildNumber == null
@@ -541,22 +679,24 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                                     : const Color(0xFF0969DA)),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'View more details on LUCI UI',
-                          style: TextStyle(
-                            color: selectedJob.buildNumber == null
-                                ? Colors.grey
-                                : (isDark
+                        Flexible(
+                          child: Text(
+                            'View more details on LUCI UI',
+                            style: TextStyle(
+                              color: selectedJob.buildNumber == null
+                                  ? Colors.grey
+                                  : (isDark
                                       ? const Color(0xFF58A6FF)
                                       : const Color(0xFF0969DA)),
-                            fontSize: 14,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  if (presubmitState.canAnalyzeLog(selectedJob)) ...[
-                    const SizedBox(width: 16),
+                  if (presubmitState.canAnalyzeLog(selectedJob))
                     ElevatedButton(
                       onPressed: _isAnalyzing
                           ? null
@@ -588,11 +728,15 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                             ),
                             const SizedBox(width: 8),
                           ],
-                          const Text('Analyze Logs with Gemini'),
+                          const Flexible(
+                            child: Text(
+                              'Analyze Logs with Gemini',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ],
                 ],
               ),
             ),
@@ -655,6 +799,7 @@ class _JobsSidebar extends StatefulWidget {
     required this.guardResponse,
     this.selectedJob,
     this.isLatestSha = false,
+    this.isMobile = false,
     required this.onJobSelected,
     required this.onError,
   });
@@ -662,7 +807,8 @@ class _JobsSidebar extends StatefulWidget {
   final PresubmitGuardResponse guardResponse;
   final String? selectedJob;
   final bool isLatestSha;
-  final ValueChanged<String> onJobSelected;
+  final bool isMobile;
+  final ValueChanged<String?> onJobSelected;
   final ValueChanged<String> onError;
 
   @override
@@ -692,7 +838,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
   }
 
   void _selectFirstJob() {
-    if (widget.selectedJob != null) return;
+    if (widget.isMobile || widget.selectedJob != null) return;
     for (final stage in _sortedBuildsPerStage) {
       if (stage.isNotEmpty) {
         final firstJob = stage.first.key;
@@ -725,7 +871,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      width: 350,
+      width: widget.isMobile ? double.infinity : 350,
       color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
@@ -767,6 +913,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
                           status: entry.value,
                           isSelected: isSelected,
                           isLatestSha: widget.isLatestSha,
+                          isMobile: widget.isMobile,
                           onTap: () => widget.onJobSelected(entry.key),
                           onError: widget.onError,
                         );
@@ -789,6 +936,7 @@ class _JobItem extends StatelessWidget {
     required this.status,
     required this.isSelected,
     this.isLatestSha = false,
+    this.isMobile = false,
     required this.onTap,
     required this.onError,
   });
@@ -797,6 +945,7 @@ class _JobItem extends StatelessWidget {
   final TaskStatus status;
   final bool isSelected;
   final bool isLatestSha;
+  final bool isMobile;
   final VoidCallback onTap;
   final ValueChanged<String> onError;
 
@@ -841,7 +990,7 @@ class _JobItem extends StatelessWidget {
             if (isLatestSha &&
                 (status == TaskStatus.failed ||
                     status == TaskStatus.infraFailure))
-              TextButton.icon(
+              IconButton(
                 onPressed: (!presubmitState.canRerunFailedJob(name))
                     ? null
                     : () async {
@@ -851,13 +1000,10 @@ class _JobItem extends StatelessWidget {
                         }
                       },
                 icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Re-run'),
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(64, 18),
-                  foregroundColor: isDark
-                      ? const Color(0xFF58A6FF)
-                      : const Color(0xFF0969DA),
-                ),
+                tooltip: 'Re-run',
+                color: isDark
+                    ? const Color(0xFF58A6FF)
+                    : const Color(0xFF0969DA),
               ),
           ],
         ),
