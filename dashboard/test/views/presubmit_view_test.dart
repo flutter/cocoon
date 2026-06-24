@@ -134,7 +134,6 @@ void main() {
       cocoonService: mockCocoonService,
       authService: mockAuthService,
     );
-
   });
 
   Widget createPreSubmitView(

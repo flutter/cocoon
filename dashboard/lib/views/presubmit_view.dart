@@ -69,7 +69,9 @@ class _PreSubmitViewState extends State<PreSubmitView>
       _triggerUpdate();
     }
     final isMobile = widget.isMobile || MediaQuery.of(context).size.width < 600;
-    _presubmitState?.setMobile(isMobile);
+    Future.microtask(() {
+      if (mounted) _presubmitState?.setMobile(isMobile);
+    });
   }
 
   @override
@@ -185,8 +187,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
             ? sha.substring(0, 7)
             : sha;
         final isMobile =
-            widget.isMobile ||
-            MediaQuery.of(context).size.width < 600;
+            widget.isMobile || MediaQuery.of(context).size.width < 600;
         if (presubmitState.isMobile != isMobile) {
           Future.microtask(() {
             if (mounted) presubmitState.setMobile(isMobile);
@@ -340,22 +341,22 @@ class _PreSubmitViewState extends State<PreSubmitView>
           child: Row(
             children: [
               TextButton.icon(
-                  icon: Icon(
-                    presubmitState.isAnyFilterApplied
-                        ? Icons.filter_alt
-                        : Icons.filter_alt_outlined,
-                  ),
-                  label: const Text('Filter jobs', softWrap: false),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(64, 18),
-                    foregroundColor: isDark ? Colors.white : Colors.black,
-                  ),
-                  onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (context) => const FilterDialog(),
-                    );
-                  },
+                icon: Icon(
+                  presubmitState.isAnyFilterApplied
+                      ? Icons.filter_alt
+                      : Icons.filter_alt_outlined,
+                ),
+                label: const Text('Filter jobs', softWrap: false),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(64, 18),
+                  foregroundColor: isDark ? Colors.white : Colors.black,
+                ),
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => const FilterDialog(),
+                  );
+                },
               ),
               const Spacer(),
               if (isLatestSha)
