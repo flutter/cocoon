@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/cache_service.dart';
@@ -21,16 +22,6 @@ class FakeCacheService extends CacheService {
   }
 
   @override
-  Future<Uint8List?> getOrCreateWithLocking(
-    String subcacheName,
-    String key, {
-    required Future<Uint8List> Function()? createFn,
-    Duration ttl = const Duration(minutes: 1),
-  }) async {
-    return createFn?.call();
-  }
-
-  @override
   Future<Uint8List?> set(
     String subcacheName,
     String key,
@@ -41,15 +32,16 @@ class FakeCacheService extends CacheService {
   }
 
   @override
-  Future<Uint8List?> setWithLocking(
-    String subcacheName,
-    String key,
-    Uint8List? value, {
-    Duration ttl = const Duration(minutes: 1),
-  }) async {
-    return value;
-  }
+  Future<void> purge(String subcacheName, String key) async {}
 
   @override
-  Future<void> purge(String subcacheName, String key) async {}
+  Future<bool> tryLock(
+    String key,
+    FutureOr<void> Function() block,
+    Duration ttl, [
+    int retries = 5,
+  ]) async {
+    await block();
+    return true;
+  }
 }
