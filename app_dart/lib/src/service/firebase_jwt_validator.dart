@@ -130,7 +130,7 @@ interface class FirebaseJwtValidator {
 
   @visibleForTesting
   Future<void> maybeRefreshKeyStore() async {
-    final bytes = await _cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreate(
       'firebase_jwt_keys',
       'firebase_jwt_keys',
       createFn: _downloadPEMs,

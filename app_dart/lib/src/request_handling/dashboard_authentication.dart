@@ -148,7 +148,7 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
   }
 
   Future<bool> _isAllowedCached(String? email) async {
-    final bytes = await _cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreate(
       'account_allowed',
       email ?? 'null_email',
       createFn: () async => (await _isAllowed(email)).toUint8List(),

@@ -53,19 +53,30 @@ final class CacheRequestHandler extends RequestHandler {
       await _cache.purge(responseSubcacheName, responseKey);
     }
 
-    final cachedBytes = await _cache.getOrCreateWithLocking(
-      responseSubcacheName,
-      responseKey,
-      createFn: () async {
-        // This also caches 5XX errors, which, while unexpected, makes sense in
-        // the context of our server, where we have public APIs that can make
-        // expensive operations. If one was to fail, we'd prefer not making that
-        // expensive operation over and over in a short time window.
+    // 1. Fast path: check cache first without locking
+    var cachedBytes = await _cache.get(responseSubcacheName, responseKey);
+    if (cachedBytes == null) {
+      // 2. Slow path: acquire distributed lock to coalesce concurrent requests
+      await _cache.tryLock('cache_request:$responseKey', () async {
+        // 3. Double-check cache inside the lock
+        cachedBytes = await _cache.get(responseSubcacheName, responseKey);
+        if (cachedBytes != null) {
+          return;
+        }
+        // 4. Generate the response
         final response = await _createCachedResponse(request, _delegate);
-        return response.toBytes();
-      },
-      ttl: _ttl,
-    );
+        cachedBytes = response.toBytes();
+        await _cache.set(responseSubcacheName, responseKey, cachedBytes, ttl: _ttl);
+      }, const Duration(seconds: 15));
+
+      // Fallback: if we failed to acquire the lock (contention timeout),
+      // we generate the response anyway to prevent request timeout.
+      if (cachedBytes == null) {
+        final response = await _createCachedResponse(request, _delegate);
+        cachedBytes = response.toBytes();
+        await _cache.set(responseSubcacheName, responseKey, cachedBytes, ttl: _ttl);
+      }
+    }
 
     final cachedResponse = _CachedHttpResponse.fromBytes(
       cachedBytes!,
