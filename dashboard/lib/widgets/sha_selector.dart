@@ -192,10 +192,6 @@ class ShaSelector extends StatelessWidget {
       TaskStatus.waitingForBackfill => Icons.not_started_outlined,
       _ => Icons.help_outline,
     };
-    return Icon(
-      iconData,
-      color: TaskBox.statusColor[taskStatus],
-      size: 18,
-    );
+    return Icon(iconData, color: TaskBox.statusColor[taskStatus], size: 18);
   }
 }

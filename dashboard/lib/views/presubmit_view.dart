@@ -350,7 +350,6 @@ class _PreSubmitViewState extends State<PreSubmitView>
                   label: const Text('Filter jobs', softWrap: false),
                   style: TextButton.styleFrom(
                     minimumSize: const Size(64, 18),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     foregroundColor: isDark ? Colors.white : Colors.black,
                   ),
                   onPressed: () {
@@ -363,27 +362,24 @@ class _PreSubmitViewState extends State<PreSubmitView>
               ),
               const Spacer(),
               if (isLatestSha)
-                Flexible(
-                  child: TextButton.icon(
-                    onPressed: (!presubmitState.canRerunAllFailedJobs)
-                        ? null
-                        : () async {
-                            final error = await presubmitState
-                                .rerunAllFailedJobs();
-                            if (!mounted) return;
-                            if (error != null) {
-                              await _showErrorDialog(error);
-                            }
-                          },
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('Re-run failed', softWrap: false),
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(64, 18),
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      foregroundColor: isDark
-                          ? const Color(0xFF58A6FF)
-                          : const Color(0xFF0969DA),
-                    ),
+                TextButton.icon(
+                  onPressed: (!presubmitState.canRerunAllFailedJobs)
+                      ? null
+                      : () async {
+                          final error = await presubmitState
+                              .rerunAllFailedJobs();
+                          if (!mounted) return;
+                          if (error != null) {
+                            await _showErrorDialog(error);
+                          }
+                        },
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Re-run failed', softWrap: false),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(64, 18),
+                    foregroundColor: isDark
+                        ? const Color(0xFF58A6FF)
+                        : const Color(0xFF0969DA),
                   ),
                 ),
             ],
@@ -467,7 +463,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: widget.isMobile
+                  ? const EdgeInsets.symmetric(vertical: 8)
+                  : const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

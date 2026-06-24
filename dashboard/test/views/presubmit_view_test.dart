@@ -152,9 +152,9 @@ void main() {
           builder: screenSize == null
               ? null
               : (context, child) => MediaQuery(
-                    data: MediaQueryData(size: screenSize),
-                    child: child!,
-                  ),
+                  data: MediaQueryData(size: screenSize),
+                  child: child!,
+                ),
           home: PreSubmitView(
             queryParameters: queryParameters,
             syncNavigation: false,
@@ -1248,7 +1248,9 @@ void main() {
   });
 
   group('PreSubmitView Mobile Version', () {
-    testWidgets('implements mobile layout correctly', (WidgetTester tester) async {
+    testWidgets('implements mobile layout correctly', (
+      WidgetTester tester,
+    ) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -1270,7 +1272,10 @@ void main() {
       );
 
       when(
-        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'decaf_3_real_sha'),
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
       ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
 
       when(
@@ -1291,10 +1296,10 @@ void main() {
       );
 
       await tester.pumpWidget(
-        createPreSubmitView(
-          {'repo': 'flutter', 'pr': '123'},
-          screenSize: const Size(400, 800),
-        ),
+        createPreSubmitView({
+          'repo': 'flutter',
+          'pr': '123',
+        }, screenSize: const Size(400, 800)),
       );
       await tester.runAsync(() async {
         for (var i = 0; i < 50; i++) {
@@ -1309,7 +1314,10 @@ void main() {
       expect(presubmitState.selectedJob, isNull);
       expect(find.text('ENGINE'), findsOneWidget);
       expect(find.text('Mac mac_host_engine 1'), findsOneWidget);
-      expect(find.text('Select a job to view execution details.'), findsNothing);
+      expect(
+        find.text('Select a job to view execution details.'),
+        findsNothing,
+      );
 
       // 6. For title only use PR # and guardResponse.prNum
       expect(find.text('PR #123'), findsOneWidget);
@@ -1317,8 +1325,14 @@ void main() {
       // 5. On header in ShaSelector show short sha and status icon
       final shaSelector = find.byType(ShaSelector);
       expect(shaSelector, findsOneWidget);
-      expect(find.descendant(of: shaSelector, matching: find.text('decaf_3')), findsOneWidget);
-      expect(find.descendant(of: shaSelector, matching: find.byType(Icon)), findsWidgets);
+      expect(
+        find.descendant(of: shaSelector, matching: find.text('decaf_3')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: shaSelector, matching: find.byType(Icon)),
+        findsWidgets,
+      );
 
       // 3. If user select a job only show job details
       await tester.tap(find.text('Mac mac_host_engine 1'));
