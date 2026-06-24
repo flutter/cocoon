@@ -692,7 +692,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                                       : const Color(0xFF0969DA)),
                             fontSize: 14,
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
