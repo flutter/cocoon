@@ -39,7 +39,7 @@ RUN set -eux; \
     ln -s $(which batcat) /usr/local/bin/bat; \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone; \
     rm -rf /var/lib/apt/lists/*; \
-    echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/coder;
 
 COPY update_skills.sh /usr/local/bin/update_skills.sh
 RUN dos2unix /usr/local/bin/update_skills.sh && chmod +x /usr/local/bin/update_skills.sh && chmod +x /usr/local/bin/update_skills.sh
