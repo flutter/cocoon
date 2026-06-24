@@ -625,7 +625,6 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ],
               ),
             ),
-            //const SizedBox(height: 12),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.all(8.0),
