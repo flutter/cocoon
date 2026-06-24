@@ -68,7 +68,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
       _presubmitState?.addListener(_onStateChanged);
       _triggerUpdate();
     }
-    final isMobile = widget.isMobile || MediaQuery.of(context).size.width < 600;
+    final isMobile = widget.isMobile || MediaQuery.sizeOf(context).width < 600;
     Future.microtask(() {
       if (mounted) _presubmitState?.setMobile(isMobile);
     });
@@ -187,7 +187,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
             ? sha.substring(0, 7)
             : sha;
         final isMobile =
-            widget.isMobile || MediaQuery.of(context).size.width < 600;
+            widget.isMobile || MediaQuery.sizeOf(context).width < 600;
         if (presubmitState.isMobile != isMobile) {
           Future.microtask(() {
             if (mounted) presubmitState.setMobile(isMobile);
@@ -346,7 +346,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
                       ? Icons.filter_alt
                       : Icons.filter_alt_outlined,
                 ),
-                label: const Text('Filter jobs', softWrap: false),
+                label: const Text('Filter jobs'),
                 style: TextButton.styleFrom(
                   minimumSize: const Size(64, 18),
                   foregroundColor: isDark ? Colors.white : Colors.black,
@@ -372,7 +372,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
                           }
                         },
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('Re-run failed', softWrap: false),
+                  label: const Text('Re-run failed'),
                   style: TextButton.styleFrom(
                     minimumSize: const Size(64, 18),
                     foregroundColor: isDark
