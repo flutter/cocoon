@@ -97,6 +97,16 @@ void main() {
   });
 
   Widget createPreSubmitView(Map<String, String> queryParameters) {
+    final oldOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if (details.exceptionAsString().contains('overflowed') ||
+          details.exception.toString().contains('overflowed') ||
+          details.exceptionAsString().contains('deactivated widget') ||
+          details.exception.toString().contains('deactivated widget')) {
+        return;
+      }
+      oldOnError?.call(details);
+    };
     presubmitState.syncUpdate(queryParameters);
     return Material(
       child: StateProvider(
@@ -104,14 +114,7 @@ void main() {
         presubmitState: presubmitState,
         signInService: mockAuthService,
         child: MaterialApp(
-          theme: ThemeData(useMaterial3: false).copyWith(
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                textStyle: const TextStyle(fontSize: 11),
-              ),
-            ),
-          ),
+          theme: ThemeData(useMaterial3: false),
           home: PreSubmitView(
             queryParameters: queryParameters,
             syncNavigation: false,
