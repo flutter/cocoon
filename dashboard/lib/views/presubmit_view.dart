@@ -652,91 +652,103 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 8.0),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: selectedJob.buildNumber == null
-                        ? null
-                        : () async => await launchUrl(
-                            Uri.parse(
-                              generatePreSubmitBuildLogUrl(
-                                buildName: selectedJob.jobName,
-                                buildNumber: selectedJob.buildNumber!,
+              child: Align(
+                alignment: widget.isMobile
+                    ? Alignment.center
+                    : Alignment.centerLeft,
+                child: Wrap(
+                  alignment: widget.isMobile
+                      ? WrapAlignment.center
+                      : WrapAlignment.start,
+                  spacing: 16,
+                  runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: selectedJob.buildNumber == null
+                          ? null
+                          : () async => await launchUrl(
+                              Uri.parse(
+                                generatePreSubmitBuildLogUrl(
+                                  buildName: selectedJob.jobName,
+                                  buildNumber: selectedJob.buildNumber!,
+                                ),
                               ),
                             ),
-                          ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.open_in_new,
-                          size: 18,
-                          color: selectedJob.buildNumber == null
-                              ? Colors.grey
-                              : (isDark
-                                    ? const Color(0xFF58A6FF)
-                                    : const Color(0xFF0969DA)),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'View more details on LUCI UI',
-                          style: TextStyle(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.open_in_new,
+                            size: 18,
                             color: selectedJob.buildNumber == null
                                 ? Colors.grey
                                 : (isDark
                                       ? const Color(0xFF58A6FF)
                                       : const Color(0xFF0969DA)),
-                            fontSize: 14,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (presubmitState.canAnalyzeLog(selectedJob))
-                    ElevatedButton(
-                      onPressed: _isAnalyzing
-                          ? null
-                          : () async {
-                              setState(() => _isAnalyzing = true);
-                              try {
-                                final error = await presubmitState.analyzeLogs(
-                                  selectedJob,
-                                );
-                                if (error == null) {
-                                  await presubmitState.fetchJobDetails();
-                                } else {
-                                  widget.onError(error);
-                                }
-                              } finally {
-                                if (mounted) {
-                                  setState(() => _isAnalyzing = false);
-                                }
-                              }
-                            },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_isAnalyzing) ...[
-                            const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          const Flexible(
-                            child: Text(
-                              'Analyze Logs with Gemini',
-                              overflow: TextOverflow.ellipsis,
+                          const SizedBox(width: 8),
+                          Text(
+                            'View more details on LUCI UI',
+                            style: TextStyle(
+                              color: selectedJob.buildNumber == null
+                                  ? Colors.grey
+                                  : (isDark
+                                        ? const Color(0xFF58A6FF)
+                                        : const Color(0xFF0969DA)),
+                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
                     ),
-                ],
+                    if (presubmitState.canAnalyzeLog(selectedJob))
+                      ElevatedButton(
+                        onPressed: _isAnalyzing
+                            ? null
+                            : () async {
+                                setState(() => _isAnalyzing = true);
+                                try {
+                                  final error = await presubmitState
+                                      .analyzeLogs(selectedJob);
+                                  if (error == null) {
+                                    await presubmitState.fetchJobDetails();
+                                  } else {
+                                    widget.onError(error);
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() => _isAnalyzing = false);
+                                  }
+                                }
+                              },
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isAnalyzing) ...[
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ] else ...[
+                              const Icon(Icons.auto_awesome, size: 16),
+                              const SizedBox(width: 8),
+                            ],
+                            const Flexible(
+                              child: Text(
+                                'Analyze Logs with Gemini',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],
