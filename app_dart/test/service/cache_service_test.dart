@@ -75,7 +75,7 @@ void main() {
       // Cache size is 2 (configured in setUp)
       await cache.set(testSubcacheName, key1, val1);
       await cache.set(testSubcacheName, key2, val2);
-      
+
       // Both should be in cache
       expect(await cache.get(testSubcacheName, key1), val1);
       expect(await cache.get(testSubcacheName, key2), val2);
@@ -113,7 +113,7 @@ void main() {
       test('second lock attempt fails while first lock is active', () async {
         final lockAcquiredCompleter = Completer<void>();
         final releaseLockCompleter = Completer<void>();
-        
+
         var secondAttemptResult = false;
         var secondAttemptExecuted = false;
 
@@ -126,9 +126,14 @@ void main() {
         await lockAcquiredCompleter.future;
 
         // Try to acquire the same lock concurrently with 0 retries
-        secondAttemptResult = await cache.tryLock('lockKey', () async {
-          secondAttemptExecuted = true;
-        }, const Duration(seconds: 5), 0);
+        secondAttemptResult = await cache.tryLock(
+          'lockKey',
+          () async {
+            secondAttemptExecuted = true;
+          },
+          const Duration(seconds: 5),
+          0,
+        );
 
         expect(secondAttemptResult, isFalse);
         expect(secondAttemptExecuted, isFalse);
@@ -139,11 +144,19 @@ void main() {
       });
 
       test('lock is automatically released on completion', () async {
-        final result1 = await cache.tryLock('lockKey', () async {}, const Duration(seconds: 5));
+        final result1 = await cache.tryLock(
+          'lockKey',
+          () async {},
+          const Duration(seconds: 5),
+        );
         expect(result1, isTrue);
 
         // Immediately after, we should be able to acquire it again
-        final result2 = await cache.tryLock('lockKey', () async {}, const Duration(seconds: 5));
+        final result2 = await cache.tryLock(
+          'lockKey',
+          () async {},
+          const Duration(seconds: 5),
+        );
         expect(result2, isTrue);
       });
 
@@ -155,7 +168,11 @@ void main() {
         } catch (_) {}
 
         // Even after exception, we should be able to acquire it again immediately
-        final result = await cache.tryLock('lockKey', () async {}, const Duration(seconds: 5));
+        final result = await cache.tryLock(
+          'lockKey',
+          () async {},
+          const Duration(seconds: 5),
+        );
         expect(result, isTrue);
       });
 
@@ -170,36 +187,48 @@ void main() {
         expect(result, isTrue);
 
         // After TTL expired, another instance can acquire it immediately
-        final result2 = await cache.tryLock('lockKey', () async {}, const Duration(seconds: 5));
+        final result2 = await cache.tryLock(
+          'lockKey',
+          () async {},
+          const Duration(seconds: 5),
+        );
         expect(result2, isTrue);
       });
 
-      test('tryLock retries with backoff and eventually succeeds when lock is released', () async {
-        final lockAcquiredCompleter = Completer<void>();
-        final releaseLockCompleter = Completer<void>();
+      test(
+        'tryLock retries with backoff and eventually succeeds when lock is released',
+        () async {
+          final lockAcquiredCompleter = Completer<void>();
+          final releaseLockCompleter = Completer<void>();
 
-        final firstLockFuture = cache.tryLock('lockKey', () async {
-          lockAcquiredCompleter.complete();
-          await releaseLockCompleter.future;
-        }, const Duration(seconds: 5));
+          final firstLockFuture = cache.tryLock('lockKey', () async {
+            lockAcquiredCompleter.complete();
+            await releaseLockCompleter.future;
+          }, const Duration(seconds: 5));
 
-        await lockAcquiredCompleter.future;
+          await lockAcquiredCompleter.future;
 
-        // Start a second tryLock that will retry up to 5 times.
-        // It will wait for first lock to release.
-        final secondLockFuture = cache.tryLock('lockKey', () async {
-          // Succeeds!
-        }, const Duration(seconds: 5), 5);
+          // Start a second tryLock that will retry up to 5 times.
+          // It will wait for first lock to release.
+          final secondLockFuture = cache.tryLock(
+            'lockKey',
+            () async {
+              // Succeeds!
+            },
+            const Duration(seconds: 5),
+            5,
+          );
 
-        // Wait a bit, then release the first lock
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-        releaseLockCompleter.complete();
+          // Wait a bit, then release the first lock
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          releaseLockCompleter.complete();
 
-        await firstLockFuture;
-        final secondResult = await secondLockFuture;
+          await firstLockFuture;
+          final secondResult = await secondLockFuture;
 
-        expect(secondResult, isTrue);
-      });
+          expect(secondResult, isTrue);
+        },
+      );
     });
   });
 }

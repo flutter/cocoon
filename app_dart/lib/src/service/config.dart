@@ -460,7 +460,12 @@ interface class Config extends DynamicallyUpdatedConfig {
         return;
       }
       final newValue = await _generateGithubToken(slug);
-      await _cache.set(configCacheName, cacheKey, newValue, ttl: const Duration(minutes: 8));
+      await _cache.set(
+        configCacheName,
+        cacheKey,
+        newValue,
+        ttl: const Duration(minutes: 8),
+      );
       token = String.fromCharCodes(newValue);
     }, const Duration(seconds: 30));
 
@@ -468,7 +473,12 @@ interface class Config extends DynamicallyUpdatedConfig {
     // we generate a token anyway to prevent failing the request.
     if (token == null) {
       final newValue = await _generateGithubToken(slug);
-      await _cache.set(configCacheName, cacheKey, newValue, ttl: const Duration(minutes: 8));
+      await _cache.set(
+        configCacheName,
+        cacheKey,
+        newValue,
+        ttl: const Duration(minutes: 8),
+      );
       return String.fromCharCodes(newValue);
     }
 

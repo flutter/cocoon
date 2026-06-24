@@ -66,7 +66,12 @@ final class CacheRequestHandler extends RequestHandler {
         // 4. Generate the response
         final response = await _createCachedResponse(request, _delegate);
         cachedBytes = response.toBytes();
-        await _cache.set(responseSubcacheName, responseKey, cachedBytes, ttl: _ttl);
+        await _cache.set(
+          responseSubcacheName,
+          responseKey,
+          cachedBytes,
+          ttl: _ttl,
+        );
       }, const Duration(seconds: 15));
 
       // Fallback: if we failed to acquire the lock (contention timeout),
@@ -74,7 +79,12 @@ final class CacheRequestHandler extends RequestHandler {
       if (cachedBytes == null) {
         final response = await _createCachedResponse(request, _delegate);
         cachedBytes = response.toBytes();
-        await _cache.set(responseSubcacheName, responseKey, cachedBytes, ttl: _ttl);
+        await _cache.set(
+          responseSubcacheName,
+          responseKey,
+          cachedBytes,
+          ttl: _ttl,
+        );
       }
     }
 

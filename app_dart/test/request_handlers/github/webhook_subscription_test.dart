@@ -4158,20 +4158,16 @@ void foo() {
 
       // Pre-acquire lock to simulate lock held by another instance
       var lockAcquired = false;
-      await cache.tryLock(
-        lockKey,
-        () async {
-          lockAcquired = true;
-          try {
-            await tester.post(webhook);
-            fail('Should have thrown ServiceUnavailable');
-          } on ServiceUnavailable catch (e) {
-            expect(e.statusCode, HttpStatus.serviceUnavailable);
-            expect(e.message, contains('PR is locked by another instance'));
-          }
-        },
-        const Duration(minutes: 5),
-      );
+      await cache.tryLock(lockKey, () async {
+        lockAcquired = true;
+        try {
+          await tester.post(webhook);
+          fail('Should have thrown ServiceUnavailable');
+        } on ServiceUnavailable catch (e) {
+          expect(e.statusCode, HttpStatus.serviceUnavailable);
+          expect(e.message, contains('PR is locked by another instance'));
+        }
+      }, const Duration(minutes: 5));
 
       expect(lockAcquired, isTrue);
     });
