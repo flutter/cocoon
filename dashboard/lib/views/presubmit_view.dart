@@ -68,10 +68,6 @@ class _PreSubmitViewState extends State<PreSubmitView>
       _presubmitState?.addListener(_onStateChanged);
       _triggerUpdate();
     }
-    final isMobile = widget.isMobile || MediaQuery.sizeOf(context).width < 600;
-    Future.microtask(() {
-      if (mounted) _presubmitState?.setMobile(isMobile);
-    });
   }
 
   @override
@@ -159,45 +155,48 @@ class _PreSubmitViewState extends State<PreSubmitView>
     final isDark = theme.brightness == Brightness.dark;
     final presubmitState = Provider.of<PresubmitState>(context);
 
-    return AnimatedBuilder(
-      animation: presubmitState,
-      builder: (context, _) {
-        final pr = presubmitState.pr;
-        final sha = presubmitState.sha;
-        final repo = presubmitState.repo;
-
-        final guardResponse = presubmitState.guardResponse;
-        final isLoading = presubmitState.isLoading;
-        final selectedJob = presubmitState.selectedJob;
-
-        var availableSummaries = presubmitState.availableSummaries;
-
-        if (sha != null && !availableSummaries.any((s) => s.headSha == sha)) {
-          availableSummaries = [
-            PresubmitGuardSummary(
-              headSha: sha,
-              creationTime: 0,
-              guardStatus: GuardStatus.waitingForBackfill,
-            ),
-            ...availableSummaries,
-          ];
-        }
-
-        final shortSha = (sha != null && sha.length > 7)
-            ? sha.substring(0, 7)
-            : sha;
-        final isMobile =
-            widget.isMobile || MediaQuery.sizeOf(context).width < 600;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = widget.isMobile || constraints.maxWidth < 600;
         if (presubmitState.isMobile != isMobile) {
           Future.microtask(() {
             if (mounted) presubmitState.setMobile(isMobile);
           });
         }
-        final title = guardResponse != null
-            ? (isMobile
-                  ? '${guardResponse.prNum}'
-                  : 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)')
-            : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
+
+        return AnimatedBuilder(
+          animation: presubmitState,
+          builder: (context, _) {
+            final pr = presubmitState.pr;
+            final sha = presubmitState.sha;
+            final repo = presubmitState.repo;
+
+            final guardResponse = presubmitState.guardResponse;
+            final isLoading = presubmitState.isLoading;
+            final selectedJob = presubmitState.selectedJob;
+
+            var availableSummaries = presubmitState.availableSummaries;
+
+            if (sha != null &&
+                !availableSummaries.any((s) => s.headSha == sha)) {
+              availableSummaries = [
+                PresubmitGuardSummary(
+                  headSha: sha,
+                  creationTime: 0,
+                  guardStatus: GuardStatus.waitingForBackfill,
+                ),
+                ...availableSummaries,
+              ];
+            }
+
+            final shortSha = (sha != null && sha.length > 7)
+                ? sha.substring(0, 7)
+                : sha;
+            final title = guardResponse != null
+                ? (isMobile
+                      ? '${guardResponse.prNum}'
+                      : 'PR #${guardResponse.prNum} by ${guardResponse.author} ($shortSha)')
+                : (pr != null ? 'PR #$pr' : (sha != null ? '($shortSha)' : ''));
 
         var statusText = (pr != null ? 'Pending' : 'Loading...');
         if (guardResponse != null) {
@@ -322,6 +321,8 @@ class _PreSubmitViewState extends State<PreSubmitView>
                   ],
                 ),
         );
+      },
+    );
       },
     );
   }
