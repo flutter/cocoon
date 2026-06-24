@@ -66,10 +66,10 @@ class _PreSubmitViewState extends State<PreSubmitView>
       _presubmitState?.removeListener(_onStateChanged);
       _presubmitState = newState;
       _presubmitState?.addListener(_onStateChanged);
+      _triggerUpdate();
     }
     final isMobile = widget.isMobile || MediaQuery.of(context).size.width < 600;
     _presubmitState?.setMobile(isMobile);
-    _triggerUpdate();
   }
 
   @override
