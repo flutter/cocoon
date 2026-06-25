@@ -96,6 +96,18 @@ class PresubmitState extends ChangeNotifier {
     }
   }
 
+  /// Whether the view is displayed on a mobile screen.
+  bool _isMobile = false;
+  bool get isMobile => _isMobile;
+  void setMobile(bool val) {
+    if (_isMobile == val) return;
+    _isMobile = val;
+    if (!_isMobile && _selectedJob == null) {
+      _ensureValidSelection();
+    }
+    notifyListeners();
+  }
+
   /// The currently selected job name.
   String? _selectedJob;
   String? get selectedJob => _selectedJob;
@@ -271,6 +283,11 @@ class PresubmitState extends ChangeNotifier {
     }
 
     if (!isVisible) {
+      if (_isMobile) {
+        _selectedJob = null;
+        _jobs = null;
+        return;
+      }
       // Select first available job based on UI sorting
       String? topMost;
       for (final stage in filtered.stages) {
@@ -533,12 +550,14 @@ class PresubmitState extends ChangeNotifier {
   }
 
   /// Selects a specific job and fetches its details.
-  void selectJob(String jobName) {
+  void selectJob(String? jobName) {
     if (selectedJob == jobName) return;
     _selectedJob = jobName;
     _jobs = null;
     notifyListeners();
-    unawaited(fetchJobDetails());
+    if (jobName != null) {
+      unawaited(fetchJobDetails());
+    }
   }
 
   /// Fetches available SHAs for the current [pr].

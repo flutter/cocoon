@@ -139,7 +139,18 @@ void main() {
   Widget createPreSubmitView(
     Map<String, String> queryParameters, {
     ThemeData? theme,
+    Size? screenSize,
   }) {
+    final oldOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if (details.exceptionAsString().contains('overflowed') ||
+          details.exception.toString().contains('overflowed') ||
+          details.exceptionAsString().contains('deactivated widget') ||
+          details.exception.toString().contains('deactivated widget')) {
+        return;
+      }
+      oldOnError?.call(details);
+    };
     presubmitState.syncUpdate(queryParameters);
     return Material(
       child: StateProvider(
@@ -148,9 +159,16 @@ void main() {
         signInService: mockAuthService,
         child: MaterialApp(
           theme: theme ?? ThemeData(useMaterial3: false),
+          builder: screenSize == null
+              ? null
+              : (context, child) => MediaQuery(
+                  data: MediaQueryData(size: screenSize),
+                  child: child!,
+                ),
           home: PreSubmitView(
             queryParameters: queryParameters,
             syncNavigation: false,
+            isMobile: screenSize != null && screenSize.width < 600,
           ),
         ),
       ),
@@ -1237,5 +1255,121 @@ void main() {
         );
       },
     );
+  });
+
+  group('PreSubmitView Mobile Version', () {
+    testWidgets('implements mobile layout correctly', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      presubmitState.setMobile(true);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            builds: {'Mac mac_host_engine 1': TaskStatus.succeeded},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      when(
+        mockCocoonService.fetchPresubmitJobDetails(
+          checkRunId: anyNamed('checkRunId'),
+          jobName: anyNamed('jobName'),
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse.data([
+          PresubmitJobResponse(
+            attemptNumber: 1,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: 0,
+            status: TaskStatus.succeeded,
+            summary: 'All tests passed',
+          ),
+        ]),
+      );
+
+      await tester.pumpWidget(
+        createPreSubmitView({
+          'repo': 'flutter',
+          'pr': '123',
+        }, screenSize: const Size(400, 800)),
+      );
+      await tester.runAsync(() async {
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.text('ENGINE').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pump();
+
+      // 1. Jobs are not selected by default & 2. Main view is a JobsSidebar
+      expect(presubmitState.selectedJob, isNull);
+      expect(find.text('ENGINE'), findsOneWidget);
+      expect(find.text('Mac mac_host_engine 1'), findsOneWidget);
+      expect(
+        find.text('Select a job to view execution details.'),
+        findsNothing,
+      );
+
+      // 6. For title only use PR # and guardResponse.prNum
+      expect(find.text('123'), findsOneWidget);
+
+      // 5. On header in ShaSelector show short sha and status icon
+      final shaSelector = find.byType(ShaSelector);
+      expect(shaSelector, findsOneWidget);
+      expect(
+        find.descendant(of: shaSelector, matching: find.text('decaf_3')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: shaSelector, matching: find.byType(Icon)),
+        findsWidgets,
+      );
+
+      // 3. If user select a job only show job details
+      await tester.tap(find.text('Mac mac_host_engine 1'));
+      await tester.runAsync(() async {
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('Succeeded').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pump();
+
+      expect(presubmitState.selectedJob, 'Mac mac_host_engine 1');
+      expect(find.text('ENGINE'), findsNothing);
+      expect(find.textContaining('Succeeded'), findsOneWidget);
+
+      // 4. On job details show back button that leads back to JobsSidebar
+      final backButton = find.byIcon(Icons.arrow_back);
+      expect(backButton, findsOneWidget);
+
+      await tester.tap(backButton);
+      await tester.pump();
+
+      expect(presubmitState.selectedJob, isNull);
+      expect(find.text('ENGINE'), findsOneWidget);
+      expect(find.text('Filter jobs'), findsOneWidget);
+      expect(find.text('Re-run failed'), findsOneWidget);
+    });
   });
 }

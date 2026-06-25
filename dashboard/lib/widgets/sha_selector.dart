@@ -2,11 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/guard_status.dart' as cgs;
 import 'package:cocoon_common/rpc_model.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'guard_status.dart';
+import 'task_box.dart';
 
 /// A dropdown widget for selecting a commit SHA.
 class ShaSelector extends StatelessWidget {
@@ -14,11 +17,13 @@ class ShaSelector extends StatelessWidget {
     super.key,
     required this.availableShas,
     this.selectedSha,
+    this.isMobile = false,
     required this.onShaSelected,
   });
 
   final List<PresubmitGuardSummary> availableShas;
   final String? selectedSha;
+  final bool isMobile;
   final ValueChanged<String> onShaSelected;
 
   @override
@@ -50,6 +55,7 @@ class ShaSelector extends StatelessWidget {
           selectedItemBuilder: (BuildContext context) {
             return availableShas.map<Widget>((summary) {
               return _buildSummaryRow(
+                context,
                 summary,
                 isDark: isDark,
                 isSelected: true,
@@ -65,6 +71,7 @@ class ShaSelector extends StatelessWidget {
             return DropdownMenuItem<String>(
               value: summary.headSha,
               child: _buildSummaryRow(
+                context,
                 summary,
                 isDark: isDark,
                 isSelected: false,
@@ -77,12 +84,37 @@ class ShaSelector extends StatelessWidget {
   }
 
   Widget _buildSummaryRow(
+    BuildContext context,
     PresubmitGuardSummary summary, {
     required bool isDark,
     required bool isSelected,
   }) {
     final sha = summary.headSha;
+    final shortSha = sha.length > 7 ? sha.substring(0, 7) : sha;
     final status = summary.guardStatus;
+
+    if (isMobile) {
+      return Row(
+        children: [
+          Expanded(
+            child: Text(
+              shortSha,
+              style: isSelected
+                  ? const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      color: Colors.white,
+                    )
+                  : null,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 2),
+          _getStatusIcon(status),
+        ],
+      );
+    }
+
     final creationTime = DateTime.fromMillisecondsSinceEpoch(
       summary.creationTime,
     ).toLocal();
@@ -97,7 +129,7 @@ class ShaSelector extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            sha.length > 7 ? sha.substring(0, 7) : sha,
+            shortSha,
             style: isSelected
                 ? const TextStyle(
                     fontFamily: 'monospace',
@@ -133,5 +165,31 @@ class ShaSelector extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _getStatusIcon(cgs.GuardStatus guardStatus) {
+    final taskStatus = switch (guardStatus) {
+      cgs.GuardStatus.succeeded => TaskStatus.succeeded,
+      cgs.GuardStatus.failed => TaskStatus.failed,
+      cgs.GuardStatus.inProgress => TaskStatus.inProgress,
+      cgs.GuardStatus.waitingForBackfill => TaskStatus.waitingForBackfill,
+    };
+    if (taskStatus == TaskStatus.inProgress) {
+      return SizedBox(
+        width: 14,
+        height: 14,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: TaskBox.statusColor[taskStatus] ?? const Color(0xFFD29922),
+        ),
+      );
+    }
+    final iconData = switch (taskStatus) {
+      TaskStatus.succeeded => Icons.check_circle_outline,
+      TaskStatus.failed => Icons.error_outline,
+      TaskStatus.waitingForBackfill => Icons.not_started_outlined,
+      _ => Icons.help_outline,
+    };
+    return Icon(iconData, color: TaskBox.statusColor[taskStatus], size: 18);
   }
 }
