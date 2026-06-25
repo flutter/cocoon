@@ -21,7 +21,7 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:http/http.dart' as http;
 
 Future<void> main() async {
-  final cache = CacheService(inMemory: false);
+  final cache = CacheService.redis();
   final secretManager = FakeSecretManager();
   secretManager.putString('APP_DART_GEMINI_LOG_ANALYZER_KEY', 'dummy_key');
   final config = Config(

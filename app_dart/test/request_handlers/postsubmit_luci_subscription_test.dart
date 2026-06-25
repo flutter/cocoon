@@ -61,7 +61,7 @@ void main() {
     );
     ciYamlFetcher = FakeCiYamlFetcher();
     handler = PostsubmitLuciSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: config,
       authProvider: FakeDashboardAuthentication(),
       githubChecksService: mockGithubChecksService,

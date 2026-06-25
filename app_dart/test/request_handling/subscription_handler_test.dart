@@ -86,7 +86,7 @@ void main() {
     });
 
     test('ensure message ids are idempotent', () async {
-      final cache = CacheService(inMemory: true);
+      final cache = CacheService.inMemory();
       subscription = ReadMessageTest(cache);
       var response = await issueRequest(body: jsonEncode(testEnvelope));
       var responseBody = String.fromCharCodes((await response.toList()).first);
@@ -110,7 +110,7 @@ void main() {
     });
 
     test('ensure messages can be retried due to an uncaught error', () async {
-      final cache = CacheService(inMemory: true);
+      final cache = CacheService.inMemory();
       subscription = ErrorTest(cache);
       var response = await issueRequest(body: jsonEncode(testEnvelope));
       var messageLock = await cache.getOrCreate('error', '123', createFn: null);
@@ -124,7 +124,7 @@ void main() {
     });
 
     test('ensure messages can be retried due to setting a 5XX', () async {
-      final cache = CacheService(inMemory: true);
+      final cache = CacheService.inMemory();
       subscription = ErrorCodeTest(cache);
       var response = await issueRequest(body: jsonEncode(testEnvelope));
       var messageLock = await cache.getOrCreate('error', '123', createFn: null);
@@ -143,7 +143,7 @@ void main() {
 final class UnauthTest extends SubscriptionHandler {
   UnauthTest()
     : super(
-        cache: CacheService(inMemory: true),
+        cache: CacheService.inMemory(),
         config: FakeConfig(),
         authProvider: FakeDashboardAuthentication(authenticated: false),
         subscriptionName: 'unauth',
@@ -157,7 +157,7 @@ final class UnauthTest extends SubscriptionHandler {
 final class AuthTest extends SubscriptionHandler {
   AuthTest()
     : super(
-        cache: CacheService(inMemory: true),
+        cache: CacheService.inMemory(),
         config: FakeConfig(),
         authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'auth',
@@ -171,7 +171,7 @@ final class AuthTest extends SubscriptionHandler {
 final class ErrorTest extends SubscriptionHandler {
   ErrorTest([CacheService? cache])
     : super(
-        cache: cache ?? CacheService(inMemory: true),
+        cache: cache ?? CacheService.inMemory(),
         config: FakeConfig(),
         authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'error',
@@ -186,7 +186,7 @@ final class ErrorTest extends SubscriptionHandler {
 final class ErrorCodeTest extends SubscriptionHandler {
   ErrorCodeTest([CacheService? cache])
     : super(
-        cache: cache ?? CacheService(inMemory: true),
+        cache: cache ?? CacheService.inMemory(),
         config: FakeConfig(),
         authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'error',
@@ -202,7 +202,7 @@ final class ErrorCodeTest extends SubscriptionHandler {
 final class ReadMessageTest extends SubscriptionHandler {
   ReadMessageTest([CacheService? cache])
     : super(
-        cache: cache ?? CacheService(inMemory: true),
+        cache: cache ?? CacheService.inMemory(),
         config: FakeConfig(),
         authProvider: FakeDashboardAuthentication(),
         subscriptionName: 'read',

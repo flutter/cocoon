@@ -164,7 +164,7 @@ void main() {
     gerritService = FakeGerritService();
 
     fakeNow = DateTime.now();
-    cache = CacheService(inMemory: true);
+    cache = CacheService.inMemory();
     webhook = GithubWebhookSubscription(
       config: config,
       cache: cache,

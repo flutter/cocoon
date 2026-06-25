@@ -37,7 +37,7 @@ void main() {
       }
       return http.Response('Not found', 404);
     });
-    final cacheService = CacheService(inMemory: true);
+    final cacheService = CacheService.inMemory();
     final secrets = FakeSecretManager();
     config = Config(
       cacheService,

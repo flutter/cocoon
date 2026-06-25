@@ -37,7 +37,7 @@ class FakeScheduler extends Scheduler {
     required super.firestore,
     required super.bigQuery,
   }) : super(
-         cache: CacheService(inMemory: true),
+         cache: CacheService.inMemory(),
          githubChecksService: GithubChecksService(
            config,
            githubChecksUtil: githubChecksUtil,

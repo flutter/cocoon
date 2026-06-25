@@ -88,7 +88,7 @@ void main() {
     firestore = FakeFirestoreService();
     buildBucketClient = MockBuildBucketClient();
     handler = DartInternalSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: FakeConfig(),
       authProvider: FakeDashboardAuthentication(),
       firestore: firestore,

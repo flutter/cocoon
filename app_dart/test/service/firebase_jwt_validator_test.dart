@@ -133,7 +133,7 @@ void main() {
     late DateTime now;
 
     setUp(() {
-      cache = CacheService(inMemory: true);
+      cache = CacheService.inMemory();
       now = DateTime(2025, 04, 16, 12, 00);
       pemKeyResponse = [http.Response(pemKeysString, 200)];
 
@@ -252,7 +252,7 @@ void main() {
     late CacheService cache;
 
     setUp(() {
-      cache = CacheService(inMemory: true);
+      cache = CacheService.inMemory();
       validator = FirebaseJwtValidator(
         cache: cache,
         now: () => rightNow,

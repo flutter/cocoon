@@ -9,7 +9,13 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 
 /// A [CacheService] that doesn't actually cache anything.
 class FakeCacheService extends CacheService {
-  FakeCacheService() : super(inMemory: true);
+  FakeCacheService();
+
+  @override
+  Future<Uint8List?> get(String subcacheName, String key) async => null;
+
+  @override
+  Future<void> dispose() async {}
 
   @override
   Future<Uint8List?> getOrCreate(
@@ -33,6 +39,16 @@ class FakeCacheService extends CacheService {
 
   @override
   Future<void> purge(String subcacheName, String key) async {}
+
+  @override
+  Future<bool> setIfNotExists(
+    String subcacheName,
+    String key,
+    Uint8List value, {
+    Duration ttl = const Duration(minutes: 1),
+  }) async {
+    return true;
+  }
 
   @override
   Future<bool> tryLock(

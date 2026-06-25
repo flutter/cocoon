@@ -54,7 +54,7 @@ void main() {
       clientContext = FakeClientContext();
       validator = FakeFirebaseJwtValidator();
       auth = DashboardFirebaseAuthentication(
-        cache: CacheService(inMemory: true),
+        cache: CacheService.inMemory(),
         clientContextProvider: () => clientContext,
         validator: validator,
         firestore: firestore,

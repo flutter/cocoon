@@ -33,7 +33,7 @@ void main() {
 
   setUp(() {
     mockBuildBucketClient = MockBuildBucketClient();
-    cacheService = CacheService(inMemory: true);
+    cacheService = CacheService.inMemory();
 
     luci = LuciBuildService(
       config: FakeConfig(),

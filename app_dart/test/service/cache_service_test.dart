@@ -17,7 +17,7 @@ void main() {
     const testSubcacheName = 'test';
 
     setUp(() {
-      cache = CacheService(inMemory: true, inMemoryMaxNumberEntries: 2);
+      cache = CacheService.inMemory(maxEntries: 2);
     });
 
     test('returns null when no value exists', () async {
@@ -97,6 +97,22 @@ void main() {
 
       await cache.purge(testSubcacheName, testKey);
       expect(await cache.get(testSubcacheName, testKey), isNull);
+    });
+
+    test('setIfNotExists sets value only if it does not exist', () async {
+      const testKey = 'abc';
+      final val1 = Uint8List.fromList('123'.codeUnits);
+      final val2 = Uint8List.fromList('456'.codeUnits);
+
+      // First write should succeed and return true
+      final res1 = await cache.setIfNotExists(testSubcacheName, testKey, val1);
+      expect(res1, isTrue);
+      expect(await cache.get(testSubcacheName, testKey), val1);
+
+      // Second write should fail and return false, leaving original value intact
+      final res2 = await cache.setIfNotExists(testSubcacheName, testKey, val2);
+      expect(res2, isFalse);
+      expect(await cache.get(testSubcacheName, testKey), val1);
     });
 
     group('tryLock distributed lock', () {

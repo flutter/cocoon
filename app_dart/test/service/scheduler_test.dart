@@ -66,7 +66,7 @@ void main() {
         return TableDataInsertAllResponse();
       });
 
-      cache = CacheService(inMemory: true);
+      cache = CacheService.inMemory();
       getFilesChanged = FakeGetFilesChanged.inconclusive();
       firestore = FakeFirestoreService();
 

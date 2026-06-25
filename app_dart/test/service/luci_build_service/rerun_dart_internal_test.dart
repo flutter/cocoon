@@ -44,7 +44,7 @@ void main() {
     firestore.putDocument(task);
 
     luci = LuciBuildService(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: FakeConfig(),
       gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,

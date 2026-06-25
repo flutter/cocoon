@@ -48,7 +48,7 @@ void main() {
     );
 
     handler = PresubmitLuciSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: config,
       luciBuildService: FakeLuciBuildService(
         config: config,

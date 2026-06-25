@@ -20,7 +20,7 @@ void main() {
   late FakeSecretManager secrets;
 
   setUp(() async {
-    cacheService = CacheService(inMemory: true);
+    cacheService = CacheService.inMemory();
     secrets = FakeSecretManager();
     config = Config(
       cacheService,
