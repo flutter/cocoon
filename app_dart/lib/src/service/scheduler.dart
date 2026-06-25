@@ -1255,7 +1255,7 @@ detailsUrl: $detailsUrl
 
 ''', kDashboardChecksDescription),
           details:
-              'For ${check.stage} CI stage ${stagingConclusion.failed} checks were failed',
+              'For ${check.stage} CI stage ${stagingConclusion.failed} checks failed',
           detailsUrl: detailsUrl,
         );
       }
