@@ -9,9 +9,22 @@ steps:
     args:
       - '-c'
       - |
+        set -euo pipefail
+
+        echo "Fetching Flutter release data..."
+
         # 1. Fetch latest stable version
-        FLUTTER_VERSION=$$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | \
+        # The -f flag on curl ensures it fails on HTTP errors.
+        FLUTTER_VERSION=$$(curl -sf https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | \
           jq -r '.current_release.stable as $$stable_hash | .releases[] | select(.hash == $$stable_hash) | .version')
+
+        # Validate that the version was successfully parsed.
+        # -z "$$FLUTTER_VERSION" checks if the variable is an empty string (e.g., if jq failed entirely).
+        # "$$FLUTTER_VERSION" == "null" checks if jq succeeded but couldn't find the requested data in the JSON.
+        if [ -z "$$FLUTTER_VERSION" ] || [ "$$FLUTTER_VERSION" == "null" ]; then
+          echo "Error: Failed to parse stable Flutter version from JSON."
+          exit 1
+        fi
 
         echo "Found Flutter version: $$FLUTTER_VERSION"
 
