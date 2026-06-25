@@ -172,7 +172,9 @@ class RedisCacheService extends CacheService {
   Future<Uint8List?> get(String subcacheName, String key) async {
     final redisKey = '$subcacheName/$key';
     try {
-      final value = await _runCommand((client) => client.send_object(['GET', redisKey]));
+      final value = await _runCommand(
+        (client) => client.send_object(['GET', redisKey]),
+      );
       if (value == null) return null;
       return base64.decode(value as String);
     } catch (e) {
@@ -196,13 +198,15 @@ class RedisCacheService extends CacheService {
     final redisKey = '$subcacheName/$key';
     final base64Value = base64.encode(value);
     try {
-      await _runCommand((client) => client.send_object([
-        'SET',
-        redisKey,
-        base64Value,
-        'PX',
-        ttl.inMilliseconds,
-      ]));
+      await _runCommand(
+        (client) => client.send_object([
+          'SET',
+          redisKey,
+          base64Value,
+          'PX',
+          ttl.inMilliseconds,
+        ]),
+      );
       return value;
     } catch (e) {
       log.warn('Unable to set value for $key in cache.', e);
@@ -220,14 +224,16 @@ class RedisCacheService extends CacheService {
     final redisKey = '$subcacheName/$key';
     final base64Value = base64.encode(value);
     try {
-      final response = await _runCommand((client) => client.send_object([
-        'SET',
-        redisKey,
-        base64Value,
-        'NX',
-        'PX',
-        ttl.inMilliseconds,
-      ]));
+      final response = await _runCommand(
+        (client) => client.send_object([
+          'SET',
+          redisKey,
+          base64Value,
+          'NX',
+          'PX',
+          ttl.inMilliseconds,
+        ]),
+      );
       return response == 'OK';
     } catch (e) {
       log.warn('Unable to set value for $key in cache.', e);
@@ -253,14 +259,16 @@ class RedisCacheService extends CacheService {
   @override
   Future<bool> _acquireLock(String lockKey, String token, Duration ttl) async {
     try {
-      final response = await _runCommand((client) => client.send_object([
-        'SET',
-        lockKey,
-        token,
-        'NX',
-        'PX',
-        ttl.inMilliseconds,
-      ]));
+      final response = await _runCommand(
+        (client) => client.send_object([
+          'SET',
+          lockKey,
+          token,
+          'NX',
+          'PX',
+          ttl.inMilliseconds,
+        ]),
+      );
       return response == 'OK';
     } catch (e) {
       log.warn('Failed to acquire lock for $lockKey', e);
@@ -279,18 +287,19 @@ class RedisCacheService extends CacheService {
     ''';
 
     try {
-      await _runCommand((client) => client.send_object([
-        'EVAL',
-        releaseLockScript,
-        '1',
-        lockKey,
-        token,
-      ]));
+      await _runCommand(
+        (client) => client.send_object([
+          'EVAL',
+          releaseLockScript,
+          '1',
+          lockKey,
+          token,
+        ]),
+      );
     } catch (e) {
       log.warn('Failed to release lock for $lockKey', e);
     }
   }
-
 }
 
 /// A [CacheService] implementation backed by an in-memory thread-safe map.
@@ -418,7 +427,6 @@ class InMemoryCacheService extends CacheService {
       _mutex.release();
     }
   }
-
 }
 
 class _InMemoryCacheEntry {
