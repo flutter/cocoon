@@ -29,8 +29,12 @@ class ShaSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final borderColor = isDark ? const Color(0xFF333333) : Colors.white54;
+    final backgroundColor =
+        theme.appBarTheme.backgroundColor ??
+        (isDark ? colorScheme.surface : colorScheme.primary);
 
     return Container(
       height: 32,
@@ -38,19 +42,20 @@ class ShaSelector extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(6),
-        color: theme.appBarTheme.backgroundColor,
+        color: backgroundColor,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          dropdownColor: backgroundColor,
           isExpanded: true,
           isDense: true,
           value: selectedSha,
           icon: const Icon(Icons.expand_more, size: 16),
           iconEnabledColor: Colors.white,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'monospace',
             fontSize: 13,
-            color: isDark ? Colors.white : Colors.black87,
+            color: Colors.white,
           ),
           selectedItemBuilder: (BuildContext context) {
             return availableShas.map<Widget>((summary) {
@@ -99,13 +104,11 @@ class ShaSelector extends StatelessWidget {
           Expanded(
             child: Text(
               shortSha,
-              style: isSelected
-                  ? const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 13,
-                      color: Colors.white,
-                    )
-                  : null,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 13,
+                color: Colors.white,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -121,22 +124,20 @@ class ShaSelector extends StatelessWidget {
     final dateStr = DateFormat.yMd().format(creationTime);
     final timeStr = DateFormat.Hm().format(creationTime);
 
-    final subTextColor = isSelected
+    final subTextColor = isSelected || !isDark
         ? Colors.white70
-        : (isDark ? Colors.grey[400] : Colors.grey[600]);
+        : Colors.grey[400];
 
     return Row(
       children: [
         Expanded(
           child: Text(
             shortSha,
-            style: isSelected
-                ? const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    color: Colors.white,
-                  )
-                : null,
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 13,
+              color: Colors.white,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
