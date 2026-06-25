@@ -481,16 +481,9 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.arrow_back,
-                            size: 18,
-                          ),
+                          Icon(Icons.arrow_back, size: 18),
                           SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'Back to jobs',
-                            ),
-                          ),
+                          Flexible(child: Text('Back to jobs')),
                         ],
                       ),
                     ),
