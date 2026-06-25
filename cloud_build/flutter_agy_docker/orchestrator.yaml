@@ -1,0 +1,18 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # 1. Fetch latest stable version
+        FLUTTER_VERSION=$$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | \
+          jq -r '.current_release.stable as $$stable_hash | .releases[] | select(.hash == $$stable_hash) | .version')
+
+        echo "Found Flutter version: $$FLUTTER_VERSION"
+
+        # 2. Trigger the target build with the version as a substitution
+        # Note: We use --region=global as found in your trigger description
+        gcloud builds triggers run flutter-agy-docker \
+            --region=global \
+            --branch=main \
+            --substitutions=_FLUTTER_VERSION="$$FLUTTER_VERSION"
