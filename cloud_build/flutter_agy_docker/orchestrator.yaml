@@ -11,6 +11,8 @@ steps:
       - |
         set -euo pipefail
 
+        apt-get update && apt-get install -y jq
+
         echo "Fetching Flutter release data for channel: $_CHANNEL..."
 
         # 1. Fetch latest version for the specified channel (stable or beta)
