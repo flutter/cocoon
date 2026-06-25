@@ -478,25 +478,17 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                   children: [
                     ElevatedButton(
                       onPressed: () => presubmitState.selectJob(null),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.arrow_back,
                             size: 18,
-                            color: isDark
-                                ? const Color(0xFF58A6FF)
-                                : const Color(0xFF0969DA),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Flexible(
                             child: Text(
                               'Back to jobs',
-                              style: TextStyle(
-                                color: isDark
-                                    ? const Color(0xFF58A6FF)
-                                    : const Color(0xFF0969DA),
-                              ),
                             ),
                           ),
                         ],
@@ -693,9 +685,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                             size: 18,
                             color: selectedJob.buildNumber == null
                                 ? Colors.grey
-                                : (isDark
-                                      ? const Color(0xFF58A6FF)
-                                      : const Color(0xFF0969DA)),
+                                : null,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -703,9 +693,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                             style: TextStyle(
                               color: selectedJob.buildNumber == null
                                   ? Colors.grey
-                                  : (isDark
-                                        ? const Color(0xFF58A6FF)
-                                        : const Color(0xFF0969DA)),
+                                  : null,
                               fontSize: 14,
                             ),
                           ),

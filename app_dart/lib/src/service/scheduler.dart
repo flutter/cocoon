@@ -1048,7 +1048,7 @@ detailsUrl: $detailsUrl
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.actionRequired,
       output: CheckRunOutput(
-        title: Config.kMergeQueueLockName,
+        title: Config.kDashboardCheckName,
         summary: summary,
         text: details,
       ),
@@ -1255,7 +1255,7 @@ detailsUrl: $detailsUrl
 
 ''', kDashboardChecksDescription),
           details:
-              'For CI stage ${check.stage} ${stagingConclusion.failed} checks failed',
+              'For ${check.stage} CI stage ${stagingConclusion.failed} checks were failed',
           detailsUrl: detailsUrl,
         );
       }

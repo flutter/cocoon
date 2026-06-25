@@ -57,14 +57,14 @@ class GuardStatus extends StatelessWidget {
   Color _getStatusColor(String status, bool isDark) {
     switch (status) {
       case 'Succeeded':
-        return const Color(0xFF2DA44E);
+        return Colors.green[isDark ? 400 : 200]!;
       case 'Failed':
-        return const Color(0xFFF85149);
+        return Colors.red[isDark ? 400 : 200]!;
       case 'In Progress':
       case 'Pending':
-        return const Color(0xFFD29922);
+        return Colors.orange[isDark ? 400 : 200]!;
       default:
-        return isDark ? Colors.grey[400]! : Colors.grey[600]!;
+        return Colors.grey[isDark ? 400 : 200]!;
     }
   }
 }
