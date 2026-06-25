@@ -42,7 +42,7 @@ Future<void> main() async {
       log.level = Level.WARNING;
     }
 
-    final cache = CacheService(inMemory: false);
+    final cache = CacheService.redis();
     final firestore = await FirestoreService.from(const GoogleAuthProvider());
     final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
 

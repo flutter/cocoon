@@ -27,7 +27,7 @@ void main() {
   setUp(() async {
     config = FakeConfig();
     tester = RequestHandlerTester(request: FakeHttpRequest(path: testHttpPath));
-    cache = CacheService(inMemory: true);
+    cache = CacheService.inMemory();
   });
 
   test('fails retrieving an unexpected cached value', () async {

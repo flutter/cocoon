@@ -53,7 +53,7 @@ void main() {
     );
 
     handler = PresubmitLuciSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: config,
       luciBuildService: FakeLuciBuildService(
         config: config,
@@ -269,7 +269,7 @@ void main() {
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
     final luciHandler = PresubmitLuciSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,
@@ -502,7 +502,7 @@ void main() {
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
     final luciHandler = PresubmitLuciSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: config,
       luciBuildService: mockLuciBuildService,
       githubChecksService: mockGithubChecksService,

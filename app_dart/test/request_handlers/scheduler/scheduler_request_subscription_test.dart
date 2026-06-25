@@ -30,7 +30,7 @@ void main() {
     buildBucketClient = MockBuildBucketClient();
     githubService = FakeGithubService();
     handler = SchedulerRequestSubscription(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: FakeConfig()..githubService = githubService,
       authProvider: FakeDashboardAuthentication(),
       buildBucketClient: buildBucketClient,

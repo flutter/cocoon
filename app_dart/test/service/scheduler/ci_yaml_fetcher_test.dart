@@ -36,7 +36,7 @@ void main() {
   late CiYamlFetcher ciYamlFetcher;
 
   setUp(() {
-    cache = CacheService(inMemory: true);
+    cache = CacheService.inMemory();
     httpClient = MockClient((request) async {
       return http.Response('Missing file: ${request.url}', HttpStatus.notFound);
     });

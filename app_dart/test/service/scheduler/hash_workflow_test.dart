@@ -86,7 +86,7 @@ void main() {
     });
     getFilesChanged = FakeGetFilesChanged.inconclusive();
     getFilesChanged.cannedFiles = ['abc/def'];
-    cache = CacheService(inMemory: true);
+    cache = CacheService.inMemory();
 
     final github = MockGitHub();
     when(

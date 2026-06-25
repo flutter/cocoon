@@ -95,7 +95,7 @@ class GithubAuthentication implements AuthenticationProvider {
   }
 
   Future<String?> _getGithubLoginCached(String? accountId) async {
-    final bytes = await _cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreate(
       'github_account_login',
       accountId ?? 'null_accountId',
       createFn: () async => Uint8List.fromList(
@@ -124,7 +124,7 @@ class GithubAuthentication implements AuthenticationProvider {
     String? accountId,
     String? githubLogin,
   ) async {
-    final bytes = await _cache.getOrCreateWithLocking(
+    final bytes = await _cache.getOrCreate(
       'github_account_allowed',
       accountId ?? 'null_accountId',
       createFn: () async =>

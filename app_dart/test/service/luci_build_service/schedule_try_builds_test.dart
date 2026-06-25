@@ -48,7 +48,7 @@ void main() {
     gerritService = FakeGerritService();
     luci = LuciBuildService(
       config: FakeConfig(),
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       buildBucketClient: mockBuildBucketClient,
       githubChecksUtil: mockGithubChecksUtil,
       pubsub: pubSub,
@@ -421,7 +421,7 @@ void main() {
               unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
             ),
           ),
-          cache: CacheService(inMemory: true),
+          cache: CacheService.inMemory(),
           buildBucketClient: mockBuildBucketClient,
           githubChecksUtil: mockGithubChecksUtil,
           pubsub: pubSub,
@@ -493,7 +493,7 @@ void main() {
             unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
           ),
         ),
-        cache: CacheService(inMemory: true),
+        cache: CacheService.inMemory(),
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
         pubsub: pubSub,

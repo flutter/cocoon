@@ -2,26 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cocoon_service/src/service/cache_service.dart';
 
 /// A [CacheService] that doesn't actually cache anything.
 class FakeCacheService extends CacheService {
-  FakeCacheService() : super(inMemory: true);
+  FakeCacheService();
+
+  @override
+  Future<Uint8List?> get(String subcacheName, String key) async => null;
+
+  @override
+  Future<void> dispose() async {}
 
   @override
   Future<Uint8List?> getOrCreate(
-    String subcacheName,
-    String key, {
-    required Future<Uint8List> Function()? createFn,
-    Duration ttl = const Duration(minutes: 1),
-  }) async {
-    return createFn?.call();
-  }
-
-  @override
-  Future<Uint8List?> getOrCreateWithLocking(
     String subcacheName,
     String key, {
     required Future<Uint8List> Function()? createFn,
@@ -41,15 +38,26 @@ class FakeCacheService extends CacheService {
   }
 
   @override
-  Future<Uint8List?> setWithLocking(
+  Future<void> purge(String subcacheName, String key) async {}
+
+  @override
+  Future<bool> setIfNotExists(
     String subcacheName,
     String key,
-    Uint8List? value, {
+    Uint8List value, {
     Duration ttl = const Duration(minutes: 1),
   }) async {
-    return value;
+    return true;
   }
 
   @override
-  Future<void> purge(String subcacheName, String key) async {}
+  Future<bool> tryLock(
+    String key,
+    FutureOr<void> Function() block,
+    Duration ttl, [
+    int retries = 5,
+  ]) async {
+    await block();
+    return true;
+  }
 }

@@ -15,7 +15,7 @@ void main() {
     final bigQuery = MockBigQueryService();
     createServer(
       config: FakeConfig(webhookKeyValue: 'fake-secret'),
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       dashboardAuthProvider: FakeDashboardAuthentication(),
       cronAuthProvider: FakeDashboardAuthentication(),
       presubmitAuthProvider: FakeDashboardAuthentication(),

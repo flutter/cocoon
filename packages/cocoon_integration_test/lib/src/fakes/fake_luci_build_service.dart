@@ -24,7 +24,7 @@ class FakeLuciBuildService extends LuciBuildService {
     GerritService? gerritService,
     PubSub? pubsub,
   }) : super(
-         cache: CacheService(inMemory: true),
+         cache: CacheService.inMemory(),
          buildBucketClient: buildBucketClient ?? FakeBuildBucketClient(),
          githubChecksUtil: githubChecksUtil ?? MockGithubChecksUtil(),
          gerritService: gerritService ?? FakeGerritService(),

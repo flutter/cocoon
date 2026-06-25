@@ -35,7 +35,7 @@ void main() {
     firestore = FakeFirestoreService();
     tester = ApiRequestHandlerTester();
     githubService = FakeGithubServiceWithIssue();
-    cache = CacheService(inMemory: true);
+    cache = CacheService.inMemory();
 
     // Enable feature flag by default for most tests
     final dynamicConfig = DynamicConfig.fromJson({

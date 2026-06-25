@@ -34,7 +34,7 @@ void main() {
       validator = FakeFirebaseJwtValidator();
       config = FakeConfig();
       auth = GithubAuthentication(
-        cache: CacheService(inMemory: true),
+        cache: CacheService.inMemory(),
         config: config,
         validator: validator,
         clientContextProvider: () => clientContext,

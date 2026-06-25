@@ -68,7 +68,7 @@ void main() {
       mockUsersService = MockUsersService();
 
       firestore = FakeFirestoreService();
-      cache = CacheService(inMemory: true);
+      cache = CacheService.inMemory();
       suppression = TestSuppression(
         firestore: firestore,
         cache: cache,

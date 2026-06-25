@@ -108,12 +108,16 @@ abstract base class SubscriptionHandler extends RequestHandler {
 
     final messageId = pubSubPushMessage.message!.messageId!;
 
-    final messageLock = await cache.getOrCreate(
+    // Create a write lock in the cache to ensure requests are only processed once
+    final lockValue = Uint8List.fromList('l'.codeUnits);
+    final lockAcquired = await cache.setIfNotExists(
       subscriptionName,
       messageId,
-      createFn: null,
+      lockValue,
+      ttl: const Duration(days: 1),
     );
-    if (messageLock != null) {
+
+    if (!lockAcquired) {
       // No-op - There's already a write lock for this message
       log.info('Ignoring $messageId, we already are/were writing a message');
       final response = request.response;
@@ -125,15 +129,6 @@ abstract base class SubscriptionHandler extends RequestHandler {
       await response.close();
       return;
     }
-
-    // Create a write lock in the cache to ensure requests are only processed once
-    final lockValue = Uint8List.fromList('l'.codeUnits);
-    await cache.set(
-      subscriptionName,
-      messageId,
-      lockValue,
-      ttl: const Duration(days: 1),
-    );
 
     log.info('Processing message $messageId');
     await runZoned<Future<void>>(

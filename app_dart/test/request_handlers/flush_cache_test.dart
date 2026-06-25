@@ -25,7 +25,7 @@ void main() {
 
     setUp(() {
       tester = ApiRequestHandlerTester();
-      cache = CacheService(inMemory: true);
+      cache = CacheService.inMemory();
       config = FakeConfig();
       handler = FlushCache(
         config: config,

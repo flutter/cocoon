@@ -35,7 +35,7 @@ void main() {
     pubSub = FakePubSub();
 
     luci = LuciBuildService(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: FakeConfig(),
       gerritService: FakeGerritService(),
       buildBucketClient: mockBuildBucketClient,

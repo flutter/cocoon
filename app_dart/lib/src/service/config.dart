@@ -441,17 +441,48 @@ interface class Config extends DynamicallyUpdatedConfig {
   };
 
   Future<String> generateGithubToken(gh.RepositorySlug slug) async {
-    // GitHub's secondary rate limits are run into very frequently when making auth tokens.
-    final cacheValue = await _cache.getOrCreateWithLocking(
-      configCacheName,
-      'githubToken-${slug.fullName}',
-      createFn: () => _generateGithubToken(slug),
-      // Tokens are minted for 10 minutes, so expire them earlier (in 8 min),
-      // before the token becomes unusable.
-      ttl: const Duration(minutes: 8),
-    );
+    final cacheKey = 'githubToken-${slug.fullName}';
 
-    return String.fromCharCodes(cacheValue!);
+    // 1. Fast path: check cache first without locking
+    final cachedValue = await _cache.get(configCacheName, cacheKey);
+    if (cachedValue != null) {
+      return String.fromCharCodes(cachedValue);
+    }
+
+    // GitHub's secondary rate limits are run into very frequently when making auth tokens.
+    String? token;
+    // 2. Slow path: acquire distributed lock to generate safely
+    await _cache.tryLock(cacheKey, () async {
+      // 3. Double-check cache inside the lock
+      final doubleCheckedValue = await _cache.get(configCacheName, cacheKey);
+      if (doubleCheckedValue != null) {
+        token = String.fromCharCodes(doubleCheckedValue);
+        return;
+      }
+      final newValue = await _generateGithubToken(slug);
+      await _cache.set(
+        configCacheName,
+        cacheKey,
+        newValue,
+        ttl: const Duration(minutes: 8),
+      );
+      token = String.fromCharCodes(newValue);
+    }, const Duration(seconds: 30));
+
+    // Fallback: if we failed to acquire the lock (highly unlikely but possible on contention timeout),
+    // we generate a token anyway to prevent failing the request.
+    if (token == null) {
+      final newValue = await _generateGithubToken(slug);
+      await _cache.set(
+        configCacheName,
+        cacheKey,
+        newValue,
+        ttl: const Duration(minutes: 8),
+      );
+      return String.fromCharCodes(newValue);
+    }
+
+    return token!;
   }
 
   Future<Uint8List> _generateGithubToken(gh.RepositorySlug slug) async {

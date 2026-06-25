@@ -46,7 +46,7 @@ void main() {
     gerrit = FakeGerritService();
 
     luci = LuciBuildService(
-      cache: CacheService(inMemory: true),
+      cache: CacheService.inMemory(),
       config: FakeConfig(),
       gerritService: gerrit,
       buildBucketClient: mockBuildBucketClient,
