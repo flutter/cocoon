@@ -2,34 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-const String revertRequestRecordResponse = '''
-{
-  "jobComplete": true,
-  "rows": [
-    { "f": [
-        { "v": "flutter"},
-        { "v": "cocoon" },
-        { "v": "ricardoamador" },
-        { "v": "1024" },
-        { "v": "123f124" },
-        { "v": "123456789" },
-        { "v": "123456999" },
-        { "v": "ricardoamador" },
-        { "v": "2048" },
-        { "v": "ce345dc" },
-        { "v": "234567890" },
-        { "v": "234567999" },
-        { "v": "ricardoamador" },
-        { "v": "11304" },
-        { "v": "1640979000000" },
-        { "v": "0" },
-        { "v": "" }
-      ]
-    }
-  ]
-}
-''';
-
 const String pullRequestRecordResponse = '''
 {
   "jobComplete": true,
@@ -94,45 +66,6 @@ const String selectPullRequestTooManyRowsResponse = '''
         { "v": "345" },
         { "v": "ade456" },
         { "v": "merge" }
-      ]
-    }
-  ]
-}
-''';
-
-const String selectRevertRequestTooManyRowsResponse = '''
-{
-  "jobComplete": true,
-  "numDmlAffectedRows": "2",
-  "rows": [
-    { "f": [
-        { "v": "flutter"},
-        { "v": "cocoon" },
-        { "v": "ricardoamador" },
-        { "v": "1024" },
-        { "v": "123f124" },
-        { "v": "123456789" },
-        { "v": "123456999" },
-        { "v": "ricardoamador" },
-        { "v": "2048" },
-        { "v": "ce345dc" },
-        { "v": "234567890" },
-        { "v": "234567999" }
-      ]
-    },
-    { "f": [
-        { "v": "flutter"},
-        { "v": "cocoon" },
-        { "v": "ricardoamador" },
-        { "v": "1024" },
-        { "v": "123f124" },
-        { "v": "123456789" },
-        { "v": "123456999" },
-        { "v": "ricardoamador" },
-        { "v": "2048" },
-        { "v": "ce345dc" },
-        { "v": "234567890" },
-        { "v": "234567999" }
       ]
     }
   ]

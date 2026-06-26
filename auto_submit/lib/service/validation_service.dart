@@ -10,7 +10,6 @@ import 'package:retry/retry.dart';
 
 import '../exception/retryable_exception.dart';
 import '../model/auto_submit_query_result.dart';
-import '../model/pull_request_data_types.dart';
 import '../requests/graphql_queries.dart';
 import 'config.dart';
 import 'graphql_service.dart';
@@ -159,7 +158,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   Future<void> insertPullRequestRecord({
     required Config config,
     required github.PullRequest pullRequest,
-    required PullRequestChangeType pullRequestType,
+    String pullRequestType = 'change',
   }) async {
     final slug = pullRequest.base!.repo!.slug();
     final gitHubService = await config.createGithubService(slug);
@@ -176,7 +175,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       author: currentPullRequest.user!.login,
       prNumber: pullRequest.number!,
       prCommit: currentPullRequest.head!.sha,
-      prRequestType: pullRequestType.name,
+      prRequestType: pullRequestType,
       prCreatedTimestamp: currentPullRequest.createdAt!,
       prLandedTimestamp: currentPullRequest.closedAt!,
     );

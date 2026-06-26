@@ -732,7 +732,7 @@ This is the second line in a paragraph.''');
       );
 
       unawaited(
-        pubsub.publish(config.pubsubRevertRequestSubscription, pullRequest),
+        pubsub.publish(config.pubsubPullRequestSubscription, pullRequest),
       );
       await validationService.processPullRequest(
         config: config,

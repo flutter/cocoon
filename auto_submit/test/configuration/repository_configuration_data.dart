@@ -12,24 +12,6 @@ const String sampleConfigNoOverride = '''
   approving_reviews: 2
   approval_group: flutter-hackers
   run_ci: true
-  support_no_review_revert: true
-  required_checkruns_on_revert:
-    - ci.yaml validation
-''';
-
-const String sampleConfigRevertReviewRequired = '''
-  default_branch: main
-  allow_config_override: false
-  auto_approval_accounts:
-    - dependabot[bot]
-    - dependabot
-    - DartDevtoolWorkflowBot
-  approving_reviews: 2
-  approval_group: flutter-hackers
-  run_ci: true
-  support_no_review_revert: false
-  required_checkruns_on_revert:
-    - ci.yaml validation
 ''';
 
 const String sampleConfigWithOverride = '''
@@ -42,9 +24,6 @@ const String sampleConfigWithOverride = '''
   approving_reviews: 2
   approval_group: flutter-hackers
   run_ci: true
-  support_no_review_revert: true
-  required_checkruns_on_revert:
-    - ci.yaml validation
   stale_pr_protection_in_days_for_base_refs:
     flutter/flutter/main: 7
     flutter/cocoon/main: 30

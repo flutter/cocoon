@@ -14,7 +14,6 @@ import '../request_handling/pubsub.dart';
 import '../requests/exceptions.dart';
 import '../server/request_handler.dart';
 import '../service/config.dart';
-import 'github_pull_request_event.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
@@ -55,7 +54,6 @@ class GithubWebhook extends RequestHandler {
     }
 
     var hasAutosubmit = false;
-    var hasRevertLabel = false;
     final rawBody = utf8.decode(requestBytes);
     final body = json.decode(rawBody) as Map<String, dynamic>;
 
@@ -69,32 +67,12 @@ class GithubWebhook extends RequestHandler {
     final pullRequest = PullRequest.fromJson(
       body[GithubWebhook.pullRequest] as Map<String, dynamic>,
     );
-    final action = body[GithubWebhook.action] as String;
-    final sender = User.fromJson(
-      body[GithubWebhook.sender] as Map<String, dynamic>,
-    );
 
     hasAutosubmit = pullRequest.labels!.any(
       (label) => label.name == Config.kAutosubmitLabel,
     );
-    hasRevertLabel = pullRequest.labels!.any(
-      (label) =>
-          label.name == Config.kRevertLabel ||
-          label.name == Config.kRevertOfLabel,
-    );
 
-    // Check for revert label first.
-    if (hasRevertLabel) {
-      log.info('Found pull request with the revert label.');
-      await pubsub.publish(
-        config.pubsubRevertRequestTopic,
-        GithubPullRequestEvent(
-          pullRequest: pullRequest,
-          action: action,
-          sender: sender,
-        ),
-      );
-    } else if (hasAutosubmit) {
+    if (hasAutosubmit) {
       log.info('Found pull request with autosubmit label.');
       await pubsub.publish(config.pubsubPullRequestTopic, pullRequest);
     }

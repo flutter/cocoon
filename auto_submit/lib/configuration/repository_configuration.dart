@@ -18,9 +18,6 @@ class RepositoryConfiguration {
   static const String approvingReviewsKey = 'approving_reviews';
   static const String approvalGroupKey = 'approval_group';
   static const String runCiKey = 'run_ci';
-  static const String supportNoReviewRevertKey = 'support_no_review_revert';
-  static const String requiredCheckRunsOnRevertKey =
-      'required_checkruns_on_revert';
   static const String stalePrProtectionInDaysForBaseRefsKey =
       'stale_pr_protection_in_days_for_base_refs';
 
@@ -33,8 +30,6 @@ class RepositoryConfiguration {
     int? approvingReviews,
     String? approvalGroup,
     bool? runCi,
-    bool? supportNoReviewReverts,
-    Set<String>? requiredCheckRunsOnRevert,
     Map<String, int>? stalePrProtectionInDaysForBaseRefs,
   }) : allowConfigOverride = allowConfigOverride ?? false,
        defaultBranch = defaultBranch ?? defaultBranchStr,
@@ -42,8 +37,6 @@ class RepositoryConfiguration {
        approvingReviews = approvingReviews ?? 2,
        approvalGroup = approvalGroup ?? 'flutter-hackers',
        runCi = runCi ?? true,
-       supportNoReviewReverts = supportNoReviewReverts ?? true,
-       requiredCheckRunsOnRevert = requiredCheckRunsOnRevert ?? <String>{},
        stalePrProtectionInDaysForBaseRefs =
            stalePrProtectionInDaysForBaseRefs ?? <String, int>{};
 
@@ -69,13 +62,6 @@ class RepositoryConfiguration {
   /// before allowing a merge of the pull request.
   bool runCi;
 
-  /// Flag that determines if reverts are allowed without a review.
-  bool supportNoReviewReverts;
-
-  /// Set of checkruns that must complete before a revert pull request can be
-  /// merged.
-  Set<String> requiredCheckRunsOnRevert;
-
   /// A map of [slug]/[branch] as a key and number of days to validate PR base
   /// date is not older than on that [slug]/[branch].
   Map<String, int> stalePrProtectionInDaysForBaseRefs;
@@ -92,11 +78,6 @@ class RepositoryConfiguration {
     stringBuffer.writeln('$approvingReviewsKey: $approvingReviews');
     stringBuffer.writeln('$approvalGroupKey: $approvalGroup');
     stringBuffer.writeln('$runCiKey: $runCi');
-    stringBuffer.writeln('$supportNoReviewRevertKey: $supportNoReviewReverts');
-    stringBuffer.writeln('$requiredCheckRunsOnRevertKey:');
-    for (var checkrun in requiredCheckRunsOnRevert) {
-      stringBuffer.writeln('  - $checkrun');
-    }
     if (stalePrProtectionInDaysForBaseRefs.isNotEmpty) {
       stringBuffer.writeln('$stalePrProtectionInDaysForBaseRefsKey:');
       for (final MapEntry(key: branch, value: days)
@@ -121,15 +102,6 @@ class RepositoryConfiguration {
 
     if (yamlDoc[approvalGroupKey] == null) {
       throw ConfigurationException('The approval group is a required field.');
-    }
-
-    final requiredCheckRunsOnRevert = <String>{};
-    final yamlRequiredCheckRuns =
-        yamlDoc[requiredCheckRunsOnRevertKey] as YamlList?;
-    if (yamlRequiredCheckRuns != null) {
-      for (var element in yamlRequiredCheckRuns.nodes) {
-        requiredCheckRunsOnRevert.add(element.value as String);
-      }
     }
 
     final stalePrProtectionInDaysForBaseRefs = <String, int>{};
@@ -160,8 +132,6 @@ class RepositoryConfiguration {
       approvingReviews: yamlDoc[approvingReviewsKey] as int?,
       approvalGroup: yamlDoc[approvalGroupKey] as String?,
       runCi: yamlDoc[runCiKey] as bool?,
-      supportNoReviewReverts: yamlDoc[supportNoReviewRevertKey] as bool?,
-      requiredCheckRunsOnRevert: requiredCheckRunsOnRevert,
       stalePrProtectionInDaysForBaseRefs: stalePrProtectionInDaysForBaseRefs,
     );
   }

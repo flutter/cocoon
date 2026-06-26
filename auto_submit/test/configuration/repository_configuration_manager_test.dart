@@ -45,12 +45,6 @@ void main() {
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
-      support_no_review_revert: true
-      required_checkruns_on_revert:
-        - ci.yaml validation
-        - Google-testing
-        - test (ubuntu-latest, 2.18.0)
-        - cla/google
       stale_pr_protection_in_days_for_base_refs:
         flutter/flutter/main: 7
         flutter/cocoon/main: 30
@@ -67,34 +61,6 @@ void main() {
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
-    expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
-      isTrue,
-    );
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 4);
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'ci.yaml validation',
-      ),
-      isTrue,
-    );
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'Google-testing',
-      ),
-      isTrue,
-    );
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'test (ubuntu-latest, 2.18.0)',
-      ),
-      isTrue,
-    );
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains('cla/google'),
-      isTrue,
-    );
 
     expect(
       repositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
@@ -128,10 +94,6 @@ void main() {
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
-      support_no_review_revert: true
-      required_checkruns_on_revert:
-        - ci.yaml validation
-        - Google-testing
     ''';
 
       githubService.fileContentsMockList.add(sampleConfig);
@@ -145,24 +107,6 @@ void main() {
       expect(repositoryConfiguration.approvingReviews, 2);
       expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
       expect(repositoryConfiguration.runCi, isTrue);
-      expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-      expect(
-        repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
-        isTrue,
-      );
-      expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
-      expect(
-        repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-          'ci.yaml validation',
-        ),
-        isTrue,
-      );
-      expect(
-        repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-          'Google-testing',
-        ),
-        isTrue,
-      );
     },
   );
 
@@ -175,10 +119,6 @@ void main() {
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
-      support_no_review_revert: true
-      required_checkruns_on_revert:
-        - ci.yaml validation
-        - Google-testing
     ''';
 
     githubService.fileContentsMockList.add(sampleConfig);
@@ -193,24 +133,6 @@ void main() {
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
-    expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
-      isTrue,
-    );
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'ci.yaml validation',
-      ),
-      isTrue,
-    );
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'Google-testing',
-      ),
-      isTrue,
-    );
     expect(repositoryConfiguration.stalePrProtectionInDaysForBaseRefs, isEmpty);
   });
 
@@ -223,10 +145,6 @@ void main() {
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
-      support_no_review_revert: true
-      required_checkruns_on_revert:
-        - ci.yaml validation
-        - Google-testing
       stale_pr_protection_in_days_for_base_refs:
         flutter/flutter/main: 7
         flutter/cocoon/main: 30
@@ -244,24 +162,6 @@ void main() {
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
-    expect(repositoryConfiguration.supportNoReviewReverts, isTrue);
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.isNotEmpty,
-      isTrue,
-    );
-    expect(repositoryConfiguration.requiredCheckRunsOnRevert.length, 2);
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'ci.yaml validation',
-      ),
-      isTrue,
-    );
-    expect(
-      repositoryConfiguration.requiredCheckRunsOnRevert.contains(
-        'Google-testing',
-      ),
-      isTrue,
-    );
     expect(
       repositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
       isNotEmpty,
@@ -294,9 +194,6 @@ void main() {
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
-      support_no_review_revert: true
-      required_checkruns_on_revert:
-        - ci.yaml validation
       stale_pr_protection_in_days_for_base_refs:
         flutter/flutter/main: 7
         flutter/cocoon/main: 30
@@ -335,14 +232,6 @@ void main() {
       );
       expect(mergedRepositoryConfiguration.approvingReviews, 2);
       expect(mergedRepositoryConfiguration.runCi, isTrue);
-      expect(mergedRepositoryConfiguration.supportNoReviewReverts, isTrue);
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.length, 1);
-      expect(
-        mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains(
-          'ci.yaml validation',
-        ),
-        isTrue,
-      );
       expect(
         mergedRepositoryConfiguration.stalePrProtectionInDaysForBaseRefs,
         isNotEmpty,
@@ -568,93 +457,6 @@ void main() {
         isTrue,
       );
       expect(mergedRepositoryConfiguration.runCi, expectedRunCi);
-    });
-
-    test(
-      'Support no review reverts is updated if it differs from global config',
-      () {
-        const expectedSupportNoReviewReverts = false;
-        final localRepositoryConfiguration = RepositoryConfiguration(
-          supportNoReviewReverts: expectedSupportNoReviewReverts,
-        );
-        final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
-          sampleConfigWithOverride,
-        );
-        final mergedRepositoryConfiguration = repositoryConfigurationManager
-            .mergeConfigurations(
-              globalRepositoryConfiguration,
-              localRepositoryConfiguration,
-            );
-        expect(
-          globalRepositoryConfiguration.supportNoReviewReverts !=
-              mergedRepositoryConfiguration.supportNoReviewReverts,
-          isTrue,
-        );
-        expect(
-          mergedRepositoryConfiguration.supportNoReviewReverts,
-          expectedSupportNoReviewReverts,
-        );
-      },
-    );
-
-    test(
-      'Required check runs on revert is additive, they cannot be removed',
-      () {
-        const expectedRequiredCheckRun = 'Linux Device Doctor Validator';
-        const localrequiredCheckRunsOnRevert = <String>{
-          expectedRequiredCheckRun,
-        };
-        final localRepositoryConfiguration = RepositoryConfiguration(
-          requiredCheckRunsOnRevert: localrequiredCheckRunsOnRevert,
-        );
-        final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
-          sampleConfigWithOverride,
-        );
-        final mergedRepositoryConfiguration = repositoryConfigurationManager
-            .mergeConfigurations(
-              globalRepositoryConfiguration,
-              localRepositoryConfiguration,
-            );
-        expect(
-          mergedRepositoryConfiguration.requiredCheckRunsOnRevert.length,
-          2,
-        );
-        expect(
-          mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains(
-            'ci.yaml validation',
-          ),
-          isTrue,
-        );
-        expect(
-          mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains(
-            expectedRequiredCheckRun,
-          ),
-          isTrue,
-        );
-      },
-    );
-
-    test('Duplicate required check run on revert is not added', () {
-      const expectedRequiredCheckRun = 'ci.yaml validation';
-      const localRequiredCheckRunsOnRevert = <String>{expectedRequiredCheckRun};
-      final localRepositoryConfiguration = RepositoryConfiguration(
-        requiredCheckRunsOnRevert: localRequiredCheckRunsOnRevert,
-      );
-      final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
-        sampleConfigWithOverride,
-      );
-      final mergedRepositoryConfiguration = repositoryConfigurationManager
-          .mergeConfigurations(
-            globalRepositoryConfiguration,
-            localRepositoryConfiguration,
-          );
-      expect(mergedRepositoryConfiguration.requiredCheckRunsOnRevert.length, 1);
-      expect(
-        mergedRepositoryConfiguration.requiredCheckRunsOnRevert.contains(
-          expectedRequiredCheckRun,
-        ),
-        isTrue,
-      );
     });
   });
 }
