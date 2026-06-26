@@ -29,7 +29,7 @@ coder-up() {
 
   (
     export ENV_NAME="$env_name"
-    # pulling the file shows progress to the user 
+    # pulling the file shows progress to the user
     echo "Pulling image for: $env_name..."
     podman-compose -p "$env_name" -f "$compose_file" pull || exit 1
 
