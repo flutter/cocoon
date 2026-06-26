@@ -6,7 +6,6 @@ import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
 import '../model/auto_submit_query_result.dart';
-import '../model/pull_request_data_types.dart';
 import '../request_handling/pubsub.dart';
 import '../validations/validation.dart';
 import '../validations/validation_filter.dart';
@@ -22,7 +21,6 @@ class PullRequestValidationService extends ValidationService {
     super.retryOptions,
     required this.subscription,
   }) : super(config) {
-    /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
 
@@ -224,7 +222,6 @@ class _PullRequestValidationProcessor {
       await validationService.insertPullRequestRecord(
         config: config,
         pullRequest: pullRequest,
-        pullRequestType: PullRequestChangeType.change,
       );
     }
 

@@ -10,7 +10,6 @@ import 'base_commit_date_allowed.dart';
 import 'ci_successful.dart';
 import 'empty_checks.dart';
 import 'mergeable.dart';
-import 'required_check_runs.dart';
 import 'validation.dart';
 
 /// The [ValidationFilter] allows us to pick and choose and the validations to
@@ -26,8 +25,6 @@ abstract class ValidationFilter {
         return PullRequestValidationFilter(config, repositoryConfiguration);
       case ProcessMethod.processEmergency:
         return EmergencyValidationFilter(config, repositoryConfiguration);
-      case ProcessMethod.processRevert:
-        return RevertRequestValidationFilter(config, repositoryConfiguration);
       default:
         throw 'No such processMethod enum value';
     }
@@ -72,22 +69,6 @@ class EmergencyValidationFilter implements ValidationFilter {
   @override
   Set<Validation> getValidations() => {
     Approval(config: config),
-    Mergeable(config: config),
-  };
-}
-
-/// [RevertRequestValidationFilter] returns a Set of validations that we run on
-/// all revert pull requests.
-class RevertRequestValidationFilter implements ValidationFilter {
-  RevertRequestValidationFilter(this.config, this.repositoryConfiguration);
-
-  final Config config;
-  final RepositoryConfiguration repositoryConfiguration;
-
-  @override
-  Set<Validation> getValidations() => {
-    Approval(config: config),
-    RequiredCheckRuns(config: config),
     Mergeable(config: config),
   };
 }

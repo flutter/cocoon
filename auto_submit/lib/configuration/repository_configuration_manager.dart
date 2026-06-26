@@ -139,8 +139,6 @@ class RepositoryConfigurationManager {
       approvingReviews: globalConfiguration.approvingReviews,
       approvalGroup: globalConfiguration.approvalGroup,
       runCi: globalConfiguration.runCi,
-      supportNoReviewReverts: globalConfiguration.supportNoReviewReverts,
-      requiredCheckRunsOnRevert: globalConfiguration.requiredCheckRunsOnRevert,
       stalePrProtectionInDaysForBaseRefs:
           globalConfiguration.stalePrProtectionInDaysForBaseRefs,
     );
@@ -170,22 +168,6 @@ class RepositoryConfigurationManager {
     final localRunCi = localConfiguration.runCi;
     if (globalConfiguration.runCi != localRunCi) {
       mergedRepositoryConfiguration.runCi = localRunCi;
-    }
-
-    // support no revert reviews - this will be a moot point after revert is updated
-    final localSupportNoReviewReverts =
-        localConfiguration.supportNoReviewReverts;
-    if (localSupportNoReviewReverts !=
-        globalConfiguration.supportNoReviewReverts) {
-      mergedRepositoryConfiguration.supportNoReviewReverts =
-          localSupportNoReviewReverts;
-    }
-
-    // required checkruns on revert, they should be empty if nothing was defined
-    if (localConfiguration.requiredCheckRunsOnRevert.isNotEmpty) {
-      mergedRepositoryConfiguration.requiredCheckRunsOnRevert.addAll(
-        localConfiguration.requiredCheckRunsOnRevert,
-      );
     }
 
     // if the local configuration is not empty then use it.

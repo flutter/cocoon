@@ -391,18 +391,6 @@ class Scheduler {
           unlockMergeGroup = true;
         }
 
-        // Both the author and label should be checked to make sure that no one is
-        // attempting to get a pull request without check through.
-        if (pullRequest.user!.login == _config.autosubmitBot &&
-            pullRequest.labels!.any(
-              (element) => element.name == Config.revertOfLabel,
-            )) {
-          log.info(
-            'Skipping generating the full set of checks for revert request.',
-          );
-          unlockMergeGroup = true;
-          break;
-        }
         // Feature request: skip engine builds and tests in monorepo if the PR only contains framework related
         // files.
         // NOTE: This creates an empty staging doc for the engine builds as staging is handled on check_run completion
@@ -1415,84 +1403,73 @@ detailsUrl: $detailsUrl
     required _FlutterRepoTestsToRun testsToRun,
   }) async {
     try {
-      // Both the author and label should be checked to make sure that no one is
-      // attempting to get a pull request without check through.
-      if (pullRequest.user!.login == _config.autosubmitBot &&
-          pullRequest.labels!.any(
-            (element) => element.name == Config.revertOfLabel,
-          )) {
-        log.info(
-          '$logCrumb: skipping generating the full set of checks for revert request.',
+      // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
+      // engine and the framework.
+      var presubmitTargets = await _getTestsForStage(
+        pullRequest,
+        CiStage.fusionTests,
+        skipEngine:
+            testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
+      );
+
+      // Create the document for tracking test check runs.
+      final List<String> tasks;
+      if (testsToRun == _FlutterRepoTestsToRun.frameworkFlutterAnalyzeOnly) {
+        const linuxAnalyze = 'Linux analyze';
+        final singleTarget = presubmitTargets.firstWhereOrNull(
+          (t) => t.name == linuxAnalyze,
+        );
+        if (singleTarget == null) {
+          log.warn('No target found named "$linuxAnalyze"');
+          tasks = [];
+          presubmitTargets = [];
+        } else {
+          log.info('Only running target "$linuxAnalyze"');
+          tasks = [linuxAnalyze];
+          presubmitTargets = [singleTarget];
+        }
+      } else {
+        tasks = [...presubmitTargets.map((t) => t.name)];
+      }
+
+      await UnifiedCheckRun.initializeCiStagingDocument(
+        firestoreService: _firestore,
+        slug: pullRequest.base!.repo!.slug(),
+        sha: pullRequest.head!.sha!,
+        stage: CiStage.fusionTests,
+        tasks: tasks,
+        config: _config,
+        pullRequest: pullRequest,
+        checkRun: checkRunGuard,
+      );
+
+      // Here is where it gets fun: how do framework tests* know what engine
+      // artifacts to fetch and use on CI? For presubmits on flutter/flutter;
+      // see https://github.com/flutter/flutter/issues/164031.
+      //
+      // *In theory, also engine tests, but engine tests build from the engine
+      // from source and rely on remote-build execution (RBE) for builds to
+      // fast and cached.
+      final EngineArtifacts engineArtifacts;
+      if (testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests) {
+        // Use the engine that this PR was branched off of.
+        engineArtifacts = EngineArtifacts.usingExistingEngine(
+          commitSha: pullRequest.base!.sha!,
         );
       } else {
-        // Schedule the tests that would have run in a call to triggerPresubmitTargets - but for both the
-        // engine and the framework.
-        var presubmitTargets = await _getTestsForStage(
-          pullRequest,
-          CiStage.fusionTests,
-          skipEngine:
-              testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
-        );
-
-        // Create the document for tracking test check runs.
-        final List<String> tasks;
-        if (testsToRun == _FlutterRepoTestsToRun.frameworkFlutterAnalyzeOnly) {
-          const linuxAnalyze = 'Linux analyze';
-          final singleTarget = presubmitTargets.firstWhereOrNull(
-            (t) => t.name == linuxAnalyze,
-          );
-          if (singleTarget == null) {
-            log.warn('No target found named "$linuxAnalyze"');
-            tasks = [];
-            presubmitTargets = [];
-          } else {
-            log.info('Only running target "$linuxAnalyze"');
-            tasks = [linuxAnalyze];
-            presubmitTargets = [singleTarget];
-          }
-        } else {
-          tasks = [...presubmitTargets.map((t) => t.name)];
-        }
-
-        await UnifiedCheckRun.initializeCiStagingDocument(
-          firestoreService: _firestore,
-          slug: pullRequest.base!.repo!.slug(),
-          sha: pullRequest.head!.sha!,
-          stage: CiStage.fusionTests,
-          tasks: tasks,
-          config: _config,
-          pullRequest: pullRequest,
-          checkRun: checkRunGuard,
-        );
-
-        // Here is where it gets fun: how do framework tests* know what engine
-        // artifacts to fetch and use on CI? For presubmits on flutter/flutter;
-        // see https://github.com/flutter/flutter/issues/164031.
-        //
-        // *In theory, also engine tests, but engine tests build from the engine
-        // from source and rely on remote-build execution (RBE) for builds to
-        // fast and cached.
-        final EngineArtifacts engineArtifacts;
-        if (testsToRun != _FlutterRepoTestsToRun.engineTestsAndFrameworkTests) {
-          // Use the engine that this PR was branched off of.
-          engineArtifacts = EngineArtifacts.usingExistingEngine(
-            commitSha: pullRequest.base!.sha!,
-          );
-        } else {
-          // Use the engine that was built from source *for* this PR.
-          engineArtifacts = EngineArtifacts.builtFromSource(
-            commitSha: pullRequest.head!.sha!,
-          );
-        }
-
-        await _luciBuildService.scheduleTryBuilds(
-          targets: presubmitTargets,
-          pullRequest: pullRequest,
-          engineArtifacts: engineArtifacts,
-          checkRunGuard: checkRunGuard,
-          stage: CiStage.fusionTests,
+        // Use the engine that was built from source *for* this PR.
+        engineArtifacts = EngineArtifacts.builtFromSource(
+          commitSha: pullRequest.head!.sha!,
         );
       }
+
+      await _luciBuildService.scheduleTryBuilds(
+        targets: presubmitTargets,
+        pullRequest: pullRequest,
+        engineArtifacts: engineArtifacts,
+        checkRunGuard: checkRunGuard,
+        stage: CiStage.fusionTests,
+      );
     } on FormatException catch (e, s) {
       log.warn(
         '$logCrumb: FormatException encountered when scheduling presubmit '

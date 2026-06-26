@@ -758,17 +758,6 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as Set<_i7.RepositorySlug>);
 
   @override
-  String get autosubmitBot =>
-      (super.noSuchMethod(
-            Invocation.getter(#autosubmitBot),
-            returnValue: _i20.dummyValue<String>(
-              this,
-              Invocation.getter(#autosubmitBot),
-            ),
-          )
-          as String);
-
-  @override
   _i13.Future<String> get githubPrivateKey =>
       (super.noSuchMethod(
             Invocation.getter(#githubPrivateKey),

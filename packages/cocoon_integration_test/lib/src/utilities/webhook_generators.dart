@@ -28,7 +28,6 @@ PushMessage generateGithubWebhookMessage({
   RepositorySlug? slug,
   bool includeChanges = false,
   bool withAutosubmit = false,
-  bool withRevertOf = false,
   bool withCicdLabel = false,
   DateTime? closedAt,
   Iterable<String> additionalLabels = const [],
@@ -52,7 +51,6 @@ PushMessage generateGithubWebhookMessage({
               mergeCommitSha: mergeCommitSha,
               includeChanges: includeChanges,
               withAutosubmit: withAutosubmit,
-              withRevertOf: withRevertOf,
               withCicdLabel: withCicdLabel,
               closedAt: closedAt,
               additionalLabels: additionalLabels,
@@ -79,7 +77,6 @@ String _generatePullRequestEvent(
   bool includeChanges = false,
   DateTime? closedAt,
   required bool withAutosubmit,
-  required bool withRevertOf,
   bool withCicdLabel = false,
   Iterable<String> additionalLabels = const [],
   Map<String, Object?>? labeledLabel,
@@ -106,7 +103,6 @@ String _generatePullRequestEvent(
   final labels = [
     if (includeCqLabel) generateLabel('cla: yes'),
     if (withAutosubmit) generateLabel('autosubmit'),
-    if (withRevertOf) generateLabel('revert of'),
     if (withCicdLabel) generateLabel(Config.kCicdLabel),
 
     // This matches the behavior of this function before refactoring to have a

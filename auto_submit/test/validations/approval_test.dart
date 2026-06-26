@@ -516,9 +516,6 @@ void main() {
         approving_reviews: 2
         approval_group: custom-group
         run_ci: true
-        support_no_review_revert: true
-        required_checkruns_on_revert:
-          - ci.yaml validation
       ''',
         );
         approval = Approval(config: config);

@@ -269,11 +269,6 @@ class FakeConfig implements Config {
       postsubmitSupportedReposValue ?? <gh.RepositorySlug>{Config.packagesSlug};
 
   @override
-  String get autosubmitBot => 'auto-submit[bot]';
-
-  static const String revertOfLabel = 'revert of';
-
-  @override
   Future<String> get discordTreeStatusWebhookUrl async =>
       'https://discord.com/api/webhooks/1234/abcd';
 

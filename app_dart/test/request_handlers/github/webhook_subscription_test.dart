@@ -342,10 +342,6 @@ void main() {
           merged: true,
           baseSha: 'abc',
           mergeCommitSha: 'cde',
-
-          // Just spelling this out here, because this test specifically tests a
-          // non-revert PR.
-          withRevertOf: false,
         );
 
         await tester.post(webhook);
@@ -354,52 +350,6 @@ void main() {
         expect(scheduler.addPullRequestCallCnt, 1);
 
         // This was not a revert PR, so no branches deleted.
-        expect(githubService.deletedBranches, isEmpty);
-      },
-    );
-
-    test('Removes temporary revert branches upon merging the PR', () async {
-      const issueNumber = 123;
-
-      firestore.putDocument(generateFirestoreCommit(1));
-
-      tester.message = generateGithubWebhookMessage(
-        action: 'closed',
-        number: issueNumber,
-        baseRef: 'dev',
-        merged: true,
-        baseSha: 'abc',
-        mergeCommitSha: 'cde',
-        withRevertOf: true,
-        headRef: 'test/headref',
-      );
-
-      await tester.post(webhook);
-
-      // This was a merged revert PR. The temp branch should be deleted.
-      expect(githubService.deletedBranches, [
-        (RepositorySlug('flutter', 'flutter'), 'test/headref'),
-      ]);
-    });
-
-    test(
-      'Does NOT remove temporary revert branches upon closing a revert PR because the PR may be manually reopened',
-      () async {
-        const issueNumber = 123;
-
-        tester.message = generateGithubWebhookMessage(
-          action: 'closed',
-          number: issueNumber,
-          baseRef: 'dev',
-          merged: false,
-          baseSha: 'sha1',
-          mergeCommitSha: 'sha2',
-          withRevertOf: true,
-        );
-
-        await tester.post(webhook);
-
-        // This was a closed (not merged) revert PR, so no branches deleted.
         expect(githubService.deletedBranches, isEmpty);
       },
     );

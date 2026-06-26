@@ -98,29 +98,12 @@ class Config {
   /// GitHub check stale threshold.
   static const int kGitHubCheckStaleThreshold = 2; // hours
 
-  // Labels the bot looks for on revert requests.
-  // TODO (ricardoamador) https://github.com/flutter/flutter/issues/134845:
-  // add a link to a one page doc outlining the workflow that happens here.
-
-  /// The `revert` label is used by developers to initiate the revert request.
-  /// This signals to the service that it should revert the changes in this pull
-  /// request.
-  static const String kRevertLabel = 'revert';
-
-  /// The `revert of` label is used exclusively by the bot. The user does not
-  /// add this. When the bot successfully pushes the revert request to Github
-  /// it adds this label to signify that it should then validate and merge this
-  /// as a revert.
-  static const String kRevertOfLabel = 'revert of';
-
   /// Repository Slug data
   /// GitHub repositories that use CI status to determine if pull requests can be submitted.
   static Set<RepositorySlug> reposWithTreeStatus = <RepositorySlug>{
     flutterSlug,
   };
   static RepositorySlug get flutterSlug => RepositorySlug('flutter', 'flutter');
-
-  String get autosubmitBot => 'auto-submit[bot]';
 
   /// The names of autoroller accounts for the repositories.
   ///
@@ -156,9 +139,6 @@ class Config {
 
   String get pubsubPullRequestTopic => 'auto-submit-queue';
   String get pubsubPullRequestSubscription => 'auto-submit-queue-sub';
-
-  String get pubsubRevertRequestTopic => 'auto-submit-revert-queue';
-  String get pubsubRevertRequestSubscription => 'auto-submit-revert-queue-sub';
 
   /// Retry options for timing related retryable code.
   static const RetryOptions mergeRetryOptions = RetryOptions(

@@ -162,37 +162,3 @@ QueryResult _$QueryResultFromJson(Map<String, dynamic> json) => QueryResult(
 
 Map<String, dynamic> _$QueryResultToJson(QueryResult instance) =>
     <String, dynamic>{'repository': instance.repository};
-
-RevertPullRequest _$RevertPullRequestFromJson(Map<String, dynamic> json) =>
-    RevertPullRequest(
-      clientMutationId: json['clientMutationId'] as String?,
-      pullRequest: json['pullRequest'] == null
-          ? null
-          : PullRequest.fromJson(json['pullRequest'] as Map<String, dynamic>),
-      revertPullRequest: json['revertPullRequest'] == null
-          ? null
-          : PullRequest.fromJson(
-              json['revertPullRequest'] as Map<String, dynamic>,
-            ),
-    );
-
-Map<String, dynamic> _$RevertPullRequestToJson(RevertPullRequest instance) =>
-    <String, dynamic>{
-      'clientMutationId': instance.clientMutationId,
-      'pullRequest': instance.pullRequest,
-      'revertPullRequest': instance.revertPullRequest,
-    };
-
-RevertPullRequestData _$RevertPullRequestDataFromJson(
-  Map<String, dynamic> json,
-) => RevertPullRequestData(
-  revertPullRequest: json['revertPullRequest'] == null
-      ? null
-      : RevertPullRequest.fromJson(
-          json['revertPullRequest'] as Map<String, dynamic>,
-        ),
-);
-
-Map<String, dynamic> _$RevertPullRequestDataToJson(
-  RevertPullRequestData instance,
-) => <String, dynamic>{'revertPullRequest': instance.revertPullRequest};
