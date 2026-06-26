@@ -63,8 +63,3 @@ cron:
   url: /check-pull-request
   target: auto-submit
   schedule: every 1 minutes
-
-- description: check revert requests in the autosubmit bot
-  url: /check-revert-requests
-  target: auto-submit
-  schedule: every 1 minutes
