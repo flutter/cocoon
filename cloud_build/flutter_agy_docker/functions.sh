@@ -31,7 +31,7 @@ coder-up() {
     export ENV_NAME="$env_name"
     # pulling the file shows progress to the user 
     echo "Pulling image for: $env_name..."
-    podman-compose -p "$env_name" -f "$compose_file" pull
+    podman-compose -p "$env_name" -f "$compose_file" pull || exit 1
 
     # 1. Spin up the environment cleanly in the background
     echo "Starting development environment: $env_name..."
