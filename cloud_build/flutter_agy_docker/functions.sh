@@ -26,9 +26,17 @@ coder-up() {
     return 1
   fi
 
-  echo "Starting development environment: $env_name..."
-  # 1. Spin up the environment cleanly in the background
-  ENV_NAME="$env_name" podman-compose -p "$env_name" -f "$compose_file" up -d
+
+  (
+    export ENV_NAME="$env_name"
+    # pulling the file shows progress to the user 
+    echo "Pulling image for: $env_name..."
+    podman-compose -p "$env_name" -f "$compose_file" pull
+
+    # 1. Spin up the environment cleanly in the background
+    echo "Starting development environment: $env_name..."
+    podman-compose -p "$env_name" -f "$compose_file" up -d
+  )
 }
 
 # Enter the container
