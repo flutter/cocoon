@@ -21,7 +21,6 @@ class PullRequestValidationService extends ValidationService {
     super.retryOptions,
     required this.subscription,
   }) : super(config) {
-    /// Validates a PR marked with the reverts label.
     approverService = ApproverService(config);
   }
 
