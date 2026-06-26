@@ -31,11 +31,11 @@ coder-up() {
     export ENV_NAME="$env_name"
     # pulling the file shows progress to the user
     echo "Pulling image for: $env_name..."
-    podman-compose -p "$env_name" -f "$compose_file" pull || exit 1
+    podman compose -p "$env_name" -f "$compose_file" pull || exit 1
 
     # 1. Spin up the environment cleanly in the background
     echo "Starting development environment: $env_name..."
-    podman-compose -p "$env_name" -f "$compose_file" up -d
+    podman compose -p "$env_name" -f "$compose_file" up -d
   )
 }
 
@@ -78,5 +78,5 @@ coder-down() {
   fi
 
   echo "Stopping development environment: $env_name..."
-  ENV_NAME="$env_name" podman-compose -p "$env_name" -f "$compose_file" down
+  ENV_NAME="$env_name" podman compose -p "$env_name" -f "$compose_file" down
 }
