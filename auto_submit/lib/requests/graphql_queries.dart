@@ -114,8 +114,6 @@ query FindPullRequestNodeId ($repoOwner:String!, $repoName:String!, $pullRequest
 ''');
 }
 
-
-
 /// Instructs Github to put a pull request in the merge queue.
 ///
 /// Assumes the repository targeted by the pull request has merge queue enabled.

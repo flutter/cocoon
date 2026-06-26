@@ -186,4 +186,3 @@ class QueryResult {
 
   Map<String, dynamic> toJson() => _$QueryResultToJson(this);
 }
-
