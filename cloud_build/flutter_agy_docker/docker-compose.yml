@@ -8,7 +8,7 @@
 # Copy it to:  ~/.config/coder-env/docker-compose.yml
 services:
   dev:
-    image: us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest
+    image: us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:stable
     platform: linux/amd64
     # Dynamically reads the environment variable
     container_name: ${ENV_NAME:-coder-env}
