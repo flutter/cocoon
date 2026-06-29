@@ -292,9 +292,9 @@ class PresubmitState extends ChangeNotifier {
       String? topMost;
       for (final stage in filtered.stages) {
         if (stage.jobs.isNotEmpty) {
-          final sortedBuilds = stage.jobs.entries.toList()
+          final sortedJobs = stage.jobs.entries.toList()
             ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
-          topMost = sortedBuilds.first.key;
+          topMost = sortedJobs.first.key;
           break;
         }
       }
