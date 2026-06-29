@@ -692,8 +692,7 @@ class PresubmitState extends ChangeNotifier {
     // Only allow re-run if the job failed
     final stage = _guardResponse?.stages.firstWhere(
       (s) => s.jobs.containsKey(jobName),
-      orElse: () =>
-          const PresubmitGuardStage(name: '', createdAt: 0, jobs: {}),
+      orElse: () => const PresubmitGuardStage(name: '', createdAt: 0, jobs: {}),
     );
     final status = stage?.jobs[jobName];
     return status == TaskStatus.failed || status == TaskStatus.infraFailure;
