@@ -19,7 +19,7 @@ import '../service/firestore/unified_check_run.dart';
 /// GET: /api/public/get-presubmit-guard
 ///
 /// Parameters:
-///   commit_sha: (string in query) mandatory. The GitHub Commit SHA.
+///   sha: (string in query) mandatory. The GitHub Commit SHA.
 ///   repo: (string in query) optional. The repository name. Defaults to 'flutter'.
 ///   owner: (string in query) optional. The repository owner. Defaults to 'flutter'.
 ///
