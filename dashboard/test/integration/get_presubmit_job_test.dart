@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:github/github.dart';
 
 void main() {
-  group('Integration: Get Presubmit Jobs', () {
+  group('Integration: Get Presubmit Job', () {
     late IntegrationServer server;
     late IntegrationHttpClient client;
     late AppEngineCocoonService service;
