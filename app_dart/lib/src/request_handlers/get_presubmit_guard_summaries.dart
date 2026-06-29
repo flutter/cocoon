@@ -14,7 +14,8 @@ import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Request handler for retrieving all presubmit guards for a specific pull request.
+/// For the Unified Check Run flow, this handler retrieves aggregated execution
+/// details about all 'Dashboard Checks' for a specific pull request.
 ///
 /// GET: /api/public/get-presubmit-guard-summaries
 ///
@@ -22,6 +23,26 @@ import '../service/firestore/unified_check_run.dart';
 ///   repo: (string in query) required. The repository name (e.g., 'flutter').
 ///   pr: (int in query) required. The pull request number.
 ///   owner: (string in query) optional. The repository owner (e.g., 'flutter').
+///
+/// Response: Status 200 OK
+/// [
+///  {
+///    "head_sha": "a2ef4ae497e588a4c6a1db741ed1b4602b77d084",
+///    "creation_time": 1782160242084,
+///    "guard_status": "Succeeded"
+///  },
+///  {
+///    "head_sha": "b1314384fe741a4a334792b5a520bb8d55077487",
+///    "creation_time": 1781822988802,
+///    "guard_status": "Failed"
+///  }
+/// ]
+///
+/// Response: Status 400 Bad Request
+/// {
+///   "error": "No guards found for PR 123456 in flutter/flutter"
+/// }
+///
 @immutable
 final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
   /// Defines the [GetPresubmitGuardSummaries] handler.

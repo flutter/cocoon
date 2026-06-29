@@ -11,15 +11,16 @@ import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Returns all attempts for a specific presubmit job.
+/// For the Unified Check Run flow, this API returns information about all
+/// LUCI build executions for a specific ci.yaml recipe.
 ///
 /// GET: /api/public/get-presubmit-job
 ///
 /// Parameters:
 ///   check_run_id: (int in query) mandatory. The GitHub Check Run ID.
-///   job_name: (string in query) mandatory. The name of the job.
-///   repo: (string in query) optional. The repository name.
-///   owner: (string in query) optional. The repository owner.
+///   job_name: (string in query) mandatory. The name of the ci.yaml recipe.
+///   repo: (string in query) optional. The repository name. Defaults to 'flutter'.
+///   owner: (string in query) optional. The repository owner. Defaults to 'flutter'.
 ///
 /// Response: Status 200 OK
 /// [

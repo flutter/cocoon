@@ -44,6 +44,8 @@ final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {
       PresubmitGuard.metadata;
 }
 
+/// For the Unified Check Run flow, this represents execution details of a
+/// 'Dashboard Checks' GitHub check.
 final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   static const collectionId = 'presubmit_guards';
   static const fieldCheckRun = 'check_run';
