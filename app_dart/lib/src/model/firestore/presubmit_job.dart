@@ -163,6 +163,8 @@ final class PresubmitJob extends AppDocument<PresubmitJob> {
     return PresubmitJob.fromDocument(document);
   }
 
+  /// For the Unified Check Run flow, this represents information about
+  /// individual LUCI build execution.
   factory PresubmitJob({
     required RepositorySlug slug,
     required int checkRunId,

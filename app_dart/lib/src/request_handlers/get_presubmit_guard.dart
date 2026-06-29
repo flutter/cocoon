@@ -13,11 +13,49 @@ import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Request handler for retrieving the aggregated presubmit guard status.
+/// For the Unified Check Run flow, this handler returns aggregated execution
+/// details of the 'Dashboard Checks' GitHub check for a commit.
 ///
-/// This handler queries the presubmit guards for a specific commit SHA and
-/// returns an aggregated response including the overall guard status and
-/// individual stage statuses.
+/// GET: /api/public/get-presubmit-guard
+///
+/// Parameters:
+///   commit_sha: (string in query) mandatory. The GitHub Commit SHA.
+///   repo: (string in query) optional. The repository name. Defaults to 'flutter'.
+///   owner: (string in query) optional. The repository owner. Defaults to 'flutter'.
+///
+/// Response: Status 200 OK
+/// {
+///   "pr_num": 181051,
+///   "check_run_id": 82814077799,
+///   "author": "ievdokdm",
+///   "stages": [
+///     {
+///       "name": "fusion",
+///       "created_at": 1782162074809,
+///       "jobs": {
+///         "Linux web_canvaskit_tests_0": "Succeeded",
+///         "Mac_arm64 build_tests_2_5": "Failed",
+///         "Windows tool_integration_tests_5_10": "In progress",
+///         "Linux web_canvaskit_tests_1": "Pending",
+///         "Mac_arm64 build_tests_3_5": "Infra failure",
+///         "Windows tool_integration_tests_7_10": "Cancelled",
+///         "Windows tool_integration_tests_6_10": "New",
+///         "Windows tool_integration_tests_9_10": "Skipped",
+///         "Windows tool_integration_tests_8_10": "Neutral",
+///       }
+///     },
+///     {
+///       "name": "engine",
+///       "created_at": 1782160242084,
+///       "jobs": {
+///         "Linux windows_host_engine": "Succeeded",
+///         "Linux web_host_engine": "Succeeded",
+///       }
+///     }
+///   ],
+///   "guard_status": "Failed",
+///   "enable_gemini_log_analysis": true
+/// }
 @immutable
 final class GetPresubmitGuard extends PublicApiRequestHandler {
   /// Defines the [GetPresubmitGuard] handler.
