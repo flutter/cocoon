@@ -11,7 +11,7 @@ import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Returns all jobs for a specific presubmit job.
+/// Returns all runs for a specific presubmit job.
 ///
 /// GET: /api/public/get-presubmit-job
 ///

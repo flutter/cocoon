@@ -211,7 +211,7 @@ class PresubmitState extends ChangeNotifier {
         (_jobNameFilter != null && _jobNameFilter!.isNotEmpty);
   }
 
-  /// Whether the user can trigger "Re-run failed" for all jobs.
+  /// Whether the user can trigger "Re-run failed" for all failed jobs.
   bool get canRerunAllFailedJobs {
     if (!authService.isAuthenticated || isLoading || _isRerunningAll) {
       return false;
