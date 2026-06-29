@@ -75,7 +75,7 @@ void main() {
 
       service = AppEngineCocoonService(
         client: MockClient((Request request) async {
-          expect(request.url.path, '/api/public/get-presubmit-jobs');
+          expect(request.url.path, '/api/public/get-presubmit-job');
           return Response(jsonEncode(checkData), 200);
         }),
       );

@@ -101,7 +101,7 @@ void main() {
       expect(response.error, isNull);
       expect(response.data, hasLength(2));
 
-      // Should be ordered by attempt number descending (default behavior of GetPresubmitJobsHandler)
+      // Should be ordered by attempt number descending (default behavior of GetPresubmitJobHandler)
       // I need to verify the order.
       // Based on `UnifiedCheckRun.getPresubmitJobDetails`:
       // `orderMap: const { PresubmitJob.fieldAttemptNumber: kQueryOrderDescending }`

@@ -357,7 +357,7 @@ class AppEngineCocoonService implements CocoonService {
       'owner': owner,
     };
     final getChecksUrl = apiEndpoint(
-      '/api/public/get-presubmit-jobs',
+      '/api/public/get-presubmit-job',
       queryParameters: queryParameters,
     );
 
@@ -365,7 +365,7 @@ class AppEngineCocoonService implements CocoonService {
 
     if (response.statusCode != HttpStatus.ok) {
       return CocoonResponse.error(
-        '/api/public/get-presubmit-jobs returned ${response.statusCode}',
+        '/api/public/get-presubmit-job returned ${response.statusCode}',
         statusCode: response.statusCode,
       );
     }
