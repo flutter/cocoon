@@ -54,14 +54,14 @@ final class PresubmitGuardResponse {
 
 /// Represents a single stage in a presubmit guard.
 ///
-/// A stage groups related builds (tasks) together, for example, 'fusion' or 'engine'.
+/// A stage groups related jobs (tasks) together, for example, 'fusion' or 'engine'.
 @immutable
 @JsonSerializable(fieldRename: FieldRename.snake)
 final class PresubmitGuardStage {
   const PresubmitGuardStage({
     required this.name,
     required this.createdAt,
-    required this.builds,
+    required this.jobs,
   });
 
   /// The name of the stage (e.g., 'fusion', 'engine').
@@ -70,8 +70,8 @@ final class PresubmitGuardStage {
   /// The creation timestamp of this stage in milliseconds since the epoch.
   final int createdAt;
 
-  /// Map of build names to their current statuses.
-  final Map<String, TaskStatus> builds;
+  /// Map of job names to their current statuses.
+  final Map<String, TaskStatus> jobs;
 
   /// Creates a [PresubmitGuardStage] from a JSON map.
   factory PresubmitGuardStage.fromJson(Map<String, Object?> json) =>

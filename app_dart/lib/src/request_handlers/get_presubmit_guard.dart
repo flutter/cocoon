@@ -89,7 +89,7 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
           rpc_model.PresubmitGuardStage(
             name: g.stage.name,
             createdAt: g.creationTime,
-            builds: g.jobs,
+            jobs: g.jobs,
           ),
       ],
     );

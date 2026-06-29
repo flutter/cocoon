@@ -856,7 +856,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
 
   void _updateSortedBuilds() {
     _sortedBuildsPerStage = widget.guardResponse.stages.map((stage) {
-      return stage.builds.entries.toList()
+      return stage.jobs.entries.toList()
         ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
     }).toList();
   }

@@ -50,7 +50,7 @@ void main() {
         PresubmitGuardStage(
           name: 'stage1',
           createdAt: 0,
-          builds: {
+          jobs: {
             'linux test1': TaskStatus.succeeded,
             'mac test1': TaskStatus.failed,
           },

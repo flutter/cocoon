@@ -41,7 +41,7 @@ PresubmitGuardStage _$PresubmitGuardStageFromJson(Map<String, dynamic> json) =>
     PresubmitGuardStage(
       name: json['name'] as String,
       createdAt: (json['created_at'] as num).toInt(),
-      builds: (json['builds'] as Map<String, dynamic>).map(
+      jobs: (json['jobs'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(k, $enumDecode(_$TaskStatusEnumMap, e)),
       ),
     );
@@ -51,7 +51,7 @@ Map<String, dynamic> _$PresubmitGuardStageToJson(
 ) => <String, dynamic>{
   'name': instance.name,
   'created_at': instance.createdAt,
-  'builds': instance.builds,
+  'jobs': instance.jobs,
 };
 
 const _$TaskStatusEnumMap = {

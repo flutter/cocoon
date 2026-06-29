@@ -218,7 +218,7 @@ class PresubmitState extends ChangeNotifier {
     }
     // Check if there are any failed jobs
     return _guardResponse?.stages.any(
-          (s) => s.builds.values.any(
+          (s) => s.jobs.values.any(
             (status) =>
                 status == TaskStatus.failed ||
                 status == TaskStatus.infraFailure,
@@ -264,7 +264,7 @@ class PresubmitState extends ChangeNotifier {
     final filtered = filteredGuardResponse;
     if (filtered == null ||
         filtered.stages.isEmpty ||
-        filtered.stages.every((s) => s.builds.isEmpty)) {
+        filtered.stages.every((s) => s.jobs.isEmpty)) {
       _selectedJob = null;
       _jobs = null;
       return;
@@ -275,7 +275,7 @@ class PresubmitState extends ChangeNotifier {
     final currentJob = selectedJob;
     if (currentJob != null) {
       for (final stage in filtered.stages) {
-        if (stage.builds.containsKey(currentJob)) {
+        if (stage.jobs.containsKey(currentJob)) {
           isVisible = true;
           break;
         }
@@ -291,8 +291,8 @@ class PresubmitState extends ChangeNotifier {
       // Select first available job based on UI sorting
       String? topMost;
       for (final stage in filtered.stages) {
-        if (stage.builds.isNotEmpty) {
-          final sortedBuilds = stage.builds.entries.toList()
+        if (stage.jobs.isNotEmpty) {
+          final sortedBuilds = stage.jobs.entries.toList()
             ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
           topMost = sortedBuilds.first.key;
           break;
@@ -317,7 +317,7 @@ class PresubmitState extends ChangeNotifier {
 
     final newAvailablePlatforms = <String>{};
     for (final stage in response.stages) {
-      for (final jobName in stage.builds.keys) {
+      for (final jobName in stage.jobs.keys) {
         newAvailablePlatforms.add(jobName.split(' ').first);
       }
     }
@@ -348,8 +348,8 @@ class PresubmitState extends ChangeNotifier {
 
     final filteredStages = <PresubmitGuardStage>[];
     for (final stage in response.stages) {
-      final filteredBuilds = <String, TaskStatus>{};
-      for (final entry in stage.builds.entries) {
+      final filteredJobs = <String, TaskStatus>{};
+      for (final entry in stage.jobs.entries) {
         final jobName = entry.key;
         final status = entry.value;
 
@@ -377,15 +377,15 @@ class PresubmitState extends ChangeNotifier {
           }
         }
 
-        filteredBuilds[jobName] = status;
+        filteredJobs[jobName] = status;
       }
 
-      if (filteredBuilds.isNotEmpty) {
+      if (filteredJobs.isNotEmpty) {
         filteredStages.add(
           PresubmitGuardStage(
             name: stage.name,
             createdAt: stage.createdAt,
-            builds: filteredBuilds,
+            jobs: filteredJobs,
           ),
         );
       }
@@ -691,11 +691,11 @@ class PresubmitState extends ChangeNotifier {
     }
     // Only allow re-run if the job failed
     final stage = _guardResponse?.stages.firstWhere(
-      (s) => s.builds.containsKey(jobName),
+      (s) => s.jobs.containsKey(jobName),
       orElse: () =>
-          const PresubmitGuardStage(name: '', createdAt: 0, builds: {}),
+          const PresubmitGuardStage(name: '', createdAt: 0, jobs: {}),
     );
-    final status = stage?.builds[jobName];
+    final status = stage?.jobs[jobName];
     return status == TaskStatus.failed || status == TaskStatus.infraFailure;
   }
 
