@@ -19,7 +19,7 @@ void main() {
           {
             'name': 'fusion',
             'created_at': 123456789,
-            'builds': {'test1': 'Succeeded', 'test2': 'In Progress'},
+            'jobs': {'test1': 'Succeeded', 'test2': 'In Progress'},
           },
         ],
       };
@@ -32,8 +32,8 @@ void main() {
       expect(response.guardStatus, GuardStatus.inProgress);
       expect(response.stages.length, 1);
       expect(response.stages[0].name, 'fusion');
-      expect(response.stages[0].builds['test1'], TaskStatus.succeeded);
-      expect(response.stages[0].builds['test2'], TaskStatus.inProgress);
+      expect(response.stages[0].jobs['test1'], TaskStatus.succeeded);
+      expect(response.stages[0].jobs['test2'], TaskStatus.inProgress);
     });
   });
 

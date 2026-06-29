@@ -10,7 +10,7 @@ import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_job.dart' as fs;
-import 'package:cocoon_service/src/request_handlers/get_presubmit_jobs.dart';
+import 'package:cocoon_service/src/request_handlers/get_presubmit_job.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
@@ -18,18 +18,18 @@ import 'package:test/test.dart';
 import '../src/request_handling/request_handler_tester.dart';
 
 void main() {
-  group('GetPresubmitJobs', () {
+  group('GetPresubmitJob', () {
     useTestLoggerPerTest();
     late FakeConfig config;
     late RequestHandlerTester tester;
-    late GetPresubmitJobs handler;
+    late GetPresubmitJob handler;
     late FakeFirestoreService firestoreService;
 
     setUp(() {
       config = FakeConfig();
       tester = RequestHandlerTester();
       firestoreService = FakeFirestoreService();
-      handler = GetPresubmitJobs(config: config, firestore: firestoreService);
+      handler = GetPresubmitJob(config: config, firestore: firestoreService);
     });
 
     Future<List<PresubmitJobResponse>?> getPresubmitJobResponse(

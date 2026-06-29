@@ -112,7 +112,7 @@ class _FilterDialogState extends State<FilterDialog> {
     final filteredCount =
         presubmitState.filteredGuardResponse?.stages.fold<int>(
           0,
-          (prev, stage) => prev + stage.builds.length,
+          (prev, stage) => prev + stage.jobs.length,
         ) ??
         0;
 

@@ -114,7 +114,7 @@ void main() {
         PresubmitGuardStage(
           name: 'stage1',
           createdAt: 0,
-          builds: {
+          jobs: {
             'linux test1': TaskStatus.succeeded,
             'linux test2': TaskStatus.failed,
             'mac test1': TaskStatus.succeeded,
@@ -129,8 +129,8 @@ void main() {
     // Filter by status
     presubmitState.updateFilters(statuses: {TaskStatus.failed});
     var filtered = presubmitState.filteredGuardResponse!;
-    expect(filtered.stages[0].builds.length, 1);
-    expect(filtered.stages[0].builds.keys.first, 'linux test2');
+    expect(filtered.stages[0].jobs.length, 1);
+    expect(filtered.stages[0].jobs.keys.first, 'linux test2');
 
     // Filter by platform
     presubmitState.updateFilters(
@@ -138,8 +138,8 @@ void main() {
       platforms: {'mac'},
     );
     filtered = presubmitState.filteredGuardResponse!;
-    expect(filtered.stages[0].builds.length, 1);
-    expect(filtered.stages[0].builds.keys.first, 'mac test1');
+    expect(filtered.stages[0].jobs.length, 1);
+    expect(filtered.stages[0].jobs.keys.first, 'mac test1');
 
     // Filter by regex
     presubmitState.updateFilters(
@@ -147,8 +147,8 @@ void main() {
       jobNameFilter: 'test2',
     );
     filtered = presubmitState.filteredGuardResponse!;
-    expect(filtered.stages[0].builds.length, 1);
-    expect(filtered.stages[0].builds.keys.first, 'linux test2');
+    expect(filtered.stages[0].jobs.length, 1);
+    expect(filtered.stages[0].jobs.keys.first, 'linux test2');
 
     // All filters
     presubmitState.updateFilters(
@@ -157,8 +157,8 @@ void main() {
       jobNameFilter: 'test1',
     );
     filtered = presubmitState.filteredGuardResponse!;
-    expect(filtered.stages[0].builds.length, 1);
-    expect(filtered.stages[0].builds.keys.first, 'linux test1');
+    expect(filtered.stages[0].jobs.length, 1);
+    expect(filtered.stages[0].jobs.keys.first, 'linux test1');
   });
 
   test('ensureValidSelection auto-selects top-most job on filter change', () {
@@ -171,7 +171,7 @@ void main() {
         PresubmitGuardStage(
           name: 'stage1',
           createdAt: 0,
-          builds: {
+          jobs: {
             'linux test1': TaskStatus.succeeded,
             'linux test2': TaskStatus.failed,
           },

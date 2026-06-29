@@ -9,7 +9,7 @@ import 'src/request_handlers/analyze_logs.dart';
 import 'src/request_handlers/get_engine_artifacts_ready.dart';
 import 'src/request_handlers/get_presubmit_guard.dart';
 import 'src/request_handlers/get_presubmit_guard_summaries.dart';
-import 'src/request_handlers/get_presubmit_jobs.dart';
+import 'src/request_handlers/get_presubmit_job.dart';
 import 'src/request_handlers/get_tree_status_changes.dart';
 import 'src/request_handlers/github_webhook_replay.dart';
 import 'src/request_handlers/lookup_hash.dart';
@@ -218,7 +218,7 @@ Server createServer({
       config: config,
       firestore: firestore,
     ),
-    '/api/public/get-presubmit-jobs': GetPresubmitJobs(
+    '/api/public/get-presubmit-job': GetPresubmitJob(
       config: config,
       firestore: firestore,
     ),

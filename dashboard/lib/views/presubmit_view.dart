@@ -819,12 +819,12 @@ class _JobsSidebar extends StatefulWidget {
 
 class _JobsSidebarState extends State<_JobsSidebar> {
   final ScrollController _scrollController = ScrollController();
-  late List<List<MapEntry<String, TaskStatus>>> _sortedBuildsPerStage;
+  late List<List<MapEntry<String, TaskStatus>>> _sortedJobsPerStage;
 
   @override
   void initState() {
     super.initState();
-    _updateSortedBuilds();
+    _updateSortedJobs();
     _selectFirstJob();
   }
 
@@ -832,7 +832,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
   void didUpdateWidget(_JobsSidebar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.guardResponse != oldWidget.guardResponse) {
-      _updateSortedBuilds();
+      _updateSortedJobs();
     }
     if (widget.selectedJob == null) {
       _selectFirstJob();
@@ -841,7 +841,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
 
   void _selectFirstJob() {
     if (widget.isMobile || widget.selectedJob != null) return;
-    for (final stage in _sortedBuildsPerStage) {
+    for (final stage in _sortedJobsPerStage) {
       if (stage.isNotEmpty) {
         final firstJob = stage.first.key;
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -854,9 +854,9 @@ class _JobsSidebarState extends State<_JobsSidebar> {
     }
   }
 
-  void _updateSortedBuilds() {
-    _sortedBuildsPerStage = widget.guardResponse.stages.map((stage) {
-      return stage.builds.entries.toList()
+  void _updateSortedJobs() {
+    _sortedJobsPerStage = widget.guardResponse.stages.map((stage) {
+      return stage.jobs.entries.toList()
         ..sort((a, b) => compareTasks(a.key, a.value, b.key, b.value));
     }).toList();
   }
@@ -885,7 +885,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
                 itemCount: widget.guardResponse.stages.length,
                 itemBuilder: (context, stageIndex) {
                   final stage = widget.guardResponse.stages[stageIndex];
-                  final sortedBuilds = _sortedBuildsPerStage[stageIndex];
+                  final sortedJobs = _sortedJobsPerStage[stageIndex];
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -908,7 +908,7 @@ class _JobsSidebarState extends State<_JobsSidebar> {
                           ),
                         ),
                       ),
-                      ...sortedBuilds.map((entry) {
+                      ...sortedJobs.map((entry) {
                         final isSelected = widget.selectedJob == entry.key;
                         return _JobItem(
                           name: entry.key,

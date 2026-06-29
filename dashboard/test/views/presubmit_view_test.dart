@@ -230,7 +230,7 @@ void main() {
         PresubmitGuardStage(
           name: 'Engine',
           createdAt: 0,
-          builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+          jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
         ),
       ],
     );
@@ -320,7 +320,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+            jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
           ),
         ],
       );
@@ -409,7 +409,7 @@ void main() {
         PresubmitGuardStage(
           name: 'Engine',
           createdAt: 0,
-          builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+          jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
         ),
       ],
     );
@@ -502,7 +502,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+            jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
           ),
         ],
       );
@@ -603,7 +603,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'Mac mac_host_engine 1': TaskStatus.failed},
+            jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
           ),
         ],
       );
@@ -698,7 +698,7 @@ void main() {
         PresubmitGuardStage(
           name: 'Engine',
           createdAt: 0,
-          builds: {'Mac mac_host_engine': TaskStatus.succeeded},
+          jobs: {'Mac mac_host_engine': TaskStatus.succeeded},
         ),
       ],
       guardStatus: GuardStatus.succeeded,
@@ -869,7 +869,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'linux_bot': TaskStatus.failed},
+            jobs: {'linux_bot': TaskStatus.failed},
           ),
         ],
       );
@@ -927,7 +927,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'linux_bot': TaskStatus.failed},
+            jobs: {'linux_bot': TaskStatus.failed},
           ),
         ],
       );
@@ -981,7 +981,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'linux_bot': TaskStatus.failed},
+            jobs: {'linux_bot': TaskStatus.failed},
           ),
         ],
       );
@@ -1057,7 +1057,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {
+            jobs: {
               'succeeded_z': TaskStatus.succeeded,
               'failed_b': TaskStatus.failed,
               'infra_c': TaskStatus.infraFailure,
@@ -1155,7 +1155,7 @@ void main() {
             PresubmitGuardStage(
               name: 'Engine',
               createdAt: 0,
-              builds: {
+              jobs: {
                 'linux_analyze': TaskStatus.succeeded,
                 'linux_bot': TaskStatus.failed,
                 'mac_bot': TaskStatus.inProgress,
@@ -1215,7 +1215,7 @@ void main() {
             PresubmitGuardStage(
               name: 'Engine',
               createdAt: 0,
-              builds: {
+              jobs: {
                 'linux_analyze': TaskStatus.succeeded,
                 'linux_bot': TaskStatus.failed,
                 'mac_bot': TaskStatus.inProgress,
@@ -1276,7 +1276,7 @@ void main() {
           PresubmitGuardStage(
             name: 'Engine',
             createdAt: 0,
-            builds: {'Mac mac_host_engine 1': TaskStatus.succeeded},
+            jobs: {'Mac mac_host_engine 1': TaskStatus.succeeded},
           ),
         ],
       );

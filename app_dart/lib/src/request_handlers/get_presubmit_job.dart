@@ -11,9 +11,9 @@ import '../../cocoon_service.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
-/// Returns all jobs for a specific presubmit job.
+/// Returns all attempts for a specific presubmit job.
 ///
-/// GET: /api/public/get-presubmit-jobs
+/// GET: /api/public/get-presubmit-job
 ///
 /// Parameters:
 ///   check_run_id: (int in query) mandatory. The GitHub Check Run ID.
@@ -33,8 +33,8 @@ import '../service/firestore/unified_check_run.dart';
 ///     "summary": "Check passed"
 ///   }
 /// ]
-final class GetPresubmitJobs extends PublicApiRequestHandler {
-  const GetPresubmitJobs({
+final class GetPresubmitJob extends PublicApiRequestHandler {
+  const GetPresubmitJob({
     required super.config,
     required FirestoreService firestore,
   }) : _firestore = firestore;

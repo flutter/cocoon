@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:github/github.dart';
 
 void main() {
-  group('Integration: Get Presubmit Checks', () {
+  group('Integration: Get Presubmit Job', () {
     late IntegrationServer server;
     late IntegrationHttpClient client;
     late AppEngineCocoonService service;
@@ -32,7 +32,7 @@ void main() {
       expect(response.statusCode, 404);
     });
 
-    test('returns presubmit check details', () async {
+    test('returns presubmit job details', () async {
       final now = DateTime.now();
       final check = PresubmitJob(
         slug: RepositorySlug('flutter', 'flutter'),
@@ -65,9 +65,9 @@ void main() {
       expect(result.summary, 'Build succeeded');
     });
 
-    test('returns multiple attempts for same build', () async {
+    test('returns multiple attempts for same job', () async {
       final now = DateTime.now();
-      final checkAttempt1 = PresubmitJob(
+      final attempt1 = PresubmitJob(
         slug: RepositorySlug('flutter', 'flutter'),
         checkRunId: 789,
         jobName: 'mac_ios',
@@ -80,7 +80,7 @@ void main() {
         summary: 'Build failed',
       );
 
-      final checkAttempt2 = PresubmitJob(
+      final attempt2 = PresubmitJob(
         slug: RepositorySlug('flutter', 'flutter'),
         checkRunId: 789,
         jobName: 'mac_ios',
@@ -91,7 +91,7 @@ void main() {
         summary: 'Retry succeeded',
       );
 
-      server.firestore.putDocuments([checkAttempt1, checkAttempt2]);
+      server.firestore.putDocuments([attempt1, attempt2]);
 
       final response = await service.fetchPresubmitJobDetails(
         checkRunId: 789,
@@ -101,11 +101,7 @@ void main() {
       expect(response.error, isNull);
       expect(response.data, hasLength(2));
 
-      // Should be ordered by attempt number descending (default behavior of GetPresubmitJobsHandler)
-      // I need to verify the order.
-      // Based on `UnifiedCheckRun.getPresubmitJobDetails`:
-      // `orderMap: const { PresubmitJob.fieldAttemptNumber: kQueryOrderDescending }`
-
+      // Should be ordered by attempt number descending
       expect(response.data![0].attemptNumber, 2);
       expect(response.data![0].status, TaskStatus.succeeded);
 

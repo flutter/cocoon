@@ -498,7 +498,7 @@ void main() {
           PresubmitGuardStage(
             name: 'stage1',
             createdAt: 0,
-            builds: {'Mac my_job': TaskStatus.succeeded},
+            jobs: {'Mac my_job': TaskStatus.succeeded},
           ),
         ],
       );

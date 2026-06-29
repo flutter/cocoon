@@ -105,10 +105,10 @@ void main() {
     expect(stages.length, 2);
 
     final fusionStage = stages.firstWhere((s) => s.name == 'fusion');
-    expect(fusionStage.builds, {'test1': TaskStatus.succeeded});
+    expect(fusionStage.jobs, {'test1': TaskStatus.succeeded});
 
     final engineStage = stages.firstWhere((s) => s.name == 'engine');
-    expect(engineStage.builds, {'engine1': TaskStatus.inProgress});
+    expect(engineStage.jobs, {'engine1': TaskStatus.inProgress});
   });
 
   test('guardStatus is Failed if any stage has failed builds', () async {
