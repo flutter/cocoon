@@ -187,6 +187,8 @@ void main() {
         );
 
         expect(result.result, PresubmitGuardConclusionResult.ok);
+        expect(result.previousState.remaining, 2);
+        expect(result.previousState.failed, 0);
         expect(result.currentState.remaining, 1);
         expect(result.currentState.failed, 0);
 
@@ -220,6 +222,8 @@ void main() {
             ),
           );
 
+          expect(result1.previousState.remaining, 2);
+          expect(result1.previousState.failed, 0);
           expect(result1.currentState.remaining, 1);
           expect(result1.currentState.failed, 0);
           expect(result1.isOk, true);
@@ -238,6 +242,8 @@ void main() {
             ),
           );
 
+          expect(result2.previousState.remaining, 1);
+          expect(result2.previousState.failed, 0);
           expect(result2.currentState.remaining, 0);
           expect(result2.currentState.failed, 0);
           expect(result2.isOk, true);
@@ -274,6 +280,8 @@ void main() {
         );
 
         expect(result.result, PresubmitGuardConclusionResult.ok);
+        expect(result.previousState.remaining, 2);
+        expect(result.previousState.failed, 0);
         expect(result.currentState.remaining, 1);
         expect(result.currentState.failed, 1);
         expect(result.isFailed, true);

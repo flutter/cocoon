@@ -532,6 +532,7 @@ final class UnifiedCheckRun {
     var remaining = -1;
     var failed = -1;
     var valid = false;
+    var previousState = const PresubmitGuardState(remaining: -1, failed: -1);
 
     late final PresubmitGuard presubmitGuard;
     late final PresubmitJob presubmitJob;
@@ -549,6 +550,10 @@ final class UnifiedCheckRun {
         transaction: transaction,
       );
       presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
+      previousState = PresubmitGuardState(
+        remaining: presubmitGuard.remainingJobs,
+        failed: presubmitGuard.failedJobs,
+      );
 
       // Check if the build is present in the guard before trying to load it.
       if (presubmitGuard.jobs[state.jobName] == null) {
@@ -558,6 +563,7 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
+          previousState: previousState,
           currentState: PresubmitGuardState(
             remaining: presubmitGuard.remainingJobs,
             failed: presubmitGuard.failedJobs,
@@ -655,10 +661,8 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
-          currentState: PresubmitGuardState(
-            remaining: -1,
-            failed: failed,
-          ),
+          previousState: previousState,
+          currentState: PresubmitGuardState(remaining: -1, failed: failed),
           checkRunGuard: null,
           summary: 'Internal server error',
           details:
@@ -692,10 +696,8 @@ $stack
         result: valid
             ? PresubmitGuardConclusionResult.ok
             : PresubmitGuardConclusionResult.internalError,
-        currentState: PresubmitGuardState(
-          remaining: remaining,
-          failed: failed,
-        ),
+        previousState: previousState,
+        currentState: PresubmitGuardState(remaining: remaining, failed: failed),
         checkRunGuard: presubmitGuard.checkRunJson,
         summary: valid
             ? 'Successfully updated presubmit guard status'

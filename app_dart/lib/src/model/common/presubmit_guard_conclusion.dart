@@ -61,6 +61,7 @@ class PresubmitGuardState {
 /// See: [PresubmitGuard.markConclusion]
 class PresubmitGuardConclusion {
   final PresubmitGuardConclusionResult result;
+  final PresubmitGuardState previousState;
   final PresubmitGuardState currentState;
   final String? checkRunGuard;
   final String summary;
@@ -68,6 +69,7 @@ class PresubmitGuardConclusion {
 
   const PresubmitGuardConclusion({
     required this.result,
+    required this.previousState,
     required this.currentState,
     required this.checkRunGuard,
     required this.summary,
@@ -87,6 +89,7 @@ class PresubmitGuardConclusion {
       identical(this, other) ||
       (other is PresubmitGuardConclusion &&
           other.result == result &&
+          other.previousState == previousState &&
           other.currentState == currentState &&
           other.checkRunGuard == checkRunGuard &&
           other.summary == summary &&
@@ -95,6 +98,7 @@ class PresubmitGuardConclusion {
   @override
   int get hashCode => Object.hashAll([
     result,
+    previousState,
     currentState,
     checkRunGuard,
     summary,
@@ -103,5 +107,5 @@ class PresubmitGuardConclusion {
 
   @override
   String toString() =>
-      'BuildConclusion("$result", "$currentState", "$summary", "$details", "$checkRunGuard")';
+      'BuildConclusion("$result", "$previousState", "$currentState", "$summary", "$details", "$checkRunGuard")';
 }

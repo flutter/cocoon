@@ -160,6 +160,7 @@ void main() {
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 0),
           currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.missing,
           checkRunGuard: null,
@@ -227,6 +228,7 @@ void main() {
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 0),
           currentState: PresubmitGuardState(remaining: 0, failed: 0),
           result: PresubmitGuardConclusionResult.ok,
           checkRunGuard: '{}',
@@ -268,6 +270,7 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 0),
           currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.internalError,
           checkRunGuard: '{}',
@@ -306,6 +309,7 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 1),
           currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.ok,
           checkRunGuard: '{}',
@@ -348,6 +352,7 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 1),
           currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.ok,
           checkRunGuard: '{}',
@@ -389,6 +394,7 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 1),
           currentState: PresubmitGuardState(remaining: 1, failed: 1),
           result: PresubmitGuardConclusionResult.internalError,
           checkRunGuard: '{}',
@@ -426,6 +432,7 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
+          previousState: PresubmitGuardState(remaining: 1, failed: 0),
           currentState: PresubmitGuardState(remaining: 1, failed: 1),
           result: PresubmitGuardConclusionResult.ok,
           checkRunGuard: '{}',
