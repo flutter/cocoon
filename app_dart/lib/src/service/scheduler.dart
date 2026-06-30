@@ -1262,7 +1262,6 @@ detailsUrl: $detailsUrl
       return true;
     }
 
-
     // The logic for finishing a stage is different between build and test stages:
     //
     // * If this is a build stage, then:
