@@ -286,9 +286,11 @@ final class CiStaging extends AppDocument<CiStaging> {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: remaining,
+          currentState: PresubmitGuardState(
+            remaining: remaining,
+            failed: failed,
+          ),
           checkRunGuard: null,
-          failed: failed,
           summary: 'Check run "$checkRun" not present in $stage CI stage',
           details: 'Change $changeCrumb',
         );
@@ -352,9 +354,11 @@ final class CiStaging extends AppDocument<CiStaging> {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
-          remaining: -1,
+          currentState: PresubmitGuardState(
+            remaining: -1,
+            failed: failed,
+          ),
           checkRunGuard: null,
-          failed: failed,
           summary: 'Internal server error',
           details:
               '''
@@ -390,9 +394,11 @@ $stack
       result: valid
           ? PresubmitGuardConclusionResult.ok
           : PresubmitGuardConclusionResult.internalError,
-      remaining: remaining,
+      currentState: PresubmitGuardState(
+        remaining: remaining,
+        failed: failed,
+      ),
       checkRunGuard: checkRunGuard ?? '',
-      failed: failed,
       summary: valid
           ? 'All tests passed'
           : 'Not a valid state transition for $checkRun',

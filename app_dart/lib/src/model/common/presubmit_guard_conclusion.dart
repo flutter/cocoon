@@ -32,31 +32,53 @@ enum PresubmitGuardConclusionResult {
   internalError,
 }
 
+/// Represents the current state of jobs in a CI stage.
+class PresubmitGuardState {
+  final int remaining;
+  final int failed;
+
+  const PresubmitGuardState({
+    required this.remaining,
+    required this.failed,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PresubmitGuardState &&
+          other.remaining == remaining &&
+          other.failed == failed);
+
+  @override
+  int get hashCode => Object.hash(remaining, failed);
+
+  @override
+  String toString() => 'PresubmitGuardState("$remaining", "$failed")';
+}
+
 /// Results from attempting to mark a staging task as completed.
 ///
 /// See: [PresubmitGuard.markConclusion]
 class PresubmitGuardConclusion {
   final PresubmitGuardConclusionResult result;
-  final int remaining;
+  final PresubmitGuardState currentState;
   final String? checkRunGuard;
-  final int failed;
   final String summary;
   final String details;
 
   const PresubmitGuardConclusion({
     required this.result,
-    required this.remaining,
+    required this.currentState,
     required this.checkRunGuard,
-    required this.failed,
     required this.summary,
     required this.details,
   });
 
   bool get isOk => result == PresubmitGuardConclusionResult.ok;
 
-  bool get isPending => isOk && remaining > 0;
+  bool get isPending => isOk && currentState.remaining > 0;
 
-  bool get isFailed => isOk && failed > 0;
+  bool get isFailed => isOk && currentState.failed > 0;
 
   bool get isComplete => isOk && !isPending && !isFailed;
 
@@ -65,23 +87,21 @@ class PresubmitGuardConclusion {
       identical(this, other) ||
       (other is PresubmitGuardConclusion &&
           other.result == result &&
-          other.remaining == remaining &&
+          other.currentState == currentState &&
           other.checkRunGuard == checkRunGuard &&
-          other.failed == failed &&
           other.summary == summary &&
           other.details == details);
 
   @override
   int get hashCode => Object.hashAll([
     result,
-    remaining,
+    currentState,
     checkRunGuard,
-    failed,
     summary,
     details,
   ]);
 
   @override
   String toString() =>
-      'BuildConclusion("$result", "$remaining", "$failed", "$summary", "$details", "$checkRunGuard")';
+      'BuildConclusion("$result", "$currentState", "$summary", "$details", "$checkRunGuard")';
 }

@@ -558,9 +558,11 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingJobs,
+          currentState: PresubmitGuardState(
+            remaining: presubmitGuard.remainingJobs,
+            failed: presubmitGuard.failedJobs,
+          ),
           checkRunGuard: presubmitGuard.checkRunJson,
-          failed: presubmitGuard.failedJobs,
           summary:
               'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
@@ -653,9 +655,11 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
-          remaining: -1,
+          currentState: PresubmitGuardState(
+            remaining: -1,
+            failed: failed,
+          ),
           checkRunGuard: null,
-          failed: failed,
           summary: 'Internal server error',
           details:
               '''
@@ -688,9 +692,11 @@ $stack
         result: valid
             ? PresubmitGuardConclusionResult.ok
             : PresubmitGuardConclusionResult.internalError,
-        remaining: remaining,
+        currentState: PresubmitGuardState(
+          remaining: remaining,
+          failed: failed,
+        ),
         checkRunGuard: presubmitGuard.checkRunJson,
-        failed: failed,
         summary: valid
             ? 'Successfully updated presubmit guard status'
             : 'Not a valid state transition for ${state.jobName}',

@@ -1235,7 +1235,7 @@ detailsUrl: $detailsUrl
 
 ''', kDashboardChecksDescription),
           details:
-              'For ${check.stage} CI stage ${stagingConclusion.failed} checks failed',
+              'For ${check.stage} CI stage ${stagingConclusion.currentState.failed} checks failed',
           detailsUrl: detailsUrl,
         );
       }
@@ -1245,7 +1245,7 @@ detailsUrl: $detailsUrl
     // Are there tests remaining? Keep waiting.
     if (stagingConclusion.isPending) {
       log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.currentState.remaining}',
       );
       return false;
     }

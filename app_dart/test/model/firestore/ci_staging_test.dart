@@ -160,9 +160,8 @@ void main() {
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 1,
+          currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.missing,
-          failed: 0,
           checkRunGuard: null,
           summary: 'Check run "test" not present in engine CI stage',
           details: 'Change flutter_flutter_1234',
@@ -228,9 +227,8 @@ void main() {
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 0,
+          currentState: PresubmitGuardState(remaining: 0, failed: 0),
           result: PresubmitGuardConclusionResult.ok,
-          failed: 0,
           checkRunGuard: '{}',
           summary: 'All tests passed',
           details: '''
@@ -270,9 +268,8 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 1,
+          currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.internalError,
-          failed: 0,
           checkRunGuard: '{}',
           summary: 'Not a valid state transition for MacOS build_test',
           details:
@@ -309,9 +306,8 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 1,
+          currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.ok,
-          failed: 0,
           checkRunGuard: '{}',
           summary: 'All tests passed',
           details: '''
@@ -352,9 +348,8 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 1,
+          currentState: PresubmitGuardState(remaining: 1, failed: 0),
           result: PresubmitGuardConclusionResult.ok,
-          failed: 0,
           checkRunGuard: '{}',
           summary: 'All tests passed',
           details: '''
@@ -394,9 +389,8 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 1,
+          currentState: PresubmitGuardState(remaining: 1, failed: 1),
           result: PresubmitGuardConclusionResult.internalError,
-          failed: 1,
           checkRunGuard: '{}',
           summary: 'Not a valid state transition for MacOS build_test',
           details:
@@ -432,9 +426,8 @@ For CI stage engine:
       expect(
         result,
         const PresubmitGuardConclusion(
-          remaining: 1,
+          currentState: PresubmitGuardState(remaining: 1, failed: 1),
           result: PresubmitGuardConclusionResult.ok,
-          failed: 1,
           checkRunGuard: '{}',
           summary: 'All tests passed',
           details: '''

@@ -187,8 +187,8 @@ void main() {
         );
 
         expect(result.result, PresubmitGuardConclusionResult.ok);
-        expect(result.remaining, 1);
-        expect(result.failed, 0);
+        expect(result.currentState.remaining, 1);
+        expect(result.currentState.failed, 0);
 
         final checkDoc = await PresubmitJob.fromFirestore(
           firestoreService,
@@ -220,8 +220,8 @@ void main() {
             ),
           );
 
-          expect(result1.remaining, 1);
-          expect(result1.failed, 0);
+          expect(result1.currentState.remaining, 1);
+          expect(result1.currentState.failed, 0);
           expect(result1.isOk, true);
           expect(result1.isComplete, false);
           expect(result1.isPending, true);
@@ -238,8 +238,8 @@ void main() {
             ),
           );
 
-          expect(result2.remaining, 0);
-          expect(result2.failed, 0);
+          expect(result2.currentState.remaining, 0);
+          expect(result2.currentState.failed, 0);
           expect(result2.isOk, true);
           expect(result2.isComplete, true);
           expect(result2.isPending, false);
@@ -274,8 +274,8 @@ void main() {
         );
 
         expect(result.result, PresubmitGuardConclusionResult.ok);
-        expect(result.remaining, 1);
-        expect(result.failed, 1);
+        expect(result.currentState.remaining, 1);
+        expect(result.currentState.failed, 1);
         expect(result.isFailed, true);
         expect(result.isPending, true);
       });
