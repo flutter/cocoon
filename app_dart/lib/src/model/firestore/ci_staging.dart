@@ -112,6 +112,22 @@ final class CiStaging extends AppDocument<CiStaging> {
     return CiStaging.fromDocument(document);
   }
 
+  /// Queries for [CiStaging] records by [slug] and [sha].
+  ///
+  /// This is used to get both `_engine` and `_fusion` documents.
+  static Future<List<CiStaging>> getCiStagingForCommitSha({
+    required FirestoreService firestoreService,
+    required RepositorySlug slug,
+    required String sha,
+  }) async {
+    final filterMap = {
+      '$fieldRepoFullPath =': slug.fullName,
+      '$fieldCommitSha =': sha,
+    };
+    final documents = await firestoreService.query(_collectionId, filterMap);
+    return documents.map(CiStaging.fromDocument).toList();
+  }
+
   /// Create [CiStaging] from a Commit Document.
   CiStaging.fromDocument(Document other) {
     this
