@@ -69,4 +69,14 @@ extension ChecksExtension on TaskStatus {
       _ => .failed,
     };
   }
+
+  /// Converts a [TaskConclusion] to a [TaskStatus].
+  static TaskStatus fromTaskConclusion(TaskConclusion conclusion) {
+    return switch (conclusion) {
+      TaskConclusion.unknown || TaskConclusion.failure => TaskStatus.failed,
+      TaskConclusion.scheduled => TaskStatus.waitingForBackfill,
+      TaskConclusion.success => TaskStatus.succeeded,
+      TaskConclusion.neutral => TaskStatus.neutral,
+    };
+  }
 }

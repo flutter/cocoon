@@ -7,11 +7,11 @@ import 'dart:convert';
 
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
-import 'package:cocoon_common/task_status.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/common/checks_extension.dart';
 import '../model/firestore/ci_staging.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
@@ -201,26 +201,12 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
                 0,
             jobs: {
               for (final MapEntry(:key, :value) in g.checkRuns.entries)
-                key: _taskStatusFromConclusion(value),
+                key: ChecksExtension.fromTaskConclusion(value),
             },
           ),
       ],
     );
 
     return Response.json(response);
-  }
-
-  TaskStatus _taskStatusFromConclusion(TaskConclusion conclusion) {
-    switch (conclusion) {
-      case TaskConclusion.unknown:
-      case TaskConclusion.failure:
-        return TaskStatus.failed;
-      case TaskConclusion.scheduled:
-        return TaskStatus.waitingForBackfill;
-      case TaskConclusion.success:
-        return TaskStatus.succeeded;
-      case TaskConclusion.neutral:
-        return TaskStatus.neutral;
-    }
   }
 }

@@ -38,6 +38,29 @@ void main() {
         TaskStatus.neutral,
       );
     });
+
+    test('fromTaskConclusion mapping', () {
+      expect(
+        ChecksExtension.fromTaskConclusion(TaskConclusion.success),
+        TaskStatus.succeeded,
+      );
+      expect(
+        ChecksExtension.fromTaskConclusion(TaskConclusion.neutral),
+        TaskStatus.neutral,
+      );
+      expect(
+        ChecksExtension.fromTaskConclusion(TaskConclusion.failure),
+        TaskStatus.failed,
+      );
+      expect(
+        ChecksExtension.fromTaskConclusion(TaskConclusion.scheduled),
+        TaskStatus.waitingForBackfill,
+      );
+      expect(
+        ChecksExtension.fromTaskConclusion(TaskConclusion.unknown),
+        TaskStatus.failed,
+      );
+    });
   });
 
   group('TaskConclusion', () {
