@@ -1183,8 +1183,9 @@ void main() {
           for (var i = 0; i < 20; i++) {
             await tester.pump();
             await Future<void>.delayed(const Duration(milliseconds: 50));
-            if (find.textContaining('linux_analyze').evaluate().isNotEmpty)
+            if (find.textContaining('linux_analyze').evaluate().isNotEmpty) {
               break;
+            }
           }
         });
         await tester.pump();
@@ -1243,8 +1244,9 @@ void main() {
           for (var i = 0; i < 20; i++) {
             await tester.pump();
             await Future<void>.delayed(const Duration(milliseconds: 50));
-            if (find.textContaining('linux_analyze').evaluate().isNotEmpty)
+            if (find.textContaining('linux_analyze').evaluate().isNotEmpty) {
               break;
+            }
           }
         });
         await tester.pump();

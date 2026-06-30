@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
@@ -10,6 +11,8 @@ import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../model/common/checks_extension.dart';
+import '../model/firestore/ci_staging.dart';
 import '../request_handling/public_api_request_handler.dart';
 import '../service/firestore/unified_check_run.dart';
 
@@ -95,9 +98,7 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     );
 
     if (guards.isEmpty) {
-      return Response.json({
-        'error': 'No guard found for slug $slug and sha $sha',
-      }, statusCode: HttpStatus.notFound);
+      return _getCiStagingFallback(slug, sha);
     }
 
     // Consolidate metadata from the first record.
@@ -128,6 +129,80 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
             name: g.stage.name,
             createdAt: g.creationTime,
             jobs: g.jobs,
+          ),
+      ],
+    );
+
+    return Response.json(response);
+  }
+
+  Future<Response> _getCiStagingFallback(
+    RepositorySlug slug,
+    String sha,
+  ) async {
+    final ciStagings = await CiStaging.getCiStagingForCommitSha(
+      firestoreService: _firestore,
+      slug: slug,
+      sha: sha,
+    );
+
+    if (ciStagings.isEmpty) {
+      return Response.json({
+        'error': 'No guard found for slug $slug and sha $sha',
+      }, statusCode: HttpStatus.notFound);
+    }
+
+    final totalFailed = ciStagings.fold<int>(0, (sum, g) => sum + g.failed);
+    final totalRemaining = ciStagings.fold<int>(
+      0,
+      (sum, g) => sum + g.remaining,
+    );
+    final totalBuilds = ciStagings.fold<int>(0, (sum, g) => sum + g.total);
+
+    final guardStatus = GuardStatus.calculate(
+      failedBuilds: totalFailed,
+      remainingBuilds: totalRemaining,
+      totalBuilds: totalBuilds,
+    );
+
+    var checkRunId = -1;
+    final guardJsonStr = ciStagings.first.checkRunGuard;
+    if (guardJsonStr.isNotEmpty) {
+      try {
+        // Try to extract the check-run id from the json string.
+        final guardJson = jsonDecode(guardJsonStr) as Map<String, Object?>;
+        checkRunId = guardJson['id'] as int? ?? 0;
+      } catch (_) {
+        // ignore
+      }
+    }
+
+    var prNum = 0;
+    var author = '';
+
+    final prInfo = await PrCheckRuns.findPullRequestForSha(_firestore, sha);
+    if (prInfo != null) {
+      prNum = prInfo.number ?? 0;
+      author = prInfo.user?.login ?? '';
+    }
+
+    final response = rpc_model.PresubmitGuardResponse(
+      prNum: prNum,
+      checkRunId: checkRunId,
+      author: author,
+      guardStatus: guardStatus,
+      enableGeminiLogAnalysis: config.flags.enableGeminiLogAnalysis,
+      stages: [
+        for (final g in ciStagings)
+          rpc_model.PresubmitGuardStage(
+            name: g.stage?.name ?? 'unknown',
+            createdAt:
+                DateTime.tryParse(g.createTime ?? '')?.millisecondsSinceEpoch ??
+                0,
+            jobs: {
+              for (final MapEntry(:key, :value) in g.checkRuns.entries)
+                key: ChecksExtension.fromTaskConclusion(value),
+            },
           ),
       ],
     );
