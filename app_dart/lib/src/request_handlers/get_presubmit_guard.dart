@@ -166,16 +166,14 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     );
 
     var checkRunId = -1;
-    if (ciStagings.isNotEmpty) {
-      final guardJsonStr = ciStagings.first.checkRunGuard;
-      if (guardJsonStr.isNotEmpty) {
-        try {
-          // Try to extract the check-run id from the json string.
-          final guardJson = jsonDecode(guardJsonStr) as Map<String, Object?>;
-          checkRunId = guardJson['id'] as int? ?? 0;
-        } catch (_) {
-          // ignore
-        }
+    final guardJsonStr = ciStagings.first.checkRunGuard;
+    if (guardJsonStr.isNotEmpty) {
+      try {
+        // Try to extract the check-run id from the json string.
+        final guardJson = jsonDecode(guardJsonStr) as Map<String, Object?>;
+        checkRunId = guardJson['id'] as int? ?? 0;
+      } catch (_) {
+        // ignore
       }
     }
 
@@ -198,9 +196,9 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
         for (final g in ciStagings)
           rpc_model.PresubmitGuardStage(
             name: g.stage?.name ?? 'unknown',
-            createdAt: g.createTime != null
-                ? DateTime.parse(g.createTime!).millisecondsSinceEpoch
-                : 0,
+            createdAt:
+                DateTime.tryParse(g.createTime ?? '')?.millisecondsSinceEpoch ??
+                0,
             jobs: {
               for (final MapEntry(:key, :value) in g.checkRuns.entries)
                 key: _taskStatusFromConclusion(value),
