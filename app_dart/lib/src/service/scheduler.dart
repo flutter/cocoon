@@ -1204,6 +1204,15 @@ detailsUrl: $detailsUrl
       return false;
     }
 
+    // Are there tests remaining? Keep waiting.
+    // For unified check runs, we don't need to wait for the tests to complete.
+    if (stagingConclusion.isPending && !check.isUnifiedCheckRun) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.currentState.remaining}',
+      );
+      return false;
+    }
+
     if (stagingConclusion.isFailed) {
       // Something failed in the current CI stage:
       //
@@ -1223,6 +1232,17 @@ detailsUrl: $detailsUrl
           details: stagingConclusion.details,
         );
       } else if (check.isUnifiedCheckRun) {
+        // For unified check runs, we fail the guard only for the first failed job.
+        // Subsequent failures are ignored, but we still log them.
+        if (stagingConclusion.previousState.failed > 0) {
+          log.info(
+            '$logCrumb: check run remains failing, '
+            'previously failed checks ${stagingConclusion.previousState.failed}, '
+            'currently failed checks ${stagingConclusion.currentState.failed}, '
+            'remaining checks ${stagingConclusion.currentState.remaining}',
+          );
+          return false;
+        }
         final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
         final detailsUrl =
             'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
@@ -1242,13 +1262,6 @@ detailsUrl: $detailsUrl
       return true;
     }
 
-    // Are there tests remaining? Keep waiting.
-    if (stagingConclusion.isPending) {
-      log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.currentState.remaining}',
-      );
-      return false;
-    }
 
     // The logic for finishing a stage is different between build and test stages:
     //

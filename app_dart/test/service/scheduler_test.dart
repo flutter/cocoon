@@ -1758,6 +1758,55 @@ targets:
             );
           });
 
+          test(
+            'does not fail immediately when a test check run fails if tests remain',
+            () async {
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'abc123',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Foo foo', 'Bar bar'],
+                checkRunGuard: '{}',
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  PresubmitCompletedJob.fromCheckRun(
+                    createCocoonCheckRun(
+                      name: 'Bar bar',
+                      sha: 'abc123',
+                      conclusion: 'failure',
+                    ),
+                    createGithubRepository().slug(),
+                  ),
+                ),
+                isFalse,
+              );
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasCheckRuns({
+                    'Foo foo': TaskConclusion.scheduled,
+                    'Bar bar': TaskConclusion.failure,
+                  }),
+                ]),
+              );
+
+              verifyNever(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  output: anyNamed('output'),
+                ),
+              );
+            },
+          );
+
           // The merge guard is not closed until both engine build and tests
           // complete and are successful.
           // This behavior is explained here:

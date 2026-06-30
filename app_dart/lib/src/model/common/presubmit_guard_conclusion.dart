@@ -37,10 +37,7 @@ class PresubmitGuardState {
   final int remaining;
   final int failed;
 
-  const PresubmitGuardState({
-    required this.remaining,
-    required this.failed,
-  });
+  const PresubmitGuardState({required this.remaining, required this.failed});
 
   @override
   bool operator ==(Object other) =>
@@ -81,8 +78,6 @@ class PresubmitGuardConclusion {
   bool get isPending => isOk && currentState.remaining > 0;
 
   bool get isFailed => isOk && currentState.failed > 0;
-
-  bool get isComplete => isOk && !isPending && !isFailed;
 
   @override
   bool operator ==(Object other) =>

@@ -358,10 +358,7 @@ final class CiStaging extends AppDocument<CiStaging> {
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
           previousState: previousState,
-          currentState: PresubmitGuardState(
-            remaining: -1,
-            failed: failed,
-          ),
+          currentState: PresubmitGuardState(remaining: -1, failed: failed),
           checkRunGuard: null,
           summary: 'Internal server error',
           details:
@@ -399,10 +396,7 @@ $stack
           ? PresubmitGuardConclusionResult.ok
           : PresubmitGuardConclusionResult.internalError,
       previousState: previousState,
-      currentState: PresubmitGuardState(
-        remaining: remaining,
-        failed: failed,
-      ),
+      currentState: PresubmitGuardState(remaining: remaining, failed: failed),
       checkRunGuard: checkRunGuard ?? '',
       summary: valid
           ? 'All tests passed'
