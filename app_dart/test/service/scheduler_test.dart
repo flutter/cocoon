@@ -4344,6 +4344,98 @@ targets:
         },
       );
 
+      test(
+        'fails the guard check immediately when a test check run fails even if jobs remain',
+        () async {
+          final pullRequest = generatePullRequest();
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: Config.kDashboardCheckName,
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: checkRunGuard,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.fusionTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {
+                'Linux test 1': TaskStatus.waitingForBackfill,
+                'Linux test 2': TaskStatus.waitingForBackfill,
+              },
+              remainingJobs: 2,
+              failedJobs: 0,
+            ),
+          );
+
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test 1',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.fusionTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test 1',
+            status: bbv2.Status.FAILURE,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(
+                key: 'buildset',
+                value: 'sha/git/${pullRequest.head!.sha!}',
+              ),
+            ],
+          );
+
+          final check = PresubmitCompletedJob.fromBuild(build, userData);
+
+          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: anyNamed('status'),
+              conclusion: CheckRunConclusion.actionRequired,
+              detailsUrl: anyNamed('detailsUrl'),
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          ).called(1);
+
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          final guard = PresubmitGuard.fromDocument(guards.single);
+          expect(guard.failedJobs, 1);
+          expect(guard.remainingJobs, 1);
+        },
+      );
+
       test('closes merge queue guard in merge group success', () async {
         final pullRequest = generatePullRequest();
         final checkRunGuard = generateCheckRun(

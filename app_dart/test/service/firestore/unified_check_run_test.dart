@@ -276,6 +276,8 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.ok);
         expect(result.remaining, 1);
         expect(result.failed, 1);
+        expect(result.isFailed, true);
+        expect(result.isPending, true);
       });
 
       test('handles missing check gracefully', () async {

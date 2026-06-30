@@ -56,7 +56,7 @@ class PresubmitGuardConclusion {
 
   bool get isPending => isOk && remaining > 0;
 
-  bool get isFailed => isOk && !isPending && failed > 0;
+  bool get isFailed => isOk && failed > 0;
 
   bool get isComplete => isOk && !isPending && !isFailed;
 

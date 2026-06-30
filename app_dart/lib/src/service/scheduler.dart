@@ -1204,14 +1204,6 @@ detailsUrl: $detailsUrl
       return false;
     }
 
-    // Are there tests remaining? Keep waiting.
-    if (stagingConclusion.isPending) {
-      log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
-      );
-      return false;
-    }
-
     if (stagingConclusion.isFailed) {
       // Something failed in the current CI stage:
       //
@@ -1248,6 +1240,14 @@ detailsUrl: $detailsUrl
         );
       }
       return true;
+    }
+
+    // Are there tests remaining? Keep waiting.
+    if (stagingConclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
+      return false;
     }
 
     // The logic for finishing a stage is different between build and test stages:
