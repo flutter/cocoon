@@ -6,7 +6,9 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 void main() {
-  final binPath = 'bin/wait_for_tests.dart';
+  final binPath = Directory('bin').existsSync()
+      ? 'bin/wait_for_tests.dart'
+      : 'packages/wait_for_tests/bin/wait_for_tests.dart';
 
   test('prints usage when --help is passed', () async {
     final result = await Process.run('dart', [binPath, '--help']);

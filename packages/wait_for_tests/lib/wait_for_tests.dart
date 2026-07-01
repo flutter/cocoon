@@ -46,13 +46,9 @@ PollResult evaluateTests({
   required PresubmitGuardResponse response,
   required List<String> requiredTests,
 }) {
-  final allJobs = <String, TaskStatus>{};
-  for (final stage in response.stages) {
-    for (final MapEntry(key: String key, value: TaskStatus value)
-        in stage.jobs.entries) {
-      allJobs[key] = value;
-    }
-  }
+  final allJobs = <String, TaskStatus>{
+    for (final stage in response.stages) ...stage.jobs,
+  };
 
   // Pre-build a normalized lookup map to avoid O(M * N) iteration
   final normalizedJobs = {
@@ -191,62 +187,64 @@ Future<bool> waitForTests({
           json = <String, Object?>{};
         }
 
-        if (json.isNotEmpty) {
-          final PresubmitGuardResponse guardResponse;
-          try {
-            guardResponse = PresubmitGuardResponse.fromJson(json);
-          } catch (e) {
-            log(
-              'Warning: Failed to parse JSON into PresubmitGuardResponse: $e',
-            );
-            log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
-            await Future<void>.delayed(clampedWaitInterval);
-            continue;
-          }
+        if (json.isEmpty) {
+          log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+          await Future<void>.delayed(clampedWaitInterval);
+          continue;
+        }
 
-          final result = evaluateTests(
-            response: guardResponse,
-            requiredTests: requiredTests,
+        final PresubmitGuardResponse guardResponse;
+        try {
+          guardResponse = PresubmitGuardResponse.fromJson(json);
+        } catch (e) {
+          log('Warning: Failed to parse JSON into PresubmitGuardResponse: $e');
+          log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+          await Future<void>.delayed(clampedWaitInterval);
+          continue;
+        }
+
+        final result = evaluateTests(
+          response: guardResponse,
+          requiredTests: requiredTests,
+        );
+
+        log('\n--- Current Test Status Summary ---');
+        for (final summary in result.summaries) {
+          log(
+            '- ${summary.name}: ${summary.status.value} (${summary.originalStatusString})',
           );
+        }
+        if (requiredTests.isEmpty) {
+          log('Remaining tests: ${result.remainingCount}');
+          log('Overall Guard Status: ${result.guardStatus}');
+        }
+        log('-----------------------------------\n');
 
-          log('\n--- Current Test Status Summary ---');
-          for (final summary in result.summaries) {
+        final bool isSuccess;
+        if (requiredTests.isEmpty) {
+          isSuccess =
+              result.allSucceeded &&
+              result.guardStatus.toLowerCase() == 'succeeded';
+        } else {
+          isSuccess = result.allSucceeded;
+        }
+
+        if (isSuccess) {
+          if (requiredTests.isEmpty) {
             log(
-              '- ${summary.name}: ${summary.status.value} (${summary.originalStatusString})',
+              'Success: Overall guard status succeeded and all tests completed successfully!',
             );
-          }
-          if (requiredTests.isEmpty) {
-            log('Remaining tests: ${result.remainingCount}');
-            log('Overall Guard Status: ${result.guardStatus}');
-          }
-          log('-----------------------------------\n');
-
-          final bool isSuccess;
-          if (requiredTests.isEmpty) {
-            isSuccess =
-                result.allSucceeded &&
-                result.guardStatus.toLowerCase() == 'succeeded';
           } else {
-            isSuccess = result.allSucceeded;
+            log('Success: All required tests have completed successfully!');
           }
+          return true;
+        }
 
-          if (isSuccess) {
-            if (requiredTests.isEmpty) {
-              log(
-                'Success: Overall guard status succeeded and all tests completed successfully!',
-              );
-            } else {
-              log('Success: All required tests have completed successfully!');
-            }
-            return true;
-          }
-
-          if (result.anyFailed) {
-            log(
-              'Error: One or more tests have failed, or the overall guard status is failed.',
-            );
-            return false;
-          }
+        if (result.anyFailed) {
+          log(
+            'Error: One or more tests have failed, or the overall guard status is failed.',
+          );
+          return false;
         }
       }
     } catch (e) {
