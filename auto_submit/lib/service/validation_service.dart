@@ -107,7 +107,10 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
       }, retryIf: (Exception e) => e is RetryableException);
     } catch (e, s) {
       final message =
-          'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e';
+          'Failed to enqueue ${slug.fullName}/${restPullRequest.number} with $e. '
+          'If CI checks have not been triggered, please ensure the appropriate '
+          'CI labels have been added before using the '
+          "'${Config.kAutosubmitLabel}' label.";
       log.error(message, e, s);
       return (result: false, message: message, method: SubmitMethod.enqueue);
     }

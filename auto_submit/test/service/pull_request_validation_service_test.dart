@@ -660,6 +660,52 @@ This is the second line in a paragraph.''');
       );
     });
 
+    test(
+      'Fails to enqueue with helpful hint when GraphQL returns opaque error',
+      () async {
+        slug = RepositorySlug('flutter', 'flutter');
+
+        githubGraphQLClient.queryResultForOptions = (QueryOptions options) {
+          return QueryResult(
+            options: options,
+            source: QueryResultSource.network,
+            data: {
+              'repository': {
+                'pullRequest': {'id': 'PR_blahblah'},
+              },
+            },
+          );
+        };
+
+        githubGraphQLClient.mutateResultForOptions = (MutationOptions options) {
+          return QueryResult(
+            options: options,
+            source: QueryResultSource.network,
+            exception: OperationException(),
+          );
+        };
+
+        final pullRequest = generatePullRequest(
+          prNumber: 42,
+          repoName: slug.name,
+          title: 'Test PR',
+          mergeable: true,
+        );
+
+        final result = await validationService.submitPullRequest(
+          config: config,
+          pullRequest: pullRequest,
+        );
+
+        expect(result.result, isFalse);
+        expect(result.message, contains('Failed to enqueue flutter/flutter/42'));
+        expect(
+          result.message,
+          contains('CI labels have been added before using the'),
+        );
+      },
+    );
+
     test('Jumps the queue for emergency pull requests', () async {
       slug = RepositorySlug('flutter', 'flutter');
       final prTitle = 'This pull request should fail to enqueueueueueueueueueu';
