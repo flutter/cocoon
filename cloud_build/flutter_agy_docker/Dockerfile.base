@@ -40,8 +40,9 @@ USER coder
 RUN set -ex; \
     export PATH="/opt/flutter/bin:${PATH}"; \
     # 1. Download and uncompress the flutter tool
+    ARCH="${TARGETARCH:-$(dpkg --print-architecture)}"; \
     EXCLUDE_CACHE=""; \
-    if [ "$TARGETARCH" = "arm64" ] || [ "$TARGETARCH" = "aarch64" ]; then \
+    if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then \
       EXCLUDE_CACHE="--exclude=flutter/bin/cache"; \
     fi; \
     curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" | tar -xJ --exclude=.pub-preload-cache $EXCLUDE_CACHE --no-same-owner -C /opt; \
