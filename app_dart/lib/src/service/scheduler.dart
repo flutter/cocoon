@@ -1148,9 +1148,7 @@ detailsUrl: $detailsUrl
     PresubmitJobState job,
   ) async {
     final stage = job.stage!;
-    final conclusion = await _markUnifiedCheckRunConclusion(
-      state: job,
-    );
+    final conclusion = await _markUnifiedCheckRunConclusion(state: job);
 
     if (!conclusion.isOk) {
       return;

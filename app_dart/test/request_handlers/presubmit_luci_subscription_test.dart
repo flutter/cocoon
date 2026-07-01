@@ -88,9 +88,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processJobStatusUpdate(any),
-    ).thenAnswer((_) async {});
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     tester.message = createPushMessage(
       Int64(1),
@@ -133,9 +131,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processJobStatusUpdate(any),
-    ).thenAnswer((_) async {});
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     final userData = PresubmitUserData(
       commit: CommitRef(
@@ -314,9 +310,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processJobStatusUpdate(any),
-    ).thenAnswer((_) async {});
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     final userData = PresubmitUserData(
       commit: CommitRef(
@@ -377,9 +371,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processJobStatusUpdate(any),
-    ).thenAnswer((_) async {});
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     final userData = PresubmitUserData(
       checkRunId: 1,
@@ -560,9 +552,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(bbv2.Status.SUCCESS),
     ).thenAnswer((_) => github.CheckRunConclusion.success);
-    when(
-      mockScheduler.processJobStatusUpdate(any),
-    ).thenAnswer((_) async {});
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     await tester.post(handler);
 
@@ -622,9 +612,7 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    when(
-      mockScheduler.processJobStatusUpdate(any),
-    ).thenAnswer((_) async {});
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     tester.message = createPushMessage(
       Int64(1),

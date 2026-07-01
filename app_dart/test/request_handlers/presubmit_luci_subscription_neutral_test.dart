@@ -109,9 +109,7 @@ void main() {
         ),
       ).thenAnswer((_) async => true);
 
-      when(
-        mockScheduler.processJobStatusUpdate(any),
-      ).thenAnswer((_) async {});
+      when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
       tester.message = createPushMessage(
         Int64(1),
@@ -181,9 +179,7 @@ void main() {
         ),
       ).thenAnswer((_) async => true);
 
-      when(
-        mockScheduler.processJobStatusUpdate(any),
-      ).thenAnswer((_) async {});
+      when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
       tester.message = createPushMessage(
         Int64(1),

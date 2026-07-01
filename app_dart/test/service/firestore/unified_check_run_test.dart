@@ -184,7 +184,7 @@ void main() {
           isMergeGroup: false,
           sha: '',
           slug: slug,
-          isUnifiedCheckRun: false,          
+          isUnifiedCheckRun: false,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
