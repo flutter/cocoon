@@ -1,22 +1,42 @@
-// Copyright 2025 The Flutter Authors. All rights reserved.
+// Copyright 2024 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-/// @docImport 'presubmit_job_state.dart';
-library;
-
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 
+import '../../foundation/utils.dart';
+import '../../service/config.dart';
 import '../../service/luci_build_service/build_tags.dart';
+import '../../service/luci_build_service/user_data.dart';
 import '../bbv2_extension.dart';
+import '../firestore/base.dart';
+import '../firestore/presubmit_guard.dart';
+import '../github/checks.dart' as cocoon_checks;
+import 'checks_extension.dart';
 
-/// Represents the current state of a check run.
+/// Unified representation of a completed presubmit job.
+///
+/// This class abstracts away the source of the job (GitHub CheckRun or BuildBucket Build)
+/// to allow unified processing logic.
+@immutable
 class PresubmitJobState {
-  final String jobName;
+  final String name;
+  final String sha;
+  final RepositorySlug slug;
   final TaskStatus status;
-  final int attemptNumber; //static int _currentAttempt(BuildTags buildTags)
+  final bool isMergeGroup;
+
+  final int checkRunId;
+  final int? checkSuiteId;
+  final String? headBranch;
+  final bool isUnifiedCheckRun;
+  final CiStage? stage;
+  final int? prNum;
+  final int attempt;
   final int? startTime;
   final int? endTime;
   final String? summary;
@@ -24,26 +44,110 @@ class PresubmitJobState {
   final Int64? buildId;
 
   const PresubmitJobState({
-    required this.jobName,
+    required this.name,
+    required this.sha,
+    required this.slug,
     required this.status,
-    required this.attemptNumber,
+    required this.isMergeGroup,
+    required this.checkRunId,
+    required this.checkSuiteId,
+    required this.headBranch,
+    required this.isUnifiedCheckRun,
+    this.stage,
+    this.prNum,
+    this.attempt = 1,
     this.startTime,
     this.endTime,
     this.summary,
     this.buildNumber,
     this.buildId,
   });
-}
 
-extension BuildToPresubmitJobState on bbv2.Build {
-  PresubmitJobState toPresubmitJobState() => PresubmitJobState(
-    jobName: builder.builder,
-    status: status.toTaskStatus(),
-    attemptNumber: BuildTags.fromStringPairs(tags).currentAttempt,
-    startTime: startTime.toDateTime().millisecondsSinceEpoch,
-    endTime: endTime.toDateTime().millisecondsSinceEpoch,
-    summary: summaryMarkdown,
-    buildNumber: number,
-    buildId: id,
-  );
+  /// Creates a [PresubmitJobState] from a GitHub [CheckRun].
+  factory PresubmitJobState.fromCheckRun(
+    cocoon_checks.CheckRun checkRun,
+    RepositorySlug slug,
+  ) {
+    return PresubmitJobState(
+      name: checkRun.name!,
+      sha: checkRun.headSha!,
+      slug: slug,
+      status: ChecksExtension.fromConclusion(checkRun.conclusion),
+      isMergeGroup: _isMergeGroup(checkRun.checkSuite?.headBranch),
+      checkRunId: checkRun.id!,
+      checkSuiteId: checkRun.checkSuite?.id,
+      headBranch: checkRun.checkSuite?.headBranch,
+      isUnifiedCheckRun: false,
+      // CheckRun model doesn't have time/summary fields currently
+      startTime: null,
+      endTime: null,
+      summary: null,
+      buildNumber: null,
+      buildId: null,
+    );
+  }
+
+  /// Creates a [PresubmitJobState] from a BuildBucket [Build].
+  factory PresubmitJobState.fromBuild(
+    Build build,
+    PresubmitUserData userData, {
+    TaskStatus? status,
+  }) {
+    return PresubmitJobState(
+      name: build.builder.builder,
+      sha: userData.commit.sha,
+      slug: userData.commit.slug,
+      status: status ?? build.status.toTaskStatus(),
+      isMergeGroup: _isMergeGroup(userData.commit.branch),
+      checkRunId: userData.guardCheckRunId ?? userData.checkRunId!,
+      checkSuiteId: userData.checkSuiteId,
+      headBranch: userData.commit.branch,
+      isUnifiedCheckRun: userData.guardCheckRunId != null,
+      stage: userData.stage,
+      prNum: userData.pullRequestNumber,
+      attempt: _getAttempt(build),
+      startTime: build.startTime.toDateTime().millisecondsSinceEpoch,
+      endTime: build.endTime.toDateTime().millisecondsSinceEpoch,
+      summary: build.summaryMarkdown,
+      buildNumber: build.number,
+      buildId: build.id,
+    );
+  }
+
+  static int _getAttempt(Build build) {
+    final tagSet = BuildTags.fromStringPairs(build.tags);
+    return tagSet.currentAttempt;
+  }
+
+  cocoon_checks.CheckRun get checkRun {
+    return cocoon_checks.CheckRun(
+      id: checkRunId,
+      name: isUnifiedCheckRun ? Config.kDashboardCheckName : name,
+      headSha: sha,
+      conclusion: status.toConclusion(),
+      checkSuite: CheckSuite(
+        id: checkSuiteId,
+        headBranch: headBranch,
+        headSha: sha,
+        conclusion: CheckRunConclusion.empty,
+        pullRequests: [],
+      ),
+    );
+  }
+
+  PresubmitGuardId get guardId {
+    return PresubmitGuardId(
+      slug: slug,
+      prNum: prNum ?? 0,
+      checkRunId: checkRunId,
+      stage: stage ?? CiStage.fusionTests,
+    );
+  }
+
+  static bool _isMergeGroup(String? headBranch) {
+    if (headBranch == null) {
+      return false;
+    }
+    return tryParseGitHubMergeQueueBranch(headBranch).parsed;
+  }
 }

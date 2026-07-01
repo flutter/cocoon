@@ -14,7 +14,7 @@ import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/ci_yaml/target.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
@@ -1652,8 +1652,8 @@ targets:
               );
 
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
-                await scheduler.processCheckRunStatusChange(
-                  PresubmitCompletedJob.fromCheckRun(
+                await scheduler.processJobStatusUpdate(
+                  PresubmitJobState.fromCheckRun(
                     createCocoonCheckRun(name: ignored, sha: 'abc123'),
                     createGithubRepository().slug(),
                   ),
@@ -1684,8 +1684,8 @@ targets:
 
             firestore.failOnWriteDocument(document);
 
-            await scheduler.processCheckRunStatusChange(
-              PresubmitCompletedJob.fromCheckRun(
+            await scheduler.processJobStatusUpdate(
+              PresubmitJobState.fromCheckRun(
                 createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
                 createGithubRepository().slug(),
               ),
@@ -1720,8 +1720,8 @@ targets:
               checkRunGuard: '{}',
             );
 
-            await scheduler.processCheckRunStatusChange(
-              PresubmitCompletedJob.fromCheckRun(
+            await scheduler.processJobStatusUpdate(
+              PresubmitJobState.fromCheckRun(
                 createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
                 createGithubRepository().slug(),
               ),
@@ -1761,8 +1761,8 @@ targets:
                 checkRunGuard: '{}',
               );
 
-              await scheduler.processCheckRunStatusChange(
-                PresubmitCompletedJob.fromCheckRun(
+              await scheduler.processJobStatusUpdate(
+                PresubmitJobState.fromCheckRun(
                   createCocoonCheckRun(
                     name: 'Bar bar',
                     sha: 'abc123',
@@ -1817,8 +1817,8 @@ targets:
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
               );
 
-              await scheduler.processCheckRunStatusChange(
-                PresubmitCompletedJob.fromCheckRun(
+              await scheduler.processJobStatusUpdate(
+                PresubmitJobState.fromCheckRun(
                   createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
                   createGithubRepository().slug(),
                 ),
@@ -1924,8 +1924,8 @@ targets:
               checkRunGuard: checkRunFor(name: 'GUARD TEST'),
             );
 
-            await scheduler.processCheckRunStatusChange(
-              PresubmitCompletedJob.fromCheckRun(
+            await scheduler.processJobStatusUpdate(
+              PresubmitJobState.fromCheckRun(
                 createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
                 createGithubRepository().slug(),
               ),
@@ -2065,8 +2065,8 @@ targets:
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
               );
 
-              await scheduler.processCheckRunStatusChange(
-                PresubmitCompletedJob.fromCheckRun(
+              await scheduler.processJobStatusUpdate(
+                PresubmitJobState.fromCheckRun(
                   createCocoonCheckRun(
                     name: 'Bar bar',
                     sha: 'testSha',
@@ -2171,8 +2171,8 @@ targets:
               checkRunGuard: checkRunFor(name: 'GUARD TEST'),
             );
 
-            await scheduler.processCheckRunStatusChange(
-              PresubmitCompletedJob.fromCheckRun(
+            await scheduler.processJobStatusUpdate(
+              PresubmitJobState.fromCheckRun(
                 createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
                 createGithubRepository().slug(),
               ),
@@ -2432,8 +2432,8 @@ targets:
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
               );
 
-              await scheduler.processCheckRunStatusChange(
-                PresubmitCompletedJob.fromCheckRun(
+              await scheduler.processJobStatusUpdate(
+                PresubmitJobState.fromCheckRun(
                   createCocoonCheckRun(
                     name: 'Bar bar',
                     sha: 'testSha',
@@ -2512,8 +2512,8 @@ targets:
                 ),
               );
 
-              await scheduler.processCheckRunStatusChange(
-                PresubmitCompletedJob.fromCheckRun(
+              await scheduler.processJobStatusUpdate(
+                PresubmitJobState.fromCheckRun(
                   createCocoonCheckRun(
                     name: 'Bar bar',
                     sha: 'testSha',
@@ -2592,8 +2592,8 @@ targets:
               ),
             );
 
-            await scheduler.processCheckRunStatusChange(
-              PresubmitCompletedJob.fromCheckRun(
+            await scheduler.processJobStatusUpdate(
+              PresubmitJobState.fromCheckRun(
                 createCocoonCheckRun(
                   name: 'Bar bar',
                   sha: 'testSha',
@@ -2712,8 +2712,8 @@ targets:
                 checkRunGuard: checkRunFor(name: 'GUARD TEST'),
               );
 
-              await scheduler.processCheckRunStatusChange(
-                PresubmitCompletedJob.fromCheckRun(
+              await scheduler.processJobStatusUpdate(
+                PresubmitJobState.fromCheckRun(
                   createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
                   createGithubRepository().slug(),
                 ),
@@ -4255,9 +4255,9 @@ targets:
           ],
         );
 
-        final check = PresubmitCompletedJob.fromBuild(build, userData);
+        final check = PresubmitJobState.fromBuild(build, userData);
 
-        await scheduler.processCheckRunStatusChange(check);
+        await scheduler.processJobStatusUpdate(check);
 
         // Should schedule tests for the next stage (fusionTests)
         expect(fakeLuciBuildService.scheduledTryBuilds, isNotEmpty);
@@ -4333,9 +4333,9 @@ targets:
           tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
         );
 
-        final check = PresubmitCompletedJob.fromBuild(build, userData);
+        final check = PresubmitJobState.fromBuild(build, userData);
 
-        await scheduler.processCheckRunStatusChange(check);
+        await scheduler.processJobStatusUpdate(check);
 
         verify(
           mockGithubChecksUtil.updateCheckRun(
@@ -4423,9 +4423,9 @@ targets:
             ],
           );
 
-          final check = PresubmitCompletedJob.fromBuild(build, userData);
+          final check = PresubmitJobState.fromBuild(build, userData);
 
-          await scheduler.processCheckRunStatusChange(check);
+          await scheduler.processJobStatusUpdate(check);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -4515,9 +4515,9 @@ targets:
           ],
         );
 
-        final check = PresubmitCompletedJob.fromBuild(build, userData);
+        final check = PresubmitJobState.fromBuild(build, userData);
 
-        await scheduler.processCheckRunStatusChange(check);
+        await scheduler.processJobStatusUpdate(check);
 
         verify(
           mockGithubChecksUtil.updateCheckRun(
@@ -4602,9 +4602,9 @@ targets:
             ],
           );
 
-          final check = PresubmitCompletedJob.fromBuild(build, userData);
+          final check = PresubmitJobState.fromBuild(build, userData);
 
-          await scheduler.processCheckRunStatusChange(check);
+          await scheduler.processJobStatusUpdate(check);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(

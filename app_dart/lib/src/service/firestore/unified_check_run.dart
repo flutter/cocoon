@@ -13,8 +13,8 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../../model/common/failed_presubmit_jobs.dart';
-import '../../model/common/presubmit_guard_conclusion.dart';
 import '../../model/common/presubmit_job_state.dart';
+import '../../model/common/presubmit_guard_conclusion.dart';
 import '../../model/firestore/base.dart';
 import '../../model/firestore/ci_staging.dart';
 import '../../model/firestore/presubmit_guard.dart';
@@ -521,7 +521,7 @@ final class UnifiedCheckRun {
     final changeCrumb =
         '${guardId.slug.owner}_${guardId.slug.name}_${guardId.prNum}_${guardId.checkRunId}';
     final logCrumb =
-        'markConclusion(${changeCrumb}_${guardId.stage}, ${state.jobName}, ${state.status}, ${state.attemptNumber})';
+        'markConclusion(${changeCrumb}_${guardId.stage}, ${state.name}, ${state.status}, ${state.attempt})';
 
     // Marking needs to happen while in a transaction to ensure `remaining` is
     // updated correctly. For that to happen correctly; we need to perform a
@@ -556,9 +556,9 @@ final class UnifiedCheckRun {
       );
 
       // Check if the build is present in the guard before trying to load it.
-      if (presubmitGuard.jobs[state.jobName] == null) {
+      if (presubmitGuard.jobs[state.name] == null) {
         log.info(
-          '$logCrumb: ${state.jobName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
+          '$logCrumb: ${state.name} with attempt ${state.attempt} not present for $transaction / ${presubmitGuardDocument.fields}',
         );
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
@@ -570,7 +570,7 @@ final class UnifiedCheckRun {
           ),
           checkRunGuard: presubmitGuard.checkRunJson,
           summary:
-              'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
+              'Check run "${state.name}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
         );
       }
@@ -578,8 +578,8 @@ final class UnifiedCheckRun {
       final checkDocName = PresubmitJob.documentNameFor(
         slug: guardId.slug,
         checkRunId: guardId.checkRunId,
-        jobName: state.jobName,
-        attemptNumber: state.attemptNumber,
+        jobName: state.name,
+        attemptNumber: state.attempt,
       );
       final presubmitJobDocument = await firestoreService.getDocument(
         checkDocName,
@@ -590,7 +590,7 @@ final class UnifiedCheckRun {
       remaining = presubmitGuard.remainingJobs;
       failed = presubmitGuard.failedJobs;
       final jobs = presubmitGuard.jobs;
-      var status = jobs[state.jobName]!;
+      var status = jobs[state.name]!;
 
       // If job is waiting for backfill, that means its initiated by github
       // or re-run. So no processing needed, we should only update appropriate
@@ -649,7 +649,7 @@ final class UnifiedCheckRun {
           valid = true;
         }
       }
-      jobs[state.jobName] = status;
+      jobs[state.name] = status;
       presubmitGuard.jobs = jobs;
       presubmitJob.status = status;
     } on DetailedApiRequestError catch (e, stack) {
@@ -701,14 +701,14 @@ $stack
         checkRunGuard: presubmitGuard.checkRunJson,
         summary: valid
             ? 'Successfully updated presubmit guard status'
-            : 'Not a valid state transition for ${state.jobName}',
+            : 'Not a valid state transition for ${state.name}',
         details: valid
             ? '''
 For CI stage ${guardId.stage}:
   Pending: $remaining
   Failed: $failed
 '''
-            : 'Attempted to set the state of job ${state.jobName} '
+            : 'Attempted to set the state of job ${state.name} '
                   'to "${state.status.name}".',
       );
     } catch (e) {

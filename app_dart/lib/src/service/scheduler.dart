@@ -20,14 +20,12 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../model/common/checks_extension.dart';
-import '../model/common/presubmit_completed_check.dart';
-import '../model/common/presubmit_guard_conclusion.dart';
 import '../model/common/presubmit_job_state.dart';
+import '../model/common/presubmit_guard_conclusion.dart';
 import '../model/firestore/base.dart';
 import '../model/firestore/ci_staging.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';
-import '../model/firestore/presubmit_guard.dart';
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/github/checks.dart' show MergeGroup;
@@ -1121,45 +1119,40 @@ detailsUrl: $detailsUrl
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<void> processCheckRunStatusChange(PresubmitCompletedJob check) async {
-    if (kCheckRunsToIgnore.contains(check.name)) {
+  Future<void> processJobStatusUpdate(PresubmitJobState job) async {
+    if (kCheckRunsToIgnore.contains(job.name)) {
       return;
     }
-    final flow = check.isUnifiedCheckRun ? 'unified' : 'github';
-    final requestor = check.isMergeGroup ? 'merge group' : 'pull request';
+    final flow = job.isUnifiedCheckRun ? 'unified' : 'github';
+    final requestor = job.isMergeGroup ? 'merge group' : 'pull request';
     final logCrumb =
-        'checkCompleted(${check.name}, $flow, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
+        'checkCompleted(${job.name}, $flow, $requestor, ${job.slug}, ${job.sha}, ${job.status})';
 
-    final isFusion = check.slug == Config.flutterSlug;
-    if (!isFusion && !check.isUnifiedCheckRun) {
+    final isFusion = job.slug == Config.flutterSlug;
+    if (!isFusion && !job.isUnifiedCheckRun) {
       return;
     }
 
-    if (check.isUnifiedCheckRun) {
-      await _processUnifiedCheckRunPresubmit(logCrumb, check);
+    if (job.isUnifiedCheckRun) {
+      await _processUnifiedCheckRunFlowJobStatusUpdate(logCrumb, job);
     } else {
-      if (!check.status.isComplete) {
+      if (!job.status.isComplete) {
         return;
       }
-      await _processLegacyPresubmitAndMergeGroup(logCrumb, check);
+      await _processRegularFlowCheckStatusUpdate(logCrumb, job);
     }
   }
 
-  Future<void> _processUnifiedCheckRunPresubmit(
+  Future<void> _processUnifiedCheckRunFlowJobStatusUpdate(
     String logCrumb,
-    PresubmitCompletedJob check,
+    PresubmitJobState job,
   ) async {
-    final stage = check.stage!;
+    final stage = job.stage!;
     final conclusion = await _markUnifiedCheckRunConclusion(
-      guardId: check.guardId,
-      state: check.state,
+      state: job,
     );
 
     if (!conclusion.isOk) {
-      return;
-    }
-
-    if (conclusion.result == PresubmitGuardConclusionResult.internalError) {
       return;
     }
 
@@ -1175,19 +1168,20 @@ detailsUrl: $detailsUrl
         );
         return;
       }
+
       final guard = checkRunFromString(conclusion.checkRunGuard!);
       final detailsUrl =
-          'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
+          'https://flutter-dashboard.appspot.com/#/presubmit?repo=${job.slug.name}&sha=${job.sha}';
       await _requireActionForGuard(
-        slug: check.slug,
+        slug: job.slug,
         lock: guard,
-        headSha: check.sha,
+        headSha: job.sha,
         summary: _githubChecksService.getGithubSummaryWithHeader('''
 **[Failed Checks Details]($detailsUrl)**
 
 ''', kDashboardChecksDescription),
         details:
-            'For ${check.stage} CI stage ${conclusion.currentState.failed} checks failed',
+            'For ${job.stage} CI stage ${conclusion.currentState.failed} checks failed',
         detailsUrl: detailsUrl,
       );
       return;
@@ -1201,12 +1195,12 @@ detailsUrl: $detailsUrl
       return;
     }
 
-    await _processSuccessedCheck(logCrumb, check, stage, conclusion);
+    await _processSuccessedCheck(logCrumb, job, stage, conclusion);
   }
 
-  Future<void> _processLegacyPresubmitAndMergeGroup(
+  Future<void> _processRegularFlowCheckStatusUpdate(
     String logCrumb,
-    PresubmitCompletedJob check,
+    PresubmitJobState check,
   ) async {
     var stage = CiStage.fusionEngineBuild;
     var conclusion = await _recordCurrentCiStage(
@@ -1229,12 +1223,8 @@ detailsUrl: $detailsUrl
     }
 
     if (!conclusion.isOk) {
-      return;
-    }
-
-    if (conclusion.result ==
-        PresubmitGuardConclusionResult.internalError) {
-      if (check.isMergeGroup) {
+      if (conclusion.result == PresubmitGuardConclusionResult.internalError &&
+          check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(conclusion.checkRunGuard!);
         await failGuardForMergeGroup(
@@ -1275,7 +1265,7 @@ detailsUrl: $detailsUrl
 
   Future<void> _processSuccessedCheck(
     String logCrumb,
-    PresubmitCompletedJob check,
+    PresubmitJobState check,
     CiStage stage,
     PresubmitGuardConclusion conclusion,
   ) async {
@@ -1602,11 +1592,11 @@ $stacktrace
   }
 
   Future<PresubmitGuardConclusion> _markUnifiedCheckRunConclusion({
-    required PresubmitGuardId guardId,
     required PresubmitJobState state,
   }) async {
+    final guardId = state.guardId;
     final logCrumb =
-        'checkCompleted(${state.jobName}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
+        'checkCompleted(${state.name}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
 
     log.info('$logCrumb: ${guardId.documentId}');
     // We're doing a transactional update, which could fail if multiple tasks
@@ -1644,8 +1634,8 @@ $stacktrace
     switch (checkRunEvent.action) {
       case 'completed':
         if (!_config.flags.closeMqGuardAfterPresubmit) {
-          await processCheckRunStatusChange(
-            PresubmitCompletedJob.fromCheckRun(
+          await processJobStatusUpdate(
+            PresubmitJobState.fromCheckRun(
               checkRunEvent.checkRun!,
               checkRunEvent.repository!.slug(),
             ),

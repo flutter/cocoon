@@ -5,8 +5,8 @@
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
-import 'package:cocoon_service/src/model/common/presubmit_guard_conclusion.dart';
 import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
+import 'package:cocoon_service/src/model/common/presubmit_guard_conclusion.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
@@ -170,14 +170,21 @@ void main() {
       });
 
       test('updates check status and remaining count on success', () async {
-        final state = const PresubmitJobState(
-          jobName: 'linux',
+        final state = PresubmitJobState(
+          name: 'linux',
           status: TaskStatus.succeeded,
-          attemptNumber: 1,
+          attempt: 1,
           startTime: 2000,
           endTime: 3000,
           buildNumber: 456,
           buildId: Int64.MAX_VALUE,
+          checkRunId: 123,
+          checkSuiteId: 2,
+          headBranch: 'master',
+          isMergeGroup: false,
+          sha: '',
+          slug: slug,
+          isUnifiedCheckRun: false,          
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -213,12 +220,21 @@ void main() {
           final result1 = await UnifiedCheckRun.markConclusion(
             firestoreService: firestoreService,
             guardId: guardId,
-            state: const PresubmitJobState(
-              jobName: 'linux',
+            state: PresubmitJobState(
+              name: 'linux',
               status: TaskStatus.succeeded,
-              attemptNumber: 1,
+              attempt: 1,
               startTime: 2000,
               endTime: 3000,
+              buildId: Int64.MAX_VALUE,
+              buildNumber: 456,
+              checkRunId: 123,
+              checkSuiteId: 2,
+              headBranch: 'master',
+              isMergeGroup: false,
+              sha: '',
+              slug: slug,
+              isUnifiedCheckRun: false,
             ),
           );
 
@@ -232,12 +248,21 @@ void main() {
           final result2 = await UnifiedCheckRun.markConclusion(
             firestoreService: firestoreService,
             guardId: guardId,
-            state: const PresubmitJobState(
-              jobName: 'mac',
+            state: PresubmitJobState(
+              name: 'mac',
               status: TaskStatus.succeeded,
-              attemptNumber: 1,
+              attempt: 1,
               startTime: 2000,
               endTime: 3000,
+              buildId: Int64.MAX_VALUE,
+              buildNumber: 456,
+              checkRunId: 123,
+              checkSuiteId: 2,
+              headBranch: 'master',
+              isMergeGroup: false,
+              sha: '',
+              slug: slug,
+              isUnifiedCheckRun: false,
             ),
           );
 
@@ -263,12 +288,21 @@ void main() {
       );
 
       test('updates check status and failed count on failure', () async {
-        final state = const PresubmitJobState(
-          jobName: 'linux',
+        final state = PresubmitJobState(
+          name: 'linux',
           status: TaskStatus.failed,
-          attemptNumber: 1,
+          attempt: 1,
           startTime: 2000,
           endTime: 3000,
+          buildId: Int64.MAX_VALUE,
+          buildNumber: 456,
+          checkRunId: 123,
+          checkSuiteId: 2,
+          headBranch: 'master',
+          isMergeGroup: false,
+          sha: '',
+          slug: slug,
+          isUnifiedCheckRun: false,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -287,10 +321,19 @@ void main() {
       });
 
       test('handles missing check gracefully', () async {
-        final state = const PresubmitJobState(
-          jobName: 'windows', // Missing
+        final state = PresubmitJobState(
+          name: 'windows', // Missing
           status: TaskStatus.succeeded,
-          attemptNumber: 1,
+          attempt: 1,
+          buildId: Int64.MAX_VALUE,
+          buildNumber: 456,
+          checkRunId: 123,
+          checkSuiteId: 2,
+          headBranch: 'master',
+          isMergeGroup: false,
+          sha: '',
+          slug: slug,
+          isUnifiedCheckRun: false,
         );
 
         final result = await UnifiedCheckRun.markConclusion(
@@ -302,13 +345,20 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.missing);
       });
       test('updates check status and build number on inProgress', () async {
-        final state = const PresubmitJobState(
-          jobName: 'linux',
+        final state = PresubmitJobState(
+          name: 'linux',
           status: TaskStatus.inProgress,
-          attemptNumber: 1,
+          attempt: 1,
           startTime: 2000,
           buildNumber: 456,
           buildId: Int64.MAX_VALUE,
+          checkRunId: 123,
+          checkSuiteId: 2,
+          headBranch: 'master',
+          isMergeGroup: false,
+          sha: '',
+          slug: slug,
+          isUnifiedCheckRun: false,
         );
 
         final result = await UnifiedCheckRun.markConclusion(

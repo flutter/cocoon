@@ -6,7 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/config.dart';
@@ -30,7 +30,7 @@ void main() {
         conclusion: 'success',
       );
 
-      final check = PresubmitCompletedJob.fromCheckRun(checkRun, slug);
+      final check = PresubmitJobState.fromCheckRun(checkRun, slug);
 
       expect(check.name, 'test_check');
       expect(check.sha, sha);
@@ -63,7 +63,7 @@ void main() {
         checkSuiteId: 456,
       );
 
-      final check = PresubmitCompletedJob.fromBuild(build, userData);
+      final check = PresubmitJobState.fromBuild(build, userData);
 
       expect(check.name, 'test_builder');
       expect(check.sha, sha);
@@ -99,7 +99,7 @@ void main() {
         checkSuiteId: 456,
       );
 
-      final check = PresubmitCompletedJob.fromBuild(build, userData);
+      final check = PresubmitJobState.fromBuild(build, userData);
 
       expect(check.name, 'test_builder');
       expect(check.sha, sha);
