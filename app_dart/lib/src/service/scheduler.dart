@@ -20,14 +20,12 @@ import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
 import '../model/common/checks_extension.dart';
-import '../model/common/presubmit_completed_check.dart';
 import '../model/common/presubmit_guard_conclusion.dart';
 import '../model/common/presubmit_job_state.dart';
 import '../model/firestore/base.dart';
 import '../model/firestore/ci_staging.dart';
 import '../model/firestore/commit.dart' as fs;
 import '../model/firestore/pr_check_runs.dart';
-import '../model/firestore/presubmit_guard.dart';
 import '../model/firestore/task.dart' as fs;
 import '../model/github/checks.dart' as cocoon_checks;
 import '../model/github/checks.dart' show MergeGroup;
@@ -1121,186 +1119,237 @@ detailsUrl: $detailsUrl
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompleted(PresubmitCompletedJob check) async {
-    if (kCheckRunsToIgnore.contains(check.name)) {
-      return true;
+  Future<void> processJobStatusUpdate(PresubmitJobState job) async {
+    if (kCheckRunsToIgnore.contains(job.name)) {
+      return;
     }
-    final flow = check.isUnifiedCheckRun ? 'unified' : 'github';
-    final requestor = check.isMergeGroup ? 'merge group' : 'pull request';
+    final flow = job.isUnifiedCheckRun ? 'unified' : 'github';
+    final requestor = job.isMergeGroup ? 'merge group' : 'pull request';
     final logCrumb =
-        'checkCompleted(${check.name}, $flow, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
+        'checkCompleted(${job.name}, $flow, $requestor, ${job.slug}, ${job.sha}, ${job.status})';
 
-    final isFusion = check.slug == Config.flutterSlug;
-    if (!isFusion && !check.isUnifiedCheckRun) {
-      return true;
+    final isFusion = job.slug == Config.flutterSlug;
+    if (!isFusion && !job.isUnifiedCheckRun) {
+      return;
     }
 
-    late CiStage stage;
-    late PresubmitGuardConclusion stagingConclusion;
-
-    if (check.isUnifiedCheckRun) {
-      stage = check.stage!;
-      stagingConclusion = await _markUnifiedCheckRunConclusion(
-        guardId: check.guardId,
-        state: check.state,
-      );
+    if (job.isUnifiedCheckRun) {
+      await _processUnifiedCheckRunFlowJobStatusUpdate(logCrumb, job);
     } else {
-      // for github flow check runs are processed only if the build succeeded or
-      // some kind of failure occurred.
-      if (!check.status.isComplete) {
-        return true;
-      }
-      // Check runs are fired at every stage. However, at this point it is unknown
-      // if this check run belongs in the engine build stage or in the test stage.
-      // So first look for it in the engine stage, and if it's missing, look for
-      // it in the test stage.
-      stage = CiStage.fusionEngineBuild;
-      stagingConclusion = await _recordCurrentCiStage(
-        slug: check.slug,
-        sha: check.sha,
-        stage: stage,
-        name: check.name,
-        conclusion: check.status.toTaskConclusion(),
-      );
+      await _processGitHubFlowCheckStatusUpdate(logCrumb, job);
+    }
+  }
 
-      if (stagingConclusion.result == PresubmitGuardConclusionResult.missing) {
-        // Check run not found in the engine stage. Look for it in the test stage.
-        stage = CiStage.fusionTests;
-        stagingConclusion = await _recordCurrentCiStage(
-          slug: check.slug,
-          sha: check.sha,
-          stage: stage,
-          name: check.name,
-          conclusion: check.status.toTaskConclusion(),
+  Future<void> _processUnifiedCheckRunFlowJobStatusUpdate(
+    String logCrumb,
+    PresubmitJobState job,
+  ) async {
+    final stage = job.stage!;
+    final conclusion = await _markUnifiedCheckRunConclusion(state: job);
+
+    if (!conclusion.isOk) {
+      return;
+    }
+
+    if (conclusion.isFailed) {
+      // For unified check runs, we fail the guard only for the first failed job.
+      // Subsequent failures are ignored, but we still log them.
+      if (conclusion.previousState.failed > 0) {
+        log.info(
+          '$logCrumb: check run remains failing, '
+          'previously failed checks ${conclusion.previousState.failed}, '
+          'currently failed checks ${conclusion.currentState.failed}, '
+          'remaining checks ${conclusion.currentState.remaining}',
         );
+        return;
       }
-    }
-    // First; check if we even recorded anything. This can occur if we've already passed the check_run and
-    // have moved on to running more tests (which wouldn't be present in our document).
-    if (!stagingConclusion.isOk) {
-      return false;
-    }
 
-    // If an internal error happened in Cocoon, we need human assistance to
-    // figure out next steps.
-    if (stagingConclusion.result ==
-        PresubmitGuardConclusionResult.internalError) {
-      // If an internal error happened in the merge group, there may be no further
-      // signals from GitHub that would cause the merge group to either land or
-      // fail. The safest thing to do is to kick the pull request out of the queue
-      // and let humans sort it out. If the group is left hanging in the queue, it
-      // will hold up all other PRs that are trying to land.
-      if (check.isMergeGroup) {
-        await _completeArtifacts(check.sha, false);
-        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
-        await failGuardForMergeGroup(
-          slug: check.slug,
-          lock: guard,
-          headSha: check.sha,
-          summary: stagingConclusion.summary,
-          details: stagingConclusion.details,
-        );
-      }
-      return false;
-    }
-
-    // Are there tests remaining? Keep waiting.
-    if (stagingConclusion.isPending) {
-      log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
-      );
-      return false;
-    }
-
-    if (stagingConclusion.isFailed) {
-      // Something failed in the current CI stage:
-      //
-      // * If this is a pull request: keep the merge guard open and do not proceed
-      //   to the next stage. Let the author sort out what's up.
-      // * If this is a merge group: kick the pull request out of the queue, and
-      //   let the author sort it out.
-      // If its a unified check run we need to require action on the guard.
-      if (check.isMergeGroup) {
-        await _completeArtifacts(check.sha, false);
-        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
-        await failGuardForMergeGroup(
-          slug: check.slug,
-          lock: guard,
-          headSha: check.sha,
-          summary: stagingConclusion.summary,
-          details: stagingConclusion.details,
-        );
-      } else if (check.isUnifiedCheckRun) {
-        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
-        final detailsUrl =
-            'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
-        await _requireActionForGuard(
-          slug: check.slug,
-          lock: guard,
-          headSha: check.sha,
-          summary: _githubChecksService.getGithubSummaryWithHeader('''
+      final guard = checkRunFromString(conclusion.checkRunGuard!);
+      final detailsUrl =
+          'https://flutter-dashboard.appspot.com/#/presubmit?repo=${job.slug.name}&sha=${job.sha}';
+      await _requireActionForGuard(
+        slug: job.slug,
+        lock: guard,
+        headSha: job.sha,
+        summary: _githubChecksService.getGithubSummaryWithHeader('''
 **[Failed Checks Details]($detailsUrl)**
 
 ''', kDashboardChecksDescription),
-          details:
-              'For ${check.stage} CI stage ${stagingConclusion.failed} checks failed',
-          detailsUrl: detailsUrl,
-        );
-      }
-      return true;
+        details:
+            'For ${job.stage} CI stage ${conclusion.currentState.failed} checks failed',
+        detailsUrl: detailsUrl,
+      );
+      return;
     }
 
-    // The logic for finishing a stage is different between build and test stages:
-    //
-    // * If this is a build stage, then:
-    //    * If this is a pull request presubmit, then start the test stage.
-    //    * If this is a merge group (in MQ), then close the MQ guard, letting
-    //      GitHub land it.
-    // * If this is a test stage, then close the MQ guard (allowing the PR to
-    //   enter the MQ).
+    // Are there tests remaining? Keep waiting.
+    if (conclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${conclusion.currentState.remaining}',
+      );
+      return;
+    }
+
     switch (stage) {
       case CiStage.fusionEngineBuild:
-        if (check.isMergeGroup) {
-          await _completeArtifacts(check.sha, true);
-          await _closeMergeQueue(
-            mergeQueueGuard: stagingConclusion.checkRunGuard!,
-            slug: check.slug,
-            sha: check.sha,
-            stage: CiStage.fusionEngineBuild,
-            logCrumb: logCrumb,
-          );
-        } else {
-          await _closeSuccessfulEngineBuildStage(
-            checkRun: check.checkRun,
-            mergeQueueGuard: stagingConclusion.checkRunGuard!,
-            slug: check.slug,
-            sha: check.sha,
-            logCrumb: logCrumb,
-          );
-        }
+        await _closeSuccessfulEngineBuildStage(
+          checkRun: job.checkRun,
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
+          logCrumb: logCrumb,
+        );
+      case CiStage.fusionTests:
+      case CiStage.genericTests:
+        await _closeSuccessfulTestStage(
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
+          logCrumb: logCrumb,
+        );
+    }
+  }
+
+  Future<void> _processGitHubFlowCheckStatusUpdate(
+    String logCrumb,
+    PresubmitJobState job,
+  ) async {
+    if (!job.status.isComplete) {
+      return;
+    }
+
+    var stage = CiStage.fusionEngineBuild;
+    var conclusion = await _recordCurrentCiStage(
+      slug: job.slug,
+      sha: job.sha,
+      stage: stage,
+      name: job.name,
+      conclusion: job.status.toTaskConclusion(),
+    );
+
+    if (conclusion.result == PresubmitGuardConclusionResult.missing) {
+      stage = CiStage.fusionTests;
+      conclusion = await _recordCurrentCiStage(
+        slug: job.slug,
+        sha: job.sha,
+        stage: stage,
+        name: job.name,
+        conclusion: job.status.toTaskConclusion(),
+      );
+    }
+
+    if (job.isMergeGroup) {
+      await _processMergeGroupCheckStatusUpdate(
+        logCrumb,
+        job,
+        stage,
+        conclusion,
+      );
+    } else {
+      await _processRegularCheckStatusUpdate(logCrumb, job, stage, conclusion);
+    }
+  }
+
+  Future<void> _processRegularCheckStatusUpdate(
+    String logCrumb,
+    PresubmitJobState job,
+    CiStage stage,
+    PresubmitGuardConclusion conclusion,
+  ) async {
+    if (!conclusion.isOk) {
+      return;
+    }
+
+    if (conclusion.isPending || conclusion.isFailed) {
+      log.info(
+        '$logCrumb: not progressing, '
+        'remaining checks count: ${conclusion.currentState.remaining}, '
+        'failed checks count: ${conclusion.currentState.failed}',
+      );
+      return;
+    }
+
+    switch (stage) {
+      case CiStage.fusionEngineBuild:
+        await _closeSuccessfulEngineBuildStage(
+          checkRun: job.checkRun,
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
+          logCrumb: logCrumb,
+        );
       case CiStage.fusionTests:
         await _closeSuccessfulTestStage(
-          mergeQueueGuard: stagingConclusion.checkRunGuard!,
-          slug: check.slug,
-          sha: check.sha,
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
           logCrumb: logCrumb,
         );
       case CiStage.genericTests:
-        if (check.isUnifiedCheckRun) {
-          await _closeSuccessfulTestStage(
-            mergeQueueGuard: stagingConclusion.checkRunGuard!,
-            slug: check.slug,
-            sha: check.sha,
-            logCrumb: logCrumb,
-          );
-        } else {
-          // generic tests do not have a staging document nor are associated
-          // with a merge group - they are only used to collect commit stats.
-          log.warn('$logCrumb: generic tests have no merge queue guard.');
-        }
+        log.warn('$logCrumb: generic tests have no merge queue guard.');
         break;
     }
-    return true;
+  }
+
+  Future<void> _processMergeGroupCheckStatusUpdate(
+    String logCrumb,
+    PresubmitJobState job,
+    CiStage stage,
+    PresubmitGuardConclusion conclusion,
+  ) async {
+    if (!conclusion.isOk) {
+      if (conclusion.result == PresubmitGuardConclusionResult.internalError &&
+          conclusion.checkRunGuard != null) {
+        await _completeArtifacts(job.sha, false);
+        final guard = checkRunFromString(conclusion.checkRunGuard!);
+        await failGuardForMergeGroup(
+          slug: job.slug,
+          lock: guard,
+          headSha: job.sha,
+          summary: conclusion.summary,
+          details: conclusion.details,
+        );
+      }
+      return;
+    }
+
+    if (conclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${conclusion.currentState.remaining}',
+      );
+      return;
+    }
+
+    if (conclusion.isFailed) {
+      await _completeArtifacts(job.sha, false);
+      final guard = checkRunFromString(conclusion.checkRunGuard!);
+      await failGuardForMergeGroup(
+        slug: job.slug,
+        lock: guard,
+        headSha: job.sha,
+        summary: conclusion.summary,
+        details: conclusion.details,
+      );
+      return;
+    }
+
+    switch (stage) {
+      case CiStage.fusionEngineBuild:
+        await _completeArtifacts(job.sha, true);
+        await _closeMergeQueue(
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
+          stage: CiStage.fusionEngineBuild,
+          logCrumb: logCrumb,
+        );
+      case CiStage.fusionTests:
+        log.warn('$logCrumb: fusion tests have no merge group.');
+        break;
+      case CiStage.genericTests:
+        log.warn('$logCrumb: generic tests have no merge group.');
+        break;
+    }
   }
 
   Future<void> _completeArtifacts(String commitSha, bool successful) async {
@@ -1584,11 +1633,11 @@ $stacktrace
   }
 
   Future<PresubmitGuardConclusion> _markUnifiedCheckRunConclusion({
-    required PresubmitGuardId guardId,
     required PresubmitJobState state,
   }) async {
+    final guardId = state.guardId;
     final logCrumb =
-        'checkCompleted(${state.jobName}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
+        'checkCompleted(${state.name}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
 
     log.info('$logCrumb: ${guardId.documentId}');
     // We're doing a transactional update, which could fail if multiple tasks
@@ -1626,8 +1675,8 @@ $stacktrace
     switch (checkRunEvent.action) {
       case 'completed':
         if (!_config.flags.closeMqGuardAfterPresubmit) {
-          await processCheckRunCompleted(
-            PresubmitCompletedJob.fromCheckRun(
+          await processJobStatusUpdate(
+            PresubmitJobState.fromCheckRun(
               checkRunEvent.checkRun!,
               checkRunEvent.repository!.slug(),
             ),

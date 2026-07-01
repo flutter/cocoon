@@ -14,7 +14,7 @@ import '../model/bbv2_extension.dart';
 import '../model/ci_yaml/ci_yaml.dart';
 import '../model/ci_yaml/target.dart';
 import '../model/commit_ref.dart';
-import '../model/common/presubmit_completed_check.dart';
+import '../model/common/presubmit_job_state.dart';
 import '../request_handling/exceptions.dart';
 import '../request_handling/subscription_handler.dart';
 import '../service/extensions/cache_service_test_suppression.dart';
@@ -168,12 +168,12 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       // Process to the check-run status in the merge queue document during
       // the LUCI callback.
       if (config.flags.closeMqGuardAfterPresubmit || isUnifiedCheckRun) {
-        final check = PresubmitCompletedJob.fromBuild(
+        final check = PresubmitJobState.fromBuild(
           build,
           userData,
           status: override == .neutral ? .neutral : null,
         );
-        await _scheduler.processCheckRunCompleted(check);
+        await _scheduler.processJobStatusUpdate(check);
       }
     }
 

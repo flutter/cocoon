@@ -50,5 +50,16 @@ void main() {
         GuardStatus.inProgress,
       );
     });
+
+    test('returns failed even if there are remaining builds', () {
+      expect(
+        GuardStatus.calculate(
+          failedBuilds: 1,
+          remainingBuilds: 5,
+          totalBuilds: 10,
+        ),
+        GuardStatus.failed,
+      );
+    });
   });
 }

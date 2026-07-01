@@ -16,7 +16,7 @@ import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i10;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart' as _i37;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i27;
 import 'package:cocoon_service/src/model/commit_ref.dart' as _i31;
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart'
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart'
     as _i38;
 import 'package:cocoon_service/src/model/github/checks.dart' as _i30;
 import 'package:cocoon_service/src/model/github/workflow_job.dart' as _i36;
@@ -5835,14 +5835,13 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<List<_i27.Target>>);
 
   @override
-  _i13.Future<bool> processCheckRunCompleted(
-    _i38.PresubmitCompletedJob? check,
-  ) =>
+  _i13.Future<void> processJobStatusUpdate(_i38.PresubmitJobState? job) =>
       (super.noSuchMethod(
-            Invocation.method(#processCheckRunCompleted, [check]),
-            returnValue: _i13.Future<bool>.value(false),
+            Invocation.method(#processJobStatusUpdate, [job]),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
           )
-          as _i13.Future<bool>);
+          as _i13.Future<void>);
 
   @override
   bool detectMergeGroup(_i30.CheckRun? checkRun) =>

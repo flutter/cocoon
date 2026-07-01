@@ -9,7 +9,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
@@ -88,9 +88,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     tester.message = createPushMessage(
       Int64(1),
@@ -117,7 +115,7 @@ void main() {
       ),
     ).called(1);
 
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    verify(mockScheduler.processJobStatusUpdate(any)).called(1);
   });
 
   test('Requests when task failed but no need to reschedule', () async {
@@ -133,9 +131,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     final userData = PresubmitUserData(
       commit: CommitRef(
@@ -176,7 +172,7 @@ void main() {
         slug: anyNamed('slug'),
       ),
     ).called(1);
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    verify(mockScheduler.processJobStatusUpdate(any)).called(1);
   });
 
   test('Requests when task failed but need to reschedule', () async {
@@ -215,7 +211,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
+    verifyNever(mockScheduler.processJobStatusUpdate(any));
   });
 
   test('Build rescheduled when in merge queue', () async {
@@ -297,7 +293,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
+    verifyNever(mockScheduler.processJobStatusUpdate(any));
   });
 
   test('Build not rescheduled if not found in ciYaml list.', () async {
@@ -314,9 +310,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     final userData = PresubmitUserData(
       commit: CommitRef(
@@ -360,7 +354,7 @@ void main() {
       ),
     ).called(1);
 
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    verify(mockScheduler.processJobStatusUpdate(any)).called(1);
   });
 
   test('Build not rescheduled if ci.yaml fails validation.', () async {
@@ -377,9 +371,7 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     final userData = PresubmitUserData(
       checkRunId: 1,
@@ -421,7 +413,7 @@ void main() {
         rescheduled: false,
       ),
     ).called(1);
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    verify(mockScheduler.processJobStatusUpdate(any)).called(1);
   });
 
   test('Pubsub rejected if branch is not enabled.', () async {
@@ -528,7 +520,7 @@ void main() {
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.
     expect(build.input.properties.fields, contains('git_ref'));
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
+    verifyNever(mockScheduler.processJobStatusUpdate(any));
   });
 
   test('Close the MQ guard once presubmit compleated', () async {
@@ -560,19 +552,17 @@ void main() {
     when(
       mockGithubChecksService.conclusionForResult(bbv2.Status.SUCCESS),
     ).thenAnswer((_) => github.CheckRunConclusion.success);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     await tester.post(handler);
 
     final captured = verify(
-      mockScheduler.processCheckRunCompleted(captureAny),
+      mockScheduler.processJobStatusUpdate(captureAny),
     ).captured;
     expect(captured, hasLength(1));
     expect(
       captured[0],
-      isA<PresubmitCompletedJob>()
+      isA<PresubmitJobState>()
           .having((e) => e.name, 'name', 'Linux C')
           .having((e) => e.sha, 'sha', 'abc')
           .having((e) => e.checkRunId, 'checkRunId', 1)
@@ -622,9 +612,7 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+    when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
     tester.message = createPushMessage(
       Int64(1),
