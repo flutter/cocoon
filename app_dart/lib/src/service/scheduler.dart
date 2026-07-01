@@ -1195,7 +1195,7 @@ detailsUrl: $detailsUrl
       return;
     }
 
-    await _processSuccessedCheck(logCrumb, job, stage, conclusion);
+    await _processSucceededCheck(logCrumb, job, stage, conclusion);
   }
 
   Future<void> _processRegularFlowCheckStatusUpdate(
@@ -1260,10 +1260,10 @@ detailsUrl: $detailsUrl
       return;
     }
 
-    await _processSuccessedCheck(logCrumb, check, stage, conclusion);
+    await _processSucceededCheck(logCrumb, check, stage, conclusion);
   }
 
-  Future<void> _processSuccessedCheck(
+  Future<void> _processSucceededCheck(
     String logCrumb,
     PresubmitJobState check,
     CiStage stage,
