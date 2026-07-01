@@ -1136,10 +1136,7 @@ detailsUrl: $detailsUrl
     if (job.isUnifiedCheckRun) {
       await _processUnifiedCheckRunFlowJobStatusUpdate(logCrumb, job);
     } else {
-      if (!job.status.isComplete) {
-        return;
-      }
-      await _processRegularFlowCheckStatusUpdate(logCrumb, job);
+      await _processGitHubFlowCheckStatusUpdate(logCrumb, job);
     }
   }
 
@@ -1193,13 +1190,34 @@ detailsUrl: $detailsUrl
       return;
     }
 
-    await _processSucceededCheck(logCrumb, job, stage, conclusion);
+    switch (stage) {
+      case CiStage.fusionEngineBuild:
+        await _closeSuccessfulEngineBuildStage(
+          checkRun: job.checkRun,
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
+          logCrumb: logCrumb,
+        );
+      case CiStage.fusionTests:
+      case CiStage.genericTests:
+        await _closeSuccessfulTestStage(
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: job.slug,
+          sha: job.sha,
+          logCrumb: logCrumb,
+        );
+    }
   }
 
-  Future<void> _processRegularFlowCheckStatusUpdate(
+  Future<void> _processGitHubFlowCheckStatusUpdate(
     String logCrumb,
     PresubmitJobState check,
   ) async {
+    if (!check.status.isComplete) {
+      return;
+    }
+
     var stage = CiStage.fusionEngineBuild;
     var conclusion = await _recordCurrentCiStage(
       slug: check.slug,
@@ -1220,9 +1238,72 @@ detailsUrl: $detailsUrl
       );
     }
 
+    if (check.isMergeGroup) {
+      await _processMergeGroupCheckStatusUpdate(
+        logCrumb,
+        check,
+        stage,
+        conclusion,
+      );
+    } else {
+      await _processRegularCheckStatusUpdate(
+        logCrumb,
+        check,
+        stage,
+        conclusion,
+      );
+    }
+  }
+
+  Future<void> _processRegularCheckStatusUpdate(
+    String logCrumb,
+    PresubmitJobState check,
+    CiStage stage,
+    PresubmitGuardConclusion conclusion,
+  ) async {
     if (!conclusion.isOk) {
-      if (conclusion.result == PresubmitGuardConclusionResult.internalError &&
-          check.isMergeGroup) {
+      return;
+    }
+
+    if (conclusion.isPending || conclusion.isFailed) {
+      log.info(
+        '$logCrumb: not progressing, '
+        'remaining checks count: ${conclusion.currentState.remaining}, '
+        'failed checks count: ${conclusion.currentState.failed}',
+      );
+      return;
+    }
+
+    switch (stage) {
+      case CiStage.fusionEngineBuild:
+        await _closeSuccessfulEngineBuildStage(
+          checkRun: check.checkRun,
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: check.slug,
+          sha: check.sha,
+          logCrumb: logCrumb,
+        );
+      case CiStage.fusionTests:
+        await _closeSuccessfulTestStage(
+          mergeQueueGuard: conclusion.checkRunGuard!,
+          slug: check.slug,
+          sha: check.sha,
+          logCrumb: logCrumb,
+        );
+      case CiStage.genericTests:
+        log.warn('$logCrumb: generic tests have no merge queue guard.');
+        break;
+    }
+  }
+
+  Future<void> _processMergeGroupCheckStatusUpdate(
+    String logCrumb,
+    PresubmitJobState check,
+    CiStage stage,
+    PresubmitGuardConclusion conclusion,
+  ) async {
+    if (!conclusion.isOk) {
+      if (conclusion.result == PresubmitGuardConclusionResult.internalError) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(conclusion.checkRunGuard!);
         await failGuardForMergeGroup(
@@ -1244,67 +1325,33 @@ detailsUrl: $detailsUrl
     }
 
     if (conclusion.isFailed) {
-      if (check.isMergeGroup) {
-        await _completeArtifacts(check.sha, false);
-        final guard = checkRunFromString(conclusion.checkRunGuard!);
-        await failGuardForMergeGroup(
-          slug: check.slug,
-          lock: guard,
-          headSha: check.sha,
-          summary: conclusion.summary,
-          details: conclusion.details,
-        );
-      }
+      await _completeArtifacts(check.sha, false);
+      final guard = checkRunFromString(conclusion.checkRunGuard!);
+      await failGuardForMergeGroup(
+        slug: check.slug,
+        lock: guard,
+        headSha: check.sha,
+        summary: conclusion.summary,
+        details: conclusion.details,
+      );
       return;
     }
 
-    await _processSucceededCheck(logCrumb, check, stage, conclusion);
-  }
-
-  Future<void> _processSucceededCheck(
-    String logCrumb,
-    PresubmitJobState check,
-    CiStage stage,
-    PresubmitGuardConclusion conclusion,
-  ) async {
     switch (stage) {
       case CiStage.fusionEngineBuild:
-        if (check.isMergeGroup) {
-          await _completeArtifacts(check.sha, true);
-          await _closeMergeQueue(
-            mergeQueueGuard: conclusion.checkRunGuard!,
-            slug: check.slug,
-            sha: check.sha,
-            stage: CiStage.fusionEngineBuild,
-            logCrumb: logCrumb,
-          );
-        } else {
-          await _closeSuccessfulEngineBuildStage(
-            checkRun: check.checkRun,
-            mergeQueueGuard: conclusion.checkRunGuard!,
-            slug: check.slug,
-            sha: check.sha,
-            logCrumb: logCrumb,
-          );
-        }
-      case CiStage.fusionTests:
-        await _closeSuccessfulTestStage(
+        await _completeArtifacts(check.sha, true);
+        await _closeMergeQueue(
           mergeQueueGuard: conclusion.checkRunGuard!,
           slug: check.slug,
           sha: check.sha,
+          stage: CiStage.fusionEngineBuild,
           logCrumb: logCrumb,
         );
+      case CiStage.fusionTests:
+        log.warn('$logCrumb: fusion tests have no merge group.');
+        break;
       case CiStage.genericTests:
-        if (check.isUnifiedCheckRun) {
-          await _closeSuccessfulTestStage(
-            mergeQueueGuard: conclusion.checkRunGuard!,
-            slug: check.slug,
-            sha: check.sha,
-            logCrumb: logCrumb,
-          );
-        } else {
-          log.warn('$logCrumb: generic tests have no merge queue guard.');
-        }
+        log.warn('$logCrumb: generic tests have no merge group.');
         break;
     }
   }
