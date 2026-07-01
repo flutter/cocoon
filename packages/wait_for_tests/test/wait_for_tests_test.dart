@@ -1,3 +1,7 @@
+// Copyright 2026 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:convert';
 import 'package:cocoon_common/task_status.dart';
 import 'package:fake_async/fake_async.dart';
