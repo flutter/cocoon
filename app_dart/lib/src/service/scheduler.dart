@@ -1246,12 +1246,7 @@ detailsUrl: $detailsUrl
         conclusion,
       );
     } else {
-      await _processRegularCheckStatusUpdate(
-        logCrumb,
-        job,
-        stage,
-        conclusion,
-      );
+      await _processRegularCheckStatusUpdate(logCrumb, job, stage, conclusion);
     }
   }
 
