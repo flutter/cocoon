@@ -16,7 +16,11 @@ import 'package:wait_for_tests/wait_for_tests.dart';
 /// Alternatively, it can read from environment variables (e.g., prefixed with `INPUT_` for GitHub Actions).
 void main(List<String> arguments) async {
   final parser = ArgParser()
-    ..addOption('sha', abbr: 's', help: 'The full 40-character commit SHA to poll')
+    ..addOption(
+      'sha',
+      abbr: 's',
+      help: 'The full 40-character commit SHA to poll',
+    )
     ..addOption(
       'repo',
       abbr: 'r',
@@ -32,7 +36,8 @@ void main(List<String> arguments) async {
       'wait-interval',
       abbr: 'i',
       defaultsTo: '60',
-      help: 'Time in seconds between polling checks (clamped to a range of 30 to 600 seconds)',
+      help:
+          'Time in seconds between polling checks (clamped to a range of 30 to 600 seconds)',
     )
     ..addOption(
       'owner',
@@ -166,7 +171,11 @@ void main(List<String> arguments) async {
 
 void _printUsage(ArgParser parser) {
   stdout.writeln('Usage: wait-for-tests [options]\n');
-  stdout.writeln('This command-line tool can be configured either via command-line arguments');
-  stdout.writeln('or environment variables (e.g., prefixed with INPUT_ for GitHub Actions).\n');
+  stdout.writeln(
+    'This command-line tool can be configured either via command-line arguments',
+  );
+  stdout.writeln(
+    'or environment variables (e.g., prefixed with INPUT_ for GitHub Actions).\n',
+  );
   stdout.writeln(parser.usage);
 }
