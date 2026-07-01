@@ -139,7 +139,6 @@ void main() {
       expect(result.allSucceeded, isFalse);
       expect(result.anyFailed, isFalse);
       expect(result.summaries[1].status, TaskStatus.waitingForBackfill);
-      expect(result.summaries[1].originalStatusString, 'Not yet scheduled');
     });
 
     test('is case-insensitive and trims whitespace on job name matching', () {
@@ -782,9 +781,9 @@ void main() {
       });
     });
 
-    test('fails immediately on non-transient 4xx client errors (e.g. 404)', () {
+    test('fails immediately on non-transient 4xx client errors (e.g. 403)', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('Not Found', 404);
+        return _stringResponse('Neighborhood of the Beast', 466);
       });
 
       fakeAsync((async) {
@@ -813,6 +812,58 @@ void main() {
           ),
           isTrue,
         );
+      });
+    });
+
+    test('retries on 404 - CICD not yet started', () {
+      var callCount = 0;
+      final mockClient = MockClient((request) async {
+        callCount++;
+        if (callCount == 1) {
+          return _stringResponse('Not Found', 404);
+        } else {
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
+        }
+      });
+
+      fakeAsync((async) {
+        var completed = false;
+        var successResult = false;
+        final logs = <String>[];
+
+        waitForTests(
+          sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
+          slug: RepositorySlug('flutter', 'flutter'),
+          requiredTests: const ['Linux windows_host_engine'],
+          waitInterval: const Duration(seconds: 30),
+          client: mockClient,
+          log: logs.add,
+        ).then((res) {
+          completed = true;
+          successResult = res;
+        });
+
+        // First poll: 404 logged as warning, sleep
+        async.elapse(const Duration(seconds: 2));
+        expect(completed, isFalse);
+        expect(callCount, 1);
+        expect(
+          logs.any(
+            (l) => l.contains('Warning: Cocoon API returned status code 404'),
+          ),
+          isTrue,
+        );
+
+        // Second poll: Succeeds
+        async.elapse(const Duration(seconds: 29));
+        expect(completed, isTrue);
+        expect(successResult, isTrue);
+        expect(callCount, 2);
       });
     });
 

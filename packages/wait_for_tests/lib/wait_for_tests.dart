@@ -15,13 +15,8 @@ import 'package:http/http.dart' as http;
 class TestStatusSummary {
   final String name;
   final TaskStatus status;
-  final String originalStatusString;
 
-  const TestStatusSummary({
-    required this.name,
-    required this.status,
-    required this.originalStatusString,
-  });
+  const TestStatusSummary({required this.name, required this.status});
 }
 
 /// The aggregated result of a polling check.
@@ -75,14 +70,11 @@ PollResult evaluateTests({
     final (matchedJobName, originalStatus) = lookup ?? (null, null);
 
     final TaskStatus status;
-    final String statusStr;
 
     if (originalStatus != null) {
       status = originalStatus;
-      statusStr = originalStatus.value;
     } else {
       status = TaskStatus.waitingForBackfill;
-      statusStr = 'Not yet scheduled';
     }
 
     if (!status.isSuccess) {
@@ -93,11 +85,7 @@ PollResult evaluateTests({
     }
 
     summaries.add(
-      TestStatusSummary(
-        name: matchedJobName ?? trimmedName,
-        status: status,
-        originalStatusString: statusStr,
-      ),
+      TestStatusSummary(name: matchedJobName ?? trimmedName, status: status),
     );
   }
 
@@ -155,18 +143,21 @@ Future<bool> waitForTests({
   while (timeout == null || clock.now().difference(startTime) <= timeout) {
     final http.Response response;
     try {
-      response = await client
-          .get(url)
-          .timeout(const Duration(seconds: 15));
+      response = await client.get(url).timeout(const Duration(seconds: 15));
     } on Exception catch (e) {
       log('Warning: Error calling Cocoon API: $e');
       log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
       await Future<void>.delayed(clampedWaitInterval);
       continue;
     }
+
+    // Handle error cases and either fail fast or sleep / retry.
     if (response.statusCode != 200) {
       final failImmediately = switch (response.statusCode) {
-        429 || 408 => false,
+        // 404: we might not have created a check run yet.
+        // 408: request timed out on server.
+        // 429: try again
+        404 || 429 || 408 => false,
         >= 400 && < 500 => true,
         _ => false,
       };
@@ -183,74 +174,69 @@ Future<bool> waitForTests({
       log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
       await Future<void>.delayed(clampedWaitInterval);
       continue;
+    }
+
+    // Success case.
+    Map<String, Object?> json;
+    try {
+      json = jsonDecode(response.body) as Map<String, Object?>;
+    } catch (e) {
+      log('Warning: Failed to parse Cocoon API response as JSON: $e');
+      log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+      await Future<void>.delayed(clampedWaitInterval);
+      continue;
+    }
+
+    final PresubmitGuardResponse guardResponse;
+    try {
+      guardResponse = PresubmitGuardResponse.fromJson(json);
+    } catch (e) {
+      log('Warning: Failed to parse JSON into PresubmitGuardResponse: $e');
+      log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+      await Future<void>.delayed(clampedWaitInterval);
+      continue;
+    }
+
+    final result = evaluateTests(
+      response: guardResponse,
+      requiredTests: requiredTests,
+    );
+
+    log('\n--- Current Test Status Summary ---');
+    for (final summary in result.summaries) {
+      log('- ${summary.name}: ${summary.status.value}');
+    }
+    if (requiredTests.isEmpty) {
+      log('Remaining tests: ${result.remainingCount}');
+      log('Overall Guard Status: ${result.guardStatus}');
+    }
+    log('-----------------------------------\n');
+
+    final bool isSuccess;
+    if (requiredTests.isEmpty) {
+      isSuccess =
+          result.allSucceeded &&
+          result.guardStatus.toLowerCase() == 'succeeded';
     } else {
-      Map<String, Object?> json;
-      try {
-        json = jsonDecode(response.body) as Map<String, Object?>;
-      } catch (e) {
-        log('Warning: Failed to parse Cocoon API response as JSON: $e');
-        json = <String, Object?>{};
-      }
+      isSuccess = result.allSucceeded;
+    }
 
-      if (json.isEmpty) {
-        log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
-        await Future<void>.delayed(clampedWaitInterval);
-        continue;
-      }
-
-      final PresubmitGuardResponse guardResponse;
-      try {
-        guardResponse = PresubmitGuardResponse.fromJson(json);
-      } catch (e) {
-        log('Warning: Failed to parse JSON into PresubmitGuardResponse: $e');
-        log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
-        await Future<void>.delayed(clampedWaitInterval);
-        continue;
-      }
-
-      final result = evaluateTests(
-        response: guardResponse,
-        requiredTests: requiredTests,
-      );
-
-      log('\n--- Current Test Status Summary ---');
-      for (final summary in result.summaries) {
+    if (isSuccess) {
+      if (requiredTests.isEmpty) {
         log(
-          '- ${summary.name}: ${summary.status.value} (${summary.originalStatusString})',
+          'Success: Overall guard status succeeded and all tests completed successfully!',
         );
-      }
-      if (requiredTests.isEmpty) {
-        log('Remaining tests: ${result.remainingCount}');
-        log('Overall Guard Status: ${result.guardStatus}');
-      }
-      log('-----------------------------------\n');
-
-      final bool isSuccess;
-      if (requiredTests.isEmpty) {
-        isSuccess =
-            result.allSucceeded &&
-            result.guardStatus.toLowerCase() == 'succeeded';
       } else {
-        isSuccess = result.allSucceeded;
+        log('Success: All required tests have completed successfully!');
       }
+      return true;
+    }
 
-      if (isSuccess) {
-        if (requiredTests.isEmpty) {
-          log(
-            'Success: Overall guard status succeeded and all tests completed successfully!',
-          );
-        } else {
-          log('Success: All required tests have completed successfully!');
-        }
-        return true;
-      }
-
-      if (result.anyFailed) {
-        log(
-          'Error: One or more tests have failed, or the overall guard status is failed.',
-        );
-        return false;
-      }
+    if (result.anyFailed) {
+      log(
+        'Error: One or more tests have failed, or the overall guard status is failed.',
+      );
+      return false;
     }
 
     log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
