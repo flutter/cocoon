@@ -5837,7 +5837,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
   @override
   _i13.Future<void> processJobStatusUpdate(_i38.PresubmitJobState? job) =>
       (super.noSuchMethod(
-            Invocation.method(#processCheckRunCompleted, [job]),
+            Invocation.method(#processJobStatusUpdate, [job]),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),
           )

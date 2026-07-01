@@ -1212,43 +1212,43 @@ detailsUrl: $detailsUrl
 
   Future<void> _processGitHubFlowCheckStatusUpdate(
     String logCrumb,
-    PresubmitJobState check,
+    PresubmitJobState job,
   ) async {
-    if (!check.status.isComplete) {
+    if (!job.status.isComplete) {
       return;
     }
 
     var stage = CiStage.fusionEngineBuild;
     var conclusion = await _recordCurrentCiStage(
-      slug: check.slug,
-      sha: check.sha,
+      slug: job.slug,
+      sha: job.sha,
       stage: stage,
-      name: check.name,
-      conclusion: check.status.toTaskConclusion(),
+      name: job.name,
+      conclusion: job.status.toTaskConclusion(),
     );
 
     if (conclusion.result == PresubmitGuardConclusionResult.missing) {
       stage = CiStage.fusionTests;
       conclusion = await _recordCurrentCiStage(
-        slug: check.slug,
-        sha: check.sha,
+        slug: job.slug,
+        sha: job.sha,
         stage: stage,
-        name: check.name,
-        conclusion: check.status.toTaskConclusion(),
+        name: job.name,
+        conclusion: job.status.toTaskConclusion(),
       );
     }
 
-    if (check.isMergeGroup) {
+    if (job.isMergeGroup) {
       await _processMergeGroupCheckStatusUpdate(
         logCrumb,
-        check,
+        job,
         stage,
         conclusion,
       );
     } else {
       await _processRegularCheckStatusUpdate(
         logCrumb,
-        check,
+        job,
         stage,
         conclusion,
       );
@@ -1257,7 +1257,7 @@ detailsUrl: $detailsUrl
 
   Future<void> _processRegularCheckStatusUpdate(
     String logCrumb,
-    PresubmitJobState check,
+    PresubmitJobState job,
     CiStage stage,
     PresubmitGuardConclusion conclusion,
   ) async {
@@ -1277,17 +1277,17 @@ detailsUrl: $detailsUrl
     switch (stage) {
       case CiStage.fusionEngineBuild:
         await _closeSuccessfulEngineBuildStage(
-          checkRun: check.checkRun,
+          checkRun: job.checkRun,
           mergeQueueGuard: conclusion.checkRunGuard!,
-          slug: check.slug,
-          sha: check.sha,
+          slug: job.slug,
+          sha: job.sha,
           logCrumb: logCrumb,
         );
       case CiStage.fusionTests:
         await _closeSuccessfulTestStage(
           mergeQueueGuard: conclusion.checkRunGuard!,
-          slug: check.slug,
-          sha: check.sha,
+          slug: job.slug,
+          sha: job.sha,
           logCrumb: logCrumb,
         );
       case CiStage.genericTests:
@@ -1298,18 +1298,19 @@ detailsUrl: $detailsUrl
 
   Future<void> _processMergeGroupCheckStatusUpdate(
     String logCrumb,
-    PresubmitJobState check,
+    PresubmitJobState job,
     CiStage stage,
     PresubmitGuardConclusion conclusion,
   ) async {
     if (!conclusion.isOk) {
-      if (conclusion.result == PresubmitGuardConclusionResult.internalError) {
-        await _completeArtifacts(check.sha, false);
+      if (conclusion.result == PresubmitGuardConclusionResult.internalError &&
+          conclusion.checkRunGuard != null) {
+        await _completeArtifacts(job.sha, false);
         final guard = checkRunFromString(conclusion.checkRunGuard!);
         await failGuardForMergeGroup(
-          slug: check.slug,
+          slug: job.slug,
           lock: guard,
-          headSha: check.sha,
+          headSha: job.sha,
           summary: conclusion.summary,
           details: conclusion.details,
         );
@@ -1325,12 +1326,12 @@ detailsUrl: $detailsUrl
     }
 
     if (conclusion.isFailed) {
-      await _completeArtifacts(check.sha, false);
+      await _completeArtifacts(job.sha, false);
       final guard = checkRunFromString(conclusion.checkRunGuard!);
       await failGuardForMergeGroup(
-        slug: check.slug,
+        slug: job.slug,
         lock: guard,
-        headSha: check.sha,
+        headSha: job.sha,
         summary: conclusion.summary,
         details: conclusion.details,
       );
@@ -1339,11 +1340,11 @@ detailsUrl: $detailsUrl
 
     switch (stage) {
       case CiStage.fusionEngineBuild:
-        await _completeArtifacts(check.sha, true);
+        await _completeArtifacts(job.sha, true);
         await _closeMergeQueue(
           mergeQueueGuard: conclusion.checkRunGuard!,
-          slug: check.slug,
-          sha: check.sha,
+          slug: job.slug,
+          sha: job.sha,
           stage: CiStage.fusionEngineBuild,
           logCrumb: logCrumb,
         );
