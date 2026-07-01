@@ -52,7 +52,7 @@ void main() {
         '--sha',
         'd100ca3882520e04129ff2a5c09372ecec3b3860',
         '--repo',
-        'flutter',
+        'flutter/flutter',
         '--wait-interval',
         'abc',
       ]);
@@ -72,7 +72,7 @@ void main() {
         '--sha',
         '3b77a01',
         '--repo',
-        'flutter',
+        'flutter/flutter',
       ]);
       expect(result.exitCode, equals(1));
       expect(
@@ -81,6 +81,36 @@ void main() {
           'Error: The commit "sha" parameter must be a full 40-character hexadecimal SHA',
         ),
       );
+    },
+  );
+
+  test(
+    'exits with code 1 and prints error when repo is malformed (e.g. trailing slash)',
+    () async {
+      final result = await Process.run('dart', [
+        binPath,
+        '--sha',
+        'd100ca3882520e04129ff2a5c09372ecec3b3860',
+        '--repo',
+        'flutter/',
+      ]);
+      expect(result.exitCode, equals(1));
+      expect(result.stderr, contains('Error: Malformed "repo" parameter'));
+    },
+  );
+
+  test(
+    'exits with code 1 and prints error when repo has too many slashes',
+    () async {
+      final result = await Process.run('dart', [
+        binPath,
+        '--sha',
+        'd100ca3882520e04129ff2a5c09372ecec3b3860',
+        '--repo',
+        'flutter/packages/extra',
+      ]);
+      expect(result.exitCode, equals(1));
+      expect(result.stderr, contains('Error: Malformed "repo" parameter'));
     },
   );
 }

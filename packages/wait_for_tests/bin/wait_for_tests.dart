@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'package:args/args.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:wait_for_tests/wait_for_tests.dart';
 
@@ -11,7 +12,7 @@ import 'package:wait_for_tests/wait_for_tests.dart';
 ///
 /// This CLI can be executed by passing options as command-line arguments:
 /// ```sh
-/// dart bin/wait_for_tests.dart --sha d100ca3882520e04129ff2a5c09372ecec3b3860 --repo flutter --required-tests "Linux windows_host_engine, Mac mac_ios_engine" --wait-interval 45
+/// dart bin/wait_for_tests.dart --sha d100ca3882520e04129ff2a5c09372ecec3b3860 --repo flutter/flutter --required-tests "Linux windows_host_engine, Mac mac_ios_engine" --wait-interval 45
 /// ```
 /// Alternatively, it can read from environment variables (e.g., prefixed with `INPUT_` for GitHub Actions).
 void main(List<String> arguments) async {
@@ -24,7 +25,8 @@ void main(List<String> arguments) async {
     ..addOption(
       'repo',
       abbr: 'r',
-      help: 'The repository slug or name (e.g., flutter or packages)',
+      help:
+          'The repository slug or name (e.g., flutter/flutter or flutter/packages)',
     )
     ..addMultiOption(
       'required-tests',
@@ -38,12 +40,6 @@ void main(List<String> arguments) async {
       defaultsTo: '60',
       help:
           'Time in seconds between polling checks (clamped to a range of 30 to 600 seconds)',
-    )
-    ..addOption(
-      'owner',
-      abbr: 'o',
-      defaultsTo: 'flutter',
-      help: 'The repository owner',
     )
     ..addFlag(
       'help',
@@ -68,7 +64,7 @@ void main(List<String> arguments) async {
 
   // Support reading from environment variables for GitHub Actions
   final sha = argResults['sha'] as String? ?? Platform.environment['INPUT_SHA'];
-  var repo =
+  final repo =
       argResults['repo'] as String? ?? Platform.environment['INPUT_REPO'];
 
   final rawRequiredTestsList =
@@ -82,10 +78,6 @@ void main(List<String> arguments) async {
       Platform.environment['INPUT_WAIT_INTERVAL'] ??
       Platform.environment['INPUT_WAIT-INTERVAL'] ??
       '60';
-  var owner =
-      argResults['owner'] as String? ??
-      Platform.environment['INPUT_OWNER'] ??
-      'flutter';
 
   if (sha == null || sha.isEmpty) {
     stderr.writeln(
@@ -111,11 +103,18 @@ void main(List<String> arguments) async {
     exit(1);
   }
 
-  // Parse repo slug (e.g., "flutter/packages" or just "packages")
-  if (repo.contains('/')) {
+  final RepositorySlug slug;
+  try {
     final parts = repo.split('/');
-    owner = parts[0];
-    repo = parts[1];
+    if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+      throw const FormatException();
+    }
+    slug = RepositorySlug(parts[0], parts[1]);
+  } catch (_) {
+    stderr.writeln(
+      'Error: Malformed "repo" parameter. Expected format "owner/repo" (e.g., "flutter/cocoon"), but got: "$repo"',
+    );
+    exit(1);
   }
 
   final List<String> requiredTests;
@@ -149,12 +148,11 @@ void main(List<String> arguments) async {
   try {
     final success = await waitForTests(
       sha: sha,
-      repo: repo,
+      slug: slug,
       requiredTests: requiredTests,
       waitInterval: waitInterval,
       client: client,
       log: stdout.writeln,
-      owner: owner,
     );
 
     if (success) {

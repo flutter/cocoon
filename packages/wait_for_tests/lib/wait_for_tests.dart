@@ -2,9 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:clock/clock.dart';
+import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 
 /// A structured summary for a specific required test.
@@ -39,18 +43,14 @@ class PollResult {
 
 /// Evaluates the status of the required tests based on the Cocoon API response.
 PollResult evaluateTests({
-  required Map<String, dynamic> json,
+  required PresubmitGuardResponse response,
   required List<String> requiredTests,
 }) {
-  final allJobs = <String, String>{};
-  if (json case {'stages': final List<dynamic> stages}) {
-    for (final stage in stages) {
-      if (stage case {'jobs': final Map<dynamic, dynamic> jobs}) {
-        for (final MapEntry(key: String key, value: String value)
-            in jobs.entries) {
-          allJobs[key] = value;
-        }
-      }
+  final allJobs = <String, TaskStatus>{};
+  for (final stage in response.stages) {
+    for (final MapEntry(key: String key, value: TaskStatus value)
+        in stage.jobs.entries) {
+      allJobs[key] = value;
     }
   }
 
@@ -66,18 +66,7 @@ PollResult evaluateTests({
       : allJobs.keys.toList();
 
   final summaries = <TestStatusSummary>[];
-  final guardStatusStr = json['guard_status'] as String? ?? '';
-  final isGuardFailed = switch (guardStatusStr.toLowerCase().replaceAll(
-    ' ',
-    '',
-  )) {
-    'failed' ||
-    'infra_failure' ||
-    'infrafailure' ||
-    'cancelled' ||
-    'canceled' => true,
-    _ => false,
-  };
+  final isGuardFailed = response.guardStatus == GuardStatus.failed;
 
   var allSucceeded = true;
   var anyFailed = isGuardFailed;
@@ -93,8 +82,8 @@ PollResult evaluateTests({
     final String statusStr;
 
     if (originalStatus != null) {
-      status = _parseStatus(originalStatus);
-      statusStr = originalStatus;
+      status = originalStatus;
+      statusStr = originalStatus.value;
     } else {
       status = TaskStatus.waitingForBackfill;
       statusStr = 'Not yet scheduled';
@@ -124,40 +113,21 @@ PollResult evaluateTests({
     allSucceeded: allSucceeded,
     anyFailed: anyFailed,
     summaries: summaries,
-    guardStatus: guardStatusStr,
+    guardStatus: response.guardStatus.value,
     remainingCount: remainingCount,
   );
-}
-
-TaskStatus _parseStatus(String statusStr) {
-  return switch (statusStr.toLowerCase().replaceAll(' ', '')) {
-    'succeeded' || 'success' => TaskStatus.succeeded,
-    'neutral' => TaskStatus.neutral,
-    'skipped' => TaskStatus.skipped,
-    'failed' => TaskStatus.failed,
-    'infra_failure' || 'infrafailure' => TaskStatus.infraFailure,
-    'cancelled' || 'canceled' => TaskStatus.cancelled,
-    'inprogress' || 'in_progress' || 'running' => TaskStatus.inProgress,
-    'new' ||
-    'pending' ||
-    'waiting' ||
-    'queued' ||
-    'scheduled' => TaskStatus.waitingForBackfill,
-    _ => TaskStatus.waitingForBackfill,
-  };
 }
 
 /// Polls the Cocoon API until all required tests complete or any fails.
 /// Returns true if all tests succeeded, false if any failed or loop timed out.
 Future<bool> waitForTests({
   required String sha,
-  required String repo,
+  required RepositorySlug slug,
   required List<String> requiredTests,
   required Duration waitInterval,
   required http.Client client,
   required void Function(String) log,
   Duration? timeout,
-  String owner = 'flutter',
 }) async {
   final clampedSeconds = waitInterval.inSeconds.clamp(30, 600);
   final clampedWaitInterval = clampedSeconds != waitInterval.inSeconds
@@ -168,11 +138,11 @@ Future<bool> waitForTests({
   final url = Uri.https(
     'flutter-dashboard.appspot.com',
     '/api/public/get-presubmit-guard',
-    {'sha': sha, 'repo': repo, 'owner': owner},
+    {'sha': sha, 'repo': slug.name, 'owner': slug.owner},
   );
 
   log('Starting wait-for-tests polling loop.');
-  log('Repository: $owner/$repo, Commit SHA: $sha');
+  log('Repository: $slug, Commit SHA: $sha');
   if (clampedSeconds != waitInterval.inSeconds) {
     log(
       'Warning: wait-interval must be between 30 and 600 seconds. Clamping from ${waitInterval.inSeconds}s to ${clampedSeconds}s.',
@@ -193,23 +163,49 @@ Future<bool> waitForTests({
     }
 
     try {
-      final response = await client.get(url);
+      final response = await client
+          .get(url)
+          .timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
+        final failImmediately = switch (response.statusCode) {
+          429 || 408 => false,
+          >= 400 && < 500 => true,
+          _ => false,
+        };
+
+        if (failImmediately) {
+          log(
+            'Error: Non-transient 4xx error from Cocoon API. Status code ${response.statusCode}. Body: ${response.body}',
+          );
+          return false;
+        }
         log(
           'Warning: Cocoon API returned status code ${response.statusCode}. Body: ${response.body}',
         );
       } else {
-        Map<String, dynamic> json;
+        Map<String, Object?> json;
         try {
-          json = jsonDecode(response.body) as Map<String, dynamic>;
+          json = jsonDecode(response.body) as Map<String, Object?>;
         } catch (e) {
           log('Warning: Failed to parse Cocoon API response as JSON: $e');
-          json = <String, dynamic>{};
+          json = <String, Object?>{};
         }
 
         if (json.isNotEmpty) {
+          final PresubmitGuardResponse guardResponse;
+          try {
+            guardResponse = PresubmitGuardResponse.fromJson(json);
+          } catch (e) {
+            log(
+              'Warning: Failed to parse JSON into PresubmitGuardResponse: $e',
+            );
+            log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+            await Future<void>.delayed(clampedWaitInterval);
+            continue;
+          }
+
           final result = evaluateTests(
-            json: json,
+            response: guardResponse,
             requiredTests: requiredTests,
           );
 

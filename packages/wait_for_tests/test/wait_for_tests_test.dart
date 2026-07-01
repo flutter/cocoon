@@ -3,8 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:convert';
+
+import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:fake_async/fake_async.dart';
+import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 import 'package:wait_for_tests/wait_for_tests.dart';
@@ -28,26 +32,55 @@ http.StreamedResponse _stringResponse(String body, int status) {
   );
 }
 
+/// Helper to create a strongly typed [PresubmitGuardResponse] for testing [evaluateTests].
+PresubmitGuardResponse _createResponse({
+  required Map<String, TaskStatus> jobs,
+  GuardStatus guardStatus = GuardStatus.inProgress,
+}) {
+  return PresubmitGuardResponse(
+    prNum: 1,
+    checkRunId: 1,
+    author: 'author',
+    guardStatus: guardStatus,
+    stages: [PresubmitGuardStage(name: 'stage', createdAt: 1234, jobs: jobs)],
+  );
+}
+
+/// Helper to create a valid JSON response string for testing [waitForTests].
+String _validResponseJson({
+  required Map<String, String> jobs,
+  String guardStatus = 'In Progress',
+}) {
+  return jsonEncode({
+    'pr_num': 1,
+    'check_run_id': 1,
+    'author': 'author',
+    'guard_status': guardStatus,
+    'stages': [
+      {'name': 'stage', 'created_at': 1234, 'jobs': jobs},
+    ],
+  });
+}
+
 void main() {
   group('evaluateTests', () {
     test('succeeds when all required tests succeed', () {
-      final json = {
-        'stages': [
-          {
-            'jobs': {
-              'Linux windows_host_engine': 'Succeeded',
-              'Mac mac_ios_engine': 'Neutral',
-              'Linux linux_fuchsia': 'Skipped',
-            },
-          },
-        ],
-      };
+      final response = _createResponse(
+        jobs: {
+          'Linux windows_host_engine': TaskStatus.succeeded,
+          'Mac mac_ios_engine': TaskStatus.neutral,
+          'Linux linux_fuchsia': TaskStatus.skipped,
+        },
+      );
       final requiredTests = [
         'Linux windows_host_engine',
         'Mac mac_ios_engine',
         'Linux linux_fuchsia',
       ];
-      final result = evaluateTests(json: json, requiredTests: requiredTests);
+      final result = evaluateTests(
+        response: response,
+        requiredTests: requiredTests,
+      );
 
       expect(result.allSucceeded, isTrue);
       expect(result.anyFailed, isFalse);
@@ -58,18 +91,17 @@ void main() {
     });
 
     test('fails when any required test fails', () {
-      final json = {
-        'stages': [
-          {
-            'jobs': {
-              'Linux windows_host_engine': 'Succeeded',
-              'Mac mac_ios_engine': 'Failed',
-            },
-          },
-        ],
-      };
+      final response = _createResponse(
+        jobs: {
+          'Linux windows_host_engine': TaskStatus.succeeded,
+          'Mac mac_ios_engine': TaskStatus.failed,
+        },
+      );
       final requiredTests = ['Linux windows_host_engine', 'Mac mac_ios_engine'];
-      final result = evaluateTests(json: json, requiredTests: requiredTests);
+      final result = evaluateTests(
+        response: response,
+        requiredTests: requiredTests,
+      );
 
       expect(result.allSucceeded, isFalse);
       expect(result.anyFailed, isTrue);
@@ -77,18 +109,17 @@ void main() {
     });
 
     test('is pending when some tests are in progress or waiting', () {
-      final json = {
-        'stages': [
-          {
-            'jobs': {
-              'Linux windows_host_engine': 'Succeeded',
-              'Mac mac_ios_engine': 'In Progress',
-            },
-          },
-        ],
-      };
+      final response = _createResponse(
+        jobs: {
+          'Linux windows_host_engine': TaskStatus.succeeded,
+          'Mac mac_ios_engine': TaskStatus.inProgress,
+        },
+      );
       final requiredTests = ['Linux windows_host_engine', 'Mac mac_ios_engine'];
-      final result = evaluateTests(json: json, requiredTests: requiredTests);
+      final result = evaluateTests(
+        response: response,
+        requiredTests: requiredTests,
+      );
 
       expect(result.allSucceeded, isFalse);
       expect(result.anyFailed, isFalse);
@@ -96,15 +127,14 @@ void main() {
     });
 
     test('treats missing required tests as waiting', () {
-      final json = {
-        'stages': [
-          {
-            'jobs': {'Linux windows_host_engine': 'Succeeded'},
-          },
-        ],
-      };
+      final response = _createResponse(
+        jobs: {'Linux windows_host_engine': TaskStatus.succeeded},
+      );
       final requiredTests = ['Linux windows_host_engine', 'Mac mac_ios_engine'];
-      final result = evaluateTests(json: json, requiredTests: requiredTests);
+      final result = evaluateTests(
+        response: response,
+        requiredTests: requiredTests,
+      );
 
       expect(result.allSucceeded, isFalse);
       expect(result.anyFailed, isFalse);
@@ -113,56 +143,46 @@ void main() {
     });
 
     test('is case-insensitive and trims whitespace on job name matching', () {
-      final json = {
-        'stages': [
-          {
-            'jobs': {'  Linux windows_host_engine  ': 'Succeeded'},
-          },
-        ],
-      };
+      final response = _createResponse(
+        jobs: {'  Linux windows_host_engine  ': TaskStatus.succeeded},
+      );
       final requiredTests = ['linux windows_host_engine'];
-      final result = evaluateTests(json: json, requiredTests: requiredTests);
+      final result = evaluateTests(
+        response: response,
+        requiredTests: requiredTests,
+      );
 
       expect(result.allSucceeded, isTrue);
       expect(result.anyFailed, isFalse);
     });
 
-    test('correctly parses various status string variations', () {
+    test('correctly evaluates all status enum values', () {
       final statusMap = {
-        'success': TaskStatus.succeeded,
-        'succeeded': TaskStatus.succeeded,
-        'neutral': TaskStatus.neutral,
-        'skipped': TaskStatus.skipped,
-        'failed': TaskStatus.failed,
-        'infra_failure': TaskStatus.infraFailure,
-        'infrafailure': TaskStatus.infraFailure,
-        'cancelled': TaskStatus.cancelled,
-        'canceled': TaskStatus.cancelled,
-        'inprogress': TaskStatus.inProgress,
-        'in_progress': TaskStatus.inProgress,
-        'running': TaskStatus.inProgress,
-        'new': TaskStatus.waitingForBackfill,
-        'pending': TaskStatus.waitingForBackfill,
-        'waiting': TaskStatus.waitingForBackfill,
-        'queued': TaskStatus.waitingForBackfill,
-        'scheduled': TaskStatus.waitingForBackfill,
-        'some_weird_unsupported_status': TaskStatus.waitingForBackfill,
+        TaskStatus.succeeded: true,
+        TaskStatus.neutral: true,
+        TaskStatus.skipped: true,
+        TaskStatus.failed: false,
+        TaskStatus.infraFailure: false,
+        TaskStatus.cancelled: false,
+        TaskStatus.inProgress: false,
+        TaskStatus.waitingForBackfill: false,
       };
 
-      for (final MapEntry(key: inputStatus, value: expectedStatus)
-          in statusMap.entries) {
-        final json = {
-          'stages': [
-            {
-              'jobs': {'test_job': inputStatus},
-            },
-          ],
-        };
-        final result = evaluateTests(json: json, requiredTests: ['test_job']);
+      for (final MapEntry(key: status, value: isSuccess) in statusMap.entries) {
+        final response = _createResponse(jobs: {'test_job': status});
+        final result = evaluateTests(
+          response: response,
+          requiredTests: ['test_job'],
+        );
         expect(
           result.summaries[0].status,
-          expectedStatus,
-          reason: 'Failed to parse "$inputStatus" to $expectedStatus',
+          status,
+          reason: 'Failed to verify status $status',
+        );
+        expect(
+          result.allSucceeded,
+          isSuccess,
+          reason: 'Expected allSucceeded to be $isSuccess for status $status',
         );
       }
     });
@@ -170,16 +190,15 @@ void main() {
     test(
       'isGuardFailed causes anyFailed to be true even when requiredTests is provided and has no failed tests',
       () {
-        final json = {
-          'guard_status': 'infra_failure',
-          'stages': [
-            {
-              'jobs': {'Linux windows_host_engine': 'Succeeded'},
-            },
-          ],
-        };
+        final response = _createResponse(
+          guardStatus: GuardStatus.failed,
+          jobs: {'Linux windows_host_engine': TaskStatus.succeeded},
+        );
         final requiredTests = ['Linux windows_host_engine'];
-        final result = evaluateTests(json: json, requiredTests: requiredTests);
+        final result = evaluateTests(
+          response: response,
+          requiredTests: requiredTests,
+        );
 
         expect(result.allSucceeded, isTrue);
         expect(result.anyFailed, isTrue);
@@ -190,17 +209,10 @@ void main() {
   group('waitForTests with fake_async', () {
     test('returns immediately on success on first check', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('''
-        {
-          "stages": [
-            {
-              "jobs": {
-                "Linux windows_host_engine": "Succeeded"
-              }
-            }
-          ]
-        }
-        ''', 200);
+        return _stringResponse(
+          _validResponseJson(jobs: {'Linux windows_host_engine': 'Succeeded'}),
+          200,
+        );
       });
 
       fakeAsync((async) {
@@ -209,7 +221,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 10),
           client: mockClient,
@@ -227,17 +239,10 @@ void main() {
 
     test('returns immediately on failure on first check', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('''
-        {
-          "stages": [
-            {
-              "jobs": {
-                "Linux windows_host_engine": "Failed"
-              }
-            }
-          ]
-        }
-        ''', 200);
+        return _stringResponse(
+          _validResponseJson(jobs: {'Linux windows_host_engine': 'Failed'}),
+          200,
+        );
       });
 
       fakeAsync((async) {
@@ -246,7 +251,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 10),
           client: mockClient,
@@ -267,29 +272,19 @@ void main() {
       final mockClient = MockClient((request) async {
         callCount++;
         if (callCount == 1) {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "In progress"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'In Progress'},
+            ),
+            200,
+          );
         } else {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Succeeded"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
         }
       });
 
@@ -299,7 +294,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -327,29 +322,17 @@ void main() {
       final mockClient = MockClient((request) async {
         callCount++;
         if (callCount == 1) {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "In progress"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'In Progress'},
+            ),
+            200,
+          );
         } else {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Failed"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(jobs: {'Linux windows_host_engine': 'Failed'}),
+            200,
+          );
         }
       });
 
@@ -359,7 +342,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -382,17 +365,12 @@ void main() {
 
     test('times out after configured duration', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('''
-        {
-          "stages": [
-            {
-              "jobs": {
-                "Linux windows_host_engine": "In progress"
-              }
-            }
-          ]
-        }
-        ''', 200);
+        return _stringResponse(
+          _validResponseJson(
+            jobs: {'Linux windows_host_engine': 'In Progress'},
+          ),
+          200,
+        );
       });
 
       fakeAsync((async) {
@@ -401,7 +379,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -424,33 +402,27 @@ void main() {
       final mockClient = MockClient((request) async {
         callCount++;
         if (callCount == 1) {
-          return _stringResponse('''
-          {
-            "guard_status": "In progress",
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Succeeded",
-                  "Mac mac_ios_engine": "In progress"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              guardStatus: 'In Progress',
+              jobs: {
+                'Linux windows_host_engine': 'Succeeded',
+                'Mac mac_ios_engine': 'In Progress',
+              },
+            ),
+            200,
+          );
         } else {
-          return _stringResponse('''
-          {
-            "guard_status": "Succeeded",
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Succeeded",
-                  "Mac mac_ios_engine": "Succeeded"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              guardStatus: 'Succeeded',
+              jobs: {
+                'Linux windows_host_engine': 'Succeeded',
+                'Mac mac_ios_engine': 'Succeeded',
+              },
+            ),
+            200,
+          );
         }
       });
 
@@ -460,7 +432,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const [],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -485,19 +457,16 @@ void main() {
 
     test('fails immediately when any test fails in all-tests mode', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('''
-        {
-          "guard_status": "Failed",
-          "stages": [
-            {
-              "jobs": {
-                "Linux windows_host_engine": "Failed",
-                "Mac mac_ios_engine": "Succeeded"
-              }
-            }
-          ]
-        }
-        ''', 200);
+        return _stringResponse(
+          _validResponseJson(
+            guardStatus: 'Failed',
+            jobs: {
+              'Linux windows_host_engine': 'Failed',
+              'Mac mac_ios_engine': 'Succeeded',
+            },
+          ),
+          200,
+        );
       });
 
       fakeAsync((async) {
@@ -506,7 +475,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const [],
           waitInterval: const Duration(seconds: 10),
           client: mockClient,
@@ -529,17 +498,12 @@ void main() {
         if (callCount == 1) {
           throw Exception('Transient network error');
         } else {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Succeeded"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
         }
       });
 
@@ -550,7 +514,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -584,17 +548,12 @@ void main() {
         if (callCount == 1) {
           return _stringResponse('Gateway Timeout', 504);
         } else {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Succeeded"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
         }
       });
 
@@ -605,7 +564,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -641,17 +600,12 @@ void main() {
         if (callCount == 1) {
           return _stringResponse('not a json map', 200);
         } else {
-          return _stringResponse('''
-          {
-            "stages": [
-              {
-                "jobs": {
-                  "Linux windows_host_engine": "Succeeded"
-                }
-              }
-            ]
-          }
-          ''', 200);
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
         }
       });
 
@@ -662,7 +616,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 30),
           client: mockClient,
@@ -693,19 +647,69 @@ void main() {
       });
     });
 
+    test(
+      'continues polling when response is valid JSON but fails to parse into PresubmitGuardResponse',
+      () {
+        var callCount = 0;
+        final mockClient = MockClient((request) async {
+          callCount++;
+          if (callCount == 1) {
+            return _stringResponse('{"invalid_field": true}', 200);
+          } else {
+            return _stringResponse(
+              _validResponseJson(
+                jobs: {'Linux windows_host_engine': 'Succeeded'},
+              ),
+              200,
+            );
+          }
+        });
+
+        fakeAsync((async) {
+          var completed = false;
+          var successResult = false;
+          final logs = <String>[];
+
+          waitForTests(
+            sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
+            slug: RepositorySlug('flutter', 'flutter'),
+            requiredTests: const ['Linux windows_host_engine'],
+            waitInterval: const Duration(seconds: 30),
+            client: mockClient,
+            log: logs.add,
+          ).then((res) {
+            completed = true;
+            successResult = res;
+          });
+
+          // First poll: valid JSON but fails to parse
+          async.elapse(const Duration(seconds: 2));
+          expect(completed, isFalse);
+          expect(callCount, 1);
+          expect(
+            logs.any(
+              (l) => l.contains(
+                'Warning: Failed to parse JSON into PresubmitGuardResponse',
+              ),
+            ),
+            isTrue,
+          );
+
+          // Trigger second poll
+          async.elapse(const Duration(seconds: 29));
+          expect(completed, isTrue);
+          expect(successResult, isTrue);
+          expect(callCount, 2);
+        });
+      },
+    );
+
     test('clamps waitInterval to at least 30 seconds and logs warning', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('''
-        {
-          "stages": [
-            {
-              "jobs": {
-                "Linux windows_host_engine": "Succeeded"
-              }
-            }
-          ]
-        }
-        ''', 200);
+        return _stringResponse(
+          _validResponseJson(jobs: {'Linux windows_host_engine': 'Succeeded'}),
+          200,
+        );
       });
 
       fakeAsync((async) {
@@ -715,7 +719,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 10),
           client: mockClient,
@@ -741,17 +745,10 @@ void main() {
 
     test('clamps waitInterval to at most 600 seconds and logs warning', () {
       final mockClient = MockClient((request) async {
-        return _stringResponse('''
-        {
-          "stages": [
-            {
-              "jobs": {
-                "Linux windows_host_engine": "Succeeded"
-              }
-            }
-          ]
-        }
-        ''', 200);
+        return _stringResponse(
+          _validResponseJson(jobs: {'Linux windows_host_engine': 'Succeeded'}),
+          200,
+        );
       });
 
       fakeAsync((async) {
@@ -761,7 +758,7 @@ void main() {
 
         waitForTests(
           sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
-          repo: 'flutter',
+          slug: RepositorySlug('flutter', 'flutter'),
           requiredTests: const ['Linux windows_host_engine'],
           waitInterval: const Duration(seconds: 1000),
           client: mockClient,
@@ -782,6 +779,149 @@ void main() {
           ),
           isTrue,
         );
+      });
+    });
+
+    test('fails immediately on non-transient 4xx client errors (e.g. 404)', () {
+      final mockClient = MockClient((request) async {
+        return _stringResponse('Not Found', 404);
+      });
+
+      fakeAsync((async) {
+        var completed = false;
+        var successResult = true;
+        final logs = <String>[];
+
+        waitForTests(
+          sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
+          slug: RepositorySlug('flutter', 'flutter'),
+          requiredTests: const ['Linux windows_host_engine'],
+          waitInterval: const Duration(seconds: 30),
+          client: mockClient,
+          log: logs.add,
+        ).then((res) {
+          completed = true;
+          successResult = res;
+        });
+
+        async.elapse(const Duration(milliseconds: 10));
+        expect(completed, isTrue);
+        expect(successResult, isFalse);
+        expect(
+          logs.any(
+            (l) => l.contains('Error: Non-transient 4xx error from Cocoon API'),
+          ),
+          isTrue,
+        );
+      });
+    });
+
+    test('retries on transient 429 Too Many Requests errors', () {
+      var callCount = 0;
+      final mockClient = MockClient((request) async {
+        callCount++;
+        if (callCount == 1) {
+          return _stringResponse('Too Many Requests', 429);
+        } else {
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
+        }
+      });
+
+      fakeAsync((async) {
+        var completed = false;
+        var successResult = false;
+        final logs = <String>[];
+
+        waitForTests(
+          sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
+          slug: RepositorySlug('flutter', 'flutter'),
+          requiredTests: const ['Linux windows_host_engine'],
+          waitInterval: const Duration(seconds: 30),
+          client: mockClient,
+          log: logs.add,
+        ).then((res) {
+          completed = true;
+          successResult = res;
+        });
+
+        // First poll: 429 logged as warning, sleep
+        async.elapse(const Duration(seconds: 2));
+        expect(completed, isFalse);
+        expect(callCount, 1);
+        expect(
+          logs.any(
+            (l) => l.contains('Warning: Cocoon API returned status code 429'),
+          ),
+          isTrue,
+        );
+
+        // Second poll: Succeeds
+        async.elapse(const Duration(seconds: 29));
+        expect(completed, isTrue);
+        expect(successResult, isTrue);
+        expect(callCount, 2);
+      });
+    });
+
+    test('retries when request hangs and triggers 15-second timeout', () {
+      var callCount = 0;
+      final mockClient = MockClient((request) async {
+        callCount++;
+        if (callCount == 1) {
+          // Delay longer than 15 seconds to trigger timeout
+          await Future<void>.delayed(const Duration(seconds: 20));
+          return _stringResponse('late response', 200);
+        } else {
+          return _stringResponse(
+            _validResponseJson(
+              jobs: {'Linux windows_host_engine': 'Succeeded'},
+            ),
+            200,
+          );
+        }
+      });
+
+      fakeAsync((async) {
+        var completed = false;
+        var successResult = false;
+        final logs = <String>[];
+
+        waitForTests(
+          sha: 'd100ca3882520e04129ff2a5c09372ecec3b3860',
+          slug: RepositorySlug('flutter', 'flutter'),
+          requiredTests: const ['Linux windows_host_engine'],
+          waitInterval: const Duration(seconds: 30),
+          client: mockClient,
+          log: logs.add,
+        ).then((res) {
+          completed = true;
+          successResult = res;
+        });
+
+        // Wait 16 seconds to elapse the 15-second timeout.
+        // It triggers TimeoutException, gets caught, logged, and starts delay.
+        async.elapse(const Duration(seconds: 16));
+        expect(completed, isFalse);
+        expect(callCount, 1);
+        expect(
+          logs.any(
+            (l) =>
+                l.contains('Warning: Error calling Cocoon API') &&
+                l.contains('TimeoutException'),
+          ),
+          isTrue,
+        );
+
+        // Advance to trigger the second poll (30s wait interval total elapsed since start is 46s)
+        async.elapse(const Duration(seconds: 30));
+        expect(completed, isTrue);
+        expect(successResult, isTrue);
+        expect(callCount, 2);
       });
     });
   });
