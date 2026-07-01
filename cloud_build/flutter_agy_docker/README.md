@@ -6,41 +6,25 @@ Below are step-by-step instructions for getting started.
 
 ## 1. (Optional) Building the Docker Image Locally
 
-> **Important Platform Note:** Flutter does not fully support `linux/arm64` yet. If you are on an Apple Silicon (M1/M2/M3) machine, you *must* set the platform to `linux/amd64` when building and running.
+> **Platform Note:** This environment natively supports both `linux/amd64` (x86_64) and `linux/arm64` (Apple Silicon/ARM) architectures (for Dart/Flutter Web development only).
 
-### For x86 / Intel:
+### Building the Docker image:
 ```shell
 podman build -t flutter_docker .
-```
-
-### For Apple Silicon (using podman):
-```shell
-podman build --platform linux/amd64 -t flutter_docker .
 ```
 
 ### Building a specific Flutter version:
 You can override the default Flutter version using the `FLUTTER_VERSION` build argument.
 ```shell
-podman build --platform linux/amd64 --build-arg FLUTTER_VERSION=3.45.0 -t flutter_docker:3.45.0 .
+podman build --build-arg FLUTTER_VERSION=3.45.0 -t flutter_docker:3.45.0 .
 ```
 
 ## 2. Running the Docker Image Locally
 
 You can run the container in any project folder. The current working directory (`$PWD`) will be mapped to `/app` inside the container.
 
-### For x86 / Intel:
 ```shell
 podman run --userns=keep-id:uid=1000,gid=1000 -it \
-  -v ".:/app:z" \
-  -v "dart_tool_cache:/app/.dart_tool" \
-  -v "dart_build_cache:/app/build" \
-  -v "$USER/.gemini:/home/coder/.gemini:z" \
-  flutter_docker:latest
-```
-
-### For Apple Silicon (using podman):
-```shell
-podman run --platform linux/amd64 --userns=keep-id:uid=1000,gid=1000 -it \
   -v "${PWD}:/app:z" \
   -v "dart_tool_cache:/app/.dart_tool" \
   -v "dart_build_cache:/app/build" \
