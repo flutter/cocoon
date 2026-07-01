@@ -173,7 +173,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
           userData,
           status: override == .neutral ? .neutral : null,
         );
-        await _scheduler.processCheckRunCompleted(check);
+        await _scheduler.processCheckRunStatusChange(check);
       }
     }
 

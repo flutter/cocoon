@@ -110,8 +110,8 @@ void main() {
       ).thenAnswer((_) async => true);
 
       when(
-        mockScheduler.processCheckRunCompleted(any),
-      ).thenAnswer((_) async => true);
+        mockScheduler.processCheckRunStatusChange(any),
+      ).thenAnswer((_) async {});
 
       tester.message = createPushMessage(
         Int64(1),
@@ -141,12 +141,12 @@ void main() {
 
       // Verify that processCheckRunCompleted was called with TaskStatus.neutral
       final captured = verify(
-        mockScheduler.processCheckRunCompleted(captureAny),
+        mockScheduler.processCheckRunStatusChange(captureAny),
       ).captured;
       expect(captured, hasLength(1));
       expect(
         captured[0],
-        isA<PresubmitCompletedJob>().having(
+        isA<PresubmitJob>().having(
           (e) => e.status,
           'status',
           TaskStatus.neutral,
@@ -182,8 +182,8 @@ void main() {
       ).thenAnswer((_) async => true);
 
       when(
-        mockScheduler.processCheckRunCompleted(any),
-      ).thenAnswer((_) async => true);
+        mockScheduler.processCheckRunStatusChange(any),
+      ).thenAnswer((_) async {});
 
       tester.message = createPushMessage(
         Int64(1),
@@ -208,12 +208,12 @@ void main() {
 
       // Verify that processCheckRunCompleted was called with TaskStatus.failed
       final captured = verify(
-        mockScheduler.processCheckRunCompleted(captureAny),
+        mockScheduler.processCheckRunStatusChange(captureAny),
       ).captured;
       expect(captured, hasLength(1));
       expect(
         captured[0],
-        isA<PresubmitCompletedJob>().having(
+        isA<PresubmitJob>().having(
           (e) => e.status,
           'status',
           TaskStatus.failed,
