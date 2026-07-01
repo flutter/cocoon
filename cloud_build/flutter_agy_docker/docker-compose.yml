@@ -9,7 +9,6 @@
 services:
   dev:
     image: us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:stable
-    platform: linux/amd64
     # Dynamically reads the environment variable
     container_name: ${ENV_NAME:-coder-env}
     stdin_open: true

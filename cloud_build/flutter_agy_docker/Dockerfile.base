@@ -9,6 +9,7 @@ FROM ubuntu:24.04 AS flutter-fetcher
 
 # 1. Define the ARG with a fallback default version
 ARG FLUTTER_VERSION="3.44.3"
+ARG TARGETARCH
 
 ENV TZ="America/Los_Angeles" \
     DEBIAN_FRONTEND=noninteractive \
@@ -39,7 +40,12 @@ USER coder
 RUN set -ex; \
     export PATH="/opt/flutter/bin:${PATH}"; \
     # 1. Download and uncompress the flutter tool
-    curl -fsSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ --no-same-owner -C /opt; \
+    ARCH="${TARGETARCH:-$(dpkg --print-architecture)}"; \
+    EXCLUDE_CACHE=""; \
+    if [ "$ARCH" = "arm64" ] || [ "$ARCH" = "aarch64" ]; then \
+      EXCLUDE_CACHE="--exclude=flutter/bin/cache"; \
+    fi; \
+    curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" | tar -xJ --exclude=.pub-preload-cache $EXCLUDE_CACHE --no-same-owner -C /opt; \
     # 2. Run config to ONLY ENABLE web (and disable everything else)
     flutter config \
         --enable-web \

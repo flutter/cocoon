@@ -31,7 +31,8 @@ RUN set -eux; \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null; \
     apt-get update && apt-get install -y gh; \
     # install yq, a YAML/XML/TOML processor like jq
-    wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64; \
+    ARCH=$(dpkg --print-architecture); \
+    wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${ARCH}"; \
     chmod a+x /usr/local/bin/yq; \
     locale-gen en_US.UTF-8; \
     ln -s $(which fdfind) /usr/local/bin/fd; \

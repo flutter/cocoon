@@ -4,52 +4,7 @@
 
 steps:
   # ==========================================
-  # STEP 1: Build the Static Base Image
-  # ==========================================
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
-    args: ['-c', 'docker pull us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest || exit 0']
-
-  - name: 'gcr.io/cloud-builders/docker'
-    dir: 'cloud_build/flutter_agy_docker/'
-    args:
-      - 'build'
-      - '--cache-from'
-      - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest'
-      - '--build-arg'
-      - 'FLUTTER_VERSION=$_FLUTTER_VERSION'
-      - '-t'
-      - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:$_FLUTTER_VERSION'
-      - '-f'
-      - 'Dockerfile.base'
-      - '.'
-
-  # ==========================================
-  # STEP 2: Build the Auto-Updating Dev Image
-  # ==========================================
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
-    args: ['-c', 'docker pull us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest || exit 0']
-
-  - name: 'gcr.io/cloud-builders/docker'
-    dir: 'cloud_build/flutter_agy_docker/'
-    args:
-      - 'build'
-      - '--cache-from'
-      - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest'
-      - '--build-arg'
-      - 'FLUTTER_VERSION=$_FLUTTER_VERSION'
-      # Force apt-get to run by injecting the unique build ID
-      - '--build-arg'
-      - 'CACHE_BUSTER=$BUILD_ID'
-      - '-t'
-      - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION'
-      - '-f'
-      - 'Dockerfile'
-      - '.'
-
-  # ==========================================
-  # STEP 3: Conditionally Tag and Push 'latest', 'stable', or 'beta'
+  # STEP 1: Determine tags based on version
   # ==========================================
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
@@ -58,8 +13,7 @@ steps:
       - |
         set -euo pipefail
 
-        # Install curl and jq (handles both Debian and Alpine builder variants)
-        # We temporarily disable exit-on-error to allow the fallback to work cleanly
+        # Install curl and jq
         set +e
         apt-get update && apt-get install -y curl jq 2>/dev/null || apk add curl jq 2>/dev/null
         set -e
@@ -79,16 +33,13 @@ steps:
         BETA_VERSION=$$(echo "$$JSON_DATA" | \
           jq -r '.current_release.beta as $$beta_hash | .releases[] | select(.hash == $$beta_hash) | .version' | head -n 1)
 
-        # Validate that the versions were successfully parsed.
-        # -z "$$STABLE_VERSION" checks if the variable is an empty string (e.g., if jq failed entirely).
-        # "$$STABLE_VERSION" == "null" checks if jq succeeded but couldn't find the requested data in the JSON.
         if [ -z "$$STABLE_VERSION" ] || [ "$$STABLE_VERSION" == "null" ]; then
-          echo "Error: STABLE_VERSION could not be parsed from JSON. The JSON structure may have changed."
+          echo "Error: STABLE_VERSION could not be parsed."
           exit 1
         fi
 
         if [ -z "$$BETA_VERSION" ] || [ "$$BETA_VERSION" == "null" ]; then
-          echo "Error: BETA_VERSION could not be parsed from JSON. The JSON structure may have changed."
+          echo "Error: BETA_VERSION could not be parsed."
           exit 1
         fi
 
@@ -96,45 +47,103 @@ steps:
         echo "Current beta version is: $$BETA_VERSION"
         echo "Building for version: $_FLUTTER_VERSION"
 
+        BASE_TAGS="us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:$_FLUTTER_VERSION"
+        DEV_TAGS="us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION"
+
         if [ "$_FLUTTER_VERSION" == "$$STABLE_VERSION" ]; then
-          echo "Version $_FLUTTER_VERSION is stable. Tagging and pushing as latest and stable."
-
-          # Tag the previously built versioned images
-          docker tag us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:$_FLUTTER_VERSION us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:stable
-          docker tag us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:$_FLUTTER_VERSION us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest
-          docker tag us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:stable
-          docker tag us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest
-
-          # Push the new tags
-          docker push us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:stable
-          docker push us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest
-          docker push us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:stable
-          docker push us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest
-
+          echo "Version $_FLUTTER_VERSION is stable. Tagging as stable and latest."
+          BASE_TAGS="$$BASE_TAGS,us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:stable,us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest"
+          DEV_TAGS="$$DEV_TAGS,us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:stable,us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest"
         elif [ "$_FLUTTER_VERSION" == "$$BETA_VERSION" ]; then
-          echo "Version $_FLUTTER_VERSION is beta. Tagging and pushing as beta."
-
-          # Tag the previously built versioned images
-          docker tag us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:$_FLUTTER_VERSION us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:beta
-          docker tag us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:beta
-
-          # Push the new tags
-          docker push us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:beta
-          docker push us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:beta
-
+          echo "Version $_FLUTTER_VERSION is beta. Tagging as beta."
+          BASE_TAGS="$$BASE_TAGS,us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:beta"
+          DEV_TAGS="$$DEV_TAGS,us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:beta"
         else
-          echo "Version $_FLUTTER_VERSION is neither the stable nor beta release. Skipping extra tags."
+          echo "Version $_FLUTTER_VERSION is neither stable nor beta. Using version tag only."
         fi
+
+        echo "BASE_TAGS=$$BASE_TAGS" > /workspace/tags.env
+        echo "DEV_TAGS=$$DEV_TAGS" >> /workspace/tags.env
+
+  # ==========================================
+  # STEP 2: Build the Multi-Arch Base Image
+  # ==========================================
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: 'cloud_build/flutter_agy_docker/'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+
+        # Register QEMU emulators for multi-arch build
+        docker run --privileged --rm tonistiigi/binfmt --install all
+
+        # Create a new buildx builder
+        docker buildx create --use
+
+        # Read tags
+        source /workspace/tags.env
+
+        # Convert comma-separated tags to -t arguments
+        IFS=',' read -ra ADDR <<< "$$BASE_TAGS"
+        TAG_ARGS=()
+        for tag in "$${ADDR[@]}"; do
+          TAG_ARGS+=("-t" "$$tag")
+        done
+
+        # Build and push the base image
+        docker buildx build \
+          --platform linux/amd64,linux/arm64 \
+          --cache-from us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:latest \
+          --cache-to type=inline \
+          --build-arg FLUTTER_VERSION=$_FLUTTER_VERSION \
+          "$${TAG_ARGS[@]}" \
+          -f Dockerfile.base \
+          --push \
+          .
+
+  # ==========================================
+  # STEP 3: Build the Multi-Arch Dev Image
+  # ==========================================
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: 'cloud_build/flutter_agy_docker/'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+
+        # Register QEMU emulators
+        docker run --privileged --rm tonistiigi/binfmt --install all
+
+        # Create a new buildx builder
+        docker buildx create --use
+
+        # Read tags
+        source /workspace/tags.env
+
+        # Convert comma-separated tags to -t arguments
+        IFS=',' read -ra ADDR <<< "$$DEV_TAGS"
+        TAG_ARGS=()
+        for tag in "$${ADDR[@]}"; do
+          TAG_ARGS+=("-t" "$$tag")
+        done
+
+        # Build and push the developer image
+        docker buildx build \
+          --platform linux/amd64,linux/arm64 \
+          --cache-from us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:latest \
+          --cache-to type=inline \
+          --build-arg FLUTTER_VERSION=$_FLUTTER_VERSION \
+          --build-arg CACHE_BUSTER=$BUILD_ID \
+          "$${TAG_ARGS[@]}" \
+          -f Dockerfile \
+          --push \
+          .
 
 substitutions:
   _FLUTTER_VERSION: "3.44.3"
 
-# Push both the base and the final developer image to the registry
-images:
-  - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_base:$_FLUTTER_VERSION'
-  - 'us-docker.pkg.dev/flutter-infra/flutter-infra/flutter_docker:$_FLUTTER_VERSION'
-
-# Force Cloud Build to send logs directly to Cloud Logging
-# instead of an autogenerated GCS bucket
 options:
   logging: CLOUD_LOGGING_ONLY
