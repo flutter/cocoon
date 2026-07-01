@@ -1,0 +1,21 @@
+name: wait_for_tests
+description: A shared GitHub Action written in Dart to wait for specific Cocoon pre-submit tests to complete.
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  args: ^2.6.0
+  clock: ^1.1.2
+  cocoon_common:
+    path: ../cocoon_common
+  http: ^1.2.1
+  meta: ^1.16.0
+
+dev_dependencies:
+  dart_flutter_team_lints: ^3.5.2
+  fake_async: ^1.3.1
+  test: ^1.25.15

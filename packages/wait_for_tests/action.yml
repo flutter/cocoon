@@ -1,0 +1,31 @@
+name: 'Wait for Cocoon Tests'
+description: 'Polls the Cocoon API and waits for a specific list of pre-submit / merge queue Cocoon tests, to complete `successfully` or `neutral`'
+author: 'The Flutter Authors'
+inputs:
+  sha:
+    description: 'The commit SHA to poll'
+    required: true
+  repo:
+    description: 'The repository slug (e.g., flutter or packages)'
+    required: true
+  required-tests:
+    description: 'Comma or newline-separated list of tests to wait for (optional, if omitted waits for all scheduled tests)'
+    required: false
+  wait-interval:
+    description: 'Time in seconds between polling checks (min: 30, max: 600)'
+    required: false
+    default: '60'
+runs:
+  using: 'composite'
+  steps:
+    - name: Get dependencies
+      shell: bash
+      run: dart pub get --directory=${{ github.action_path }}
+    - name: Run wait-for-tests
+      shell: bash
+      env:
+        INPUT_SHA: ${{ inputs.sha }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_REQUIRED_TESTS: ${{ inputs.required-tests }}
+        INPUT_WAIT_INTERVAL: ${{ inputs.wait-interval }}
+      run: dart ${{ github.action_path }}/bin/wait_for_tests.dart
