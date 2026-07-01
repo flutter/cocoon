@@ -20,6 +20,7 @@ workspace:
   - packages/cocoon_server
   - packages/cocoon_server_test
   - packages/cocoon_integration_test
+  - packages/wait_for_tests
   - dev/cocoon_code_health
   - dev/githubanalysis
 
