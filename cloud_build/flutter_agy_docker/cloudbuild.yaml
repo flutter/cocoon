@@ -80,7 +80,7 @@ steps:
         docker run --privileged --rm tonistiigi/binfmt --install all
 
         # Create a new buildx builder
-        docker buildx create --name multi-builder --use
+        docker buildx create --use
 
         # Read tags
         source /workspace/tags.env
@@ -117,8 +117,8 @@ steps:
         # Register QEMU emulators
         docker run --privileged --rm tonistiigi/binfmt --install all
 
-        # Create/use the buildx builder
-        docker buildx use multi-builder || docker buildx create --name multi-builder --use
+        # Create a new buildx builder
+        docker buildx create --use
 
         # Read tags
         source /workspace/tags.env

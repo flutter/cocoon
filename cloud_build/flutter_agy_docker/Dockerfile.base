@@ -40,12 +40,11 @@ USER coder
 RUN set -ex; \
     export PATH="/opt/flutter/bin:${PATH}"; \
     # 1. Download and uncompress the flutter tool
+    EXCLUDE_CACHE=""; \
     if [ "$TARGETARCH" = "arm64" ] || [ "$TARGETARCH" = "aarch64" ]; then \
-      EXCLUDE_ARGS="--exclude=flutter/bin/cache --exclude=.pub-preload-cache"; \
-    else \
-      EXCLUDE_ARGS="--exclude=.pub-preload-cache"; \
+      EXCLUDE_CACHE="--exclude=flutter/bin/cache"; \
     fi; \
-    curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" | tar -xJ $EXCLUDE_ARGS --no-same-owner -C /opt; \
+    curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" | tar -xJ --exclude=.pub-preload-cache $EXCLUDE_CACHE --no-same-owner -C /opt; \
     # 2. Run config to ONLY ENABLE web (and disable everything else)
     flutter config \
         --enable-web \
