@@ -162,6 +162,10 @@ void main(List<String> arguments) async {
       stderr.writeln('Failure: Action completed with errors.');
       exit(1);
     }
+  } catch (e, stackTrace) {
+    stderr.writeln('Error: An unexpected error occurred: $e');
+    stderr.writeln(stackTrace);
+    exit(1);
   } finally {
     client.close();
   }

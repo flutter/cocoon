@@ -152,106 +152,111 @@ Future<bool> waitForTests({
   }
   log('Wait interval: ${clampedWaitInterval.inSeconds} seconds');
 
-  while (true) {
-    if (timeout != null && clock.now().difference(startTime) > timeout) {
-      log('Error: Polling timed out after ${timeout.inMinutes} minutes.');
-      return false;
-    }
-
+  while (timeout == null || clock.now().difference(startTime) <= timeout) {
+    final http.Response response;
     try {
-      final response = await client
+      response = await client
           .get(url)
           .timeout(const Duration(seconds: 15));
-      if (response.statusCode != 200) {
-        final failImmediately = switch (response.statusCode) {
-          429 || 408 => false,
-          >= 400 && < 500 => true,
-          _ => false,
-        };
-
-        if (failImmediately) {
-          log(
-            'Error: Non-transient 4xx error from Cocoon API. Status code ${response.statusCode}. Body: ${response.body}',
-          );
-          return false;
-        }
-        log(
-          'Warning: Cocoon API returned status code ${response.statusCode}. Body: ${response.body}',
-        );
-      } else {
-        Map<String, Object?> json;
-        try {
-          json = jsonDecode(response.body) as Map<String, Object?>;
-        } catch (e) {
-          log('Warning: Failed to parse Cocoon API response as JSON: $e');
-          json = <String, Object?>{};
-        }
-
-        if (json.isEmpty) {
-          log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
-          await Future<void>.delayed(clampedWaitInterval);
-          continue;
-        }
-
-        final PresubmitGuardResponse guardResponse;
-        try {
-          guardResponse = PresubmitGuardResponse.fromJson(json);
-        } catch (e) {
-          log('Warning: Failed to parse JSON into PresubmitGuardResponse: $e');
-          log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
-          await Future<void>.delayed(clampedWaitInterval);
-          continue;
-        }
-
-        final result = evaluateTests(
-          response: guardResponse,
-          requiredTests: requiredTests,
-        );
-
-        log('\n--- Current Test Status Summary ---');
-        for (final summary in result.summaries) {
-          log(
-            '- ${summary.name}: ${summary.status.value} (${summary.originalStatusString})',
-          );
-        }
-        if (requiredTests.isEmpty) {
-          log('Remaining tests: ${result.remainingCount}');
-          log('Overall Guard Status: ${result.guardStatus}');
-        }
-        log('-----------------------------------\n');
-
-        final bool isSuccess;
-        if (requiredTests.isEmpty) {
-          isSuccess =
-              result.allSucceeded &&
-              result.guardStatus.toLowerCase() == 'succeeded';
-        } else {
-          isSuccess = result.allSucceeded;
-        }
-
-        if (isSuccess) {
-          if (requiredTests.isEmpty) {
-            log(
-              'Success: Overall guard status succeeded and all tests completed successfully!',
-            );
-          } else {
-            log('Success: All required tests have completed successfully!');
-          }
-          return true;
-        }
-
-        if (result.anyFailed) {
-          log(
-            'Error: One or more tests have failed, or the overall guard status is failed.',
-          );
-          return false;
-        }
-      }
-    } catch (e) {
+    } on Exception catch (e) {
       log('Warning: Error calling Cocoon API: $e');
+      log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+      await Future<void>.delayed(clampedWaitInterval);
+      continue;
+    }
+    if (response.statusCode != 200) {
+      final failImmediately = switch (response.statusCode) {
+        429 || 408 => false,
+        >= 400 && < 500 => true,
+        _ => false,
+      };
+
+      if (failImmediately) {
+        log(
+          'Error: Non-transient 4xx error from Cocoon API. Status code ${response.statusCode}. Body: ${response.body}',
+        );
+        return false;
+      }
+      log(
+        'Warning: Cocoon API returned status code ${response.statusCode}. Body: ${response.body}',
+      );
+      log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+      await Future<void>.delayed(clampedWaitInterval);
+      continue;
+    } else {
+      Map<String, Object?> json;
+      try {
+        json = jsonDecode(response.body) as Map<String, Object?>;
+      } catch (e) {
+        log('Warning: Failed to parse Cocoon API response as JSON: $e');
+        json = <String, Object?>{};
+      }
+
+      if (json.isEmpty) {
+        log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+        await Future<void>.delayed(clampedWaitInterval);
+        continue;
+      }
+
+      final PresubmitGuardResponse guardResponse;
+      try {
+        guardResponse = PresubmitGuardResponse.fromJson(json);
+      } catch (e) {
+        log('Warning: Failed to parse JSON into PresubmitGuardResponse: $e');
+        log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
+        await Future<void>.delayed(clampedWaitInterval);
+        continue;
+      }
+
+      final result = evaluateTests(
+        response: guardResponse,
+        requiredTests: requiredTests,
+      );
+
+      log('\n--- Current Test Status Summary ---');
+      for (final summary in result.summaries) {
+        log(
+          '- ${summary.name}: ${summary.status.value} (${summary.originalStatusString})',
+        );
+      }
+      if (requiredTests.isEmpty) {
+        log('Remaining tests: ${result.remainingCount}');
+        log('Overall Guard Status: ${result.guardStatus}');
+      }
+      log('-----------------------------------\n');
+
+      final bool isSuccess;
+      if (requiredTests.isEmpty) {
+        isSuccess =
+            result.allSucceeded &&
+            result.guardStatus.toLowerCase() == 'succeeded';
+      } else {
+        isSuccess = result.allSucceeded;
+      }
+
+      if (isSuccess) {
+        if (requiredTests.isEmpty) {
+          log(
+            'Success: Overall guard status succeeded and all tests completed successfully!',
+          );
+        } else {
+          log('Success: All required tests have completed successfully!');
+        }
+        return true;
+      }
+
+      if (result.anyFailed) {
+        log(
+          'Error: One or more tests have failed, or the overall guard status is failed.',
+        );
+        return false;
+      }
     }
 
     log('Sleeping for ${clampedWaitInterval.inSeconds} seconds...');
     await Future<void>.delayed(clampedWaitInterval);
   }
+
+  log('Error: Polling timed out after ${timeout.inMinutes} minutes.');
+  return false;
 }
