@@ -18,9 +18,34 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Set up Dart SDK
+      uses: dart-lang/setup-dart@v1.7.2
+
     - name: Get dependencies
       shell: bash
-      run: dart pub get --directory=${{ github.action_path }}
+      run: |
+        # Resolve the action path.
+        # On real GitHub Actions runners, GITHUB_ACTION_PATH / github.action_path is set correctly.
+        # On local testing tools like 'nektos/act', github.action_path for local composite actions
+        # can be empty or incorrect. We use a fallback to 'packages/wait_for_tests' to support local testing.
+        ACTION_PATH="${GITHUB_ACTION_PATH:-${{ github.action_path }}}"
+        if [ -z "$ACTION_PATH" ] || [ "$ACTION_PATH" = "." ] || [ "$ACTION_PATH" = "$(pwd)" ]; then
+          ACTION_PATH="packages/wait_for_tests"
+        fi
+        echo "RESOLVED_ACTION_PATH=$ACTION_PATH" >> "$GITHUB_ENV"
+        echo "Using action path: $ACTION_PATH"
+
+        # Bypass workspace resolution.
+        # Since this action is part of a Dart/Flutter pub workspace that includes Flutter-dependent
+        # packages, running 'dart pub get' in a pure Dart runner will fail without the Flutter SDK.
+        # We temporarily create a pubspec_overrides.yaml to opt this package out of workspace resolution.
+        echo "resolution:" > "$ACTION_PATH/pubspec_overrides.yaml"
+
+        dart pub get --directory="$ACTION_PATH"
+
+        # Clean up the overrides file so it doesn't pollute the local git status.
+        rm -f "$ACTION_PATH/pubspec_overrides.yaml"
+
     - name: Run wait-for-tests
       shell: bash
       env:
@@ -28,4 +53,5 @@ runs:
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_REQUIRED_TESTS: ${{ inputs.required-tests }}
         INPUT_WAIT_INTERVAL: ${{ inputs.wait-interval }}
-      run: dart ${{ github.action_path }}/bin/wait_for_tests.dart
+      run: dart "$RESOLVED_ACTION_PATH/bin/wait_for_tests.dart"
+
