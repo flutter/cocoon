@@ -34,6 +34,7 @@ import '../model/github/checks.dart' show MergeGroup;
 import '../model/github/workflow_job.dart';
 import '../model/proto/internal/scheduler.pb.dart' as pb;
 import '../request_handling/http_utils.dart';
+import '../request_handling/pubsub.dart';
 import 'big_query.dart';
 import 'cache_service.dart';
 import 'config.dart';
@@ -69,7 +70,10 @@ class Scheduler {
     required ContentAwareHashService contentAwareHash,
     required FirestoreService firestore,
     required BigQueryService bigQuery,
-  }) : _luciBuildService = luciBuildService,
+    PubSub pubsub = const PubSub(),
+  }) : _cache = cache,
+       _pubsub = pubsub,
+       _luciBuildService = luciBuildService,
        _githubChecksService = githubChecksService,
        _config = config,
        _getFilesChanged = getFilesChanged,
@@ -83,6 +87,8 @@ class Scheduler {
          config: config,
        );
 
+  final CacheService _cache;
+  final PubSub _pubsub;
   final GetFilesChanged _getFilesChanged;
   final Config _config;
   final GithubChecksService _githubChecksService;
@@ -1139,11 +1145,11 @@ detailsUrl: $detailsUrl
     late PresubmitGuardConclusion stagingConclusion;
 
     if (check.isUnifiedCheckRun) {
-      stage = check.stage!;
-      stagingConclusion = await _markUnifiedCheckRunConclusion(
+      await _markUnifiedCheckRunConclusion(
         guardId: check.guardId,
         state: check.state,
       );
+      return true;
     } else {
       // for github flow check runs are processed only if the build succeeded or
       // some kind of failure occurred.
@@ -1583,7 +1589,7 @@ $stacktrace
     });
   }
 
-  Future<PresubmitGuardConclusion> _markUnifiedCheckRunConclusion({
+  Future<void> _markUnifiedCheckRunConclusion({
     required PresubmitGuardId guardId,
     required PresubmitJobState state,
   }) async {
@@ -1591,22 +1597,142 @@ $stacktrace
         'checkCompleted(${state.jobName}, ${state.buildNumber}, ${guardId.stage}, ${guardId.slug}, ${state.status})';
 
     log.info('$logCrumb: ${guardId.documentId}');
-    // We're doing a transactional update, which could fail if multiple tasks
-    // are running at the same time so retry a sane amount of times before
-    // giving up.
     const r = RetryOptions(maxAttempts: 10, maxDelay: Duration(minutes: 2));
 
     try {
-      return await r.retry(() {
+      await r.retry(() {
         return UnifiedCheckRun.markConclusion(
           firestoreService: _firestore,
           guardId: guardId,
           state: state,
+          cacheService: _cache,
+          pubsub: _pubsub,
         );
       });
     } on Exception catch (e, s) {
       log.warn('$logCrumb: Failed to mark unified check run conclusion', e, s);
       rethrow;
+    }
+  }
+
+  /// Processes an asynchronous debounced update for a [PresubmitGuard] document.
+  ///
+  /// Invoked via PubSub (`/api/v2/presubmit-guard-update-subscription`).
+  Future<void> processPresubmitGuardUpdate(String guardDocumentName) async {
+    final stagingConclusion = await UnifiedCheckRun.updatePresubmitGuard(
+      firestoreService: _firestore,
+      cacheService: _cache,
+      guardDocumentName: guardDocumentName,
+    );
+    if (stagingConclusion == null || !stagingConclusion.isOk) {
+      return;
+    }
+
+    g.Document guardDoc;
+    try {
+      guardDoc = await _firestore.getDocument(guardDocumentName);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        log.info('processPresubmitGuardUpdate($guardDocumentName): doc 404.');
+        return;
+      }
+      rethrow;
+    }
+
+    final presubmitGuard = PresubmitGuard.fromDocument(guardDoc);
+    final guardCheckRun = checkRunFromString(presubmitGuard.checkRunJson);
+    final isMergeGroup = guardCheckRun.name == Config.kMergeQueueLockName;
+    final slug = presubmitGuard.slug;
+    final sha = presubmitGuard.commitSha;
+    final stage = presubmitGuard.stage;
+    final logCrumb =
+        'processPresubmitGuardUpdate(${slug.fullName}, $sha, $stage, isMergeGroup=$isMergeGroup)';
+
+    if (stagingConclusion.result ==
+        PresubmitGuardConclusionResult.internalError) {
+      if (isMergeGroup) {
+        await _completeArtifacts(sha, false);
+        await failGuardForMergeGroup(
+          slug: slug,
+          lock: guardCheckRun,
+          headSha: sha,
+          summary: stagingConclusion.summary,
+          details: stagingConclusion.details,
+        );
+      }
+      return;
+    }
+
+    if (stagingConclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
+      return;
+    }
+
+    if (stagingConclusion.isFailed) {
+      if (isMergeGroup) {
+        await _completeArtifacts(sha, false);
+        await failGuardForMergeGroup(
+          slug: slug,
+          lock: guardCheckRun,
+          headSha: sha,
+          summary: stagingConclusion.summary,
+          details: stagingConclusion.details,
+        );
+      } else {
+        final detailsUrl =
+            'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha';
+        await _requireActionForGuard(
+          slug: slug,
+          lock: guardCheckRun,
+          headSha: sha,
+          summary: _githubChecksService.getGithubSummaryWithHeader('''
+**[Failed Checks Details]($detailsUrl)**
+
+''', kDashboardChecksDescription),
+          details:
+              'For $stage CI stage ${stagingConclusion.failed} checks failed',
+          detailsUrl: detailsUrl,
+        );
+      }
+      return;
+    }
+
+    switch (stage) {
+      case CiStage.fusionEngineBuild:
+        if (isMergeGroup) {
+          await _completeArtifacts(sha, true);
+          await _closeMergeQueue(
+            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            slug: slug,
+            sha: sha,
+            stage: CiStage.fusionEngineBuild,
+            logCrumb: logCrumb,
+          );
+        } else {
+          final checkRunMap =
+              json.decode(presubmitGuard.checkRunJson) as Map<String, dynamic>;
+          if (checkRunMap['check_suite'] is Map<String, dynamic>) {
+            final suiteMap = checkRunMap['check_suite'] as Map<String, dynamic>;
+            suiteMap['pull_requests'] ??= <dynamic>[];
+          }
+          await _closeSuccessfulEngineBuildStage(
+            checkRun: cocoon_checks.CheckRun.fromJson(checkRunMap),
+            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            slug: slug,
+            sha: sha,
+            logCrumb: logCrumb,
+          );
+        }
+      case CiStage.fusionTests:
+      case CiStage.genericTests:
+        await _closeSuccessfulTestStage(
+          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          slug: slug,
+          sha: sha,
+          logCrumb: logCrumb,
+        );
     }
   }
 

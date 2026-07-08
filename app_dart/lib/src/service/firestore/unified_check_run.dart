@@ -5,6 +5,8 @@
 /// @docImport 'unified_check_run.dart';
 library;
 
+import 'dart:typed_data';
+
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:collection/collection.dart';
@@ -19,6 +21,8 @@ import '../../model/firestore/base.dart';
 import '../../model/firestore/ci_staging.dart';
 import '../../model/firestore/presubmit_guard.dart';
 import '../../model/firestore/presubmit_job.dart';
+import '../../request_handling/pubsub.dart';
+import '../cache_service.dart';
 import '../config.dart';
 import '../firestore.dart';
 
@@ -274,6 +278,55 @@ final class UnifiedCheckRun {
     );
   }
 
+  /// Calculates the current live job statuses, remaining count, and failed count
+  /// for a given [PresubmitGuard].
+  static Future<PresubmitGuardJobStatus> getLatestJobStatusesForGuard({
+    required FirestoreService firestoreService,
+    required PresubmitGuard guard,
+    PresubmitJob? overrideJob,
+  }) async {
+    final allJobs = await queryAllPresubmitJobsForGuard(
+      firestoreService: firestoreService,
+      checkRunId: guard.checkRunId,
+    );
+
+    final latestJobs = <String, PresubmitJob>{};
+    for (final job in allJobs) {
+      final current = latestJobs[job.jobName];
+      if (current == null || job.attemptNumber > current.attemptNumber) {
+        latestJobs[job.jobName] = job;
+      }
+    }
+
+    if (overrideJob != null) {
+      latestJobs[overrideJob.jobName] = overrideJob;
+    }
+
+    var remaining = 0;
+    var failed = 0;
+    final jobStatuses = <String, TaskStatus>{};
+
+    for (final jobName in guard.jobs.keys) {
+      final job = latestJobs[jobName];
+      final status =
+          job?.status ?? guard.jobs[jobName] ?? TaskStatus.waitingForBackfill;
+      jobStatuses[jobName] = status;
+      if (!status.isComplete) {
+        remaining++;
+      }
+      if (status.isFailure) {
+        failed++;
+      }
+    }
+
+    return PresubmitGuardJobStatus(
+      remaining: remaining,
+      failed: failed,
+      jobStatuses: jobStatuses,
+      latestJobs: latestJobs,
+    );
+  }
+
   /// Returns check for the specified github [checkRunId] and
   /// [jobName] and [attemptNumber].
   static Future<PresubmitJob?> queryPresubmitJob({
@@ -513,199 +566,191 @@ final class UnifiedCheckRun {
   /// both valid and recorded successfully, the record's `remaining` value
   /// signals how many more tests are running. Returns the record (valid: false)
   /// otherwise.
-  static Future<PresubmitGuardConclusion> markConclusion({
+  /// Updates the corresponding [PresubmitJob] document and asynchronously schedules
+  /// a debounced [PresubmitGuard] synchronization via PubSub.
+  static Future<void> markConclusion({
     required FirestoreService firestoreService,
     required PresubmitGuardId guardId,
     required PresubmitJobState state,
+    required CacheService cacheService,
+    required PubSub pubsub,
   }) async {
     final changeCrumb =
         '${guardId.slug.owner}_${guardId.slug.name}_${guardId.prNum}_${guardId.checkRunId}';
     final logCrumb =
         'markConclusion(${changeCrumb}_${guardId.stage}, ${state.jobName}, ${state.status}, ${state.attemptNumber})';
 
-    // Marking needs to happen while in a transaction to ensure `remaining` is
-    // updated correctly. For that to happen correctly; we need to perform a
-    // read of the document in the transaction as well. So start the transaction
-    // first thing.
+    final checkDocName = PresubmitJob.documentNameFor(
+      slug: guardId.slug,
+      checkRunId: guardId.checkRunId,
+      jobName: state.jobName,
+      attemptNumber: state.attemptNumber,
+    );
+
+    // 1. Update the PresubmitJob document in a transaction.
     final transaction = await firestoreService.beginTransaction();
-
-    var remaining = -1;
-    var failed = -1;
     var valid = false;
-
-    late final PresubmitGuard presubmitGuard;
-    late final PresubmitJob presubmitJob;
-    // transaction block
     try {
-      // First: read the fields we want to change.
-      final presubmitGuardDocumentName = PresubmitGuard.documentNameFor(
-        slug: guardId.slug,
-        prNum: guardId.prNum,
-        checkRunId: guardId.checkRunId,
-        stage: guardId.stage,
-      );
-      final presubmitGuardDocument = await firestoreService.getDocument(
-        presubmitGuardDocumentName,
-        transaction: transaction,
-      );
-      presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
-
-      // Check if the build is present in the guard before trying to load it.
-      if (presubmitGuard.jobs[state.jobName] == null) {
-        log.info(
-          '$logCrumb: ${state.jobName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
-        );
-        await firestoreService.rollback(transaction);
-        return PresubmitGuardConclusion(
-          result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingJobs,
-          checkRunGuard: presubmitGuard.checkRunJson,
-          failed: presubmitGuard.failedJobs,
-          summary:
-              'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
-          details: 'Change $changeCrumb',
-        );
-      }
-
-      final checkDocName = PresubmitJob.documentNameFor(
-        slug: guardId.slug,
-        checkRunId: guardId.checkRunId,
-        jobName: state.jobName,
-        attemptNumber: state.attemptNumber,
-      );
       final presubmitJobDocument = await firestoreService.getDocument(
         checkDocName,
         transaction: transaction,
       );
-      presubmitJob = PresubmitJob.fromDocument(presubmitJobDocument);
+      final presubmitJob = PresubmitJob.fromDocument(presubmitJobDocument);
 
-      remaining = presubmitGuard.remainingJobs;
-      failed = presubmitGuard.failedJobs;
-      final jobs = presubmitGuard.jobs;
-      var status = jobs[state.jobName]!;
-
-      // If job is waiting for backfill, that means its initiated by github
-      // or re-run. So no processing needed, we should only update appropriate
-      // checks with that [TaskStatus]
       if (state.status == TaskStatus.waitingForBackfill) {
-        status = state.status;
+        presubmitJob.status = state.status;
         valid = true;
-        // If job is in progress, we should update apropriate checks with start
-        // time and their status to that [TaskStatus] only if the job is not
-        // completed.
       } else if (state.status == TaskStatus.inProgress) {
         presubmitJob.startTime = state.startTime!;
         presubmitJob.buildNumber = state.buildNumber;
         presubmitJob.buildId = state.buildId;
-        // If the job is not completed, update the status.
-        if (!status.isComplete) {
-          status = state.status;
+        if (!presubmitJob.status.isComplete) {
+          presubmitJob.status = state.status;
         }
         valid = true;
       } else {
-        // If job already compleated remaining and failed should not updated.
-        if (!status.isComplete) {
-          // "remaining" should go down if job is succeeded or failed.
-          // "failed_count" can go up or down depending on:
-          //   attemptNumber > 1 && jobSuccessed: down (-1)
-          //   attemptNumber = 1 && jobFailed: up (+1)
-          // So if the test existed and either remaining or failed_count is changed;
-          // the response is valid.
-          if (state.status.isComplete) {
-            // Guard against going negative and log enough info so we can debug.
-            if (remaining == 0) {
-              throw '$logCrumb: field "${PresubmitGuard.fieldRemainingJobs}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
-            }
-            remaining -= 1;
-            valid = true;
-          }
-
-          if (state.status.isFailure) {
-            log.info('$logCrumb: test failed');
-            failed += 1;
-            valid = true;
-          }
-          status = state.status;
-          // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
-          log.info(
-            '$logCrumb: setting remaining to $remaining, failed to $failed',
-          );
-          presubmitGuard.remainingJobs = remaining;
-          presubmitGuard.failedJobs = failed;
+        if (!presubmitJob.status.isComplete) {
+          presubmitJob.status = state.status;
           presubmitJob.endTime = state.endTime!;
           presubmitJob.summary = state.summary;
           presubmitJob.buildNumber = state.buildNumber;
           presubmitJob.buildId = state.buildId;
+          valid = true;
         } else {
-          status = state.status;
+          presubmitJob.status = state.status;
           valid = true;
         }
       }
-      jobs[state.jobName] = status;
-      presubmitGuard.jobs = jobs;
-      presubmitJob.status = status;
-    } on DetailedApiRequestError catch (e, stack) {
-      if (e.status == 404) {
-        // An attempt to read a document not in firestore should not be retried.
-        log.info(
-          '$logCrumb: ${PresubmitJob.collectionId} document not found for $transaction',
+
+      if (valid) {
+        await firestoreService.commit(
+          transaction,
+          documentsToWrites([presubmitJob], exists: true),
         );
+      } else {
         await firestoreService.rollback(transaction);
-        return PresubmitGuardConclusion(
-          result: PresubmitGuardConclusionResult.internalError,
-          remaining: -1,
-          checkRunGuard: null,
-          failed: failed,
-          summary: 'Internal server error',
-          details:
-              '''
-${PresubmitJob.collectionId} document not found for stage "${guardId.stage}" for $changeCrumb. Got 404 from Firestore.
-Error: ${e.toString()}
-$stack
-''',
+      }
+    } on DetailedApiRequestError catch (e, stack) {
+      await firestoreService.rollback(transaction);
+      if (e.status == 404) {
+        log.info(
+          '$logCrumb: ${PresubmitJob.collectionId} document not found for $transaction\n$stack',
+        );
+        return;
+      }
+      rethrow;
+    } catch (e) {
+      await firestoreService.rollback(transaction);
+      rethrow;
+    }
+
+    if (!valid) {
+      log.info('$logCrumb: Not a valid state transition for ${state.jobName}');
+      return;
+    }
+
+    final presubmitGuardDocumentName = PresubmitGuard.documentNameFor(
+      slug: guardId.slug,
+      prNum: guardId.prNum,
+      checkRunId: guardId.checkRunId,
+      stage: guardId.stage,
+    );
+
+    // 2. Asynchronously trigger the debounced guard update via pubsub, using
+    // setIfNotExists so only the first job to mark the guard dirty publishes.
+    final wasSet = await cacheService.setIfNotExists(
+      'presubmit_guard_dirty',
+      presubmitGuardDocumentName,
+      Uint8List.fromList([1]),
+      ttl: const Duration(minutes: 15),
+    );
+    if (wasSet) {
+      try {
+        await pubsub.publish('presubmit-guard-update', {
+          'guard_document_name': presubmitGuardDocumentName,
+        });
+      } catch (e) {
+        log.warn(
+          '$logCrumb: Failed to publish presubmit-guard-update via pubsub',
+          e,
         );
       }
-      // All other errors should bubble up and be retried.
-      await firestoreService.rollback(transaction);
-      rethrow;
-    } catch (e) {
-      // All other errors should bubble up and be retried.
-      await firestoreService.rollback(transaction);
-      rethrow;
-    }
-    // Commit this write firebase and if no one else was writing at the same time, return success.
-    // If this commit fails, that means someone else modified firestore and the caller should try again.
-    // We do not need to rollback the transaction; firebase documentation says a failed commit takes care of that.
-    try {
-      final response = await firestoreService.commit(
-        transaction,
-        documentsToWrites([presubmitGuard, presubmitJob], exists: true),
-      );
-      log.info(
-        '$logCrumb: results = ${response.writeResults?.map((e) => e.toJson())}',
-      );
-      return PresubmitGuardConclusion(
-        result: valid
-            ? PresubmitGuardConclusionResult.ok
-            : PresubmitGuardConclusionResult.internalError,
-        remaining: remaining,
-        checkRunGuard: presubmitGuard.checkRunJson,
-        failed: failed,
-        summary: valid
-            ? 'Successfully updated presubmit guard status'
-            : 'Not a valid state transition for ${state.jobName}',
-        details: valid
-            ? '''
-For CI stage ${guardId.stage}:
-  Pending: $remaining
-  Failed: $failed
-'''
-            : 'Attempted to set the state of job ${state.jobName} '
-                  'to "${state.status.name}".',
-      );
-    } catch (e) {
-      log.info('$logCrumb: failed to update presubmit job', e);
-      rethrow;
     }
   }
+
+  /// Asynchronously updates a [PresubmitGuard] document based on the live set
+  /// of [PresubmitJob] records.
+  ///
+  /// Used by the debounced PubSub subscription (`presubmit-guard-update`).
+  static Future<PresubmitGuardConclusion?> updatePresubmitGuard({
+    required FirestoreService firestoreService,
+    required CacheService cacheService,
+    required String guardDocumentName,
+  }) async {
+    // Clear dirty flag right before querying/updating to allow new arrivals to re-debounce.
+    await cacheService.purge('presubmit_guard_dirty', guardDocumentName);
+
+    Document latestGuardDoc;
+    try {
+      latestGuardDoc = await firestoreService.getDocument(guardDocumentName);
+    } on DetailedApiRequestError catch (e) {
+      if (e.status == 404) {
+        log.info(
+          'PresubmitGuard $guardDocumentName not found in firestore (404), skipping.',
+        );
+        return null;
+      }
+      rethrow;
+    }
+
+    final latestGuard = PresubmitGuard.fromDocument(latestGuardDoc);
+    final guardStatusInfo = await getLatestJobStatusesForGuard(
+      firestoreService: firestoreService,
+      guard: latestGuard,
+    );
+
+    latestGuard.remainingJobs = guardStatusInfo.remaining;
+    latestGuard.failedJobs = guardStatusInfo.failed;
+
+    final jobsMap = latestGuard.jobs;
+    for (final jobName in jobsMap.keys) {
+      if (guardStatusInfo.latestJobs[jobName] case final job?) {
+        jobsMap[jobName] = job.status;
+      }
+    }
+    latestGuard.jobs = jobsMap;
+
+    final response = await firestoreService.writeViaTransaction(
+      documentsToWrites([latestGuard], exists: true),
+    );
+    log.info(
+      'updatePresubmitGuard($guardDocumentName): results = ${response.writeResults?.map((e) => e.toJson())}',
+    );
+
+    return PresubmitGuardConclusion(
+      result: PresubmitGuardConclusionResult.ok,
+      remaining: guardStatusInfo.remaining,
+      checkRunGuard: latestGuard.checkRunJson,
+      failed: guardStatusInfo.failed,
+      summary: 'Successfully updated presubmit guard status',
+      details:
+          'For CI stage ${latestGuard.stage}:\n  Pending: ${guardStatusInfo.remaining}\n  Failed: ${guardStatusInfo.failed}\n',
+    );
+  }
+}
+
+/// Holds aggregated job status information for a [PresubmitGuard].
+@immutable
+final class PresubmitGuardJobStatus {
+  const PresubmitGuardJobStatus({
+    required this.remaining,
+    required this.failed,
+    required this.jobStatuses,
+    required this.latestJobs,
+  });
+
+  final int remaining;
+  final int failed;
+  final Map<String, TaskStatus> jobStatuses;
+  final Map<String, PresubmitJob> latestJobs;
 }

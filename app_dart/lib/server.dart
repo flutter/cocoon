@@ -120,6 +120,12 @@ Server createServer({
       ciYamlFetcher: ciYamlFetcher,
       firestore: firestore,
     ),
+    '/api/v2/presubmit-guard-update-subscription':
+        PresubmitGuardUpdateSubscription(
+          cache: cache,
+          config: config,
+          scheduler: scheduler,
+        ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
