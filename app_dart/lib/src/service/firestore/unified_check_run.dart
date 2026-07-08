@@ -674,6 +674,10 @@ final class UnifiedCheckRun {
           '$logCrumb: Failed to publish presubmit-guard-update via pubsub',
           e,
         );
+        await cacheService.purge(
+          'presubmit_guard_dirty',
+          presubmitGuardDocumentName,
+        );
       }
     }
   }
@@ -682,7 +686,8 @@ final class UnifiedCheckRun {
   /// of [PresubmitJob] records.
   ///
   /// Used by the debounced PubSub subscription (`presubmit-guard-update`).
-  static Future<PresubmitGuardConclusion?> updatePresubmitGuard({
+  static Future<(PresubmitGuardConclusion, PresubmitGuard)?>
+  updatePresubmitGuard({
     required FirestoreService firestoreService,
     required CacheService cacheService,
     required String guardDocumentName,
@@ -727,7 +732,7 @@ final class UnifiedCheckRun {
       'updatePresubmitGuard($guardDocumentName): results = ${response.writeResults?.map((e) => e.toJson())}',
     );
 
-    return PresubmitGuardConclusion(
+    final conclusion = PresubmitGuardConclusion(
       result: PresubmitGuardConclusionResult.ok,
       remaining: guardStatusInfo.remaining,
       checkRunGuard: latestGuard.checkRunJson,
@@ -736,6 +741,7 @@ final class UnifiedCheckRun {
       details:
           'For CI stage ${latestGuard.stage}:\n  Pending: ${guardStatusInfo.remaining}\n  Failed: ${guardStatusInfo.failed}\n',
     );
+    return (conclusion, latestGuard);
   }
 }
 

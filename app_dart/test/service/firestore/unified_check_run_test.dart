@@ -219,11 +219,11 @@ void main() {
           isNotNull,
         );
 
-        final result = await UnifiedCheckRun.updatePresubmitGuard(
+        final result = (await UnifiedCheckRun.updatePresubmitGuard(
           firestoreService: firestoreService,
           cacheService: cacheService,
           guardDocumentName: guardDocName,
-        );
+        ))?.$1;
         expect(result!.result, PresubmitGuardConclusionResult.ok);
         expect(result.remaining, 1);
         expect(result.failed, 0);
@@ -253,11 +253,11 @@ void main() {
             pubsub: pubsub,
           );
 
-          final result1 = await UnifiedCheckRun.updatePresubmitGuard(
+          final result1 = (await UnifiedCheckRun.updatePresubmitGuard(
             firestoreService: firestoreService,
             cacheService: cacheService,
             guardDocumentName: guardDocName,
-          );
+          ))?.$1;
 
           expect(result1!.remaining, 1);
           expect(result1.failed, 0);
@@ -279,11 +279,11 @@ void main() {
             pubsub: pubsub,
           );
 
-          final result2 = await UnifiedCheckRun.updatePresubmitGuard(
+          final result2 = (await UnifiedCheckRun.updatePresubmitGuard(
             firestoreService: firestoreService,
             cacheService: cacheService,
             guardDocumentName: guardDocName,
-          );
+          ))?.$1;
 
           expect(result2!.remaining, 0);
           expect(result2.failed, 0);
@@ -329,11 +329,11 @@ void main() {
           pubsub: pubsub,
         );
 
-        final result = await UnifiedCheckRun.updatePresubmitGuard(
+        final result = (await UnifiedCheckRun.updatePresubmitGuard(
           firestoreService: firestoreService,
           cacheService: cacheService,
           guardDocumentName: guardDocName,
-        );
+        ))?.$1;
 
         expect(result!.result, PresubmitGuardConclusionResult.ok);
         expect(result.remaining, 1);

@@ -1619,27 +1619,20 @@ $stacktrace
   ///
   /// Invoked via PubSub (`/api/v2/presubmit-guard-update-subscription`).
   Future<void> processPresubmitGuardUpdate(String guardDocumentName) async {
-    final stagingConclusion = await UnifiedCheckRun.updatePresubmitGuard(
+    final updateResult = await UnifiedCheckRun.updatePresubmitGuard(
       firestoreService: _firestore,
       cacheService: _cache,
       guardDocumentName: guardDocumentName,
     );
-    if (stagingConclusion == null || !stagingConclusion.isOk) {
+    if (updateResult == null) {
       return;
     }
 
-    g.Document guardDoc;
-    try {
-      guardDoc = await _firestore.getDocument(guardDocumentName);
-    } on DetailedApiRequestError catch (e) {
-      if (e.status == 404) {
-        log.info('processPresubmitGuardUpdate($guardDocumentName): doc 404.');
-        return;
-      }
-      rethrow;
+    final (stagingConclusion, presubmitGuard) = updateResult;
+    if (!stagingConclusion.isOk) {
+      return;
     }
 
-    final presubmitGuard = PresubmitGuard.fromDocument(guardDoc);
     final guardCheckRun = checkRunFromString(presubmitGuard.checkRunJson);
     final isMergeGroup = guardCheckRun.name == Config.kMergeQueueLockName;
     final slug = presubmitGuard.slug;
