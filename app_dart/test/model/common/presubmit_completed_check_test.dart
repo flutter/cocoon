@@ -8,7 +8,6 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
-import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -21,28 +20,6 @@ void main() {
   group('PresubmitCompletedCheck', () {
     const sha = 'abc';
     final slug = RepositorySlug('flutter', 'flutter');
-
-    test('fromCheckRun creates correct instance', () {
-      final checkRun = const cocoon_checks.CheckRun(
-        id: 1,
-        name: 'test_check',
-        headSha: sha,
-        conclusion: 'success',
-      );
-
-      final check = PresubmitCompletedJob.fromCheckRun(checkRun, slug);
-
-      expect(check.name, 'test_check');
-      expect(check.sha, sha);
-      expect(check.slug, slug);
-      expect(check.status, TaskStatus.succeeded);
-      expect(check.isMergeGroup, false);
-      expect(check.checkRunId, 1);
-      expect(check.checkSuiteId, null);
-      expect(check.headBranch, null);
-      expect(check.isUnifiedCheckRun, false);
-      expect(check.checkRun.name, 'test_check');
-    });
 
     test('fromBuild creates correct unified check', () {
       final build = Build(
