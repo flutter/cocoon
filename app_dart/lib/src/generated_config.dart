@@ -45,11 +45,4 @@ unifiedCheckRunFlow:
     - vashworth
     - mboetger
     - justinmc
-
-# Whether to process LUCI notifications of builds progress ordered within check run.
-orderedPresubmit:
-  useForAll: false
-  useForUsers:
-    - ievdokdm
-    
 ''';
