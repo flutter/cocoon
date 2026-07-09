@@ -232,6 +232,7 @@ final class CiStaging extends AppDocument<CiStaging> {
     var failed = -1;
     var total = -1;
     var valid = false;
+    var previousState = const PresubmitGuardState(remaining: -1, failed: -1);
     String? checkRunGuard;
     TaskConclusion? recordedConclusion;
 
@@ -273,6 +274,7 @@ final class CiStaging extends AppDocument<CiStaging> {
         throw '$logCrumb: missing field "$kTotalField" for $transaction / ${doc.fields}';
       }
       total = maybeTotal;
+      previousState = PresubmitGuardState(remaining: remaining, failed: failed);
 
       // We will have check_runs scheduled after the engine was built successfully, so missing the checkRun field
       // is an OK response to have. All fields should have been written at creation time.
@@ -286,9 +288,12 @@ final class CiStaging extends AppDocument<CiStaging> {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: remaining,
+          previousState: previousState,
+          currentState: PresubmitGuardState(
+            remaining: remaining,
+            failed: failed,
+          ),
           checkRunGuard: null,
-          failed: failed,
           summary: 'Check run "$checkRun" not present in $stage CI stage',
           details: 'Change $changeCrumb',
         );
@@ -352,9 +357,9 @@ final class CiStaging extends AppDocument<CiStaging> {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
-          remaining: -1,
+          previousState: previousState,
+          currentState: PresubmitGuardState(remaining: -1, failed: failed),
           checkRunGuard: null,
-          failed: failed,
           summary: 'Internal server error',
           details:
               '''
@@ -390,9 +395,9 @@ $stack
       result: valid
           ? PresubmitGuardConclusionResult.ok
           : PresubmitGuardConclusionResult.internalError,
-      remaining: remaining,
+      previousState: previousState,
+      currentState: PresubmitGuardState(remaining: remaining, failed: failed),
       checkRunGuard: checkRunGuard ?? '',
-      failed: failed,
       summary: valid
           ? 'All tests passed'
           : 'Not a valid state transition for $checkRun',

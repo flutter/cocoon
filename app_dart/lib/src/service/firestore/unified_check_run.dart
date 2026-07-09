@@ -521,7 +521,7 @@ final class UnifiedCheckRun {
     final changeCrumb =
         '${guardId.slug.owner}_${guardId.slug.name}_${guardId.prNum}_${guardId.checkRunId}';
     final logCrumb =
-        'markConclusion(${changeCrumb}_${guardId.stage}, ${state.jobName}, ${state.status}, ${state.attemptNumber})';
+        'markConclusion(${changeCrumb}_${guardId.stage}, ${state.name}, ${state.status}, ${state.attempt})';
 
     // Marking needs to happen while in a transaction to ensure `remaining` is
     // updated correctly. For that to happen correctly; we need to perform a
@@ -532,6 +532,7 @@ final class UnifiedCheckRun {
     var remaining = -1;
     var failed = -1;
     var valid = false;
+    var previousState = const PresubmitGuardState(remaining: -1, failed: -1);
 
     late final PresubmitGuard presubmitGuard;
     late final PresubmitJob presubmitJob;
@@ -549,20 +550,27 @@ final class UnifiedCheckRun {
         transaction: transaction,
       );
       presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
+      previousState = PresubmitGuardState(
+        remaining: presubmitGuard.remainingJobs,
+        failed: presubmitGuard.failedJobs,
+      );
 
       // Check if the build is present in the guard before trying to load it.
-      if (presubmitGuard.jobs[state.jobName] == null) {
+      if (presubmitGuard.jobs[state.name] == null) {
         log.info(
-          '$logCrumb: ${state.jobName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
+          '$logCrumb: ${state.name} with attempt ${state.attempt} not present for $transaction / ${presubmitGuardDocument.fields}',
         );
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingJobs,
+          previousState: previousState,
+          currentState: PresubmitGuardState(
+            remaining: presubmitGuard.remainingJobs,
+            failed: presubmitGuard.failedJobs,
+          ),
           checkRunGuard: presubmitGuard.checkRunJson,
-          failed: presubmitGuard.failedJobs,
           summary:
-              'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
+              'Check run "${state.name}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
         );
       }
@@ -570,8 +578,8 @@ final class UnifiedCheckRun {
       final checkDocName = PresubmitJob.documentNameFor(
         slug: guardId.slug,
         checkRunId: guardId.checkRunId,
-        jobName: state.jobName,
-        attemptNumber: state.attemptNumber,
+        jobName: state.name,
+        attemptNumber: state.attempt,
       );
       final presubmitJobDocument = await firestoreService.getDocument(
         checkDocName,
@@ -582,7 +590,7 @@ final class UnifiedCheckRun {
       remaining = presubmitGuard.remainingJobs;
       failed = presubmitGuard.failedJobs;
       final jobs = presubmitGuard.jobs;
-      var status = jobs[state.jobName]!;
+      var status = jobs[state.name]!;
 
       // If job is waiting for backfill, that means its initiated by github
       // or re-run. So no processing needed, we should only update appropriate
@@ -641,7 +649,7 @@ final class UnifiedCheckRun {
           valid = true;
         }
       }
-      jobs[state.jobName] = status;
+      jobs[state.name] = status;
       presubmitGuard.jobs = jobs;
       presubmitJob.status = status;
     } on DetailedApiRequestError catch (e, stack) {
@@ -653,9 +661,9 @@ final class UnifiedCheckRun {
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
-          remaining: -1,
+          previousState: previousState,
+          currentState: PresubmitGuardState(remaining: -1, failed: failed),
           checkRunGuard: null,
-          failed: failed,
           summary: 'Internal server error',
           details:
               '''
@@ -688,19 +696,19 @@ $stack
         result: valid
             ? PresubmitGuardConclusionResult.ok
             : PresubmitGuardConclusionResult.internalError,
-        remaining: remaining,
+        previousState: previousState,
+        currentState: PresubmitGuardState(remaining: remaining, failed: failed),
         checkRunGuard: presubmitGuard.checkRunJson,
-        failed: failed,
         summary: valid
             ? 'Successfully updated presubmit guard status'
-            : 'Not a valid state transition for ${state.jobName}',
+            : 'Not a valid state transition for ${state.name}',
         details: valid
             ? '''
 For CI stage ${guardId.stage}:
   Pending: $remaining
   Failed: $failed
 '''
-            : 'Attempted to set the state of job ${state.jobName} '
+            : 'Attempted to set the state of job ${state.name} '
                   'to "${state.status.name}".',
       );
     } catch (e) {

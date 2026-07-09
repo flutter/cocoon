@@ -6,7 +6,7 @@ import 'package:buildbucket/buildbucket_pb.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
@@ -21,6 +21,30 @@ void main() {
     const sha = 'abc';
     final slug = RepositorySlug('flutter', 'flutter');
 
+    test('PresubmitJobState creates correct instance', () {
+      final check = PresubmitJobState(
+        name: 'test_check',
+        sha: sha,
+        slug: slug,
+        status: TaskStatus.succeeded,
+        isMergeGroup: false,
+        checkRunId: 1,
+        checkSuiteId: null,
+        headBranch: null,
+        isUnifiedCheckRun: false,
+      );
+
+      expect(check.name, 'test_check');
+      expect(check.sha, sha);
+      expect(check.slug, slug);
+      expect(check.status, TaskStatus.succeeded);
+      expect(check.isMergeGroup, false);
+      expect(check.checkRunId, 1);
+      expect(check.checkSuiteId, null);
+      expect(check.headBranch, null);
+      expect(check.isUnifiedCheckRun, false);
+      expect(check.checkRun.name, 'test_check');
+    });
     test('fromBuild creates correct unified check', () {
       final build = Build(
         id: Int64.MAX_VALUE,
@@ -40,7 +64,7 @@ void main() {
         checkSuiteId: 456,
       );
 
-      final check = PresubmitCompletedJob.fromBuild(build, userData);
+      final check = PresubmitJobState.fromBuild(build, userData);
 
       expect(check.name, 'test_builder');
       expect(check.sha, sha);
@@ -76,7 +100,7 @@ void main() {
         checkSuiteId: 456,
       );
 
-      final check = PresubmitCompletedJob.fromBuild(build, userData);
+      final check = PresubmitJobState.fromBuild(build, userData);
 
       expect(check.name, 'test_builder');
       expect(check.sha, sha);
