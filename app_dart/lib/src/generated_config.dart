@@ -19,6 +19,10 @@ contentAwareHashing:
   # to happen before scheduling builds.
   waitOnContentHash: true
 
+# Whether to close the MQ guard right after LUCI presubmit completed
+# instead of doing that as part of the `check_run` GitHub event handling.
+closeMqGuardAfterPresubmit: true
+
 # Whether to enable Gemini log analysis feature.
 enableGeminiLogAnalysis: true
 
@@ -41,4 +45,11 @@ unifiedCheckRunFlow:
     - vashworth
     - mboetger
     - justinmc
+
+# Whether to process LUCI notifications of builds progress ordered within check run.
+orderedPresubmit:
+  useForAll: false
+  useForUsers:
+    - ievdokdm
+    
 ''';
