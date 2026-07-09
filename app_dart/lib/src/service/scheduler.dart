@@ -1624,16 +1624,6 @@ $stacktrace
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {
     switch (checkRunEvent.action) {
-      case 'completed':
-        if (!_config.flags.closeMqGuardAfterPresubmit) {
-          await processCheckRunCompleted(
-            PresubmitCompletedJob.fromCheckRun(
-              checkRunEvent.checkRun!,
-              checkRunEvent.repository!.slug(),
-            ),
-          );
-        }
-        break;
       case 'rerequested':
         return await _reRun(checkRunEvent);
       case 'requested_action':

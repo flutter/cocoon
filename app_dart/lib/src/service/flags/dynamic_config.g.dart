@@ -19,7 +19,6 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
           : ContentAwareHashing.fromJson(
               json['contentAwareHashing'] as Map<String, dynamic>?,
             ),
-      closeMqGuardAfterPresubmit: json['closeMqGuardAfterPresubmit'] as bool?,
       enableGeminiLogAnalysis: json['enableGeminiLogAnalysis'] as bool?,
       unifiedCheckRunFlow: json['unifiedCheckRunFlow'] == null
           ? null
@@ -35,7 +34,6 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'backfillerCommitLimit': instance.backfillerCommitLimit,
       'contentAwareHashing': instance.contentAwareHashing.toJson(),
       'ciYaml': instance.ciYaml.toJson(),
-      'closeMqGuardAfterPresubmit': instance.closeMqGuardAfterPresubmit,
       'enableGeminiLogAnalysis': instance.enableGeminiLogAnalysis,
       'unifiedCheckRunFlow': instance.unifiedCheckRunFlow.toJson(),
       'dynamicTestSuppression': instance.dynamicTestSuppression,

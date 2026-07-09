@@ -35,11 +35,7 @@ void main() {
   setUp(() async {
     firestore = FakeFirestoreService();
 
-    config = FakeConfig(
-      dynamicConfig: DynamicConfig.fromJson({
-        'closeMqGuardAfterPresubmit': true,
-      }),
-    );
+    config = FakeConfig();
     mockGithubChecksService = MockGithubChecksService();
     mockScheduler = MockScheduler();
 

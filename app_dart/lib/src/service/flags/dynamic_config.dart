@@ -36,7 +36,6 @@ final class DynamicConfig {
     backfillerCommitLimit: 50,
     ciYaml: CiYamlFlags.defaultInstance,
     contentAwareHashing: ContentAwareHashing.defaultInstance,
-    closeMqGuardAfterPresubmit: false,
     enableGeminiLogAnalysis: false,
     unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
     dynamicTestSuppression: false,
@@ -58,11 +57,6 @@ final class DynamicConfig {
   @JsonKey()
   final CiYamlFlags ciYaml;
 
-  /// Whether to close the MQ guard right after LUCI presubmit compleated
-  /// instead of doing that as part of the `check_run` GitHub event handling.
-  @JsonKey()
-  final bool closeMqGuardAfterPresubmit;
-
   /// Whether to enable Gemini log analysis feature.
   @JsonKey()
   final bool enableGeminiLogAnalysis;
@@ -83,7 +77,6 @@ final class DynamicConfig {
     required this.backfillerCommitLimit,
     required this.ciYaml,
     required this.contentAwareHashing,
-    required this.closeMqGuardAfterPresubmit,
     required this.enableGeminiLogAnalysis,
     required this.unifiedCheckRunFlow,
     required this.dynamicTestSuppression,
@@ -97,7 +90,6 @@ final class DynamicConfig {
     int? backfillerCommitLimit,
     CiYamlFlags? ciYaml,
     ContentAwareHashing? contentAwareHashing,
-    bool? closeMqGuardAfterPresubmit,
     bool? enableGeminiLogAnalysis,
     UnifiedCheckRunFlow? unifiedCheckRunFlow,
     bool? dynamicTestSuppression,
@@ -109,9 +101,6 @@ final class DynamicConfig {
       ciYaml: ciYaml ?? defaultInstance.ciYaml,
       contentAwareHashing:
           contentAwareHashing ?? defaultInstance.contentAwareHashing,
-      closeMqGuardAfterPresubmit:
-          closeMqGuardAfterPresubmit ??
-          defaultInstance.closeMqGuardAfterPresubmit,
       enableGeminiLogAnalysis:
           enableGeminiLogAnalysis ?? defaultInstance.enableGeminiLogAnalysis,
       unifiedCheckRunFlow:
