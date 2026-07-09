@@ -5,6 +5,7 @@
 import 'package:cocoon_service/src/foundation/github_checks_util.dart';
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart';
 import 'package:cocoon_service/src/model/proto/protos.dart' as pb;
+import 'package:cocoon_service/src/request_handling/pubsub.dart';
 import 'package:cocoon_service/src/service/build_bucket_client.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
@@ -22,6 +23,7 @@ import 'fake_content_aware_hash_service.dart';
 import 'fake_get_files_changed.dart';
 import 'fake_github_service.dart';
 import 'fake_luci_build_service.dart';
+import 'fake_pubsub.dart';
 
 /// Fake for [Scheduler] to use for tests that rely on it.
 class FakeScheduler extends Scheduler {
@@ -36,8 +38,11 @@ class FakeScheduler extends Scheduler {
     ContentAwareHashService? contentAwareHash,
     required super.firestore,
     required super.bigQuery,
+    CacheService? cache,
+    PubSub? pubsub,
   }) : super(
-         cache: CacheService.inMemory(),
+         cache: cache ?? CacheService.inMemory(),
+         pubsub: pubsub ?? FakePubSub(),
          githubChecksService: GithubChecksService(
            config,
            githubChecksUtil: githubChecksUtil,

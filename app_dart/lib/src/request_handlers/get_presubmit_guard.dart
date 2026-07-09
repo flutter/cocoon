@@ -104,12 +104,24 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     // Consolidate metadata from the first record.
     final first = guards.first;
 
-    final totalFailed = guards.fold<int>(0, (sum, g) => sum + g.failedJobs);
-    final totalRemaining = guards.fold<int>(
-      0,
-      (sum, g) => sum + g.remainingJobs,
-    );
-    final totalBuilds = guards.fold<int>(0, (sum, g) => sum + g.jobs.length);
+    var totalFailed = 0;
+    var totalRemaining = 0;
+    var totalBuilds = 0;
+    final stages = <rpc_model.PresubmitGuardStage>[];
+
+    for (final g in guards) {
+      totalFailed += g.failedJobs;
+      totalRemaining += g.remainingJobs;
+      totalBuilds += g.jobs.length;
+
+      stages.add(
+        rpc_model.PresubmitGuardStage(
+          name: g.stage.name,
+          createdAt: g.creationTime,
+          jobs: g.jobs,
+        ),
+      );
+    }
 
     final guardStatus = GuardStatus.calculate(
       failedBuilds: totalFailed,
@@ -123,14 +135,7 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
       author: first.author,
       guardStatus: guardStatus,
       enableGeminiLogAnalysis: config.flags.enableGeminiLogAnalysis,
-      stages: [
-        for (final g in guards)
-          rpc_model.PresubmitGuardStage(
-            name: g.stage.name,
-            createdAt: g.creationTime,
-            jobs: g.jobs,
-          ),
-      ],
+      stages: stages,
     );
 
     return Response.json(response);

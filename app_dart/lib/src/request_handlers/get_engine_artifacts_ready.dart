@@ -76,8 +76,10 @@ final class GetEngineArtifactsReady extends PublicApiRequestHandler {
         final engineGuard = guards
             .where((g) => g.stage == CiStage.fusionEngineBuild)
             .firstOrNull;
-        remaining = engineGuard?.remainingJobs ?? 0;
-        failed = engineGuard?.failedJobs ?? 0;
+        if (engineGuard != null) {
+          failed = engineGuard.failedJobs;
+          remaining = engineGuard.remainingJobs;
+        }
       }
     }
 

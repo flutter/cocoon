@@ -10,6 +10,7 @@ import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_job.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
@@ -23,10 +24,14 @@ void main() {
 
   late FakeConfig config;
   late FakeFirestoreService firestoreService;
+  late CacheService cacheService;
+  late FakePubSub pubsub;
 
   setUp(() {
     config = FakeConfig();
     firestoreService = FakeFirestoreService();
+    cacheService = CacheService.inMemory();
+    pubsub = FakePubSub();
   });
 
   group('UnifiedCheckRun', () {
@@ -180,15 +185,13 @@ void main() {
           buildId: Int64.MAX_VALUE,
         );
 
-        final result = await UnifiedCheckRun.markConclusion(
+        await UnifiedCheckRun.markConclusion(
           firestoreService: firestoreService,
           guardId: guardId,
           state: state,
+          cacheService: cacheService,
+          pubsub: pubsub,
         );
-
-        expect(result.result, PresubmitGuardConclusionResult.ok);
-        expect(result.remaining, 1);
-        expect(result.failed, 0);
 
         final checkDoc = await PresubmitJob.fromFirestore(
           firestoreService,
@@ -203,12 +206,40 @@ void main() {
         expect(checkDoc.endTime, 3000);
         expect(checkDoc.buildNumber, 456);
         expect(checkDoc.buildId, Int64.MAX_VALUE);
+
+        final guardDocName = PresubmitGuard.documentNameFor(
+          slug: guardId.slug,
+          prNum: guardId.prNum,
+          checkRunId: guardId.checkRunId,
+          stage: guardId.stage,
+        );
+        expect(pubsub.messages.length, 1);
+        expect(
+          await cacheService.get('presubmit_guard_dirty', guardDocName),
+          isNotNull,
+        );
+
+        final result = (await UnifiedCheckRun.updatePresubmitGuard(
+          firestoreService: firestoreService,
+          cacheService: cacheService,
+          guardDocumentName: guardDocName,
+        ))?.$1;
+        expect(result!.result, PresubmitGuardConclusionResult.ok);
+        expect(result.remaining, 1);
+        expect(result.failed, 0);
       });
 
       test(
         'update all check status to succeeded lead to complete guard',
         () async {
-          final result1 = await UnifiedCheckRun.markConclusion(
+          final guardDocName = PresubmitGuard.documentNameFor(
+            slug: guardId.slug,
+            prNum: guardId.prNum,
+            checkRunId: guardId.checkRunId,
+            stage: guardId.stage,
+          );
+
+          await UnifiedCheckRun.markConclusion(
             firestoreService: firestoreService,
             guardId: guardId,
             state: const PresubmitJobState(
@@ -218,15 +249,23 @@ void main() {
               startTime: 2000,
               endTime: 3000,
             ),
+            cacheService: cacheService,
+            pubsub: pubsub,
           );
 
-          expect(result1.remaining, 1);
+          final result1 = (await UnifiedCheckRun.updatePresubmitGuard(
+            firestoreService: firestoreService,
+            cacheService: cacheService,
+            guardDocumentName: guardDocName,
+          ))?.$1;
+
+          expect(result1!.remaining, 1);
           expect(result1.failed, 0);
           expect(result1.isOk, true);
           expect(result1.isComplete, false);
           expect(result1.isPending, true);
 
-          final result2 = await UnifiedCheckRun.markConclusion(
+          await UnifiedCheckRun.markConclusion(
             firestoreService: firestoreService,
             guardId: guardId,
             state: const PresubmitJobState(
@@ -236,9 +275,17 @@ void main() {
               startTime: 2000,
               endTime: 3000,
             ),
+            cacheService: cacheService,
+            pubsub: pubsub,
           );
 
-          expect(result2.remaining, 0);
+          final result2 = (await UnifiedCheckRun.updatePresubmitGuard(
+            firestoreService: firestoreService,
+            cacheService: cacheService,
+            guardDocumentName: guardDocName,
+          ))?.$1;
+
+          expect(result2!.remaining, 0);
           expect(result2.failed, 0);
           expect(result2.isOk, true);
           expect(result2.isComplete, true);
@@ -267,13 +314,28 @@ void main() {
           endTime: 3000,
         );
 
-        final result = await UnifiedCheckRun.markConclusion(
+        final guardDocName = PresubmitGuard.documentNameFor(
+          slug: guardId.slug,
+          prNum: guardId.prNum,
+          checkRunId: guardId.checkRunId,
+          stage: guardId.stage,
+        );
+
+        await UnifiedCheckRun.markConclusion(
           firestoreService: firestoreService,
           guardId: guardId,
           state: state,
+          cacheService: cacheService,
+          pubsub: pubsub,
         );
 
-        expect(result.result, PresubmitGuardConclusionResult.ok);
+        final result = (await UnifiedCheckRun.updatePresubmitGuard(
+          firestoreService: firestoreService,
+          cacheService: cacheService,
+          guardDocumentName: guardDocName,
+        ))?.$1;
+
+        expect(result!.result, PresubmitGuardConclusionResult.ok);
         expect(result.remaining, 1);
         expect(result.failed, 1);
       });
@@ -285,14 +347,17 @@ void main() {
           attemptNumber: 1,
         );
 
-        final result = await UnifiedCheckRun.markConclusion(
+        await UnifiedCheckRun.markConclusion(
           firestoreService: firestoreService,
           guardId: guardId,
           state: state,
+          cacheService: cacheService,
+          pubsub: pubsub,
         );
 
-        expect(result.result, PresubmitGuardConclusionResult.missing);
+        expect(pubsub.messages.isEmpty, true);
       });
+
       test('updates check status and build number on inProgress', () async {
         final state = const PresubmitJobState(
           jobName: 'linux',
@@ -303,13 +368,13 @@ void main() {
           buildId: Int64.MAX_VALUE,
         );
 
-        final result = await UnifiedCheckRun.markConclusion(
+        await UnifiedCheckRun.markConclusion(
           firestoreService: firestoreService,
           guardId: guardId,
           state: state,
+          cacheService: cacheService,
+          pubsub: pubsub,
         );
-
-        expect(result.result, PresubmitGuardConclusionResult.ok);
 
         final checkDoc = await PresubmitJob.fromFirestore(
           firestoreService,

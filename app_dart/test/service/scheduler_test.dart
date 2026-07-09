@@ -4306,6 +4306,14 @@ targets:
 
         expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
+        final guardName = PresubmitGuard.documentNameFor(
+          slug: pullRequest.base!.repo!.slug(),
+          prNum: pullRequest.number!,
+          checkRunId: checkRunGuard.id!,
+          stage: CiStage.fusionEngineBuild,
+        );
+        await scheduler.processPresubmitGuardUpdate(guardName);
+
         // Should schedule tests for the next stage (fusionTests)
         expect(fakeLuciBuildService.scheduledTryBuilds, isNotEmpty);
         expect(fakeLuciBuildService.stage, CiStage.fusionTests);
@@ -4385,6 +4393,14 @@ targets:
           final check = PresubmitCompletedJob.fromBuild(build, userData);
 
           expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          final guardName = PresubmitGuard.documentNameFor(
+            slug: pullRequest.base!.repo!.slug(),
+            prNum: pullRequest.number!,
+            checkRunId: checkRunGuard.id!,
+            stage: CiStage.fusionTests,
+          );
+          await scheduler.processPresubmitGuardUpdate(guardName);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -4476,6 +4492,14 @@ targets:
 
         expect(await scheduler.processCheckRunCompleted(check), isTrue);
 
+        final guardName = PresubmitGuard.documentNameFor(
+          slug: pullRequest.base!.repo!.slug(),
+          prNum: pullRequest.number!,
+          checkRunId: checkRunGuard.id!,
+          stage: CiStage.fusionTests,
+        );
+        await scheduler.processPresubmitGuardUpdate(guardName);
+
         verify(
           mockGithubChecksUtil.updateCheckRun(
             any,
@@ -4562,6 +4586,14 @@ targets:
           final check = PresubmitCompletedJob.fromBuild(build, userData);
 
           expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          final guardName = PresubmitGuard.documentNameFor(
+            slug: pullRequest.base!.repo!.slug(),
+            prNum: pullRequest.number!,
+            checkRunId: checkRunGuard.id!,
+            stage: CiStage.genericTests,
+          );
+          await scheduler.processPresubmitGuardUpdate(guardName);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(
