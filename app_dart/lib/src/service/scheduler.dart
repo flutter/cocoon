@@ -1624,6 +1624,9 @@ $stacktrace
     cocoon_checks.CheckRunEvent checkRunEvent,
   ) async {
     switch (checkRunEvent.action) {
+      case 'completed':
+        // Processing of completed check runs is moved to PresubmitLuciSubscription.
+        break;
       case 'rerequested':
         return await _reRun(checkRunEvent);
       case 'requested_action':
