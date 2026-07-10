@@ -115,6 +115,21 @@ mixin FirestoreQueries {
     return [...documents.map(Commit.fromDocument)];
   }
 
+  /// Queries for a commit by its [sha] and [slug].
+  ///
+  /// Returns `null` if no matching commit is found.
+  Future<Commit?> queryCommit({
+    required String sha,
+    required RepositorySlug slug,
+  }) async {
+    final filterMap = <String, Object>{
+      '${Commit.fieldRepositoryPath} =': slug.fullName,
+      '${Commit.fieldSha} =': sha,
+    };
+    final documents = await query(Commit.collectionId, filterMap, limit: 1);
+    return documents.isEmpty ? null : Commit.fromDocument(documents.first);
+  }
+
   Future<List<Task>> _queryTasks({
     required int? limit,
     String? name,
@@ -124,7 +139,7 @@ mixin FirestoreQueries {
   }) async {
     final filterMap = {
       '${Task.fieldName} =': ?name,
-      if (status != null) '${Task.fieldStatus} =': status.value,
+      '${Task.fieldStatus} =': ?status?.value,
       '${Task.fieldCommitSha} =': ?commitSha,
     };
 
@@ -198,11 +213,17 @@ mixin FirestoreQueries {
       limit: commitLimit,
       branch: branch,
     );
+
+    final tasksFutures = commits.map(
+      (commit) => queryAllTasksForCommit(commitSha: commit.sha, status: status),
+    );
+    final tasksResults = await Future.wait(tasksFutures);
+
     return [
-      for (final commit in commits)
+      for (final (index, commit) in commits.indexed)
         CommitAndTasks(
           commit.toRef(),
-          await queryAllTasksForCommit(commitSha: commit.sha, status: status),
+          tasksResults[index],
         ).withMostRecentTaskOnly(),
     ];
   }
