@@ -9,7 +9,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
-import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' as github;
@@ -105,9 +105,7 @@ void main() {
         ),
       ).thenAnswer((_) async => true);
 
-      when(
-        mockScheduler.processCheckRunCompleted(any),
-      ).thenAnswer((_) async => true);
+      when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
       tester.message = createPushMessage(
         Int64(1),
@@ -137,12 +135,12 @@ void main() {
 
       // Verify that processCheckRunCompleted was called with TaskStatus.neutral
       final captured = verify(
-        mockScheduler.processCheckRunCompleted(captureAny),
+        mockScheduler.processJobStatusUpdate(captureAny),
       ).captured;
       expect(captured, hasLength(1));
       expect(
         captured[0],
-        isA<PresubmitCompletedJob>().having(
+        isA<PresubmitJobState>().having(
           (e) => e.status,
           'status',
           TaskStatus.neutral,
@@ -177,9 +175,7 @@ void main() {
         ),
       ).thenAnswer((_) async => true);
 
-      when(
-        mockScheduler.processCheckRunCompleted(any),
-      ).thenAnswer((_) async => true);
+      when(mockScheduler.processJobStatusUpdate(any)).thenAnswer((_) async {});
 
       tester.message = createPushMessage(
         Int64(1),
@@ -204,12 +200,12 @@ void main() {
 
       // Verify that processCheckRunCompleted was called with TaskStatus.failed
       final captured = verify(
-        mockScheduler.processCheckRunCompleted(captureAny),
+        mockScheduler.processJobStatusUpdate(captureAny),
       ).captured;
       expect(captured, hasLength(1));
       expect(
         captured[0],
-        isA<PresubmitCompletedJob>().having(
+        isA<PresubmitJobState>().having(
           (e) => e.status,
           'status',
           TaskStatus.failed,
