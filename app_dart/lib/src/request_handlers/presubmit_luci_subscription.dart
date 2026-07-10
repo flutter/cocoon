@@ -44,6 +44,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     required CiYamlFetcher ciYamlFetcher,
     required Scheduler scheduler,
     required FirestoreService firestore,
+    this.pubsub = const PubSub(),
     AuthenticationProvider? authProvider,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _githubChecksService = githubChecksService,
@@ -57,6 +58,7 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
   final CiYamlFetcher _ciYamlFetcher;
   final Scheduler _scheduler;
   final FirestoreService _firestore;
+  final PubSub pubsub;
 
   @override
   Future<Response> post(Request request) async {
@@ -88,6 +90,19 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     final tagSet = BuildTags.fromStringPairs(build.tags);
 
     log.info('Available tags: ${build.tags}');
+
+    final orderingKey = tagSet.getTagOfType<OrderingKeyTag>()?.orderingKey;
+    if (orderingKey != null) {
+      log.info(
+        'Ordering key $orderingKey found, forwarding message to ordered-presubmit topic',
+      );
+      await pubsub.publish(
+        'ordered-presubmit',
+        message.data!,
+        orderingKey: orderingKey,
+      );
+      return Response.emptyOk;
+    }
 
     // Skip status update if we can not get the sha tag.
     if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
