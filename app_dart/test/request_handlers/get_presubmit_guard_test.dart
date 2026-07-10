@@ -263,4 +263,234 @@ void main() {
       'job2': TaskStatus.waitingForBackfill,
     });
   });
+
+  test(
+    'falls back to queryAllTasksForCommit when both unified guards and ciStaging are empty',
+    () async {
+      const sha = 'abc';
+
+      final task1 = generateFirestoreTask(
+        1,
+        name: 'task1',
+        status: TaskStatus.succeeded,
+        commitSha: sha,
+        created: DateTime.fromMillisecondsSinceEpoch(100),
+      );
+      final task2 = generateFirestoreTask(
+        2,
+        name: 'task2',
+        status: TaskStatus.inProgress,
+        commitSha: sha,
+        created: DateTime.fromMillisecondsSinceEpoch(200),
+      );
+
+      firestore.putDocuments([task1, task2]);
+
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          GetPresubmitGuard.kOwnerParam: 'flutter',
+          GetPresubmitGuard.kRepoParam: 'flutter',
+          GetPresubmitGuard.kShaParam: sha,
+        },
+      );
+
+      final result = (await getResponse())!;
+      expect(result.prNum, 0);
+      expect(result.checkRunId, -1);
+      expect(result.guardStatus, GuardStatus.inProgress);
+      expect(result.stages.length, 1);
+      expect(result.stages.first.name, 'tasks');
+      expect(result.stages.first.createdAt, 100);
+      expect(result.stages.first.jobs, {
+        'task1': TaskStatus.succeeded,
+        'task2': TaskStatus.inProgress,
+      });
+    },
+  );
+
+  test(
+    'blends ciStaging with tasks collection (no overlap in production)',
+    () async {
+      final slug = RepositorySlug('flutter', 'flutter');
+      const sha = 'abc';
+
+      // Note: In production, there is no overlap between the engine builds in ciStaging
+      // and the post-submit tasks in the tasks collection.
+      final staging = CiStaging.fromDocument(
+        Document(
+          name: CiStaging.documentNameFor(
+            slug: slug,
+            sha: sha,
+            stage: CiStage.fusionEngineBuild,
+          ),
+          fields: {
+            CiStaging.kTotalField: 2.toValue(),
+            CiStaging.kRemainingField: 1.toValue(),
+            CiStaging.kFailedField: 0.toValue(),
+            CiStaging.kCheckRunGuardField: '{"id": 0}'.toValue(),
+            CiStaging.fieldRepoFullPath: slug.fullName.toValue(),
+            CiStaging.fieldCommitSha: sha.toValue(),
+            CiStaging.fieldStage: CiStage.fusionEngineBuild.name.toValue(),
+            'job1': TaskConclusion.success.name.toValue(),
+            'job2': TaskConclusion.scheduled.name.toValue(),
+          },
+        ),
+      );
+
+      final task1 = generateFirestoreTask(
+        1,
+        name: 'postSubmitJob1',
+        status: TaskStatus.succeeded,
+        commitSha: sha,
+        created: DateTime.fromMillisecondsSinceEpoch(100),
+      );
+      final task2 = generateFirestoreTask(
+        2,
+        name: 'postSubmitJob2',
+        status: TaskStatus.inProgress,
+        commitSha: sha,
+        created: DateTime.fromMillisecondsSinceEpoch(150),
+      );
+
+      firestore.putDocuments([staging, task1, task2]);
+
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          GetPresubmitGuard.kOwnerParam: 'flutter',
+          GetPresubmitGuard.kRepoParam: 'flutter',
+          GetPresubmitGuard.kShaParam: sha,
+        },
+      );
+
+      final result = (await getResponse())!;
+      expect(result.prNum, 0);
+      expect(result.checkRunId, 0);
+      expect(result.guardStatus, GuardStatus.inProgress);
+      expect(result.stages.length, 2);
+
+      final engineStage = result.stages.firstWhere(
+        (s) => s.name == CiStage.fusionEngineBuild.name,
+      );
+      expect(engineStage.jobs, {
+        'job1': TaskStatus.succeeded,
+        'job2': TaskStatus.waitingForBackfill,
+      });
+
+      final tasksStage = result.stages.firstWhere((s) => s.name == 'tasks');
+      expect(tasksStage.jobs, {
+        'postSubmitJob1': TaskStatus.succeeded,
+        'postSubmitJob2': TaskStatus.inProgress,
+      });
+      expect(tasksStage.createdAt, 100);
+    },
+  );
+
+  test(
+    'correctly handles task reruns within tasks collection by adjusting counts and status transitions',
+    () async {
+      const sha = 'abc';
+
+      // Note: In production, task reruns and attempts are processed purely within the tasks collection.
+      // We simulate multiple attempts of 'task1' and 'task2' here.
+
+      // Attempt 1 of task1 fails.
+      final task1Attempt1 = generateFirestoreTask(
+        1,
+        name: 'task1',
+        status: TaskStatus.failed,
+        commitSha: sha,
+        attempts: 1,
+        created: DateTime.fromMillisecondsSinceEpoch(100),
+      );
+
+      // Attempt 2 of task1 is in progress. This should transition task1 from failed -> in progress.
+      final task1Attempt2 = generateFirestoreTask(
+        2,
+        name: 'task1',
+        status: TaskStatus.inProgress,
+        commitSha: sha,
+        attempts: 2,
+        created: DateTime.fromMillisecondsSinceEpoch(200),
+      );
+
+      // task2 succeeds.
+      final task2 = generateFirestoreTask(
+        3,
+        name: 'task2',
+        status: TaskStatus.succeeded,
+        commitSha: sha,
+        created: DateTime.fromMillisecondsSinceEpoch(300),
+      );
+
+      firestore.putDocuments([task1Attempt1, task1Attempt2, task2]);
+
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          GetPresubmitGuard.kOwnerParam: 'flutter',
+          GetPresubmitGuard.kRepoParam: 'flutter',
+          GetPresubmitGuard.kShaParam: sha,
+        },
+      );
+
+      final result = (await getResponse())!;
+      expect(result.prNum, 0);
+      expect(result.guardStatus, GuardStatus.inProgress);
+      expect(result.stages.length, 1);
+
+      final tasksStage = result.stages.first;
+      expect(tasksStage.jobs, {
+        'task1': TaskStatus.inProgress,
+        'task2': TaskStatus.succeeded,
+      });
+      expect(tasksStage.createdAt, 100);
+    },
+  );
+
+  test(
+    'tasks with bringup true do not count towards guardStatus calculations',
+    () async {
+      const sha = 'abc';
+
+      final taskBringup = generateFirestoreTask(
+        1,
+        name: 'bringup_task',
+        status: TaskStatus.failed,
+        commitSha: sha,
+        bringup: true,
+        created: DateTime.fromMillisecondsSinceEpoch(100),
+      );
+      final otherTask = generateFirestoreTask(
+        1,
+        name: 'succeeds',
+        status: TaskStatus.succeeded,
+        commitSha: sha,
+        bringup: false,
+        created: DateTime.fromMillisecondsSinceEpoch(100),
+      );
+
+      firestore.putDocuments([taskBringup, otherTask]);
+
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          GetPresubmitGuard.kOwnerParam: 'flutter',
+          GetPresubmitGuard.kRepoParam: 'flutter',
+          GetPresubmitGuard.kShaParam: sha,
+        },
+      );
+
+      final result = (await getResponse())!;
+      expect(result.prNum, 0);
+      // Since bringup_task is failed but has bringup: true, it does not affect overall status.
+      // With 0 non-bringup builds, guardStatus remains Succeeded.
+      expect(result.guardStatus, GuardStatus.succeeded);
+      expect(result.stages.length, 1);
+
+      final tasksStage = result.stages.first;
+      expect(tasksStage.jobs, {
+        'bringup_task': TaskStatus.failed,
+        'succeeds': TaskStatus.succeeded,
+      });
+      expect(tasksStage.createdAt, 100);
+    },
+  );
 }

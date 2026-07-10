@@ -152,7 +152,7 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     return PrCheckRuns.fromDocument(docs.first).pullRequest;
   }
 
-  static Future<PrCheckRuns?> _findPrCheckRunsForSha(
+  static Future<PrCheckRuns?> findPrCheckRunsForSha(
     FirestoreService firestore,
     String sha, {
     Transaction? transaction,
@@ -184,7 +184,7 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     PullRequest pr,
   ) async {
     final tx = await firestore.beginTransaction();
-    final prcr = await _findPrCheckRunsForSha(firestore, sha, transaction: tx);
+    final prcr = await findPrCheckRunsForSha(firestore, sha, transaction: tx);
     if (prcr == null) {
       return false;
     }
@@ -198,7 +198,7 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     FirestoreService firestoreService,
     String sha,
   ) async {
-    final prcr = await _findPrCheckRunsForSha(firestoreService, sha);
+    final prcr = await findPrCheckRunsForSha(firestoreService, sha);
     return prcr?.pullRequest;
   }
 }
