@@ -39,11 +39,7 @@ void main() {
   setUp(() async {
     firestore = FakeFirestoreService();
 
-    config = FakeConfig(
-      dynamicConfig: DynamicConfig.fromJson({
-        'closeMqGuardAfterPresubmit': true,
-      }),
-    );
+    config = FakeConfig();
     mockLuciBuildService = MockLuciBuildService();
     mockGithubChecksService = MockGithubChecksService();
     mockScheduler = MockScheduler();

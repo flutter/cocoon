@@ -7,6 +7,8 @@ import 'dart:convert';
 
 import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart' as rpc_model;
+import 'package:cocoon_common/task_status.dart';
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
 
@@ -89,14 +91,16 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     final repo = request.uri.queryParameters[kRepoParam] ?? 'flutter';
     final owner = request.uri.queryParameters[kOwnerParam] ?? 'flutter';
     final sha = request.uri.queryParameters[kShaParam]!;
-
     final slug = RepositorySlug(owner, repo);
+
+    log.info('GetPresubmitGuard($slug, $sha)');
     final guards = await UnifiedCheckRun.getPresubmitGuardsForCommitSha(
       firestoreService: _firestore,
       slug: slug,
       commitSha: sha,
     );
 
+    log.info('guards found: ${guards.length}');
     if (guards.isEmpty) {
       return _getCiStagingFallback(slug, sha);
     }
@@ -104,12 +108,14 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     // Consolidate metadata from the first record.
     final first = guards.first;
 
-    final totalFailed = guards.fold<int>(0, (sum, g) => sum + g.failedJobs);
-    final totalRemaining = guards.fold<int>(
-      0,
-      (sum, g) => sum + g.remainingJobs,
-    );
-    final totalBuilds = guards.fold<int>(0, (sum, g) => sum + g.jobs.length);
+    var totalFailed = 0;
+    var totalRemaining = 0;
+    var totalBuilds = 0;
+    for (final g in guards) {
+      totalFailed += g.failedJobs;
+      totalRemaining += g.remainingJobs;
+      totalBuilds += g.jobs.length;
+    }
 
     final guardStatus = GuardStatus.calculate(
       failedBuilds: totalFailed,
@@ -140,24 +146,102 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     RepositorySlug slug,
     String sha,
   ) async {
-    final ciStagings = await CiStaging.getCiStagingForCommitSha(
-      firestoreService: _firestore,
-      slug: slug,
-      sha: sha,
-    );
+    final (ciStagings, tasks, prInfo) = await (
+      CiStaging.getCiStagingForCommitSha(
+        firestoreService: _firestore,
+        slug: slug,
+        sha: sha,
+      ),
+      _firestore.queryAllTasksForCommit(commitSha: sha),
+      PrCheckRuns.findPullRequestForSha(_firestore, sha),
+    ).wait;
 
-    if (ciStagings.isEmpty) {
+    if (ciStagings.isEmpty && tasks.isEmpty) {
       return Response.json({
         'error': 'No guard found for slug $slug and sha $sha',
       }, statusCode: HttpStatus.notFound);
     }
 
-    final totalFailed = ciStagings.fold<int>(0, (sum, g) => sum + g.failed);
-    final totalRemaining = ciStagings.fold<int>(
-      0,
-      (sum, g) => sum + g.remaining,
-    );
-    final totalBuilds = ciStagings.fold<int>(0, (sum, g) => sum + g.total);
+    var totalFailed = 0;
+    var totalRemaining = 0;
+    var totalBuilds = 0;
+    for (final stage in ciStagings) {
+      totalFailed += stage.failed;
+      totalRemaining += stage.remaining;
+      totalBuilds += stage.total;
+    }
+
+    /// Sort oldest first using a Schwartzian Transform with records to parse createTimestamp exactly once.
+    final tasksWithTime = [
+      for (final t in tasks) (task: t, time: t.createTimestamp),
+    ]..sort((a, b) => a.time.compareTo(b.time));
+    final sortedTasks = [for (final entry in tasksWithTime) entry.task];
+
+    final taskStatusMap = <String, TaskStatus>{};
+    for (final t in sortedTasks) {
+      final taskName = t.taskName;
+      final oldStatus = taskStatusMap[taskName];
+      final newStatus = t.status;
+
+      taskStatusMap[taskName] = newStatus;
+
+      // Do not count bringup towards success/failure.
+      if (t.bringup) continue;
+      if (oldStatus == null) {
+        totalBuilds++;
+        if (newStatus.isFailure) {
+          totalFailed++;
+        } else if (newStatus.isBuildInProgress) {
+          totalRemaining++;
+        }
+      } else {
+        // Adjust failed builds count.
+        switch ((oldStatus.isFailure, newStatus.isFailure)) {
+          case (true, false):
+            totalFailed--;
+          case (false, true):
+            totalFailed++;
+          case _:
+            break;
+        }
+
+        // Adjust remaining builds count.
+        switch ((oldStatus.isBuildInProgress, newStatus.isBuildInProgress)) {
+          case (true, false):
+            totalRemaining--;
+          case (false, true):
+            totalRemaining++;
+          case _:
+            break;
+        }
+      }
+    }
+
+    // Note: In production, there is no overlap between the engine builds in ciStaging
+    // and the post-submit tasks in tasks.
+    final stages = <rpc_model.PresubmitGuardStage>[
+      for (var ciStage in ciStagings)
+        if (ciStage.stage case final stage?)
+          rpc_model.PresubmitGuardStage(
+            name: stage.name,
+            createdAt:
+                DateTime.tryParse(
+                  ciStage.createTime ?? '',
+                )?.millisecondsSinceEpoch ??
+                0,
+            jobs: {
+              for (final MapEntry(:key, :value) in ciStage.checkRuns.entries)
+                key: ChecksExtension.fromTaskConclusion(value),
+            },
+          ),
+
+      if (sortedTasks.isNotEmpty)
+        rpc_model.PresubmitGuardStage(
+          name: 'tasks',
+          createdAt: sortedTasks.first.createTimestamp,
+          jobs: taskStatusMap,
+        ),
+    ];
 
     final guardStatus = GuardStatus.calculate(
       failedBuilds: totalFailed,
@@ -166,45 +250,28 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     );
 
     var checkRunId = -1;
-    final guardJsonStr = ciStagings.first.checkRunGuard;
-    if (guardJsonStr.isNotEmpty) {
-      try {
-        // Try to extract the check-run id from the json string.
-        final guardJson = jsonDecode(guardJsonStr) as Map<String, Object?>;
-        checkRunId = guardJson['id'] as int? ?? 0;
-      } catch (_) {
-        // ignore
+    if (ciStagings.isNotEmpty) {
+      final guardJsonStr = ciStagings.first.checkRunGuard;
+      if (guardJsonStr.isNotEmpty) {
+        try {
+          if (jsonDecode(guardJsonStr) case {'id': final int id}) {
+            checkRunId = id;
+          } else {
+            checkRunId = 0;
+          }
+        } catch (_) {
+          // ignore
+        }
       }
     }
 
-    var prNum = 0;
-    var author = '';
-
-    final prInfo = await PrCheckRuns.findPullRequestForSha(_firestore, sha);
-    if (prInfo != null) {
-      prNum = prInfo.number ?? 0;
-      author = prInfo.user?.login ?? '';
-    }
-
     final response = rpc_model.PresubmitGuardResponse(
-      prNum: prNum,
+      prNum: prInfo?.number ?? 0,
       checkRunId: checkRunId,
-      author: author,
+      author: prInfo?.user?.login ?? '',
       guardStatus: guardStatus,
       enableGeminiLogAnalysis: config.flags.enableGeminiLogAnalysis,
-      stages: [
-        for (final g in ciStagings)
-          rpc_model.PresubmitGuardStage(
-            name: g.stage?.name ?? 'unknown',
-            createdAt:
-                DateTime.tryParse(g.createTime ?? '')?.millisecondsSinceEpoch ??
-                0,
-            jobs: {
-              for (final MapEntry(:key, :value) in g.checkRuns.entries)
-                key: ChecksExtension.fromTaskConclusion(value),
-            },
-          ),
-      ],
+      stages: stages,
     );
 
     return Response.json(response);

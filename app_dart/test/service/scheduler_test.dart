@@ -1654,9 +1654,16 @@ targets:
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
                   await scheduler.processCheckRunCompleted(
-                    PresubmitCompletedJob.fromCheckRun(
-                      createCocoonCheckRun(name: ignored, sha: 'abc123'),
-                      createGithubRepository().slug(),
+                    PresubmitCompletedJob(
+                      name: ignored,
+                      sha: 'abc123',
+                      slug: createGithubRepository().slug(),
+                      status: TaskStatus.succeeded,
+                      isMergeGroup: false,
+                      checkRunId: 1,
+                      checkSuiteId: 668083231,
+                      headBranch: 'master',
+                      isUnifiedCheckRun: false,
                     ),
                   ),
                   isTrue,
@@ -1689,9 +1696,16 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedJob.fromCheckRun(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                  createGithubRepository().slug(),
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'abc123',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
                 ),
               ),
               isFalse,
@@ -1728,9 +1742,16 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedJob.fromCheckRun(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                  createGithubRepository().slug(),
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'abc123',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
                 ),
               ),
               isFalse,
@@ -1782,9 +1803,16 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedJob.fromCheckRun(
-                    createCocoonCheckRun(name: 'Bar bar', sha: 'abc123'),
-                    createGithubRepository().slug(),
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'abc123',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.succeeded,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
                   ),
                 ),
                 isTrue,
@@ -1892,9 +1920,16 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedJob.fromCheckRun(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                  createGithubRepository().slug(),
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
                 ),
               ),
               isTrue,
@@ -2036,13 +2071,16 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedJob.fromCheckRun(
-                    createCocoonCheckRun(
-                      name: 'Bar bar',
-                      sha: 'testSha',
-                      checkSuiteId: 0,
-                    ),
-                    createGithubRepository().slug(),
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.succeeded,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 0,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
                   ),
                 ),
                 isTrue,
@@ -2145,9 +2183,16 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedJob.fromCheckRun(
-                  createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                  createGithubRepository().slug(),
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
                 ),
               ),
               isTrue,
@@ -2409,13 +2454,16 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedJob.fromCheckRun(
-                    createCocoonCheckRun(
-                      name: 'Bar bar',
-                      sha: 'testSha',
-                      conclusion: 'failure',
-                    ),
-                    createGithubRepository().slug(),
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.failed,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
                   ),
                 ),
                 isTrue,
@@ -2492,14 +2540,16 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedJob.fromCheckRun(
-                    createCocoonCheckRun(
-                      name: 'Bar bar',
-                      sha: 'testSha',
-                      conclusion: 'failure',
-                      headBranch: headBranch,
-                    ),
-                    createGithubRepository().slug(),
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.failed,
+                    isMergeGroup: true,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: headBranch,
+                    isUnifiedCheckRun: false,
                   ),
                 ),
                 isTrue,
@@ -2575,13 +2625,16 @@ targets:
 
             expect(
               await scheduler.processCheckRunCompleted(
-                PresubmitCompletedJob.fromCheckRun(
-                  createCocoonCheckRun(
-                    name: 'Bar bar',
-                    sha: 'testSha',
-                    headBranch: headBranch,
-                  ),
-                  createGithubRepository().slug(),
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: true,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: headBranch,
+                  isUnifiedCheckRun: false,
                 ),
               ),
               isTrue,
@@ -2698,9 +2751,16 @@ targets:
 
               expect(
                 await scheduler.processCheckRunCompleted(
-                  PresubmitCompletedJob.fromCheckRun(
-                    createCocoonCheckRun(name: 'Bar bar', sha: 'testSha'),
-                    createGithubRepository().slug(),
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.succeeded,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
                   ),
                 ),
                 isTrue,

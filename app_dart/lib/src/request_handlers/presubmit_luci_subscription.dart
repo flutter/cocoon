@@ -165,16 +165,12 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       );
     }
     if (!rescheduled) {
-      // Process to the check-run status in the merge queue document during
-      // the LUCI callback.
-      if (config.flags.closeMqGuardAfterPresubmit || isUnifiedCheckRun) {
-        final check = PresubmitCompletedJob.fromBuild(
-          build,
-          userData,
-          status: override == .neutral ? .neutral : null,
-        );
-        await _scheduler.processCheckRunCompleted(check);
-      }
+      final check = PresubmitCompletedJob.fromBuild(
+        build,
+        userData,
+        status: override == .neutral ? .neutral : null,
+      );
+      await _scheduler.processCheckRunCompleted(check);
     }
 
     return Response.emptyOk;

@@ -64,30 +64,6 @@ class PresubmitCompletedJob {
     this.buildId,
   });
 
-  /// Creates a [PresubmitCompletedJob] from a GitHub [CheckRun].
-  factory PresubmitCompletedJob.fromCheckRun(
-    cocoon_checks.CheckRun checkRun,
-    RepositorySlug slug,
-  ) {
-    return PresubmitCompletedJob(
-      name: checkRun.name!,
-      sha: checkRun.headSha!,
-      slug: slug,
-      status: ChecksExtension.fromConclusion(checkRun.conclusion),
-      isMergeGroup: _isMergeGroup(checkRun.checkSuite?.headBranch),
-      checkRunId: checkRun.id!,
-      checkSuiteId: checkRun.checkSuite?.id,
-      headBranch: checkRun.checkSuite?.headBranch,
-      isUnifiedCheckRun: false,
-      // CheckRun model doesn't have time/summary fields currently
-      startTime: null,
-      endTime: null,
-      summary: null,
-      buildNumber: null,
-      buildId: null,
-    );
-  }
-
   /// Creates a [PresubmitCompletedJob] from a BuildBucket [Build].
   factory PresubmitCompletedJob.fromBuild(
     Build build,

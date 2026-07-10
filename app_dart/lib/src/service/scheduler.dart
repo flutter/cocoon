@@ -1627,14 +1627,7 @@ $stacktrace
   ) async {
     switch (checkRunEvent.action) {
       case 'completed':
-        if (!_config.flags.closeMqGuardAfterPresubmit) {
-          await processCheckRunCompleted(
-            PresubmitCompletedJob.fromCheckRun(
-              checkRunEvent.checkRun!,
-              checkRunEvent.repository!.slug(),
-            ),
-          );
-        }
+        // Processing of completed check runs is moved to PresubmitLuciSubscription.
         break;
       case 'rerequested':
         return await _reRun(checkRunEvent);
