@@ -290,6 +290,8 @@ class LuciBuildService {
     final isFusion = slug == Config.flutterSlug;
     final isUnifiedCheckRunFlow = _config.flags
         .isUnifiedCheckRunFlowEnabledForUser(pullRequest.user!.login!);
+    final isOrderedPresubmit = _config.flags
+        .isOrderedPresubmitEnabledForUser(pullRequest.user!.login!);
     final cipdVersion = await _getAndCheckRecipeVersion(
       slug: pullRequest.base!.repo!.slug(),
       branch: pullRequest.base!.ref!,
@@ -393,9 +395,13 @@ class LuciBuildService {
                     GuardCheckRunIdBuildTag(guardCheckRunId: checkRunGuard.id!),
                     if (attemptNumber > 1)
                       CurrentAttemptBuildTag(attemptNumber: attemptNumber),
+                    if (isOrderedPresubmit)
+                      OrderingKeyTag(orderingKey: pullRequest.head!.sha!),
                   ])
                 : BuildTags([
                     GitHubCheckRunIdBuildTag(checkRunId: userData.checkRunId!),
+                    if (isOrderedPresubmit)
+                      OrderingKeyTag(orderingKey: pullRequest.head!.sha!),
                   ]),
             dimensions: requestedDimensions,
           ),

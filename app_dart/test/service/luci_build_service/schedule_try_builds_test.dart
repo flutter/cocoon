@@ -12,6 +12,7 @@ import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:cocoon_service/src/service/flags/ordered_presubmit_flags.dart';
 import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
@@ -539,6 +540,69 @@ void main() {
       );
       expect(userData.checkRunId, 456);
       expect(userData.guardCheckRunId, isNull);
+    });
+  });
+
+  group('Ordered Presubmit', () {
+    test('adds OrderingKeyTag when ordered presubmit is enabled', () async {
+      final pullRequest = generatePullRequest(
+        id: 1,
+        repo: 'flutter',
+        headSha: 'headsha123',
+      );
+
+      final buildTarget = generateTarget(
+        1,
+        properties: {'os': 'abc'},
+        slug: RepositorySlug.full('flutter/flutter'),
+        name: 'Linux foo',
+      );
+
+      luci = LuciBuildService(
+        config: FakeConfig(
+          dynamicConfig: DynamicConfig(
+            orderedPresubmit: OrderedPresubmit(useForAll: true),
+          ),
+        ),
+        cache: CacheService.inMemory(),
+        buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        pubsub: pubSub,
+        gerritService: gerritService,
+        firestore: firestore,
+      );
+
+      when(
+        mockGithubChecksUtil.createCheckRun(any, any, any, any),
+      ).thenAnswer((_) async => generateCheckRun(1, name: 'Linux foo'));
+
+      await expectLater(
+        luci.scheduleTryBuilds(
+          pullRequest: pullRequest,
+          targets: [buildTarget],
+          engineArtifacts: EngineArtifacts.builtFromSource(
+            commitSha: pullRequest.head!.sha!,
+          ),
+          stage: CiStage.fusionTests,
+        ),
+        completion([isTarget.hasName('Linux foo')]),
+      );
+
+      final bbv2.ScheduleBuildRequest scheduleBuild;
+      {
+        final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        batchRequest.mergeFromProto3Json(pubSub.messages.single);
+        scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      }
+
+      final tags = BuildTags.fromStringPairs(scheduleBuild.tags);
+      expect(
+        tags.buildTags.contains(
+          OrderingKeyTag(orderingKey: pullRequest.head!.sha!),
+        ),
+        isTrue,
+        reason: 'Should have OrderingKeyTag with commit sha',
+      );
     });
   });
 
