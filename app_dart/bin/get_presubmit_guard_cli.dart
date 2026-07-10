@@ -89,7 +89,7 @@ void main(List<String> args) async {
     print(r'''
 Usage example:
   ACCESS_TOKEN="$(gcloud auth application-default print-access-token)" \
-  dart bin/get_presubmit_guard.dart \
+  dart bin/get_presubmit_guard_cli.dart \
     --slug fltuter/packages \
     --sha GIT_SHA
     ''');
