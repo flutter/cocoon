@@ -257,17 +257,17 @@ class RedisCacheService extends CacheService {
     if (entries.isEmpty) return;
     const insertVersionedScript = '''
       local numKeys = tonumber(ARGV[1])
-      local subcache = ARGV[2]
       for i = 1, numKeys do
         local key = KEYS[i]
-        local val = ARGV[2 + (i - 1) * 3 + 1]
-        local rev = tonumber(ARGV[2 + (i - 1) * 3 + 2])
-        local ttl = tonumber(ARGV[2 + (i - 1) * 3 + 3])
-        
-        local existingRev = tonumber(redis.call("hget", "revisions:" .. subcache, key) or 0)
+        local val = ARGV[1 + (i - 1) * 3 + 1]
+        local rev = tonumber(ARGV[1 + (i - 1) * 3 + 2])
+        local ttl = tonumber(ARGV[1 + (i - 1) * 3 + 3])
+
+        local revKey = "revisions/" .. key
+        local existingRev = tonumber(redis.call("get", revKey) or 0)
         if rev > existingRev or (not redis.call("exists", key)) then
           redis.call("set", key, val, "PX", ttl)
-          redis.call("hset", "revisions:" .. subcache, key, rev)
+          redis.call("set", revKey, rev, "PX", ttl)
         end
       end
       return 1
@@ -279,7 +279,6 @@ class RedisCacheService extends CacheService {
         final keys = chunk.map((e) => '$subcacheName/${e.key}').toList();
         final args = [
           chunk.length.toString(),
-          subcacheName,
           for (final e in chunk) ...[
             base64.encode(e.value),
             e.revisionId.toString(),
@@ -444,10 +443,9 @@ class RedisCacheService extends CacheService {
   Future<void> purge(String subcacheName, String key) async {
     final redisKey = '$subcacheName/$key';
     try {
-      await _runCommand((client) => client.send_object(['DEL', redisKey]));
       await _runCommand(
         (client) =>
-            client.send_object(['HDEL', 'revisions:$subcacheName', redisKey]),
+            client.send_object(['DEL', redisKey, 'revisions/$redisKey']),
       );
     } catch (e) {
       log.warn('Unable to purge value for $key from cache.', e);

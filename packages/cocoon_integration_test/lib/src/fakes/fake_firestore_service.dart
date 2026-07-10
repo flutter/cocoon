@@ -388,6 +388,18 @@ abstract base class _FakeInMemoryFirestoreService
   }
 
   @override
+  Future<List<Document>> batchGetDocuments(List<String> names) async {
+    final results = <Document>[];
+    for (final name in names) {
+      final doc = tryPeekDocumentByName(name);
+      if (doc != null) {
+        results.add(doc);
+      }
+    }
+    return results;
+  }
+
+  @override
   Future<Document> createDocument(
     Document document, {
     required String collectionId,

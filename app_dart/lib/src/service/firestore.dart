@@ -82,12 +82,13 @@ final kFieldMapRegExp = RegExp(
 ///   payload lookup across `tasks` (`MGET`).
 /// - If any individual task entries have expired or are missing from `tasks`, successfully retrieved cached tasks
 ///   ([foundTasks]) are preserved immediately. Missing document IDs (`missingDocIds`) are queried individually via
-///   [getDocument], inserted into `tasks` via `insertVersioned`, and combined with [foundTasks]—avoiding a full table query.
+///   [batchGetDocuments], inserted into `tasks` via `insertVersioned`, and combined with [foundTasks]—avoiding a full table query.
 /// - If `tasks_by_commit_ids` is missing entirely (`docIds.isEmpty`), we execute a full query (`_fetchAndCacheCommitTasks`),
 ///   populate `tasks` for all items, and initialize the commit Set via [CacheService.updateSet].
 mixin FirestoreQueries {
   CacheService? get cache => null;
   Future<Document> getDocument(String name, {Transaction? transaction});
+  Future<List<Document>> batchGetDocuments(List<String> names);
 
   static const String _subcacheTasksByCommitIds = 'tasks_by_commit_ids';
 
@@ -180,6 +181,11 @@ mixin FirestoreQueries {
       }
       final docId = p.basename(docName);
 
+      if (write.delete != null) {
+        await cache!.purge('tasks', docId);
+        continue;
+      }
+
       if (write.update != null &&
           write.updateMask == null &&
           write.update!.fields != null &&
@@ -229,6 +235,13 @@ mixin FirestoreQueries {
           !docName.contains('/documents/$kTaskCollectionId/')) {
         continue;
       }
+      final docId = p.basename(docName);
+
+      if (write.delete != null) {
+        await cache!.purge('tasks', docId);
+        continue;
+      }
+
       if (write.update != null &&
           write.updateMask == null &&
           write.update!.fields != null &&
@@ -421,20 +434,18 @@ mixin FirestoreQueries {
       if (missingDocIds.isEmpty) {
         tasks = foundTasks;
       } else {
-        final fetchedMissingTasks = <Task>[];
-        for (final missingId in missingDocIds) {
-          try {
-            final document = await getDocument(
-              p.posix.join(
+        final missingNames = missingDocIds
+            .map(
+              (missingId) => p.posix.join(
                 kDatabase,
                 'documents',
                 kTaskCollectionId,
                 missingId,
               ),
-            );
-            fetchedMissingTasks.add(Task.fromDocument(document));
-          } catch (_) {}
-        }
+            )
+            .toList();
+        final documents = await batchGetDocuments(missingNames);
+        final fetchedMissingTasks = documents.map(Task.fromDocument).toList();
         if (fetchedMissingTasks.isNotEmpty) {
           await _cacheTaskDocuments(fetchedMissingTasks);
           foundTasks.addAll(fetchedMissingTasks);
@@ -664,6 +675,21 @@ class FirestoreService with FirestoreQueries {
       name,
       transaction: transaction?.identifier,
     );
+  }
+
+  /// Gets multiple documents based on a list of names in a single batch request.
+  @override
+  Future<List<Document>> batchGetDocuments(List<String> names) async {
+    if (names.isEmpty) return const [];
+    final request = BatchGetDocumentsRequest(documents: names);
+    final response = await _api.projects.databases.documents.batchGet(
+      request,
+      kDatabase,
+    );
+    return response
+        .map((element) => element.found)
+        .whereType<Document>()
+        .toList();
   }
 
   /// Creates a document.
