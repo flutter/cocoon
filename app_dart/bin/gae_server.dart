@@ -43,7 +43,10 @@ Future<void> main() async {
     }
 
     final cache = CacheService.redis();
-    final firestore = await FirestoreService.from(const GoogleAuthProvider());
+    final firestore = await FirestoreService.from(
+      const GoogleAuthProvider(),
+      cache: cache,
+    );
     final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
 
     // Start with a fresh copy of the DynamicConfig. If this throws, the server

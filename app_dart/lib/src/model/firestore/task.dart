@@ -5,6 +5,9 @@
 /// @docImport 'commit.dart';
 library;
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
@@ -113,6 +116,7 @@ final class Task extends AppDocument<Task> {
   static const fieldStatus = 'status';
   static const fieldTestFlaky = 'testFlaky';
   static const fieldAttempt = 'attempt';
+  static const fieldRevisionId = 'revisionId';
 
   /// Returns a document ID for a task from the given parameters.
   static AppDocumentId<Task> documentIdFor({
@@ -136,6 +140,19 @@ final class Task extends AppDocument<Task> {
     fromDocument: Task.fromDocument,
   );
 
+  static Uint8List _serializeTask(Task task) {
+    return Uint8List.fromList(
+      utf8.encode(
+        json.encode(Document(name: task.name, fields: task.fields).toJson()),
+      ),
+    );
+  }
+
+  static Task _deserializeTask(Uint8List data) {
+    final jsonMap = json.decode(utf8.decode(data)) as Map<String, dynamic>;
+    return Task.fromDocument(Document.fromJson(jsonMap));
+  }
+
   /// Lookup [Task] from Firestore.
   ///
   /// `documentName` follows `/projects/{project}/databases/{database}/documents/{document_path}`
@@ -143,10 +160,32 @@ final class Task extends AppDocument<Task> {
     FirestoreService firestoreService,
     AppDocumentId<Task> id,
   ) async {
+    if (firestoreService.cache != null) {
+      final cachedTask = await firestoreService.cache!.get(
+        'tasks',
+        id.documentId,
+      );
+      if (cachedTask != null) {
+        return _deserializeTask(cachedTask);
+      }
+    }
+
     final document = await firestoreService.getDocument(
       p.posix.join(kDatabase, 'documents', kTaskCollectionId, id.documentId),
     );
-    return Task.fromDocument(document);
+    final task = Task.fromDocument(document);
+
+    if (firestoreService.cache != null) {
+      await firestoreService.cache!.insertVersioned('tasks', [
+        VersionedCacheEntry(
+          key: id.documentId,
+          value: _serializeTask(task),
+          revisionId: task.revisionId,
+          ttl: const Duration(hours: 12),
+        ),
+      ]);
+    }
+    return task;
   }
 
   factory Task({
@@ -178,6 +217,7 @@ final class Task extends AppDocument<Task> {
         fieldStatus: status.value.toValue(),
         fieldTestFlaky: testFlaky.toValue(),
         fieldAttempt: currentAttempt.toValue(),
+        fieldRevisionId: 1.toValue(),
       },
       name: p.posix.join(
         kDatabase,
@@ -229,11 +269,25 @@ final class Task extends AppDocument<Task> {
         fields: {fieldStatus: Value(stringValue: status.value)},
       ),
       updateMask: DocumentMask(fieldPaths: [fieldStatus]),
+      updateTransforms: [
+        FieldTransform(
+          fieldPath: fieldRevisionId,
+          increment: Value(integerValue: '1'),
+        ),
+      ],
     );
   }
 
   /// The task was run successfully.
   static const statusSucceeded = TaskStatus.succeeded;
+
+  int get revisionId => fields.containsKey(fieldRevisionId)
+      ? int.parse(fields[fieldRevisionId]!.integerValue!)
+      : 1;
+
+  void incrementRevisionId() {
+    fields[fieldRevisionId] = (revisionId + 1).toValue();
+  }
 
   /// The timestamp (in milliseconds since the Epoch) that this task was
   /// created.
@@ -308,14 +362,17 @@ final class Task extends AppDocument<Task> {
 
   void setStatus(TaskStatus status) {
     fields[fieldStatus] = status.value.toValue();
+    incrementRevisionId();
   }
 
   void setEndTimestamp(int endTimestamp) {
     fields[fieldEndTimestamp] = endTimestamp.toValue();
+    incrementRevisionId();
   }
 
   void setTestFlaky(bool testFlaky) {
     fields[fieldTestFlaky] = testFlaky.toValue();
+    incrementRevisionId();
   }
 
   void updateFromBuild(bbv2.Build build) {
@@ -335,6 +392,7 @@ final class Task extends AppDocument<Task> {
         .toValue();
 
     _setStatusFromLuciStatus(build);
+    incrementRevisionId();
   }
 
   void resetAsRetry({int? attempt, DateTime? now}) {
@@ -360,11 +418,13 @@ final class Task extends AppDocument<Task> {
       fieldTestFlaky: false.toValue(),
       fieldCommitSha: commitSha.toValue(),
       fieldAttempt: attempt.toValue(),
+      fieldRevisionId: 1.toValue(),
     };
   }
 
   void setBuildNumber(int buildNumber) {
     fields[fieldBuildNumber] = buildNumber.toValue();
+    incrementRevisionId();
   }
 
   void _setStatusFromLuciStatus(bbv2.Build build) {

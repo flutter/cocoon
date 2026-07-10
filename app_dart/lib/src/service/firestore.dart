@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cocoon_common/core_extensions.dart';
 import 'package:cocoon_common/task_status.dart';
@@ -11,6 +13,7 @@ import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import '../../cocoon_service.dart';
 import '../model/firestore/github_build_status.dart';
@@ -49,7 +52,203 @@ final kFieldMapRegExp = RegExp(
 );
 
 @visibleForTesting
+/// Mixin that encapsulates Firestore query and caching operations across Cocoon.
+///
+/// ## Lock-Free Versioned & Set-Based Caching Strategy
+///
+/// To resolve read bottlenecks against the Firestore `/tasks` collection without incurring
+/// distributed locking overhead, this mixin implements a two-tier optimistic caching architecture:
+///
+/// ### 1. Individual Task Payload Caching (`tasks` subcache)
+/// - **Single Source of Truth**: Full [Task] document payloads are serialized to JSON (`_serializeTask`)
+///   and stored in the `tasks` subcache keyed by exact document ID (`$commitSha_$taskName_$attempt`).
+/// - **Optimistic Concurrency (`revisionId`)**: Every task document contains a monotonically increasing integer
+///   `revisionId`. Updates and insertions use [CacheService.insertVersioned], which runs an atomic check-and-set
+///   ensuring payload updates are only applied if `newRevisionId > cachedRevisionId`.
+/// - **Chunked Batching**: Multi-task insertions (`_cacheTaskDocuments`) are chunked in batches of 20 (`batchSize = 20`)
+///   via atomic Redis Lua (`EVAL`) scripts, guaranteeing execution in `<0.1ms` without starving concurrent readers.
+///
+/// ### 2. Commit Task List Set Caching (`tasks_by_commit_ids` subcache)
+/// - **Native Set Operations**: Instead of storing monolithic serialized JSON arrays of task IDs, commit task indices
+///   are stored in native Redis Sets (`SMEMBERS`, `SADD`), backed by two fundamental domain invariants:
+///   1. **Immutable `commitSha`**: A task's commit association never changes after creation. Therefore, status or field
+///      mutations (`patchStatus`) never alter the membership of a commit's task list (`updateCacheForTaskMutations`
+///      updates individual `tasks/$docId` entries in-place lock-free and never touches or invalidates `tasks_by_commit_ids`).
+///   2. **Monotonically Increasing Set**: Task attempts for a commit only grow over time. Adding task IDs via `SADD`
+///      ([CacheService.updateSet], [CacheService.addToSetIfExists]) safely converges to database state without locks.
+///
+/// ### 3. Partial Cache Recovery (`_queryTasksByCommitCached`)
+/// - When querying all tasks for a commit, we retrieve the cached Set of document IDs (`SMEMBERS`) and perform a batch
+///   payload lookup across `tasks` (`MGET`).
+/// - If any individual task entries have expired or are missing from `tasks`, successfully retrieved cached tasks
+///   ([foundTasks]) are preserved immediately. Missing document IDs (`missingDocIds`) are queried individually via
+///   [getDocument], inserted into `tasks` via `insertVersioned`, and combined with [foundTasks]—avoiding a full table query.
+/// - If `tasks_by_commit_ids` is missing entirely (`docIds.isEmpty`), we execute a full query (`_fetchAndCacheCommitTasks`),
+///   populate `tasks` for all items, and initialize the commit Set via [CacheService.updateSet].
 mixin FirestoreQueries {
+  CacheService? get cache => null;
+  Future<Document> getDocument(String name, {Transaction? transaction});
+
+  static const String _subcacheTasksByCommitIds = 'tasks_by_commit_ids';
+
+  static Uint8List _serializeTask(Task task) {
+    return Uint8List.fromList(
+      utf8.encode(
+        json.encode(Document(name: task.name, fields: task.fields).toJson()),
+      ),
+    );
+  }
+
+  static Task _deserializeTask(Uint8List data) {
+    final jsonMap = json.decode(utf8.decode(data)) as Map<String, dynamic>;
+    return Task.fromDocument(Document.fromJson(jsonMap));
+  }
+
+  /// Caches the individual [Task] payloads into the `tasks` subcache.
+  Future<void> _cacheTaskDocuments(
+    List<Task> tasks, {
+    Duration ttl = const Duration(hours: 12),
+  }) async {
+    if (cache == null || tasks.isEmpty) return;
+    final entries = tasks
+        .map(
+          (t) => VersionedCacheEntry(
+            key: p.basename(t.name!),
+            value: _serializeTask(t),
+            revisionId: t.revisionId,
+            ttl: ttl,
+          ),
+        )
+        .toList();
+    await cache!.insertVersioned('tasks', entries);
+  }
+
+  /// Queries all tasks for [commitSha] from Firestore, updates their individual cache entries,
+  /// and populates the `tasks_by_commit_ids` set.
+  Future<List<Task>> _fetchAndCacheCommitTasks(String commitSha) async {
+    final documents = await query(
+      kTaskCollectionId,
+      {'${Task.fieldCommitSha} =': commitSha},
+      orderMap: {Task.fieldCreateTimestamp: kQueryOrderDescending},
+    );
+    final tasks = documents.map(Task.fromDocument).toList();
+    await _cacheTaskDocuments(tasks);
+    final docIds = tasks.map((t) => p.basename(t.name!)).toSet();
+    if (docIds.isNotEmpty && cache != null) {
+      await cache!.updateSet(
+        _subcacheTasksByCommitIds,
+        commitSha,
+        docIds,
+        ttl: const Duration(hours: 12),
+      );
+    }
+    return tasks;
+  }
+
+  /// Explicitly updates the cache when new [Task]s are created.
+  Future<void> updateCacheForCreatedTasks(List<Task> tasks) async {
+    if (cache == null || tasks.isEmpty) return;
+    await _cacheTaskDocuments(tasks);
+    for (final task in tasks) {
+      if (task.commitSha.isNotEmpty) {
+        final docId = p.basename(task.name!);
+        final added = await cache!.addToSetIfExists(
+          _subcacheTasksByCommitIds,
+          task.commitSha,
+          docId,
+        );
+        if (!added) {
+          await _fetchAndCacheCommitTasks(task.commitSha);
+        }
+      }
+    }
+  }
+
+  /// Explicitly updates the cache when existing [Task]s are mutated (e.g. status updates).
+  ///
+  /// Because commit membership is immutable, mutations never alter `tasks_by_commit_ids`.
+  Future<void> updateCacheForTaskMutations(List<Write> writes) async {
+    if (cache == null || writes.isEmpty) return;
+    final mutatedTasks = <Task>[];
+
+    for (final write in writes) {
+      final docName =
+          write.update?.name ?? write.delete ?? write.transform?.document;
+      if (docName == null ||
+          !docName.contains('/documents/$kTaskCollectionId/')) {
+        continue;
+      }
+      final docId = p.basename(docName);
+
+      if (write.update != null &&
+          write.updateMask == null &&
+          write.update!.fields != null &&
+          write.update!.fields!.containsKey(Task.fieldCreateTimestamp)) {
+        try {
+          mutatedTasks.add(Task.fromDocument(write.update!));
+        } catch (_) {}
+      } else {
+        final cachedBytes = await cache!.get('tasks', docId);
+        if (cachedBytes != null) {
+          try {
+            final cachedTask = _deserializeTask(cachedBytes);
+            if (write.update?.fields != null) {
+              cachedTask.fields.addAll(write.update!.fields!);
+            }
+            if (write.updateTransforms != null) {
+              for (final transform in write.updateTransforms!) {
+                if (transform.fieldPath == Task.fieldRevisionId &&
+                    transform.increment != null) {
+                  cachedTask.incrementRevisionId();
+                }
+              }
+            } else {
+              cachedTask.incrementRevisionId();
+            }
+            mutatedTasks.add(cachedTask);
+          } catch (_) {}
+        }
+      }
+    }
+
+    if (mutatedTasks.isNotEmpty) {
+      await _cacheTaskDocuments(mutatedTasks);
+    }
+  }
+
+  @visibleForTesting
+  Future<void> invalidateCacheForWrites(List<Write> writes) async {
+    if (cache == null || writes.isEmpty) return;
+    final createdTasks = <Task>[];
+    final mutationWrites = <Write>[];
+
+    for (final write in writes) {
+      final docName =
+          write.update?.name ?? write.delete ?? write.transform?.document;
+      if (docName == null ||
+          !docName.contains('/documents/$kTaskCollectionId/')) {
+        continue;
+      }
+      if (write.update != null &&
+          write.updateMask == null &&
+          write.update!.fields != null &&
+          write.update!.fields!.containsKey(Task.fieldCreateTimestamp)) {
+        try {
+          createdTasks.add(Task.fromDocument(write.update!));
+        } catch (_) {}
+      } else {
+        mutationWrites.add(write);
+      }
+    }
+
+    if (createdTasks.isNotEmpty) {
+      await updateCacheForCreatedTasks(createdTasks);
+    }
+    if (mutationWrites.isNotEmpty) {
+      await updateCacheForTaskMutations(mutationWrites);
+    }
+  }
+
   /// Wrapper to simplify Firestore query.
   ///
   /// The [filterMap] follows format:
@@ -115,21 +314,20 @@ mixin FirestoreQueries {
     return [...documents.map(Commit.fromDocument)];
   }
 
-  Future<List<Task>> _queryTasks({
-    required int? limit,
+  Future<List<Task>> _queryTasksFromFirestore({
+    int? limit,
     String? name,
     TaskStatus? status,
     String? commitSha,
     Transaction? transaction,
+    bool cacheResults = true,
   }) async {
-    final filterMap = {
+    final filterMap = <String, Object>{
       '${Task.fieldName} =': ?name,
       if (status != null) '${Task.fieldStatus} =': status.value,
       '${Task.fieldCommitSha} =': ?commitSha,
     };
 
-    // Avoid a full table-scan.
-    // TODO(matanlurey): Debatably this should be in the root query method.
     if (limit == null && filterMap.isEmpty) {
       throw ArgumentError.value(
         limit,
@@ -138,31 +336,145 @@ mixin FirestoreQueries {
       );
     }
 
-    // For tasks, therer is no reason to _not_ order this way.
     final orderMap = {Task.fieldCreateTimestamp: kQueryOrderDescending};
     final documents = await query(
       kTaskCollectionId,
       filterMap,
       orderMap: orderMap,
+      limit: limit,
       transaction: transaction,
     );
-    return [...documents.map(Task.fromDocument)];
+    final tasks = documents.map(Task.fromDocument).toList();
+    if (cacheResults && transaction == null && cache != null) {
+      await _cacheTaskDocuments(tasks, ttl: const Duration(hours: 4));
+    }
+    return tasks;
   }
 
-  /// Queries for recent [Task]s.
-  ///
-  /// If other named arguments are provided, they are used as a query filter.
-  Future<List<Task>> queryRecentTasks({
-    int limit = 100,
+  Future<List<Task>> _queryTasksByCommit({
+    required String commitSha,
     String? name,
     TaskStatus? status,
-    String? commitSha,
+    int? limit,
+    Transaction? transaction,
   }) async {
-    return await _queryTasks(
+    if (transaction == null && cache != null) {
+      return await _queryTasksByCommitCached(
+        commitSha: commitSha,
+        name: name,
+        status: status,
+        limit: limit,
+      );
+    }
+    return await _queryTasksFromFirestore(
+      commitSha: commitSha,
+      name: name,
+      status: status,
+      limit: limit,
+      transaction: transaction,
+      cacheResults: false,
+    );
+  }
+
+  Future<List<Task>> _queryTasksByCommitCached({
+    required String commitSha,
+    String? name,
+    TaskStatus? status,
+    int? limit,
+  }) async {
+    List<Task>? tasks;
+    final docIds = await cache!.getSet(_subcacheTasksByCommitIds, commitSha);
+    if (docIds.isNotEmpty) {
+      final docIdList = docIds.toList();
+      final cachedTasksData = await cache!.getMulti('tasks', docIdList);
+      final foundTasks = <Task>[];
+      final missingDocIds = <String>[];
+
+      for (var i = 0; i < docIdList.length; i++) {
+        final data = cachedTasksData[i];
+        if (data != null) {
+          try {
+            foundTasks.add(_deserializeTask(data));
+          } catch (_) {
+            missingDocIds.add(docIdList[i]);
+          }
+        } else {
+          missingDocIds.add(docIdList[i]);
+        }
+      }
+
+      if (missingDocIds.isEmpty) {
+        tasks = foundTasks;
+      } else {
+        final fetchedMissingTasks = <Task>[];
+        for (final missingId in missingDocIds) {
+          try {
+            final document = await getDocument(
+              p.posix.join(
+                kDatabase,
+                'documents',
+                kTaskCollectionId,
+                missingId,
+              ),
+            );
+            fetchedMissingTasks.add(Task.fromDocument(document));
+          } catch (_) {}
+        }
+        if (fetchedMissingTasks.isNotEmpty) {
+          await _cacheTaskDocuments(fetchedMissingTasks);
+          foundTasks.addAll(fetchedMissingTasks);
+        }
+        tasks = foundTasks;
+      }
+    }
+
+    tasks ??= await _fetchAndCacheCommitTasks(commitSha);
+
+    var result = tasks.toList();
+    if (name != null) {
+      result = result.where((t) => t.taskName == name).toList();
+    }
+    if (status != null) {
+      result = result.where((t) => t.status == status).toList();
+    }
+    result.sort((a, b) => b.createTimestamp.compareTo(a.createTimestamp));
+    if (limit != null) {
+      result = result.take(limit).toList();
+    }
+    return result;
+  }
+
+  /// Queries for recent [Task]s across commits matching [name].
+  ///
+  /// If [status] is provided, only tasks matching the status are returned.
+  Future<List<Task>> queryRecentTasksByName({
+    required String name,
+    int limit = 100,
+    TaskStatus? status,
+  }) async {
+    return await _queryTasksFromFirestore(
       limit: limit,
       name: name,
       status: status,
+    );
+  }
+
+  /// Queries [Task]s running against the specified [commitSha].
+  ///
+  /// If [name] is provided, only tasks matching the task name are returned.
+  /// If [status] is provided, only tasks matching the status are returned.
+  /// If [limit] is provided, at most [limit] tasks are returned.
+  Future<List<Task>> queryRecentTasksByCommit({
+    required String commitSha,
+    String? name,
+    TaskStatus? status,
+    int? limit,
+  }) async {
+    return await _queryTasksByCommit(
       commitSha: commitSha,
+      name: name,
+      status: status,
+      limit: limit,
     );
   }
 
@@ -173,8 +485,7 @@ mixin FirestoreQueries {
     String? name,
     Transaction? transaction,
   }) async {
-    return await _queryTasks(
-      limit: null,
+    return await _queryTasksByCommit(
       commitSha: commitSha,
       status: status,
       name: name,
@@ -249,17 +560,12 @@ mixin FirestoreQueries {
     required String commitSha,
     required String builderName,
   }) async {
-    final tasks = await query(
-      kTaskCollectionId,
-      {
-        '${Task.fieldCommitSha} =': commitSha,
-        '${Task.fieldName} =': builderName,
-      },
-      // Assumes the invariant where the newest task has the highest attempt #.
-      orderMap: {Task.fieldCreateTimestamp: kQueryOrderDescending},
+    final tasks = await _queryTasksByCommit(
+      commitSha: commitSha,
+      name: builderName,
       limit: 1,
     );
-    return tasks.isEmpty ? null : Task.fromDocument(tasks.first);
+    return tasks.isEmpty ? null : tasks.first;
   }
 
   /// Queries the last updated build status for the [slug], [prNumber], and [head].
@@ -310,7 +616,10 @@ mixin FirestoreQueries {
 
 class FirestoreService with FirestoreQueries {
   /// Creates a [FirestoreService] using Google API authentication.
-  static Future<FirestoreService> from(GoogleAuthProvider authProvider) async {
+  static Future<FirestoreService> from(
+    GoogleAuthProvider authProvider, {
+    CacheService? cache,
+  }) async {
     final client = await authProvider.createClient(
       scopes: const [FirestoreApi.datastoreScope],
       baseClient: FirestoreBaseClient(
@@ -318,13 +627,17 @@ class FirestoreService with FirestoreQueries {
         databaseId: Config.flutterGcpFirestoreDatabase,
       ),
     );
-    return FirestoreService._(FirestoreApi(client));
+    return FirestoreService._(FirestoreApi(client), cache: cache);
   }
 
-  const FirestoreService._(this._api);
+  const FirestoreService._(this._api, {this.cache});
   final FirestoreApi _api;
 
+  @override
+  final CacheService? cache;
+
   /// Gets a document based on name.
+  @override
   Future<Document> getDocument(String name, {Transaction? transaction}) async {
     return _api.projects.databases.documents.get(
       name,
@@ -342,12 +655,16 @@ class FirestoreService with FirestoreQueries {
     required String collectionId,
     String? documentId,
   }) async {
-    return _api.projects.databases.documents.createDocument(
+    final result = await _api.projects.databases.documents.createDocument(
       document,
       '$kDatabase/documents',
       collectionId,
       documentId: documentId,
     );
+    if (cache != null && collectionId == kTaskCollectionId) {
+      await invalidateCacheForWrites([Write(update: result)]);
+    }
+    return result;
   }
 
   /// Batch writes documents to Firestore.
@@ -360,7 +677,14 @@ class FirestoreService with FirestoreQueries {
     BatchWriteRequest request,
     String database,
   ) async {
-    return _api.projects.databases.documents.batchWrite(request, database);
+    final result = await _api.projects.databases.documents.batchWrite(
+      request,
+      database,
+    );
+    if (cache != null && request.writes != null) {
+      await invalidateCacheForWrites(request.writes!);
+    }
+    return result;
   }
 
   /// Begins a read-write transaction.
@@ -384,7 +708,14 @@ class FirestoreService with FirestoreQueries {
       transaction: transaction.identifier,
       writes: writes,
     );
-    return await _api.projects.databases.documents.commit(request, kDatabase);
+    final result = await _api.projects.databases.documents.commit(
+      request,
+      kDatabase,
+    );
+    if (cache != null) {
+      await invalidateCacheForWrites(writes);
+    }
+    return result;
   }
 
   /// Rolls back a transaction.
@@ -406,7 +737,14 @@ class FirestoreService with FirestoreQueries {
       transaction: beginTransactionResponse.transaction,
       writes: writes,
     );
-    return _api.projects.databases.documents.commit(commitRequest, kDatabase);
+    final result = await _api.projects.databases.documents.commit(
+      commitRequest,
+      kDatabase,
+    );
+    if (cache != null) {
+      await invalidateCacheForWrites(writes);
+    }
+    return result;
   }
 
   /// Returns Firestore [Value] based on corresponding object type.

@@ -214,7 +214,9 @@ class Scheduler {
       final priority = await target.schedulerPolicy.triggerPriority(
         taskName: task.taskName,
         commitSha: commit.sha,
-        recentTasks: await _firestore.queryRecentTasks(name: task.taskName),
+        recentTasks: await _firestore.queryRecentTasksByName(
+          name: task.taskName,
+        ),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
@@ -1727,10 +1729,10 @@ $stacktrace
           final fs.Task fsTask;
 
           // Query the lastest run of the `checkName` againt commit `sha`.
-          final fsTasks = await _firestore.queryRecentTasks(
-            limit: 1,
+          final fsTasks = await _firestore.queryRecentTasksByCommit(
             commitSha: fsCommit.sha,
             name: checkName,
+            limit: 1,
           );
           if (fsTasks.isEmpty) {
             throw StateError('Expected 1+ tasks for $checkName');
