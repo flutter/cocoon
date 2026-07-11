@@ -2,16 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:archive/archive.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../service/luci_build_service/build_tags.dart';
-import '../service/luci_build_service/user_data.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -43,55 +38,8 @@ final class PresubmitLuciSubscription extends PresubmitSubscription {
   final PubSub pubsub;
 
   @override
-  Future<Response> post(Request request) async {
-    if (message.data == null) {
-      log.info('no data in message');
-      return Response.emptyOk;
-    }
-
-    final pubSubCallBack = bbv2.PubSubCallBack();
-    pubSubCallBack.mergeFromProto3Json(
-      jsonDecode(message.data!) as Map<String, dynamic>,
-    );
-
-    final buildsPubSub = pubSubCallBack.buildPubsub;
-
-    if (!buildsPubSub.hasBuild()) {
-      log.info('no build information in message');
-      return Response.emptyOk;
-    }
-
-    final build = buildsPubSub.build;
-
-    // Add build fields that are stored in a separate compressed buffer.
-    build.mergeFromBuffer(
-      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
-    );
-
-    final builderName = build.builder.builder;
-    final tagSet = BuildTags.fromStringPairs(build.tags);
-
-    log.info('Available tags: ${build.tags}');
-
-    // Skip status update if we can not get the sha tag.
-    if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
-      log.warn('Buildset tag not included, skipping Status Updates');
-      return Response.emptyOk;
-    }
-
-    log.info(
-      'Setting status (${build.status}) for build id: ${build.id} named: $builderName',
-    );
-
-    if (!pubSubCallBack.hasUserData()) {
-      log.info('No user data was found in this request');
-      return Response.emptyOk;
-    }
-
-    final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
-    log.info('User Data Json: ${userData.toJson()}');
-
-    final orderingKey = tagSet.getTagOfType<OrderingKeyTag>()?.orderingKey;
+  Future<bool> interceptBuild(BuildTags tags) async {
+    final orderingKey = tags.getTagOfType<OrderingKeyTag>()?.orderingKey;
     if (orderingKey != null) {
       log.info(
         'Ordering key $orderingKey found, forwarding message to ordered-presubmit topic',
@@ -101,10 +49,8 @@ final class PresubmitLuciSubscription extends PresubmitSubscription {
         message.data!,
         orderingKey: orderingKey,
       );
-      return Response.emptyOk;
+      return true;
     }
-
-    await processBuild(build: build, userData: userData, tagSet: tagSet);
-    return Response.emptyOk;
+    return false;
   }
 }

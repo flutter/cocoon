@@ -2,9 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
 import '../model/bbv2_extension.dart';
@@ -53,12 +57,79 @@ base class PresubmitSubscription extends SubscriptionHandler {
   final Scheduler _scheduler;
   final FirestoreService _firestore;
 
+  @override
+  Future<Response> post(Request request) async {
+    if (message.data == null) {
+      log.info('no data in message');
+      return Response.emptyOk;
+    }
+
+    final pubSubCallBack = bbv2.PubSubCallBack();
+    pubSubCallBack.mergeFromProto3Json(
+      jsonDecode(message.data!) as Map<String, dynamic>,
+    );
+
+    final buildsPubSub = pubSubCallBack.buildPubsub;
+
+    if (!buildsPubSub.hasBuild()) {
+      log.info('no build information in message');
+      return Response.emptyOk;
+    }
+
+    final build = buildsPubSub.build;
+
+    // Add build fields that are stored in a separate compressed buffer.
+    build.mergeFromBuffer(
+      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
+    );
+
+    final builderName = build.builder.builder;
+    final tagSet = BuildTags.fromStringPairs(build.tags);
+
+    log.info('Available tags: ${build.tags}');
+
+    // Skip status update if we can not get the sha tag.
+    if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
+      log.warn('Buildset tag not included, skipping Status Updates');
+      return Response.emptyOk;
+    }
+
+    log.info(
+      'Setting status (${build.status}) for build id: ${build.id} named: $builderName',
+    );
+
+    if (!pubSubCallBack.hasUserData()) {
+      log.info('No user data was found in this request');
+      return Response.emptyOk;
+    }
+
+    final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
+    log.info('User Data Json: ${userData.toJson()}');
+
+    if (await interceptBuild(tagSet)) {
+      return Response.emptyOk;
+    }
+
+    await _processBuild(build: build, userData: userData, tagSet: tagSet);
+    return Response.emptyOk;
+  }
+
+  /// Hook allowing subclasses to intercept and pre-process a presubmit build
+  /// before standard build status processing ([_processBuild]) occurs.
+  ///
+  /// Returns `true` if the build was intercepted and fully handled (skipping
+  /// default build processing), or `false` to proceed with default processing.
+  @protected
+  Future<bool> interceptBuild(BuildTags tags) async {
+    return false;
+  }
+
   /// Processes a completed or failing presubmit [build] using [userData].
   ///
   /// Evaluates whether a failing task should be automatically retried up to
   /// [_getMaxAttempt]. If the build is not rescheduled, updates GitHub check
   /// run status and notifies [Scheduler.processCheckRunCompleted].
-  Future<void> processBuild({
+  Future<void> _processBuild({
     required bbv2.Build build,
     required PresubmitUserData userData,
     BuildTags? tagSet,
@@ -127,7 +198,9 @@ base class PresubmitSubscription extends SubscriptionHandler {
       final check = PresubmitCompletedJob.fromBuild(
         build,
         userData,
-        status: override == .neutral ? .neutral : null,
+        status: override == CheckRunConclusion.neutral
+            ? TaskStatus.neutral
+            : null,
       );
       await _scheduler.processCheckRunCompleted(check);
     }
