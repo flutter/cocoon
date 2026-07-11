@@ -20,7 +20,7 @@ import '../src/request_handling/subscription_tester.dart';
 void main() {
   useTestLoggerPerTest();
 
-  late PresubmitLuciSubscriptionOrdered handler;
+  late PresubmitOrderedSubscription handler;
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
   late FakeHttpRequest request;
@@ -42,7 +42,7 @@ void main() {
       ciYaml: examplePresubmitRescheduleFusionConfig,
     );
 
-    handler = PresubmitLuciSubscriptionOrdered(
+    handler = PresubmitOrderedSubscription(
       cache: CacheService.inMemory(),
       config: config,
       luciBuildService: FakeLuciBuildService(
@@ -65,50 +65,55 @@ void main() {
     config.githubClient = mockGitHubClient;
   });
 
-  test('ordered subscription processes ordered messages directly without forwarding', () async {
-    when(
-      mockGithubChecksService.updateCheckStatus(
-        build: anyNamed('build'),
-        checkRunId: anyNamed('checkRunId'),
-        luciBuildService: anyNamed('luciBuildService'),
-        slug: anyNamed('slug'),
-      ),
-    ).thenAnswer((_) async => true);
-
-    when(
-      mockGithubChecksService.conclusionForResult(any),
-    ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
-
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.SUCCESS,
-      builder: 'Linux Host Engine',
-      userData: PresubmitUserData(
-        commit: CommitRef(
-          sha: 'abc',
-          branch: 'master',
-          slug: github.RepositorySlug('flutter', 'cocoon'),
+  test(
+    'ordered subscription processes ordered messages directly without forwarding',
+    () async {
+      when(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
         ),
-        checkRunId: 1,
-        checkSuiteId: 2,
-      ),
-      extraTags: [OrderingKeyTag(orderingKey: 'abc123ordering').toStringPair()],
-    );
+      ).thenAnswer((_) async => true);
 
-    final response = await tester.post(handler);
+      when(
+        mockGithubChecksService.conclusionForResult(any),
+      ).thenAnswer((_) => github.CheckRunConclusion.empty);
+      when(
+        mockScheduler.processCheckRunCompleted(any),
+      ).thenAnswer((_) async => true);
 
-    expect(response, Response.emptyOk);
-    verify(
-      mockGithubChecksService.updateCheckStatus(
-        build: anyNamed('build'),
-        checkRunId: anyNamed('checkRunId'),
-        luciBuildService: anyNamed('luciBuildService'),
-        slug: anyNamed('slug'),
-      ),
-    ).called(1);
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
-  });
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: github.RepositorySlug('flutter', 'cocoon'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+        extraTags: [
+          OrderingKeyTag(orderingKey: 'abc123ordering').toStringPair(),
+        ],
+      );
+
+      final response = await tester.post(handler);
+
+      expect(response, Response.emptyOk);
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      ).called(1);
+      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    },
+  );
 }

@@ -18,11 +18,11 @@ import '../service/luci_build_service/user_data.dart';
 ///
 /// Messages in this subscription are delivered sequentially by ordering key
 /// and are processed directly using the shared presubmit LUCI logic in
-/// [PresubmitLuciSubscription.post].
+/// [PresubmitSubscription.post].
 @immutable
-final class PresubmitLuciSubscriptionOrdered extends PresubmitLuciSubscription {
+final class PresubmitOrderedSubscription extends PresubmitSubscription {
   /// Creates an endpoint for listening to ordered LUCI status updates.
-  const PresubmitLuciSubscriptionOrdered({
+  const PresubmitOrderedSubscription({
     required super.cache,
     required super.config,
     required super.luciBuildService,
@@ -83,5 +83,5 @@ final class PresubmitLuciSubscriptionOrdered extends PresubmitLuciSubscription {
 
     await processBuild(build: build, userData: userData, tagSet: tagSet);
     return Response.emptyOk;
-  }  
+  }
 }

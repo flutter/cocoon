@@ -32,10 +32,7 @@ class PubSub {
     final messageBase64 = base64Encode(messageBytes);
     final request = PublishRequest(
       messages: <PubsubMessage>[
-        PubsubMessage(
-          data: messageBase64,
-          orderingKey: orderingKey,
-        ),
+        PubsubMessage(data: messageBase64, orderingKey: orderingKey),
       ],
     );
     final fullTopicName = 'projects/flutter-dashboard/topics/$topic';

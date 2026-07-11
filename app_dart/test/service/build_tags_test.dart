@@ -534,12 +534,9 @@ void main() {
 
     test('can be parsed', () {
       expect(
-        BuildTag.from(
-          bbv2.StringPair(key: 'ordering_key', value: 'abc12345'),
-        ),
+        BuildTag.from(bbv2.StringPair(key: 'ordering_key', value: 'abc12345')),
         OrderingKeyTag(orderingKey: 'abc12345'),
       );
     });
   });
 }
-
