@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
@@ -22,19 +19,18 @@ import '../service/luci_build_service/build_tags.dart';
 import '../service/luci_build_service/user_data.dart';
 import '../service/scheduler/ci_yaml_fetcher.dart';
 
-/// An endpoint for listening to LUCI status updates for scheduled builds.
+
+/// Base subscription handler for processing LUCI presubmit build status updates.
 ///
-/// [ScheduleBuildRequest.notify] property is set to tell LUCI to use this
-/// PubSub topic. LUCI then publishes updates about build status to that topic,
-/// which we listen to on the github-updater subscription. When new messages
-/// arrive, they are posted to this web service.
+/// Subclasses inherit this logic to process completed or failing presubmit
+/// try builds received via PubSub subscriptions.
 ///
-/// The PubSub subscription is set up here:
-/// https://console.cloud.google.com/cloudpubsub/subscription/detail/build-bucket-presubmit-sub?project=flutter-dashboard
-///
-/// This endpoint is responsible for updating GitHub with the status of
-/// completed builds from LUCI.
-final class PresubmitLuciSubscription extends SubscriptionHandler {
+/// This class is responsible for:
+/// * Checking remaining build attempts and rescheduling failed builds.
+/// * Suppressing failing conclusions if a test is marked as suppressed.
+/// * Updating GitHub Check Run statuses for individual presubmit builds.
+/// * Calling [Scheduler.processCheckRunCompleted] to progress CI stages or merge queues.
+base class PresubmitLuciSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PresubmitLuciSubscription({
     required super.cache,
@@ -44,83 +40,32 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
     required CiYamlFetcher ciYamlFetcher,
     required Scheduler scheduler,
     required FirestoreService firestore,
-    this.pubsub = const PubSub(),
-    AuthenticationProvider? authProvider,
+    required super.subscriptionName,
+    super.authProvider,
   }) : _ciYamlFetcher = ciYamlFetcher,
        _githubChecksService = githubChecksService,
        _luciBuildService = luciBuildService,
        _scheduler = scheduler,
-       _firestore = firestore,
-       super(subscriptionName: 'build-bucket-presubmit-sub');
+       _firestore = firestore;
 
   final LuciBuildService _luciBuildService;
   final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
   final Scheduler _scheduler;
   final FirestoreService _firestore;
-  final PubSub pubsub;
 
-  @override
-  Future<Response> post(Request request) async {
-    if (message.data == null) {
-      log.info('no data in message');
-      return Response.emptyOk;
-    }
-
-    final pubSubCallBack = bbv2.PubSubCallBack();
-    pubSubCallBack.mergeFromProto3Json(
-      jsonDecode(message.data!) as Map<String, dynamic>,
-    );
-
-    final buildsPubSub = pubSubCallBack.buildPubsub;
-
-    if (!buildsPubSub.hasBuild()) {
-      log.info('no build information in message');
-      return Response.emptyOk;
-    }
-
-    var build = buildsPubSub.build;
-
-    // Add build fields that are stored in a separate compressed buffer.
-    build.mergeFromBuffer(
-      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
-    );
-
+  /// Processes a completed or failing presubmit [build] using [userData].
+  ///
+  /// Evaluates whether a failing task should be automatically retried up to
+  /// [_getMaxAttempt]. If the build is not rescheduled, updates GitHub check
+  /// run status and notifies [Scheduler.processCheckRunCompleted].
+  Future<void> processBuild({
+    required bbv2.Build build,
+    required PresubmitUserData userData,
+    BuildTags? tagSet,
+  }) async {
+    tagSet ??= BuildTags.fromStringPairs(build.tags);
     final builderName = build.builder.builder;
-    final tagSet = BuildTags.fromStringPairs(build.tags);
-
-    log.info('Available tags: ${build.tags}');
-
-    final orderingKey = tagSet.getTagOfType<OrderingKeyTag>()?.orderingKey;
-    if (orderingKey != null) {
-      log.info(
-        'Ordering key $orderingKey found, forwarding message to ordered-presubmit topic',
-      );
-      await pubsub.publish(
-        'ordered-presubmit',
-        message.data!,
-        orderingKey: orderingKey,
-      );
-      return Response.emptyOk;
-    }
-
-    // Skip status update if we can not get the sha tag.
-    if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
-      log.warn('Buildset tag not included, skipping Status Updates');
-      return Response.emptyOk;
-    }
-
-    log.info(
-      'Setting status (${build.status}) for build id: ${build.id} named: $builderName',
-    );
-
-    if (!pubSubCallBack.hasUserData()) {
-      log.info('No user data was found in this request');
-      return Response.emptyOk;
-    }
-
-    final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
-    log.info('User Data Json: ${userData.toJson()}');
     var rescheduled = false;
     final isUnifiedCheckRun = userData.guardCheckRunId != null;
     log.info('Unified Check Run ${isUnifiedCheckRun ? 'Enabled' : 'Disabled'}');
@@ -187,8 +132,6 @@ final class PresubmitLuciSubscription extends SubscriptionHandler {
       );
       await _scheduler.processCheckRunCompleted(check);
     }
-
-    return Response.emptyOk;
   }
 
   Future<int> _getMaxAttempt(

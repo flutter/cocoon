@@ -111,7 +111,7 @@ Server createServer({
       commitService: commitService,
       firestore: firestore,
     ),
-    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
+    '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscriptionUnordered(
       cache: cache,
       config: config,
       luciBuildService: luciBuildService,
@@ -120,6 +120,16 @@ Server createServer({
       ciYamlFetcher: ciYamlFetcher,
       firestore: firestore,
     ),
+    '/api/v2/presubmit-cocoon-subscription-ordered':
+        PresubmitLuciSubscriptionOrdered(
+          cache: cache,
+          config: config,
+          luciBuildService: luciBuildService,
+          githubChecksService: githubChecksService,
+          scheduler: scheduler,
+          ciYamlFetcher: ciYamlFetcher,
+          firestore: firestore,
+        ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,

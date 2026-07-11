@@ -24,7 +24,7 @@ import '../src/request_handling/subscription_tester.dart';
 void main() {
   useTestLoggerPerTest();
 
-  late PresubmitLuciSubscription handler;
+  late PresubmitLuciSubscriptionUnordered handler;
   late FakeConfig config;
   late MockGitHub mockGitHubClient;
   late FakeHttpRequest request;
@@ -50,7 +50,7 @@ void main() {
       ciYaml: examplePresubmitRescheduleFusionConfig,
     );
 
-    handler = PresubmitLuciSubscription(
+    handler = PresubmitLuciSubscriptionUnordered(
       cache: CacheService.inMemory(),
       config: config,
       luciBuildService: FakeLuciBuildService(
@@ -267,7 +267,7 @@ void main() {
     );
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
-    final luciHandler = PresubmitLuciSubscription(
+    final luciHandler = PresubmitLuciSubscriptionUnordered(
       cache: CacheService.inMemory(),
       config: config,
       luciBuildService: mockLuciBuildService,
@@ -500,7 +500,7 @@ void main() {
     });
 
     /// Create a handler using the mock LuciBuildService instead of the fake.
-    final luciHandler = PresubmitLuciSubscription(
+    final luciHandler = PresubmitLuciSubscriptionUnordered(
       cache: CacheService.inMemory(),
       config: config,
       luciBuildService: mockLuciBuildService,
