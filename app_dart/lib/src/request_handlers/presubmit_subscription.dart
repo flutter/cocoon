@@ -79,9 +79,14 @@ base class PresubmitSubscription extends SubscriptionHandler {
     final build = buildsPubSub.build;
 
     // Add build fields that are stored in a separate compressed buffer.
-    build.mergeFromBuffer(
-      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
-    );
+    // Add build fields that are stored in a separate compressed buffer if present.
+    if (buildsPubSub.buildLargeFields.isNotEmpty) {
+      build.mergeFromBuffer(
+        const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
+      );
+    } else {
+      log.info('Build large fields not found, relying on direct build fields');
+    }
 
     final builderName = build.builder.builder;
     final tagSet = BuildTags.fromStringPairs(build.tags);
@@ -183,7 +188,10 @@ base class PresubmitSubscription extends SubscriptionHandler {
               '### ⚠️ Test failed but marked as suppressed on dashboard';
         }
       }
-
+      if (userData.checkRunId == null) {
+        log.error('checkRunId is null for non-unified check run');
+        return;
+      }
       await _githubChecksService.updateCheckStatus(
         checkRunId: userData.checkRunId!,
         build: build,
