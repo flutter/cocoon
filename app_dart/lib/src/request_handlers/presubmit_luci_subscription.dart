@@ -40,7 +40,7 @@ final class PresubmitLuciSubscription extends PresubmitSubscription {
   @override
   Future<bool> interceptBuild(BuildTags tags) async {
     final orderingKey = tags.getTagOfType<OrderingKeyTag>()?.orderingKey;
-    if (orderingKey != null) {
+    if (orderingKey != null && orderingKey.isNotEmpty) {
       log.info(
         'Ordering key $orderingKey found, forwarding message to ordered-presubmit topic',
       );

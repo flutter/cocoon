@@ -729,4 +729,53 @@ void main() {
       );
     },
   );
+
+  test(
+    'does not publish to ordered-presubmit topic when orderingKey is empty',
+    () async {
+      when(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      ).thenAnswer((_) async => true);
+      when(
+        mockGithubChecksService.conclusionForResult(any),
+      ).thenAnswer((_) => github.CheckRunConclusion.empty);
+      when(
+        mockScheduler.processCheckRunCompleted(any),
+      ).thenAnswer((_) async => true);
+
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: RepositorySlug('flutter', 'cocoon'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+        extraTags: [OrderingKeyTag(orderingKey: '').toStringPair()],
+      );
+
+      final response = await tester.post(handler);
+
+      expect(response, Response.emptyOk);
+      expect(pubSub.topics, isEmpty);
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      ).called(1);
+    },
+  );
 }
