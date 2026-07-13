@@ -262,6 +262,12 @@ base class PresubmitSubscription extends SubscriptionHandler {
           ? LuciBuildService.kMergeQueueMaxRetries
           : 1;
     }
-    return properties['presubmit_max_attempts'] as int;
+    final maxAttemptsValue = properties['presubmit_max_attempts'];
+    if (maxAttemptsValue is int) {
+      return maxAttemptsValue;
+    } else if (maxAttemptsValue is String) {
+      return int.tryParse(maxAttemptsValue) ?? 1;
+    }
+    return 1;
   }
 }
