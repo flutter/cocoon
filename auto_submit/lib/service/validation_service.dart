@@ -82,7 +82,18 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     if (pullRequest.isMergeQueueEnabled) {
       return _enqueuePullRequest(slug, pullRequest);
     } else {
-      return _mergePullRequest(number, commitMessage, slug);
+      // Pin the merge to the exact commit that every validation above ran
+      // against. Without this, a push that lands a new head in the gap between
+      // validation and merge would be merged unvalidated (the merge resolves
+      // the current head). GitHub rejects the merge (HTTP 405) when the head no
+      // longer matches this SHA. The merge-queue path does not need this
+      // because it re-runs required checks on the integrated head.
+      return _mergePullRequest(
+        number,
+        commitMessage,
+        slug,
+        pullRequest.head!.sha,
+      );
     }
   }
 
@@ -123,6 +134,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     int number,
     String commitMessage,
     github.RepositorySlug slug,
+    String? requestSha,
   ) async {
     try {
       github.PullRequestMerge? result;
@@ -134,6 +146,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
           slug: slug,
           number: number,
           mergeMethod: github.MergeMethod.squash,
+          requestSha: requestSha,
         );
       }, retryIf: (Exception e) => e is RetryableException);
 

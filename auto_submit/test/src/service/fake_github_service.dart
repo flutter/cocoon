@@ -45,6 +45,9 @@ class FakeGithubService implements GithubService {
   /// map to track pull request calls using pull number and repository slug.
   Map<int, RepositorySlug> verifyPullRequestMergeCallMap = {};
 
+  /// Records the `requestSha` passed to [mergePullRequest] keyed by pull number.
+  Map<int, String?> verifyRequestShaMergeCallMap = {};
+
   bool throwOnCreateIssue = false;
 
   /// Setting either of these flags to true will pop the front element from the
@@ -358,6 +361,7 @@ class FakeGithubService implements GithubService {
       throw Exception('Exception occurred during merging of pull request.');
     }
     verifyPullRequestMergeCallMap[number] = slug;
+    verifyRequestShaMergeCallMap[number] = requestSha;
     if (useMergeRequestMockList) {
       return pullRequestMergeMockList.removeAt(0);
     } else {

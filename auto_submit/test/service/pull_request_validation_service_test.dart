@@ -290,6 +290,37 @@ void main() {
       expect(result.message, contains('Reland "My first PR!"'));
     });
 
+    test('Direct merge is pinned to the validated head sha', () async {
+      // The direct-merge path (non-merge-queue repos and release/candidate
+      // branches) must bind the merge to the exact commit that was validated,
+      // so a head that changes between validation and merge cannot be landed
+      // unvalidated.
+      final pullRequest = generatePullRequest(
+        prNumber: 0,
+        repoName: slug.name,
+        mergeable: true,
+      );
+      githubService.pullRequestData = pullRequest;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
+
+      final result = await validationService.submitPullRequest(
+        config: config,
+        pullRequest: pullRequest,
+      );
+
+      expect(result.result, isTrue);
+      expect(result.method, SubmitMethod.merge);
+      // The merge call carries the PR's validated head sha, which GitHub uses
+      // to reject the merge if the head has since moved.
+      expect(
+        githubService.verifyRequestShaMergeCallMap[0],
+        pullRequest.head!.sha,
+      );
+    });
+
     test(
       'Removes label and post comment when no approval for non-flutter hacker',
       () async {
