@@ -18,16 +18,22 @@ class PubSub {
 
   final HttpClientProvider httpClientProvider;
 
-  Future<List<String>> publish(String topic, dynamic json) async {
+  Future<List<String>> publish(
+    String topic,
+    dynamic json, {
+    String? orderingKey,
+  }) async {
     final Client httpClient = await clientViaApplicationDefaultCredentials(
       scopes: <String>[PubsubApi.pubsubScope],
     );
     final pubsubApi = PubsubApi(httpClient);
-    final messageData = jsonEncode(json);
+    final messageData = json is String ? json : jsonEncode(json);
     final List<int> messageBytes = utf8.encode(messageData);
     final messageBase64 = base64Encode(messageBytes);
     final request = PublishRequest(
-      messages: <PubsubMessage>[PubsubMessage(data: messageBase64)],
+      messages: <PubsubMessage>[
+        PubsubMessage(data: messageBase64, orderingKey: orderingKey),
+      ],
     );
     final fullTopicName = 'projects/flutter-dashboard/topics/$topic';
     final response = await pubsubApi.projects.topics.publish(

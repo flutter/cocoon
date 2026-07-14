@@ -14,6 +14,7 @@ import '../../generated_config.dart';
 import 'ci_yaml_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
+import 'ordered_presubmit_flags.dart';
 import 'unified_check_run_flow_flags.dart';
 
 part 'dynamic_config.g.dart';
@@ -39,6 +40,7 @@ final class DynamicConfig {
     closeMqGuardAfterPresubmit: false,
     enableGeminiLogAnalysis: false,
     unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
+    orderedPresubmit: OrderedPresubmit.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
   );
@@ -71,6 +73,10 @@ final class DynamicConfig {
   @JsonKey()
   final UnifiedCheckRunFlow unifiedCheckRunFlow;
 
+  /// Flags related to ordered presubmit configuration.
+  @JsonKey()
+  final OrderedPresubmit orderedPresubmit;
+
   /// Whether to allow the tree status to be suppressed for specific failed tests.
   @JsonKey()
   final bool dynamicTestSuppression;
@@ -86,6 +92,7 @@ final class DynamicConfig {
     required this.closeMqGuardAfterPresubmit,
     required this.enableGeminiLogAnalysis,
     required this.unifiedCheckRunFlow,
+    required this.orderedPresubmit,
     required this.dynamicTestSuppression,
     required this.geminiModel,
   });
@@ -100,6 +107,7 @@ final class DynamicConfig {
     bool? closeMqGuardAfterPresubmit,
     bool? enableGeminiLogAnalysis,
     UnifiedCheckRunFlow? unifiedCheckRunFlow,
+    OrderedPresubmit? orderedPresubmit,
     bool? dynamicTestSuppression,
     String? geminiModel,
   }) {
@@ -116,6 +124,7 @@ final class DynamicConfig {
           enableGeminiLogAnalysis ?? defaultInstance.enableGeminiLogAnalysis,
       unifiedCheckRunFlow:
           unifiedCheckRunFlow ?? defaultInstance.unifiedCheckRunFlow,
+      orderedPresubmit: orderedPresubmit ?? defaultInstance.orderedPresubmit,
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
       geminiModel: geminiModel ?? defaultInstance.geminiModel,
@@ -155,6 +164,13 @@ final class DynamicConfig {
       return true;
     }
     return unifiedCheckRunFlow.useForUsers.contains(githubUsername);
+  }
+
+  bool isOrderedPresubmitEnabledForUser(String githubUsername) {
+    if (orderedPresubmit.useForAll) {
+      return true;
+    }
+    return orderedPresubmit.useForUsers.contains(githubUsername);
   }
 }
 

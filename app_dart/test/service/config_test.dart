@@ -85,5 +85,23 @@ void main() {
           loadYaml(await File('config.yaml').readAsString()) as YamlMap;
       DynamicConfig.fromYaml(yaml);
     });
+
+    test('isOrderedPresubmitEnabledForUser when useForAll is true', () {
+      final config = DynamicConfig(
+        orderedPresubmit: OrderedPresubmit(useForAll: true),
+      );
+      expect(config.isOrderedPresubmitEnabledForUser('testuser'), isTrue);
+    });
+
+    test('isOrderedPresubmitEnabledForUser when user is listed', () {
+      final config = DynamicConfig(
+        orderedPresubmit: OrderedPresubmit(
+          useForAll: false,
+          useForUsers: ['testuser'],
+        ),
+      );
+      expect(config.isOrderedPresubmitEnabledForUser('testuser'), isTrue);
+      expect(config.isOrderedPresubmitEnabledForUser('otheruser'), isFalse);
+    });
   });
 }

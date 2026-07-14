@@ -35,9 +35,11 @@ void main() {
   late FakeCiYamlFetcher ciYamlFetcher;
   late MockScheduler mockScheduler;
   late FakeFirestoreService firestore;
+  late FakePubSub pubSub;
 
   setUp(() async {
     firestore = FakeFirestoreService();
+    pubSub = FakePubSub();
 
     config = FakeConfig();
     mockLuciBuildService = MockLuciBuildService();
@@ -60,6 +62,7 @@ void main() {
       scheduler: mockScheduler,
       ciYamlFetcher: ciYamlFetcher,
       firestore: firestore,
+      pubsub: pubSub,
     );
     request = FakeHttpRequest();
 
@@ -688,4 +691,91 @@ void main() {
       ),
     ).called(1);
   });
+
+  test(
+    'publishes build message to ordered-presubmit topic with orderingKey when ordering_key flag exists',
+    () async {
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: RepositorySlug('flutter', 'cocoon'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+        extraTags: [
+          OrderingKeyTag(orderingKey: 'abc123ordering').toStringPair(),
+        ],
+      );
+
+      final response = await tester.post(handler);
+
+      expect(response, Response.emptyOk);
+      expect(pubSub.topics.single, 'ordered-presubmit');
+      expect(pubSub.orderingKeys.single, 'abc123ordering');
+      expect(pubSub.messages.single, tester.message.data!);
+      verifyNever(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      );
+    },
+  );
+
+  test(
+    'does not publish to ordered-presubmit topic when orderingKey is empty',
+    () async {
+      when(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      ).thenAnswer((_) async => true);
+      when(
+        mockGithubChecksService.conclusionForResult(any),
+      ).thenAnswer((_) => github.CheckRunConclusion.empty);
+      when(
+        mockScheduler.processCheckRunCompleted(any),
+      ).thenAnswer((_) async => true);
+
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: RepositorySlug('flutter', 'cocoon'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+        extraTags: [OrderingKeyTag(orderingKey: '').toStringPair()],
+      );
+
+      final response = await tester.post(handler);
+
+      expect(response, Response.emptyOk);
+      expect(pubSub.topics, isEmpty);
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      ).called(1);
+    },
+  );
 }

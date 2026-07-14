@@ -120,6 +120,15 @@ Server createServer({
       ciYamlFetcher: ciYamlFetcher,
       firestore: firestore,
     ),
+    '/api/v2/presubmit-ordered-subscription': PresubmitOrderedSubscription(
+      cache: cache,
+      config: config,
+      luciBuildService: luciBuildService,
+      githubChecksService: githubChecksService,
+      scheduler: scheduler,
+      ciYamlFetcher: ciYamlFetcher,
+      firestore: firestore,
+    ),
     '/api/v2/postsubmit-luci-subscription': PostsubmitLuciSubscription(
       cache: cache,
       config: config,
