@@ -19,9 +19,10 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Dart SDK
-      uses: dart-lang/setup-dart@v1.7.2
+      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
 
     - name: Get dependencies
+      id: get-deps
       shell: bash
       run: |
         # 1. Resolve the action path.
@@ -32,7 +33,7 @@ runs:
         if [ -z "$ACTION_PATH" ] || [ "$ACTION_PATH" = "." ] || [ "$ACTION_PATH" = "$(pwd)" ]; then
           ACTION_PATH="packages/wait_for_tests"
         fi
-        echo "RESOLVED_ACTION_PATH=$ACTION_PATH" >> "$GITHUB_ENV"
+        echo "resolved-action-path=$ACTION_PATH" >> "$GITHUB_OUTPUT"
         echo "Using action path: $ACTION_PATH"
 
         # 2. Bypass workspace resolution.
@@ -64,5 +65,6 @@ runs:
         INPUT_REPO: ${{ inputs.repo }}
         INPUT_REQUIRED_TESTS: ${{ inputs.required-tests }}
         INPUT_WAIT_INTERVAL: ${{ inputs.wait-interval }}
+        RESOLVED_ACTION_PATH: ${{ steps.get-deps.outputs.resolved-action-path }}
       run: dart "$RESOLVED_ACTION_PATH/bin/wait_for_tests.dart"
 

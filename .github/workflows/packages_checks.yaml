@@ -1,5 +1,8 @@
 name: Package Checks
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [main]
@@ -15,7 +18,9 @@ jobs:
     outputs:
       tests: ${{ steps.tests.outputs.tests }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
       - id: tests
         run: |
           echo "tests=$(find packages dev cipd_packages auto_submit licenses -type f -name 'pubspec.yaml' -print0 | xargs -0 dirname | jq --raw-input --slurp --compact-output 'split("\n")[:-1]')" >> ${GITHUB_OUTPUT}
@@ -31,7 +36,9 @@ jobs:
         working-directory: ${{ matrix.dir }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
