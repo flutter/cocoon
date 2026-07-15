@@ -77,6 +77,9 @@ void main() {
           Config.packagesSlug,
         },
       );
+      config.dynamicConfig = DynamicConfig(
+        unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+      );
 
       fakeContentAwareHash = FakeContentAwareHashService(config: config);
 
@@ -668,7 +671,12 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
         final mockGithubClient = MockGitHub();
-        config = FakeConfig(githubService: mockGithubService);
+        config = FakeConfig(
+          githubService: mockGithubService,
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+          ),
+        );
         scheduler = Scheduler(
           githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
@@ -3120,22 +3128,25 @@ targets:
             ),
           ).thenAnswer((_) async => []);
           getFilesChanged.cannedFiles = null;
-          scheduler = Scheduler(
-            githubService: config.githubService ?? FakeGithubService(),
-            cache: cache,
-            config: FakeConfig(
-              // tabledataResource: tabledataResource,
-              githubService: mockGithubService,
-              githubClient: MockGitHub(),
+          final fakeConfig = FakeConfig(
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+            dynamicConfig: DynamicConfig(
+              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
             ),
+          );
+          scheduler = Scheduler(
+            githubService: fakeConfig.githubService ?? FakeGithubService(),
+            cache: cache,
+            config: fakeConfig,
             githubChecksService: GithubChecksService(
-              config,
+              fakeConfig,
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
             ciYamlFetcher: ciYamlFetcher,
             luciBuildService: FakeLuciBuildService(
-              config: config,
+              config: fakeConfig,
               githubChecksUtil: mockGithubChecksUtil,
               gerritService: FakeGerritService(
                 branchesValue: <String>['master'],
@@ -3432,17 +3443,20 @@ targets:
 
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
-        scheduler = Scheduler(
-          githubService: config.githubService ?? FakeGithubService(),
-          cache: cache,
-          config: FakeConfig(
-            // tabledataResource: tabledataResource,
-            githubService: mockGithubService,
-            githubClient: MockGitHub(),
-            maxFilesChangedForSkippingEnginePhaseValue: 0,
+        final fakeConfig = FakeConfig(
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          maxFilesChangedForSkippingEnginePhaseValue: 0,
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
           ),
+        );
+        scheduler = Scheduler(
+          githubService: fakeConfig.githubService ?? FakeGithubService(),
+          cache: cache,
+          config: fakeConfig,
           githubChecksService: GithubChecksService(
-            config,
+            fakeConfig,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
@@ -4084,16 +4098,20 @@ targets:
           engine: fusionCiYaml,
         );
 
-        scheduler = Scheduler(
-          githubService: config.githubService ?? FakeGithubService(),
-          cache: cache,
-          config: FakeConfig(
-            githubService: mockGithubService,
-            githubClient: MockGitHub(),
-            maxFilesChangedForSkippingEnginePhaseValue: 29,
+        final fakeConfig = FakeConfig(
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          maxFilesChangedForSkippingEnginePhaseValue: 29,
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
           ),
+        );
+        scheduler = Scheduler(
+          githubService: fakeConfig.githubService ?? FakeGithubService(),
+          cache: cache,
+          config: fakeConfig,
           githubChecksService: GithubChecksService(
-            config,
+            fakeConfig,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
