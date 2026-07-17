@@ -82,7 +82,20 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     if (pullRequest.isMergeQueueEnabled) {
       return _enqueuePullRequest(slug, pullRequest);
     } else {
-      return _mergePullRequest(number, commitMessage, slug);
+      if (pullRequest.head?.sha == null) {
+        return (
+          result: false,
+          message:
+              'Failed to merge ${slug.fullName}/#${pullRequest.number}: invalid head',
+          method: SubmitMethod.enqueue,
+        );
+      }
+      return _mergePullRequest(
+        number,
+        commitMessage,
+        slug,
+        requestSha: pullRequest.head!.sha!,
+      );
     }
   }
 
@@ -122,8 +135,9 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
   Future<MergeResult> _mergePullRequest(
     int number,
     String commitMessage,
-    github.RepositorySlug slug,
-  ) async {
+    github.RepositorySlug slug, {
+    required String requestSha,
+  }) async {
     try {
       github.PullRequestMerge? result;
 
@@ -134,6 +148,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
           slug: slug,
           number: number,
           mergeMethod: github.MergeMethod.squash,
+          requestSha: requestSha,
         );
       }, retryIf: (Exception e) => e is RetryableException);
 
