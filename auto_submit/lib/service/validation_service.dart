@@ -87,7 +87,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
           result: false,
           message:
               'Failed to merge ${slug.fullName}/#${pullRequest.number}: invalid head',
-          method: SubmitMethod.enqueue,
+          method: SubmitMethod.merge,
         );
       }
       return _mergePullRequest(
