@@ -5,6 +5,8 @@
 /// @docImport 'presubmit_guard_conclusion.dart';
 library;
 
+import 'package:collection/collection.dart';
+
 /// Explains what happened when attempting to mark the conclusion of a check run
 /// using [PresubmitGuard.markConclusion].
 enum PresubmitGuardConclusionResult {
@@ -40,6 +42,7 @@ class PresubmitGuardConclusion {
   final int remaining;
   final String? checkRunGuard;
   final int failed;
+  final List<String> failedJobNames;
   final String summary;
   final String details;
 
@@ -48,6 +51,7 @@ class PresubmitGuardConclusion {
     required this.remaining,
     required this.checkRunGuard,
     required this.failed,
+    this.failedJobNames = const [],
     required this.summary,
     required this.details,
   });
@@ -68,6 +72,10 @@ class PresubmitGuardConclusion {
           other.remaining == remaining &&
           other.checkRunGuard == checkRunGuard &&
           other.failed == failed &&
+          const ListEquality<String>().equals(
+            other.failedJobNames,
+            failedJobNames,
+          ) &&
           other.summary == summary &&
           other.details == details);
 
@@ -77,11 +85,12 @@ class PresubmitGuardConclusion {
     remaining,
     checkRunGuard,
     failed,
+    Object.hashAll(failedJobNames),
     summary,
     details,
   ]);
 
   @override
   String toString() =>
-      'BuildConclusion("$result", "$remaining", "$failed", "$summary", "$details", "$checkRunGuard")';
+      'BuildConclusion("$result", "$remaining", "$failed", "$failedJobNames", "$summary", "$details", "$checkRunGuard")';
 }

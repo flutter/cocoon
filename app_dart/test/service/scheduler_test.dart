@@ -4131,11 +4131,9 @@ targets:
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux engine_build'],
-          reason: 'Should still run engine phase',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux engine_build',
+        ], reason: 'Should still run engine phase');
       });
 
       test('still runs engine builds (engine/**)', () async {
@@ -4146,11 +4144,9 @@ targets:
         final pullRequest = generatePullRequest(authorLogin: 'joe-flutter');
 
         await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux engine_build'],
-          reason: 'Should still run engine phase',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux engine_build',
+        ], reason: 'Should still run engine phase');
       });
 
       test(
@@ -4167,11 +4163,9 @@ targets:
           );
 
           await scheduler.triggerPresubmitTargets(pullRequest: pullRequest);
-          expect(
-            fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-            ['Linux engine_build'],
-            reason: 'Should still run engine phase',
-          );
+          expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+            'Linux engine_build',
+          ], reason: 'Should still run engine phase');
         },
       );
 
@@ -4187,11 +4181,10 @@ targets:
           ),
           reason: 'Should use the base ref for the engine artifacts',
         );
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux A', 'Linux analyze'],
-          reason: 'Should skip Linux engine_build',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux A',
+          'Linux analyze',
+        ], reason: 'Should skip Linux engine_build');
 
         expect(
           firestore,
@@ -4220,11 +4213,9 @@ targets:
           ),
           reason: 'Should use the base ref for the engine artifacts',
         );
-        expect(
-          fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name),
-          ['Linux analyze'],
-          reason: 'Only scheduled a special-cased build',
-        );
+        expect(fakeLuciBuildService.scheduledTryBuilds.map((t) => t.name), [
+          'Linux analyze',
+        ], reason: 'Only scheduled a special-cased build');
       });
     });
     group('process unified check run', () {
@@ -4418,6 +4409,87 @@ targets:
           final guards = await firestore.query(PresubmitGuard.collectionId, {});
           final guard = PresubmitGuard.fromDocument(guards.single);
           expect(guard.failedJobs, 1);
+        },
+      );
+
+      test(
+        'requires action with failed checks list when check fails for unified check run (pull request)',
+        () async {
+          final pullRequest = generatePullRequest();
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: Config.kDashboardCheckName,
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: checkRunGuard,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.genericTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingJobs: 1,
+              failedJobs: 0,
+            ),
+          );
+
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.genericTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.FAILURE,
+            tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
+          );
+
+          final check = PresubmitCompletedJob.fromBuild(build, userData);
+
+          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          final verification = verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.actionRequired,
+              detailsUrl: anyNamed('detailsUrl'),
+              output: captureAnyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+          verification.called(1);
+          final output = verification.captured.single as CheckRunOutput;
+          expect(output.text, 'Failed presubmit jobs:\n- `Linux test`');
         },
       );
 

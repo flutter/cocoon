@@ -1239,11 +1239,11 @@ detailsUrl: $detailsUrl
           lock: guard,
           headSha: check.sha,
           summary: _githubChecksService.getGithubSummaryWithHeader('''
-**[Failed Checks Details]($detailsUrl)**
+**[Failed Presubmit Jobs Details]($detailsUrl)**
 
 ''', kDashboardChecksDescription),
           details:
-              'For ${check.stage} CI stage ${stagingConclusion.failed} checks failed',
+              'Failed presubmit jobs:\n- `${stagingConclusion.failedJobNames.join('`\n- `')}`',
           detailsUrl: detailsUrl,
         );
       }

@@ -276,6 +276,7 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.ok);
         expect(result.remaining, 1);
         expect(result.failed, 1);
+        expect(result.failedJobNames, ['linux']);
       });
 
       test('handles missing check gracefully', () async {
