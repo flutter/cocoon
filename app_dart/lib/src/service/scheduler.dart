@@ -1243,7 +1243,7 @@ detailsUrl: $detailsUrl
 
 ''', kDashboardChecksDescription),
           details:
-              'Failed presubmit jobs:\n- `${stagingConclusion.failedJobNames.join('`\n- `')}`',
+              'Failed presubmit jobs:\n${stagingConclusion.failedJobNames.map((name) => "- `$name`").join("\n")}',
           detailsUrl: detailsUrl,
         );
       }
