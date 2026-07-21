@@ -889,14 +889,6 @@ $s
         );
 
     if (isUnifiedCheckRun) {
-      // Skip MQ Guard
-      await _githubChecksService.githubChecksUtil.updateCheckRun(
-        _config,
-        slug,
-        mqGuard,
-        status: CheckRunStatus.completed,
-        conclusion: CheckRunConclusion.success,
-      );
       return flutterPresubmits;
     } else {
       // Skip Dashboard Checks
@@ -983,6 +975,28 @@ $s
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.success,
     );
+    if (lock.name == Config.kDashboardCheckName) {
+      final githubService = await _config.createGithubService(slug);
+      final mqGuard = (await githubService.getCheckRunsFiltered(
+        slug: slug,
+        ref: headSha,
+        checkName: Config.kMergeQueueLockName,
+      )).singleOrNull;
+      if (mqGuard != null) {
+        log.info(
+          'Unlocking Merge Queue Guard for unified check run for $slug/$headSha',
+        );
+        await _githubChecksService.githubChecksUtil.updateCheckRun(
+          _config,
+          slug,
+          mqGuard,
+          status: CheckRunStatus.completed,
+          conclusion: CheckRunConclusion.success,
+        );
+      } else {
+        log.warn('Merge Queue Guard not found for $slug/$headSha');
+      }
+    }
   }
 
   /// Fails the "Merge Queue Guard" check for a merge group.

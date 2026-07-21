@@ -3059,6 +3059,49 @@ targets:
       );
 
       test(
+        'does not close Merge Queue Guard immediately for unified check run flow',
+        () async {
+          when(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).thenAnswer((Invocation invocation) async {
+            return generateCheckRun(
+              invocation.positionalArguments[2].hashCode,
+              name: invocation.positionalArguments[3] as String,
+            );
+          });
+
+          final lock = await scheduler.lockMergeGroupChecks(
+            Config.flutterSlug,
+            'sha123',
+            isUnifiedCheckRun: true,
+          );
+
+          expect(lock.name, Config.kDashboardCheckName);
+
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          );
+        },
+      );
+
+      test(
         'filters out presubmit targets that do not exist in main and do not filter targets not in main',
         () async {
           ciYamlFetcher.setCiYamlFrom(r'''
