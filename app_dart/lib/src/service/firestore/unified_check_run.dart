@@ -32,6 +32,7 @@ final class UnifiedCheckRun {
     required Config config,
     PullRequest? pullRequest,
     CheckRun? checkRun,
+    CheckRun? checkRunGuard,
     @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
     if (checkRun != null &&
@@ -49,6 +50,7 @@ final class UnifiedCheckRun {
       final creationTime = utcNow().millisecondsSinceEpoch;
       final guard = PresubmitGuard(
         checkRun: checkRun,
+        checkRunGuard: checkRunGuard,
         headSha: sha,
         slug: slug,
         prNum: pullRequest.number!,

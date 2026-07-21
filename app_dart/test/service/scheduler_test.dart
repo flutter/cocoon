@@ -3078,13 +3078,14 @@ targets:
             );
           });
 
-          final lock = await scheduler.lockMergeGroupChecks(
+          final lockResult = await scheduler.lockMergeGroupChecks(
             Config.flutterSlug,
             'sha123',
             isUnifiedCheckRun: true,
           );
 
-          expect(lock.name, Config.kDashboardCheckName);
+          expect(lockResult.lock.name, Config.kDashboardCheckName);
+          expect(lockResult.checkRunGuard?.name, Config.kMergeQueueLockName);
 
           verifyNever(
             mockGithubChecksUtil.updateCheckRun(

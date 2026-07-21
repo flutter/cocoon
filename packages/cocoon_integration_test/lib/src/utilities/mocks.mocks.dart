@@ -177,6 +177,11 @@ class _FakeCheckRun_20 extends _i1.SmartFake implements _i7.CheckRun {
     : super(parent, parentInvocation);
 }
 
+class _FakeCheckRunLockResult_20a extends _i1.SmartFake implements _i17.CheckRunLockResult {
+  _FakeCheckRunLockResult_20a(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 class _FakePullRequest_21 extends _i1.SmartFake implements _i7.PullRequest {
   _FakePullRequest_21(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
@@ -5712,7 +5717,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<_i7.CheckRun> lockMergeGroupChecks(
+  _i13.Future<_i17.CheckRunLockResult> lockMergeGroupChecks(
     _i7.RepositorySlug? slug,
     String? headSha, {
     String? detailsUrl,
@@ -5724,8 +5729,8 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
               [slug, headSha],
               {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isUnifiedCheckRun},
             ),
-            returnValue: _i13.Future<_i7.CheckRun>.value(
-              _FakeCheckRun_20(
+            returnValue: _i13.Future<_i17.CheckRunLockResult>.value(
+              _FakeCheckRunLockResult_20a(
                 this,
                 Invocation.method(
                   #lockMergeGroupChecks,
@@ -5738,7 +5743,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
               ),
             ),
           )
-          as _i13.Future<_i7.CheckRun>);
+          as _i13.Future<_i17.CheckRunLockResult>);
 
   @override
   _i13.Future<_i7.CheckRun?> createAwaitingCicdLabelCheckRun(

@@ -364,7 +364,7 @@ class Scheduler {
     // The MQ only waits for "required status checks" before deciding whether to
     // merge the PR into the target branch. This required check added to both
     // the PR and to the merge group, and so it must be completed in both cases.
-    final lock = await lockMergeGroupChecks(
+    final lockResult = await lockMergeGroupChecks(
       slug,
       sha,
       // Override details url of merge queue guard check for users with unified
@@ -374,6 +374,8 @@ class Scheduler {
           : null,
       isUnifiedCheckRun: isUnifiedCheckRun,
     );
+    final lock = lockResult.lock;
+    final checkRunGuard = lockResult.checkRunGuard;
 
     // Track if we should unlock the merge group lock in case of non-fusion or
     // revert bots.
@@ -410,11 +412,14 @@ class Scheduler {
             tasks: [],
             pullRequest: pullRequest,
             config: _config,
+            checkRun: lock,
+            checkRunGuard: checkRunGuard,
           );
 
           await _runCiTestingStage(
             pullRequest: pullRequest,
             checkRunGuard: lock,
+            checkRunGuardCheck: checkRunGuard,
             logCrumb: logCrumb,
 
             // The if-branch already skips the engine build phase.
@@ -449,6 +454,7 @@ class Scheduler {
             pullRequest: pullRequest,
             config: _config,
             checkRun: lock,
+            checkRunGuard: checkRunGuard,
           );
 
           // Even though this appears to be an engine build, it could be a
@@ -474,6 +480,7 @@ class Scheduler {
               pullRequest: pullRequest,
               config: _config,
               checkRun: lock,
+              checkRunGuard: checkRunGuard,
             );
           }
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
@@ -640,11 +647,12 @@ class Scheduler {
         '${contentHash != null ? ', contentHash: $contentHash' : ''})';
     log.info('$logCrumb: scheduling merge group checks');
 
-    final lock = await lockMergeGroupChecks(
+    final lockResult = await lockMergeGroupChecks(
       slug,
       headSha,
       isUnifiedCheckRun: false,
     );
+    final lock = lockResult.lock;
 
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
     // close the merge group guard.
@@ -668,17 +676,9 @@ class Scheduler {
         project: 'flutter',
         bucket: 'prod',
       );
-      final availableTargets = {
-        ...mergeGroupTargets.where(
-          (target) => availableBuilders.contains(target.name),
-        ),
-      };
-      if (availableTargets.length != mergeGroupTargets.length) {
-        log.warn(
-          '$logCrumb: missing builders for targets: '
-          '${mergeGroupTargets.difference(availableTargets)}',
-        );
-      }
+      final availableTargets = mergeGroupTargets.where(
+        (t) => availableBuilders.contains(t.name),
+      );
 
       // Create the staging doc that will track our engine progress and allow us to unlock
       // the merge group lock later.
@@ -690,6 +690,7 @@ class Scheduler {
         tasks: [...availableTargets.map((t) => t.name)],
         config: _config,
         checkRun: lock,
+        checkRunGuard: lockResult.checkRunGuard,
       );
 
       // Create the minimal Commit needed to pass the next stage.
@@ -857,7 +858,7 @@ $s
   /// While this check is still in progress, the merge queue will not merge the
   /// respective PR onto the target branch (e.g. main or master), because this
   /// check is "required".
-  Future<CheckRun> lockMergeGroupChecks(
+  Future<CheckRunLockResult> lockMergeGroupChecks(
     RepositorySlug slug,
     String headSha, {
     String? detailsUrl,
@@ -889,7 +890,10 @@ $s
         );
 
     if (isUnifiedCheckRun) {
-      return flutterPresubmits;
+      return CheckRunLockResult(
+        lock: flutterPresubmits,
+        checkRunGuard: mqGuard,
+      );
     } else {
       // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
@@ -899,7 +903,7 @@ $s
         status: CheckRunStatus.completed,
         conclusion: CheckRunConclusion.success,
       );
-      return mqGuard;
+      return CheckRunLockResult(lock: mqGuard, checkRunGuard: null);
     }
   }
 
@@ -1413,6 +1417,7 @@ detailsUrl: $detailsUrl
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
     required CheckRun checkRunGuard,
+    CheckRun? checkRunGuardCheck,
     required String logCrumb,
     required _FlutterRepoTestsToRun testsToRun,
   }) async {
@@ -1455,6 +1460,7 @@ detailsUrl: $detailsUrl
         config: _config,
         pullRequest: pullRequest,
         checkRun: checkRunGuard,
+        checkRunGuard: checkRunGuardCheck,
       );
 
       // Here is where it gets fun: how do framework tests* know what engine
@@ -2033,4 +2039,11 @@ enum _TaskCommitScheduling {
   bool get skipPostsubmitTasks {
     return this == nonDefaultBranchSkipTestsByDefault;
   }
+}
+
+class CheckRunLockResult {
+  final CheckRun lock;
+  final CheckRun? checkRunGuard;
+
+  const CheckRunLockResult({required this.lock, this.checkRunGuard});
 }
