@@ -48,7 +48,7 @@ unifiedCheckRunFlow:
 
 # Whether to process LUCI notifications of builds progress ordered within check run.
 orderedPresubmit:
-  useForAll: false
+  useForAll: true
   useForUsers:
     - ievdokdm
 ''';
