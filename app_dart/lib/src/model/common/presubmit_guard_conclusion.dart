@@ -40,7 +40,8 @@ enum PresubmitGuardConclusionResult {
 class PresubmitGuardConclusion {
   final PresubmitGuardConclusionResult result;
   final int remaining;
-  final String? checkRunGuard;
+  final String? dashboardChecks;
+  final String? mergeQueueGuard;
   final int failed;
   final List<String> failedJobNames;
   final String summary;
@@ -49,7 +50,8 @@ class PresubmitGuardConclusion {
   const PresubmitGuardConclusion({
     required this.result,
     required this.remaining,
-    required this.checkRunGuard,
+    this.dashboardChecks,
+    required this.mergeQueueGuard,
     required this.failed,
     this.failedJobNames = const [],
     required this.summary,
@@ -70,7 +72,8 @@ class PresubmitGuardConclusion {
       (other is PresubmitGuardConclusion &&
           other.result == result &&
           other.remaining == remaining &&
-          other.checkRunGuard == checkRunGuard &&
+          other.dashboardChecks == dashboardChecks &&
+          other.mergeQueueGuard == mergeQueueGuard &&
           other.failed == failed &&
           const ListEquality<String>().equals(
             other.failedJobNames,
@@ -83,7 +86,8 @@ class PresubmitGuardConclusion {
   int get hashCode => Object.hashAll([
     result,
     remaining,
-    checkRunGuard,
+    dashboardChecks,
+    mergeQueueGuard,
     failed,
     Object.hashAll(failedJobNames),
     summary,
@@ -92,5 +96,5 @@ class PresubmitGuardConclusion {
 
   @override
   String toString() =>
-      'BuildConclusion("$result", "$remaining", "$failed", "$failedJobNames", "$summary", "$details", "$checkRunGuard")';
+      'BuildConclusion("$result", "$remaining", "$failed", "$failedJobNames", "$summary", "$details", "$dashboardChecks", "$mergeQueueGuard")';
 }

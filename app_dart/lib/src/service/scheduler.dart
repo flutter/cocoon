@@ -529,7 +529,14 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      await unlockMergeQueueGuard(slug, sha, dashboardChecks);
+      if (isUnifiedCheckRun) {
+        await unlockMergeQueueGuard(slug, sha, dashboardChecks);
+        if (mergeQueueGuard != null) {
+          await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
+        }
+      } else if (mergeQueueGuard != null) {
+        await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
+      }
     }
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit $sha, branch ${pullRequest.head!.ref} and slug $slug}',
@@ -868,16 +875,16 @@ $s
   }) async {
     final mergeQueueGuard = await _githubChecksService.githubChecksUtil
         .createCheckRun(
-      _config,
-      slug,
-      headSha,
-      Config.kMergeQueueLockName,
-      output: const CheckRunOutput(
-        title: Config.kMergeQueueLockName,
-        summary: kMergeQueueLockDescription,
-      ),
-      detailsUrl: isUnifiedCheckRun ? null : detailsUrl,
-    );
+          _config,
+          slug,
+          headSha,
+          Config.kMergeQueueLockName,
+          output: const CheckRunOutput(
+            title: Config.kMergeQueueLockName,
+            summary: kMergeQueueLockDescription,
+          ),
+          detailsUrl: isUnifiedCheckRun ? null : detailsUrl,
+        );
 
     final dashboardChecks = await _githubChecksService.githubChecksUtil
         .createCheckRun(
@@ -980,28 +987,6 @@ $s
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.success,
     );
-    if (lock.name == Config.kDashboardCheckName) {
-      final githubService = await _config.createGithubService(slug);
-      final mqGuard = (await githubService.getCheckRunsFiltered(
-        slug: slug,
-        ref: headSha,
-        checkName: Config.kMergeQueueLockName,
-      )).singleOrNull;
-      if (mqGuard != null) {
-        log.info(
-          'Unlocking Merge Queue Guard for unified check run for $slug/$headSha',
-        );
-        await _githubChecksService.githubChecksUtil.updateCheckRun(
-          _config,
-          slug,
-          mqGuard,
-          status: CheckRunStatus.completed,
-          conclusion: CheckRunConclusion.success,
-        );
-      } else {
-        log.warn('Merge Queue Guard not found for $slug/$headSha');
-      }
-    }
   }
 
   /// Fails the "Merge Queue Guard" check for a merge group.
@@ -1211,7 +1196,7 @@ detailsUrl: $detailsUrl
       // will hold up all other PRs that are trying to land.
       if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
-        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        final guard = checkRunFromString(stagingConclusion.mergeQueueGuard!);
         await failGuardForMergeGroup(
           slug: check.slug,
           lock: guard,
@@ -1241,7 +1226,7 @@ detailsUrl: $detailsUrl
       // If its a unified check run we need to require action on the guard.
       if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
-        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        final guard = checkRunFromString(stagingConclusion.mergeQueueGuard!);
         await failGuardForMergeGroup(
           slug: check.slug,
           lock: guard,
@@ -1250,7 +1235,7 @@ detailsUrl: $detailsUrl
           details: stagingConclusion.details,
         );
       } else if (check.isUnifiedCheckRun) {
-        final guard = checkRunFromString(stagingConclusion.checkRunGuard!);
+        final guard = checkRunFromString(stagingConclusion.dashboardChecks!);
         final detailsUrl =
             'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
         await _requireActionForGuard(
@@ -1282,7 +1267,7 @@ detailsUrl: $detailsUrl
         if (check.isMergeGroup) {
           await _completeArtifacts(check.sha, true);
           await _closeMergeQueue(
-            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            mergeQueueGuard: stagingConclusion.mergeQueueGuard!,
             slug: check.slug,
             sha: check.sha,
             stage: CiStage.fusionEngineBuild,
@@ -1291,7 +1276,8 @@ detailsUrl: $detailsUrl
         } else {
           await _closeSuccessfulEngineBuildStage(
             checkRun: check.checkRun,
-            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            dashboardChecks: stagingConclusion.dashboardChecks,
+            mergeQueueGuard: stagingConclusion.mergeQueueGuard,
             slug: check.slug,
             sha: check.sha,
             logCrumb: logCrumb,
@@ -1299,18 +1285,22 @@ detailsUrl: $detailsUrl
         }
       case CiStage.fusionTests:
         await _closeSuccessfulTestStage(
-          mergeQueueGuard: stagingConclusion.checkRunGuard!,
+          dashboardChecks: stagingConclusion.dashboardChecks,
+          mergeQueueGuard: stagingConclusion.mergeQueueGuard,
           slug: check.slug,
           sha: check.sha,
           logCrumb: logCrumb,
+          isUnifiedCheckRun: check.isUnifiedCheckRun,
         );
       case CiStage.genericTests:
         if (check.isUnifiedCheckRun) {
           await _closeSuccessfulTestStage(
-            mergeQueueGuard: stagingConclusion.checkRunGuard!,
+            dashboardChecks: stagingConclusion.dashboardChecks,
+            mergeQueueGuard: stagingConclusion.mergeQueueGuard,
             slug: check.slug,
             sha: check.sha,
             logCrumb: logCrumb,
+            isUnifiedCheckRun: check.isUnifiedCheckRun,
           );
         } else {
           // generic tests do not have a staging document nor are associated
@@ -1348,7 +1338,8 @@ detailsUrl: $detailsUrl
 
   Future<void> _closeSuccessfulEngineBuildStage({
     required cocoon_checks.CheckRun checkRun,
-    required String mergeQueueGuard,
+    String? dashboardChecks,
+    String? mergeQueueGuard,
     required RepositorySlug slug,
     required String sha,
     required String logCrumb,
@@ -1359,6 +1350,7 @@ detailsUrl: $detailsUrl
 
     await proceedToCiTestingStage(
       checkRun: checkRun,
+      dashboardChecks: dashboardChecks,
       mergeQueueGuard: mergeQueueGuard,
       slug: slug,
       sha: sha,
@@ -1367,13 +1359,38 @@ detailsUrl: $detailsUrl
   }
 
   Future<void> _closeSuccessfulTestStage({
-    required String mergeQueueGuard,
+    String? dashboardChecks,
+    String? mergeQueueGuard,
     required RepositorySlug slug,
     required String sha,
     required String logCrumb,
+    required bool isUnifiedCheckRun,
   }) async {
     log.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
-    await unlockMergeQueueGuard(slug, sha, checkRunFromString(mergeQueueGuard));
+    if (isUnifiedCheckRun) {
+      if (dashboardChecks != null) {
+        await unlockMergeQueueGuard(
+          slug,
+          sha,
+          checkRunFromString(dashboardChecks),
+        );
+      }
+      if (mergeQueueGuard != null) {
+        await unlockMergeQueueGuard(
+          slug,
+          sha,
+          checkRunFromString(mergeQueueGuard),
+        );
+      }
+    } else {
+      if (mergeQueueGuard != null) {
+        await unlockMergeQueueGuard(
+          slug,
+          sha,
+          checkRunFromString(mergeQueueGuard),
+        );
+      }
+    }
   }
 
   /// Returns the presubmit targets for the fusion repo [pullRequest] that should run for the given [stage].
@@ -1417,7 +1434,7 @@ detailsUrl: $detailsUrl
   /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
-    required CheckRun dashboardChecks,
+    CheckRun? dashboardChecks,
     CheckRun? mergeQueueGuard,
     required String logCrumb,
     required _FlutterRepoTestsToRun testsToRun,
@@ -1516,11 +1533,10 @@ detailsUrl: $detailsUrl
     required cocoon_checks.CheckRun checkRun,
     required RepositorySlug slug,
     required String sha,
-    required String mergeQueueGuard,
+    String? dashboardChecks,
+    String? mergeQueueGuard,
     required String logCrumb,
   }) async {
-    final checkRunGuard = checkRunFromString(mergeQueueGuard);
-
     final pullRequest = await findPullRequestCached(
       checkRun.id!,
       checkRun.name!,
@@ -1537,7 +1553,12 @@ detailsUrl: $detailsUrl
     try {
       await _runCiTestingStage(
         pullRequest: pullRequest,
-        dashboardChecks: checkRunGuard,
+        dashboardChecks: dashboardChecks != null
+            ? checkRunFromString(dashboardChecks)
+            : null,
+        mergeQueueGuard: mergeQueueGuard != null
+            ? checkRunFromString(mergeQueueGuard)
+            : null,
         logCrumb: logCrumb,
         testsToRun: _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
       );
