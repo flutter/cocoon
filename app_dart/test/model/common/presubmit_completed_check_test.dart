@@ -91,5 +91,32 @@ void main() {
       expect(check.buildNumber, 1234);
       expect(check.buildId, Int64.MAX_VALUE);
     });
+
+    test('fromBuild handles custom status and summaryPrepend', () {
+      final build = Build(
+        id: Int64.MAX_VALUE,
+        builder: BuilderID(builder: 'test_builder'),
+        status: Status.FAILURE,
+        summaryMarkdown: 'Build failed.',
+      );
+
+      final userData = PresubmitUserData(
+        commit: CommitRef(slug: slug, sha: sha, branch: 'master'),
+        stage: CiStage.fusionEngineBuild,
+        pullRequestNumber: 1,
+        guardCheckRunId: 123,
+        checkSuiteId: 456,
+      );
+
+      final check = PresubmitCompletedJob.fromBuild(
+        build,
+        userData,
+        status: TaskStatus.neutral,
+        summaryPrepend: 'Suppressed message',
+      );
+
+      expect(check.status, TaskStatus.neutral);
+      expect(check.summary, 'Suppressed message\n---\nBuild failed.');
+    });
   });
 }

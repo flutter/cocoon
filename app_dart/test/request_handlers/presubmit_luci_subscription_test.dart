@@ -36,6 +36,7 @@ void main() {
   late MockScheduler mockScheduler;
   late FakeFirestoreService firestore;
   late FakePubSub pubSub;
+  late FakeBuildBucketClient buildBucketClient;
 
   setUp(() async {
     firestore = FakeFirestoreService();
@@ -50,12 +51,14 @@ void main() {
       ciYaml: examplePresubmitRescheduleFusionConfig,
     );
 
+    buildBucketClient = FakeBuildBucketClient();
     handler = PresubmitLuciSubscription(
       cache: CacheService.inMemory(),
       config: config,
       luciBuildService: FakeLuciBuildService(
         config: config,
         firestore: firestore,
+        buildBucketClient: buildBucketClient,
       ),
       githubChecksService: mockGithubChecksService,
       authProvider: FakeDashboardAuthentication(),
@@ -647,7 +650,162 @@ void main() {
         ),
       ),
     ).called(1);
+
+    final captured = verify(
+      mockScheduler.processCheckRunCompleted(captureAny),
+    ).captured;
+    expect(captured, hasLength(1));
+    expect(
+      captured[0],
+      isA<PresubmitCompletedJob>()
+          .having((e) => e.status, 'status', TaskStatus.neutral)
+          .having(
+            (e) => e.summary,
+            'summary',
+            contains(
+              '### ⚠️ Test failed but marked as suppressed on dashboard',
+            ),
+          ),
+    );
   });
+
+  test('Requests when unified check run failed and is suppressed', () async {
+    final userData = PresubmitUserData(
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'master',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
+      guardCheckRunId: 1,
+      checkSuiteId: 2,
+    );
+
+    // Setup Firestore
+    firestore.putDocument(
+      SuppressedTest(
+          name: 'Linux A',
+          repository: 'flutter/flutter',
+          issueLink: 'https://github.com/flutter/flutter/issues/123',
+          isSuppressed: true,
+          createTimestamp: DateTime.now(),
+        )
+        ..name = firestore.resolveDocumentName(
+          SuppressedTest.kCollectionId,
+          'suppressed_1',
+        ),
+    );
+
+    buildBucketClient.getBuildResponse = Future.value(
+      bbv2.Build()
+        ..id = Int64(1)
+        ..builder = (bbv2.BuilderID()..builder = 'Linux A')
+        ..status = bbv2.Status.FAILURE
+        ..summaryMarkdown = 'test summary',
+    );
+
+    when(
+      mockScheduler.processCheckRunCompleted(any),
+    ).thenAnswer((_) async => true);
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      userData: userData,
+    );
+
+    await tester.post(handler);
+
+    verifyNever(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        conclusionOverride: anyNamed('conclusionOverride'),
+        summaryPrepend: anyNamed('summaryPrepend'),
+      ),
+    );
+
+    final captured = verify(
+      mockScheduler.processCheckRunCompleted(captureAny),
+    ).captured;
+    expect(captured, hasLength(1));
+    expect(
+      captured[0],
+      isA<PresubmitCompletedJob>()
+          .having((e) => e.status, 'status', TaskStatus.neutral)
+          .having(
+            (e) => e.summary,
+            'summary',
+            contains(
+              '### ⚠️ Test failed but marked as suppressed on dashboard',
+            ),
+          ),
+    );
+  });
+
+  test(
+    'Requests when unified check run failed and is NOT suppressed',
+    () async {
+      final userData = PresubmitUserData(
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+        guardCheckRunId: 1,
+        checkSuiteId: 2,
+      );
+
+      buildBucketClient.getBuildResponse = Future.value(
+        bbv2.Build()
+          ..id = Int64(1)
+          ..builder = (bbv2.BuilderID()..builder = 'Linux A')
+          ..status = bbv2.Status.FAILURE
+          ..summaryMarkdown = 'test summary',
+      );
+
+      when(
+        mockScheduler.processCheckRunCompleted(any),
+      ).thenAnswer((_) async => true);
+
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.FAILURE,
+        builder: 'Linux A',
+        userData: userData,
+      );
+
+      await tester.post(handler);
+
+      verifyNever(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          conclusionOverride: anyNamed('conclusionOverride'),
+          summaryPrepend: anyNamed('summaryPrepend'),
+        ),
+      );
+
+      final captured = verify(
+        mockScheduler.processCheckRunCompleted(captureAny),
+      ).captured;
+      expect(captured, hasLength(1));
+      expect(
+        captured[0],
+        isA<PresubmitCompletedJob>()
+            .having((e) => e.status, 'status', TaskStatus.failed)
+            .having(
+              (e) => e.summary,
+              'summary',
+              isNot(contains('marked as suppressed')),
+            ),
+      );
+    },
+  );
 
   test('Suppression check skipped when rescheduled', () async {
     tester.message = createPushMessage(
@@ -690,6 +848,47 @@ void main() {
         summaryPrepend: null,
       ),
     ).called(1);
+  });
+
+  test('Unified Suppression check skipped when rescheduled', () async {
+    buildBucketClient.getBuildResponse = Future.value(
+      bbv2.Build()
+        ..id = Int64(1)
+        ..builder = (bbv2.BuilderID()
+          ..builder = 'Linux presubmit_max_attempts=2')
+        ..status = bbv2.Status.FAILURE
+        ..summaryMarkdown = 'test summary',
+    );
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux presubmit_max_attempts=2',
+      userData: PresubmitUserData(
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+        guardCheckRunId: 1,
+        checkSuiteId: 2,
+      ),
+    );
+
+    await tester.post(handler);
+
+    verifyNever(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        conclusionOverride: anyNamed('conclusionOverride'),
+        summaryPrepend: anyNamed('summaryPrepend'),
+      ),
+    );
+
+    verifyNever(mockScheduler.processCheckRunCompleted(any));
   });
 
   test(
