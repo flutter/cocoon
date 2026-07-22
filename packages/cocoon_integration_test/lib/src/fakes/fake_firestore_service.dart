@@ -241,7 +241,7 @@ abstract base class _FakeInMemoryFirestoreService
       updateTime: (updated ?? _now()).toUtc().toIso8601String(),
     );
     if (cache != null && collection == kTaskCollectionId) {
-      unawaited(invalidateCacheForWrites([Write(update: _documents[name]!)]));
+      unawaited(updateCacheForCreatedTasks([Task.fromDocument(_documents[name]!)]));
     }
     return _clone(_documents[name]!);
   }
@@ -322,7 +322,7 @@ abstract base class _FakeInMemoryFirestoreService
       status: _batchWriteSync(request.writes ?? const []),
     );
     if (cache != null && request.writes != null) {
-      await invalidateCacheForWrites(request.writes!);
+      await handleWriteCacheInvalidation(request.writes!);
     }
     return response;
   }
@@ -388,7 +388,10 @@ abstract base class _FakeInMemoryFirestoreService
   }
 
   @override
-  Future<List<Document>> batchGetDocuments(List<String> names) async {
+  Future<List<Document>> batchGetDocuments(
+    List<String> names, {
+    Transaction? transaction,
+  }) async {
     final results = <Document>[];
     for (final name in names) {
       final doc = tryPeekDocumentByName(name);
@@ -464,7 +467,7 @@ abstract base class _FakeInMemoryFirestoreService
 
     final updated = _now().toUtc().toIso8601String();
     if (cache != null) {
-      await invalidateCacheForWrites(writes);
+      await handleWriteCacheInvalidation(writes);
     }
     return CommitResponse(
       commitTime: updated,

@@ -265,7 +265,7 @@ class RedisCacheService extends CacheService {
 
         local revKey = "revisions/" .. key
         local existingRev = tonumber(redis.call("get", revKey) or 0)
-        if rev > existingRev or (not redis.call("exists", key)) then
+        if rev > existingRev or redis.call("exists", key) == 0 then
           redis.call("set", key, val, "PX", ttl)
           redis.call("set", revKey, rev, "PX", ttl)
         end
@@ -513,6 +513,19 @@ class InMemoryCacheService extends CacheService {
   final Map<String, _InMemoryLock> _locks = {};
   final _mutex = Mutex();
 
+  void _evictIfFull(String cacheKey) {
+    if (_entries.length >= maxEntries && !_entries.containsKey(cacheKey)) {
+      _entries.remove(_entries.keys.first);
+    }
+  }
+
+  void _touch(String cacheKey) {
+    final entry = _entries.remove(cacheKey);
+    if (entry != null) {
+      _entries[cacheKey] = entry;
+    }
+  }
+
   @override
   Future<Uint8List?> get(String subcacheName, String key) async {
     await _mutex.acquire();
@@ -524,6 +537,7 @@ class InMemoryCacheService extends CacheService {
         _entries.remove(cacheKey);
         return null;
       }
+      _touch(cacheKey);
       return entry.value;
     } finally {
       _mutex.release();
@@ -544,6 +558,7 @@ class InMemoryCacheService extends CacheService {
           _entries.remove(cacheKey);
           return null;
         }
+        _touch(cacheKey);
         return entry.value;
       }).toList();
     } finally {
@@ -566,10 +581,8 @@ class InMemoryCacheService extends CacheService {
         if (existing == null ||
             existing.isExpired ||
             entry.revisionId > existing.revisionId) {
-          if (_entries.length >= maxEntries &&
-              !_entries.containsKey(cacheKey)) {
-            _entries.remove(_entries.keys.first);
-          }
+          _evictIfFull(cacheKey);
+          _entries.remove(cacheKey);
           _entries[cacheKey] = _InMemoryCacheEntry(
             entry.value,
             DateTime.now().add(entry.ttl),
@@ -660,11 +673,9 @@ class InMemoryCacheService extends CacheService {
       final cacheKey = '$subcacheName/$key';
 
       _entries.removeWhere((k, v) => v.isExpired);
+      _evictIfFull(cacheKey);
 
-      if (_entries.length >= maxEntries && !_entries.containsKey(cacheKey)) {
-        _entries.remove(_entries.keys.first);
-      }
-
+      _entries.remove(cacheKey);
       _entries[cacheKey] = _InMemoryCacheEntry(value, DateTime.now().add(ttl));
       return value;
     } finally {
@@ -688,10 +699,7 @@ class InMemoryCacheService extends CacheService {
       }
 
       _entries.removeWhere((k, v) => v.isExpired);
-
-      if (_entries.length >= maxEntries && !_entries.containsKey(cacheKey)) {
-        _entries.remove(_entries.keys.first);
-      }
+      _evictIfFull(cacheKey);
 
       _entries[cacheKey] = _InMemoryCacheEntry(value, DateTime.now().add(ttl));
       return true;

@@ -210,23 +210,22 @@ final class RerunProdTask extends ApiRequestHandler {
       // If it appears the task was in progress, cancel any running builders
       // and crease a _new_ task (to represent a new run).
       if (task.status == TaskStatus.inProgress) {
-        // Mark cancelled.
+        // Mark current attempt cancelled with incremented revisionId
+        task.setStatus(TaskStatus.cancelled);
         documentWrites.add(
-          fs.Task.patchStatus(
-            fs.TaskId(
-              commitSha: task.commitSha,
-              currentAttempt: task.currentAttempt,
-              taskName: task.taskName,
+          g.Write(
+            update: g.Document(
+              name: task.name,
+              fields: Map<String, g.Value>.from(task.fields),
             ),
-            TaskStatus.cancelled,
           ),
         );
       }
 
-      // Start a new task.
-      task.resetAsRetry(now: _now());
+      // Start a new task attempt
+      final retryTask = task.createRetry(now: _now());
       documentWrites.add(
-        g.Write(currentDocument: g.Precondition(exists: false), update: task),
+        g.Write(currentDocument: g.Precondition(exists: false), update: retryTask),
       );
     }
 

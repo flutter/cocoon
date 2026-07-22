@@ -9,6 +9,7 @@ import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
@@ -136,7 +137,7 @@ void main() {
     );
 
     test(
-      'batchWriteDocuments updates versioned task cache in-place lock-free',
+      'batchWriteDocuments updates versioned task cache with full document and incremented revisionId',
       () async {
         final task1 = generateFirestoreTask(
           1,
@@ -151,42 +152,31 @@ void main() {
           commitSha: commitSha,
         );
         expect(initialTasks.first.status, TaskStatus.inProgress);
+        expect(initialTasks.first.revisionId, 1);
         expect(
           await cache.getSet('tasks_by_commit_ids', commitSha),
           isNotEmpty,
         );
 
-        // Patch task status via batchWriteDocuments
-        final patchWrite = Task.patchStatus(
-          TaskId(
-            commitSha: commitSha,
-            taskName: task1.taskName,
-            currentAttempt: task1.currentAttempt,
-          ),
-          TaskStatus.succeeded,
-        );
+        // Mutate task status and increment revisionId
+        task1.setStatus(TaskStatus.succeeded);
         await firestore.batchWriteDocuments(
-          BatchWriteRequest(writes: [patchWrite]),
+          BatchWriteRequest(writes: documentsToWrites([task1])),
           kDatabase,
         );
 
-        // Verify that tasks_by_commit_ids remains intact (no purge needed!)
+        // Verify that tasks_by_commit_ids remains intact
         expect(
           await cache.getSet('tasks_by_commit_ids', commitSha),
           isNotEmpty,
         );
 
-        // Verify that single-task fetch and commit query return the updated version right from cache
-        final updatedTask = await Task.fromFirestore(
-          firestore,
-          TaskId(
-            commitSha: commitSha,
-            taskName: task1.taskName,
-            currentAttempt: task1.currentAttempt,
-          ),
-        );
-        expect(updatedTask.status, TaskStatus.succeeded);
-        expect(updatedTask.revisionId, 2);
+        // Verify that single-task payload cache entry was updated in Redis with full document and rev 2
+        final cachedBytes = await cache.get('tasks', p.basename(task1.name!));
+        expect(cachedBytes, isNotNull);
+        final cachedTask = Task.deserialize(cachedBytes!);
+        expect(cachedTask.status, TaskStatus.succeeded);
+        expect(cachedTask.revisionId, 2);
       },
     );
 
@@ -219,6 +209,25 @@ void main() {
         );
         expect(updatedTask.status, TaskStatus.succeeded);
         expect(updatedTask.revisionId, 2);
+      },
+    );
+
+    test(
+      'updateCacheForCreatedTasks groups tasks by commit SHA',
+      () async {
+        final task1 = generateFirestoreTask(1, commitSha: 'shaA', name: 'Linux A');
+        final task2 = generateFirestoreTask(2, commitSha: 'shaA', name: 'Linux B');
+        final task3 = generateFirestoreTask(3, commitSha: 'shaB', name: 'Linux C');
+
+        await firestore.updateCacheForCreatedTasks([task1, task2, task3]);
+
+        final cachedTask1 = await cache.get('tasks', p.basename(task1.name!));
+        final cachedTask2 = await cache.get('tasks', p.basename(task2.name!));
+        final cachedTask3 = await cache.get('tasks', p.basename(task3.name!));
+
+        expect(cachedTask1, isNotNull);
+        expect(cachedTask2, isNotNull);
+        expect(cachedTask3, isNotNull);
       },
     );
   });

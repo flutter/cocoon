@@ -140,16 +140,16 @@ final class Task extends AppDocument<Task> {
     fromDocument: Task.fromDocument,
   );
 
-  static Uint8List _serializeTask(Task task) {
-    return Uint8List.fromList(
-      utf8.encode(
-        json.encode(Document(name: task.name, fields: task.fields).toJson()),
-      ),
+  /// Serializes a [Task] document into bytes for caching.
+  static Uint8List serialize(Task task) {
+    return utf8.encode(
+      json.encode(Document(name: task.name, fields: task.fields).toJson()),
     );
   }
 
-  static Task _deserializeTask(Uint8List data) {
-    final jsonMap = json.decode(utf8.decode(data)) as Map<String, dynamic>;
+  /// Deserializes bytes into a [Task] document.
+  static Task deserialize(Uint8List data) {
+    final jsonMap = json.decode(utf8.decode(data)) as Map<String, Object?>;
     return Task.fromDocument(Document.fromJson(jsonMap));
   }
 
@@ -166,7 +166,7 @@ final class Task extends AppDocument<Task> {
         id.documentId,
       );
       if (cachedTask != null) {
-        return _deserializeTask(cachedTask);
+        return deserialize(cachedTask);
       }
     }
 
@@ -179,7 +179,7 @@ final class Task extends AppDocument<Task> {
       await firestoreService.cache!.insertVersioned('tasks', [
         VersionedCacheEntry(
           key: id.documentId,
-          value: _serializeTask(task),
+          value: serialize(task),
           revisionId: task.revisionId,
           ttl: const Duration(hours: 12),
         ),
@@ -252,30 +252,6 @@ final class Task extends AppDocument<Task> {
     this
       ..fields = fields
       ..name = name;
-  }
-
-  /// Returns a Firestore [Write] that patches the [status] field for [id].
-  @useResult
-  static Write patchStatus(AppDocumentId<Task> id, TaskStatus status) {
-    return Write(
-      currentDocument: Precondition(exists: true),
-      update: Document(
-        name: p.posix.join(
-          kDatabase,
-          'documents',
-          kTaskCollectionId,
-          id.documentId,
-        ),
-        fields: {fieldStatus: Value(stringValue: status.value)},
-      ),
-      updateMask: DocumentMask(fieldPaths: [fieldStatus]),
-      updateTransforms: [
-        FieldTransform(
-          fieldPath: fieldRevisionId,
-          increment: Value(integerValue: '1'),
-        ),
-      ],
-    );
   }
 
   /// The task was run successfully.
@@ -393,6 +369,22 @@ final class Task extends AppDocument<Task> {
 
     _setStatusFromLuciStatus(build);
     incrementRevisionId();
+  }
+
+  Task createRetry({DateTime? now}) {
+    now ??= DateTime.now();
+    return Task(
+      builderName: taskName,
+      currentAttempt: currentAttempt + 1,
+      commitSha: commitSha,
+      bringup: bringup,
+      createTimestamp: now.millisecondsSinceEpoch,
+      startTimestamp: 0,
+      endTimestamp: 0,
+      status: TaskStatus.waitingForBackfill,
+      testFlaky: false,
+      buildNumber: null,
+    );
   }
 
   void resetAsRetry({int? attempt, DateTime? now}) {
