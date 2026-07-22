@@ -69,6 +69,7 @@ class PresubmitCompletedJob {
     Build build,
     PresubmitUserData userData, {
     TaskStatus? status,
+    String? summaryPrepend,
   }) {
     return PresubmitCompletedJob(
       name: build.builder.builder,
@@ -85,7 +86,9 @@ class PresubmitCompletedJob {
       attempt: _getAttempt(build),
       startTime: build.startTime.toDateTime().millisecondsSinceEpoch,
       endTime: build.endTime.toDateTime().millisecondsSinceEpoch,
-      summary: build.summaryMarkdown,
+      summary: summaryPrepend != null && summaryPrepend.isNotEmpty
+          ? '$summaryPrepend\n\n${build.summaryMarkdown}'
+          : build.summaryMarkdown,
       buildNumber: build.number,
       buildId: build.id,
     );

@@ -173,21 +173,21 @@ base class PresubmitSubscription extends SubscriptionHandler {
       }
     }
     CheckRunConclusion? override;
-    if (!isUnifiedCheckRun) {
-      String? suppressedMessage;
-      if (build.status.isTaskFailed() && !rescheduled) {
-        // If a test is suppressed; we avoid setting a failing status.
-        final isSuppressed = await cache.isTestSuppressed(
-          testName: builderName,
-          repository: userData.commit.slug,
-          firestore: _firestore,
-        );
-        if (isSuppressed) {
-          override = CheckRunConclusion.neutral;
-          suppressedMessage =
-              '### ⚠️ Test failed but marked as suppressed on dashboard';
-        }
+    String? suppressedMessage;
+    if (build.status.isTaskFailed() && !rescheduled) {
+      // If a test is suppressed; we avoid setting a failing status.
+      final isSuppressed = await cache.isTestSuppressed(
+        testName: builderName,
+        repository: userData.commit.slug,
+        firestore: _firestore,
+      );
+      if (isSuppressed) {
+        override = CheckRunConclusion.neutral;
+        suppressedMessage =
+            '### ⚠️ Test failed but marked as suppressed on dashboard';
       }
+    }
+    if (!isUnifiedCheckRun) {
       if (userData.checkRunId == null) {
         log.error('checkRunId is null for non-unified check run');
         return;
@@ -209,6 +209,7 @@ base class PresubmitSubscription extends SubscriptionHandler {
         status: override == CheckRunConclusion.neutral
             ? TaskStatus.neutral
             : null,
+        summaryPrepend: suppressedMessage,
       );
       await _scheduler.processCheckRunCompleted(check);
     }
