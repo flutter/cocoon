@@ -1366,7 +1366,7 @@ detailsUrl: $detailsUrl
     required String logCrumb,
     required bool isUnifiedCheckRun,
   }) async {
-    log.info('$logCrumb: Stage completed: ${CiStage.fusionTests}');
+    log.info('$logCrumb: Test stage completed');
     if (isUnifiedCheckRun) {
       if (dashboardChecks != null) {
         await unlockMergeQueueGuard(
