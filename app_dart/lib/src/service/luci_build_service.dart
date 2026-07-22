@@ -398,7 +398,9 @@ class LuciBuildService {
             // if unified check run flow is enabled, use guard check run othervise check run id.
             tags: isUnifiedCheckRunFlow && dashboardChecks != null
                 ? BuildTags([
-                    GuardCheckRunIdBuildTag(guardCheckRunId: dashboardChecks.id!),
+                    GuardCheckRunIdBuildTag(
+                      guardCheckRunId: dashboardChecks.id!,
+                    ),
                     if (attemptNumber > 1)
                       CurrentAttemptBuildTag(attemptNumber: attemptNumber),
                     if (isOrderedPresubmit)
