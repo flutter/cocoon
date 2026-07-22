@@ -4147,7 +4147,8 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
     required List<_i27.Target>? targets,
     required _i7.PullRequest? pullRequest,
     required _i28.EngineArtifacts? engineArtifacts,
-    _i7.CheckRun? checkRunGuard,
+    _i7.CheckRun? dashboardChecks,
+    _i7.CheckRun? mergeQueueGuard,
     _i17.CiStage? stage,
   }) =>
       (super.noSuchMethod(
@@ -4155,7 +4156,8 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
               #targets: targets,
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
-              #checkRunGuard: checkRunGuard,
+              #dashboardChecks: dashboardChecks,
+              #mergeQueueGuard: mergeQueueGuard,
               #stage: stage,
             }),
             returnValue: _i13.Future<List<_i27.Target>>.value(<_i27.Target>[]),
@@ -4167,7 +4169,8 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
     required Map<_i27.Target, int>? targets,
     required _i7.PullRequest? pullRequest,
     required _i28.EngineArtifacts? engineArtifacts,
-    required _i7.CheckRun? checkRunGuard,
+    _i7.CheckRun? dashboardChecks,
+    _i7.CheckRun? mergeQueueGuard,
     required _i17.CiStage? stage,
   }) =>
       (super.noSuchMethod(
@@ -4175,7 +4178,8 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
               #targets: targets,
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
-              #checkRunGuard: checkRunGuard,
+              #dashboardChecks: dashboardChecks,
+              #mergeQueueGuard: mergeQueueGuard,
               #stage: stage,
             }),
             returnValue: _i13.Future<List<_i27.Target>>.value(<_i27.Target>[]),

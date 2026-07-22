@@ -54,7 +54,7 @@ void main() {
         targets: anyNamed('targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
-        checkRunGuard: anyNamed('checkRunGuard'),
+        dashboardChecks: anyNamed('dashboardChecks'),
       ),
     ).thenAnswer((inv) async {
       return [];

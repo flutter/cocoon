@@ -1152,7 +1152,8 @@ void main() {
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -1456,7 +1457,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((_) async => []);
@@ -1476,7 +1478,8 @@ targets:
             ),
             pullRequest: pullRequest,
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: CiStage.fusionEngineBuild,
           ),
         ).called(1);
@@ -1601,7 +1604,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((_) async => []);
@@ -1621,7 +1625,8 @@ targets:
             ),
             pullRequest: pullRequest,
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: CiStage.fusionTests,
           ),
         ).called(1);
@@ -1883,7 +1888,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
-                checkRunGuard: anyNamed('checkRunGuard'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
                 stage: anyNamed('stage'),
               ),
             ).thenAnswer((inv) async {
@@ -1980,7 +1986,8 @@ targets:
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
-                checkRunGuard: anyNamed('checkRunGuard'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
                 stage: anyNamed('stage'),
               ),
             );
@@ -2034,7 +2041,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
@@ -2131,7 +2139,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               );
@@ -2380,7 +2389,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
-                checkRunGuard: anyNamed('checkRunGuard'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
                 stage: anyNamed('stage'),
               ),
             ).thenAnswer((Invocation i) async {
@@ -2722,7 +2732,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
@@ -2807,7 +2818,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               );
@@ -3084,8 +3096,8 @@ targets:
             isUnifiedCheckRun: true,
           );
 
-          expect(lockResult.lock.name, Config.kDashboardCheckName);
-          expect(lockResult.checkRunGuard?.name, Config.kMergeQueueLockName);
+          expect(lockResult.dashboardChecks.name, Config.kDashboardCheckName);
+          expect(lockResult.mergeQueueGuard?.name, Config.kMergeQueueLockName);
 
           verifyNever(
             mockGithubChecksUtil.updateCheckRun(
@@ -3438,7 +3450,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -3527,7 +3540,8 @@ targets:
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         );
@@ -3591,7 +3605,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -3733,7 +3748,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -3864,7 +3880,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -4780,7 +4797,8 @@ final class _CapturingFakeLuciBuildService extends Fake
   List<Target> scheduledTryBuilds = [];
   EngineArtifacts? engineArtifacts;
   PullRequest? pullRequest;
-  CheckRun? checkRunGuard;
+  CheckRun? dashboardChecks;
+  CheckRun? mergeQueueGuard;
   CiStage? stage;
 
   @override
@@ -4788,13 +4806,15 @@ final class _CapturingFakeLuciBuildService extends Fake
     required List<Target> targets,
     required PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
-    CheckRun? checkRunGuard,
+    CheckRun? dashboardChecks,
+    CheckRun? mergeQueueGuard,
     CiStage? stage,
   }) async {
     scheduledTryBuilds = targets;
     this.engineArtifacts = engineArtifacts;
     this.pullRequest = pullRequest;
-    this.checkRunGuard = checkRunGuard;
+    this.dashboardChecks = dashboardChecks;
+    this.mergeQueueGuard = mergeQueueGuard;
     this.stage = stage;
     return targets;
   }

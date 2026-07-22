@@ -94,7 +94,7 @@ void main() {
         targets: anyNamed('targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
-        checkRunGuard: anyNamed('checkRunGuard'),
+        dashboardChecks: anyNamed('dashboardChecks'),
         stage: anyNamed('stage'),
       ),
     ).thenAnswer((_) async => []);
@@ -113,7 +113,7 @@ void main() {
         targets: argThat(containsPair(targetA, 2), named: 'targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
-        checkRunGuard: anyNamed('checkRunGuard'),
+        dashboardChecks: anyNamed('dashboardChecks'),
         stage: anyNamed('stage'),
       ),
     ).called(1);
@@ -165,7 +165,7 @@ void main() {
         targets: anyNamed('targets'),
         pullRequest: anyNamed('pullRequest'),
         engineArtifacts: anyNamed('engineArtifacts'),
-        checkRunGuard: anyNamed('checkRunGuard'),
+        dashboardChecks: anyNamed('dashboardChecks'),
         stage: anyNamed('stage'),
       ),
     ).thenAnswer((_) async => []);

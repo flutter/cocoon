@@ -374,8 +374,8 @@ class Scheduler {
           : null,
       isUnifiedCheckRun: isUnifiedCheckRun,
     );
-    final lock = lockResult.lock;
-    final checkRunGuard = lockResult.checkRunGuard;
+    final dashboardChecks = lockResult.dashboardChecks;
+    final mergeQueueGuard = lockResult.mergeQueueGuard;
 
     // Track if we should unlock the merge group lock in case of non-fusion or
     // revert bots.
@@ -412,14 +412,14 @@ class Scheduler {
             tasks: [],
             pullRequest: pullRequest,
             config: _config,
-            checkRun: lock,
-            checkRunGuard: checkRunGuard,
+            dashboardChecks: dashboardChecks,
+            mergeQueueGuard: mergeQueueGuard,
           );
 
           await _runCiTestingStage(
             pullRequest: pullRequest,
-            checkRunGuard: lock,
-            checkRunGuardCheck: checkRunGuard,
+            dashboardChecks: dashboardChecks,
+            mergeQueueGuard: mergeQueueGuard,
             logCrumb: logCrumb,
 
             // The if-branch already skips the engine build phase.
@@ -453,8 +453,8 @@ class Scheduler {
             tasks: [...presubmitTriggerTargets.map((t) => t.name)],
             pullRequest: pullRequest,
             config: _config,
-            checkRun: lock,
-            checkRunGuard: checkRunGuard,
+            dashboardChecks: dashboardChecks,
+            mergeQueueGuard: mergeQueueGuard,
           );
 
           // Even though this appears to be an engine build, it could be a
@@ -479,8 +479,8 @@ class Scheduler {
               tasks: [...presubmitTriggerTargets.map((t) => t.name)],
               pullRequest: pullRequest,
               config: _config,
-              checkRun: lock,
-              checkRunGuard: checkRunGuard,
+              dashboardChecks: dashboardChecks,
+              mergeQueueGuard: mergeQueueGuard,
             );
           }
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
@@ -491,7 +491,8 @@ class Scheduler {
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
-          checkRunGuard: lock,
+          dashboardChecks: dashboardChecks,
+          mergeQueueGuard: mergeQueueGuard,
           stage: isFusion ? CiStage.fusionEngineBuild : CiStage.genericTests,
         );
       } on FormatException catch (e, s) {
@@ -528,7 +529,7 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      await unlockMergeQueueGuard(slug, sha, lock);
+      await unlockMergeQueueGuard(slug, sha, dashboardChecks);
     }
     log.info(
       'Finished triggering builds for: pr ${pullRequest.number}, commit $sha, branch ${pullRequest.head!.ref} and slug $slug}',
@@ -652,12 +653,13 @@ class Scheduler {
       headSha,
       isUnifiedCheckRun: false,
     );
-    final lock = lockResult.lock;
+    final dashboardChecks = lockResult.dashboardChecks;
+    final mergeQueueGuard = lockResult.mergeQueueGuard!;
 
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
     // close the merge group guard.
     if (!isFusion) {
-      await unlockMergeQueueGuard(slug, headSha, lock);
+      await unlockMergeQueueGuard(slug, headSha, mergeQueueGuard);
       return;
     }
 
@@ -689,8 +691,8 @@ class Scheduler {
         stage: CiStage.fusionEngineBuild,
         tasks: [...availableTargets.map((t) => t.name)],
         config: _config,
-        checkRun: lock,
-        checkRunGuard: lockResult.checkRunGuard,
+        dashboardChecks: dashboardChecks,
+        mergeQueueGuard: mergeQueueGuard,
       );
 
       // Create the minimal Commit needed to pass the next stage.
@@ -718,7 +720,7 @@ class Scheduler {
       // only required GitHub check.
       await failGuardForMergeGroup(
         slug: slug,
-        lock: lock,
+        lock: mergeQueueGuard,
         headSha: headSha,
         summary: 'Failed to schedule checks for merge group',
         details:
@@ -864,7 +866,8 @@ $s
     String? detailsUrl,
     required bool isUnifiedCheckRun,
   }) async {
-    final mqGuard = await _githubChecksService.githubChecksUtil.createCheckRun(
+    final mergeQueueGuard = await _githubChecksService.githubChecksUtil
+        .createCheckRun(
       _config,
       slug,
       headSha,
@@ -876,7 +879,7 @@ $s
       detailsUrl: isUnifiedCheckRun ? null : detailsUrl,
     );
 
-    final flutterPresubmits = await _githubChecksService.githubChecksUtil
+    final dashboardChecks = await _githubChecksService.githubChecksUtil
         .createCheckRun(
           _config,
           slug,
@@ -889,22 +892,20 @@ $s
           detailsUrl: isUnifiedCheckRun ? detailsUrl : null,
         );
 
-    if (isUnifiedCheckRun) {
-      return CheckRunLockResult(
-        lock: flutterPresubmits,
-        checkRunGuard: mqGuard,
-      );
-    } else {
+    if (!isUnifiedCheckRun) {
       // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
         slug,
-        flutterPresubmits,
+        dashboardChecks,
         status: CheckRunStatus.completed,
         conclusion: CheckRunConclusion.success,
       );
-      return CheckRunLockResult(lock: mqGuard, checkRunGuard: null);
     }
+    return CheckRunLockResult(
+      dashboardChecks: dashboardChecks,
+      mergeQueueGuard: mergeQueueGuard,
+    );
   }
 
   /// Creates a pending check run for "Awaiting CICD label" if it doesn't exist.
@@ -1416,8 +1417,8 @@ detailsUrl: $detailsUrl
   /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
   Future<void> _runCiTestingStage({
     required PullRequest pullRequest,
-    required CheckRun checkRunGuard,
-    CheckRun? checkRunGuardCheck,
+    required CheckRun dashboardChecks,
+    CheckRun? mergeQueueGuard,
     required String logCrumb,
     required _FlutterRepoTestsToRun testsToRun,
   }) async {
@@ -1459,8 +1460,8 @@ detailsUrl: $detailsUrl
         tasks: tasks,
         config: _config,
         pullRequest: pullRequest,
-        checkRun: checkRunGuard,
-        checkRunGuard: checkRunGuardCheck,
+        dashboardChecks: dashboardChecks,
+        mergeQueueGuard: mergeQueueGuard,
       );
 
       // Here is where it gets fun: how do framework tests* know what engine
@@ -1487,7 +1488,8 @@ detailsUrl: $detailsUrl
         targets: presubmitTargets,
         pullRequest: pullRequest,
         engineArtifacts: engineArtifacts,
-        checkRunGuard: checkRunGuard,
+        dashboardChecks: dashboardChecks,
+        mergeQueueGuard: mergeQueueGuard,
         stage: CiStage.fusionTests,
       );
     } on FormatException catch (e, s) {
@@ -1535,7 +1537,7 @@ detailsUrl: $detailsUrl
     try {
       await _runCiTestingStage(
         pullRequest: pullRequest,
-        checkRunGuard: checkRunGuard,
+        dashboardChecks: checkRunGuard,
         logCrumb: logCrumb,
         testsToRun: _FlutterRepoTestsToRun.engineTestsAndFrameworkTests,
       );
@@ -1820,7 +1822,8 @@ $stacktrace
       targets: targets,
       pullRequest: pullRequest,
       engineArtifacts: engineArtifacts,
-      checkRunGuard: null,
+      dashboardChecks: null,
+      mergeQueueGuard: null,
       stage: null,
     );
     return const ProcessCheckRunResult.success();
@@ -1915,7 +1918,7 @@ $stacktrace
       targets: checkRetries,
       pullRequest: pullRequest,
       engineArtifacts: artifacts,
-      checkRunGuard: failedChecks.checkRunGuard,
+      dashboardChecks: failedChecks.dashboardChecks,
       stage: failedChecks.stage,
     );
 
@@ -2042,8 +2045,11 @@ enum _TaskCommitScheduling {
 }
 
 class CheckRunLockResult {
-  final CheckRun lock;
-  final CheckRun? checkRunGuard;
+  final CheckRun dashboardChecks;
+  final CheckRun? mergeQueueGuard;
 
-  const CheckRunLockResult({required this.lock, this.checkRunGuard});
+  const CheckRunLockResult({
+    required this.dashboardChecks,
+    this.mergeQueueGuard,
+  });
 }
