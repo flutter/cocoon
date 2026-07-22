@@ -89,7 +89,7 @@ class PresubmitCompletedJob {
       summary: [
         if (summaryPrepend != null && summaryPrepend.isNotEmpty) summaryPrepend,
         if (build.summaryMarkdown.isNotEmpty) build.summaryMarkdown,
-      ].join('\n\n'),
+      ].join('\n---\n'),
       buildNumber: build.number,
       buildId: build.id,
     );

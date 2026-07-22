@@ -116,7 +116,7 @@ void main() {
       );
 
       expect(check.status, TaskStatus.neutral);
-      expect(check.summary, 'Suppressed message\n\nBuild failed.');
+      expect(check.summary, 'Suppressed message\n---\nBuild failed.');
     });
   });
 }
