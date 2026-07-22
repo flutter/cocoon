@@ -86,9 +86,10 @@ class PresubmitCompletedJob {
       attempt: _getAttempt(build),
       startTime: build.startTime.toDateTime().millisecondsSinceEpoch,
       endTime: build.endTime.toDateTime().millisecondsSinceEpoch,
-      summary: summaryPrepend != null && summaryPrepend.isNotEmpty
-          ? '$summaryPrepend\n\n${build.summaryMarkdown}'
-          : build.summaryMarkdown,
+      summary: [
+        if (summaryPrepend != null && summaryPrepend.isNotEmpty) summaryPrepend,
+        if (build.summaryMarkdown.isNotEmpty) build.summaryMarkdown,
+      ].join('\n\n'),
       buildNumber: build.number,
       buildId: build.id,
     );
