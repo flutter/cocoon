@@ -20,7 +20,6 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
-import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
@@ -77,6 +76,9 @@ void main() {
           Config.flutterSlug,
           Config.packagesSlug,
         },
+      );
+      config.dynamicConfig = DynamicConfig(
+        unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
       );
 
       fakeContentAwareHash = FakeContentAwareHashService(config: config);
@@ -669,7 +671,12 @@ void main() {
           ),
         ).thenAnswer((_) async => []);
         final mockGithubClient = MockGitHub();
-        config = FakeConfig(githubService: mockGithubService);
+        config = FakeConfig(
+          githubService: mockGithubService,
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+          ),
+        );
         scheduler = Scheduler(
           githubService: config.githubService ?? FakeGithubService(),
           cache: cache,
@@ -3121,22 +3128,25 @@ targets:
             ),
           ).thenAnswer((_) async => []);
           getFilesChanged.cannedFiles = null;
-          scheduler = Scheduler(
-            githubService: config.githubService ?? FakeGithubService(),
-            cache: cache,
-            config: FakeConfig(
-              // tabledataResource: tabledataResource,
-              githubService: mockGithubService,
-              githubClient: MockGitHub(),
+          final fakeConfig = FakeConfig(
+            githubService: mockGithubService,
+            githubClient: MockGitHub(),
+            dynamicConfig: DynamicConfig(
+              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
             ),
+          );
+          scheduler = Scheduler(
+            githubService: fakeConfig.githubService ?? FakeGithubService(),
+            cache: cache,
+            config: fakeConfig,
             githubChecksService: GithubChecksService(
-              config,
+              fakeConfig,
               githubChecksUtil: mockGithubChecksUtil,
             ),
             getFilesChanged: getFilesChanged,
             ciYamlFetcher: ciYamlFetcher,
             luciBuildService: FakeLuciBuildService(
-              config: config,
+              config: fakeConfig,
               githubChecksUtil: mockGithubChecksUtil,
               gerritService: FakeGerritService(
                 branchesValue: <String>['master'],
@@ -3433,17 +3443,20 @@ targets:
 
         getFilesChanged.cannedFiles = ['abc/def', 'engine/src/flutter/FILE'];
 
-        scheduler = Scheduler(
-          githubService: config.githubService ?? FakeGithubService(),
-          cache: cache,
-          config: FakeConfig(
-            // tabledataResource: tabledataResource,
-            githubService: mockGithubService,
-            githubClient: MockGitHub(),
-            maxFilesChangedForSkippingEnginePhaseValue: 0,
+        final fakeConfig = FakeConfig(
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          maxFilesChangedForSkippingEnginePhaseValue: 0,
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
           ),
+        );
+        scheduler = Scheduler(
+          githubService: fakeConfig.githubService ?? FakeGithubService(),
+          cache: cache,
+          config: fakeConfig,
           githubChecksService: GithubChecksService(
-            config,
+            fakeConfig,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
@@ -4085,16 +4098,20 @@ targets:
           engine: fusionCiYaml,
         );
 
-        scheduler = Scheduler(
-          githubService: config.githubService ?? FakeGithubService(),
-          cache: cache,
-          config: FakeConfig(
-            githubService: mockGithubService,
-            githubClient: MockGitHub(),
-            maxFilesChangedForSkippingEnginePhaseValue: 29,
+        final fakeConfig = FakeConfig(
+          githubService: mockGithubService,
+          githubClient: MockGitHub(),
+          maxFilesChangedForSkippingEnginePhaseValue: 29,
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
           ),
+        );
+        scheduler = Scheduler(
+          githubService: fakeConfig.githubService ?? FakeGithubService(),
+          cache: cache,
+          config: fakeConfig,
           githubChecksService: GithubChecksService(
-            config,
+            fakeConfig,
             githubChecksUtil: mockGithubChecksUtil,
           ),
           getFilesChanged: getFilesChanged,
@@ -4401,6 +4418,87 @@ targets:
           final guards = await firestore.query(PresubmitGuard.collectionId, {});
           final guard = PresubmitGuard.fromDocument(guards.single);
           expect(guard.failedJobs, 1);
+        },
+      );
+
+      test(
+        'requires action with failed checks list when check fails for unified check run (pull request)',
+        () async {
+          final pullRequest = generatePullRequest();
+          final checkRunGuard = generateCheckRun(
+            1234,
+            name: Config.kDashboardCheckName,
+            startedAt: DateTime.now(),
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [checkRunGuard],
+            pullRequest: pullRequest,
+          );
+
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: checkRunGuard,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.genericTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingJobs: 1,
+              failedJobs: 0,
+            ),
+          );
+
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test',
+              checkRunId: checkRunGuard.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: checkRunGuard.id,
+            stage: CiStage.genericTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.FAILURE,
+            tags: [bbv2.StringPair(key: 'current_attempt', value: '1')],
+          );
+
+          final check = PresubmitCompletedJob.fromBuild(build, userData);
+
+          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+
+          final verification = verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.actionRequired,
+              detailsUrl: anyNamed('detailsUrl'),
+              output: captureAnyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+          verification.called(1);
+          final output = verification.captured.single as CheckRunOutput;
+          expect(output.text, 'Failed presubmit jobs:\n- `Linux test`');
         },
       );
 

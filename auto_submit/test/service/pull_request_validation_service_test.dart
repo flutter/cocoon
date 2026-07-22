@@ -288,6 +288,33 @@ void main() {
       );
 
       expect(result.message, contains('Reland "My first PR!"'));
+      expect(githubService.mergePrShaMap[0], pullRequest.head?.sha);
+    });
+
+    test('Fails for invalid sha', () async {
+      final pullRequest = generatePullRequest(
+        prNumber: 1001,
+        repoName: slug.name,
+        title: 'Revert "Revert "My first PR!"',
+        mergeable: true,
+      );
+      pullRequest.head!.sha = null;
+      githubService.pullRequestData = pullRequest;
+      githubService.mergeRequestMock = PullRequestMerge(
+        merged: true,
+        sha: pullRequest.mergeCommitSha,
+      );
+
+      final result = await validationService.submitPullRequest(
+        config: config,
+        pullRequest: pullRequest,
+      );
+
+      expect(
+        result.message,
+        contains('Failed to merge flutter/cocoon/#1001: invalid head'),
+      );
+      expect(githubService.mergePrShaMap[1001], isNull);
     });
 
     test(

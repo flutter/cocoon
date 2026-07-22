@@ -1,5 +1,8 @@
 name: Common workflows
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [main]
@@ -17,7 +20,9 @@ jobs:
           architecture: x64 # only needed for running locally (mac)
 
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
 
       - name: Run analyze.dart
         working-directory: analyze

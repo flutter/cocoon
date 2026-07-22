@@ -34,7 +34,7 @@ geminiModel: gemini-3-flash-preview
 
 # Whether to allow unified check run flow to specific users or to everyone.
 unifiedCheckRunFlow:
-  useForAll: false
+  useForAll: true
   useForUsers:
     - ievdokdm
     - eyebrowsoffire
@@ -45,4 +45,10 @@ unifiedCheckRunFlow:
     - vashworth
     - mboetger
     - justinmc
+
+# Whether to process LUCI notifications of builds progress ordered within check run.
+orderedPresubmit:
+  useForAll: true
+  useForUsers:
+    - ievdokdm
 ''';

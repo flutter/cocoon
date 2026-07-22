@@ -691,6 +691,7 @@ $stack
         remaining: remaining,
         checkRunGuard: presubmitGuard.checkRunJson,
         failed: failed,
+        failedJobNames: valid ? presubmitGuard.failedJobNames : const [],
         summary: valid
             ? 'Successfully updated presubmit guard status'
             : 'Not a valid state transition for ${state.jobName}',

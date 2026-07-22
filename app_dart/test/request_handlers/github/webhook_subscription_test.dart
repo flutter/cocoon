@@ -22,6 +22,8 @@ import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/pull_request_manager.dart';
 import 'package:cocoon_service/src/service/scheduler.dart';
@@ -100,6 +102,9 @@ void main() {
           'wrongHeadBranchPullRequestMessage',
       wrongBaseBranchPullRequestMessageValue:
           '{{target_branch}} -> {{default_branch}}',
+    );
+    config.dynamicConfig = DynamicConfig(
+      unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
     );
     issuesService = MockIssuesService();
     when(

@@ -341,6 +341,9 @@ class FakeGithubService implements GithubService {
 
   bool throwExceptionOnMerge = false;
 
+  /// Recorded commit shas made during [mergePullRequest].
+  Map<int, String?> mergePrShaMap = <int, String?>{};
+
   /// If useMergeRequestMockList is true then we will return elements from that
   /// list until it is empty.
   ///
@@ -358,6 +361,7 @@ class FakeGithubService implements GithubService {
       throw Exception('Exception occurred during merging of pull request.');
     }
     verifyPullRequestMergeCallMap[number] = slug;
+    mergePrShaMap[number] = requestSha;
     if (useMergeRequestMockList) {
       return pullRequestMergeMockList.removeAt(0);
     } else {

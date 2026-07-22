@@ -168,6 +168,8 @@ sealed class BuildTag {
         }
       case TriggerdByBuildTag._keyName:
         return TriggerdByBuildTag(email: pair.value);
+      case OrderingKeyTag._keyName:
+        return OrderingKeyTag(orderingKey: pair.value);
     }
     return UnknownBuildTag(key: pair.key, value: pair.value);
   }
@@ -422,4 +424,14 @@ final class TriggerdByBuildTag extends BuildTag {
 
   /// The email address of the triggering user.
   final String email;
+}
+
+/// The ordering key for this build.
+final class OrderingKeyTag extends BuildTag {
+  static const _keyName = 'ordering_key';
+
+  OrderingKeyTag({required this.orderingKey}) : super(_keyName, orderingKey);
+
+  /// The ordering key value.
+  final String orderingKey;
 }

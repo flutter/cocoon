@@ -2,25 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert';
-
-import 'package:archive/archive.dart';
-import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart';
-import 'package:github/github.dart';
+import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
-import '../model/bbv2_extension.dart';
-import '../model/ci_yaml/ci_yaml.dart';
-import '../model/ci_yaml/target.dart';
-import '../model/commit_ref.dart';
-import '../model/common/presubmit_completed_check.dart';
-import '../request_handling/exceptions.dart';
-import '../request_handling/subscription_handler.dart';
-import '../service/extensions/cache_service_test_suppression.dart';
 import '../service/luci_build_service/build_tags.dart';
-import '../service/luci_build_service/user_data.dart';
-import '../service/scheduler/ci_yaml_fetcher.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
 ///
@@ -34,196 +20,37 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 ///
 /// This endpoint is responsible for updating GitHub with the status of
 /// completed builds from LUCI.
-final class PresubmitLuciSubscription extends SubscriptionHandler {
-  /// Creates an endpoint for listening to LUCI status updates.
+@immutable
+final class PresubmitLuciSubscription extends PresubmitSubscription {
+  /// Creates an endpoint for listening to unordered LUCI status updates.
   const PresubmitLuciSubscription({
     required super.cache,
     required super.config,
-    required LuciBuildService luciBuildService,
-    required GithubChecksService githubChecksService,
-    required CiYamlFetcher ciYamlFetcher,
-    required Scheduler scheduler,
-    required FirestoreService firestore,
-    AuthenticationProvider? authProvider,
-  }) : _ciYamlFetcher = ciYamlFetcher,
-       _githubChecksService = githubChecksService,
-       _luciBuildService = luciBuildService,
-       _scheduler = scheduler,
-       _firestore = firestore,
-       super(subscriptionName: 'build-bucket-presubmit-sub');
+    required super.luciBuildService,
+    required super.githubChecksService,
+    required super.ciYamlFetcher,
+    required super.scheduler,
+    required super.firestore,
+    this.pubsub = const PubSub(),
+    super.authProvider,
+  }) : super(subscriptionName: 'build-bucket-presubmit-sub');
 
-  final LuciBuildService _luciBuildService;
-  final GithubChecksService _githubChecksService;
-  final CiYamlFetcher _ciYamlFetcher;
-  final Scheduler _scheduler;
-  final FirestoreService _firestore;
+  final PubSub pubsub;
 
   @override
-  Future<Response> post(Request request) async {
-    if (message.data == null) {
-      log.info('no data in message');
-      return Response.emptyOk;
-    }
-
-    final pubSubCallBack = bbv2.PubSubCallBack();
-    pubSubCallBack.mergeFromProto3Json(
-      jsonDecode(message.data!) as Map<String, dynamic>,
-    );
-
-    final buildsPubSub = pubSubCallBack.buildPubsub;
-
-    if (!buildsPubSub.hasBuild()) {
-      log.info('no build information in message');
-      return Response.emptyOk;
-    }
-
-    var build = buildsPubSub.build;
-
-    // Add build fields that are stored in a separate compressed buffer.
-    build.mergeFromBuffer(
-      const ZLibDecoder().decodeBytes(buildsPubSub.buildLargeFields),
-    );
-
-    final builderName = build.builder.builder;
-    final tagSet = BuildTags.fromStringPairs(build.tags);
-
-    log.info('Available tags: ${build.tags}');
-
-    // Skip status update if we can not get the sha tag.
-    if (tagSet.buildTags.whereType<BuildSetBuildTag>().isEmpty) {
-      log.warn('Buildset tag not included, skipping Status Updates');
-      return Response.emptyOk;
-    }
-
-    log.info(
-      'Setting status (${build.status}) for build id: ${build.id} named: $builderName',
-    );
-
-    if (!pubSubCallBack.hasUserData()) {
-      log.info('No user data was found in this request');
-      return Response.emptyOk;
-    }
-
-    final userData = PresubmitUserData.fromBytes(pubSubCallBack.userData);
-    log.info('User Data Json: ${userData.toJson()}');
-    var rescheduled = false;
-    final isUnifiedCheckRun = userData.guardCheckRunId != null;
-    log.info('Unified Check Run ${isUnifiedCheckRun ? 'Enabled' : 'Disabled'}');
-    if (build.status.isTaskFailed()) {
-      if (isUnifiedCheckRun) {
-        // If failed we need summaryMarkdown. For github check run flow this
-        // called in [GithubChecksService.updateCheckStatus(...)]
-        build = await _luciBuildService.getBuildById(
-          build.id,
-          buildMask: bbv2.BuildMask(
-            // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
-            allFields: true,
-          ),
-        );
-      }
-      final maxAttempt = await _getMaxAttempt(
-        userData.commit,
-        builderName,
-        tagSet,
+  Future<bool> interceptBuild(BuildTags tags) async {
+    final orderingKey = tags.getTagOfType<OrderingKeyTag>()?.orderingKey;
+    if (orderingKey != null && orderingKey.isNotEmpty) {
+      log.info(
+        'Ordering key $orderingKey found, forwarding message to ordered-presubmit topic',
       );
-      if (tagSet.currentAttempt < maxAttempt) {
-        rescheduled = true;
-        log.info('Rerunning failed task: $builderName');
-        await _luciBuildService.reschedulePresubmitBuild(
-          builderName: builderName,
-          build: build,
-          nextAttempt: tagSet.currentAttempt + 1,
-          userData: userData,
-        );
-      }
-    }
-    CheckRunConclusion? override;
-    if (!isUnifiedCheckRun) {
-      String? suppressedMessage;
-      if (build.status.isTaskFailed() && !rescheduled) {
-        // If a test is suppressed; we avoid setting a failing status.
-        final isSuppressed = await cache.isTestSuppressed(
-          testName: builderName,
-          repository: userData.commit.slug,
-          firestore: _firestore,
-        );
-        if (isSuppressed) {
-          override = CheckRunConclusion.neutral;
-          suppressedMessage =
-              '### ⚠️ Test failed but marked as suppressed on dashboard';
-        }
-      }
-
-      await _githubChecksService.updateCheckStatus(
-        checkRunId: userData.checkRunId!,
-        build: build,
-        luciBuildService: _luciBuildService,
-        slug: userData.commit.slug,
-        rescheduled: rescheduled,
-        conclusionOverride: override,
-        summaryPrepend: suppressedMessage,
+      await pubsub.publish(
+        'ordered-presubmit',
+        message.data!,
+        orderingKey: orderingKey,
       );
+      return true;
     }
-    if (!rescheduled) {
-      final check = PresubmitCompletedJob.fromBuild(
-        build,
-        userData,
-        status: override == .neutral ? .neutral : null,
-      );
-      await _scheduler.processCheckRunCompleted(check);
-    }
-
-    return Response.emptyOk;
-  }
-
-  Future<int> _getMaxAttempt(
-    CommitRef commit,
-    String builderName,
-    BuildTags tags,
-  ) async {
-    final CiYamlSet ciYaml;
-    try {
-      ciYaml = await _ciYamlFetcher.getCiYamlByCommit(commit);
-    } on FormatException {
-      // If ci.yaml no longer passes validation (for example, because a builder
-      // has been removed), ensure no retries.
-      return 0;
-    }
-
-    final List<Target> targets;
-    try {
-      targets = [
-        ...ciYaml.presubmitTargets(),
-        if (ciYaml.isFusion)
-          ...ciYaml.presubmitTargets(type: CiType.fusionEngine),
-      ];
-    } on BranchNotEnabledForThisCiYamlException catch (e) {
-      throw BadRequestException('Cannot handle request: $e');
-    }
-    // Do not block on the target not found.
-    if (!targets.any((element) => element.name == builderName)) {
-      // do not reschedule
-      log.warn(
-        'Did not find builder with name: $builderName in ciYaml for $commit',
-      );
-      final availableBuilderList = ciYaml
-          .presubmitTargets()
-          .map((Target e) => e..name)
-          .toList();
-      log.warn('ciYaml presubmit targets found: $availableBuilderList');
-      return 1;
-    }
-
-    final target = targets.singleWhere(
-      (element) => element.name == builderName,
-    );
-    final properties = target.getProperties();
-    if (!properties.containsKey('presubmit_max_attempts')) {
-      // Give any test in the merge queue another try... its expensive otherwise.
-      return tags.containsType<InMergeQueueBuildTag>()
-          ? LuciBuildService.kMergeQueueMaxRetries
-          : 1;
-    }
-    return properties['presubmit_max_attempts'] as int;
+    return false;
   }
 }
