@@ -48,7 +48,6 @@ class GithubAuthentication implements AuthenticationProvider {
     try {
       if (request.header('X-Flutter-IdToken') case final idTokenFromHeader?) {
         final token = await _validator.decodeAndVerify(idTokenFromHeader);
-        log.info('authing with github.com');
         return await authenticateGithub(
           token,
           clientContext: _clientContextProvider(),
@@ -65,17 +64,21 @@ class GithubAuthentication implements AuthenticationProvider {
     TokenInfo token, {
     required ClientContext clientContext,
   }) async {
-    final githubLogin = await _getGithubLoginCached(
-      token.firebase?.identities?['github.com']?.first,
-    );
-    if (await _isGithubAllowedCached(
-      token.firebase?.identities?['github.com']?.first,
-      githubLogin,
-    )) {
+    final accountId = token.firebase?.identities?['github.com']?.first;
+    if (accountId == null) {
+      throw const Unauthenticated('Could not find github identity');
+    }
+    log.info('authing with github.com accountId: $accountId');
+    final login = await _getGithubLoginCached(accountId);
+    if (login == null) {
+      throw const Unauthenticated('Could not find github account');
+    }
+    log.info('authing with github.com login: $login');
+    if (await _isGithubAllowedCached(login)) {
       return AuthenticatedContext(
         clientContext: clientContext,
         email: token.email!,
-        githubLogin: githubLogin,
+        githubLogin: login,
       );
     }
     throw Unauthenticated(
@@ -83,10 +86,7 @@ class GithubAuthentication implements AuthenticationProvider {
     );
   }
 
-  Future<String?> _getGithubLogin(String? accountId) async {
-    if (accountId == null) {
-      return null;
-    }
+  Future<String?> _getGithubLogin(String accountId) async {
     final ghService = _config.createGithubServiceWithToken(
       await _config.githubOAuthToken,
     );
@@ -94,10 +94,10 @@ class GithubAuthentication implements AuthenticationProvider {
     return user.login;
   }
 
-  Future<String?> _getGithubLoginCached(String? accountId) async {
+  Future<String?> _getGithubLoginCached(String accountId) async {
     final bytes = await _cache.getOrCreate(
       'github_account_login',
-      accountId ?? 'null_accountId',
+      accountId,
       createFn: () async => Uint8List.fromList(
         (await _getGithubLogin(accountId))?.codeUnits ?? [],
       ),
@@ -106,29 +106,21 @@ class GithubAuthentication implements AuthenticationProvider {
     return login.isEmpty ? null : login;
   }
 
-  Future<bool> _isGithubAllowed(String? accountId, String? githubLogin) async {
-    final login = githubLogin ?? await _getGithubLogin(accountId);
-    if (login == null) {
-      return false;
-    }
+  Future<bool> _isGithubAllowed(String githubLogin) async {
     final ghService = _config.createGithubServiceWithToken(
       await _config.githubOAuthToken,
     );
     return await ghService.hasUserWritePermissions(
       RepositorySlug('flutter', 'flutter'),
-      login,
+      githubLogin,
     );
   }
 
-  Future<bool> _isGithubAllowedCached(
-    String? accountId,
-    String? githubLogin,
-  ) async {
+  Future<bool> _isGithubAllowedCached(String accountId) async {
     final bytes = await _cache.getOrCreate(
       'github_account_allowed',
-      accountId ?? 'null_accountId',
-      createFn: () async =>
-          (await _isGithubAllowed(accountId, githubLogin)).toUint8List(),
+      accountId,
+      createFn: () async => (await _isGithubAllowed(accountId)).toUint8List(),
     );
     return bytes?.toBool() ?? false;
   }
