@@ -241,7 +241,9 @@ abstract base class _FakeInMemoryFirestoreService
       updateTime: (updated ?? _now()).toUtc().toIso8601String(),
     );
     if (cache != null && collection == kTaskCollectionId) {
-      unawaited(updateCacheForCreatedTasks([Task.fromDocument(_documents[name]!)]));
+      unawaited(
+        updateCacheForCreatedTasks([Task.fromDocument(_documents[name]!)]),
+      );
     }
     return _clone(_documents[name]!);
   }
