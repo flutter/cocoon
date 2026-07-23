@@ -318,13 +318,9 @@ abstract base class _FakeInMemoryFirestoreService
     if (p.split(database).length != 4) {
       throw StateError('Unexpected database: $database');
     }
-    final response = BatchWriteResponse(
+    return BatchWriteResponse(
       status: _batchWriteSync(request.writes ?? const []),
     );
-    if (cache != null && request.writes != null) {
-      await handleWriteCacheInvalidation(request.writes!);
-    }
-    return response;
   }
 
   /// Same as [batchWriteDocuments], but does not yield the microtask loop.
@@ -466,9 +462,6 @@ abstract base class _FakeInMemoryFirestoreService
     }
 
     final updated = _now().toUtc().toIso8601String();
-    if (cache != null) {
-      await handleWriteCacheInvalidation(writes);
-    }
     return CommitResponse(
       commitTime: updated,
       writeResults: List.generate(

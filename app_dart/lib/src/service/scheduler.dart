@@ -257,6 +257,7 @@ class Scheduler {
     await _firestore.writeViaTransaction(
       documentsToWrites([...tasks, commit], exists: false),
     );
+    await _firestore.updateCacheForCreatedTasks(tasks);
   }
 
   /// Schedule all builds in batch requests instead of a single request.

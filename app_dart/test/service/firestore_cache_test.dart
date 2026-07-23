@@ -7,7 +7,7 @@ import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/task.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
-import 'package:cocoon_service/src/service/firestore.dart';
+
 import 'package:googleapis/firestore/v1.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -160,10 +160,7 @@ void main() {
 
         // Mutate task status and increment revisionId
         task1.setStatus(TaskStatus.succeeded);
-        await firestore.batchWriteDocuments(
-          BatchWriteRequest(writes: documentsToWrites([task1])),
-          kDatabase,
-        );
+        await firestore.updateTasks([task1]);
 
         // Verify that tasks_by_commit_ids remains intact
         expect(
@@ -181,7 +178,7 @@ void main() {
     );
 
     test(
-      'writeViaTransaction updates versioned task cache in-place lock-free',
+      'updateTasks updates versioned task cache in-place lock-free',
       () async {
         final task = generateFirestoreTask(
           1,
@@ -193,11 +190,7 @@ void main() {
         await firestore.queryAllTasksForCommit(commitSha: commitSha);
 
         task.setStatus(TaskStatus.succeeded);
-        await firestore.writeViaTransaction([
-          Write(
-            update: Document(name: task.name, fields: task.fields),
-          ),
-        ]);
+        await firestore.updateTasks([task]);
 
         final updatedTask = await Task.fromFirestore(
           firestore,

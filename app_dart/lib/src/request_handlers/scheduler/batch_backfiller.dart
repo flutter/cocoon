@@ -9,7 +9,6 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 import '../../../cocoon_service.dart';
 import '../../model/ci_yaml/ci_yaml.dart';
@@ -175,45 +174,23 @@ final class BatchBackfiller extends ApiRequestHandler {
     Iterable<BackfillTask> schedule,
     Iterable<SkippableTask> skip,
   ) async {
-    log.debug('Querying ${schedule.length} tasks in Firestore...');
-    final taskRefs = [
-      ...schedule.map((toUpdate) => (toUpdate.task, TaskStatus.inProgress)),
-      ...skip.map((toSkip) => (toSkip.task, TaskStatus.skipped)),
-    ];
-    if (taskRefs.isEmpty) return;
-
-    final docIds = taskRefs.map((item) {
-      final (ref, _) = item;
-      return p.posix.join(
-        kDatabase,
-        'documents',
-        kTaskCollectionId,
+    final taskStatusMap = <fs.TaskId, TaskStatus>{
+      for (final item in schedule)
         fs.TaskId(
-          commitSha: ref.commitSha,
-          taskName: ref.name,
-          currentAttempt: ref.currentAttempt,
-        ).documentId,
-      );
-    }).toList();
+          commitSha: item.task.commitSha,
+          taskName: item.task.name,
+          currentAttempt: item.task.currentAttempt,
+        ): TaskStatus.inProgress,
+      for (final item in skip)
+        fs.TaskId(
+          commitSha: item.task.commitSha,
+          taskName: item.task.name,
+          currentAttempt: item.task.currentAttempt,
+        ): TaskStatus.skipped,
+    };
+    if (taskStatusMap.isEmpty) return;
 
-    final transaction = await _firestore.beginTransaction();
-    final docs = await _firestore.batchGetDocuments(
-      docIds,
-      transaction: transaction,
-    );
-    final tasksToUpdate = <fs.Task>[];
-
-    for (var i = 0; i < docs.length; i++) {
-      final task = fs.Task.fromDocument(docs[i]);
-      final (_, targetStatus) = taskRefs[i];
-      task.setStatus(targetStatus);
-      tasksToUpdate.add(task);
-    }
-
-    await _firestore.commit(
-      transaction,
-      documentsToWrites(tasksToUpdate),
-    );
+    await _firestore.updateTaskStatuses(taskStatusMap);
     log.debug('Wrote to Firestore for backfill');
   }
 

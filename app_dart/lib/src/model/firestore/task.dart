@@ -160,32 +160,7 @@ final class Task extends AppDocument<Task> {
     FirestoreService firestoreService,
     AppDocumentId<Task> id,
   ) async {
-    if (firestoreService.cache != null) {
-      final cachedTask = await firestoreService.cache!.get(
-        'tasks',
-        id.documentId,
-      );
-      if (cachedTask != null) {
-        return deserialize(cachedTask);
-      }
-    }
-
-    final document = await firestoreService.getDocument(
-      p.posix.join(kDatabase, 'documents', kTaskCollectionId, id.documentId),
-    );
-    final task = Task.fromDocument(document);
-
-    if (firestoreService.cache != null) {
-      await firestoreService.cache!.insertVersioned('tasks', [
-        VersionedCacheEntry(
-          key: id.documentId,
-          value: serialize(task),
-          revisionId: task.revisionId,
-          ttl: const Duration(hours: 12),
-        ),
-      ]);
-    }
-    return task;
+    return firestoreService.getTask(id);
   }
 
   factory Task({
