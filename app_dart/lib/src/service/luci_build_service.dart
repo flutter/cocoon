@@ -12,7 +12,7 @@ import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
+
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
@@ -1169,10 +1169,7 @@ class LuciBuildService {
     task.resetAsRetry();
     task.setStatus(TaskStatus.inProgress);
 
-    await _firestore.batchWriteDocuments(
-      BatchWriteRequest(writes: documentsToWrites([task], exists: false)),
-      kDatabase,
-    );
+    await _firestore.updateTasks([task]);
 
     return task.currentAttempt;
   }

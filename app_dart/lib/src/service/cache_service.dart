@@ -12,6 +12,20 @@ import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:redis/redis.dart';
 
+class VersionedCacheEntry {
+  const VersionedCacheEntry({
+    required this.key,
+    required this.value,
+    required this.revisionId,
+    this.ttl = const Duration(hours: 12),
+  });
+
+  final String key;
+  final Uint8List value;
+  final int revisionId;
+  final Duration ttl;
+}
+
 /// Service for reading and writing values to a cache for quick access of data.
 abstract class CacheService {
   CacheService();
@@ -27,6 +41,9 @@ abstract class CacheService {
 
   /// Get value of [key] from the subcache [subcacheName].
   Future<Uint8List?> get(String subcacheName, String key);
+
+  /// Get values for multiple [keys] from the subcache [subcacheName] in a single batch API call.
+  Future<List<Uint8List?>> getMulti(String subcacheName, List<String> keys);
 
   /// Set [value] for [key] in the subcache [subcacheName] with [ttl].
   Future<Uint8List?> set(
@@ -47,6 +64,31 @@ abstract class CacheService {
     Uint8List value, {
     Duration ttl = const Duration(minutes: 1),
   });
+
+  /// Atomically inserts multiple [entries] into [subcacheName] in a single batch API call
+  /// if and only if their [VersionedCacheEntry.revisionId] is strictly greater than any
+  /// existing cached revision for that key.
+  Future<void> insertVersioned(
+    String subcacheName,
+    List<VersionedCacheEntry> entries,
+  );
+
+  /// Get the set of string values for [key] from the subcache [subcacheName].
+  Future<Set<String>> getSet(String subcacheName, String key);
+
+  /// Atomically adds [values] to the set at [key] in [subcacheName].
+  /// If the set does not yet exist, it is created with [ttl].
+  /// If the set already exists, all [values] are added to it without altering its TTL.
+  Future<void> updateSet(
+    String subcacheName,
+    String key,
+    Set<String> values, {
+    Duration ttl = const Duration(hours: 12),
+  });
+
+  /// Atomically adds [value] to the set at [key] in [subcacheName] if and only if the set already exists.
+  /// Returns `true` if the set existed and [value] was added, or `false` if the set did not exist.
+  Future<bool> addToSetIfExists(String subcacheName, String key, String value);
 
   /// Get value of [key] from the subcache [subcacheName]. If the key has no
   /// value, call [createFn] to create a value for it, set it, and return it.
@@ -184,6 +226,162 @@ class RedisCacheService extends CacheService {
   }
 
   @override
+  Future<List<Uint8List?>> getMulti(
+    String subcacheName,
+    List<String> keys,
+  ) async {
+    if (keys.isEmpty) return const [];
+    try {
+      final redisKeys = keys.map((k) => '$subcacheName/$k').toList();
+      final values = await _runCommand(
+        (client) => client.send_object(['MGET', ...redisKeys]),
+      );
+      if (values is! List) {
+        return List.filled(keys.length, null);
+      }
+      return values.map((value) {
+        if (value == null) return null;
+        return base64.decode(value as String);
+      }).toList();
+    } catch (e) {
+      log.warn('Unable to retrieve multi-values from cache.', e);
+      return List.filled(keys.length, null);
+    }
+  }
+
+  @override
+  Future<void> insertVersioned(
+    String subcacheName,
+    List<VersionedCacheEntry> entries,
+  ) async {
+    if (entries.isEmpty) return;
+    const insertVersionedScript = '''
+      local numKeys = tonumber(ARGV[1])
+      for i = 1, numKeys do
+        local key = KEYS[i]
+        local val = ARGV[1 + (i - 1) * 3 + 1]
+        local rev = tonumber(ARGV[1 + (i - 1) * 3 + 2])
+        local ttl = tonumber(ARGV[1 + (i - 1) * 3 + 3])
+
+        local revKey = "revisions/" .. key
+        local existingRev = tonumber(redis.call("get", revKey) or 0)
+        if rev > existingRev or redis.call("exists", key) == 0 then
+          redis.call("set", key, val, "PX", ttl)
+          redis.call("set", revKey, rev, "PX", ttl)
+        end
+      end
+      return 1
+    ''';
+    const batchSize = 20;
+    for (var i = 0; i < entries.length; i += batchSize) {
+      final chunk = entries.sublist(i, min(i + batchSize, entries.length));
+      try {
+        final keys = chunk.map((e) => '$subcacheName/${e.key}').toList();
+        final args = [
+          chunk.length.toString(),
+          for (final e in chunk) ...[
+            base64.encode(e.value),
+            e.revisionId.toString(),
+            e.ttl.inMilliseconds.toString(),
+          ],
+        ];
+        await _runCommand(
+          (client) => client.send_object([
+            'EVAL',
+            insertVersionedScript,
+            keys.length.toString(),
+            ...keys,
+            ...args,
+          ]),
+        );
+      } catch (e) {
+        log.warn('Unable to insert versioned entries into cache.', e);
+      }
+    }
+  }
+
+  @override
+  Future<Set<String>> getSet(String subcacheName, String key) async {
+    final redisKey = '$subcacheName/$key';
+    try {
+      final values = await _runCommand(
+        (client) => client.send_object(['SMEMBERS', redisKey]),
+      );
+      if (values is! List || values.isEmpty) {
+        return const {};
+      }
+      return values.map((e) => e.toString()).toSet();
+    } catch (e) {
+      log.warn('Unable to retrieve set for $key from cache.', e);
+      return const {};
+    }
+  }
+
+  @override
+  Future<void> updateSet(
+    String subcacheName,
+    String key,
+    Set<String> values, {
+    Duration ttl = const Duration(hours: 12),
+  }) async {
+    if (values.isEmpty) return;
+    const updateSetScript = '''
+      if redis.call("exists", KEYS[1]) == 1 then
+        for i = 1, #ARGV - 1 do
+          redis.call("sadd", KEYS[1], ARGV[i])
+        end
+      else
+        for i = 1, #ARGV - 1 do
+          redis.call("sadd", KEYS[1], ARGV[i])
+        end
+        redis.call("pexpire", KEYS[1], tonumber(ARGV[#ARGV]))
+      end
+      return 1
+    ''';
+    final redisKey = '$subcacheName/$key';
+    try {
+      final args = [...values, ttl.inMilliseconds.toString()];
+      await _runCommand(
+        (client) => client.send_object([
+          'EVAL',
+          updateSetScript,
+          '1',
+          redisKey,
+          ...args,
+        ]),
+      );
+    } catch (e) {
+      log.warn('Unable to update set for $key in cache.', e);
+    }
+  }
+
+  @override
+  Future<bool> addToSetIfExists(
+    String subcacheName,
+    String key,
+    String value,
+  ) async {
+    const addToSetScript = '''
+      if redis.call("exists", KEYS[1]) == 1 then
+        redis.call("sadd", KEYS[1], ARGV[1])
+        return 1
+      end
+      return 0
+    ''';
+    final redisKey = '$subcacheName/$key';
+    try {
+      final response = await _runCommand(
+        (client) =>
+            client.send_object(['EVAL', addToSetScript, '1', redisKey, value]),
+      );
+      return response == 1 || response == '1';
+    } catch (e) {
+      log.warn('Unable to add to set for $key in cache.', e);
+      return false;
+    }
+  }
+
+  @override
   Future<Uint8List?> set(
     String subcacheName,
     String key,
@@ -245,7 +443,10 @@ class RedisCacheService extends CacheService {
   Future<void> purge(String subcacheName, String key) async {
     final redisKey = '$subcacheName/$key';
     try {
-      await _runCommand((client) => client.send_object(['DEL', redisKey]));
+      await _runCommand(
+        (client) =>
+            client.send_object(['DEL', redisKey, 'revisions/$redisKey']),
+      );
     } catch (e) {
       log.warn('Unable to purge value for $key from cache.', e);
     }
@@ -308,8 +509,22 @@ class InMemoryCacheService extends CacheService {
 
   final int maxEntries;
   final Map<String, _InMemoryCacheEntry> _entries = {};
+  final Map<String, _InMemorySetEntry> _sets = {};
   final Map<String, _InMemoryLock> _locks = {};
   final _mutex = Mutex();
+
+  void _evictIfFull(String cacheKey) {
+    if (_entries.length >= maxEntries && !_entries.containsKey(cacheKey)) {
+      _entries.remove(_entries.keys.first);
+    }
+  }
+
+  void _touch(String cacheKey) {
+    final entry = _entries.remove(cacheKey);
+    if (entry != null) {
+      _entries[cacheKey] = entry;
+    }
+  }
 
   @override
   Future<Uint8List?> get(String subcacheName, String key) async {
@@ -322,7 +537,120 @@ class InMemoryCacheService extends CacheService {
         _entries.remove(cacheKey);
         return null;
       }
+      _touch(cacheKey);
       return entry.value;
+    } finally {
+      _mutex.release();
+    }
+  }
+
+  @override
+  Future<List<Uint8List?>> getMulti(
+    String subcacheName,
+    List<String> keys,
+  ) async {
+    await _mutex.acquire();
+    try {
+      return keys.map((key) {
+        final cacheKey = '$subcacheName/$key';
+        final entry = _entries[cacheKey];
+        if (entry == null || entry.isExpired) {
+          _entries.remove(cacheKey);
+          return null;
+        }
+        _touch(cacheKey);
+        return entry.value;
+      }).toList();
+    } finally {
+      _mutex.release();
+    }
+  }
+
+  @override
+  Future<void> insertVersioned(
+    String subcacheName,
+    List<VersionedCacheEntry> entries,
+  ) async {
+    if (entries.isEmpty) return;
+    await _mutex.acquire();
+    try {
+      _entries.removeWhere((k, v) => v.isExpired);
+      for (final entry in entries) {
+        final cacheKey = '$subcacheName/${entry.key}';
+        final existing = _entries[cacheKey];
+        if (existing == null ||
+            existing.isExpired ||
+            entry.revisionId > existing.revisionId) {
+          _evictIfFull(cacheKey);
+          _entries.remove(cacheKey);
+          _entries[cacheKey] = _InMemoryCacheEntry(
+            entry.value,
+            DateTime.now().add(entry.ttl),
+            revisionId: entry.revisionId,
+          );
+        }
+      }
+    } finally {
+      _mutex.release();
+    }
+  }
+
+  @override
+  Future<Set<String>> getSet(String subcacheName, String key) async {
+    await _mutex.acquire();
+    try {
+      final cacheKey = '$subcacheName/$key';
+      final entry = _sets[cacheKey];
+      if (entry == null || entry.isExpired) {
+        _sets.remove(cacheKey);
+        return const {};
+      }
+      return Set.of(entry.values);
+    } finally {
+      _mutex.release();
+    }
+  }
+
+  @override
+  Future<void> updateSet(
+    String subcacheName,
+    String key,
+    Set<String> values, {
+    Duration ttl = const Duration(hours: 12),
+  }) async {
+    if (values.isEmpty) return;
+    await _mutex.acquire();
+    try {
+      final cacheKey = '$subcacheName/$key';
+      final existing = _sets[cacheKey];
+      if (existing != null && !existing.isExpired) {
+        existing.values.addAll(values);
+      } else {
+        _sets[cacheKey] = _InMemorySetEntry(
+          Set.of(values),
+          DateTime.now().add(ttl),
+        );
+      }
+    } finally {
+      _mutex.release();
+    }
+  }
+
+  @override
+  Future<bool> addToSetIfExists(
+    String subcacheName,
+    String key,
+    String value,
+  ) async {
+    await _mutex.acquire();
+    try {
+      final cacheKey = '$subcacheName/$key';
+      final existing = _sets[cacheKey];
+      if (existing != null && !existing.isExpired) {
+        existing.values.add(value);
+        return true;
+      }
+      return false;
     } finally {
       _mutex.release();
     }
@@ -345,11 +673,9 @@ class InMemoryCacheService extends CacheService {
       final cacheKey = '$subcacheName/$key';
 
       _entries.removeWhere((k, v) => v.isExpired);
+      _evictIfFull(cacheKey);
 
-      if (_entries.length >= maxEntries && !_entries.containsKey(cacheKey)) {
-        _entries.remove(_entries.keys.first);
-      }
-
+      _entries.remove(cacheKey);
       _entries[cacheKey] = _InMemoryCacheEntry(value, DateTime.now().add(ttl));
       return value;
     } finally {
@@ -373,10 +699,7 @@ class InMemoryCacheService extends CacheService {
       }
 
       _entries.removeWhere((k, v) => v.isExpired);
-
-      if (_entries.length >= maxEntries && !_entries.containsKey(cacheKey)) {
-        _entries.remove(_entries.keys.first);
-      }
+      _evictIfFull(cacheKey);
 
       _entries[cacheKey] = _InMemoryCacheEntry(value, DateTime.now().add(ttl));
       return true;
@@ -391,6 +714,7 @@ class InMemoryCacheService extends CacheService {
     try {
       final cacheKey = '$subcacheName/$key';
       _entries.remove(cacheKey);
+      _sets.remove(cacheKey);
     } finally {
       _mutex.release();
     }
@@ -430,9 +754,19 @@ class InMemoryCacheService extends CacheService {
 }
 
 class _InMemoryCacheEntry {
-  _InMemoryCacheEntry(this.value, this.expiresAt);
+  _InMemoryCacheEntry(this.value, this.expiresAt, {this.revisionId = 0});
 
   final Uint8List value;
+  final DateTime expiresAt;
+  final int revisionId;
+
+  bool get isExpired => DateTime.now().isAfter(expiresAt);
+}
+
+class _InMemorySetEntry {
+  _InMemorySetEntry(this.values, this.expiresAt);
+
+  final Set<String> values;
   final DateTime expiresAt;
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);

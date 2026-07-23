@@ -2,10 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:cocoon_service/src/model/firestore/base.dart';
+import 'package:cocoon_service/src/model/firestore/task.dart';
+import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -22,6 +25,11 @@ final queryKeyValidator = RegExp(r'(^[a-zA-Z_][a-zA-Z_0-9]*)$');
 abstract base class _FakeInMemoryFirestoreService
     with FirestoreQueries
     implements FirestoreService {
+  _FakeInMemoryFirestoreService({this.cache});
+
+  @override
+  final CacheService? cache;
+
   /// Every document currently stored in the fake.
   Iterable<Document> get documents => _documents.values;
   final _documents = <String, Document>{};
@@ -195,35 +203,30 @@ abstract base class _FakeInMemoryFirestoreService
 
     for (final transform in updateTransforms ?? const <FieldTransform>[]) {
       final field = fields[transform.fieldPath];
-      if (field == null) {
-        if (transform.appendMissingElements != null) {
-          // firestore: Append the given elements in order if they are not
-          // already present in the current field value. If the field is not an
-          // array, or if the field does not yet exist, it is first set to the
-          // empty array.
-          // https://firebase.google.com/docs/firestore/reference/rest/v1beta1/Write#FieldTransform
+      if (transform.appendMissingElements?.values case final elements?) {
+        if (field?.arrayValue?.values case final fieldArray?) {
+          for (final element in elements) {
+            if (fieldArray.contains(element)) continue;
+            fieldArray.add(element);
+          }
+        } else {
           fields[transform.fieldPath!] = Value(
-            arrayValue: transform.appendMissingElements!,
+            arrayValue: ArrayValue(values: elements),
           );
-          continue;
         }
-        // this is most certainly wrong as the real firestore probably(?) updates
-        // the field. We're not using it that way in the tests, so if you find
-        // yourself getting this error - congrats and welcome to the team.
+      } else if (transform.increment case final inc?) {
+        if (field?.integerValue case final oldVal?) {
+          final newVal = int.parse(oldVal) + int.parse(inc.integerValue!);
+          fields[transform.fieldPath!] = Value(integerValue: newVal.toString());
+        } else {
+          fields[transform.fieldPath!] = Value(integerValue: inc.integerValue!);
+        }
+      } else if (field == null) {
         throw ArgumentError.value(
           transform.fieldPath,
           'field',
           'not found, cannot patch',
         );
-      }
-      // The following are "union" members; only one operation per transform.
-      if (transform.appendMissingElements?.values case final elements?) {
-        if (field.arrayValue?.values case final fieldArray?) {
-          for (final element in elements) {
-            if (fieldArray.contains(element)) continue;
-            fieldArray.add(element);
-          }
-        }
       }
     }
 
@@ -237,6 +240,11 @@ abstract base class _FakeInMemoryFirestoreService
           _now().toUtc().toIso8601String(),
       updateTime: (updated ?? _now()).toUtc().toIso8601String(),
     );
+    if (cache != null && collection == kTaskCollectionId) {
+      unawaited(
+        updateCacheForCreatedTasks([Task.fromDocument(_documents[name]!)]),
+      );
+    }
     return _clone(_documents[name]!);
   }
 
@@ -375,6 +383,21 @@ abstract base class _FakeInMemoryFirestoreService
       );
     }
     return result;
+  }
+
+  @override
+  Future<List<Document>> batchGetDocuments(
+    List<String> names, {
+    Transaction? transaction,
+  }) async {
+    final results = <Document>[];
+    for (final name in names) {
+      final doc = tryPeekDocumentByName(name);
+      if (doc != null) {
+        results.add(doc);
+      }
+    }
+    return results;
   }
 
   @override
@@ -667,7 +690,9 @@ abstract base class _FakeInMemoryFirestoreService
 }
 
 /// A fake implementation of [FirestoreService].
-final class FakeFirestoreService extends _FakeInMemoryFirestoreService {}
+final class FakeFirestoreService extends _FakeInMemoryFirestoreService {
+  FakeFirestoreService({super.cache});
+}
 
 /// Checks that the models described by [metadata] match storage of [matcher].
 ///
