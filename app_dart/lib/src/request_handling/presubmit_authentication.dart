@@ -74,7 +74,7 @@ class GithubAuthentication implements AuthenticationProvider {
       throw const Unauthenticated('Could not find github account');
     }
     log.info('authing with github.com login: $login');
-    if (await _isGithubAllowedCached(login)) {
+    if (await _isGithubLoginAllowedCached(login)) {
       return AuthenticatedContext(
         clientContext: clientContext,
         email: token.email!,
@@ -106,21 +106,21 @@ class GithubAuthentication implements AuthenticationProvider {
     return login.isEmpty ? null : login;
   }
 
-  Future<bool> _isGithubAllowed(String githubLogin) async {
+  Future<bool> _isGithubLoginAllowed(String login) async {
     final ghService = _config.createGithubServiceWithToken(
       await _config.githubOAuthToken,
     );
     return await ghService.hasUserWritePermissions(
       RepositorySlug('flutter', 'flutter'),
-      githubLogin,
+      login,
     );
   }
 
-  Future<bool> _isGithubAllowedCached(String accountId) async {
+  Future<bool> _isGithubLoginAllowedCached(String login) async {
     final bytes = await _cache.getOrCreate(
-      'github_account_allowed',
-      accountId,
-      createFn: () async => (await _isGithubAllowed(accountId)).toUint8List(),
+      'github_login_allowed',
+      login,
+      createFn: () async => (await _isGithubLoginAllowed(login)).toUint8List(),
     );
     return bytes?.toBool() ?? false;
   }
