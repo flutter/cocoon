@@ -48,15 +48,18 @@ void main() {
   });
 
   group('TaskCacheService Payload Caching', () {
-    test('cacheTaskPayloads stores versioned payload and getTaskPayloads retrieves it', () async {
-      final task = generateTestTask(1);
-      await taskCache.cacheTaskPayloads([task]);
+    test(
+      'cacheTaskPayloads stores versioned payload and getTaskPayloads retrieves it',
+      () async {
+        final task = generateTestTask(1);
+        await taskCache.cacheTaskPayloads([task]);
 
-      final result = await taskCache.getTaskPayloads([docIdFor(task)]);
-      expect(result.foundTasks.length, equals(1));
-      expect(result.foundTasks.first.taskName, equals('Linux A'));
-      expect(result.missingDocIds, isEmpty);
-    });
+        final result = await taskCache.getTaskPayloads([docIdFor(task)]);
+        expect(result.foundTasks.length, equals(1));
+        expect(result.foundTasks.first.taskName, equals('Linux A'));
+        expect(result.missingDocIds, isEmpty);
+      },
+    );
 
     test('evictTaskPayload purges item from cache', () async {
       final task = generateTestTask(1);
@@ -72,7 +75,10 @@ void main() {
       final task1 = generateTestTask(1, name: 'Linux A');
       await taskCache.cacheTaskPayloads([task1]);
 
-      final result = await taskCache.getTaskPayloads([docIdFor(task1), 'non_existent_doc']);
+      final result = await taskCache.getTaskPayloads([
+        docIdFor(task1),
+        'non_existent_doc',
+      ]);
       expect(result.foundTasks.length, equals(1));
       expect(result.foundTasks.first.taskName, equals('Linux A'));
       expect(result.missingDocIds, equals(['non_existent_doc']));
@@ -95,34 +101,49 @@ void main() {
       expect(taskIds, isNull);
     });
 
-    test('initializeCommitTaskSet populates set and getTaskIdsForCommit retrieves it', () async {
-      final created = await taskCache.initializeCommitTaskSet('sha123', ['doc1', 'doc2']);
-      expect(created, isTrue);
+    test(
+      'initializeCommitTaskSet populates set and getTaskIdsForCommit retrieves it',
+      () async {
+        final created = await taskCache.initializeCommitTaskSet('sha123', [
+          'doc1',
+          'doc2',
+        ]);
+        expect(created, isTrue);
 
-      final taskIds = await taskCache.getTaskIdsForCommit('sha123');
-      expect(taskIds, equals({'doc1', 'doc2'}));
-    });
+        final taskIds = await taskCache.getTaskIdsForCommit('sha123');
+        expect(taskIds, equals({'doc1', 'doc2'}));
+      },
+    );
 
     test('addTasksToCommitSet adds items only if set exists', () async {
       // First attempt on missing set returns false
-      final addedMissing = await taskCache.addTasksToCommitSet('sha123', ['doc1']);
+      final addedMissing = await taskCache.addTasksToCommitSet('sha123', [
+        'doc1',
+      ]);
       expect(addedMissing, isFalse);
 
       // Initialize set
       await taskCache.initializeCommitTaskSet('sha123', ['doc1']);
 
       // Second attempt on existing set returns true and updates set
-      final addedExisting = await taskCache.addTasksToCommitSet('sha123', ['doc2']);
+      final addedExisting = await taskCache.addTasksToCommitSet('sha123', [
+        'doc2',
+      ]);
       expect(addedExisting, isTrue);
 
       final taskIds = await taskCache.getTaskIdsForCommit('sha123');
       expect(taskIds, equals({'doc1', 'doc2'}));
     });
 
-    test('initializeCommitTaskSet returns false if set flag is disabled', () async {
-      config.dynamicConfig = DynamicConfig(taskCachingEnabled: false);
-      final first = await taskCache.initializeCommitTaskSet('sha123', ['doc1']);
-      expect(first, isFalse);
-    });
+    test(
+      'initializeCommitTaskSet returns false if set flag is disabled',
+      () async {
+        config.dynamicConfig = DynamicConfig(taskCachingEnabled: false);
+        final first = await taskCache.initializeCommitTaskSet('sha123', [
+          'doc1',
+        ]);
+        expect(first, isFalse);
+      },
+    );
   });
 }

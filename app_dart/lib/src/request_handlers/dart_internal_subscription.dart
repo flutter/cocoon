@@ -8,7 +8,6 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
 
-
 import '../../cocoon_service.dart';
 import '../model/bbv2_extension.dart';
 import '../model/firestore/task.dart' as fs;

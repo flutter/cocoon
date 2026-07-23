@@ -205,23 +205,32 @@ void main() {
       },
     );
 
-    test(
-      'updateCacheForCreatedTasks groups tasks by commit SHA',
-      () async {
-        final task1 = generateFirestoreTask(1, commitSha: 'shaA', name: 'Linux A');
-        final task2 = generateFirestoreTask(2, commitSha: 'shaA', name: 'Linux B');
-        final task3 = generateFirestoreTask(3, commitSha: 'shaB', name: 'Linux C');
+    test('updateCacheForCreatedTasks groups tasks by commit SHA', () async {
+      final task1 = generateFirestoreTask(
+        1,
+        commitSha: 'shaA',
+        name: 'Linux A',
+      );
+      final task2 = generateFirestoreTask(
+        2,
+        commitSha: 'shaA',
+        name: 'Linux B',
+      );
+      final task3 = generateFirestoreTask(
+        3,
+        commitSha: 'shaB',
+        name: 'Linux C',
+      );
 
-        await firestore.updateCacheForCreatedTasks([task1, task2, task3]);
+      await firestore.updateCacheForCreatedTasks([task1, task2, task3]);
 
-        final cachedTask1 = await cache.get('tasks', p.basename(task1.name!));
-        final cachedTask2 = await cache.get('tasks', p.basename(task2.name!));
-        final cachedTask3 = await cache.get('tasks', p.basename(task3.name!));
+      final cachedTask1 = await cache.get('tasks', p.basename(task1.name!));
+      final cachedTask2 = await cache.get('tasks', p.basename(task2.name!));
+      final cachedTask3 = await cache.get('tasks', p.basename(task3.name!));
 
-        expect(cachedTask1, isNotNull);
-        expect(cachedTask2, isNotNull);
-        expect(cachedTask3, isNotNull);
-      },
-    );
+      expect(cachedTask1, isNotNull);
+      expect(cachedTask2, isNotNull);
+      expect(cachedTask3, isNotNull);
+    });
   });
 }

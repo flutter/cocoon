@@ -126,7 +126,9 @@ final class TaskCacheService {
   }
 
   /// Performs a batch lookup of task payloads by document IDs.
-  Future<TaskPayloadLookupResult> getTaskPayloads(Iterable<String> docIds) async {
+  Future<TaskPayloadLookupResult> getTaskPayloads(
+    Iterable<String> docIds,
+  ) async {
     final docIdList = docIds.toList();
     if (docIdList.isEmpty || !isEnabled) {
       return TaskPayloadLookupResult(foundTasks: [], missingDocIds: docIdList);

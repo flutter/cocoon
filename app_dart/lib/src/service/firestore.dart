@@ -93,7 +93,12 @@ mixin FirestoreQueries {
       }
     }
 
-    final docName = p.posix.join(kDatabase, 'documents', kTaskCollectionId, docId);
+    final docName = p.posix.join(
+      kDatabase,
+      'documents',
+      kTaskCollectionId,
+      docId,
+    );
     final document = await getDocument(docName);
     final task = Task.fromDocument(document);
 
@@ -332,7 +337,9 @@ mixin FirestoreQueries {
     int? limit,
     Transaction? transaction,
   }) async {
-    if (transaction == null && cache != null && (config?.flags.taskCachingEnabled ?? true)) {
+    if (transaction == null &&
+        cache != null &&
+        (config?.flags.taskCachingEnabled ?? true)) {
       return await _queryTasksByCommitCached(
         commitSha: commitSha,
         name: name,
@@ -699,10 +706,7 @@ class FirestoreService with FirestoreQueries {
       transaction: transaction.identifier,
       writes: writes,
     );
-    return await _api.projects.databases.documents.commit(
-      request,
-      kDatabase,
-    );
+    return await _api.projects.databases.documents.commit(request, kDatabase);
   }
 
   /// Rolls back a transaction.
