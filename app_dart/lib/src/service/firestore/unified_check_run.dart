@@ -615,11 +615,15 @@ final class UnifiedCheckRun {
           // So if the test existed and either remaining or failed_count is changed;
           // the response is valid.
           if (state.status.isComplete) {
-            // Guard against going negative and log enough info so we can debug.
-            if (remaining == 0) {
-              throw '$logCrumb: field "${PresubmitGuard.fieldRemainingJobs}" is already zero for $transaction / ${presubmitGuardDocument.fields}';
+            // If remaining is 0 we should not decrement it and we should log
+            // this fact.
+            if (remaining > 0) {
+              remaining -= 1;
+            } else {
+              log.error(
+                '$logCrumb: field "${PresubmitGuard.fieldRemainingJobs}" is already zero for $transaction / ${presubmitGuardDocument.fields}',
+              );
             }
-            remaining -= 1;
             valid = true;
           }
 

@@ -326,6 +326,51 @@ void main() {
         expect(checkDoc.buildNumber, 456);
         expect(checkDoc.buildId, Int64.MAX_VALUE);
       });
+      test('keeps remaining jobs at 0 if it is already 0', () async {
+        final guardDoc = await firestoreService.getDocument(
+          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
+        );
+        final guard = PresubmitGuard.fromDocument(guardDoc);
+        guard.remainingJobs = 0;
+        await firestoreService.writeViaTransaction(
+          documentsToWrites([guard], exists: true),
+        );
+
+        final state = const PresubmitJobState(
+          jobName: 'linux',
+          status: TaskStatus.succeeded,
+          attemptNumber: 1,
+          startTime: 2000,
+          endTime: 3000,
+        );
+
+        final result = await UnifiedCheckRun.markConclusion(
+          firestoreService: firestoreService,
+          guardId: guardId,
+          state: state,
+        );
+
+        expect(result.result, PresubmitGuardConclusionResult.ok);
+        expect(result.remaining, 0);
+
+        final updatedGuardDoc = await firestoreService.getDocument(
+          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
+        );
+        final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
+        expect(updatedGuard.remainingJobs, 0);
+        expect(updatedGuard.jobs['linux'], TaskStatus.succeeded);
+
+        final checkDoc = await PresubmitJob.fromFirestore(
+          firestoreService,
+          PresubmitJobId(
+            slug: slug,
+            checkRunId: 123,
+            jobName: 'linux',
+            attemptNumber: 1,
+          ),
+        );
+        expect(checkDoc.status, TaskStatus.succeeded);
+      });
     });
     group('reInitializeFailedChecks', () {
       late PresubmitGuardId fusionGuardId;
