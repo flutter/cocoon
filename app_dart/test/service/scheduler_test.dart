@@ -1152,7 +1152,8 @@ void main() {
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -1456,7 +1457,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((_) async => []);
@@ -1476,7 +1478,8 @@ targets:
             ),
             pullRequest: pullRequest,
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: CiStage.fusionEngineBuild,
           ),
         ).called(1);
@@ -1601,7 +1604,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((_) async => []);
@@ -1621,7 +1625,8 @@ targets:
             ),
             pullRequest: pullRequest,
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: CiStage.fusionTests,
           ),
         ).called(1);
@@ -1883,7 +1888,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
-                checkRunGuard: anyNamed('checkRunGuard'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
                 stage: anyNamed('stage'),
               ),
             ).thenAnswer((inv) async {
@@ -1980,7 +1986,8 @@ targets:
                 targets: captureAnyNamed('targets'),
                 pullRequest: captureAnyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
-                checkRunGuard: anyNamed('checkRunGuard'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
                 stage: anyNamed('stage'),
               ),
             );
@@ -2034,7 +2041,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
@@ -2131,7 +2139,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               );
@@ -2380,7 +2389,8 @@ targets:
                 targets: anyNamed('targets'),
                 pullRequest: anyNamed('pullRequest'),
                 engineArtifacts: anyNamed('engineArtifacts'),
-                checkRunGuard: anyNamed('checkRunGuard'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
                 stage: anyNamed('stage'),
               ),
             ).thenAnswer((Invocation i) async {
@@ -2722,7 +2732,8 @@ targets:
                   targets: anyNamed('targets'),
                   pullRequest: anyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               ).thenAnswer((inv) async {
@@ -2807,7 +2818,8 @@ targets:
                   targets: captureAnyNamed('targets'),
                   pullRequest: captureAnyNamed('pullRequest'),
                   engineArtifacts: anyNamed('engineArtifacts'),
-                  checkRunGuard: anyNamed('checkRunGuard'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
                   stage: anyNamed('stage'),
                 ),
               );
@@ -3055,6 +3067,50 @@ targets:
               detailsUrl: anyNamed('detailsUrl'),
             ),
           ).called(1);
+        },
+      );
+
+      test(
+        'does not close Merge Queue Guard immediately for unified check run flow',
+        () async {
+          when(
+            mockGithubChecksUtil.createCheckRun(
+              any,
+              any,
+              any,
+              any,
+              output: anyNamed('output'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          ).thenAnswer((Invocation invocation) async {
+            return generateCheckRun(
+              invocation.positionalArguments[2].hashCode,
+              name: invocation.positionalArguments[3] as String,
+            );
+          });
+
+          final lockResult = await scheduler.lockMergeGroupChecks(
+            Config.flutterSlug,
+            'sha123',
+            isUnifiedCheckRun: true,
+          );
+
+          expect(lockResult.dashboardChecks.name, Config.kDashboardCheckName);
+          expect(lockResult.mergeQueueGuard?.name, Config.kMergeQueueLockName);
+
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              any,
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+              detailsUrl: anyNamed('detailsUrl'),
+            ),
+          );
         },
       );
 
@@ -3394,7 +3450,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -3483,7 +3540,8 @@ targets:
             targets: captureAnyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         );
@@ -3547,7 +3605,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -3689,7 +3748,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -3820,7 +3880,8 @@ targets:
             targets: anyNamed('targets'),
             pullRequest: anyNamed('pullRequest'),
             engineArtifacts: anyNamed('engineArtifacts'),
-            checkRunGuard: anyNamed('checkRunGuard'),
+            dashboardChecks: anyNamed('dashboardChecks'),
+            mergeQueueGuard: anyNamed('mergeQueueGuard'),
             stage: anyNamed('stage'),
           ),
         ).thenAnswer((inv) async {
@@ -4339,15 +4400,20 @@ targets:
         'fails the merge queue guard when a test check run fails (merge group)',
         () async {
           final pullRequest = generatePullRequest();
-          final checkRunGuard = generateCheckRun(
+          final dashboardChecks = generateCheckRun(
             1234,
+            name: Config.kDashboardCheckName,
+            startedAt: DateTime.now(),
+          );
+          final mergeQueueGuard = generateCheckRun(
+            5678,
             name: Config.kMergeQueueLockName,
             startedAt: DateTime.now(),
           );
 
           await PrCheckRuns.initializeDocument(
             firestoreService: firestore,
-            checks: [checkRunGuard],
+            checks: [dashboardChecks, mergeQueueGuard],
             pullRequest: pullRequest,
           );
 
@@ -4357,7 +4423,8 @@ targets:
           // Initialize presubmit guard for tests stage
           firestore.putDocument(
             PresubmitGuard(
-              checkRun: checkRunGuard,
+              checkRun: dashboardChecks,
+              checkRunGuard: mergeQueueGuard,
               headSha: pullRequest.head!.sha!,
               slug: pullRequest.base!.repo!.slug(),
               prNum: pullRequest.number!,
@@ -4375,7 +4442,7 @@ targets:
             PresubmitJob.init(
               slug: pullRequest.base!.repo!.slug(),
               jobName: 'Linux test',
-              checkRunId: checkRunGuard.id!,
+              checkRunId: dashboardChecks.id!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
             ),
           );
@@ -4386,7 +4453,7 @@ targets:
               sha: pullRequest.head!.sha!,
               branch: 'gh-readonly-queue/master/pr-123-abc',
             ),
-            guardCheckRunId: checkRunGuard.id,
+            guardCheckRunId: dashboardChecks.id,
             stage: CiStage.fusionTests,
             checkSuiteId: 2,
             pullRequestNumber: pullRequest.number,
@@ -4407,13 +4474,35 @@ targets:
             mockGithubChecksUtil.updateCheckRun(
               any,
               any,
-              any,
-              status: anyNamed('status'),
-              conclusion: CheckRunConclusion.failure, // Merge queue failure
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kMergeQueueLockName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.failure,
               detailsUrl: anyNamed('detailsUrl'),
               output: anyNamed('output'),
             ),
           ).called(1);
+
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kDashboardCheckName,
+                ),
+              ),
+              status: anyNamed('status'),
+              conclusion: anyNamed('conclusion'),
+            ),
+          );
 
           final guards = await firestore.query(PresubmitGuard.collectionId, {});
           final guard = PresubmitGuard.fromDocument(guards.single);
@@ -4736,7 +4825,8 @@ final class _CapturingFakeLuciBuildService extends Fake
   List<Target> scheduledTryBuilds = [];
   EngineArtifacts? engineArtifacts;
   PullRequest? pullRequest;
-  CheckRun? checkRunGuard;
+  CheckRun? dashboardChecks;
+  CheckRun? mergeQueueGuard;
   CiStage? stage;
 
   @override
@@ -4744,13 +4834,15 @@ final class _CapturingFakeLuciBuildService extends Fake
     required List<Target> targets,
     required PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
-    CheckRun? checkRunGuard,
+    CheckRun? dashboardChecks,
+    CheckRun? mergeQueueGuard,
     CiStage? stage,
   }) async {
     scheduledTryBuilds = targets;
     this.engineArtifacts = engineArtifacts;
     this.pullRequest = pullRequest;
-    this.checkRunGuard = checkRunGuard;
+    this.dashboardChecks = dashboardChecks;
+    this.mergeQueueGuard = mergeQueueGuard;
     this.stage = stage;
     return targets;
   }

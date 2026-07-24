@@ -163,7 +163,7 @@ void main() {
           remaining: 1,
           result: PresubmitGuardConclusionResult.missing,
           failed: 0,
-          checkRunGuard: null,
+          mergeQueueGuard: null,
           summary: 'Check run "test" not present in engine CI stage',
           details: 'Change flutter_flutter_1234',
         ),
@@ -231,7 +231,7 @@ void main() {
           remaining: 0,
           result: PresubmitGuardConclusionResult.ok,
           failed: 0,
-          checkRunGuard: '{}',
+          mergeQueueGuard: '{}',
           summary: 'All tests passed',
           details: '''
 For CI stage engine:
@@ -273,7 +273,7 @@ For CI stage engine:
           remaining: 1,
           result: PresubmitGuardConclusionResult.internalError,
           failed: 0,
-          checkRunGuard: '{}',
+          mergeQueueGuard: '{}',
           summary: 'Not a valid state transition for MacOS build_test',
           details:
               'Attempted to transition the state of check run MacOS build_test from "success" to "unknown".',
@@ -312,7 +312,7 @@ For CI stage engine:
           remaining: 1,
           result: PresubmitGuardConclusionResult.ok,
           failed: 0,
-          checkRunGuard: '{}',
+          mergeQueueGuard: '{}',
           summary: 'All tests passed',
           details: '''
 For CI stage engine:
@@ -355,7 +355,7 @@ For CI stage engine:
           remaining: 1,
           result: PresubmitGuardConclusionResult.ok,
           failed: 0,
-          checkRunGuard: '{}',
+          mergeQueueGuard: '{}',
           summary: 'All tests passed',
           details: '''
 For CI stage engine:
@@ -397,7 +397,7 @@ For CI stage engine:
           remaining: 1,
           result: PresubmitGuardConclusionResult.internalError,
           failed: 1,
-          checkRunGuard: '{}',
+          mergeQueueGuard: '{}',
           summary: 'Not a valid state transition for MacOS build_test',
           details:
               'Attempted to transition the state of check run MacOS build_test from "failure" to "failure".',
@@ -435,7 +435,7 @@ For CI stage engine:
           remaining: 1,
           result: PresubmitGuardConclusionResult.ok,
           failed: 1,
-          checkRunGuard: '{}',
+          mergeQueueGuard: '{}',
           summary: 'All tests passed',
           details: '''
 For CI stage engine:

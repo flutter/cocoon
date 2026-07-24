@@ -287,7 +287,7 @@ final class CiStaging extends AppDocument<CiStaging> {
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
           remaining: remaining,
-          checkRunGuard: null,
+          mergeQueueGuard: null,
           failed: failed,
           summary: 'Check run "$checkRun" not present in $stage CI stage',
           details: 'Change $changeCrumb',
@@ -353,7 +353,7 @@ final class CiStaging extends AppDocument<CiStaging> {
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.internalError,
           remaining: -1,
-          checkRunGuard: null,
+          mergeQueueGuard: null,
           failed: failed,
           summary: 'Internal server error',
           details:
@@ -391,7 +391,7 @@ $stack
           ? PresubmitGuardConclusionResult.ok
           : PresubmitGuardConclusionResult.internalError,
       remaining: remaining,
-      checkRunGuard: checkRunGuard ?? '',
+      mergeQueueGuard: checkRunGuard ?? '',
       failed: failed,
       summary: valid
           ? 'All tests passed'

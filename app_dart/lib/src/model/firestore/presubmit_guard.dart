@@ -49,6 +49,7 @@ final class PresubmitGuardId extends AppDocumentId<PresubmitGuard> {
 final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   static const collectionId = 'presubmit_guards';
   static const fieldCheckRun = 'check_run';
+  static const fieldCheckRunGuard = 'check_run_guard';
   static const fieldCheckRunId = 'check_run_id';
   static const fieldPrNum = 'pr_num';
   static const fieldSlug = 'slug';
@@ -117,6 +118,7 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     required int creationTime,
     required String author,
     required int jobCount,
+    CheckRun? checkRunGuard,
   }) {
     return PresubmitGuard(
       checkRun: checkRun,
@@ -128,6 +130,7 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
       creationTime: creationTime,
       remainingJobs: jobCount,
       failedJobs: 0,
+      checkRunGuard: checkRunGuard,
     );
   }
 
@@ -145,6 +148,7 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     required String author,
     required int remainingJobs,
     required int failedJobs,
+    CheckRun? checkRunGuard,
     Map<String, TaskStatus>? jobs,
   }) {
     return PresubmitGuard._(
@@ -159,6 +163,8 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
         fieldCheckRun: json.encode(checkRun.toJson()).toValue(),
         fieldRemainingJobs: remainingJobs.toValue(),
         fieldFailedJobs: failedJobs.toValue(),
+        if (checkRunGuard != null)
+          fieldCheckRunGuard: json.encode(checkRunGuard.toJson()).toValue(),
         if (jobs != null)
           fieldJobs: Value(
             mapValue: MapValue(
@@ -201,6 +207,21 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   }
 
   String get checkRunJson => fields[fieldCheckRun]!.stringValue!;
+
+  CheckRun? get checkRunGuard {
+    if (fields[fieldCheckRunGuard]?.stringValue == null) {
+      return null;
+    }
+    final jsonData =
+        jsonDecode(fields[fieldCheckRunGuard]!.stringValue!)
+            as Map<String, Object?>;
+    if (jsonData['conclusion'] == 'null') {
+      jsonData.remove('conclusion');
+    }
+    return CheckRun.fromJson(jsonData);
+  }
+
+  String? get checkRunGuardJson => fields[fieldCheckRunGuard]?.stringValue;
 
   /// The repository that this stage is recorded for.
   RepositorySlug get slug {

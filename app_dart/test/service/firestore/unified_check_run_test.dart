@@ -61,7 +61,7 @@ void main() {
           tasks: ['linux', 'mac'],
           config: config,
           pullRequest: pullRequest,
-          checkRun: checkRun,
+          dashboardChecks: checkRun,
         );
 
         final guardId = PresubmitGuard.documentIdFor(
@@ -100,7 +100,7 @@ void main() {
           tasks: ['linux', 'mac'],
           config: config,
           pullRequest: pullRequest,
-          checkRun: checkRun,
+          mergeQueueGuard: checkRun,
         );
 
         // Verify PresubmitGuard is NOT created

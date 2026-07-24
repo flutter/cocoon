@@ -439,7 +439,7 @@ void main() {
             engineArtifacts: EngineArtifacts.builtFromSource(
               commitSha: pullRequest.head!.sha!,
             ),
-            checkRunGuard: checkRunGuard,
+            dashboardChecks: checkRunGuard,
             stage: CiStage.fusionTests,
           ),
           completion([isTarget.hasName('Linux foo')]),
@@ -513,7 +513,7 @@ void main() {
           engineArtifacts: EngineArtifacts.builtFromSource(
             commitSha: pullRequest.head!.sha!,
           ),
-          checkRunGuard: null, // No guard provided
+          dashboardChecks: null, // No guard provided
         ),
         completion([isTarget.hasName('Linux foo')]),
       );

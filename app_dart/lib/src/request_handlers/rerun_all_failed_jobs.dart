@@ -76,7 +76,7 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
     // We're doing a transactional update, which could fail if multiple tasks
     // are running at the same time so retry a sane amount of times before
     // giving up.
-    final failedChecks = await const RetryOptions().retry(
+    final failedJobs = await const RetryOptions().retry(
       () => UnifiedCheckRun.reInitializeFailedJobs(
         firestoreService: _firestore,
         slug: slug,
@@ -85,7 +85,7 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       ),
     );
 
-    if (failedChecks == null) {
+    if (failedJobs == null) {
       throw const BadRequestException('No failed jobs found to re-run');
     }
 
@@ -96,12 +96,12 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
 
     final checkRetries = <Target, int>{};
     for (final target in targets) {
-      if (failedChecks.jobRetries.containsKey(target.name)) {
-        checkRetries[target] = failedChecks.jobRetries[target.name]!;
+      if (failedJobs.jobRetries.containsKey(target.name)) {
+        checkRetries[target] = failedJobs.jobRetries[target.name]!;
       }
     }
 
-    if (checkRetries.length != failedChecks.jobRetries.length) {
+    if (checkRetries.length != failedJobs.jobRetries.length) {
       throw const NotFoundException(
         'Failed to find all failed targets in presubmit targets',
       );
@@ -111,8 +111,8 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
       targets: checkRetries,
       pullRequest: pullRequest,
       engineArtifacts: artifacts,
-      checkRunGuard: failedChecks.checkRunGuard,
-      stage: failedChecks.stage,
+      dashboardChecks: failedJobs.dashboardChecks,
+      stage: failedJobs.stage,
     );
 
     return Response.json({

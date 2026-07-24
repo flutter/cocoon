@@ -11,7 +11,7 @@ import 'dart:typed_data' as _i26;
 import 'package:buildbucket/buildbucket_pb.dart' as _i6;
 import 'package:cocoon_common/rpc_model.dart' as _i19;
 import 'package:cocoon_integration_test/src/fakes/fake_entry.dart' as _i25;
-import 'package:cocoon_service/cocoon_service.dart' as _i17;
+import 'package:cocoon_service/cocoon_service.dart' as _i16;
 import 'package:cocoon_service/src/foundation/github_checks_util.dart' as _i10;
 import 'package:cocoon_service/src/model/ci_yaml/ci_yaml.dart' as _i37;
 import 'package:cocoon_service/src/model/ci_yaml/target.dart' as _i27;
@@ -48,7 +48,7 @@ import 'package:graphql/client.dart' as _i8;
 import 'package:http/http.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i20;
-import 'package:neat_cache/neat_cache.dart' as _i16;
+import 'package:neat_cache/neat_cache.dart' as _i17;
 import 'package:process/src/interface/process_manager.dart' as _i35;
 
 // ignore_for_file: type=lint
@@ -377,13 +377,19 @@ class _FakeRepositorySlug_57 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeEntry_58<T> extends _i1.SmartFake implements _i16.Entry<T> {
-  _FakeEntry_58(Object parent, Invocation parentInvocation)
+class _FakeCheckRunLockResult_58 extends _i1.SmartFake
+    implements _i16.CheckRunLockResult {
+  _FakeCheckRunLockResult_58(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeCache_59<T> extends _i1.SmartFake implements _i16.Cache<T> {
-  _FakeCache_59(Object parent, Invocation parentInvocation)
+class _FakeEntry_59<T> extends _i1.SmartFake implements _i17.Entry<T> {
+  _FakeEntry_59(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeCache_60<T> extends _i1.SmartFake implements _i17.Cache<T> {
+  _FakeCache_60(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -391,7 +397,7 @@ class _FakeCache_59<T> extends _i1.SmartFake implements _i16.Cache<T> {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAccessTokenService extends _i1.Mock
-    implements _i17.AccessTokenService {
+    implements _i16.AccessTokenService {
   MockAccessTokenService() {
     _i1.throwOnMissingStub(this);
   }
@@ -477,7 +483,7 @@ class MockBigQueryService extends _i1.Mock implements _i18.BigQueryService {
 /// A class which mocks [BranchService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBranchService extends _i1.Mock implements _i17.BranchService {
+class MockBranchService extends _i1.Mock implements _i16.BranchService {
   MockBranchService() {
     _i1.throwOnMissingStub(this);
   }
@@ -506,7 +512,7 @@ class MockBranchService extends _i1.Mock implements _i17.BranchService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 // ignore: must_be_immutable
-class MockBuildBucketClient extends _i1.Mock implements _i17.BuildBucketClient {
+class MockBuildBucketClient extends _i1.Mock implements _i16.BuildBucketClient {
   MockBuildBucketClient() {
     _i1.throwOnMissingStub(this);
   }
@@ -1106,15 +1112,15 @@ class MockConfig extends _i1.Mock implements _i2.Config {
           as Set<String>);
 
   @override
-  _i17.DynamicConfig get flags =>
+  _i16.DynamicConfig get flags =>
       (super.noSuchMethod(
             Invocation.getter(#flags),
-            returnValue: _i20.dummyValue<_i17.DynamicConfig>(
+            returnValue: _i20.dummyValue<_i16.DynamicConfig>(
               this,
               Invocation.getter(#flags),
             ),
           )
-          as _i17.DynamicConfig);
+          as _i16.DynamicConfig);
 
   @override
   String wrongHeadBranchPullRequestMessage(String? branch) =>
@@ -1846,7 +1852,7 @@ class MockIssuesService extends _i1.Mock implements _i7.IssuesService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGithubChecksService extends _i1.Mock
-    implements _i17.GithubChecksService {
+    implements _i16.GithubChecksService {
   MockGithubChecksService() {
     _i1.throwOnMissingStub(this);
   }
@@ -1885,7 +1891,7 @@ class MockGithubChecksService extends _i1.Mock
   @override
   _i13.Future<bool> updateCheckStatus({
     required _i6.Build? build,
-    required _i17.LuciBuildService? luciBuildService,
+    required _i16.LuciBuildService? luciBuildService,
     required _i7.RepositorySlug? slug,
     required int? checkRunId,
     bool? rescheduled = false,
@@ -4092,7 +4098,7 @@ class MockHttpClientResponse extends _i1.Mock
 /// A class which mocks [LuciBuildService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
+class MockLuciBuildService extends _i1.Mock implements _i16.LuciBuildService {
   MockLuciBuildService() {
     _i1.throwOnMissingStub(this);
   }
@@ -4142,15 +4148,17 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
     required List<_i27.Target>? targets,
     required _i7.PullRequest? pullRequest,
     required _i28.EngineArtifacts? engineArtifacts,
-    _i7.CheckRun? checkRunGuard,
-    _i17.CiStage? stage,
+    _i7.CheckRun? dashboardChecks,
+    _i7.CheckRun? mergeQueueGuard,
+    _i16.CiStage? stage,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#scheduleTryBuilds, [], {
               #targets: targets,
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
-              #checkRunGuard: checkRunGuard,
+              #dashboardChecks: dashboardChecks,
+              #mergeQueueGuard: mergeQueueGuard,
               #stage: stage,
             }),
             returnValue: _i13.Future<List<_i27.Target>>.value(<_i27.Target>[]),
@@ -4162,15 +4170,17 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
     required Map<_i27.Target, int>? targets,
     required _i7.PullRequest? pullRequest,
     required _i28.EngineArtifacts? engineArtifacts,
-    required _i7.CheckRun? checkRunGuard,
-    required _i17.CiStage? stage,
+    _i7.CheckRun? dashboardChecks,
+    _i7.CheckRun? mergeQueueGuard,
+    required _i16.CiStage? stage,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#reScheduleTryBuilds, [], {
               #targets: targets,
               #pullRequest: pullRequest,
               #engineArtifacts: engineArtifacts,
-              #checkRunGuard: checkRunGuard,
+              #dashboardChecks: dashboardChecks,
+              #mergeQueueGuard: mergeQueueGuard,
               #stage: stage,
             }),
             returnValue: _i13.Future<List<_i27.Target>>.value(<_i27.Target>[]),
@@ -4240,7 +4250,7 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
     _i30.CheckRunEvent? checkRunEvent, {
     required _i31.CommitRef? commit,
     required _i27.Target? target,
-    required _i17.Task? task,
+    required _i16.Task? task,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -4360,7 +4370,7 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
   _i13.Future<bool> rerunBuilder({
     required _i31.CommitRef? commit,
     required _i27.Target? target,
-    required _i17.Task? task,
+    required _i16.Task? task,
     Iterable<_i34.BuildTag>? tags = const [],
   }) =>
       (super.noSuchMethod(
@@ -4377,7 +4387,7 @@ class MockLuciBuildService extends _i1.Mock implements _i17.LuciBuildService {
   @override
   _i13.Future<bool> rerunDartInternalReleaseBuilder({
     required _i31.CommitRef? commit,
-    required _i17.Task? task,
+    required _i16.Task? task,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#rerunDartInternalReleaseBuilder, [], {
@@ -5458,7 +5468,7 @@ class MockBeginTransactionResponse extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockPullRequestLabelProcessor extends _i1.Mock
-    implements _i17.PullRequestLabelProcessor {
+    implements _i16.PullRequestLabelProcessor {
   MockPullRequestLabelProcessor() {
     _i1.throwOnMissingStub(this);
   }
@@ -5546,13 +5556,13 @@ class MockPullRequestLabelProcessor extends _i1.Mock
 /// A class which mocks [Scheduler].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockScheduler extends _i1.Mock implements _i17.Scheduler {
+class MockScheduler extends _i1.Mock implements _i16.Scheduler {
   MockScheduler() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i13.Future<void> addCommits(List<_i17.Commit>? commits) =>
+  _i13.Future<void> addCommits(List<_i16.Commit>? commits) =>
       (super.noSuchMethod(
             Invocation.method(#addCommits, [commits]),
             returnValue: _i13.Future<void>.value(),
@@ -5668,7 +5678,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
     String? baseRef,
     _i7.RepositorySlug? slug,
     String? headSha,
-    _i17.CiStage? stage,
+    _i16.CiStage? stage,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getMergeGroupTargetsForStage, [
@@ -5712,7 +5722,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<_i7.CheckRun> lockMergeGroupChecks(
+  _i13.Future<_i16.CheckRunLockResult> lockMergeGroupChecks(
     _i7.RepositorySlug? slug,
     String? headSha, {
     String? detailsUrl,
@@ -5724,8 +5734,8 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
               [slug, headSha],
               {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isUnifiedCheckRun},
             ),
-            returnValue: _i13.Future<_i7.CheckRun>.value(
-              _FakeCheckRun_20(
+            returnValue: _i13.Future<_i16.CheckRunLockResult>.value(
+              _FakeCheckRunLockResult_58(
                 this,
                 Invocation.method(
                   #lockMergeGroupChecks,
@@ -5738,7 +5748,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
               ),
             ),
           )
-          as _i13.Future<_i7.CheckRun>);
+          as _i13.Future<_i16.CheckRunLockResult>);
 
   @override
   _i13.Future<_i7.CheckRun?> createAwaitingCicdLabelCheckRun(
@@ -5857,7 +5867,8 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
     required _i30.CheckRun? checkRun,
     required _i7.RepositorySlug? slug,
     required String? sha,
-    required String? mergeQueueGuard,
+    String? dashboardChecks,
+    String? mergeQueueGuard,
     required String? logCrumb,
   }) =>
       (super.noSuchMethod(
@@ -5865,6 +5876,7 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
               #checkRun: checkRun,
               #slug: slug,
               #sha: sha,
+              #dashboardChecks: dashboardChecks,
               #mergeQueueGuard: mergeQueueGuard,
               #logCrumb: logCrumb,
             }),
@@ -5965,52 +5977,52 @@ class MockScheduler extends _i1.Mock implements _i17.Scheduler {
 /// A class which mocks [Cache].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCache extends _i1.Mock implements _i16.Cache<_i26.Uint8List> {
+class MockCache extends _i1.Mock implements _i17.Cache<_i26.Uint8List> {
   MockCache() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i16.Entry<_i26.Uint8List> operator [](String? key) =>
+  _i17.Entry<_i26.Uint8List> operator [](String? key) =>
       (super.noSuchMethod(
             Invocation.method(#[], [key]),
-            returnValue: _FakeEntry_58<_i26.Uint8List>(
+            returnValue: _FakeEntry_59<_i26.Uint8List>(
               this,
               Invocation.method(#[], [key]),
             ),
           )
-          as _i16.Entry<_i26.Uint8List>);
+          as _i17.Entry<_i26.Uint8List>);
 
   @override
-  _i16.Cache<_i26.Uint8List> withPrefix(String? prefix) =>
+  _i17.Cache<_i26.Uint8List> withPrefix(String? prefix) =>
       (super.noSuchMethod(
             Invocation.method(#withPrefix, [prefix]),
-            returnValue: _FakeCache_59<_i26.Uint8List>(
+            returnValue: _FakeCache_60<_i26.Uint8List>(
               this,
               Invocation.method(#withPrefix, [prefix]),
             ),
           )
-          as _i16.Cache<_i26.Uint8List>);
+          as _i17.Cache<_i26.Uint8List>);
 
   @override
-  _i16.Cache<S> withCodec<S>(_i12.Codec<S, _i26.Uint8List>? codec) =>
+  _i17.Cache<S> withCodec<S>(_i12.Codec<S, _i26.Uint8List>? codec) =>
       (super.noSuchMethod(
             Invocation.method(#withCodec, [codec]),
-            returnValue: _FakeCache_59<S>(
+            returnValue: _FakeCache_60<S>(
               this,
               Invocation.method(#withCodec, [codec]),
             ),
           )
-          as _i16.Cache<S>);
+          as _i17.Cache<S>);
 
   @override
-  _i16.Cache<_i26.Uint8List> withTTL(Duration? ttl) =>
+  _i17.Cache<_i26.Uint8List> withTTL(Duration? ttl) =>
       (super.noSuchMethod(
             Invocation.method(#withTTL, [ttl]),
-            returnValue: _FakeCache_59<_i26.Uint8List>(
+            returnValue: _FakeCache_60<_i26.Uint8List>(
               this,
               Invocation.method(#withTTL, [ttl]),
             ),
           )
-          as _i16.Cache<_i26.Uint8List>);
+          as _i17.Cache<_i26.Uint8List>);
 }

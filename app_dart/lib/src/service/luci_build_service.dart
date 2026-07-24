@@ -242,14 +242,16 @@ class LuciBuildService {
     required List<Target> targets,
     required PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
-    CheckRun? checkRunGuard,
+    CheckRun? dashboardChecks,
+    CheckRun? mergeQueueGuard,
     CiStage? stage,
   }) async {
     return _scheduleTryBuilds(
       targets: {for (final target in targets) target: 1},
       pullRequest: pullRequest,
       engineArtifacts: engineArtifacts,
-      checkRunGuard: checkRunGuard,
+      dashboardChecks: dashboardChecks,
+      mergeQueueGuard: mergeQueueGuard,
       stage: stage,
     );
   }
@@ -259,14 +261,16 @@ class LuciBuildService {
     required Map<Target, int> targets,
     required PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
-    required CheckRun checkRunGuard,
+    CheckRun? dashboardChecks,
+    CheckRun? mergeQueueGuard,
     required CiStage stage,
   }) async {
     return _scheduleTryBuilds(
       targets: targets,
       pullRequest: pullRequest,
       engineArtifacts: engineArtifacts,
-      checkRunGuard: checkRunGuard,
+      dashboardChecks: dashboardChecks,
+      mergeQueueGuard: mergeQueueGuard,
       stage: stage,
     );
   }
@@ -276,7 +280,8 @@ class LuciBuildService {
     required Map<Target, int> targets,
     required PullRequest pullRequest,
     required EngineArtifacts engineArtifacts,
-    CheckRun? checkRunGuard,
+    CheckRun? dashboardChecks,
+    CheckRun? mergeQueueGuard,
     CiStage? stage,
   }) async {
     if (targets.isEmpty) {
@@ -302,26 +307,26 @@ class LuciBuildService {
     late PresubmitUserData userData;
     // If the unified check run flow is enabled, do not create individual
     // check runs for each target but use the guard check run instead.
-    if (isUnifiedCheckRunFlow && checkRunGuard != null) {
+    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
       userData = PresubmitUserData(
         commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
-        guardCheckRunId: checkRunGuard.id!,
-        checkSuiteId: checkRunGuard.checkSuiteId,
+        guardCheckRunId: dashboardChecks.id!,
+        checkSuiteId: dashboardChecks.checkSuiteId,
         pullRequestNumber: pullRequest.number!,
         stage: stage,
       );
       // We need to store PR to checkrun mapping in order to get PR later in
       // [Scheduler.proceedUnifiedCheckRunToTestingStage] method
-      checkRuns.add(checkRunGuard);
+      checkRuns.add(dashboardChecks);
       log.info(
-        'Created unified check run ${checkRunGuard.id} for PR# ${pullRequest.number}',
+        'Created unified check run ${dashboardChecks.id} for PR# ${pullRequest.number}',
       );
     }
 
     for (final MapEntry(key: target, value: attemptNumber) in targets.entries) {
       // If the unified check run flow is disabled create individual check runs
       // for each target.
-      if (!isUnifiedCheckRunFlow || checkRunGuard == null) {
+      if (!isUnifiedCheckRunFlow || dashboardChecks == null) {
         final checkRun = await _githubChecksUtil.createCheckRun(
           _config,
           target.slug,
@@ -391,9 +396,11 @@ class LuciBuildService {
             userData: userData,
             properties: properties,
             // if unified check run flow is enabled, use guard check run othervise check run id.
-            tags: isUnifiedCheckRunFlow && checkRunGuard != null
+            tags: isUnifiedCheckRunFlow && dashboardChecks != null
                 ? BuildTags([
-                    GuardCheckRunIdBuildTag(guardCheckRunId: checkRunGuard.id!),
+                    GuardCheckRunIdBuildTag(
+                      guardCheckRunId: dashboardChecks.id!,
+                    ),
                     if (attemptNumber > 1)
                       CurrentAttemptBuildTag(attemptNumber: attemptNumber),
                     if (isOrderedPresubmit)

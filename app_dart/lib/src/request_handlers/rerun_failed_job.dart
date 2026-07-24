@@ -111,7 +111,7 @@ final class RerunFailedJob extends ApiRequestHandler {
       targets: {target: retries},
       pullRequest: pullRequest,
       engineArtifacts: artifacts,
-      checkRunGuard: rerunInfo.checkRunGuard,
+      dashboardChecks: rerunInfo.dashboardChecks,
       stage: rerunInfo.stage,
     );
 

@@ -15,12 +15,12 @@ import '../firestore/base.dart';
 ///
 /// See: [UnifiedCheckRun.reInitializeFailedJobs]
 class FailedJobsForRerun {
-  final CheckRun checkRunGuard;
+  final CheckRun dashboardChecks;
   final CiStage stage;
   final Map<String, int> jobRetries;
 
   const FailedJobsForRerun({
-    required this.checkRunGuard,
+    required this.dashboardChecks,
     required this.stage,
     required this.jobRetries,
   });
@@ -29,13 +29,13 @@ class FailedJobsForRerun {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FailedJobsForRerun &&
-          other.checkRunGuard == checkRunGuard &&
+          other.dashboardChecks == dashboardChecks &&
           other.stage == stage &&
           const DeepCollectionEquality().equals(other.jobRetries, jobRetries));
 
   @override
   int get hashCode => Object.hashAll([
-    checkRunGuard,
+    dashboardChecks,
     stage,
     ...jobRetries.keys,
     ...jobRetries.values,
@@ -43,5 +43,5 @@ class FailedJobsForRerun {
 
   @override
   String toString() =>
-      'FailedChecksForRerun("$checkRunGuard", "$stage", "$jobRetries")';
+      'FailedChecksForRerun("$dashboardChecks", "$stage", "$jobRetries")';
 }
