@@ -445,8 +445,11 @@ class LuciBuildService {
       );
     }
 
-    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
-      // For unified check run flow, update dashboard checks to in progress.
+    // Only set the dashboard check status to `CheckRunStatus.inProgress` for
+    // the initial run. For Re-run Failed Checks, we need to call GitHub's
+    // "rerequest check run" API, once it is supported by the `github` package.
+    final isInitialRun = targets.values.first == 1;
+    if (isUnifiedCheckRunFlow && dashboardChecks != null && isInitialRun) {
       try {
         await _githubChecksUtil.updateCheckRun(
           _config,
