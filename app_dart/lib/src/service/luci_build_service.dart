@@ -455,8 +455,7 @@ class LuciBuildService {
           status: CheckRunStatus.inProgress,
         );
       } catch (e, s) {
-        // We are not going to block on this error. If we cannot find this document
-        // later, we'll fall back to the old github query method.
+        // We are not going to block on this error.
         log.warn(
           'Failed to update dashboard checks for PR# ${pullRequest.number} to in progress',
           e,
