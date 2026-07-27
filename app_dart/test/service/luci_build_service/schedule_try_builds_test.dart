@@ -448,6 +448,15 @@ void main() {
         // Should NOT create individual check runs
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
 
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            RepositorySlug.full('flutter/flutter'),
+            checkRunGuard,
+            status: CheckRunStatus.inProgress,
+          ),
+        ).called(1);
+
         final bbv2.ScheduleBuildRequest scheduleBuild;
         {
           final batchRequest = bbv2.BatchRequest().createEmptyInstance();
@@ -528,6 +537,15 @@ void main() {
         ),
       ).called(1);
 
+      verifyNever(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: anyNamed('status'),
+        ),
+      );
+
       final bbv2.ScheduleBuildRequest scheduleBuild;
       {
         final batchRequest = bbv2.BatchRequest().createEmptyInstance();
@@ -541,6 +559,77 @@ void main() {
       expect(userData.checkRunId, 456);
       expect(userData.guardCheckRunId, isNull);
     });
+
+    test(
+      'does not update dashboard checks when unified flow is disabled',
+      () async {
+        final pullRequest = generatePullRequest(
+          id: 1,
+          repo: 'flutter',
+          headSha: 'headsha123',
+        );
+
+        final buildTarget = generateTarget(
+          1,
+          properties: {'os': 'abc'},
+          slug: RepositorySlug.full('flutter/flutter'),
+          name: 'Linux foo',
+        );
+
+        // Disable Unified Check Run Flow but provide a guard (unexpected but should be handled)
+        luci = LuciBuildService(
+          config: FakeConfig(
+            dynamicConfig: DynamicConfig(
+              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+            ),
+          ),
+          cache: CacheService.inMemory(),
+          buildBucketClient: mockBuildBucketClient,
+          githubChecksUtil: mockGithubChecksUtil,
+          pubsub: pubSub,
+          gerritService: gerritService,
+          firestore: firestore,
+        );
+
+        final checkRunGuard = generateCheckRun(1234, name: 'Guard');
+
+        when(
+          mockGithubChecksUtil.createCheckRun(any, any, any, any),
+        ).thenAnswer((_) async => generateCheckRun(456, name: 'Linux foo'));
+
+        await expectLater(
+          luci.scheduleTryBuilds(
+            pullRequest: pullRequest,
+            targets: [buildTarget],
+            engineArtifacts: EngineArtifacts.builtFromSource(
+              commitSha: pullRequest.head!.sha!,
+            ),
+            dashboardChecks: checkRunGuard, // Pass guard even though disabled
+          ),
+          completion([isTarget.hasName('Linux foo')]),
+        );
+
+        // Should NOT update dashboard checks
+        verifyNever(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+          ),
+        );
+
+        // Should create individual check run because unified flow is disabled
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            RepositorySlug.full('flutter/flutter'),
+            'headsha123',
+            'Linux foo',
+          ),
+        ).called(1);
+      },
+    );
   });
 
   group('Ordered Presubmit', () {

@@ -445,6 +445,16 @@ class LuciBuildService {
       );
     }
 
+    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
+      // For unified check run flow, update dashboard checks to in progress.
+      await _githubChecksUtil.updateCheckRun(
+        _config,
+        slug,
+        dashboardChecks,
+        status: CheckRunStatus.inProgress,
+      );
+    }
+
     return targets.keys.toList();
   }
 
