@@ -447,12 +447,22 @@ class LuciBuildService {
 
     if (isUnifiedCheckRunFlow && dashboardChecks != null) {
       // For unified check run flow, update dashboard checks to in progress.
-      await _githubChecksUtil.updateCheckRun(
-        _config,
-        slug,
-        dashboardChecks,
-        status: CheckRunStatus.inProgress,
-      );
+      try {
+        await _githubChecksUtil.updateCheckRun(
+          _config,
+          slug,
+          dashboardChecks,
+          status: CheckRunStatus.inProgress,
+        );
+      } catch (e, s) {
+        // We are not going to block on this error. If we cannot find this document
+        // later, we'll fall back to the old github query method.
+        log.warn(
+          'Failed to update dashboard checks for PR# ${pullRequest.number} to in progress',
+          e,
+          s,
+        );
+      }
     }
 
     return targets.keys.toList();
