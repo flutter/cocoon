@@ -630,6 +630,94 @@ void main() {
         ).called(1);
       },
     );
+
+    test('does not update dashboard checks for re-run failed checks', () async {
+      final pullRequest = generatePullRequest(
+        id: 1,
+        repo: 'flutter',
+        headSha: 'headsha123',
+      );
+
+      final buildTarget = generateTarget(
+        1,
+        properties: {'os': 'abc'},
+        slug: RepositorySlug.full('flutter/flutter'),
+        name: 'Linux foo',
+      );
+
+      // Enable Unified Check Run Flow
+      luci = LuciBuildService(
+        config: FakeConfig(
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          ),
+        ),
+        cache: CacheService.inMemory(),
+        buildBucketClient: mockBuildBucketClient,
+        githubChecksUtil: mockGithubChecksUtil,
+        pubsub: pubSub,
+        gerritService: gerritService,
+        firestore: firestore,
+      );
+
+      final checkRunGuard = generateCheckRun(1234, name: 'Guard');
+
+      await expectLater(
+        luci.reScheduleTryBuilds(
+          pullRequest: pullRequest,
+          targets: {buildTarget: 2}, // Re-run failed (attempt 2)
+          engineArtifacts: EngineArtifacts.builtFromSource(
+            commitSha: pullRequest.head!.sha!,
+          ),
+          dashboardChecks: checkRunGuard,
+          stage: CiStage.fusionTests,
+        ),
+        completion([isTarget.hasName('Linux foo')]),
+      );
+
+      // Should NOT create individual check runs
+      verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
+
+      // Should NOT update dashboard checks status
+      verifyNever(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: anyNamed('status'),
+        ),
+      );
+
+      final bbv2.ScheduleBuildRequest scheduleBuild;
+      {
+        final batchRequest = bbv2.BatchRequest().createEmptyInstance();
+        batchRequest.mergeFromProto3Json(pubSub.messages.single);
+        scheduleBuild = batchRequest.requests.single.scheduleBuild;
+      }
+
+      final userData = PresubmitUserData.fromBytes(
+        scheduleBuild.notify.userData,
+      );
+      expect(userData.guardCheckRunId, 1234);
+      expect(userData.stage, CiStage.fusionTests);
+      expect(userData.checkRunId, isNull);
+
+      final tags = BuildTags.fromStringPairs(scheduleBuild.tags);
+      expect(
+        tags.buildTags.contains(
+          GuardCheckRunIdBuildTag(guardCheckRunId: 1234),
+        ),
+        isTrue,
+        reason: 'Should have GuardCheckRunIdBuildTag',
+      );
+      expect(
+        tags.buildTags.contains(
+          CurrentAttemptBuildTag(attemptNumber: 2),
+        ),
+        isTrue,
+        reason: 'Should have CurrentAttemptBuildTag',
+      );
+    });
   });
 
   group('Ordered Presubmit', () {
