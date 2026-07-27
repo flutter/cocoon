@@ -704,16 +704,12 @@ void main() {
 
       final tags = BuildTags.fromStringPairs(scheduleBuild.tags);
       expect(
-        tags.buildTags.contains(
-          GuardCheckRunIdBuildTag(guardCheckRunId: 1234),
-        ),
+        tags.buildTags.contains(GuardCheckRunIdBuildTag(guardCheckRunId: 1234)),
         isTrue,
         reason: 'Should have GuardCheckRunIdBuildTag',
       );
       expect(
-        tags.buildTags.contains(
-          CurrentAttemptBuildTag(attemptNumber: 2),
-        ),
+        tags.buildTags.contains(CurrentAttemptBuildTag(attemptNumber: 2)),
         isTrue,
         reason: 'Should have CurrentAttemptBuildTag',
       );
