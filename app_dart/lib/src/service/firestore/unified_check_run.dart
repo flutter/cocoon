@@ -295,11 +295,7 @@ final class UnifiedCheckRun {
     if (completedJob.endTime != null) {
       currentJob.endTime = completedJob.endTime!;
     }
-    currentJob.summary = [
-      if (completedJob.summary != null && completedJob.summary!.isNotEmpty)
-        completedJob.summary,
-      'Automatically Rescheduled',
-    ].join('\n---\n');
+    currentJob.summary = completedJob.summary;
 
     try {
       await firestoreService.writeViaTransaction([

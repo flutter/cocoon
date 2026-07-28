@@ -166,10 +166,14 @@ base class PresubmitSubscription extends SubscriptionHandler {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
         if (isUnifiedCheckRun) {
-          final check = PresubmitCompletedJob.fromBuild(build, userData);
           await UnifiedCheckRun.reInitializeInProgressJob(
             firestoreService: _firestore,
-            completedJob: check,
+            completedJob: PresubmitCompletedJob.fromBuild(
+              build,
+              userData,
+              summaryPrepend:
+                  '### ⚠️ Test failed but automatically rescheduled',
+            ),
           );
         }
         await _luciBuildService.reschedulePresubmitBuild(
