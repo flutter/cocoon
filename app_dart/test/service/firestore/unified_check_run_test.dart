@@ -751,10 +751,7 @@ void main() {
 
         expect(updatedCurrentJob.status, TaskStatus.failed);
         expect(updatedCurrentJob.endTime, 2000);
-        expect(
-          updatedCurrentJob.summary,
-          'summary',
-        );
+        expect(updatedCurrentJob.summary, 'summary');
 
         final newJob = await PresubmitJob.fromFirestore(
           firestoreService,

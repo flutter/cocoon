@@ -272,33 +272,36 @@ final class UnifiedCheckRun {
 
     log.info('$logCrumb Re-initializing in-progress job.');
 
-    final currentJob = await PresubmitJob.fromFirestore(
-      firestoreService,
-      PresubmitJobId(
+    final transaction = await firestoreService.beginTransaction();
+    try {
+      final checkDocName = PresubmitJob.documentNameFor(
         slug: completedJob.slug,
         checkRunId: completedJob.checkRunId,
         jobName: completedJob.name,
         attemptNumber: completedJob.attempt,
-      ),
-    );
+      );
+      final currentJobDocument = await firestoreService.getDocument(
+        checkDocName,
+        transaction: transaction,
+      );
+      final currentJob = PresubmitJob.fromDocument(currentJobDocument);
 
-    final creationTime = utcNow().millisecondsSinceEpoch;
-    final newJob = PresubmitJob.init(
-      slug: currentJob.slug,
-      jobName: currentJob.jobName,
-      checkRunId: currentJob.checkRunId,
-      creationTime: creationTime,
-      attemptNumber: currentJob.attemptNumber + 1,
-    );
+      final creationTime = utcNow().millisecondsSinceEpoch;
+      final newJob = PresubmitJob.init(
+        slug: currentJob.slug,
+        jobName: currentJob.jobName,
+        checkRunId: currentJob.checkRunId,
+        creationTime: creationTime,
+        attemptNumber: currentJob.attemptNumber + 1,
+      );
 
-    currentJob.status = TaskStatus.failed;
-    if (completedJob.endTime != null) {
-      currentJob.endTime = completedJob.endTime!;
-    }
-    currentJob.summary = completedJob.summary;
+      currentJob.status = TaskStatus.failed;
+      if (completedJob.endTime != null) {
+        currentJob.endTime = completedJob.endTime!;
+      }
+      currentJob.summary = completedJob.summary;
 
-    try {
-      await firestoreService.writeViaTransaction([
+      await firestoreService.commit(transaction, [
         ...documentsToWrites([currentJob], exists: true),
         ...documentsToWrites([newJob], exists: false),
       ]);
@@ -306,6 +309,7 @@ final class UnifiedCheckRun {
       return newJob.attemptNumber;
     } catch (e) {
       log.info('$logCrumb: failed to re-initialize in-progress job', e);
+      await firestoreService.rollback(transaction);
       rethrow;
     }
   }
