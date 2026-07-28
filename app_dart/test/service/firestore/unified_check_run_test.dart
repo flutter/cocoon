@@ -728,7 +728,7 @@ void main() {
           prNum: 567,
           attempt: 1,
           endTime: 2000,
-          summary: 'original summary',
+          summary: 'summary',
         );
 
         final nextAttempt = await UnifiedCheckRun.reInitializeInProgressJob(
@@ -753,7 +753,7 @@ void main() {
         expect(updatedCurrentJob.endTime, 2000);
         expect(
           updatedCurrentJob.summary,
-          'original summary\n---\nAutomatically Rescheduled',
+          'summary',
         );
 
         final newJob = await PresubmitJob.fromFirestore(

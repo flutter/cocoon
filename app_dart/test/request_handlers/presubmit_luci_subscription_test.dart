@@ -913,7 +913,7 @@ void main() {
     expect(updatedCurrentJob.status, TaskStatus.failed);
     expect(
       updatedCurrentJob.summary,
-      'test summary\n---\nAutomatically Rescheduled',
+      '### ⚠️ Test failed but automatically rescheduled\n---\ntest summary',
     );
 
     final newJob = await PresubmitJob.fromFirestore(
