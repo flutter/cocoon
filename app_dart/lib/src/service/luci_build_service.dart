@@ -449,9 +449,9 @@ class LuciBuildService {
     // initial run. For Re-run Failed Checks, if all failed jobs were reset, we
     // need to re-request the check run before updating it to in progress.
     final isRerun = targets.values.first > 1;
-    if (isUnifiedCheckRunFlow && dashboardChecks != null && stage != null) {
+    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
       var shouldUpdateCheckRun = !isRerun;
-      if (isRerun) {
+      if (isRerun && stage != null) {
         try {
           final presubmitGuardDoc = await _firestore.getDocument(
             PresubmitGuard.documentNameFor(
