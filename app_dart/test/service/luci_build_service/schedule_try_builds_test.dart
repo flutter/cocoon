@@ -634,171 +634,177 @@ void main() {
       },
     );
 
-    test('reRequests check run and updates dashboard checks for re-run failed checks when failedJobs is 0', () async {
-      final pullRequest = generatePullRequest(
-        id: 1,
-        repo: 'flutter',
-        headSha: 'headsha123',
-      );
+    test(
+      'reRequests check run and updates dashboard checks for re-run failed checks when failedJobs is 0',
+      () async {
+        final pullRequest = generatePullRequest(
+          id: 1,
+          repo: 'flutter',
+          headSha: 'headsha123',
+        );
 
-      final buildTarget = generateTarget(
-        1,
-        properties: {'os': 'abc'},
-        slug: RepositorySlug.full('flutter/flutter'),
-        name: 'Linux foo',
-      );
+        final buildTarget = generateTarget(
+          1,
+          properties: {'os': 'abc'},
+          slug: RepositorySlug.full('flutter/flutter'),
+          name: 'Linux foo',
+        );
 
-      final mockGithubClient = MockGitHub();
-      final mockChecksService = MockChecksService();
-      final mockCheckRunsService = MockCheckRunsService();
+        final mockGithubClient = MockGitHub();
+        final mockChecksService = MockChecksService();
+        final mockCheckRunsService = MockCheckRunsService();
 
-      when(mockGithubClient.checks).thenReturn(mockChecksService);
-      when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
+        when(mockGithubClient.checks).thenReturn(mockChecksService);
+        when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
 
-      luci = LuciBuildService(
-        config: FakeConfig(
-          githubClient: mockGithubClient,
-          dynamicConfig: DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+        luci = LuciBuildService(
+          config: FakeConfig(
+            githubClient: mockGithubClient,
+            dynamicConfig: DynamicConfig(
+              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+            ),
           ),
-        ),
-        cache: CacheService.inMemory(),
-        buildBucketClient: mockBuildBucketClient,
-        githubChecksUtil: mockGithubChecksUtil,
-        pubsub: pubSub,
-        gerritService: gerritService,
-        firestore: firestore,
-      );
+          cache: CacheService.inMemory(),
+          buildBucketClient: mockBuildBucketClient,
+          githubChecksUtil: mockGithubChecksUtil,
+          pubsub: pubSub,
+          gerritService: gerritService,
+          firestore: firestore,
+        );
 
-      final checkRunGuard = generateCheckRun(1234, name: 'Guard');
+        final checkRunGuard = generateCheckRun(1234, name: 'Guard');
 
-      final guard = PresubmitGuard(
-        checkRun: checkRunGuard,
-        headSha: 'headsha123',
-        slug: RepositorySlug.full('flutter/flutter'),
-        prNum: pullRequest.number!,
-        stage: CiStage.fusionTests,
-        creationTime: 123456789,
-        author: 'dash',
-        remainingJobs: 1,
-        failedJobs: 0,
-      );
-      await firestore.writeViaTransaction(
-        documentsToWrites([guard], exists: false),
-      );
-
-      await expectLater(
-        luci.reScheduleTryBuilds(
-          pullRequest: pullRequest,
-          targets: {buildTarget: 2},
-          engineArtifacts: EngineArtifacts.builtFromSource(
-            commitSha: pullRequest.head!.sha!,
-          ),
-          dashboardChecks: checkRunGuard,
+        final guard = PresubmitGuard(
+          checkRun: checkRunGuard,
+          headSha: 'headsha123',
+          slug: RepositorySlug.full('flutter/flutter'),
+          prNum: pullRequest.number!,
           stage: CiStage.fusionTests,
-        ),
-        completion([isTarget.hasName('Linux foo')]),
-      );
+          creationTime: 123456789,
+          author: 'dash',
+          remainingJobs: 1,
+          failedJobs: 0,
+        );
+        await firestore.writeViaTransaction(
+          documentsToWrites([guard], exists: false),
+        );
 
-      verify(
-        mockCheckRunsService.reRequestCheckRun(
-          RepositorySlug.full('flutter/flutter'),
-          checkRunId: 1234,
-        ),
-      ).called(1);
-
-      verify(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          checkRunGuard,
-          status: CheckRunStatus.inProgress,
-        ),
-      ).called(1);
-    });
-
-    test('does not reRequest or update dashboard checks for re-run failed checks when failedJobs > 0', () async {
-      final pullRequest = generatePullRequest(
-        id: 1,
-        repo: 'flutter',
-        headSha: 'headsha123',
-      );
-
-      final buildTarget = generateTarget(
-        1,
-        properties: {'os': 'abc'},
-        slug: RepositorySlug.full('flutter/flutter'),
-        name: 'Linux foo',
-      );
-
-      final mockGithubClient = MockGitHub();
-      final mockChecksService = MockChecksService();
-      final mockCheckRunsService = MockCheckRunsService();
-
-      when(mockGithubClient.checks).thenReturn(mockChecksService);
-      when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
-
-      luci = LuciBuildService(
-        config: FakeConfig(
-          githubClient: mockGithubClient,
-          dynamicConfig: DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+        await expectLater(
+          luci.reScheduleTryBuilds(
+            pullRequest: pullRequest,
+            targets: {buildTarget: 2},
+            engineArtifacts: EngineArtifacts.builtFromSource(
+              commitSha: pullRequest.head!.sha!,
+            ),
+            dashboardChecks: checkRunGuard,
+            stage: CiStage.fusionTests,
           ),
-        ),
-        cache: CacheService.inMemory(),
-        buildBucketClient: mockBuildBucketClient,
-        githubChecksUtil: mockGithubChecksUtil,
-        pubsub: pubSub,
-        gerritService: gerritService,
-        firestore: firestore,
-      );
+          completion([isTarget.hasName('Linux foo')]),
+        );
 
-      final checkRunGuard = generateCheckRun(1234, name: 'Guard');
-
-      final guard = PresubmitGuard(
-        checkRun: checkRunGuard,
-        headSha: 'headsha123',
-        slug: RepositorySlug.full('flutter/flutter'),
-        prNum: pullRequest.number!,
-        stage: CiStage.fusionTests,
-        creationTime: 123456789,
-        author: 'dash',
-        remainingJobs: 1,
-        failedJobs: 1,
-      );
-      await firestore.writeViaTransaction(
-        documentsToWrites([guard], exists: false),
-      );
-
-      await expectLater(
-        luci.reScheduleTryBuilds(
-          pullRequest: pullRequest,
-          targets: {buildTarget: 2},
-          engineArtifacts: EngineArtifacts.builtFromSource(
-            commitSha: pullRequest.head!.sha!,
+        verify(
+          mockCheckRunsService.reRequestCheckRun(
+            RepositorySlug.full('flutter/flutter'),
+            checkRunId: 1234,
           ),
-          dashboardChecks: checkRunGuard,
+        ).called(1);
+
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            checkRunGuard,
+            status: CheckRunStatus.inProgress,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'does not reRequest or update dashboard checks for re-run failed checks when failedJobs > 0',
+      () async {
+        final pullRequest = generatePullRequest(
+          id: 1,
+          repo: 'flutter',
+          headSha: 'headsha123',
+        );
+
+        final buildTarget = generateTarget(
+          1,
+          properties: {'os': 'abc'},
+          slug: RepositorySlug.full('flutter/flutter'),
+          name: 'Linux foo',
+        );
+
+        final mockGithubClient = MockGitHub();
+        final mockChecksService = MockChecksService();
+        final mockCheckRunsService = MockCheckRunsService();
+
+        when(mockGithubClient.checks).thenReturn(mockChecksService);
+        when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
+
+        luci = LuciBuildService(
+          config: FakeConfig(
+            githubClient: mockGithubClient,
+            dynamicConfig: DynamicConfig(
+              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+            ),
+          ),
+          cache: CacheService.inMemory(),
+          buildBucketClient: mockBuildBucketClient,
+          githubChecksUtil: mockGithubChecksUtil,
+          pubsub: pubSub,
+          gerritService: gerritService,
+          firestore: firestore,
+        );
+
+        final checkRunGuard = generateCheckRun(1234, name: 'Guard');
+
+        final guard = PresubmitGuard(
+          checkRun: checkRunGuard,
+          headSha: 'headsha123',
+          slug: RepositorySlug.full('flutter/flutter'),
+          prNum: pullRequest.number!,
           stage: CiStage.fusionTests,
-        ),
-        completion([isTarget.hasName('Linux foo')]),
-      );
+          creationTime: 123456789,
+          author: 'dash',
+          remainingJobs: 1,
+          failedJobs: 1,
+        );
+        await firestore.writeViaTransaction(
+          documentsToWrites([guard], exists: false),
+        );
 
-      verifyNever(
-        mockCheckRunsService.reRequestCheckRun(
-          any,
-          checkRunId: anyNamed('checkRunId'),
-        ),
-      );
+        await expectLater(
+          luci.reScheduleTryBuilds(
+            pullRequest: pullRequest,
+            targets: {buildTarget: 2},
+            engineArtifacts: EngineArtifacts.builtFromSource(
+              commitSha: pullRequest.head!.sha!,
+            ),
+            dashboardChecks: checkRunGuard,
+            stage: CiStage.fusionTests,
+          ),
+          completion([isTarget.hasName('Linux foo')]),
+        );
 
-      verifyNever(
-        mockGithubChecksUtil.updateCheckRun(
-          any,
-          any,
-          any,
-          status: anyNamed('status'),
-        ),
-      );
-    });
+        verifyNever(
+          mockCheckRunsService.reRequestCheckRun(
+            any,
+            checkRunId: anyNamed('checkRunId'),
+          ),
+        );
+
+        verifyNever(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+          ),
+        );
+      },
+    );
   });
 
   group('Ordered Presubmit', () {
