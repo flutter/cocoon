@@ -7,6 +7,8 @@
   MockSpec<GitHubComparison>(),
   MockSpec<PullRequestsService>(),
   MockSpec<RepositoriesService>(),
+  MockSpec<ChecksService>(),
+  MockSpec<CheckRunsService>(),
 ])
 import 'package:github/github.dart';
 

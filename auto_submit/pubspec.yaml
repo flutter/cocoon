@@ -20,7 +20,7 @@ dependencies:
     path: ../packages/cocoon_server
   corsac_jwt: 2.0.2
   crypto: 3.0.7
-  github: 9.25.0
+  github: 9.26.0
   googleapis: 14.0.0
   googleapis_auth: 2.0.0
   gql: 1.0.1

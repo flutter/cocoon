@@ -258,30 +258,47 @@ class _FakeReleaseNotes_41 extends _i1.SmartFake implements _i2.ReleaseNotes {
     : super(parent, parentInvocation);
 }
 
-class _FakeJobCancelResponse_42 extends _i1.SmartFake
+class _FakeCheckRunsService_42 extends _i1.SmartFake
+    implements _i2.CheckRunsService {
+  _FakeCheckRunsService_42(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeCheckSuitesService_43 extends _i1.SmartFake
+    implements _i2.CheckSuitesService {
+  _FakeCheckSuitesService_43(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeCheckRun_44 extends _i1.SmartFake implements _i2.CheckRun {
+  _FakeCheckRun_44(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeJobCancelResponse_45 extends _i1.SmartFake
     implements _i5.JobCancelResponse {
-  _FakeJobCancelResponse_42(Object parent, Invocation parentInvocation)
+  _FakeJobCancelResponse_45(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeJob_43 extends _i1.SmartFake implements _i5.Job {
-  _FakeJob_43(Object parent, Invocation parentInvocation)
+class _FakeJob_46 extends _i1.SmartFake implements _i5.Job {
+  _FakeJob_46(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeGetQueryResultsResponse_44 extends _i1.SmartFake
+class _FakeGetQueryResultsResponse_47 extends _i1.SmartFake
     implements _i5.GetQueryResultsResponse {
-  _FakeGetQueryResultsResponse_44(Object parent, Invocation parentInvocation)
+  _FakeGetQueryResultsResponse_47(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeJobList_45 extends _i1.SmartFake implements _i5.JobList {
-  _FakeJobList_45(Object parent, Invocation parentInvocation)
+class _FakeJobList_48 extends _i1.SmartFake implements _i5.JobList {
+  _FakeJobList_48(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeQueryResponse_46 extends _i1.SmartFake implements _i5.QueryResponse {
-  _FakeQueryResponse_46(Object parent, Invocation parentInvocation)
+class _FakeQueryResponse_49 extends _i1.SmartFake implements _i5.QueryResponse {
+  _FakeQueryResponse_49(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -2908,6 +2925,330 @@ class MockRepositoriesService extends _i1.Mock
           as _i4.Future<_i2.ReleaseNotes>);
 }
 
+/// A class which mocks [ChecksService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockChecksService extends _i1.Mock implements _i2.ChecksService {
+  @override
+  _i2.CheckRunsService get checkRuns =>
+      (super.noSuchMethod(
+            Invocation.getter(#checkRuns),
+            returnValue: _FakeCheckRunsService_42(
+              this,
+              Invocation.getter(#checkRuns),
+            ),
+            returnValueForMissingStub: _FakeCheckRunsService_42(
+              this,
+              Invocation.getter(#checkRuns),
+            ),
+          )
+          as _i2.CheckRunsService);
+
+  @override
+  _i2.CheckSuitesService get checkSuites =>
+      (super.noSuchMethod(
+            Invocation.getter(#checkSuites),
+            returnValue: _FakeCheckSuitesService_43(
+              this,
+              Invocation.getter(#checkSuites),
+            ),
+            returnValueForMissingStub: _FakeCheckSuitesService_43(
+              this,
+              Invocation.getter(#checkSuites),
+            ),
+          )
+          as _i2.CheckSuitesService);
+
+  @override
+  _i2.GitHub get github =>
+      (super.noSuchMethod(
+            Invocation.getter(#github),
+            returnValue: _FakeGitHub_17(this, Invocation.getter(#github)),
+            returnValueForMissingStub: _FakeGitHub_17(
+              this,
+              Invocation.getter(#github),
+            ),
+          )
+          as _i2.GitHub);
+}
+
+/// A class which mocks [CheckRunsService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCheckRunsService extends _i1.Mock implements _i2.CheckRunsService {
+  @override
+  _i2.GitHub get github =>
+      (super.noSuchMethod(
+            Invocation.getter(#github),
+            returnValue: _FakeGitHub_17(this, Invocation.getter(#github)),
+            returnValueForMissingStub: _FakeGitHub_17(
+              this,
+              Invocation.getter(#github),
+            ),
+          )
+          as _i2.GitHub);
+
+  @override
+  _i4.Future<_i2.CheckRun> createCheckRun(
+    _i2.RepositorySlug? slug, {
+    required String? name,
+    required String? headSha,
+    String? detailsUrl,
+    String? externalId,
+    _i2.CheckRunStatus? status = _i2.CheckRunStatus.queued,
+    DateTime? startedAt,
+    _i2.CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    _i2.CheckRunOutput? output,
+    List<_i2.CheckRunAction>? actions,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #createCheckRun,
+              [slug],
+              {
+                #name: name,
+                #headSha: headSha,
+                #detailsUrl: detailsUrl,
+                #externalId: externalId,
+                #status: status,
+                #startedAt: startedAt,
+                #conclusion: conclusion,
+                #completedAt: completedAt,
+                #output: output,
+                #actions: actions,
+              },
+            ),
+            returnValue: _i4.Future<_i2.CheckRun>.value(
+              _FakeCheckRun_44(
+                this,
+                Invocation.method(
+                  #createCheckRun,
+                  [slug],
+                  {
+                    #name: name,
+                    #headSha: headSha,
+                    #detailsUrl: detailsUrl,
+                    #externalId: externalId,
+                    #status: status,
+                    #startedAt: startedAt,
+                    #conclusion: conclusion,
+                    #completedAt: completedAt,
+                    #output: output,
+                    #actions: actions,
+                  },
+                ),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i2.CheckRun>.value(
+              _FakeCheckRun_44(
+                this,
+                Invocation.method(
+                  #createCheckRun,
+                  [slug],
+                  {
+                    #name: name,
+                    #headSha: headSha,
+                    #detailsUrl: detailsUrl,
+                    #externalId: externalId,
+                    #status: status,
+                    #startedAt: startedAt,
+                    #conclusion: conclusion,
+                    #completedAt: completedAt,
+                    #output: output,
+                    #actions: actions,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.CheckRun>);
+
+  @override
+  _i4.Future<_i2.CheckRun> updateCheckRun(
+    _i2.RepositorySlug? slug,
+    _i2.CheckRun? checkRunToUpdate, {
+    String? name,
+    String? detailsUrl,
+    String? externalId,
+    DateTime? startedAt,
+    _i2.CheckRunStatus? status = _i2.CheckRunStatus.queued,
+    _i2.CheckRunConclusion? conclusion,
+    DateTime? completedAt,
+    _i2.CheckRunOutput? output,
+    List<_i2.CheckRunAction>? actions,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #updateCheckRun,
+              [slug, checkRunToUpdate],
+              {
+                #name: name,
+                #detailsUrl: detailsUrl,
+                #externalId: externalId,
+                #startedAt: startedAt,
+                #status: status,
+                #conclusion: conclusion,
+                #completedAt: completedAt,
+                #output: output,
+                #actions: actions,
+              },
+            ),
+            returnValue: _i4.Future<_i2.CheckRun>.value(
+              _FakeCheckRun_44(
+                this,
+                Invocation.method(
+                  #updateCheckRun,
+                  [slug, checkRunToUpdate],
+                  {
+                    #name: name,
+                    #detailsUrl: detailsUrl,
+                    #externalId: externalId,
+                    #startedAt: startedAt,
+                    #status: status,
+                    #conclusion: conclusion,
+                    #completedAt: completedAt,
+                    #output: output,
+                    #actions: actions,
+                  },
+                ),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i2.CheckRun>.value(
+              _FakeCheckRun_44(
+                this,
+                Invocation.method(
+                  #updateCheckRun,
+                  [slug, checkRunToUpdate],
+                  {
+                    #name: name,
+                    #detailsUrl: detailsUrl,
+                    #externalId: externalId,
+                    #startedAt: startedAt,
+                    #status: status,
+                    #conclusion: conclusion,
+                    #completedAt: completedAt,
+                    #output: output,
+                    #actions: actions,
+                  },
+                ),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.CheckRun>);
+
+  @override
+  _i4.Stream<_i2.CheckRun> listCheckRunsForRef(
+    _i2.RepositorySlug? slug, {
+    required String? ref,
+    String? checkName,
+    _i2.CheckRunStatus? status,
+    _i2.CheckRunFilter? filter,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #listCheckRunsForRef,
+              [slug],
+              {
+                #ref: ref,
+                #checkName: checkName,
+                #status: status,
+                #filter: filter,
+              },
+            ),
+            returnValue: _i4.Stream<_i2.CheckRun>.empty(),
+            returnValueForMissingStub: _i4.Stream<_i2.CheckRun>.empty(),
+          )
+          as _i4.Stream<_i2.CheckRun>);
+
+  @override
+  _i4.Stream<_i2.CheckRun> listCheckRunsInSuite(
+    _i2.RepositorySlug? slug, {
+    required int? checkSuiteId,
+    String? checkName,
+    _i2.CheckRunStatus? status,
+    _i2.CheckRunFilter? filter,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #listCheckRunsInSuite,
+              [slug],
+              {
+                #checkSuiteId: checkSuiteId,
+                #checkName: checkName,
+                #status: status,
+                #filter: filter,
+              },
+            ),
+            returnValue: _i4.Stream<_i2.CheckRun>.empty(),
+            returnValueForMissingStub: _i4.Stream<_i2.CheckRun>.empty(),
+          )
+          as _i4.Stream<_i2.CheckRun>);
+
+  @override
+  _i4.Future<_i2.CheckRun> getCheckRun(
+    _i2.RepositorySlug? slug, {
+    required int? checkRunId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getCheckRun, [slug], {#checkRunId: checkRunId}),
+            returnValue: _i4.Future<_i2.CheckRun>.value(
+              _FakeCheckRun_44(
+                this,
+                Invocation.method(
+                  #getCheckRun,
+                  [slug],
+                  {#checkRunId: checkRunId},
+                ),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i2.CheckRun>.value(
+              _FakeCheckRun_44(
+                this,
+                Invocation.method(
+                  #getCheckRun,
+                  [slug],
+                  {#checkRunId: checkRunId},
+                ),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.CheckRun>);
+
+  @override
+  _i4.Stream<_i2.CheckRunAnnotation> listAnnotationsInCheckRun(
+    _i2.RepositorySlug? slug, {
+    required _i2.CheckRun? checkRun,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #listAnnotationsInCheckRun,
+              [slug],
+              {#checkRun: checkRun},
+            ),
+            returnValue: _i4.Stream<_i2.CheckRunAnnotation>.empty(),
+            returnValueForMissingStub:
+                _i4.Stream<_i2.CheckRunAnnotation>.empty(),
+          )
+          as _i4.Stream<_i2.CheckRunAnnotation>);
+
+  @override
+  _i4.Future<void> reRequestCheckRun(
+    _i2.RepositorySlug? slug, {
+    required int? checkRunId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #reRequestCheckRun,
+              [slug],
+              {#checkRunId: checkRunId},
+            ),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+}
+
 /// A class which mocks [JobsResource].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -2926,7 +3267,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               {#location: location, #$fields: $fields},
             ),
             returnValue: _i4.Future<_i5.JobCancelResponse>.value(
-              _FakeJobCancelResponse_42(
+              _FakeJobCancelResponse_45(
                 this,
                 Invocation.method(
                   #cancel,
@@ -2936,7 +3277,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               ),
             ),
             returnValueForMissingStub: _i4.Future<_i5.JobCancelResponse>.value(
-              _FakeJobCancelResponse_42(
+              _FakeJobCancelResponse_45(
                 this,
                 Invocation.method(
                   #cancel,
@@ -2980,7 +3321,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               {#location: location, #$fields: $fields},
             ),
             returnValue: _i4.Future<_i5.Job>.value(
-              _FakeJob_43(
+              _FakeJob_46(
                 this,
                 Invocation.method(
                   #get,
@@ -2990,7 +3331,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               ),
             ),
             returnValueForMissingStub: _i4.Future<_i5.Job>.value(
-              _FakeJob_43(
+              _FakeJob_46(
                 this,
                 Invocation.method(
                   #get,
@@ -3030,7 +3371,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               },
             ),
             returnValue: _i4.Future<_i5.GetQueryResultsResponse>.value(
-              _FakeGetQueryResultsResponse_44(
+              _FakeGetQueryResultsResponse_47(
                 this,
                 Invocation.method(
                   #getQueryResults,
@@ -3050,7 +3391,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
             ),
             returnValueForMissingStub:
                 _i4.Future<_i5.GetQueryResultsResponse>.value(
-                  _FakeGetQueryResultsResponse_44(
+                  _FakeGetQueryResultsResponse_47(
                     this,
                     Invocation.method(
                       #getQueryResults,
@@ -3090,7 +3431,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               },
             ),
             returnValue: _i4.Future<_i5.Job>.value(
-              _FakeJob_43(
+              _FakeJob_46(
                 this,
                 Invocation.method(
                   #insert,
@@ -3104,7 +3445,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               ),
             ),
             returnValueForMissingStub: _i4.Future<_i5.Job>.value(
-              _FakeJob_43(
+              _FakeJob_46(
                 this,
                 Invocation.method(
                   #insert,
@@ -3150,7 +3491,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               },
             ),
             returnValue: _i4.Future<_i5.JobList>.value(
-              _FakeJobList_45(
+              _FakeJobList_48(
                 this,
                 Invocation.method(
                   #list,
@@ -3170,7 +3511,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               ),
             ),
             returnValueForMissingStub: _i4.Future<_i5.JobList>.value(
-              _FakeJobList_45(
+              _FakeJobList_48(
                 this,
                 Invocation.method(
                   #list,
@@ -3205,7 +3546,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               {#$fields: $fields},
             ),
             returnValue: _i4.Future<_i5.QueryResponse>.value(
-              _FakeQueryResponse_46(
+              _FakeQueryResponse_49(
                 this,
                 Invocation.method(
                   #query,
@@ -3215,7 +3556,7 @@ class MockJobsResource extends _i1.Mock implements _i5.JobsResource {
               ),
             ),
             returnValueForMissingStub: _i4.Future<_i5.QueryResponse>.value(
-              _FakeQueryResponse_46(
+              _FakeQueryResponse_49(
                 this,
                 Invocation.method(
                   #query,
