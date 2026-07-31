@@ -22,7 +22,7 @@ dependencies:
     path: ../../app_dart
   collection: ^1.19.1
   fixnum: 1.1.1
-  github: 9.25.0
+  github: 9.26.0
   googleapis: 14.0.0
   googleapis_auth: ^2.0.0
   gql: ^1.0.1
