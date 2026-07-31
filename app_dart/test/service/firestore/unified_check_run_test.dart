@@ -5,6 +5,7 @@
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
+import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
 import 'package:cocoon_service/src/model/common/presubmit_guard_conclusion.dart';
 import 'package:cocoon_service/src/model/common/presubmit_job_state.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -697,5 +698,75 @@ void main() {
       expect(attempts[1].attemptNumber, 1);
       expect(attempts[1].summary, 'attempt 1');
     });
+
+    test(
+      'reInitializeInProgressJob creates newJob and updates currentJob',
+      () async {
+        final slug = RepositorySlug('flutter', 'flutter');
+        final currentJob = PresubmitJob.init(
+          slug: slug,
+          jobName: 'linux',
+          checkRunId: 123,
+          creationTime: 1000,
+          attemptNumber: 1,
+        );
+
+        await firestoreService.writeViaTransaction(
+          documentsToWrites([currentJob], exists: false),
+        );
+
+        final completedJob = PresubmitCompletedJob(
+          name: 'linux',
+          sha: 'abc',
+          slug: slug,
+          status: TaskStatus.failed,
+          isMergeGroup: false,
+          checkRunId: 123,
+          checkSuiteId: 234,
+          headBranch: 'master',
+          isUnifiedCheckRun: true,
+          prNum: 567,
+          attempt: 1,
+          endTime: 2000,
+          summary: 'summary',
+        );
+
+        final nextAttempt = await UnifiedCheckRun.reInitializeInProgressJob(
+          firestoreService: firestoreService,
+          completedJob: completedJob,
+          utcNow: () => DateTime.fromMillisecondsSinceEpoch(3000),
+        );
+
+        expect(nextAttempt, 2);
+
+        final updatedCurrentJob = await PresubmitJob.fromFirestore(
+          firestoreService,
+          PresubmitJobId(
+            slug: slug,
+            checkRunId: 123,
+            jobName: 'linux',
+            attemptNumber: 1,
+          ),
+        );
+
+        expect(updatedCurrentJob.status, TaskStatus.failed);
+        expect(updatedCurrentJob.endTime, 2000);
+        expect(updatedCurrentJob.summary, 'summary');
+
+        final newJob = await PresubmitJob.fromFirestore(
+          firestoreService,
+          PresubmitJobId(
+            slug: slug,
+            checkRunId: 123,
+            jobName: 'linux',
+            attemptNumber: 2,
+          ),
+        );
+
+        expect(newJob.creationTime, 3000);
+        expect(newJob.status, TaskStatus.waitingForBackfill);
+        expect(newJob.attemptNumber, 2);
+      },
+    );
   });
 }

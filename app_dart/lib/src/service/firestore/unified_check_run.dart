@@ -13,6 +13,7 @@ import 'package:googleapis/firestore/v1.dart' hide Status;
 import 'package:meta/meta.dart';
 
 import '../../model/common/failed_presubmit_jobs.dart';
+import '../../model/common/presubmit_completed_check.dart';
 import '../../model/common/presubmit_guard_conclusion.dart';
 import '../../model/common/presubmit_job_state.dart';
 import '../../model/firestore/base.dart';
@@ -255,6 +256,60 @@ final class UnifiedCheckRun {
       );
     } catch (e) {
       log.info('$logCrumb: failed to update presubmit job', e);
+      rethrow;
+    }
+  }
+
+  /// Re-initializes an in-progress job that is being automatically rescheduled.
+  static Future<int> reInitializeInProgressJob({
+    required FirestoreService firestoreService,
+    required PresubmitCompletedJob completedJob,
+    @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
+  }) async {
+    final prNum = completedJob.prNum;
+    final logCrumb =
+        'reInitializeInProgressJob(${completedJob.slug.fullName}, $prNum, ${completedJob.checkRunId}, ${completedJob.name})';
+
+    log.info('$logCrumb Re-initializing in-progress job.');
+
+    final transaction = await firestoreService.beginTransaction();
+    try {
+      final checkDocName = PresubmitJob.documentNameFor(
+        slug: completedJob.slug,
+        checkRunId: completedJob.checkRunId,
+        jobName: completedJob.name,
+        attemptNumber: completedJob.attempt,
+      );
+      final currentJobDocument = await firestoreService.getDocument(
+        checkDocName,
+        transaction: transaction,
+      );
+      final currentJob = PresubmitJob.fromDocument(currentJobDocument);
+
+      final creationTime = utcNow().millisecondsSinceEpoch;
+      final newJob = PresubmitJob.init(
+        slug: currentJob.slug,
+        jobName: currentJob.jobName,
+        checkRunId: currentJob.checkRunId,
+        creationTime: creationTime,
+        attemptNumber: currentJob.attemptNumber + 1,
+      );
+
+      currentJob.status = TaskStatus.failed;
+      if (completedJob.endTime != null) {
+        currentJob.endTime = completedJob.endTime!;
+      }
+      currentJob.summary = completedJob.summary;
+
+      await firestoreService.commit(transaction, [
+        ...documentsToWrites([currentJob], exists: true),
+        ...documentsToWrites([newJob], exists: false),
+      ]);
+      log.info('$logCrumb: successfully re-initialized in-progress job.');
+      return newJob.attemptNumber;
+    } catch (e) {
+      log.info('$logCrumb: failed to re-initialize in-progress job', e);
+      await firestoreService.rollback(transaction);
       rethrow;
     }
   }

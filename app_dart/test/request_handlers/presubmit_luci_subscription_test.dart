@@ -875,6 +875,16 @@ void main() {
       ),
     );
 
+    firestore.putDocument(
+      PresubmitJob.init(
+        slug: RepositorySlug('flutter', 'flutter'),
+        jobName: 'Linux presubmit_max_attempts=2',
+        checkRunId: 1,
+        creationTime: 12345,
+        attemptNumber: 1,
+      ),
+    );
+
     await tester.post(handler);
 
     verifyNever(
@@ -889,6 +899,35 @@ void main() {
     );
 
     verifyNever(mockScheduler.processCheckRunCompleted(any));
+
+    final updatedCurrentJob = await PresubmitJob.fromFirestore(
+      firestore,
+      PresubmitJobId(
+        slug: RepositorySlug('flutter', 'flutter'),
+        checkRunId: 1,
+        jobName: 'Linux presubmit_max_attempts=2',
+        attemptNumber: 1,
+      ),
+    );
+
+    expect(updatedCurrentJob.status, TaskStatus.failed);
+    expect(
+      updatedCurrentJob.summary,
+      '### ⚠️ Test failed but automatically rescheduled\n---\ntest summary',
+    );
+
+    final newJob = await PresubmitJob.fromFirestore(
+      firestore,
+      PresubmitJobId(
+        slug: RepositorySlug('flutter', 'flutter'),
+        checkRunId: 1,
+        jobName: 'Linux presubmit_max_attempts=2',
+        attemptNumber: 2,
+      ),
+    );
+
+    expect(newJob.status, TaskStatus.waitingForBackfill);
+    expect(newJob.attemptNumber, 2);
   });
 
   test(
