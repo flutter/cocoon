@@ -17,6 +17,7 @@ import 'package:flutter_dashboard/views/presubmit_view.dart';
 import 'package:flutter_dashboard/widgets/sha_selector.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 
@@ -385,6 +386,91 @@ void main() {
       expect(
         find.textContaining(
           'Click "View more details on LUCI UI" button below for more details.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'PreSubmitView Execution Details ScrollView is wrapped in SelectionArea',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const mockSha = 'decaf_3_real_sha';
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: mockSha,
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      when(
+        mockCocoonService.fetchPresubmitJobDetails(
+          checkRunId: anyNamed('checkRunId'),
+          jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse.data([
+          PresubmitJobResponse(
+            attemptNumber: 1,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: 0,
+            status: TaskStatus.failed,
+            summary: 'Execution details summary',
+          ),
+        ]),
+      );
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'pr': '123'}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('by dash').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('mac_host_engine').first);
+      await tester.runAsync(() async {
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find
+              .textContaining('Execution details summary')
+              .evaluate()
+              .isNotEmpty) {
+            break;
+          }
+        }
+      });
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is SelectionArea &&
+              widget.child is SingleChildScrollView &&
+              (widget.child as SingleChildScrollView).child is GptMarkdown,
         ),
         findsOneWidget,
       );

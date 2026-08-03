@@ -630,16 +630,18 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 width: double.infinity,
-                child: SingleChildScrollView(
-                  child: GptMarkdown(
-                    hasLogAnalysis && _selectedDetailTabIndex == 0
-                        ? selectedJob.logAnalysis!
-                        : (selectedJob.summary?.trim().isEmpty ?? true
-                              ? _getDefaultJobDetails(selectedJob)
-                              : selectedJob.summary!),
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 13,
+                child: SelectionArea(
+                  child: SingleChildScrollView(
+                    child: GptMarkdown(
+                      hasLogAnalysis && _selectedDetailTabIndex == 0
+                          ? selectedJob.logAnalysis!
+                          : (selectedJob.summary?.trim().isEmpty ?? true
+                                ? _getDefaultJobDetails(selectedJob)
+                                : selectedJob.summary!),
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),
