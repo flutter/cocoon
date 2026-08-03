@@ -463,6 +463,7 @@ class LuciBuildService {
           );
           final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
           if (guard.failedJobs == 0) {
+            log.info('Re-requesting dashboard checks for Guard $guard');
             final githubClient = await _config.createGitHubClient(slug: slug);
             await githubClient.checks.checkRuns.reRequestCheckRun(
               slug,
