@@ -101,7 +101,7 @@ final class CiStaging extends AppDocument<CiStaging> {
     return '$kDocumentParent/$_collectionId/${docId.documentId}';
   }
 
-  /// Lookup [Commit] from Firestore.
+  /// Lookup [CiStaging] from Firestore.
   ///
   /// Use [documentNameFor] to get the correct [documentName]
   static Future<CiStaging> fromFirestore({
@@ -110,6 +110,17 @@ final class CiStaging extends AppDocument<CiStaging> {
   }) async {
     final document = await firestoreService.getDocument(documentName);
     return CiStaging.fromDocument(document);
+  }
+
+  /// Lookup [CiStaging] from Firestore, or return `null` if not found.
+  ///
+  /// Use [documentNameFor] to get the correct [documentName].
+  static Future<CiStaging?> fromFirestoreOrNull({
+    required FirestoreService firestoreService,
+    required String documentName,
+  }) async {
+    final document = await firestoreService.getDocumentOrNull(documentName);
+    return document == null ? null : CiStaging.fromDocument(document);
   }
 
   /// Queries for [CiStaging] records by [slug] and [sha].

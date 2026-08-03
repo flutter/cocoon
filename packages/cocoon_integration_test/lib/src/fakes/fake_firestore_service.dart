@@ -378,6 +378,42 @@ abstract base class _FakeInMemoryFirestoreService
   }
 
   @override
+  Future<BatchGetDocumentsResponse> batchGetDocuments(
+    List<String> names, {
+    Transaction? transaction,
+  }) async {
+    final response = <BatchGetDocumentsResponseElement>[];
+    for (final name in names) {
+      final doc = tryPeekDocumentByName(name);
+      if (doc != null) {
+        response.add(
+          BatchGetDocumentsResponseElement(
+            found: doc,
+            readTime: _now().toIso8601String(),
+          ),
+        );
+      } else {
+        response.add(
+          BatchGetDocumentsResponseElement(
+            missing: name,
+            readTime: _now().toIso8601String(),
+          ),
+        );
+      }
+    }
+    return response;
+  }
+
+  @override
+  Future<Document?> getDocumentOrNull(
+    String name, {
+    Transaction? transaction,
+  }) async {
+    final response = await batchGetDocuments([name], transaction: transaction);
+    return response.firstOrNull?.found;
+  }
+
+  @override
   Future<Document> createDocument(
     Document document, {
     required String collectionId,

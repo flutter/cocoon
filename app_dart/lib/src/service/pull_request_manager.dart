@@ -269,8 +269,8 @@ class PullRequestManager {
     String latestSha;
     String? scheduledSha;
 
-    try {
-      final doc = await firestore.getDocument(name);
+    final doc = await firestore.getDocumentOrNull(name);
+    if (doc != null) {
       final state = PullRequestState.fromDocument(doc);
       isPrivileged = state.isPrivileged ?? false;
       latestSha = state.latestSha ?? event.pullRequest!.head!.sha!;
@@ -278,11 +278,7 @@ class PullRequestManager {
       log.info(
         'Hydrated PullRequestManager for $slug/$prNumber: isPrivileged=$isPrivileged, latestSha=$latestSha, scheduledSha=$scheduledSha',
       );
-    } on DetailedApiRequestError catch (e) {
-      if (e.status != HttpStatus.notFound) {
-        rethrow;
-      }
-
+    } else {
       // Document not found, initialize as new
       final pr = event.pullRequest!;
       final author = pr.user!.login!;

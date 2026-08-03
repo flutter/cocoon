@@ -80,5 +80,45 @@ void main() {
       );
       expect(notFound, isNull);
     });
+
+    test('batchGetDocuments returns found and missing documents', () async {
+      final doc1 = Document(
+        name: firestore.resolveDocumentName('tasks', 'task1'),
+        fields: {'key': 'val1'.toValue()},
+      );
+      firestore.putDocument(doc1);
+
+      final missingName = firestore.resolveDocumentName('tasks', 'task2');
+      final response = await firestore.batchGetDocuments([
+        doc1.name!,
+        missingName,
+      ]);
+
+      expect(response, hasLength(2));
+      expect(response[0].found, isNotNull);
+      expect(response[0].found!.name, doc1.name);
+      expect(response[1].missing, missingName);
+      expect(response[1].found, isNull);
+    });
+
+    test(
+      'getDocumentOrNull returns document when exists, null otherwise',
+      () async {
+        final doc1 = Document(
+          name: firestore.resolveDocumentName('tasks', 'task1'),
+          fields: {'key': 'val1'.toValue()},
+        );
+        firestore.putDocument(doc1);
+
+        final result = await firestore.getDocumentOrNull(doc1.name!);
+        expect(result, isNotNull);
+        expect(result!.name, doc1.name);
+
+        final notFound = await firestore.getDocumentOrNull(
+          firestore.resolveDocumentName('tasks', 'does_not_exist'),
+        );
+        expect(notFound, isNull);
+      },
+    );
   });
 }

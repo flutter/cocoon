@@ -5,7 +5,6 @@
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:path/path.dart' as p;
 
-import '../../request_handling/http_utils.dart';
 import '../../service/firestore.dart';
 import 'base.dart';
 
@@ -30,16 +29,12 @@ final class ContentAwareHashBuilds extends AppDocument<ContentAwareHashBuilds> {
     FirestoreService firestore, {
     required String contentHash,
   }) async {
-    final g.Document document;
-    try {
-      document = await firestore.getDocument(documentPathFor(contentHash));
-    } on g.DetailedApiRequestError catch (e) {
-      if (e.status == HttpStatus.notFound) {
-        return null;
-      }
-      rethrow;
-    }
-    return ContentAwareHashBuilds.fromDocument(document);
+    final document = await firestore.getDocumentOrNull(
+      documentPathFor(contentHash),
+    );
+    return document == null
+        ? null
+        : ContentAwareHashBuilds.fromDocument(document);
   }
 
   factory ContentAwareHashBuilds({
