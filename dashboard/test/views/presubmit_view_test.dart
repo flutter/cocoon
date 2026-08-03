@@ -393,7 +393,7 @@ void main() {
   );
 
   testWidgets(
-    'PreSubmitView Execution Details text is wrapped in SelectionArea inside ScrollView',
+    'PreSubmitView Execution Details ScrollView is wrapped in SelectionArea',
     (WidgetTester tester) async {
       tester.view.physicalSize = const Size(2000, 1080);
       tester.view.devicePixelRatio = 1.0;
@@ -465,13 +465,13 @@ void main() {
         }
       });
       await tester.pumpAndSettle();
-
-      final scrollView = find.ancestor(
-        of: find.byType(GptMarkdown),
-        matching: find.byType(SingleChildScrollView),
-      );
       expect(
-        find.descendant(of: scrollView, matching: find.byType(SelectionArea)),
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is SelectionArea &&
+              widget.child is SingleChildScrollView &&
+              (widget.child as SingleChildScrollView).child is GptMarkdown,
+        ),
         findsOneWidget,
       );
     },

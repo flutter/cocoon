@@ -630,8 +630,8 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 width: double.infinity,
-                child: SingleChildScrollView(
-                  child: SelectionArea(
+                child: SelectionArea(
+                  child: SingleChildScrollView(
                     child: GptMarkdown(
                       hasLogAnalysis && _selectedDetailTabIndex == 0
                           ? selectedJob.logAnalysis!
