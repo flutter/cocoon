@@ -353,6 +353,32 @@ class FirestoreService with FirestoreQueries {
     );
   }
 
+  /// Batch gets documents by [names].
+  ///
+  /// Unlike [getDocument], Firestore returns 200 OK even if documents are missing.
+  Future<BatchGetDocumentsResponse> batchGetDocuments(
+    List<String> names, {
+    Transaction? transaction,
+  }) async {
+    final request = BatchGetDocumentsRequest(
+      documents: names,
+      transaction: transaction?.identifier,
+    );
+    return _api.projects.databases.documents.batchGet(request, kDatabase);
+  }
+
+  /// Gets a document based on [name], or returns `null` if the document does not exist.
+  ///
+  /// Uses [batchGetDocuments] so that non-existent documents do not produce 404
+  /// errors in Firestore / GCP monitoring logs.
+  Future<Document?> getDocumentOrNull(
+    String name, {
+    Transaction? transaction,
+  }) async {
+    final response = await batchGetDocuments([name], transaction: transaction);
+    return response.firstOrNull?.found;
+  }
+
   /// Creates a document.
   ///
   /// A document name is automatically generated if [documentId] is omitted.

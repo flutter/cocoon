@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:googleapis/firestore/v1.dart';
-
 import '../../cocoon_service.dart';
 import '../model/firestore/ci_staging.dart';
 import '../request_handling/exceptions.dart';
@@ -44,22 +42,18 @@ final class GetEngineArtifactsReady extends PublicApiRequestHandler {
     var failed = 0;
     var remaining = 0;
     var found = false;
-    try {
-      final ciStaging = await CiStaging.fromFirestore(
-        firestoreService: _firestore,
-        documentName: CiStaging.documentNameFor(
-          slug: Config.flutterSlug,
-          sha: commitSha,
-          stage: CiStage.fusionEngineBuild,
-        ),
-      );
+    final ciStaging = await CiStaging.fromFirestoreOrNull(
+      firestoreService: _firestore,
+      documentName: CiStaging.documentNameFor(
+        slug: Config.flutterSlug,
+        sha: commitSha,
+        stage: CiStage.fusionEngineBuild,
+      ),
+    );
+    if (ciStaging != null) {
       failed = ciStaging.failed;
       remaining = ciStaging.remaining;
       found = true;
-    } on DetailedApiRequestError catch (e) {
-      if (e.status != HttpStatus.notFound) {
-        rethrow;
-      }
     }
     // if not found in ciStaging document, check if there are any
     // presubmit guards for this sha. This is needed for unified check-run flow.

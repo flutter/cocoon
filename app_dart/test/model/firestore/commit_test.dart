@@ -27,4 +27,25 @@ void main() {
     expect(resultedCommit.name, storedCommit.name);
     expect(resultedCommit.fields, storedCommit.fields);
   });
+
+  test(
+    'tryFromFirestoreBySha returns commit when exists, null otherwise',
+    () async {
+      final storedCommit = generateFirestoreCommit(1);
+      firestoreService.putDocument(storedCommit);
+
+      final found = await Commit.tryFromFirestoreBySha(
+        firestoreService,
+        sha: storedCommit.sha,
+      );
+      expect(found, isNotNull);
+      expect(found!.sha, storedCommit.sha);
+
+      final notFound = await Commit.tryFromFirestoreBySha(
+        firestoreService,
+        sha: 'nonexistent_sha',
+      );
+      expect(notFound, isNull);
+    },
+  );
 }

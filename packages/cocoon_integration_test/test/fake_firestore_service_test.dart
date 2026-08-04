@@ -950,4 +950,50 @@ void main() {
       });
     });
   });
+
+  group('batchGetDocuments', () {
+    test('returns found documents and missing documents', () async {
+      final doc1 = firestore.putDocument(
+        g.Document(
+          name: firestore.resolveDocumentName('messages', 'doc1'),
+          fields: {'text': 'hello'.toValue()},
+        ),
+      );
+
+      final missingPath = firestore.resolveDocumentName('messages', 'doc2');
+      final response = await firestore.batchGetDocuments([
+        doc1.name!,
+        missingPath,
+      ]);
+
+      expect(response, hasLength(2));
+      expect(response[0].found?.name, doc1.name);
+      expect(response[0].found?.fields?['text']?.stringValue, 'hello');
+      expect(response[0].missing, isNull);
+      expect(response[1].found, isNull);
+      expect(response[1].missing, missingPath);
+    });
+  });
+
+  group('getDocumentOrNull', () {
+    test('returns document if it exists', () async {
+      final doc = firestore.putDocument(
+        g.Document(
+          name: firestore.resolveDocumentName('messages', 'doc1'),
+          fields: {'text': 'hello'.toValue()},
+        ),
+      );
+
+      final result = await firestore.getDocumentOrNull(doc.name!);
+      expect(result?.name, doc.name);
+      expect(result?.fields?['text']?.stringValue, 'hello');
+    });
+
+    test('returns null if document does not exist', () async {
+      final result = await firestore.getDocumentOrNull(
+        firestore.resolveDocumentName('messages', 'nonexistent'),
+      );
+      expect(result, isNull);
+    });
+  });
 }

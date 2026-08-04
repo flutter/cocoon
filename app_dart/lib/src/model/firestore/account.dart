@@ -5,7 +5,6 @@
 import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:path/path.dart' as p;
 
-import '../../request_handling/http_utils.dart';
 import '../../service/firestore.dart';
 import 'base.dart';
 
@@ -27,18 +26,10 @@ final class Account extends AppDocument<Account> {
     FirestoreService firestore, {
     required String email,
   }) async {
-    final g.Document document;
-    try {
-      document = await firestore.getDocument(
-        p.posix.join(kDatabase, 'documents', metadata.collectionId, email),
-      );
-    } on g.DetailedApiRequestError catch (e) {
-      if (e.status == HttpStatus.notFound) {
-        return null;
-      }
-      rethrow;
-    }
-    return Account.fromDocument(document);
+    final document = await firestore.getDocumentOrNull(
+      p.posix.join(kDatabase, 'documents', metadata.collectionId, email),
+    );
+    return document == null ? null : Account.fromDocument(document);
   }
 
   /// Creates a new account with the given [email].

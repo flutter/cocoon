@@ -69,15 +69,8 @@ final class Commit extends AppDocument<Commit> {
     required String sha,
   }) async {
     final documentName = p.join(kDatabase, 'documents', collectionId, sha);
-    try {
-      final document = await firestore.getDocument(documentName);
-      return Commit._(document.fields!, name: document.name!);
-    } on DetailedApiRequestError catch (e) {
-      if (e.status == HttpStatus.notFound) {
-        return null;
-      }
-      rethrow;
-    }
+    final document = await firestore.getDocumentOrNull(documentName);
+    return document == null ? null : Commit.fromDocument(document);
   }
 
   factory Commit({
