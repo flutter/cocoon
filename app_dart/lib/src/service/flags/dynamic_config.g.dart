@@ -33,6 +33,8 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
             ),
       dynamicTestSuppression: json['dynamicTestSuppression'] as bool?,
       geminiModel: json['geminiModel'] as String?,
+      taskCachingEnabled: json['taskCachingEnabled'] as bool?,
+      taskCacheTtlInHours: (json['taskCacheTtlInHours'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
@@ -46,4 +48,6 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'orderedPresubmit': instance.orderedPresubmit.toJson(),
       'dynamicTestSuppression': instance.dynamicTestSuppression,
       'geminiModel': instance.geminiModel,
+      'taskCachingEnabled': instance.taskCachingEnabled,
+      'taskCacheTtlInHours': instance.taskCacheTtlInHours,
     };

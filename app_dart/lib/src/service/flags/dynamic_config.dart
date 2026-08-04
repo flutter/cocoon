@@ -43,6 +43,8 @@ final class DynamicConfig {
     orderedPresubmit: OrderedPresubmit.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
+    taskCachingEnabled: true,
+    taskCacheTtlInHours: 12,
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -85,6 +87,14 @@ final class DynamicConfig {
   @JsonKey()
   final String geminiModel;
 
+  /// Whether Redis caching for /tasks is enabled.
+  @JsonKey()
+  final bool taskCachingEnabled;
+
+  /// Cache TTL duration in hours for task cache entries.
+  @JsonKey()
+  final int taskCacheTtlInHours;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
     required this.ciYaml,
@@ -95,6 +105,8 @@ final class DynamicConfig {
     required this.orderedPresubmit,
     required this.dynamicTestSuppression,
     required this.geminiModel,
+    required this.taskCachingEnabled,
+    required this.taskCacheTtlInHours,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -110,6 +122,8 @@ final class DynamicConfig {
     OrderedPresubmit? orderedPresubmit,
     bool? dynamicTestSuppression,
     String? geminiModel,
+    bool? taskCachingEnabled,
+    int? taskCacheTtlInHours,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -128,6 +142,10 @@ final class DynamicConfig {
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
       geminiModel: geminiModel ?? defaultInstance.geminiModel,
+      taskCachingEnabled:
+          taskCachingEnabled ?? defaultInstance.taskCachingEnabled,
+      taskCacheTtlInHours:
+          taskCacheTtlInHours ?? defaultInstance.taskCacheTtlInHours,
     );
   }
 

@@ -15,6 +15,38 @@ class FakeCacheService extends CacheService {
   Future<Uint8List?> get(String subcacheName, String key) async => null;
 
   @override
+  Future<List<Uint8List?>> getMulti(
+    String subcacheName,
+    List<String> keys,
+  ) async {
+    return List.filled(keys.length, null);
+  }
+
+  @override
+  Future<void> insertVersioned(
+    String subcacheName,
+    List<VersionedCacheEntry> entries,
+  ) async {}
+
+  @override
+  Future<Set<String>> getSet(String subcacheName, String key) async => const {};
+
+  @override
+  Future<void> updateSet(
+    String subcacheName,
+    String key,
+    Set<String> values, {
+    Duration ttl = const Duration(hours: 12),
+  }) async {}
+
+  @override
+  Future<bool> addToSetIfExists(
+    String subcacheName,
+    String key,
+    String value,
+  ) async => false;
+
+  @override
   Future<void> dispose() async {}
 
   @override
