@@ -69,8 +69,9 @@ interface class ChainOfAuthentication implements AuthenticationProvider {
     for (final provider in _authenticationChain) {
       try {
         return await provider.authenticate(request);
-      } on Unauthenticated {
-        // nothing
+      } on Unauthenticated catch (e) {
+        // nothing but logging
+        log.info('Authentication failed for provider: $provider, error: $e');
       }
     }
     throw const Unauthenticated('User is not signed in');
