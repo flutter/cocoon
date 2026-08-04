@@ -11,6 +11,7 @@ import '../../cocoon_service.dart';
 import '../foundation/providers.dart';
 import '../foundation/typedefs.dart';
 import '../model/firestore/account.dart';
+import '../model/firestore/admin_account.dart';
 import '../model/google/token_info.dart';
 import '../service/firebase_jwt_validator.dart';
 import 'exceptions.dart';
@@ -157,6 +158,59 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
       createFn: () async => (await _isAllowed(email)).toUint8List(),
     );
     return bytes?.toBool() ?? false;
+  }
+}
+
+/// Firebase authentication for engprod @google.com
+class DashboardFirebaseAdminAuthentication implements AuthenticationProvider {
+  DashboardFirebaseAdminAuthentication({
+    required FirebaseJwtValidator validator,
+    required FirestoreService firestore,
+    ClientContext Function() clientContextProvider =
+        Providers.serviceScopeContext,
+  }) : _validator = validator,
+       _firestore = firestore,
+       _clientContextProvider = clientContextProvider;
+
+  /// Provides the App Engine client context as part of the
+  /// [AuthenticatedContext].
+  ///
+  /// This is guaranteed to be non-null.
+  final ClientContextProvider _clientContextProvider;
+  final FirebaseJwtValidator _validator;
+  final FirestoreService _firestore;
+
+  /// Attempt to validate a JWT as a Firebase token with email @google.com.
+  @override
+  Future<AuthenticatedContext> authenticate(Request request) async {
+    try {
+      if (request.header('X-Flutter-IdToken') case final idTokenFromHeader?) {
+        final token = await _validator.decodeAndVerify(idTokenFromHeader);
+        log.info('authed with firebase: ${token.email}');
+        return await authenticateFirebase(
+          token,
+          clientContext: _clientContextProvider(),
+        );
+      }
+    } on JwtException {
+      // do nothing while in transition
+    }
+    throw const Unauthenticated('Not a Firebase token');
+  }
+
+  @visibleForTesting
+  Future<AuthenticatedContext> authenticateFirebase(
+    TokenInfo token, {
+    required ClientContext clientContext,
+  }) async {
+    if (token.email case final email?) {
+      if (await AdminAccount.getByEmail(_firestore, email: email) != null) {
+        return AuthenticatedContext(clientContext: clientContext, email: email);
+      }
+    }
+    throw Unauthenticated(
+      '${token.email} is not authorized to access the dashboard',
+    );
   }
 }
 

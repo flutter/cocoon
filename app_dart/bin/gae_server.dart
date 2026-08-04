@@ -69,6 +69,10 @@ Future<void> main() async {
     final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
 
     const cronAuthentication = DashboardCronAuthentication();
+    final googlerAuthentication = DashboardFirebaseAdminAuthentication(
+      validator: firebaseJwtValidator,
+      firestore: firestore,
+    );
     final firebaseAuthentication = DashboardFirebaseAuthentication(
       cache: cache,
       validator: firebaseJwtValidator,
@@ -82,6 +86,7 @@ Future<void> main() async {
 
     final cronAuthProvider = ChainOfAuthentication.forProviders([
       cronAuthentication,
+      googlerAuthentication,
     ]);
     final dashboardAuthProvider = ChainOfAuthentication.forProviders([
       cronAuthentication,
