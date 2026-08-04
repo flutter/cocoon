@@ -48,9 +48,4 @@ class AuthenticatedContext {
 
   /// The GitHub login associated with this authenticated context, if any.
   final String? githubLogin;
-
-  @override
-  String toString() {
-    return 'AuthenticatedContext(email: $email${githubLogin != null ? ", githubLogin: $githubLogin" : ""}${clientContext.isDevelopmentEnvironment ? ", (dev env)" : ""})';
-  }
 }
