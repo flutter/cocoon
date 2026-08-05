@@ -613,7 +613,6 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                       ),
                     ),
                   ),
-                  _buildExecutionDates(selectedJob, isDark),
                   const SizedBox(width: 8),
                   const Text(
                     'Raw output',
@@ -622,6 +621,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ],
               ),
             ),
+            _buildExecutionDates(selectedJob, isDark),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.all(8.0),
@@ -817,18 +817,20 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
 
     if (parts.isEmpty) return const SizedBox.shrink();
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(width: 16),
-        Text(
-          parts.join('    '),
-          style: TextStyle(
-            fontSize: 12,
-            color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            parts.join('    '),
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

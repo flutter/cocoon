@@ -1461,7 +1461,7 @@ void main() {
     });
 
     testWidgets(
-      'PreSubmitView displays job dates next to Execution Details for different attempts',
+      'PreSubmitView displays job dates at top of job details content area for different attempts',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(2000, 1080);
         tester.view.devicePixelRatio = 1.0;
@@ -1531,8 +1531,9 @@ void main() {
           for (var i = 0; i < 50; i++) {
             await tester.pump();
             await Future<void>.delayed(const Duration(milliseconds: 50));
-            if (find.textContaining('Execution Details').evaluate().isNotEmpty)
+            if (find.textContaining('Execution Details').evaluate().isNotEmpty) {
               break;
+            }
           }
         });
         await tester.pumpAndSettle();
