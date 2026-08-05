@@ -1543,8 +1543,24 @@ void main() {
               attemptNumber: 6,
               jobName: 'Mac mac_host_engine 1',
               creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
-              startTime: DateTime(2026, 8, 5, 10, 5, 0, 0).millisecondsSinceEpoch,
-              endTime: DateTime(2026, 8, 5, 10, 5, 0, 123).millisecondsSinceEpoch,
+              startTime: DateTime(
+                2026,
+                8,
+                5,
+                10,
+                5,
+                0,
+                0,
+              ).millisecondsSinceEpoch,
+              endTime: DateTime(
+                2026,
+                8,
+                5,
+                10,
+                5,
+                0,
+                123,
+              ).millisecondsSinceEpoch,
               status: TaskStatus.succeeded,
               summary: 'Attempt 6 passed',
             ),
@@ -1552,7 +1568,15 @@ void main() {
               attemptNumber: 7,
               jobName: 'Mac mac_host_engine 1',
               creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
-              startTime: DateTime(2026, 8, 5, 10, 5, 0, 0).millisecondsSinceEpoch,
+              startTime: DateTime(
+                2026,
+                8,
+                5,
+                10,
+                5,
+                0,
+                0,
+              ).millisecondsSinceEpoch,
               endTime: DateTime(2026, 8, 5, 10, 5, 0, 0).millisecondsSinceEpoch,
               status: TaskStatus.succeeded,
               summary: 'Attempt 7 passed',
@@ -1593,10 +1617,7 @@ void main() {
         // Switch to Attempt 2: Only Start
         await tester.tap(find.text('#2'));
         await tester.pumpAndSettle();
-        expect(
-          find.textContaining('Start: 05/08/26 10:20:00'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('Start: 05/08/26 10:20:00'), findsOneWidget);
         expect(find.textContaining('End:'), findsNothing);
 
         // Switch to Attempt 3: Only Creation
@@ -1612,7 +1633,9 @@ void main() {
         await tester.tap(find.text('#4'));
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('Duration: 34s    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:34'),
+          find.textContaining(
+            'Duration: 34s    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:34',
+          ),
           findsOneWidget,
         );
 
@@ -1620,7 +1643,9 @@ void main() {
         await tester.tap(find.text('#5'));
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('Duration: 1h    Start: 05/08/26 10:05:00    End: 05/08/26 11:05:00'),
+          find.textContaining(
+            'Duration: 1h    Start: 05/08/26 10:05:00    End: 05/08/26 11:05:00',
+          ),
           findsOneWidget,
         );
 
@@ -1628,7 +1653,9 @@ void main() {
         await tester.tap(find.text('#6'));
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('Duration: 123ms    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00'),
+          find.textContaining(
+            'Duration: 123ms    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00',
+          ),
           findsOneWidget,
         );
 
@@ -1636,60 +1663,53 @@ void main() {
         await tester.tap(find.text('#7'));
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('Duration: instant    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00'),
+          find.textContaining(
+            'Duration: instant    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00',
+          ),
           findsOneWidget,
         );
       },
     );
 
-  group('formatDuration', () {
-    test('formats hours, minutes, and seconds correctly', () {
-      expect(
-        formatDuration(const Duration(hours: 1, minutes: 12, seconds: 34)),
-        'Duration: 1h 12m 34s',
-      );
-      expect(
-        formatDuration(const Duration(hours: 2, seconds: 5)),
-        'Duration: 2h 5s',
-      );
-      expect(
-        formatDuration(const Duration(minutes: 45, seconds: 12)),
-        'Duration: 45m 12s',
-      );
-      expect(
-        formatDuration(const Duration(minutes: 30)),
-        'Duration: 30m',
-      );
-      expect(
-        formatDuration(const Duration(seconds: 15)),
-        'Duration: 15s',
-      );
-    });
+    group('formatDuration', () {
+      test('formats hours, minutes, and seconds correctly', () {
+        expect(
+          formatDuration(const Duration(hours: 1, minutes: 12, seconds: 34)),
+          'Duration: 1h 12m 34s',
+        );
+        expect(
+          formatDuration(const Duration(hours: 2, seconds: 5)),
+          'Duration: 2h 5s',
+        );
+        expect(
+          formatDuration(const Duration(minutes: 45, seconds: 12)),
+          'Duration: 45m 12s',
+        );
+        expect(formatDuration(const Duration(minutes: 30)), 'Duration: 30m');
+        expect(formatDuration(const Duration(seconds: 15)), 'Duration: 15s');
+      });
 
-    test('falls back to milliseconds when h/m/s are zero', () {
-      expect(
-        formatDuration(const Duration(milliseconds: 123)),
-        'Duration: 123ms',
-      );
-      expect(
-        formatDuration(const Duration(hours: 0, milliseconds: 456)),
-        'Duration: 456ms',
-      );
-    });
+      test('falls back to milliseconds when h/m/s are zero', () {
+        expect(
+          formatDuration(const Duration(milliseconds: 123)),
+          'Duration: 123ms',
+        );
+        expect(
+          formatDuration(const Duration(hours: 0, milliseconds: 456)),
+          'Duration: 456ms',
+        );
+      });
 
-    test('falls back to microseconds when ms is zero', () {
-      expect(
-        formatDuration(const Duration(microseconds: 789)),
-        'Duration: 789µs',
-      );
-    });
+      test('falls back to microseconds when ms is zero', () {
+        expect(
+          formatDuration(const Duration(microseconds: 789)),
+          'Duration: 789µs',
+        );
+      });
 
-    test('returns instant when all are zero', () {
-      expect(
-        formatDuration(Duration.zero),
-        'Duration: instant',
-      );
+      test('returns instant when all are zero', () {
+        expect(formatDuration(Duration.zero), 'Duration: instant');
+      });
     });
   });
-});
 }
