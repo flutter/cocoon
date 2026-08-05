@@ -1126,7 +1126,7 @@ class _JobItem extends StatelessWidget {
 /// Zero hours or minutes are omitted.
 /// If all are zero, falls back to milliseconds (e.g., "12ms").
 /// If milliseconds are zero, falls back to microseconds (e.g., "34µs").
-/// If even microseconds are zero, returns "too fast to be truth".
+/// If even microseconds are zero, returns "Planck time".
 @visibleForTesting
 String formatDuration(Duration d) {
   final absD = d.abs();
@@ -1157,5 +1157,5 @@ String formatDuration(Duration d) {
     return 'Duration: $microsµs';
   }
 
-  return 'Duration: too fast to be truth';
+  return 'Duration: Planck time';
 }
