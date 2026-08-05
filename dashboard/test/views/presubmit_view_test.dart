@@ -1659,12 +1659,12 @@ void main() {
           findsOneWidget,
         );
 
-        // Switch to Attempt 7: Instant duration
+        // Switch to Attempt 7: Planck time duration
         await tester.tap(find.text('#7'));
         await tester.pumpAndSettle();
         expect(
           find.textContaining(
-            'Duration: instant    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00',
+            'Duration: Planck time    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00',
           ),
           findsOneWidget,
         );
@@ -1707,8 +1707,8 @@ void main() {
         );
       });
 
-      test('returns instant when all are zero', () {
-        expect(formatDuration(Duration.zero), 'Duration: instant');
+      test('returns Planck time when all are zero', () {
+        expect(formatDuration(Duration.zero), 'Duration: Planck time');
       });
     });
   });
