@@ -1531,7 +1531,10 @@ void main() {
           for (var i = 0; i < 50; i++) {
             await tester.pump();
             await Future<void>.delayed(const Duration(milliseconds: 50));
-            if (find.textContaining('Execution Details').evaluate().isNotEmpty) {
+            if (find
+                .textContaining('Execution Details')
+                .evaluate()
+                .isNotEmpty) {
               break;
             }
           }
