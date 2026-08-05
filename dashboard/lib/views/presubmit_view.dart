@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -620,6 +621,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                 ],
               ),
             ),
+            _buildExecutionDates(selectedJob, isDark),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.all(8.0),
@@ -795,6 +797,51 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
       .waitingForBackfill =>
         '${job.jobName} is not yet scheduled for execution.\n"View more details on LUCI UI" button will become enabled once the job is scheduled.',
     };
+  }
+
+  Widget _buildExecutionDates(PresubmitJobResponse job, bool isDark) {
+    final start = job.startTime;
+    final end = job.endTime;
+    final created = job.creationTime;
+
+    final parts = <String>[];
+    if (start != null && start != 0 && end != null && end != 0) {
+      final startTime = DateTime.fromMillisecondsSinceEpoch(start);
+      final endTime = DateTime.fromMillisecondsSinceEpoch(end);
+      parts.add(formatDuration(endTime.difference(startTime)));
+    }
+    if (start != null && start != 0) {
+      parts.add('Start: ${_formatDateTime(start)}');
+    }
+    if (end != null && end != 0) {
+      parts.add('End: ${_formatDateTime(end)}');
+    }
+    if (parts.isEmpty && created != 0) {
+      parts.add('Created: ${_formatDateTime(created)}');
+    }
+
+    if (parts.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            parts.join('    '),
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDateTime(int millis) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+    return DateFormat('dd/MM/yy HH:mm:ss').format(dt);
   }
 }
 
@@ -1071,4 +1118,44 @@ class _JobItem extends StatelessWidget {
         );
     }
   }
+}
+
+/// Formats a [Duration] into a human-readable string.
+///
+/// If hours, minutes, or seconds are non-zero, they are included (e.g., "1h 12m 34s").
+/// Zero hours or minutes are omitted.
+/// If all are zero, falls back to milliseconds (e.g., "12ms").
+/// If milliseconds are zero, falls back to microseconds (e.g., "34µs").
+/// If even microseconds are zero, returns "Planck time".
+@visibleForTesting
+String formatDuration(Duration d) {
+  final absD = d.abs();
+  final parts = <String>[];
+  if (absD.inHours > 0) {
+    parts.add('${absD.inHours}h');
+  }
+  final minutes = absD.inMinutes % 60;
+  if (minutes > 0) {
+    parts.add('${minutes}m');
+  }
+  final seconds = absD.inSeconds % 60;
+  if (seconds > 0) {
+    parts.add('${seconds}s');
+  }
+
+  if (parts.isNotEmpty) {
+    return 'Duration: ${parts.join(' ')}';
+  }
+
+  final millis = absD.inMilliseconds;
+  if (millis > 0) {
+    return 'Duration: ${millis}ms';
+  }
+
+  final micros = absD.inMicroseconds;
+  if (micros > 0) {
+    return 'Duration: $microsµs';
+  }
+
+  return 'Duration: Planck time';
 }
