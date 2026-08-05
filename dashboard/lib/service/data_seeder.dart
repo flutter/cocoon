@@ -668,8 +668,8 @@ class DataSeeder {
         .neutral =>
           '[INFO] Starting task $jobName...\n[INFO] Test neutral: Dummy Tests',
       },
-      startTime: creationTime + 30000,
-      endTime: creationTime + 60000,
+      startTime: status != TaskStatus.inProgress ? creationTime + 30000 : null,
+      endTime: status != TaskStatus.inProgress ? creationTime + 60000 : null,
       logAnalysis: switch (status) {
         .failed =>
           '''

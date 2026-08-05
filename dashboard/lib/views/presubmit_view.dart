@@ -12,6 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -612,6 +613,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                       ),
                     ),
                   ),
+                  _buildExecutionDates(selectedJob, isDark),
                   const SizedBox(width: 8),
                   const Text(
                     'Raw output',
@@ -795,6 +797,44 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
       .waitingForBackfill =>
         '${job.jobName} is not yet scheduled for execution.\n"View more details on LUCI UI" button will become enabled once the job is scheduled.',
     };
+  }
+
+  Widget _buildExecutionDates(PresubmitJobResponse job, bool isDark) {
+    final start = job.startTime;
+    final end = job.endTime;
+    final created = job.creationTime;
+
+    final parts = <String>[];
+    if (start != null && start != 0) {
+      parts.add('Start: ${_formatDateTime(start)}');
+    }
+    if (end != null && end != 0) {
+      parts.add('End: ${_formatDateTime(end)}');
+    }
+    if (parts.isEmpty && created != 0) {
+      parts.add('Created: ${_formatDateTime(created)}');
+    }
+
+    if (parts.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(width: 16),
+        Text(
+          parts.join('    '),
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? const Color(0xFF8B949E) : const Color(0xFF6B7280),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDateTime(int millis) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+    return DateFormat('dd/MM/yyyy HH:mm').format(dt);
   }
 }
 

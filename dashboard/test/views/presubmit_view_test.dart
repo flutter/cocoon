@@ -1459,5 +1459,117 @@ void main() {
       expect(find.text('Filter jobs'), findsOneWidget);
       expect(find.text('Re-run failed'), findsOneWidget);
     });
+
+  testWidgets(
+    'PreSubmitView displays job dates next to Execution Details for different attempts',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const mockSha = 'decaf_3_real_sha';
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            jobs: {'Mac mac_host_engine 1': TaskStatus.succeeded},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: anyNamed('repo'),
+          sha: mockSha,
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      when(
+        mockCocoonService.fetchPresubmitJobDetails(
+          checkRunId: anyNamed('checkRunId'),
+          jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
+        ),
+      ).thenAnswer(
+        (_) async => CocoonResponse.data([
+          PresubmitJobResponse(
+            attemptNumber: 1,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
+            startTime: DateTime(2026, 8, 5, 10, 5).millisecondsSinceEpoch,
+            endTime: DateTime(2026, 8, 5, 10, 15).millisecondsSinceEpoch,
+            status: TaskStatus.succeeded,
+            summary: 'Attempt 1 passed',
+          ),
+          PresubmitJobResponse(
+            attemptNumber: 2,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
+            startTime: DateTime(2026, 8, 5, 10, 20).millisecondsSinceEpoch,
+            status: TaskStatus.inProgress,
+            summary: 'Attempt 2 in progress',
+          ),
+          PresubmitJobResponse(
+            attemptNumber: 3,
+            jobName: 'Mac mac_host_engine 1',
+            creationTime: DateTime(2026, 8, 5, 10, 30).millisecondsSinceEpoch,
+            status: TaskStatus.waitingForBackfill,
+            summary: 'Attempt 3 queued',
+          ),
+        ]),
+      );
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'sha': mockSha}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('Execution Details').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('mac_host_engine').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Execution Details'), findsOneWidget);
+
+      // Attempt 1: Both Start and End
+      expect(
+        find.textContaining('Start: 05/08/2026 10:05    End: 05/08/2026 10:15'),
+        findsOneWidget,
+      );
+
+      // Switch to Attempt 2: Only Start
+      await tester.tap(find.text('#2'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Start: 05/08/2026 10:20'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('End:'),
+        findsNothing,
+      );
+
+      // Switch to Attempt 3: Only Creation
+      await tester.tap(find.text('#3'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Created: 05/08/2026 10:30'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Start:'),
+        findsNothing,
+      );
+    });
   });
 }
