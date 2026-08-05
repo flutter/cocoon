@@ -805,6 +805,11 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
     final created = job.creationTime;
 
     final parts = <String>[];
+    if (start != null && start != 0 && end != null && end != 0) {
+      final startTime = DateTime.fromMillisecondsSinceEpoch(start);
+      final endTime = DateTime.fromMillisecondsSinceEpoch(end);
+      parts.add(formatDuration(endTime.difference(startTime)));
+    }
     if (start != null && start != 0) {
       parts.add('Start: ${_formatDateTime(start)}');
     }
@@ -836,7 +841,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
 
   String _formatDateTime(int millis) {
     final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-    return DateFormat('dd/MM/yyyy HH:mm').format(dt);
+    return DateFormat('dd/MM/yy HH:mm:ss').format(dt);
   }
 }
 
@@ -1113,4 +1118,44 @@ class _JobItem extends StatelessWidget {
         );
     }
   }
+}
+
+/// Formats a [Duration] into a human-readable string.
+///
+/// If hours, minutes, or seconds are non-zero, they are included (e.g., "1h 12m 34s").
+/// Zero hours or minutes are omitted.
+/// If all are zero, falls back to milliseconds (e.g., "12ms").
+/// If milliseconds are zero, falls back to microseconds (e.g., "34µs").
+/// If even microseconds are zero, returns "instant".
+@visibleForTesting
+String formatDuration(Duration d) {
+  final absD = d.abs();
+  final parts = <String>[];
+  if (absD.inHours > 0) {
+    parts.add('${absD.inHours}h');
+  }
+  final minutes = absD.inMinutes % 60;
+  if (minutes > 0) {
+    parts.add('${minutes}m');
+  }
+  final seconds = absD.inSeconds % 60;
+  if (seconds > 0) {
+    parts.add('${seconds}s');
+  }
+
+  if (parts.isNotEmpty) {
+    return 'Duration: ${parts.join(' ')}';
+  }
+
+  final millis = absD.inMilliseconds;
+  if (millis > 0) {
+    return 'Duration: ${millis}ms';
+  }
+
+  final micros = absD.inMicroseconds;
+  if (micros > 0) {
+    return 'Duration: $microsµs';
+  }
+
+  return 'Duration: too fast to be truth';
 }

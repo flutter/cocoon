@@ -1501,8 +1501,8 @@ void main() {
               attemptNumber: 1,
               jobName: 'Mac mac_host_engine 1',
               creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
-              startTime: DateTime(2026, 8, 5, 10, 5).millisecondsSinceEpoch,
-              endTime: DateTime(2026, 8, 5, 10, 15).millisecondsSinceEpoch,
+              startTime: DateTime(2026, 8, 5, 10, 5, 0).millisecondsSinceEpoch,
+              endTime: DateTime(2026, 8, 5, 11, 20, 34).millisecondsSinceEpoch,
               status: TaskStatus.succeeded,
               summary: 'Attempt 1 passed',
             ),
@@ -1520,6 +1520,42 @@ void main() {
               creationTime: DateTime(2026, 8, 5, 10, 30).millisecondsSinceEpoch,
               status: TaskStatus.waitingForBackfill,
               summary: 'Attempt 3 queued',
+            ),
+            PresubmitJobResponse(
+              attemptNumber: 4,
+              jobName: 'Mac mac_host_engine 1',
+              creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
+              startTime: DateTime(2026, 8, 5, 10, 5, 0).millisecondsSinceEpoch,
+              endTime: DateTime(2026, 8, 5, 10, 5, 34).millisecondsSinceEpoch,
+              status: TaskStatus.succeeded,
+              summary: 'Attempt 4 passed',
+            ),
+            PresubmitJobResponse(
+              attemptNumber: 5,
+              jobName: 'Mac mac_host_engine 1',
+              creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
+              startTime: DateTime(2026, 8, 5, 10, 5, 0).millisecondsSinceEpoch,
+              endTime: DateTime(2026, 8, 5, 11, 5, 0).millisecondsSinceEpoch,
+              status: TaskStatus.succeeded,
+              summary: 'Attempt 5 passed',
+            ),
+            PresubmitJobResponse(
+              attemptNumber: 6,
+              jobName: 'Mac mac_host_engine 1',
+              creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
+              startTime: DateTime(2026, 8, 5, 10, 5, 0, 0).millisecondsSinceEpoch,
+              endTime: DateTime(2026, 8, 5, 10, 5, 0, 123).millisecondsSinceEpoch,
+              status: TaskStatus.succeeded,
+              summary: 'Attempt 6 passed',
+            ),
+            PresubmitJobResponse(
+              attemptNumber: 7,
+              jobName: 'Mac mac_host_engine 1',
+              creationTime: DateTime(2026, 8, 5, 10, 0).millisecondsSinceEpoch,
+              startTime: DateTime(2026, 8, 5, 10, 5, 0, 0).millisecondsSinceEpoch,
+              endTime: DateTime(2026, 8, 5, 10, 5, 0, 0).millisecondsSinceEpoch,
+              status: TaskStatus.succeeded,
+              summary: 'Attempt 7 passed',
             ),
           ]),
         );
@@ -1549,7 +1585,7 @@ void main() {
         // Attempt 1: Both Start and End
         expect(
           find.textContaining(
-            'Start: 05/08/2026 10:05    End: 05/08/2026 10:15',
+            'Duration: 1h 15m 34s    Start: 05/08/26 10:05:00    End: 05/08/26 11:20:34',
           ),
           findsOneWidget,
         );
@@ -1557,18 +1593,103 @@ void main() {
         // Switch to Attempt 2: Only Start
         await tester.tap(find.text('#2'));
         await tester.pumpAndSettle();
-        expect(find.textContaining('Start: 05/08/2026 10:20'), findsOneWidget);
+        expect(
+          find.textContaining('Start: 05/08/26 10:20:00'),
+          findsOneWidget,
+        );
         expect(find.textContaining('End:'), findsNothing);
 
         // Switch to Attempt 3: Only Creation
         await tester.tap(find.text('#3'));
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('Created: 05/08/2026 10:30'),
+          find.textContaining('Created: 05/08/26 10:30:00'),
           findsOneWidget,
         );
         expect(find.textContaining('Start:'), findsNothing);
+
+        // Switch to Attempt 4: Only seconds duration
+        await tester.tap(find.text('#4'));
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('Duration: 34s    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:34'),
+          findsOneWidget,
+        );
+
+        // Switch to Attempt 5: Only hours duration
+        await tester.tap(find.text('#5'));
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('Duration: 1h    Start: 05/08/26 10:05:00    End: 05/08/26 11:05:00'),
+          findsOneWidget,
+        );
+
+        // Switch to Attempt 6: Milliseconds duration
+        await tester.tap(find.text('#6'));
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('Duration: 123ms    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00'),
+          findsOneWidget,
+        );
+
+        // Switch to Attempt 7: Instant duration
+        await tester.tap(find.text('#7'));
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('Duration: instant    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00'),
+          findsOneWidget,
+        );
       },
     );
+
+  group('formatDuration', () {
+    test('formats hours, minutes, and seconds correctly', () {
+      expect(
+        formatDuration(const Duration(hours: 1, minutes: 12, seconds: 34)),
+        'Duration: 1h 12m 34s',
+      );
+      expect(
+        formatDuration(const Duration(hours: 2, seconds: 5)),
+        'Duration: 2h 5s',
+      );
+      expect(
+        formatDuration(const Duration(minutes: 45, seconds: 12)),
+        'Duration: 45m 12s',
+      );
+      expect(
+        formatDuration(const Duration(minutes: 30)),
+        'Duration: 30m',
+      );
+      expect(
+        formatDuration(const Duration(seconds: 15)),
+        'Duration: 15s',
+      );
+    });
+
+    test('falls back to milliseconds when h/m/s are zero', () {
+      expect(
+        formatDuration(const Duration(milliseconds: 123)),
+        'Duration: 123ms',
+      );
+      expect(
+        formatDuration(const Duration(hours: 0, milliseconds: 456)),
+        'Duration: 456ms',
+      );
+    });
+
+    test('falls back to microseconds when ms is zero', () {
+      expect(
+        formatDuration(const Duration(microseconds: 789)),
+        'Duration: 789µs',
+      );
+    });
+
+    test('returns instant when all are zero', () {
+      expect(
+        formatDuration(Duration.zero),
+        'Duration: instant',
+      );
+    });
   });
+});
 }
