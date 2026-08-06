@@ -18,6 +18,7 @@ import 'package:flutter_dashboard/widgets/sha_selector.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
+import 'package:intl/intl.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 
@@ -33,6 +34,7 @@ void main() {
   late PresubmitState presubmitState;
 
   setUp(() {
+    Intl.defaultLocale = 'en_US';
     mockCocoonService = MockCocoonService();
     mockAuthService = MockFirebaseAuthService();
 
