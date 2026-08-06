@@ -18,6 +18,7 @@ import 'package:flutter_dashboard/widgets/sha_selector.dart';
 import 'package:flutter_dashboard/widgets/state_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
+import 'package:intl/intl.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 
@@ -33,6 +34,7 @@ void main() {
   late PresubmitState presubmitState;
 
   setUp(() {
+    Intl.defaultLocale = 'en_US';
     mockCocoonService = MockCocoonService();
     mockAuthService = MockFirebaseAuthService();
 
@@ -1609,7 +1611,7 @@ void main() {
         // Attempt 1: Both Start and End
         expect(
           find.textContaining(
-            'Duration: 1h 15m 34s    Start: 05/08/26 10:05:00    End: 05/08/26 11:20:34',
+            'Duration: 1h 15m 34s    Start: 8/5/2026 10:05:00    End: 8/5/2026 11:20:34',
           ),
           findsOneWidget,
         );
@@ -1617,14 +1619,14 @@ void main() {
         // Switch to Attempt 2: Only Start
         await tester.tap(find.text('#2'));
         await tester.pumpAndSettle();
-        expect(find.textContaining('Start: 05/08/26 10:20:00'), findsOneWidget);
+        expect(find.textContaining('Start: 8/5/2026 10:20:00'), findsOneWidget);
         expect(find.textContaining('End:'), findsNothing);
 
         // Switch to Attempt 3: Only Creation
         await tester.tap(find.text('#3'));
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('Created: 05/08/26 10:30:00'),
+          find.textContaining('Created: 8/5/2026 10:30:00'),
           findsOneWidget,
         );
         expect(find.textContaining('Start:'), findsNothing);
@@ -1634,7 +1636,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           find.textContaining(
-            'Duration: 34s    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:34',
+            'Duration: 34s    Start: 8/5/2026 10:05:00    End: 8/5/2026 10:05:34',
           ),
           findsOneWidget,
         );
@@ -1644,7 +1646,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           find.textContaining(
-            'Duration: 1h    Start: 05/08/26 10:05:00    End: 05/08/26 11:05:00',
+            'Duration: 1h    Start: 8/5/2026 10:05:00    End: 8/5/2026 11:05:00',
           ),
           findsOneWidget,
         );
@@ -1654,7 +1656,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           find.textContaining(
-            'Duration: 123ms    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00',
+            'Duration: 123ms    Start: 8/5/2026 10:05:00    End: 8/5/2026 10:05:00',
           ),
           findsOneWidget,
         );
@@ -1664,7 +1666,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           find.textContaining(
-            'Duration: Planck time    Start: 05/08/26 10:05:00    End: 05/08/26 10:05:00',
+            'Duration: Planck time    Start: 8/5/2026 10:05:00    End: 8/5/2026 10:05:00',
           ),
           findsOneWidget,
         );

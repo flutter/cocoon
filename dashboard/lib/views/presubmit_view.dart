@@ -841,7 +841,7 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
 
   String _formatDateTime(int millis) {
     final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-    return DateFormat('dd/MM/yy HH:mm:ss').format(dt);
+    return DateFormat.yMd().add_Hms().format(dt);
   }
 }
 
