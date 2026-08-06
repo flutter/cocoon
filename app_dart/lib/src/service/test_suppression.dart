@@ -99,15 +99,23 @@ class TestSuppression {
         return;
       }
 
-      final canonicalLink = issueLink != null
-          ? canonicalizeIssueUrl(issueLink) ?? issueLink
-          : null;
+      if (issueLink == null) {
+        throw ArgumentError.notNull('issueLink');
+      }
+
+      final canonicalLink = canonicalizeIssueUrl(issueLink);
+      if (canonicalLink == null) {
+        throw ArgumentError.value(
+          issueLink,
+          'issueLink',
+          'Invalid GitHub issue URL format. Expected https://github.com/<owner>/<repo>/issues/<number>',
+        );
+      }
+
       final newSuppression = SuppressedTest(
         name: testName,
         repository: repository.fullName,
-        issueLink:
-            canonicalLink ??
-            'BUG: You have found a bug! Please report to https://www.github.com/flutter/flutter/issues/new',
+        issueLink: canonicalLink,
         isSuppressed: true,
         createTimestamp: now,
         updates: [updateEntry],
@@ -136,7 +144,7 @@ class TestSuppression {
     if (Uri.tryParse(trimmed) case Uri(
       :final host,
       :final pathSegments,
-    ) when host == 'github.com') {
+    ) when host == 'github.com' || host == 'www.github.com') {
       final segments = [
         for (final s in pathSegments)
           if (s.isNotEmpty) s,

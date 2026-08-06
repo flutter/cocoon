@@ -61,7 +61,10 @@ void main() {
 
         final mockGitHub = MockGitHub();
         when(
-          mockGitHub.getJSON('/user/$id', convert: anyNamed('convert')),
+          mockGitHub.getJSON<dynamic, User>(
+            '/user/$id',
+            convert: anyNamed('convert'),
+          ),
         ).thenAnswer((_) async => User(login: user));
 
         when(
@@ -105,7 +108,10 @@ void main() {
 
         final mockGitHub = MockGitHub();
         when(
-          mockGitHub.getJSON('/user/$id', convert: anyNamed('convert')),
+          mockGitHub.getJSON<dynamic, User>(
+            '/user/$id',
+            convert: anyNamed('convert'),
+          ),
         ).thenAnswer((_) async => User(login: user));
 
         when(

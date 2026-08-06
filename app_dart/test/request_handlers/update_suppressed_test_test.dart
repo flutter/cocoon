@@ -484,31 +484,22 @@ void main() {
     expect(isSuppressed, isFalse);
   });
 
-  test('TestSuppression uses default bug link if issueLink is null', () async {
+  test('TestSuppression throws ArgumentError if issueLink is null', () async {
     final suppression = TestSuppression(
       firestore: firestore,
       cache: cache,
       now: () => fakeNow,
     );
-    await suppression.updateSuppression(
-      testName: 'my_test',
-      email: 'test@example.com',
-      repository: RepositorySlug('flutter', 'flutter'),
-      action: SuppressingAction.suppress,
-      note: 'test note',
-      issueLink: null,
-    );
-
-    // Verify document created with default bug link
-    expect(
-      firestore,
-      existsInStorage(SuppressedTest.metadata, [
-        isSuppressedTest
-            .hasIssueLink(
-              'BUG: You have found a bug! Please report to https://www.github.com/flutter/flutter/issues/new',
-            )
-            .hasTestName('my_test'),
-      ]),
+    await expectLater(
+      suppression.updateSuppression(
+        testName: 'my_test',
+        email: 'test@example.com',
+        repository: RepositorySlug('flutter', 'flutter'),
+        action: SuppressingAction.suppress,
+        note: 'test note',
+        issueLink: null,
+      ),
+      throwsA(isA<ArgumentError>()),
     );
   });
 }

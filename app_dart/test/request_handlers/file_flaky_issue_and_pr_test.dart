@@ -100,7 +100,12 @@ void main() {
         );
       });
       // ignore: discarded_futures
-      when(mockIssuesService.create(any, any)).thenAnswer((_) async => Issue());
+      when(mockIssuesService.create(any, any)).thenAnswer(
+        (_) async => Issue(
+          htmlUrl: 'https://github.com/flutter/flutter/issues/123',
+          number: 123,
+        ),
+      );
       // when gets existing flaky issues.
       when(
         mockIssuesService.listByRepo(
