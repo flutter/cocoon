@@ -27,7 +27,6 @@ import 'src/service/content_aware_hash_service.dart';
 import 'src/service/discord_service.dart';
 import 'src/service/log_analyzer.dart';
 import 'src/service/scheduler/ci_yaml_fetcher.dart';
-import 'src/service/test_suppression.dart';
 
 typedef Server = Future<void> Function(Request);
 
@@ -64,6 +63,11 @@ Server createServer({
   final suppressionService = TestSuppression(
     firestore: firestore,
     cache: cache,
+  );
+
+  final issueService = IssueService(
+    firestore: firestore,
+    suppressionService: suppressionService,
   );
 
   final handlers = <String, RequestHandler>{
@@ -110,6 +114,7 @@ Server createServer({
       scheduler: scheduler,
       commitService: commitService,
       firestore: firestore,
+      issueService: issueService,
     ),
     '/api/v2/presubmit-luci-subscription': PresubmitLuciSubscription(
       cache: cache,

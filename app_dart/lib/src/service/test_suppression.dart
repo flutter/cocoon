@@ -99,11 +99,14 @@ class TestSuppression {
         return;
       }
 
+      final canonicalLink = issueLink != null
+          ? canonicalizeIssueUrl(issueLink) ?? issueLink
+          : null;
       final newSuppression = SuppressedTest(
         name: testName,
         repository: repository.fullName,
         issueLink:
-            issueLink ??
+            canonicalLink ??
             'BUG: You have found a bug! Please report to https://www.github.com/flutter/flutter/issues/new',
         isSuppressed: true,
         createTimestamp: now,
@@ -122,6 +125,35 @@ class TestSuppression {
       repository: repository,
       isSuppressed: isSuppressed,
     );
+  }
+
+  /// Canonicalizes a GitHub issue URL into `https://github.com/<owner>/<repo>/issues/<issue_number>`.
+  ///
+  /// Strips fragment anchors (e.g. `#issuecomment-123456`), query parameters, subpaths,
+  /// and trailing slashes. Returns `null` if the URL cannot be parsed into a valid GitHub issue link.
+  static String? canonicalizeIssueUrl(String issueUrl) {
+    final trimmed = issueUrl.trim();
+    if (Uri.tryParse(trimmed) case Uri(
+      :final host,
+      :final pathSegments,
+    ) when host == 'github.com') {
+      final segments = [
+        for (final s in pathSegments)
+          if (s.isNotEmpty) s,
+      ];
+      if (segments case [
+        final owner,
+        final repo,
+        'issues',
+        final issueNumber,
+        ...,
+      ]) {
+        if (int.tryParse(issueNumber) != null) {
+          return 'https://github.com/$owner/$repo/issues/$issueNumber';
+        }
+      }
+    }
+    return null;
   }
 
   Future<bool> isTestSuppressed({
