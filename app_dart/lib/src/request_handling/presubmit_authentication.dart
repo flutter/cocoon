@@ -93,11 +93,16 @@ class GithubAuthentication implements AuthenticationProvider {
     final github = _config.createGitHubClientWithToken(
       await _config.githubOAuthToken,
     );
-    final user = await github.getJSON(
-      '/user/$accountId',
-      convert: User.fromJson,
-    );
-    return user.login;
+    try {
+      final user = await github.getJSON(
+        '/user/$accountId',
+        convert: User.fromJson,
+      );
+      return user.login;
+    } catch (e) {
+      log.warn('Failed to get GitHub login for account $accountId: $e');
+      return null;
+    }
   }
 
   Future<String?> _getGithubLoginCached(String accountId) async {
