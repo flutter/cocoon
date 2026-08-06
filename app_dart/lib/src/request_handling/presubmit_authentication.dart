@@ -87,10 +87,16 @@ class GithubAuthentication implements AuthenticationProvider {
   }
 
   Future<String?> _getGithubLogin(String accountId) async {
-    final ghService = _config.createGithubServiceWithToken(
+    // TODO(ievdokdm): change it to githubService.getUserById(accountId) once
+    // https://github.com/SpinlockLabs/github.dart/pull/440 is merged and new
+    // version of pub.dev's github package is released
+    final github = _config.createGitHubClientWithToken(
       await _config.githubOAuthToken,
     );
-    final user = await ghService.getUserByAccountId(accountId);
+    final user = await github.getJSON(
+      '/user/$accountId',
+      convert: User.fromJson,
+    );
     return user.login;
   }
 

@@ -60,11 +60,8 @@ void main() {
         );
 
         final mockGitHub = MockGitHub();
-        final mockUsersService = MockUsersService();
-        when(mockGitHub.users).thenReturn(mockUsersService);
-
         when(
-          mockUsersService.getUser(id),
+          mockGitHub.getJSON('/user/$id', convert: anyNamed('convert')),
         ).thenAnswer((_) async => User(login: user));
 
         when(
@@ -80,6 +77,7 @@ void main() {
         });
         final githubService = GithubService(mockGitHub);
 
+        config.githubClient = mockGitHub;
         config.githubService = githubService;
         request.headers.set('X-Flutter-IdToken', 'trustmebro');
         final result = await auth.authenticate(request.toRequest());
@@ -106,11 +104,8 @@ void main() {
         );
 
         final mockGitHub = MockGitHub();
-        final mockUsersService = MockUsersService();
-        when(mockGitHub.users).thenReturn(mockUsersService);
-
         when(
-          mockUsersService.getUser(id),
+          mockGitHub.getJSON('/user/$id', convert: anyNamed('convert')),
         ).thenAnswer((_) async => User(login: user));
 
         when(
@@ -126,6 +121,7 @@ void main() {
         });
         final githubService = GithubService(mockGitHub);
 
+        config.githubClient = mockGitHub;
         config.githubService = githubService;
         request.headers.set('X-Flutter-IdToken', 'trustmebro');
         expect(
