@@ -183,7 +183,7 @@ const String jobNotCompleteResponse = '''
 ''';
 
 const String expectedSemanticsIntegrationTestNewIssueURL =
-    'https://something.something';
+    'https://github.com/flutter/flutter/issues/123';
 const String expectedSemanticsIntegrationTestTreeSha = 'abcdefg';
 const int expectedSemanticsIntegrationTestPRNumber = 123;
 

@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart'
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:cocoon_service/src/service/test_suppression.dart';
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -101,7 +100,12 @@ void main() {
         );
       });
       // ignore: discarded_futures
-      when(mockIssuesService.create(any, any)).thenAnswer((_) async => Issue());
+      when(mockIssuesService.create(any, any)).thenAnswer(
+        (_) async => Issue(
+          htmlUrl: 'https://github.com/flutter/flutter/issues/123',
+          number: 123,
+        ),
+      );
       // when gets existing flaky issues.
       when(
         mockIssuesService.listByRepo(

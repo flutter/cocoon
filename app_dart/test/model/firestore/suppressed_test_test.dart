@@ -56,5 +56,26 @@ void main() {
         DateTime.fromMillisecondsSinceEpoch(1234567890, isUtc: true),
       );
     });
+
+    test('handles legacy document missing issueLink gracefully', () {
+      final doc = Document(
+        name:
+            'projects/flutter-dashboard/databases/cocoon/documents/suppressed_tests/legacy_doc',
+        fields: {
+          'name': 'my_test'.toValue(),
+          'repository': 'flutter/flutter'.toValue(),
+          'isSuppressed': true.toValue(),
+          'createTimestamp': DateTime.fromMillisecondsSinceEpoch(
+            1234567890,
+          ).toValue(),
+        },
+      );
+
+      final suppressedTest = SuppressedTest.fromDocument(doc);
+      expect(suppressedTest.testName, 'my_test');
+      expect(suppressedTest.repository, 'flutter/flutter');
+      expect(suppressedTest.issueLink, '');
+      expect(suppressedTest.isSuppressed, true);
+    });
   });
 }

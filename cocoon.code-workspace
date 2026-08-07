@@ -34,5 +34,12 @@
 			"path": "conductor"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cSpell.words": [
+			"unsuppress",
+			"unsuppresses",
+			"Unsuppressing",
+			"unsuppression"
+		]
+	}
 }

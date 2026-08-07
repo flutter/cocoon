@@ -8,8 +8,6 @@ import 'package:github/github.dart';
 import '../../cocoon_service.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
-import '../service/test_suppression.dart'
-    show SuppressingAction, TestSuppression;
 
 /// Manually updates the test suppression status.
 ///
@@ -97,15 +95,16 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
           'Parameter "$_paramIssueLink" must be a string',
         );
       }
-      issueLink = link;
 
-      // Validate issue link
-      final issueNumber = _parseIssueNumber(issueLink);
-      if (issueNumber == null) {
+      final canonicalUrl = TestSuppression.canonicalizeIssueUrl(link);
+      if (canonicalUrl == null) {
         throw const BadRequestException(
           'Invalid issue link format, expected https://github.com/flutter/flutter/issues/1234',
         );
       }
+
+      issueLink = canonicalUrl;
+      final issueNumber = int.parse(Uri.parse(canonicalUrl).pathSegments.last);
 
       final githubService = await config.createGithubService(repository);
       final Issue? issue;
@@ -145,20 +144,5 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
     );
 
     return Response.emptyOk;
-  }
-
-  int? _parseIssueNumber(String issueLink) {
-    // Expected format: https://github.com/flutter/flutter/issues/123456
-    final uri = Uri.tryParse(issueLink);
-    if (uri == null ||
-        uri.host != 'github.com' ||
-        uri.pathSegments.length < 4 ||
-        uri.pathSegments[uri.pathSegments.length - 2] != 'issues') {
-      return null;
-    }
-
-    // Path segments: [flutter, flutter, issues, 123456]
-    // Or just check the last segment if it is a number
-    return int.tryParse(uri.pathSegments.last);
   }
 }

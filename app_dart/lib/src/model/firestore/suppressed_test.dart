@@ -64,9 +64,18 @@ final class SuppressedTest extends AppDocument<SuppressedTest> {
       '$fieldRepository =': repository,
       '$fieldIsSuppressed =': true,
     });
-    return docs.isEmpty
-        ? []
-        : [for (final doc in docs) SuppressedTest.fromDocument(doc)];
+    return [for (final doc in docs) SuppressedTest.fromDocument(doc)];
+  }
+
+  /// Returns all [SuppressedTest] documents matching [issueLink].
+  static Future<List<SuppressedTest>> getByIssueLink(
+    FirestoreService firestore,
+    String issueLink,
+  ) async {
+    final docs = await firestore.query(kCollectionId, {
+      '$fieldIssueLink =': issueLink,
+    });
+    return [for (final doc in docs) SuppressedTest.fromDocument(doc)];
   }
 
   /// Creates a new [SuppressedTest] document.
@@ -93,20 +102,24 @@ final class SuppressedTest extends AppDocument<SuppressedTest> {
   }
 
   /// The misbehaving test.
-  String get testName => fields[fieldName]!.stringValue!;
+  String get testName => fields[fieldName]?.stringValue ?? '';
 
   /// The repository this test is evaluated with.
-  String get repository => fields[fieldRepository]!.stringValue!;
+  String get repository => fields[fieldRepository]?.stringValue ?? '';
 
   /// A required github issue link describing why the test is suppressed.
-  String get issueLink => fields[fieldIssueLink]!.stringValue!;
+  String get issueLink => fields[fieldIssueLink]?.stringValue ?? '';
 
   /// Whether this test is currently suppressed.
-  bool get isSuppressed => fields[fieldIsSuppressed]!.booleanValue!;
+  bool get isSuppressed => fields[fieldIsSuppressed]?.booleanValue ?? false;
 
   /// When this document was created.
-  DateTime get createTimestamp =>
-      DateTime.parse(fields[fieldCreateTimestamp]!.timestampValue!);
+  DateTime get createTimestamp {
+    final timestamp = fields[fieldCreateTimestamp]?.timestampValue;
+    return timestamp != null
+        ? DateTime.parse(timestamp)
+        : DateTime.fromMillisecondsSinceEpoch(0);
+  }
 
   /// A list of updates to this document for audit purposes.
   List<Map<String, dynamic>> get updates {
@@ -114,18 +127,22 @@ final class SuppressedTest extends AppDocument<SuppressedTest> {
     if (values == null) {
       return const [];
     }
-    return [...values.map(_valueToUpdateMap)];
+    return [for (final value in values) _valueToUpdateMap(value)];
   }
 
   static Map<String, dynamic> _valueToUpdateMap(Value value) {
-    final fields = value.mapValue!.fields!;
+    final fields = value.mapValue?.fields;
+    if (fields == null) {
+      return const {};
+    }
     return {
-      updateFieldUser: fields[updateFieldUser]!.stringValue!,
-      updateFieldUpdateTimestamp: DateTime.parse(
-        fields[updateFieldUpdateTimestamp]!.timestampValue!,
-      ),
-      updateFieldNote: fields[updateFieldNote]!.stringValue!,
-      updateFieldAction: fields[updateFieldAction]!.stringValue!,
+      updateFieldUser: fields[updateFieldUser]?.stringValue ?? '',
+      updateFieldUpdateTimestamp:
+          fields[updateFieldUpdateTimestamp]?.timestampValue != null
+          ? DateTime.parse(fields[updateFieldUpdateTimestamp]!.timestampValue!)
+          : DateTime.fromMillisecondsSinceEpoch(0),
+      updateFieldNote: fields[updateFieldNote]?.stringValue ?? '',
+      updateFieldAction: fields[updateFieldAction]?.stringValue ?? '',
     };
   }
 }
