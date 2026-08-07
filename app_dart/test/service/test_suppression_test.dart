@@ -3,11 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_integration_test/testing.dart';
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:github/github.dart';
 import 'package:test/test.dart';
 
 void main() {
+  useTestLoggerPerTest();
+
   group('TestSuppression.canonicalizeIssueUrl', () {
     test('canonicalizes standard GitHub issue URLs', () {
       expect(
