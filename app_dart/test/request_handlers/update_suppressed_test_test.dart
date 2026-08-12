@@ -231,6 +231,89 @@ void main() {
     );
   });
 
+  test('creates new suppression when issueLink has trailing slash', () async {
+    githubService.issueResponse = Issue(state: 'open');
+
+    tester.request.body = jsonEncode({
+      'testName': 'my_test_trailing',
+      'repository': 'flutter/flutter',
+      'action': 'SUPPRESS',
+      'issueLink': 'https://github.com/flutter/flutter/issues/123/',
+      'note': 'Trailing slash test',
+    });
+
+    await tester.post(handler);
+
+    expect(
+      firestore,
+      existsInStorage(SuppressedTest.metadata, [
+        isSuppressedTest
+            .hasIssueLink('https://github.com/flutter/flutter/issues/123')
+            .hasTestName('my_test_trailing')
+            .hasRepository('flutter/flutter')
+            .hasIsSuppressed(isTrue),
+      ]),
+    );
+  });
+
+  test(
+    'creates new suppression and sanitizes issueLink with fragment anchor',
+    () async {
+      githubService.issueResponse = Issue(state: 'open');
+
+      tester.request.body = jsonEncode({
+        'testName': 'my_test_fragment',
+        'repository': 'flutter/flutter',
+        'action': 'SUPPRESS',
+        'issueLink':
+            'https://github.com/flutter/flutter/issues/123#issuecomment-98765',
+        'note': 'Fragment anchor test',
+      });
+
+      await tester.post(handler);
+
+      expect(
+        firestore,
+        existsInStorage(SuppressedTest.metadata, [
+          isSuppressedTest
+              .hasIssueLink('https://github.com/flutter/flutter/issues/123')
+              .hasTestName('my_test_fragment')
+              .hasRepository('flutter/flutter')
+              .hasIsSuppressed(isTrue),
+        ]),
+      );
+    },
+  );
+
+  test(
+    'creates new suppression and sanitizes issueLink with query parameters',
+    () async {
+      githubService.issueResponse = Issue(state: 'open');
+
+      tester.request.body = jsonEncode({
+        'testName': 'my_test_query',
+        'repository': 'flutter/flutter',
+        'action': 'SUPPRESS',
+        'issueLink':
+            'https://github.com/flutter/flutter/issues/123?notification_referrer_id=abc',
+        'note': 'Query params test',
+      });
+
+      await tester.post(handler);
+
+      expect(
+        firestore,
+        existsInStorage(SuppressedTest.metadata, [
+          isSuppressedTest
+              .hasIssueLink('https://github.com/flutter/flutter/issues/123')
+              .hasTestName('my_test_query')
+              .hasRepository('flutter/flutter')
+              .hasIsSuppressed(isTrue),
+        ]),
+      );
+    },
+  );
+
   test('Creates a new record for new suppressions', () async {
     githubService.issueResponse = Issue(state: 'open');
 
@@ -401,31 +484,22 @@ void main() {
     expect(isSuppressed, isFalse);
   });
 
-  test('TestSuppression uses default bug link if issueLink is null', () async {
+  test('TestSuppression throws ArgumentError if issueLink is null', () async {
     final suppression = TestSuppression(
       firestore: firestore,
       cache: cache,
       now: () => fakeNow,
     );
-    await suppression.updateSuppression(
-      testName: 'my_test',
-      email: 'test@example.com',
-      repository: RepositorySlug('flutter', 'flutter'),
-      action: SuppressingAction.suppress,
-      note: 'test note',
-      issueLink: null,
-    );
-
-    // Verify document created with default bug link
-    expect(
-      firestore,
-      existsInStorage(SuppressedTest.metadata, [
-        isSuppressedTest
-            .hasIssueLink(
-              'BUG: You have found a bug! Please report to https://www.github.com/flutter/flutter/issues/new',
-            )
-            .hasTestName('my_test'),
-      ]),
+    await expectLater(
+      suppression.updateSuppression(
+        testName: 'my_test',
+        email: 'test@example.com',
+        repository: RepositorySlug('flutter', 'flutter'),
+        action: SuppressingAction.suppress,
+        note: 'test note',
+        issueLink: null,
+      ),
+      throwsA(isA<ArgumentError>()),
     );
   });
 }

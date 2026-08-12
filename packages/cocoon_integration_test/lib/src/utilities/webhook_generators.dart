@@ -1352,3 +1352,84 @@ ${reason != null ? '"reason": "$reason",' : ''}
 }
 ''';
 }
+
+PushMessage generateIssueMessage({
+  required String action,
+  String htmlUrl = 'https://github.com/flutter/flutter/issues/188740',
+  String login = 'ievdokdm',
+  int number = 188740,
+  String repository = 'flutter/flutter',
+}) {
+  final payload = jsonEncode({
+    'action': action,
+    'issue': {
+      'url': 'https://api.github.com/repos/$repository/issues/$number',
+      'repository_url': 'https://api.github.com/repos/$repository',
+      'html_url': htmlUrl,
+      'id': 4771077498,
+      'node_id': 'I_kwDOAeUeuM8AAAABHGDdeg',
+      'number': number,
+      'title': 'Increase errors in Cocoon since Friday',
+      'user': {
+        'login': 'jtmcdole',
+        'id': 1924313,
+        'html_url': 'https://github.com/jtmcdole',
+        'type': 'User',
+        'site_admin': false,
+      },
+      'labels': [
+        {
+          'id': 1578115393,
+          'name': 'team-infra',
+          'color': '198022',
+          'default': false,
+        },
+        {'id': 2096800592, 'name': 'P1', 'color': '990000', 'default': false},
+      ],
+      'state': action,
+      'locked': false,
+      'assignees': [
+        {
+          'login': login,
+          'id': 6338570,
+          'html_url': 'https://github.com/$login',
+          'type': 'User',
+        },
+      ],
+      'assignee': {
+        'login': login,
+        'id': 6338570,
+        'html_url': 'https://github.com/$login',
+        'type': 'User',
+      },
+      'created_at': '2026-06-29T19:40:37Z',
+      'updated_at': '2026-08-06T19:37:41Z',
+      'closed_at': '2026-08-06T19:37:41Z',
+      'author_association': 'MEMBER',
+      'body': 'Increase errors in Cocoon since Friday',
+      'state_reason': 'completed',
+    },
+    'repository': {
+      'id': 31792824,
+      'name': repository.split('/').last,
+      'full_name': repository,
+      'owner': {
+        'login': repository.split('/').first,
+        'id': 14101776,
+        'avatar_url': 'https://avatars.githubusercontent.com/u/14101776?v=4',
+        'html_url': 'https://github.com/${repository.split('/').first}',
+        'type': 'Organization',
+      },
+      'html_url': 'https://github.com/$repository',
+    },
+    'sender': {
+      'login': login,
+      'id': 6338570,
+      'html_url': 'https://github.com/$login',
+      'type': 'User',
+      'site_admin': false,
+    },
+  });
+  final message = pb.GithubWebhookMessage(event: 'issues', payload: payload);
+  return PushMessage(data: message.writeToJson(), messageId: 'abc123');
+}

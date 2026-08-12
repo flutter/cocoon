@@ -63,6 +63,8 @@ export 'src/service/flags/ordered_presubmit_flags.dart';
 export 'src/service/flags/unified_check_run_flow_flags.dart';
 export 'src/service/gerrit_service.dart';
 export 'src/service/github_checks_service.dart';
+export 'src/service/issue_service.dart';
 export 'src/service/luci_build_service.dart';
 export 'src/service/pull_request_manager.dart';
 export 'src/service/scheduler.dart';
+export 'src/service/test_suppression.dart';

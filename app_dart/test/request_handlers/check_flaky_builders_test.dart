@@ -14,7 +14,6 @@ import 'package:cocoon_service/src/model/proto/internal/scheduler.pb.dart'
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
-import 'package:cocoon_service/src/service/test_suppression.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';

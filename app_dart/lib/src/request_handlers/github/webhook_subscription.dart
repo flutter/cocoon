@@ -43,6 +43,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     required this.gerritService,
     required this.commitService,
     required this.firestore,
+    this.issueService,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     @visibleForTesting DateTime Function() now = DateTime.now,
@@ -63,6 +64,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
 
   final FirestoreService firestore;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
+  final IssueService? issueService;
 
   @override
   Future<Response> post(Request request) async {
@@ -78,6 +80,8 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     switch (webhook.event) {
       case 'pull_request':
         return _handlePullRequest(webhook.payload);
+      case 'issues':
+        return _handleIssues(webhook.payload);
       case 'merge_group':
         final result = await _handleMergeGroup(
           webhook.payload,
@@ -413,6 +417,26 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       );
     } on FormatException catch (e) {
       log.warn('Failed to parse $request', e);
+      return null;
+    }
+  }
+
+  Future<Response> _handleIssues(String rawRequest) async {
+    final issueEvent = _getIssueEvent(rawRequest);
+    if (issueEvent == null) {
+      throw const BadRequestException('Expected issue event.');
+    }
+    if (issueService case final service?) {
+      await service.handleIssueEvent(issueEvent);
+    }
+    return Response.emptyOk;
+  }
+
+  IssueEvent? _getIssueEvent(String request) {
+    try {
+      return IssueEvent.fromJson(jsonDecode(request) as Map<String, dynamic>);
+    } catch (e, s) {
+      log.warn('_getIssueEvent: Failed to parse $request', e, s);
       return null;
     }
   }
