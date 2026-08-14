@@ -100,11 +100,9 @@ void main() {
       reason: 'Target 1 is marked backfill: false, so it is not eligible',
     );
 
-    expect(
-      grid.skippableTasks,
-      [isSkippableTask.hasTask(t1c2)],
-      reason: 'Target 1 is marked backfill: false, so it is skipped',
-    );
+    expect(grid.skippableTasks, [
+      isSkippableTask.hasTask(t1c2),
+    ], reason: 'Target 1 is marked backfill: false, so it is skipped');
   });
 
   test('filters out tasks that are missing from ToT', () {
