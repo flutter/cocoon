@@ -445,32 +445,18 @@ class LuciBuildService {
       );
     }
 
-    // Set the dashboard check status to `CheckRunStatus.inProgress` for the
-    // initial run. For Re-run Failed Checks, if all failed jobs were reset, we
-    // need to re-request the check run before updating it to in progress.
+    // Set the dashboard check status to `CheckRunStatus.inProgress` for both
+    // initial runs and re-runs. For re-runs, re-request the check run before
+    // updating it to in progress.
     final isRerun = targets.values.first > 1;
     if (isUnifiedCheckRunFlow && dashboardChecks != null) {
-      var shouldUpdateCheckRun = !isRerun;
-      if (isRerun && stage != null) {
+      if (isRerun) {
         try {
-          final presubmitGuardDoc = await _firestore.getDocument(
-            PresubmitGuard.documentNameFor(
-              slug: slug,
-              prNum: pullRequest.number!,
-              checkRunId: dashboardChecks.id!,
-              stage: stage,
-            ),
+          final githubClient = await _config.createGitHubClient(slug: slug);
+          await githubClient.checks.checkRuns.reRequestCheckRun(
+            slug,
+            checkRunId: dashboardChecks.id!,
           );
-          final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
-          if (guard.failedJobs == 0) {
-            log.info('Re-requesting dashboard checks for Guard $guard');
-            final githubClient = await _config.createGitHubClient(slug: slug);
-            await githubClient.checks.checkRuns.reRequestCheckRun(
-              slug,
-              checkRunId: dashboardChecks.id!,
-            );
-            shouldUpdateCheckRun = true;
-          }
         } catch (e, s) {
           // We are not going to block on this error.
           log.warn(
@@ -481,22 +467,20 @@ class LuciBuildService {
         }
       }
 
-      if (shouldUpdateCheckRun) {
-        try {
-          await _githubChecksUtil.updateCheckRun(
-            _config,
-            slug,
-            dashboardChecks,
-            status: CheckRunStatus.inProgress,
-          );
-        } catch (e, s) {
-          // We are not going to block on this error.
-          log.warn(
-            'Failed to update dashboard checks for PR# ${pullRequest.number} to in progress',
-            e,
-            s,
-          );
-        }
+      try {
+        await _githubChecksUtil.updateCheckRun(
+          _config,
+          slug,
+          dashboardChecks,
+          status: CheckRunStatus.inProgress,
+        );
+      } catch (e, s) {
+        // We are not going to block on this error.
+        log.warn(
+          'Failed to update dashboard checks for PR# ${pullRequest.number} to in progress',
+          e,
+          s,
+        );
       }
     }
 
