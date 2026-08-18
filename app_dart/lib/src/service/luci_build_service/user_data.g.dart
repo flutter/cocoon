@@ -73,21 +73,16 @@ const _$CiStageEnumMap = {
 };
 
 PostsubmitUserData _$PostsubmitUserDataFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'PostsubmitUserData',
-      json,
-      ($checkedConvert) {
-        final val = PostsubmitUserData(
-          checkRunId: $checkedConvert(
-            'check_run_id',
-            (v) => (v as num?)?.toInt(),
-          ),
-          taskId: $checkedConvert('task_id', (v) => TaskId.parse(v as String)),
-        );
-        return val;
-      },
-      fieldKeyMap: const {'checkRunId': 'check_run_id', 'taskId': 'task_id'},
-    );
+    $checkedCreate('PostsubmitUserData', json, ($checkedConvert) {
+      final val = PostsubmitUserData(
+        checkRunId: $checkedConvert(
+          'check_run_id',
+          (v) => (v as num?)?.toInt(),
+        ),
+        taskId: $checkedConvert('task_id', (v) => TaskId.parse(v as String)),
+      );
+      return val;
+    }, fieldKeyMap: const {'checkRunId': 'check_run_id', 'taskId': 'task_id'});
 
 Map<String, dynamic> _$PostsubmitUserDataToJson(PostsubmitUserData instance) =>
     <String, dynamic>{

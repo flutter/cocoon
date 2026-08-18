@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:core';
 
 import 'package:cocoon_server/logging.dart';
@@ -93,6 +94,59 @@ class GithubChecksUtil {
         );
       },
       retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+    );
+  }
+
+  /// Sends a request to github checks api to reset a [CheckRun] to in_progress.
+  Future<void> resetCheckRun(
+    Config config,
+    github.RepositorySlug slug,
+    github.CheckRun checkRun, {
+    github.CheckRunStatus status = github.CheckRunStatus.inProgress,
+    String? detailsUrl,
+    github.CheckRunOutput? output,
+    List<github.CheckRunAction>? actions,
+  }) async {
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
+    return r.retry(
+      () async {
+        final gitHubClient = await config.createGitHubClient(slug: slug);
+        await _resetCheckRun(
+          gitHubClient,
+          slug,
+          checkRun,
+          status: status,
+          detailsUrl: detailsUrl,
+          output: output,
+        );
+      },
+      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+    );
+  }
+
+  Future<github.CheckRun> _resetCheckRun(
+    github.GitHub gitHubClient,
+    github.RepositorySlug slug,
+    github.CheckRun checkRunToUpdate, {
+    String? name,
+    String? detailsUrl,
+    github.CheckRunStatus status = github.CheckRunStatus.inProgress,
+    github.CheckRunOutput? output,
+  }) async {
+    return gitHubClient.requestJson<Map<String, dynamic>, github.CheckRun>(
+      'PATCH',
+      '/repos/${slug.fullName}/check-runs/${checkRunToUpdate.id}',
+      statusCode: github.StatusCodes.OK,
+      preview: 'application/vnd.github.antiope-preview+json',
+      body: jsonEncode(<String, dynamic>{
+        'name': name,
+        'details_url': detailsUrl,
+        'status': status,
+        'conclusion': null,
+        'completed_at': null,
+        'output': output,
+      }),
+      convert: github.CheckRun.fromJson,
     );
   }
 
