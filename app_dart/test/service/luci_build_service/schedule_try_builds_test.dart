@@ -457,6 +457,8 @@ void main() {
             RepositorySlug.full('flutter/flutter'),
             checkRunGuard,
             status: CheckRunStatus.inProgress,
+            output: anyNamed('output'),
+            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).called(1);
 
@@ -715,6 +717,8 @@ void main() {
             any,
             checkRunGuard,
             status: CheckRunStatus.inProgress,
+            output: anyNamed('output'),
+            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).called(1);
       },

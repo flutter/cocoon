@@ -463,7 +463,9 @@ class LuciBuildService {
           );
           final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
           if (guard.failedJobs == 0) {
-            log.info('Re-requesting dashboard checks for Guard $guard');
+            log.info(
+              'Re-requesting dashboard checks id ${dashboardChecks.id} for Guard $guard',
+            );
             final githubClient = await _config.createGitHubClient(slug: slug);
             await githubClient.checks.checkRuns.reRequestCheckRun(
               slug,
@@ -483,11 +485,20 @@ class LuciBuildService {
 
       if (shouldUpdateCheckRun) {
         try {
+          log.info(
+            'Updating dashboard checks id ${dashboardChecks.id} to in progress',
+          );
           await _githubChecksUtil.updateCheckRun(
             _config,
             slug,
             dashboardChecks,
             status: CheckRunStatus.inProgress,
+            output: const CheckRunOutput(
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
+            ),
+            detailsUrl:
+                'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=${dashboardChecks.headSha}',
           );
         } catch (e, s) {
           // We are not going to block on this error.
