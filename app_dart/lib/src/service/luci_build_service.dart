@@ -486,13 +486,12 @@ class LuciBuildService {
       if (shouldUpdateCheckRun) {
         try {
           log.info(
-            'Updating dashboard checks id ${dashboardChecks.id} to in progress',
+            'Resetting dashboard checks ${dashboardChecks.id} to in progress',
           );
-          await _githubChecksUtil.updateCheckRun(
+          await _githubChecksUtil.resetCheckRun(
             _config,
             slug,
             dashboardChecks,
-            status: CheckRunStatus.inProgress,
             output: const CheckRunOutput(
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,
@@ -503,7 +502,7 @@ class LuciBuildService {
         } catch (e, s) {
           // We are not going to block on this error.
           log.warn(
-            'Failed to update dashboard checks for PR# ${pullRequest.number} to in progress',
+            'Failed to reset dashboard checks for PR# ${pullRequest.number} to in progress',
             e,
             s,
           );
