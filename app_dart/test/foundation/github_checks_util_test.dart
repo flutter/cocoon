@@ -57,13 +57,7 @@ void main() {
           );
         });
 
-        await githubChecksUtil.resetCheckRun(
-          config,
-          slug,
-          checkRun,
-          status: github.CheckRunStatus.inProgress,
-          detailsUrl: 'https://example.com/details',
-        );
+        await githubChecksUtil.resetCheckRun(config, slug, checkRun);
 
         final captured = verify(
           mockGitHub.requestJson<Map<String, dynamic>, github.CheckRun>(
@@ -79,7 +73,6 @@ void main() {
         final body =
             jsonDecode(captured.single as String) as Map<String, dynamic>;
         expect(body['status'], 'in_progress');
-        expect(body['details_url'], 'https://example.com/details');
         expect(body['conclusion'], isNull);
         expect(body['completed_at'], isNull);
       },

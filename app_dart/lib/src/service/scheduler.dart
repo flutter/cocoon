@@ -1013,7 +1013,6 @@ $s
         summary: summary,
         text: details,
       ),
-      detailsUrl: detailsUrl,
     );
   }
 
@@ -1023,7 +1022,6 @@ $s
     required String headSha,
     required String summary,
     required String details,
-    String? detailsUrl,
   }) async {
     log.info('''
 Require action for merge group guard ${lock.id} for:
@@ -1031,7 +1029,6 @@ head sha: $headSha
 slug: $slug
 summary: $summary
 details: $details
-detailsUrl: $detailsUrl
 ''');
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
@@ -1044,7 +1041,6 @@ detailsUrl: $detailsUrl
         summary: summary,
         text: details,
       ),
-      detailsUrl: detailsUrl,
       actions: [
         const CheckRunAction(
           label: 'Re-run Failed',
@@ -1248,7 +1244,6 @@ detailsUrl: $detailsUrl
 ''', kDashboardChecksDescription),
           details:
               'Failed presubmit jobs:\n${stagingConclusion.failedJobNames.map((name) => "- `$name`").join("\n")}',
-          detailsUrl: detailsUrl,
         );
       }
       return true;

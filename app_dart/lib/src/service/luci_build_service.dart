@@ -496,8 +496,6 @@ class LuciBuildService {
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,
             ),
-            detailsUrl:
-                'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$commitSha',
           );
         } catch (e, s) {
           // We are not going to block on this error.

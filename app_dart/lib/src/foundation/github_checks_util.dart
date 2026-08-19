@@ -75,7 +75,6 @@ class GithubChecksUtil {
     github.CheckRun checkRun, {
     github.CheckRunStatus status = github.CheckRunStatus.queued,
     github.CheckRunConclusion? conclusion,
-    String? detailsUrl,
     github.CheckRunOutput? output,
     List<github.CheckRunAction>? actions,
   }) async {
@@ -88,7 +87,6 @@ class GithubChecksUtil {
           checkRun,
           status: status,
           conclusion: conclusion,
-          detailsUrl: detailsUrl,
           output: output,
           actions: actions,
         );
@@ -102,23 +100,14 @@ class GithubChecksUtil {
     Config config,
     github.RepositorySlug slug,
     github.CheckRun checkRun, {
-    github.CheckRunStatus status = github.CheckRunStatus.inProgress,
     String? detailsUrl,
     github.CheckRunOutput? output,
-    List<github.CheckRunAction>? actions,
   }) async {
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
     return r.retry(
       () async {
         final gitHubClient = await config.createGitHubClient(slug: slug);
-        await _resetCheckRun(
-          gitHubClient,
-          slug,
-          checkRun,
-          status: status,
-          detailsUrl: detailsUrl,
-          output: output,
-        );
+        await _resetCheckRun(gitHubClient, slug, checkRun, output: output);
       },
       retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
     );
@@ -128,8 +117,6 @@ class GithubChecksUtil {
     github.GitHub gitHubClient,
     github.RepositorySlug slug,
     github.CheckRun checkRunToUpdate, {
-    String? name,
-    String? detailsUrl,
     github.CheckRunStatus status = github.CheckRunStatus.inProgress,
     github.CheckRunOutput? output,
   }) async {
@@ -139,8 +126,6 @@ class GithubChecksUtil {
       statusCode: github.StatusCodes.OK,
       preview: 'application/vnd.github.antiope-preview+json',
       body: jsonEncode(<String, dynamic>{
-        'name': name,
-        'details_url': detailsUrl,
         'status': status,
         'conclusion': null,
         'completed_at': null,
