@@ -13,7 +13,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  appengine: 0.13.11
+  appengine: ^0.13.13
   archive: ^4.0.7
   args: ^2.6.0
   buildbucket:
@@ -28,18 +28,18 @@ dependencies:
   dbcrypt: 2.0.0
   file: ^7.0.1
   fixnum: 1.1.1
-  gcloud: 0.8.19
-  genkit: ^0.13.0
+  gcloud: ^0.9.0
+  genkit: ^0.15.1
   genkit_google_genai: ^0.2.5
   github: 9.26.0
-  googleapis: 14.0.0
-  googleapis_auth: 2.0.0
+  googleapis: ^15.0.0
+  googleapis_auth: ^2.3.3
   gql: ^1.0.1-alpha+1730759315362
   graphql: ^5.2.3
   grpc: ^4.0.1
   http: ^1.2.1
   http_parser: ^4.1.2
-  jose_plus: ^0.4.6
+  jose_plus: ^1.0.0
   json_annotation: ^4.9.0
   logging: ^1.3.0
   meta: ^1.16.0
@@ -49,7 +49,7 @@ dependencies:
   process: ^5.0.3
   process_runner: 4.2.4
   protobuf: 3.1.0
-  redis: ^3.1.0
+  redis: ^4.1.0
   retry: ^3.1.2
   truncate: 3.0.1
   yaml: ^3.1.3

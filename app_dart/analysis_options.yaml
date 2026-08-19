@@ -4,6 +4,13 @@ analyzer:
   exclude:
     # Optional: exclude the generated file if you don't want it analyzed
     - hook/build.dart
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:

@@ -27,7 +27,7 @@ workspace:
 
 dev_dependencies:
   dart_flutter_team_lints: ^3.5.2
-  melos: ^7.0.0-dev.7
+  melos: ^8.3.0
 
 melos:
   command:
