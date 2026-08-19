@@ -29,6 +29,8 @@ class FakeTabledataResource implements TabledataResource {
     String datasetId,
     String tableId, {
     // ignore: non_constant_identifier_names the name comes from the super method
+    String? formatOptions_timestampOutputFormat,
+    // ignore: non_constant_identifier_names the name comes from the super method
     bool? formatOptions_useInt64Timestamp,
     int? maxResults,
     String? selectedFields,

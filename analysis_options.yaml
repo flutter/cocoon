@@ -24,6 +24,13 @@ analyzer:
     - "**/*.pbenum.dart"
     - "lib/generated_plugin_registrant.dart"
     - "test/**/mocks.mocks.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 # Additional rules that do not *conflict* (i.e. are additive) with dart_flutter_team_lints.
 linter:
