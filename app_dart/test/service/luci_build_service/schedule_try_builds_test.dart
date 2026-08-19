@@ -451,17 +451,6 @@ void main() {
         // Should NOT create individual check runs
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
 
-        verify(
-          mockGithubChecksUtil.resetCheckRun(
-            any,
-            RepositorySlug.full('flutter/flutter'),
-            checkRunGuard,
-            status: CheckRunStatus.inProgress,
-            output: anyNamed('output'),
-            detailsUrl: anyNamed('detailsUrl'),
-          ),
-        ).called(1);
-
         final bbv2.ScheduleBuildRequest scheduleBuild;
         {
           final batchRequest = bbv2.BatchRequest().createEmptyInstance();
@@ -543,11 +532,12 @@ void main() {
       ).called(1);
 
       verifyNever(
-        mockGithubChecksUtil.resetCheckRun(
+        mockGithubChecksUtil.updateCheckRun(
           any,
           any,
           any,
           status: anyNamed('status'),
+          conclusion: anyNamed('conclusion'),
         ),
       );
 
@@ -616,11 +606,12 @@ void main() {
 
         // Should NOT update dashboard checks
         verifyNever(
-          mockGithubChecksUtil.resetCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             any,
             status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
           ),
         );
 
@@ -637,7 +628,7 @@ void main() {
     );
 
     test(
-      'reRequests check run and updates dashboard checks for re-run failed checks when failedJobs is 0',
+      'reRequests check run for re-run failed checks when failedJobs is 0',
       () async {
         final pullRequest = generatePullRequest(
           id: 1,
@@ -710,22 +701,11 @@ void main() {
             checkRunId: 1234,
           ),
         ).called(1);
-
-        verify(
-          mockGithubChecksUtil.resetCheckRun(
-            any,
-            any,
-            checkRunGuard,
-            status: CheckRunStatus.inProgress,
-            output: anyNamed('output'),
-            detailsUrl: anyNamed('detailsUrl'),
-          ),
-        ).called(1);
       },
     );
 
     test(
-      'does not reRequest or update dashboard checks for re-run failed checks when failedJobs > 0',
+      'does not reRequest check run for re-run failed checks when failedJobs > 0',
       () async {
         final pullRequest = generatePullRequest(
           id: 1,
@@ -800,11 +780,12 @@ void main() {
         );
 
         verifyNever(
-          mockGithubChecksUtil.resetCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             any,
             status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
           ),
         );
       },
