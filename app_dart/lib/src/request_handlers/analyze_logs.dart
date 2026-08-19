@@ -177,7 +177,7 @@ For build failures (e.g., engine tests failing at compile time), look for the fo
 Link to GitHub Pull Request: $githubUrl
 Links to Logs: ${stdoutLogs.join('\n')}
 ''';
-    
+
     final analysis = await _logAnalyzer.analyze(prompt: prompt);
 
     // 5. Store response in log_analysis of a presubmit_jobs.
