@@ -107,8 +107,12 @@ final class AnalyzeLogs extends ApiRequestHandler {
       githubUrl = githubLinkTag.value;
     }
 
+    final firstLog = stdoutLogs.firstOrNull;
+    final logPreview = firstLog != null && firstLog.length > 100
+        ? firstLog.substring(0, 100)
+        : firstLog;
     log.info(
-      '$logCrumb For PR: $githubUrl Analyzing logs from ${stdoutLogs.length} failed builds, first 100 chars: ${stdoutLogs.firstOrNull?.substring(0, 100)}',
+      '$logCrumb For PR: $githubUrl Analyzing logs from ${stdoutLogs.length} failed builds, first 100 chars: $logPreview',
     );
 
     // 4. Feed text to genkit.
