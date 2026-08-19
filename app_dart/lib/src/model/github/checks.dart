@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:github/github.dart'
     show CheckSuite, PullRequest, Repository, User;
+import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
 
@@ -48,6 +49,17 @@ class CheckRun {
 
   factory CheckRun.fromJson(Map<String, dynamic> input) =>
       _$CheckRunFromJson(input);
+
+  github.CheckRun toGithubCheckRun({DateTime? startedAt}) =>
+      github.CheckRun.fromJson(<String, dynamic>{
+        'id': id,
+        'name': name,
+        'head_sha': headSha,
+        'conclusion': conclusion,
+        'started_at': (startedAt ?? DateTime.now().toUtc()).toIso8601String(),
+        'check_suite': <String, dynamic>{'id': checkSuite?.id},
+      });
+
   final int? id;
   final String? headSha;
   final String? conclusion;

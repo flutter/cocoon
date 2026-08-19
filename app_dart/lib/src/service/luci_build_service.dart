@@ -450,7 +450,6 @@ class LuciBuildService {
     // need to re-request the check run before updating it to in progress.
     final isRerun = targets.values.first > 1;
     if (isUnifiedCheckRunFlow && dashboardChecks != null) {
-      var shouldUpdateCheckRun = !isRerun;
       if (isRerun && stage != null) {
         try {
           final presubmitGuardDoc = await _firestore.getDocument(
@@ -471,39 +470,11 @@ class LuciBuildService {
               slug,
               checkRunId: dashboardChecks.id!,
             );
-            shouldUpdateCheckRun = true;
           }
         } catch (e, s) {
           // We are not going to block on this error.
           log.warn(
             'Failed to re-request dashboard checks for PR# ${pullRequest.number}',
-            e,
-            s,
-          );
-        }
-      }
-
-      if (shouldUpdateCheckRun) {
-        try {
-          log.info(
-            'Resetting dashboard checks ${dashboardChecks.id} to in progress',
-          );
-          await _githubChecksUtil.updateCheckRun(
-            _config,
-            slug,
-            dashboardChecks,
-            status: CheckRunStatus.inProgress,
-            output: const CheckRunOutput(
-              title: Config.kDashboardCheckName,
-              summary: Scheduler.kDashboardChecksDescription,
-            ),
-            detailsUrl:
-                'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$commitSha',
-          );
-        } catch (e, s) {
-          // We are not going to block on this error.
-          log.warn(
-            'Failed to reset dashboard checks for PR# ${pullRequest.number} to in progress',
             e,
             s,
           );

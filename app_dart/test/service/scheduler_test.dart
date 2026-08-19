@@ -1050,92 +1050,58 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested dashboard check is ignored', () async {
-        final mockGithubService = MockGithubService();
-        final mockGithubClient = MockGitHub();
-        config = FakeConfig(githubService: mockGithubService);
-        scheduler = Scheduler(
-          githubService: config.githubService ?? FakeGithubService(),
-          cache: cache,
-          config: config,
-          githubChecksService: GithubChecksService(
-            config,
-            githubChecksUtil: mockGithubChecksUtil,
-          ),
-          getFilesChanged: getFilesChanged,
-          ciYamlFetcher: ciYamlFetcher,
-          luciBuildService: FakeLuciBuildService(
+      test(
+        'rerequested dashboard check resets check run to in progress',
+        () async {
+          final mockGithubService = MockGithubService();
+          final mockGithubClient = MockGitHub();
+          config = FakeConfig(githubService: mockGithubService);
+          scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
+            cache: cache,
             config: config,
-            githubChecksUtil: mockGithubChecksUtil,
+            githubChecksService: GithubChecksService(
+              config,
+              githubChecksUtil: mockGithubChecksUtil,
+            ),
+            getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
+            luciBuildService: FakeLuciBuildService(
+              config: config,
+              githubChecksUtil: mockGithubChecksUtil,
+              firestore: firestore,
+            ),
+            contentAwareHash: fakeContentAwareHash,
             firestore: firestore,
-          ),
-          contentAwareHash: fakeContentAwareHash,
-          firestore: firestore,
-          bigQuery: bigQuery,
-        );
-        when(mockGithubService.github).thenReturn(mockGithubClient);
-        when(
-          mockGithubService.searchIssuesAndPRs(
-            any,
-            any,
-            sort: anyNamed('sort'),
-            pages: anyNamed('pages'),
-          ),
-        ).thenAnswer((_) async => [generateIssue(3)]);
-        when(
-          mockGithubChecksUtil.listCheckSuitesForRef(
-            any,
-            any,
-            ref: anyNamed('ref'),
-          ),
-        ).thenAnswer(
-          (_) async => [
-            // From check_run.check_suite.id in [checkRunString].
-            generateCheckSuite(668083231),
-          ],
-        );
-        when(
-          mockGithubService.getPullRequest(any, any),
-        ).thenAnswer((_) async => generatePullRequest());
-        getFilesChanged.cannedFiles = ['abc/def'];
-        when(
-          mockGithubChecksUtil.createCheckRun(
-            any,
-            any,
-            any,
-            any,
-            output: anyNamed('output'),
-          ),
-        ).thenAnswer((_) async {
-          return CheckRun.fromJson(const <String, dynamic>{
-            'id': 1,
-            'started_at': '2020-05-10T02:49:31Z',
-            'name': Config.kCiYamlCheckName,
-            'check_suite': <String, dynamic>{'id': 2},
-          });
-        });
-        final checkRunEventJson =
-            jsonDecode(checkRunString()) as Map<String, dynamic>;
-        checkRunEventJson['check_run']['name'] = Config.kDashboardCheckName;
-        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-          checkRunEventJson,
-        );
-        expect(
-          await scheduler.processCheckRun(checkRunEvent),
-          const ProcessCheckRunResult.success(),
-        );
-        verifyNever(
-          mockGithubChecksUtil.createCheckRun(
-            any,
-            any,
-            any,
-            Config.kDashboardCheckName,
-            output: anyNamed('output'),
-          ),
-        );
-        // Verifies no checks were created
-        verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
-      });
+            bigQuery: bigQuery,
+          );
+          when(mockGithubService.github).thenReturn(mockGithubClient);
+          final checkRunEventJson =
+              jsonDecode(checkRunString()) as Map<String, dynamic>;
+          checkRunEventJson['check_run']['name'] = Config.kDashboardCheckName;
+          final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+            checkRunEventJson,
+          );
+          expect(
+            await scheduler.processCheckRun(checkRunEvent),
+            const ProcessCheckRunResult.success(),
+          );
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              RepositorySlug.full('flutter/cocoon'),
+              any,
+              status: CheckRunStatus.inProgress,
+              output: const CheckRunOutput(
+                title: Config.kDashboardCheckName,
+                summary: Scheduler.kDashboardChecksDescription,
+              ),
+            ),
+          ).called(1);
+          // Verifies no checks were created
+          verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
+        },
+      );
 
       test('rerequested presubmit job triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because

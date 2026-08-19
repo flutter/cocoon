@@ -1702,101 +1702,125 @@ $stacktrace
     );
     final name = checkRunEvent.checkRun!.name;
     var success = false;
-    if (name == Config.kMergeQueueLockName ||
-        name == Config.kDashboardCheckName) {
-      final slug = checkRunEvent.repository!.slug();
-      final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-      log.debug(
-        '$logCrumb: Requested re-run of "$name" for '
-        '$slug / $checkSuiteId - ignoring',
-      );
-      success = true;
-    } else if (name == Config.kCiYamlCheckName) {
-      // The CheckRunEvent.checkRun.pullRequests array is empty for this
-      // event, so we need to find the matching pull request.
-      final slug = checkRunEvent.repository!.slug();
-      final headSha = checkRunEvent.checkRun!.headSha!;
-      final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
-      final pullRequest = await _githubChecksService.findMatchingPullRequest(
-        slug,
-        headSha,
-        checkSuiteId,
-      );
-      if (pullRequest != null) {
-        log.debug('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
-        await triggerPresubmitTargets(pullRequest: pullRequest);
-        success = true;
-      } else {
-        log.warn('No matching PR found for head_sha in check run event.');
-      }
-    } else {
-      try {
-        final slug = checkRunEvent.repository!.slug();
-        final sha = checkRunEvent.checkRun!.headSha!;
 
-        // Only merged commits are added to the Database.
-        // If a commit is found, this must be a postsubmit checkrun.
-        final fsCommit = await fs.Commit.tryFromFirestoreBySha(
-          _firestore,
-          sha: sha,
+    final slug = checkRunEvent.repository!.slug();
+
+    switch (name) {
+      case Config.kMergeQueueLockName:
+        final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+        log.debug(
+          '$logCrumb: Requested re-run of "$name" for '
+          '$slug / $checkSuiteId - ignoring',
         );
-
-        // TODO(matanlurey): Refactor into its own branch.
-        // https://github.com/flutter/flutter/issues/167211.
-        final isPresubmit = fsCommit == null;
-        if (isPresubmit) {
-          log.debug('Rescheduling presubmit build for $name');
-          final pullRequest = await PrCheckRuns.findPullRequestForSha(
-            _firestore,
-            sha,
+        success = true;
+      case Config.kDashboardCheckName:
+        try {
+          log.info(
+            'Resetting dashboard checks ${checkRunEvent.checkRun!.id} to in progress',
           );
-          if (pullRequest == null) {
-            return ProcessCheckRunResult.userError(
-              'Asked to reschedule presubmits for unknown sha/PR: $sha',
-            );
-          }
-          await reRunTargets(slug, pullRequest, [name!]);
-        } else {
-          log.debug('Rescheduling postsubmit build.');
-
-          final checkName = name;
-          final fs.Task fsTask;
-
-          // Query the lastest run of the `checkName` againt commit `sha`.
-          final fsTasks = await _firestore.queryRecentTasks(
-            limit: 1,
-            commitSha: fsCommit.sha,
-            name: checkName,
+          await _githubChecksService.githubChecksUtil.updateCheckRun(
+            _config,
+            slug,
+            checkRunEvent.checkRun!.toGithubCheckRun(),
+            status: CheckRunStatus.inProgress,
+            output: const CheckRunOutput(
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
+            ),
           );
-          if (fsTasks.isEmpty) {
-            throw StateError('Expected 1+ tasks for $checkName');
-          }
-          fsTask = fsTasks.first;
-
-          log.debug('Latest firestore task is $fsTask');
-          final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
-            fsCommit.toRef(),
-            postsubmit: true,
-          );
-          final target = ciYaml.postsubmitTargets().singleWhere(
-            (target) => target.name == fsTask.taskName,
-          );
-          await _luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
-            checkRunEvent,
-            commit: fsCommit.toRef(),
-            task: fsTask,
-            target: target,
+          success = true;
+        } catch (e, s) {
+          // We are not going to block on this error.
+          log.warn(
+            'Failed to reset dashboard checks ${checkRunEvent.checkRun!.id} to in progress',
+            e,
+            s,
           );
         }
+      case Config.kCiYamlCheckName:
+        // The CheckRunEvent.checkRun.pullRequests array is empty for this
+        // event, so we need to find the matching pull request.
+        final headSha = checkRunEvent.checkRun!.headSha!;
+        final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
+        final pullRequest = await _githubChecksService.findMatchingPullRequest(
+          slug,
+          headSha,
+          checkSuiteId,
+        );
+        if (pullRequest != null) {
+          log.debug('Matched PR: ${pullRequest.number} Repo: ${slug.fullName}');
+          await triggerPresubmitTargets(pullRequest: pullRequest);
+          success = true;
+        } else {
+          log.warn('No matching PR found for head_sha in check run event.');
+        }
+      case _:
+        try {
+          final sha = checkRunEvent.checkRun!.headSha!;
 
-        success = true;
-      } on NoBuildFoundException {
-        log.warn('No build found to reschedule.');
-      } on FormatException catch (e) {
-        // See https://github.com/flutter/flutter/issues/165018.
-        log.info('CheckName: $name failed due to user error: $e');
-        return ProcessCheckRunResult.userError('$e');
-      }
+          // Only merged commits are added to the Database.
+          // If a commit is found, this must be a postsubmit checkrun.
+          final fsCommit = await fs.Commit.tryFromFirestoreBySha(
+            _firestore,
+            sha: sha,
+          );
+
+          // TODO(matanlurey): Refactor into its own branch.
+          // https://github.com/flutter/flutter/issues/167211.
+          final isPresubmit = fsCommit == null;
+          if (isPresubmit) {
+            log.debug('Rescheduling presubmit build for $name');
+            final pullRequest = await PrCheckRuns.findPullRequestForSha(
+              _firestore,
+              sha,
+            );
+            if (pullRequest == null) {
+              return ProcessCheckRunResult.userError(
+                'Asked to reschedule presubmits for unknown sha/PR: $sha',
+              );
+            }
+            await reRunTargets(slug, pullRequest, [name!]);
+          } else {
+            log.debug('Rescheduling postsubmit build.');
+
+            final checkName = name;
+            final fs.Task fsTask;
+
+            // Query the lastest run of the `checkName` againt commit `sha`.
+            final fsTasks = await _firestore.queryRecentTasks(
+              limit: 1,
+              commitSha: fsCommit.sha,
+              name: checkName,
+            );
+            if (fsTasks.isEmpty) {
+              throw StateError('Expected 1+ tasks for $checkName');
+            }
+            fsTask = fsTasks.first;
+
+            log.debug('Latest firestore task is $fsTask');
+            final ciYaml = await _ciYamlFetcher.getCiYamlByCommit(
+              fsCommit.toRef(),
+              postsubmit: true,
+            );
+            final target = ciYaml.postsubmitTargets().singleWhere(
+              (target) => target.name == fsTask.taskName,
+            );
+            await _luciBuildService.reschedulePostsubmitBuildUsingCheckRunEvent(
+              checkRunEvent,
+              commit: fsCommit.toRef(),
+              task: fsTask,
+              target: target,
+            );
+          }
+
+          success = true;
+        } on NoBuildFoundException {
+          log.warn('No build found to reschedule.');
+        } on FormatException catch (e) {
+          // See https://github.com/flutter/flutter/issues/165018.
+          log.info('CheckName: $name failed due to user error: $e');
+          return ProcessCheckRunResult.userError('$e');
+        }
     }
 
     log.debug('CheckName: $name State: $success');
