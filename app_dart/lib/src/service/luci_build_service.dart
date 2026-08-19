@@ -493,7 +493,6 @@ class LuciBuildService {
             slug,
             dashboardChecks,
             status: CheckRunStatus.inProgress,
-            conclusion: CheckRunConclusion.neutral,
             output: const CheckRunOutput(
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,
