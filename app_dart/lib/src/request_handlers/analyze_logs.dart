@@ -108,8 +108,9 @@ final class AnalyzeLogs extends ApiRequestHandler {
     }
 
     log.info(
-      '$logCrumb For PR: $githubUrl Analyzing logs: ${stdoutLogs.join('\n')}',
+      '$logCrumb For PR: $githubUrl Analyzing logs from ${stdoutLogs.length} failed builds, first 100 chars: ${stdoutLogs.firstOrNull?.substring(0, 100)}',
     );
+
     // 4. Feed text to genkit.
     final prompt =
         '''You are a Senior Infrastructure Engineer specializing in the Flutter CI ecosystem.
