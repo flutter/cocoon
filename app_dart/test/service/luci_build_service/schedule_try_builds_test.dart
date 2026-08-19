@@ -452,11 +452,12 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
 
         verify(
-          mockGithubChecksUtil.resetCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
             any,
             RepositorySlug.full('flutter/flutter'),
             checkRunGuard,
             status: CheckRunStatus.inProgress,
+            conclusion: CheckRunConclusion.neutral,
             output: anyNamed('output'),
             detailsUrl: anyNamed('detailsUrl'),
           ),
@@ -543,11 +544,12 @@ void main() {
       ).called(1);
 
       verifyNever(
-        mockGithubChecksUtil.resetCheckRun(
+        mockGithubChecksUtil.updateCheckRun(
           any,
           any,
           any,
           status: anyNamed('status'),
+          conclusion: anyNamed('conclusion'),
         ),
       );
 
@@ -616,11 +618,12 @@ void main() {
 
         // Should NOT update dashboard checks
         verifyNever(
-          mockGithubChecksUtil.resetCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             any,
             status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
           ),
         );
 
@@ -712,11 +715,12 @@ void main() {
         ).called(1);
 
         verify(
-          mockGithubChecksUtil.resetCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             checkRunGuard,
             status: CheckRunStatus.inProgress,
+            conclusion: CheckRunConclusion.neutral,
             output: anyNamed('output'),
             detailsUrl: anyNamed('detailsUrl'),
           ),
@@ -800,11 +804,12 @@ void main() {
         );
 
         verifyNever(
-          mockGithubChecksUtil.resetCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             any,
             status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
           ),
         );
       },

@@ -488,10 +488,12 @@ class LuciBuildService {
           log.info(
             'Resetting dashboard checks ${dashboardChecks.id} to in progress',
           );
-          await _githubChecksUtil.resetCheckRun(
+          await _githubChecksUtil.updateCheckRun(
             _config,
             slug,
             dashboardChecks,
+            status: CheckRunStatus.inProgress,
+            conclusion: CheckRunConclusion.neutral,
             output: const CheckRunOutput(
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,

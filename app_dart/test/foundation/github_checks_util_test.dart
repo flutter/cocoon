@@ -18,71 +18,60 @@ void main() {
   group('GithubChecksUtil', () {
     late GithubChecksUtil githubChecksUtil;
     late MockGitHub mockGitHub;
+    late MockChecksService mockChecksService;
+    late MockCheckRunsService mockCheckRunsService;
     late FakeConfig config;
     late github.RepositorySlug slug;
 
     setUp(() {
       githubChecksUtil = const GithubChecksUtil();
       mockGitHub = MockGitHub();
+      mockChecksService = MockChecksService();
+      mockCheckRunsService = MockCheckRunsService();
+      when(mockGitHub.checks).thenReturn(mockChecksService);
+      when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
       config = FakeConfig(githubClient: mockGitHub);
       slug = github.RepositorySlug('flutter', 'flutter');
     });
 
-    test(
-      'resetCheckRun sends PATCH request with null conclusion and completed_at',
-      () async {
-        final checkRun = github.CheckRun.fromJson(
-          jsonDecode(
-                '{"name": "Guard", "id": 1234, "status": "completed", "conclusion": "failure", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 1}}',
-              )
-              as Map<String, dynamic>,
-        );
+    test('updateCheckRun calls checkRuns.updateCheckRun', () async {
+      final checkRun = github.CheckRun.fromJson(
+        jsonDecode(
+              '{"name": "Guard", "id": 1234, "status": "completed", "conclusion": "failure", "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 1}}',
+            )
+            as Map<String, dynamic>,
+      );
 
-        when(
-          // ignore: discarded_futures
-          mockGitHub.requestJson<Map<String, dynamic>, github.CheckRun>(
-            'PATCH',
-            '/repos/flutter/flutter/check-runs/1234',
-            statusCode: github.StatusCodes.OK,
-            preview: 'application/vnd.github.antiope-preview+json',
-            body: anyNamed('body'),
-            convert: anyNamed('convert'),
-          ),
-        ).thenAnswer((_) async {
-          return github.CheckRun.fromJson(
-            jsonDecode(
-                  '{"name": "Guard", "id": 1234, "status": "in_progress", "conclusion": null, "started_at": "2020-05-10T02:49:31Z", "head_sha": "the_sha", "check_suite": {"id": 1}}',
-                )
-                as Map<String, dynamic>,
-          );
-        });
+      when(
+        mockCheckRunsService.updateCheckRun(
+          slug,
+          checkRun,
+          status: anyNamed('status'),
+          conclusion: anyNamed('conclusion'),
+          detailsUrl: anyNamed('detailsUrl'),
+          output: anyNamed('output'),
+          actions: anyNamed('actions'),
+        ),
+      ).thenAnswer((_) async => checkRun);
 
-        await githubChecksUtil.resetCheckRun(
-          config,
+      await githubChecksUtil.updateCheckRun(
+        config,
+        slug,
+        checkRun,
+        status: github.CheckRunStatus.inProgress,
+        conclusion: github.CheckRunConclusion.neutral,
+        detailsUrl: 'https://example.com/details',
+      );
+
+      verify(
+        mockCheckRunsService.updateCheckRun(
           slug,
           checkRun,
           status: github.CheckRunStatus.inProgress,
+          conclusion: github.CheckRunConclusion.neutral,
           detailsUrl: 'https://example.com/details',
-        );
-
-        final captured = verify(
-          mockGitHub.requestJson<Map<String, dynamic>, github.CheckRun>(
-            'PATCH',
-            '/repos/flutter/flutter/check-runs/1234',
-            statusCode: github.StatusCodes.OK,
-            preview: 'application/vnd.github.antiope-preview+json',
-            body: captureAnyNamed('body'),
-            convert: anyNamed('convert'),
-          ),
-        ).captured;
-
-        final body =
-            jsonDecode(captured.single as String) as Map<String, dynamic>;
-        expect(body['status'], 'in_progress');
-        expect(body['details_url'], 'https://example.com/details');
-        expect(body['conclusion'], isNull);
-        expect(body['completed_at'], isNull);
-      },
-    );
+        ),
+      ).called(1);
+    });
   });
 }
