@@ -2068,6 +2068,32 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
           as _i13.Future<void>);
 
   @override
+  _i13.Future<void> resetCheckRun(
+    _i2.Config? config,
+    _i7.RepositorySlug? slug,
+    _i7.CheckRun? checkRun, {
+    _i7.CheckRunStatus? status = _i7.CheckRunStatus.inProgress,
+    String? detailsUrl,
+    _i7.CheckRunOutput? output,
+    List<_i7.CheckRunAction>? actions,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #resetCheckRun,
+              [config, slug, checkRun],
+              {
+                #status: status,
+                #detailsUrl: detailsUrl,
+                #output: output,
+                #actions: actions,
+              },
+            ),
+            returnValue: _i13.Future<void>.value(),
+            returnValueForMissingStub: _i13.Future<void>.value(),
+          )
+          as _i13.Future<void>);
+
+  @override
   _i13.Future<_i7.CheckRun> getCheckRun(
     _i2.Config? config,
     _i7.RepositorySlug? slug,

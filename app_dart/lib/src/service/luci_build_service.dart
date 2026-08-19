@@ -468,16 +468,24 @@ class LuciBuildService {
       }
 
       try {
-        await _githubChecksUtil.updateCheckRun(
+        log.info(
+          'Resetting dashboard checks ${dashboardChecks.id} to in progress',
+        );
+        await _githubChecksUtil.resetCheckRun(
           _config,
           slug,
           dashboardChecks,
-          status: CheckRunStatus.inProgress,
+          output: const CheckRunOutput(
+            title: Config.kDashboardCheckName,
+            summary: Scheduler.kDashboardChecksDescription,
+          ),
+          detailsUrl:
+              'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$commitSha',
         );
       } catch (e, s) {
         // We are not going to block on this error.
         log.warn(
-          'Failed to update dashboard checks for PR# ${pullRequest.number} to in progress',
+          'Failed to reset dashboard checks for PR# ${pullRequest.number} to in progress',
           e,
           s,
         );
