@@ -117,33 +117,28 @@ class LatticeScrollView extends StatelessWidget {
     PointerSignalEvent event,
     ViewportOffset horizontalOffset,
   ) {
-    if (event is! PointerScrollEvent) {
-      return;
+    if (event case final PointerScrollEvent scrollEvent) {
+      final delta = _getHorizontalScrollDelta(scrollEvent);
+      if (delta == 0) return;
+
+      GestureBinding.instance.pointerSignalResolver.register(scrollEvent, (
+        PointerSignalEvent resolvedEvent,
+      ) {
+        if (resolvedEvent case final PointerScrollEvent resolvedScrollEvent) {
+          if (horizontalOffset case final ScrollPosition position
+              when position.hasContentDimensions) {
+            final resolvedDelta = _getHorizontalScrollDelta(
+              resolvedScrollEvent,
+            );
+            final newOffset = (position.pixels + resolvedDelta).clamp(
+              position.minScrollExtent,
+              position.maxScrollExtent,
+            );
+            position.jumpTo(newOffset);
+          }
+        }
+      });
     }
-    final delta = _getHorizontalScrollDelta(event);
-    if (delta == 0) {
-      return;
-    }
-    GestureBinding.instance.pointerSignalResolver.register(event, (
-      PointerSignalEvent resolvedEvent,
-    ) {
-      if (resolvedEvent is! PointerScrollEvent) {
-        return;
-      }
-      if (horizontalOffset is! ScrollPosition) {
-        return;
-      }
-      final position = horizontalOffset;
-      if (!position.hasContentDimensions) {
-        return;
-      }
-      final resolvedDelta = _getHorizontalScrollDelta(resolvedEvent);
-      final newOffset = (position.pixels + resolvedDelta).clamp(
-        position.minScrollExtent,
-        position.maxScrollExtent,
-      );
-      position.jumpTo(newOffset);
-    });
   }
 
   /// Returns the horizontal scroll delta for a given [PointerScrollEvent].
