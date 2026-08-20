@@ -1722,7 +1722,7 @@ $stacktrace
             _config,
             slug,
             checkRunEvent.checkRun!.toGithubCheckRun(),
-            status: CheckRunStatus.inProgress,
+            status: CheckRunStatus.queued,
             output: const CheckRunOutput(
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,
