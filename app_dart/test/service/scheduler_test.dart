@@ -1050,7 +1050,7 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested dashboard check resets check run to queued', () async {
+      test('rerequested dashboard check resets check run to neutral', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
@@ -1089,7 +1089,7 @@ void main() {
             any,
             RepositorySlug.full('flutter/cocoon'),
             any,
-            status: CheckRunStatus.queued,
+            conclusion: CheckRunConclusion.neutral,
             output: const CheckRunOutput(
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,
