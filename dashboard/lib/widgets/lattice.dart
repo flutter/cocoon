@@ -134,6 +134,9 @@ class LatticeScrollView extends StatelessWidget {
         return;
       }
       final position = horizontalOffset;
+      if (!position.hasContentDimensions) {
+        return;
+      }
       final resolvedDelta = _getHorizontalScrollDelta(resolvedEvent);
       final newOffset = (position.pixels + resolvedDelta).clamp(
         position.minScrollExtent,
@@ -779,10 +782,10 @@ class _RenderLatticeBody extends RenderBox {
       // Top-left corner cell (0, 0)
       layoutCell(const _Coordinate(0, 0));
 
-      final minX = math.max(1, _firstX!);
-      final maxX = math.min(_lastX!, _cellWidthCount - 1);
-      final minY = math.max(1, _firstY!);
-      final maxY = math.min(_lastY!, _cellHeightCount - 1);
+      final minX = math.max(1, _firstX ?? 0);
+      final maxX = math.min(_lastX ?? 0, _cellWidthCount - 1);
+      final minY = math.max(1, _firstY ?? 0);
+      final maxY = math.min(_lastY ?? 0, _cellHeightCount - 1);
 
       // Header column (x = 0)
       for (var y = minY; y <= maxY; y += 1) {
@@ -844,7 +847,11 @@ class _RenderLatticeBody extends RenderBox {
     assert(needsCompositing);
     final dataOffset = Offset(cellSize.width, cellSize.height);
     final dataSize = size - dataOffset as Size;
-    if (dataSize.isEmpty) {
+    if (dataSize.isEmpty ||
+        _firstX == null ||
+        _firstY == null ||
+        _lastX == null ||
+        _lastY == null) {
       return;
     }
     _clipLabelColumnHandle.layer = context.pushClipRect(

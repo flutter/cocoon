@@ -169,5 +169,31 @@ void main() {
 
       expect(horizontalController.offset, maxExtent);
     });
+
+    testWidgets(
+      'renders minimal 1x1 grid gracefully without null-assertion errors',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 300,
+                height: 300,
+                child: LatticeScrollView(
+                  horizontalController: horizontalController,
+                  verticalController: verticalController,
+                  cells: [
+                    [LatticeCell(builder: (context) => const SizedBox())],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(LatticeScrollView), findsOneWidget);
+      },
+    );
   });
 }
