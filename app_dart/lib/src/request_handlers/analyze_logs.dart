@@ -63,7 +63,8 @@ final class AnalyzeLogs extends ApiRequestHandler {
       final int i => Int64(i),
       _ => throw const BadRequestException('Invalid or missing build_id.'),
     };
-
+    final logCrumb =
+        'analyze-logs(owner:$owner, repo:$repo, pr:$prNumber, buildId:$buildId)';
     final slug = RepositorySlug(owner, repo);
 
     // 1. Validate that job with provided build_id belongs to latest presubmit guard.
@@ -105,6 +106,10 @@ final class AnalyzeLogs extends ApiRequestHandler {
     } else {
       githubUrl = githubLinkTag.value;
     }
+
+    log.info(
+      '$logCrumb For PR url: $githubUrl Analyzing log urls: ${stdoutLogs.join(',')}',
+    );
 
     // 4. Feed text to genkit.
     final prompt =
@@ -169,7 +174,7 @@ For build failures (e.g., engine tests failing at compile time), look for the fo
 
 ## Links
 
-Link to GitHub Pull Request: $githubUrl
+Link to GitHub Pull Request Diff: $githubUrl.diff
 Links to Logs: ${stdoutLogs.join('\n')}
 ''';
 
