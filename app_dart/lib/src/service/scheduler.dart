@@ -1716,13 +1716,13 @@ $stacktrace
       case Config.kDashboardCheckName:
         try {
           log.info(
-            'Resetting dashboard checks ${checkRunEvent.checkRun!.id} to in progress',
+            'Resetting dashboard checks ${checkRunEvent.checkRun!.id} to queued',
           );
           await _githubChecksService.githubChecksUtil.updateCheckRun(
             _config,
             slug,
             checkRunEvent.checkRun!.toGithubCheckRun(),
-            status: CheckRunStatus.inProgress,
+            status: CheckRunStatus.queued,
             output: const CheckRunOutput(
               title: Config.kDashboardCheckName,
               summary: Scheduler.kDashboardChecksDescription,
@@ -1732,7 +1732,7 @@ $stacktrace
         } catch (e, s) {
           // We are not going to block on this error.
           log.warn(
-            'Failed to reset dashboard checks ${checkRunEvent.checkRun!.id} to in progress',
+            'Failed to reset dashboard checks ${checkRunEvent.checkRun!.id} to queued',
             e,
             s,
           );

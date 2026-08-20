@@ -1050,58 +1050,55 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test(
-        'rerequested dashboard check resets check run to in progress',
-        () async {
-          final mockGithubService = MockGithubService();
-          final mockGithubClient = MockGitHub();
-          config = FakeConfig(githubService: mockGithubService);
-          scheduler = Scheduler(
-            githubService: config.githubService ?? FakeGithubService(),
-            cache: cache,
+      test('rerequested dashboard check resets check run to queued', () async {
+        final mockGithubService = MockGithubService();
+        final mockGithubClient = MockGitHub();
+        config = FakeConfig(githubService: mockGithubService);
+        scheduler = Scheduler(
+          githubService: config.githubService ?? FakeGithubService(),
+          cache: cache,
+          config: config,
+          githubChecksService: GithubChecksService(
+            config,
+            githubChecksUtil: mockGithubChecksUtil,
+          ),
+          getFilesChanged: getFilesChanged,
+          ciYamlFetcher: ciYamlFetcher,
+          luciBuildService: FakeLuciBuildService(
             config: config,
-            githubChecksService: GithubChecksService(
-              config,
-              githubChecksUtil: mockGithubChecksUtil,
-            ),
-            getFilesChanged: getFilesChanged,
-            ciYamlFetcher: ciYamlFetcher,
-            luciBuildService: FakeLuciBuildService(
-              config: config,
-              githubChecksUtil: mockGithubChecksUtil,
-              firestore: firestore,
-            ),
-            contentAwareHash: fakeContentAwareHash,
+            githubChecksUtil: mockGithubChecksUtil,
             firestore: firestore,
-            bigQuery: bigQuery,
-          );
-          when(mockGithubService.github).thenReturn(mockGithubClient);
-          final checkRunEventJson =
-              jsonDecode(checkRunString()) as Map<String, dynamic>;
-          checkRunEventJson['check_run']['name'] = Config.kDashboardCheckName;
-          final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
-            checkRunEventJson,
-          );
-          expect(
-            await scheduler.processCheckRun(checkRunEvent),
-            const ProcessCheckRunResult.success(),
-          );
-          verify(
-            mockGithubChecksUtil.updateCheckRun(
-              any,
-              RepositorySlug.full('flutter/cocoon'),
-              any,
-              status: CheckRunStatus.inProgress,
-              output: const CheckRunOutput(
-                title: Config.kDashboardCheckName,
-                summary: Scheduler.kDashboardChecksDescription,
-              ),
+          ),
+          contentAwareHash: fakeContentAwareHash,
+          firestore: firestore,
+          bigQuery: bigQuery,
+        );
+        when(mockGithubService.github).thenReturn(mockGithubClient);
+        final checkRunEventJson =
+            jsonDecode(checkRunString()) as Map<String, dynamic>;
+        checkRunEventJson['check_run']['name'] = Config.kDashboardCheckName;
+        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(
+          checkRunEventJson,
+        );
+        expect(
+          await scheduler.processCheckRun(checkRunEvent),
+          const ProcessCheckRunResult.success(),
+        );
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            RepositorySlug.full('flutter/cocoon'),
+            any,
+            status: CheckRunStatus.queued,
+            output: const CheckRunOutput(
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
             ),
-          ).called(1);
-          // Verifies no checks were created
-          verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
-        },
-      );
+          ),
+        ).called(1);
+        // Verifies no checks were created
+        verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
+      });
 
       test('rerequested presubmit job triggers presubmit build', () async {
         // Note that we're not inserting any commits into the db, because
