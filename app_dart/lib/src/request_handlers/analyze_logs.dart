@@ -174,7 +174,7 @@ For build failures (e.g., engine tests failing at compile time), look for the fo
 
 ## Links
 
-Link to GitHub Pull Request Diff: $prDiffUrl.diff
+Link to GitHub Pull Request Diff: $prDiffUrl
 Links to Logs: ${stdoutLogs.join('\n')}
 ''';
 
