@@ -96,19 +96,19 @@ final class AnalyzeLogs extends ApiRequestHandler {
     if (stdoutLogs.isEmpty) {
       throw NotFoundException('Logs Not Found for BuildId: $buildId');
     }
-    String githubUrl;
+    String prDiffUrl;
     final githubLinkTag = build.tags.firstWhereOrNull(
       (tag) => tag.key == 'github_link',
     );
     if (githubLinkTag == null) {
       log.warn('Could not find github_link tag in build $buildId');
-      githubUrl = 'http://github.com/$owner/$repo/pull/$prNumber';
+      prDiffUrl = 'http://github.com/$owner/$repo/pull/$prNumber.diff';
     } else {
-      githubUrl = githubLinkTag.value;
+      prDiffUrl = '${githubLinkTag.value}.diff';
     }
 
     log.info(
-      '$logCrumb For PR url: $githubUrl Analyzing log urls: ${stdoutLogs.join(',')}',
+      '$logCrumb For PR diff url: $prDiffUrl Analyzing log urls: ${stdoutLogs.join(',')}',
     );
 
     // 4. Feed text to genkit.
@@ -174,7 +174,7 @@ For build failures (e.g., engine tests failing at compile time), look for the fo
 
 ## Links
 
-Link to GitHub Pull Request Diff: $githubUrl.diff
+Link to GitHub Pull Request Diff: $prDiffUrl
 Links to Logs: ${stdoutLogs.join('\n')}
 ''';
 
@@ -220,7 +220,7 @@ Links to Logs: ${stdoutLogs.join('\n')}
         if (step.logs.isNotEmpty) {
           for (final log in step.logs) {
             if (log.name == 'stdout') {
-              stdoutLogs.add(log.url);
+              stdoutLogs.add(log.hasViewUrl() ? log.viewUrl : log.url);
             }
           }
         } else if (kSubbuildPattern.hasMatch(step.summaryMarkdown)) {
