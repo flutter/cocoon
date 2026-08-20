@@ -92,7 +92,8 @@ class LatticeScrollView extends StatelessWidget {
                   viewportBuilder:
                       (BuildContext context, ViewportOffset verticalOffset) =>
                           Listener(
-                            onPointerSignal: _handlePointerSignal,
+                            onPointerSignal: (PointerSignalEvent event) =>
+                                _handlePointerSignal(event, horizontalOffset),
                             child: _LatticeBody(
                               textDirection: textDirection,
                               horizontalOffset: horizontalOffset,
@@ -110,9 +111,12 @@ class LatticeScrollView extends StatelessWidget {
 
   /// Intercepts pointer signal events (e.g. mouse scroll wheel) over the grid.
   ///
-  /// Redirects vertical wheel scrolling to [horizontalController] when the Shift key
+  /// Redirects vertical wheel scrolling to [horizontalOffset] when the Shift key
   /// is pressed, or when native horizontal scroll deltas are received.
-  void _handlePointerSignal(PointerSignalEvent event) {
+  void _handlePointerSignal(
+    PointerSignalEvent event,
+    ViewportOffset horizontalOffset,
+  ) {
     if (event is! PointerScrollEvent) {
       return;
     }
@@ -126,16 +130,16 @@ class LatticeScrollView extends StatelessWidget {
       if (resolvedEvent is! PointerScrollEvent) {
         return;
       }
-      final controller = horizontalController;
-      if (controller == null || !controller.hasClients) {
+      if (horizontalOffset is! ScrollPosition) {
         return;
       }
+      final position = horizontalOffset;
       final resolvedDelta = _getHorizontalScrollDelta(resolvedEvent);
-      final newOffset = (controller.offset + resolvedDelta).clamp(
-        controller.position.minScrollExtent,
-        controller.position.maxScrollExtent,
+      final newOffset = (position.pixels + resolvedDelta).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
       );
-      controller.jumpTo(newOffset);
+      position.jumpTo(newOffset);
     });
   }
 
