@@ -116,7 +116,9 @@ final class AnalyzeLogs extends ApiRequestHandler {
     );
     String prDiff;
     try {
-      prDiff = await http.read(Uri.parse(prDiffUrl));
+      prDiff = await http
+          .read(Uri.parse(prDiffUrl))
+          .timeout(const Duration(seconds: 30));
     } catch (e, stackTrace) {
       log.error('Failed to read PR diff from $prDiffUrl.', e, stackTrace);
       rethrow;
@@ -126,7 +128,9 @@ final class AnalyzeLogs extends ApiRequestHandler {
     for (final logUrl in logsUrls) {
       final rawLogUrl = '$logUrl?format=raw';
       try {
-        final logContent = await http.read(Uri.parse(rawLogUrl));
+        final logContent = await http
+            .read(Uri.parse(rawLogUrl))
+            .timeout(const Duration(seconds: 30));
         logs.add(logContent);
       } catch (e, stackTrace) {
         log.error('Failed to read log from $rawLogUrl.', e, stackTrace);
