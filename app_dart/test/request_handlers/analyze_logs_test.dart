@@ -13,6 +13,8 @@ import 'package:cocoon_service/src/request_handlers/analyze_logs.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/log_analyzer.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -100,7 +102,8 @@ void main() {
           ..logs.addAll([
             bbv2.Log.create()
               ..name = 'stdout'
-              ..url = 'http://logs/stdout',
+              ..url = 'http://logs/stdout'
+              ..viewUrl = 'http://logs/stdout',
           ]),
       ])
       ..tags.addAll([
@@ -123,7 +126,20 @@ void main() {
       'build_id': '9223372036854775807',
     };
 
-    final response = await tester.post(handler);
+    final mockHttpClient = MockClient((request) async {
+      if (request.url.toString() == 'http://github/pr/1.diff') {
+        return http.Response('fake diff', 200);
+      }
+      if (request.url.toString() == 'http://logs/stdout?format=raw') {
+        return http.Response('fake log content', 200);
+      }
+      return http.Response('not found', 404);
+    });
+
+    final response = await http.runWithClient(
+      () => tester.post(handler),
+      () => mockHttpClient,
+    );
     expect(response.statusCode, HttpStatus.ok);
 
     final updatedCheck = PresubmitJob.fromDocument(

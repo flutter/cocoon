@@ -3,12 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_server/logging.dart' show log;
 import 'package:collection/collection.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
+import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
 
 import '../../cocoon_service.dart';
@@ -92,8 +94,10 @@ final class AnalyzeLogs extends ApiRequestHandler {
       );
     }
 
-    final (:stdoutLogs, :build) = await getBuildStepLogs(buildId: buildId);
-    if (stdoutLogs.isEmpty) {
+    final (stdoutLogs: logsUrls, :build) = await getBuildStepLogs(
+      buildId: buildId,
+    );
+    if (logsUrls.isEmpty) {
       throw NotFoundException('Logs Not Found for BuildId: $buildId');
     }
     String prDiffUrl;
@@ -108,13 +112,32 @@ final class AnalyzeLogs extends ApiRequestHandler {
     }
 
     log.info(
-      '$logCrumb For PR diff url: $prDiffUrl Analyzing log urls: ${stdoutLogs.join(',')}',
+      '$logCrumb For PR diff url: $prDiffUrl Analyzing log urls: ${logsUrls.join(',')}',
     );
+    String prDiff;
+    try {
+      prDiff = await http.read(Uri.parse(prDiffUrl));
+    } catch (e, stackTrace) {
+      log.error('Failed to read PR diff from $prDiffUrl.', e, stackTrace);
+      rethrow;
+    }
+
+    final logs = <String>[];
+    for (final logUrl in logsUrls) {
+      final rawLogUrl = '$logUrl?format=raw';
+      try {
+        final logContent = await http.read(Uri.parse(rawLogUrl));
+        logs.add(logContent);
+      } catch (e, stackTrace) {
+        log.error('Failed to read log from $rawLogUrl.', e, stackTrace);
+        rethrow;
+      }
+    }
 
     // 4. Feed text to genkit.
     final prompt =
-        '''You are a Senior Infrastructure Engineer specializing in the Flutter CI ecosystem.
-I will provide you with a link to github pull request and the logs of a failed build step in a LUCI build associated with that change.
+        '''You are a Senior Infrastructure Engineer specializing in the Flutter and Flutter Packages CI ecosystem.
+I will provide you with github pull request diff and the logs of a failed build step in a LUCI build associated with that change.
 
 ## Your task
 
@@ -172,10 +195,9 @@ For build failures (e.g., engine tests failing at compile time), look for the fo
 - Linker error messages (e.g., `undefined reference to`).
 - Summary messages in the check-runs API output like `1 build failed: [<build_name>]`.
 
-## Links
-
-Link to GitHub Pull Request Diff: $prDiffUrl
-Links to Logs: ${stdoutLogs.join('\n')}
+## Context
+Pull Request Diff: ${jsonEncode(prDiff)}
+Logs: ${jsonEncode(logs)}
 ''';
 
     final analysis = await _logAnalyzer.analyze(prompt: prompt);
@@ -220,7 +242,7 @@ Links to Logs: ${stdoutLogs.join('\n')}
         if (step.logs.isNotEmpty) {
           for (final log in step.logs) {
             if (log.name == 'stdout') {
-              stdoutLogs.add(log.hasViewUrl() ? log.viewUrl : log.url);
+              stdoutLogs.add(log.viewUrl);
             }
           }
         } else if (kSubbuildPattern.hasMatch(step.summaryMarkdown)) {
