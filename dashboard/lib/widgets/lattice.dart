@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 import 'task_box.dart';
 
@@ -90,18 +91,64 @@ class LatticeScrollView extends StatelessWidget {
                   scrollBehavior: _MouseDragScrollBehavior.instance,
                   viewportBuilder:
                       (BuildContext context, ViewportOffset verticalOffset) =>
-                          _LatticeBody(
-                            textDirection: textDirection,
-                            horizontalOffset: horizontalOffset,
-                            verticalOffset: verticalOffset,
-                            cells: cells,
-                            cellSize: Size.square(TaskBox.of(context)),
+                          Listener(
+                            onPointerSignal: _handlePointerSignal,
+                            child: _LatticeBody(
+                              textDirection: textDirection,
+                              horizontalOffset: horizontalOffset,
+                              verticalOffset: verticalOffset,
+                              cells: cells,
+                              cellSize: Size.square(TaskBox.of(context)),
+                            ),
                           ),
                 ),
               ),
             ),
       ),
     );
+  }
+
+  /// Intercepts pointer signal events (e.g. mouse scroll wheel) over the grid.
+  ///
+  /// Redirects vertical wheel scrolling to [horizontalController] when the Shift key
+  /// is pressed, or when native horizontal scroll deltas are received.
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) {
+      return;
+    }
+    final delta = _getHorizontalScrollDelta(event);
+    if (delta == 0) {
+      return;
+    }
+    GestureBinding.instance.pointerSignalResolver.register(event, (
+      PointerSignalEvent resolvedEvent,
+    ) {
+      if (resolvedEvent is! PointerScrollEvent) {
+        return;
+      }
+      final controller = horizontalController;
+      if (controller == null || !controller.hasClients) {
+        return;
+      }
+      final resolvedDelta = _getHorizontalScrollDelta(resolvedEvent);
+      final newOffset = (controller.offset + resolvedDelta).clamp(
+        controller.position.minScrollExtent,
+        controller.position.maxScrollExtent,
+      );
+      controller.jumpTo(newOffset);
+    });
+  }
+
+  /// Returns the horizontal scroll delta for a given [PointerScrollEvent].
+  ///
+  /// Uses [PointerScrollEvent.scrollDelta.dy] if the Shift key is held down,
+  /// otherwise uses [PointerScrollEvent.scrollDelta.dx].
+  static double _getHorizontalScrollDelta(PointerScrollEvent event) {
+    final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
+    if (isShiftPressed && event.scrollDelta.dy != 0) {
+      return event.scrollDelta.dy;
+    }
+    return event.scrollDelta.dx;
   }
 }
 
@@ -690,6 +737,11 @@ class _RenderLatticeBody extends RenderBox {
     }
   }
 
+  /// Lays out only the visible cells in the lattice view.
+  ///
+  /// To maintain high scrolling performance on large grids, layout is restricted
+  /// to the top-left corner cell, the visible sticky header row/column, and the
+  /// visible data cells within current viewport bounds [_firstX, _lastX] and [_firstY, _lastY].
   @override
   void performLayout() {
     assert(_scrollOffset != null);
@@ -697,32 +749,55 @@ class _RenderLatticeBody extends RenderBox {
     invokeLayoutCallback<BoxConstraints>((BoxConstraints constraints) {
       delegate.beginLayout();
     });
-    for (var y = 0; y < _cellHeightCount; y += 1) {
-      for (var x = 0; x < _cellWidthCount; x += 1) {
-        final here = _Coordinate(x, y);
-        final visible =
-            (x == 0 || x >= _firstX!) &&
-            x <= _lastX! &&
-            (y == 0 || y >= _firstY!) &&
-            y <= _lastY!;
-        assert(y < cells.length);
-        final cell = x < cells[y].length ? cells[y][x] : _LatticeCell.empty;
-        if (visible && cell.hasChild) {
-          RenderBox? child;
-          invokeLayoutCallback<BoxConstraints>((BoxConstraints constraints) {
-            child = delegate.updateLatticeChild(
-              here,
-              cell,
-              _childrenByCoordinate[here],
-            );
-          });
-          assert(child != null);
-          assert(child!.parent == this);
-          assert(_childrenByCoordinate[here] == child);
-          child!.layout(childConstraints);
+
+    void layoutCell(_Coordinate here) {
+      assert(here.y < cells.length);
+      final cell = here.x < cells[here.y].length
+          ? cells[here.y][here.x]
+          : _LatticeCell.empty;
+      if (cell.hasChild) {
+        RenderBox? child;
+        invokeLayoutCallback<BoxConstraints>((BoxConstraints constraints) {
+          child = delegate.updateLatticeChild(
+            here,
+            cell,
+            _childrenByCoordinate[here],
+          );
+        });
+        assert(child != null);
+        assert(child!.parent == this);
+        assert(_childrenByCoordinate[here] == child);
+        child!.layout(childConstraints);
+      }
+    }
+
+    if (_cellHeightCount > 0 && _cellWidthCount > 0) {
+      // Top-left corner cell (0, 0)
+      layoutCell(const _Coordinate(0, 0));
+
+      final minX = math.max(1, _firstX!);
+      final maxX = math.min(_lastX!, _cellWidthCount - 1);
+      final minY = math.max(1, _firstY!);
+      final maxY = math.min(_lastY!, _cellHeightCount - 1);
+
+      // Header column (x = 0)
+      for (var y = minY; y <= maxY; y += 1) {
+        layoutCell(_Coordinate(0, y));
+      }
+
+      // Header row (y = 0)
+      for (var x = minX; x <= maxX; x += 1) {
+        layoutCell(_Coordinate(x, 0));
+      }
+
+      // Data cells inside viewport
+      for (var y = minY; y <= maxY; y += 1) {
+        for (var x = minX; x <= maxX; x += 1) {
+          layoutCell(_Coordinate(x, y));
         }
       }
     }
+
     invokeLayoutCallback<BoxConstraints>((BoxConstraints constraints) {
       delegate.endLayout();
     });
