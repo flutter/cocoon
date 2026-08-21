@@ -15,6 +15,7 @@ import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart' hide Response;
 import 'package:http/http.dart' as http;
@@ -923,7 +924,7 @@ void main() {
       });
 
       test('includes dashboard checks check run', () async {
-        await includesEngineShard('Dashboard Checks');
+        await includesEngineShard(Config.kDashboardCheckName);
       });
 
       test(
@@ -938,12 +939,12 @@ void main() {
           // Unified Dashboard Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'Dashboard Checks',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
             <String, String>{
-              'name': 'ci.yaml validation',
+              'name': Config.kCiYamlCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1012,7 +1013,7 @@ void main() {
           // Unified Dashboard Checks in progress
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'Dashboard Checks',
+              'name': Config.kDashboardCheckName,
               'status': 'in_progress',
               'conclusion': 'neutral',
             },
@@ -1058,7 +1059,7 @@ void main() {
           // Unified Dashboard Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'Dashboard Checks',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
