@@ -141,7 +141,7 @@ final class AnalyzeLogs extends ApiRequestHandler {
     // 4. Feed text to genkit.
     final prompt =
         '''You are a Senior Infrastructure Engineer specializing in the Flutter and Flutter Packages CI ecosystem.
-I will provide you with github pull request diff and the logs of a failed build step in a LUCI build associated with that change.
+In a Context section there are github pull request diff and the logs of a failed build step of a LUCI build associated with that change.
 
 ## Your task
 
@@ -200,8 +200,12 @@ For build failures (e.g., engine tests failing at compile time), look for the fo
 - Summary messages in the check-runs API output like `1 build failed: [<build_name>]`.
 
 ## Context
-Pull Request Diff: ${jsonEncode(prDiff)}
-Logs: ${jsonEncode(logs)}
+<PULL_REQUEST_DIFF>
+${jsonEncode(prDiff)}
+</PULL_REQUEST_DIFF>
+<LOGS>
+${jsonEncode(logs)}
+</LOGS>
 ''';
 
     final analysis = await _logAnalyzer.analyze(prompt: prompt);
