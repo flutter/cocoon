@@ -15,6 +15,7 @@ import 'package:cocoon_service/src/model/firestore/github_gold_status.dart'
 import 'package:cocoon_service/src/model/firestore/github_gold_status.dart';
 import 'package:cocoon_service/src/request_handlers/push_gold_status_to_github.dart';
 import 'package:cocoon_service/src/request_handling/response.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart' hide Response;
 import 'package:http/http.dart' as http;
@@ -174,82 +175,43 @@ void main() {
         expect(log, hasNoWarningsOrHigher);
       });
 
-      test(
-        'if there are no framework or web engine tests for this PR',
-        () async {
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'tool-test1',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-            <String, String>{
-              'name': 'linux-host1',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-          final flutterPr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[flutterPr];
+      test('if there are no Dashboard Checks for this PR', () async {
+        checkRuns = <dynamic>[
+          <String, String>{
+            'name': 'tool-test1',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+          <String, String>{
+            'name': 'linux-host1',
+            'status': 'completed',
+            'conclusion': 'success',
+          },
+        ];
+        final flutterPr = newPullRequest(123, 'abc', 'master');
+        prsFromGitHub = <PullRequest>[flutterPr];
 
-          firestore.putDocument(
-            newGithubGoldStatus(slug, flutterPr, '', '', ''),
-          );
+        firestore.putDocument(newGithubGoldStatus(slug, flutterPr, '', '', ''));
 
-          final body = await tester.get(handler);
-          expect(body, same(Response.emptyOk));
-          expect(log, hasNoWarningsOrHigher);
+        final body = await tester.get(handler);
+        expect(body, same(Response.emptyOk));
+        expect(log, hasNoWarningsOrHigher);
 
-          // Should not apply labels or make comments
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
+        // Should not apply labels or make comments
+        verifyNever(
+          issuesService.addLabelsToIssue(slug, flutterPr.number!, <String>[
+            kGoldenFileLabel,
+          ]),
+        );
 
-          verifyNever(
-            issuesService.createComment(
-              slug,
-              flutterPr.number!,
-              argThat(contains(config.flutterGoldCommentID(flutterPr))),
-            ),
-          );
-        },
-      );
-
-      test(
-        'if there are no framework tests for this PR, exclude web builds',
-        () async {
-          checkRuns = <dynamic>[
-            <String, String>{
-              'name': 'web-test1',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-          ];
-          final pr = newPullRequest(123, 'abc', 'master');
-          prsFromGitHub = <PullRequest>[pr];
-          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
-          final body = await tester.get(handler);
-          expect(body, same(Response.emptyOk));
-          expect(log, hasNoWarningsOrHigher);
-
-          // Should not apply labels or make comments
-          verifyNever(
-            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-              kGoldenFileLabel,
-            ]),
-          );
-
-          verifyNever(
-            issuesService.createComment(
-              slug,
-              pr.number!,
-              argThat(contains(config.flutterGoldCommentID(pr))),
-            ),
-          );
-        },
-      );
+        verifyNever(
+          issuesService.createComment(
+            slug,
+            flutterPr.number!,
+            argThat(contains(config.flutterGoldCommentID(flutterPr))),
+          ),
+        );
+      });
 
       test('same commit, checks running, last status running', () async {
         // Same commit
@@ -269,12 +231,7 @@ void main() {
         // Checks still running
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
-            'status': 'in_progress',
-            'conclusion': 'neutral',
-          },
-          <String, String>{
-            'name': 'web engine',
+            'name': Config.kDashboardCheckName,
             'status': 'in_progress',
             'conclusion': 'neutral',
           },
@@ -324,12 +281,7 @@ void main() {
         // Checks complete
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
-            'status': 'completed',
-            'conclusion': 'success',
-          },
-          <String, String>{
-            'name': 'web engine',
+            'name': Config.kDashboardCheckName,
             'status': 'completed',
             'conclusion': 'success',
           },
@@ -381,12 +333,7 @@ void main() {
           // Neutral checks complete
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
-              'status': 'completed',
-              'conclusion': 'neutral',
-            },
-            <String, String>{
-              'name': 'web engine',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'neutral',
             },
@@ -439,12 +386,7 @@ void main() {
           // Checks complete
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
-              'status': 'completed',
-              'conclusion': 'success',
-            },
-            <String, String>{
-              'name': 'web engine',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -512,7 +454,7 @@ void main() {
           // All checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -555,7 +497,7 @@ void main() {
         // Checks completed
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'Linux',
+            'name': Config.kDashboardCheckName,
             'status': 'completed',
             'conclusion': 'success',
           },
@@ -598,7 +540,7 @@ void main() {
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -653,7 +595,7 @@ void main() {
         // Checks completed
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
+            'name': Config.kDashboardCheckName,
             'status': 'completed',
             'conclusion': 'success',
           },
@@ -686,53 +628,56 @@ void main() {
         verifyNever(issuesService.createComment(slug, pr.number!, any));
       });
 
-      test('will not fire off stale warning for non-framework PRs', () async {
-        // New commit, draft PR
-        final pr = newPullRequest(
-          123,
-          'abc',
-          'master',
-          updated: DateTime.now().subtract(const Duration(days: 30)),
-        );
-        prsFromGitHub = <PullRequest>[pr];
+      test(
+        'will not fire off stale warning for PRs without Dashboard Checks',
+        () async {
+          // New commit, draft PR
+          final pr = newPullRequest(
+            123,
+            'abc',
+            'master',
+            updated: DateTime.now().subtract(const Duration(days: 30)),
+          );
+          prsFromGitHub = <PullRequest>[pr];
 
-        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
 
-        // Checks completed
-        checkRuns = <dynamic>[
-          <String, String>{
-            'name': 'tool-test-1',
-            'status': 'completed',
-            'conclusion': 'success',
-          },
-        ];
+          // Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'tool-test-1',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
 
-        // Already commented to update.
-        when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
-          (_) => Stream<IssueComment>.value(
-            IssueComment()..body = 'some other comment',
-          ),
-        );
+          // Already commented to update.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
 
-        final body = await tester.get(handler);
-        expect(body, same(Response.emptyOk));
-        expect(
-          firestore,
-          existsInStorage(fs.GithubGoldStatus.metadata, [
-            isGithubGoldStatus.hasUpdates(0),
-          ]),
-        );
-        expect(log, hasNoWarningsOrHigher);
+          final body = await tester.get(handler);
+          expect(body, same(Response.emptyOk));
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
+          );
+          expect(log, hasNoWarningsOrHigher);
 
-        // Should not apply labels or make comments
-        verifyNever(
-          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-            kGoldenFileLabel,
-          ]),
-        );
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
 
-        verifyNever(issuesService.createComment(slug, pr.number!, any));
-      });
+          verifyNever(issuesService.createComment(slug, pr.number!, any));
+        },
+      );
     });
 
     group('updates GitHub and/or Firestore', () {
@@ -746,12 +691,7 @@ void main() {
         // Checks running
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
-            'status': 'in_progress',
-            'conclusion': 'neutral',
-          },
-          <String, String>{
-            'name': 'Linux linux_web_engine',
+            'name': Config.kDashboardCheckName,
             'status': 'in_progress',
             'conclusion': 'neutral',
           },
@@ -784,144 +724,6 @@ void main() {
         );
       });
 
-      test('includes misc test shards', () async {
-        // New commit
-        final pr = newPullRequest(123, 'abc', 'master');
-        prsFromGitHub = <PullRequest>[pr];
-
-        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
-
-        // Checks completed
-        checkRuns = <dynamic>[
-          <String, String>{
-            'name': 'misc',
-            'status': 'completed',
-            'conclusion': 'success',
-          },
-        ];
-
-        // Change detected by Gold
-        mockHttpClient = MockClient((http.Request request) async {
-          if (request.url.toString() ==
-              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-            return http.Response(tryjobEmpty(), HttpStatus.ok);
-          }
-          throw const HttpException('Unexpected http request');
-        });
-        handler = PushGoldStatusToGithub(
-          config: config,
-          authenticationProvider: auth,
-          goldClient: mockHttpClient,
-          ingestionDelay: Duration.zero,
-          firestore: firestore,
-        );
-
-        final body = await tester.get(handler);
-        expect(body, same(Response.emptyOk));
-        expect(log, hasNoWarningsOrHigher);
-
-        expect(
-          firestore,
-          existsInStorage(fs.GithubGoldStatus.metadata, [
-            isGithubGoldStatus.hasUpdates(1),
-          ]),
-        );
-
-        // Should not label or comment
-        verifyNever(
-          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-            kGoldenFileLabel,
-          ]),
-        );
-
-        verifyNever(
-          issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ),
-        );
-      });
-
-      Future<void> includesEngineShard(String shard) async {
-        // New commit
-        final pr = newPullRequest(123, 'abc', 'master');
-        prsFromGitHub = <PullRequest>[pr];
-
-        firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
-
-        // Checks completed
-        checkRuns = <dynamic>[
-          <String, String>{
-            'name': shard,
-            'status': 'completed',
-            'conclusion': 'success',
-          },
-        ];
-
-        // Change detected by Gold
-        mockHttpClient = MockClient((http.Request request) async {
-          if (request.url.toString() ==
-              'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
-            return http.Response(tryjobEmpty(), HttpStatus.ok);
-          }
-          throw const HttpException('Unexpected http request');
-        });
-        handler = PushGoldStatusToGithub(
-          config: config,
-          authenticationProvider: auth,
-          goldClient: mockHttpClient,
-          ingestionDelay: Duration.zero,
-          firestore: firestore,
-        );
-
-        final body = await tester.get(handler);
-        expect(body, same(Response.emptyOk));
-        expect(log, hasNoWarningsOrHigher);
-
-        expect(
-          firestore,
-          existsInStorage(fs.GithubGoldStatus.metadata, [
-            isGithubGoldStatus.hasUpdates(1),
-          ]),
-        );
-
-        // Should not label or comment
-        verifyNever(
-          issuesService.addLabelsToIssue(slug, pr.number!, <String>[
-            kGoldenFileLabel,
-          ]),
-        );
-
-        verifyNever(
-          issuesService.createComment(
-            slug,
-            pr.number!,
-            argThat(contains(config.flutterGoldCommentID(pr))),
-          ),
-        );
-      }
-
-      test('includes linux_android_emulator test shard - monorepo', () async {
-        await includesEngineShard('linux_android_emulator');
-      });
-
-      test('includes linux_host_engine test shard - monorepo', () async {
-        await includesEngineShard('linux_host_engine');
-      });
-
-      test('includes linux_web_engine test shard - monorepo', () async {
-        await includesEngineShard('linux_web_engine');
-      });
-
-      test('includes mac_host_engine test shard - monorepo', () async {
-        await includesEngineShard('mac_host_engine');
-      });
-
-      test('includes mac_unopt test shard - monorepo', () async {
-        await includesEngineShard('mac_unopt');
-      });
-
       test('new commit, checks complete, no changes detected', () async {
         // New commit
         final pr = newPullRequest(123, 'abc', 'master');
@@ -932,7 +734,7 @@ void main() {
         // Checks completed
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
+            'name': Config.kDashboardCheckName,
             'status': 'completed',
             'conclusion': 'success',
           },
@@ -993,7 +795,7 @@ void main() {
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1062,7 +864,7 @@ void main() {
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1142,7 +944,7 @@ void main() {
           // Checks complete
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1217,7 +1019,7 @@ void main() {
         // Checks complete
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
+            'name': Config.kDashboardCheckName,
             'status': 'completed',
             'conclusion': 'success',
           },
@@ -1307,7 +1109,7 @@ void main() {
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1383,7 +1185,7 @@ void main() {
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1441,7 +1243,7 @@ void main() {
           // Checks completed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'success',
             },
@@ -1491,7 +1293,7 @@ void main() {
           // Checks failed
           checkRuns = <dynamic>[
             <String, String>{
-              'name': 'framework',
+              'name': Config.kDashboardCheckName,
               'status': 'completed',
               'conclusion': 'failure',
             },
@@ -1550,7 +1352,7 @@ void main() {
         // Checks completed
         checkRuns = <dynamic>[
           <String, String>{
-            'name': 'framework',
+            'name': Config.kDashboardCheckName,
             'status': 'completed',
             'conclusion': 'success',
           },
@@ -1604,7 +1406,7 @@ void main() {
     );
 
     test(
-      'accounts for null status description when parsing for Luci builds',
+      'accounts for null status description when parsing check runs',
       () async {
         // Same commit
         final pr = newPullRequest(123, 'abc', 'master');
@@ -1620,10 +1422,10 @@ void main() {
           ),
         );
 
-        // null status for luci build
+        // null status for check run
         checkRuns = <dynamic>[
           <String, String?>{
-            'name': 'framework',
+            'name': Config.kDashboardCheckName,
             'status': null,
             'conclusion': null,
           },
@@ -1666,12 +1468,7 @@ void main() {
       // Checks completed
       checkRuns = <dynamic>[
         <String, String>{
-          'name': 'framework',
-          'status': 'completed',
-          'conclusion': 'success',
-        },
-        <String, String>{
-          'name': 'Linux linux_web_engine',
+          'name': Config.kDashboardCheckName,
           'status': 'completed',
           'conclusion': 'success',
         },

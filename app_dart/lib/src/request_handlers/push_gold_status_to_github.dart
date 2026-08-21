@@ -137,27 +137,9 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
       log.debug('This PR has ${checkRuns.length} checks.');
       for (var checkRun in checkRuns) {
         final name = checkRun['name'].toLowerCase() as String;
-        if (slug == Config.flutterSlug) {
-          if (const <String>[
-            // Framework test shards that run golden file tests
-            'framework',
-            'misc',
-
-            // Engine test shards that run golden file tests
-            // Monorepo
-            'linux_android_emulator',
-            'linux_host_engine',
-            'linux_web_engine',
-            'mac_host_engine',
-            'mac_unopt',
-
-            // Integration test shards that run golden file tests
-            'android_engine_vulkan_tests',
-            'android_engine_opengles_tests',
-            'flutter_driver_android_test',
-          ].any(name.contains)) {
-            runsGoldenFileTests = true;
-          }
+        if (slug == Config.flutterSlug &&
+            name.contains(Config.kDashboardCheckName.toLowerCase())) {
+          runsGoldenFileTests = true;
         }
         const successfulConclusion = {'SUCCESS', 'NEUTRAL'};
 
