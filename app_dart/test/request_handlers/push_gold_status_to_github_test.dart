@@ -922,6 +922,192 @@ void main() {
         await includesEngineShard('mac_unopt');
       });
 
+      test('includes dashboard checks check run', () async {
+        await includesEngineShard('Dashboard Checks');
+      });
+
+      test(
+        'applies gold status and label when unified Dashboard Checks detects untriaged goldens',
+        () async {
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // Unified Dashboard Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'Dashboard Checks',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+            <String, String>{
+              'name': 'ci.yaml validation',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+
+          // Change detected by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+            firestore: firestore,
+          );
+
+          // Have not already commented for this commit.
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = 'some other comment',
+            ),
+          );
+
+          final body = await tester.get(handler);
+          expect(body, same(Response.emptyOk));
+          expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should label and comment
+          verify(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          ).called(1);
+
+          verify(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          ).called(1);
+        },
+      );
+
+      test(
+        'waits in pending state when unified Dashboard Checks is still in progress',
+        () async {
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // Unified Dashboard Checks in progress
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'Dashboard Checks',
+              'status': 'in_progress',
+              'conclusion': 'neutral',
+            },
+          ];
+
+          final body = await tester.get(handler);
+          expect(body, same(Response.emptyOk));
+          expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should not apply labels or make comments
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        },
+      );
+
+      test(
+        'marks status completed when unified Dashboard Checks finishes and goldens are clean/approved',
+        () async {
+          // New commit
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(newGithubGoldStatus(slug, pr, '', '', ''));
+
+          // Unified Dashboard Checks completed
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': 'Dashboard Checks',
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+          ];
+
+          // Clean status reported by Gold
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobEmpty(), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+            firestore: firestore,
+          );
+
+          final body = await tester.get(handler);
+          expect(body, same(Response.emptyOk));
+          expect(log, hasNoWarningsOrHigher);
+
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(1),
+            ]),
+          );
+
+          // Should not label or comment
+          verifyNever(
+            issuesService.addLabelsToIssue(slug, pr.number!, <String>[
+              kGoldenFileLabel,
+            ]),
+          );
+
+          verifyNever(
+            issuesService.createComment(
+              slug,
+              pr.number!,
+              argThat(contains(config.flutterGoldCommentID(pr))),
+            ),
+          );
+        },
+      );
+
       test('new commit, checks complete, no changes detected', () async {
         // New commit
         final pr = newPullRequest(123, 'abc', 'master');

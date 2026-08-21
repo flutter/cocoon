@@ -139,6 +139,9 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
         final name = checkRun['name'].toLowerCase() as String;
         if (slug == Config.flutterSlug) {
           if (const <String>[
+            // Unified check run
+            'dashboard checks',
+
             // Framework test shards that run golden file tests
             'framework',
             'misc',
