@@ -1050,7 +1050,7 @@ void main() {
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });
 
-      test('rerequested dashboard check resets check run to neutral', () async {
+      test('rerequested dashboard check is ignored', () async {
         final mockGithubService = MockGithubService();
         final mockGithubClient = MockGitHub();
         config = FakeConfig(githubService: mockGithubService);
@@ -1084,18 +1084,16 @@ void main() {
           await scheduler.processCheckRun(checkRunEvent),
           const ProcessCheckRunResult.success(),
         );
-        verify(
+        verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
-            RepositorySlug.full('flutter/cocoon'),
             any,
-            conclusion: CheckRunConclusion.neutral,
-            output: const CheckRunOutput(
-              title: Config.kDashboardCheckName,
-              summary: Scheduler.kDashboardChecksDescription,
-            ),
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            output: anyNamed('output'),
           ),
-        ).called(1);
+        );
         // Verifies no checks were created
         verifyNever(mockGithubChecksUtil.createCheckRun(any, any, any, any));
       });

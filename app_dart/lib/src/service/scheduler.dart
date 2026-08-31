@@ -1707,36 +1707,15 @@ $stacktrace
 
     switch (name) {
       case Config.kMergeQueueLockName:
+      case Config.kDashboardCheckName:
         final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
         log.debug(
           '$logCrumb: Requested re-run of "$name" for '
           '$slug / $checkSuiteId - ignoring',
         );
         success = true;
-      case Config.kDashboardCheckName:
-        try {
-          log.info(
-            'Resetting dashboard checks ${checkRunEvent.checkRun!.id} to neutral',
-          );
-          await _githubChecksService.githubChecksUtil.updateCheckRun(
-            _config,
-            slug,
-            checkRunEvent.checkRun!.toGithubCheckRun(),
-            conclusion: CheckRunConclusion.neutral,
-            output: const CheckRunOutput(
-              title: Config.kDashboardCheckName,
-              summary: Scheduler.kDashboardChecksDescription,
-            ),
-          );
-          success = true;
-        } catch (e, s) {
-          // We are not going to block on this error.
-          log.warn(
-            'Failed to reset dashboard checks ${checkRunEvent.checkRun!.id} to neutral',
-            e,
-            s,
-          );
-        }
+
+
       case Config.kCiYamlCheckName:
         // The CheckRunEvent.checkRun.pullRequests array is empty for this
         // event, so we need to find the matching pull request.

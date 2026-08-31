@@ -462,14 +462,28 @@ class LuciBuildService {
           );
           final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
           if (guard.failedJobs == 0) {
-            log.info(
-              'Re-requesting dashboard checks id ${dashboardChecks.id} for Guard $guard',
-            );
-            final githubClient = await _config.createGitHubClient(slug: slug);
-            await githubClient.checks.checkRuns.reRequestCheckRun(
-              slug,
-              checkRunId: dashboardChecks.id!,
-            );
+            try {
+              log.info(
+                'Resetting dashboard checks ${dashboardChecks.id} to neutral',
+              );
+              await _githubChecksUtil.updateCheckRun(
+                _config,
+                slug,
+                dashboardChecks,
+                conclusion: CheckRunConclusion.neutral,
+                output: const CheckRunOutput(
+                  title: Config.kDashboardCheckName,
+                  summary: Scheduler.kDashboardChecksDescription,
+                ),
+              );
+            } catch (e, s) {
+              // We are not going to block on this error.
+              log.warn(
+                'Failed to reset dashboard checks ${dashboardChecks.id} to neutral',
+                e,
+                s,
+              );
+            }
           }
         } catch (e, s) {
           // We are not going to block on this error.

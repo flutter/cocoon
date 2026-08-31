@@ -6,13 +6,13 @@ import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/ordered_presubmit_flags.dart';
@@ -21,6 +21,7 @@ import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -628,7 +629,7 @@ void main() {
     );
 
     test(
-      'reRequests check run for re-run failed checks when failedJobs is 0',
+      'resets dashboard checks check run to neutral for re-run failed checks when failedJobs is 0',
       () async {
         final pullRequest = generatePullRequest(
           id: 1,
@@ -643,16 +644,8 @@ void main() {
           name: 'Linux foo',
         );
 
-        final mockGithubClient = MockGitHub();
-        final mockChecksService = MockChecksService();
-        final mockCheckRunsService = MockCheckRunsService();
-
-        when(mockGithubClient.checks).thenReturn(mockChecksService);
-        when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
-
         luci = LuciBuildService(
           config: FakeConfig(
-            githubClient: mockGithubClient,
             dynamicConfig: DynamicConfig(
               unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
             ),
@@ -696,16 +689,22 @@ void main() {
         );
 
         verify(
-          mockCheckRunsService.reRequestCheckRun(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
             RepositorySlug.full('flutter/flutter'),
-            checkRunId: 1234,
+            checkRunGuard,
+            conclusion: CheckRunConclusion.neutral,
+            output: const CheckRunOutput(
+              title: Config.kDashboardCheckName,
+              summary: Scheduler.kDashboardChecksDescription,
+            ),
           ),
         ).called(1);
       },
     );
 
     test(
-      'does not reRequest check run for re-run failed checks when failedJobs > 0',
+      'does not reset dashboard checks check run for re-run failed checks when failedJobs > 0',
       () async {
         final pullRequest = generatePullRequest(
           id: 1,
@@ -720,16 +719,8 @@ void main() {
           name: 'Linux foo',
         );
 
-        final mockGithubClient = MockGitHub();
-        final mockChecksService = MockChecksService();
-        final mockCheckRunsService = MockCheckRunsService();
-
-        when(mockGithubClient.checks).thenReturn(mockChecksService);
-        when(mockChecksService.checkRuns).thenReturn(mockCheckRunsService);
-
         luci = LuciBuildService(
           config: FakeConfig(
-            githubClient: mockGithubClient,
             dynamicConfig: DynamicConfig(
               unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
             ),
@@ -773,19 +764,13 @@ void main() {
         );
 
         verifyNever(
-          mockCheckRunsService.reRequestCheckRun(
-            any,
-            checkRunId: anyNamed('checkRunId'),
-          ),
-        );
-
-        verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             any,
             status: anyNamed('status'),
             conclusion: anyNamed('conclusion'),
+            output: anyNamed('output'),
           ),
         );
       },
