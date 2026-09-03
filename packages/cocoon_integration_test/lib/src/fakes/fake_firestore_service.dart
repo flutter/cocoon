@@ -469,8 +469,11 @@ abstract base class _FakeInMemoryFirestoreService
           'simulate a backend failure.',
         );
       }
+      final statusCode = result.any((r) => r.code == 9)
+          ? HttpStatus.conflict
+          : 500;
       throw DetailedApiRequestError(
-        500,
+        statusCode,
         'The transaction was aborted:\n'
         '${result.where((r) => r.code != 0).map((r) => r.message).join('\n')}',
       );
