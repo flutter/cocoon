@@ -349,10 +349,6 @@ class Scheduler {
       return;
     }
 
-    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
-      pullRequest.user!.login!,
-    );
-
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info(
       'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
@@ -367,12 +363,9 @@ class Scheduler {
     final lockResult = await lockMergeGroupChecks(
       slug,
       sha,
-      // Override details url of merge queue guard check for users with unified
-      // check run flow enabled
-      detailsUrl: isUnifiedCheckRun
-          ? 'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha'
-          : null,
-      isUnifiedCheckRun: isUnifiedCheckRun,
+      detailsUrl:
+          'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha',
+      isUnifiedCheckRun: true,
     );
     final dashboardChecks = lockResult.dashboardChecks;
     final mergeQueueGuard = lockResult.mergeQueueGuard;
@@ -385,11 +378,12 @@ class Scheduler {
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
-    final isFusion = slug == Config.flutterSlug;
-    final isPackages = slug == Config.packagesSlug;
+    final isFlutterRepo = slug == Config.flutterSlug;
+    final isPackagesRepo = slug == Config.packagesSlug;
     do {
       try {
-        if (!isFusion && !(isPackages && isUnifiedCheckRun)) {
+        //if its not flutter or packages, unlock the merge group lock.
+        if (!(isFlutterRepo || isPackagesRepo)) {
           unlockMergeGroup = true;
         }
 
@@ -433,7 +427,7 @@ class Scheduler {
           );
           break;
         }
-        final presubmitTargets = isFusion
+        final presubmitTargets = isFlutterRepo
             ? await _getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
             : await getPresubmitTargets(pullRequest);
         final presubmitTriggerTargets = filterTargets(
@@ -443,20 +437,21 @@ class Scheduler {
 
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
+        await UnifiedCheckRun.initializeCiStagingDocument(
+          firestoreService: _firestore,
+          slug: slug,
+          sha: sha,
+          stage: isFlutterRepo
+              ? CiStage.fusionEngineBuild
+              : CiStage.genericTests,
+          tasks: [...presubmitTriggerTargets.map((t) => t.name)],
+          pullRequest: pullRequest,
+          config: _config,
+          dashboardChecks: dashboardChecks,
+          mergeQueueGuard: mergeQueueGuard,
+        );
         final EngineArtifacts engineArtifacts;
-        if (isFusion) {
-          await UnifiedCheckRun.initializeCiStagingDocument(
-            firestoreService: _firestore,
-            slug: slug,
-            sha: sha,
-            stage: CiStage.fusionEngineBuild,
-            tasks: [...presubmitTriggerTargets.map((t) => t.name)],
-            pullRequest: pullRequest,
-            config: _config,
-            dashboardChecks: dashboardChecks,
-            mergeQueueGuard: mergeQueueGuard,
-          );
-
+        if (isFlutterRepo) {
           // Even though this appears to be an engine build, it could be a
           // release candidate build, where the engine artifacts are built
           // via the dart-internal builder.
@@ -468,21 +463,8 @@ class Scheduler {
           // See https://github.com/flutter/flutter/issues/165810.
           engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
         } else {
-          // For non-flutter repos, if unified check run flow is enabled, create
-          // a presubmit_guard document to track presubmit tests.
-          if (isUnifiedCheckRun) {
-            await UnifiedCheckRun.initializeCiStagingDocument(
-              firestoreService: _firestore,
-              slug: slug,
-              sha: sha,
-              stage: CiStage.genericTests,
-              tasks: [...presubmitTriggerTargets.map((t) => t.name)],
-              pullRequest: pullRequest,
-              config: _config,
-              dashboardChecks: dashboardChecks,
-              mergeQueueGuard: mergeQueueGuard,
-            );
-          }
+          // For non-flutter repos create a presubmit_guard document
+          // to track presubmit tests.
           engineArtifacts = const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
           );
@@ -493,7 +475,9 @@ class Scheduler {
           engineArtifacts: engineArtifacts,
           dashboardChecks: dashboardChecks,
           mergeQueueGuard: mergeQueueGuard,
-          stage: isFusion ? CiStage.fusionEngineBuild : CiStage.genericTests,
+          stage: isFlutterRepo
+              ? CiStage.fusionEngineBuild
+              : CiStage.genericTests,
         );
       } on FormatException catch (e, s) {
         log.warn(
@@ -529,13 +513,9 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      if (isUnifiedCheckRun) {
         await unlockMergeQueueGuard(slug, sha, dashboardChecks);
         if (mergeQueueGuard != null) {
           await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
-        }
-      } else if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
       }
     }
     log.info(

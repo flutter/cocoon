@@ -76,10 +76,9 @@ void main() {
           Config.flutterSlug,
           Config.packagesSlug,
         },
+        maxFilesChangedForSkippingEnginePhaseValue: 0,
       );
-      config.dynamicConfig = DynamicConfig(
-        unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
-      );
+      config.dynamicConfig = DynamicConfig();
 
       fakeContentAwareHash = FakeContentAwareHashService(config: config);
 
@@ -93,6 +92,8 @@ void main() {
           any,
           any,
           output: anyNamed('output'),
+          conclusion: anyNamed('conclusion'),
+          detailsUrl: anyNamed('detailsUrl'),
         ),
       ).thenAnswer((Invocation invocation) async {
         return generateCheckRun(
@@ -673,9 +674,7 @@ void main() {
         final mockGithubClient = MockGitHub();
         config = FakeConfig(
           githubService: mockGithubService,
-          dynamicConfig: DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
-          ),
+          dynamicConfig: DynamicConfig(),
         );
         scheduler = Scheduler(
           githubService: config.githubService ?? FakeGithubService(),
@@ -728,6 +727,7 @@ void main() {
             any,
             any,
             output: anyNamed('output'),
+            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
@@ -757,9 +757,16 @@ void main() {
             output: anyNamed('output'),
           ),
         );
-        // Verfies Linux A was created
+        // Verifies Dashboard Checks was created
         verify(
-          mockGithubChecksUtil.createCheckRun(any, any, any, any),
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            Config.kDashboardCheckName,
+            output: anyNamed('output'),
+            detailsUrl: anyNamed('detailsUrl'),
+          ),
         ).called(1);
       });
 
@@ -2896,6 +2903,7 @@ targets:
               any,
               captureAny,
               output: captureAnyNamed('output'),
+              detailsUrl: anyNamed('detailsUrl'),
             ),
           ).captured,
           <Object?>[
@@ -2915,9 +2923,6 @@ targets:
               summary:
                   'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
-            'Linux A',
-            null,
-            // Linux runIf is not run as this is for tip of tree and the files weren't affected
           ],
         );
       });
@@ -2926,9 +2931,7 @@ targets:
         'creates presubmit_guard document for flutter/packages when unified check run flow is enabled',
         () async {
           getFilesChanged.cannedFiles = ['README.md'];
-          config.dynamicConfig = DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-          );
+          config.dynamicConfig = DynamicConfig();
 
           when(
             mockGithubChecksUtil.createCheckRun(
@@ -2987,9 +2990,7 @@ targets:
         'unlocks merge group for cocoon when unified check run flow is enabled',
         () async {
           getFilesChanged.cannedFiles = ['README.md'];
-          config.dynamicConfig = DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-          );
+          config.dynamicConfig = DynamicConfig();
 
           when(
             mockGithubChecksUtil.createCheckRun(
@@ -3150,9 +3151,7 @@ targets:
           final fakeConfig = FakeConfig(
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            dynamicConfig: DynamicConfig(
-              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
-            ),
+            dynamicConfig: DynamicConfig(),
           );
           scheduler = Scheduler(
             githubService: fakeConfig.githubService ?? FakeGithubService(),
@@ -3187,6 +3186,7 @@ targets:
                 any,
                 captureAny,
                 output: captureAnyNamed('output'),
+                detailsUrl: anyNamed('detailsUrl'),
               ),
             ).captured,
             <Object?>[
@@ -3206,13 +3206,12 @@ targets:
                 summary:
                     'If this check is stuck pending, push an empty commit to retrigger the checks',
               ),
-              'Linux A',
-              null,
-              // runIf requires a diff in dev, so an error will cause it to be triggered
-              'Linux runIf',
-              null,
             ],
           );
+          final guards = await firestore.query(PresubmitGuard.collectionId, {});
+          expect(guards, isNotEmpty);
+          final guard = PresubmitGuard.fromDocument(guards.first);
+          expect(guard.jobs.keys, containsAll(['Linux A', 'Linux runIf']));
         },
       );
 
@@ -3233,6 +3232,7 @@ targets:
                 any,
                 captureAny,
                 output: captureAnyNamed('output'),
+                detailsUrl: anyNamed('detailsUrl'),
               ),
             ).captured,
             <Object?>[
@@ -3279,10 +3279,6 @@ targets:
           <Object?>[
             CheckRunStatus.completed,
             CheckRunConclusion.success,
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
           ],
         );
       });
@@ -3315,11 +3311,6 @@ targets:
 
         expect(capturedUpdates, <(String, CheckRunStatus, CheckRunConclusion)>[
           (
-            Config.kDashboardCheckName,
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
-          ),
-          (
             'ci.yaml validation',
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
@@ -3342,8 +3333,6 @@ targets:
             ),
           ).captured,
           <Object?>[
-            CheckRunStatus.completed,
-            CheckRunConclusion.success,
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
           ],
@@ -3444,6 +3433,7 @@ targets:
             any,
             any,
             output: anyNamed('output'),
+            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
@@ -3467,9 +3457,7 @@ targets:
           githubService: mockGithubService,
           githubClient: MockGitHub(),
           maxFilesChangedForSkippingEnginePhaseValue: 0,
-          dynamicConfig: DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
-          ),
+          dynamicConfig: DynamicConfig(),
         );
         scheduler = Scheduler(
           githubService: fakeConfig.githubService ?? FakeGithubService(),
@@ -3494,6 +3482,7 @@ targets:
             any,
             captureAny,
             output: captureAnyNamed('output'),
+            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).captured;
         stdout.writeAll(results);
@@ -3519,7 +3508,7 @@ targets:
           mockGithubChecksUtil.updateCheckRun(
             any,
             Config.flutterSlug,
-            checkRuns[1],
+            checkRuns[2],
             status: argThat(equals(CheckRunStatus.completed), named: 'status'),
             conclusion: argThat(
               equals(CheckRunConclusion.success),
@@ -3534,6 +3523,16 @@ targets:
             any,
             Config.flutterSlug,
             checkRuns[0],
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            output: anyNamed('output'),
+          ),
+        );
+        verifyNever(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            Config.flutterSlug,
+            checkRuns[1],
             status: anyNamed('status'),
             conclusion: anyNamed('conclusion'),
             output: anyNamed('output'),
@@ -4126,9 +4125,7 @@ targets:
           githubService: mockGithubService,
           githubClient: MockGitHub(),
           maxFilesChangedForSkippingEnginePhaseValue: 29,
-          dynamicConfig: DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
-          ),
+          dynamicConfig: DynamicConfig(),
         );
         scheduler = Scheduler(
           githubService: fakeConfig.githubService ?? FakeGithubService(),
@@ -4210,18 +4207,18 @@ targets:
           'Linux analyze',
         ], reason: 'Should skip Linux engine_build');
 
-        expect(
-          firestore,
-          existsInStorage(CiStaging.metadata, [
-            isCiStaging
-                .hasStage(CiStage.fusionEngineBuild)
-                .hasCheckRuns(isEmpty),
-            isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
-              'Linux A': TaskConclusion.scheduled,
-              'Linux analyze': TaskConclusion.scheduled,
-            }),
-          ]),
-        );
+        final guards = await firestore.query(PresubmitGuard.collectionId, {});
+        final engineGuard = guards
+            .map(PresubmitGuard.fromDocument)
+            .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
+        expect(engineGuard.jobs, isEmpty);
+        final testsGuard = guards
+            .map(PresubmitGuard.fromDocument)
+            .firstWhere((g) => g.stage == CiStage.fusionTests);
+        expect(testsGuard.jobs, {
+          'Linux A': TaskStatus.waitingForBackfill,
+          'Linux analyze': TaskStatus.waitingForBackfill,
+        });
       });
 
       // Regression test for https://github.com/flutter/flutter/issues/167124.
@@ -4306,9 +4303,7 @@ targets:
 
         // Enable fusion
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-        config.dynamicConfig = DynamicConfig(
-          unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-        );
+        config.dynamicConfig = DynamicConfig();
 
         final userData = PresubmitUserData(
           commit: CommitRef(
