@@ -433,49 +433,48 @@ class Scheduler {
           builderTriggerList,
         );
 
+        final stage = isFlutterRepo
+            ? CiStage.fusionEngineBuild
+            : CiStage.genericTests;
+
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
         await UnifiedCheckRun.initializeCiStagingDocument(
           firestoreService: _firestore,
           slug: slug,
           sha: sha,
-          stage: isFlutterRepo
-              ? CiStage.fusionEngineBuild
-              : CiStage.genericTests,
+          stage: stage,
           tasks: [...presubmitTriggerTargets.map((t) => t.name)],
           pullRequest: pullRequest,
           config: _config,
           dashboardChecks: dashboardChecks,
           mergeQueueGuard: mergeQueueGuard,
         );
-        final EngineArtifacts engineArtifacts;
-        if (isFlutterRepo) {
-          // Even though this appears to be an engine build, it could be a
-          // release candidate build, where the engine artifacts are built
-          // via the dart-internal builder.
-          //
-          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
-          // consequences for engine builds, as it just won't be used (it is
-          // only understood by the Flutter CLI).
-          //
-          // See https://github.com/flutter/flutter/issues/165810.
-          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
-        } else {
-          // For non-flutter repos create a presubmit_guard document
-          // to track presubmit tests.
-          engineArtifacts = const EngineArtifacts.noFrameworkTests(
+        // Even though this appears to be an engine build, it could be a
+        // release candidate build, where the engine artifacts are built
+        // via the dart-internal builder.
+        //
+        // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
+        // consequences for engine builds, as it just won't be used (it is
+        // only understood by the Flutter CLI).
+        //
+        // See https://github.com/flutter/flutter/issues/165810.
+        //
+        // For non-flutter repos create a presubmit_guard document
+        // to track presubmit tests.
+        final engineArtifacts = isFlutterRepo
+            ? EngineArtifacts.usingExistingEngine(commitSha: sha)
+            : const EngineArtifacts.noFrameworkTests(
             reason: 'This is not the flutter/flutter repository',
           );
-        }
+
         await _luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
           dashboardChecks: dashboardChecks,
           mergeQueueGuard: mergeQueueGuard,
-          stage: isFlutterRepo
-              ? CiStage.fusionEngineBuild
-              : CiStage.genericTests,
+          stage: stage,
         );
       } on FormatException catch (e, s) {
         log.warn(
