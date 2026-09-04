@@ -83,7 +83,6 @@ void main() {
         );
         expect(checkDoc.name, endsWith(checkId.documentId));
       });
-
     });
 
     group('markConclusion', () {
@@ -690,7 +689,6 @@ void main() {
           checkRunId: 123,
           checkSuiteId: 234,
           headBranch: 'master',
-          isUnifiedCheckRun: true,
           prNum: 567,
           attempt: 1,
           endTime: 2000,

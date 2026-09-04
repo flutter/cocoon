@@ -419,9 +419,7 @@ void main() {
 
         // Enable Unified Check Run Flow
         luci = LuciBuildService(
-          config: FakeConfig(
-            dynamicConfig: DynamicConfig(),
-          ),
+          config: FakeConfig(dynamicConfig: DynamicConfig()),
           cache: CacheService.inMemory(),
           buildBucketClient: mockBuildBucketClient,
           githubChecksUtil: mockGithubChecksUtil,
@@ -489,9 +487,7 @@ void main() {
 
       // Enable Unified Check Run Flow but provide NO guard
       luci = LuciBuildService(
-        config: FakeConfig(
-          dynamicConfig: DynamicConfig(),
-        ),
+        config: FakeConfig(dynamicConfig: DynamicConfig()),
         cache: CacheService.inMemory(),
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,

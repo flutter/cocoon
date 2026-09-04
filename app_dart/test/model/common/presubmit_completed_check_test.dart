@@ -50,45 +50,8 @@ void main() {
       expect(check.checkRunId, 123);
       expect(check.checkSuiteId, 456);
       expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
-      expect(check.isUnifiedCheckRun, true);
       expect(check.checkRun.name, Config.kDashboardCheckName);
       expect(check.buildNumber, 0);
-      expect(check.buildId, Int64.MAX_VALUE);
-    });
-
-    test('fromBuild creates correct legacy check', () {
-      final build = Build(
-        id: Int64.MAX_VALUE,
-        builder: BuilderID(builder: 'test_builder'),
-        status: Status.SUCCESS,
-        number: 1234,
-      );
-
-      final userData = PresubmitUserData(
-        commit: CommitRef(
-          slug: slug,
-          sha: sha,
-          branch: 'gh-readonly-queue/master/pr-123-abc',
-        ),
-        stage: CiStage.fusionEngineBuild,
-        pullRequestNumber: 1,
-        checkRunId: 123,
-        checkSuiteId: 456,
-      );
-
-      final check = PresubmitCompletedJob.fromBuild(build, userData);
-
-      expect(check.name, 'test_builder');
-      expect(check.sha, sha);
-      expect(check.slug, slug);
-      expect(check.status, TaskStatus.succeeded);
-      expect(check.isMergeGroup, true);
-      expect(check.checkRunId, 123);
-      expect(check.checkSuiteId, 456);
-      expect(check.headBranch, 'gh-readonly-queue/master/pr-123-abc');
-      expect(check.isUnifiedCheckRun, false);
-      expect(check.checkRun.name, 'test_builder');
-      expect(check.buildNumber, 1234);
       expect(check.buildId, Int64.MAX_VALUE);
     });
 
