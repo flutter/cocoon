@@ -2796,7 +2796,10 @@ void foo() {
           number: 1,
           headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
         );
-        final checkRunGuard = generateCheckRun(1, name: Config.kDashboardCheckName);
+        final checkRunGuard = generateCheckRun(
+          1,
+          name: Config.kDashboardCheckName,
+        );
         await UnifiedCheckRun.initializeCiStagingDocument(
           firestoreService: firestore,
           slug: Config.flutterSlug,
