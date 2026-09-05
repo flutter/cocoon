@@ -118,7 +118,11 @@ class PresubmitCompletedJob {
       slug: slug,
       prNum: prNum ?? 0,
       checkRunId: checkRunId,
-      stage: stage ?? CiStage.fusionTests,
+      stage:
+          stage ??
+          (slug == Config.flutterSlug
+              ? CiStage.fusionTests
+              : CiStage.genericTests),
     );
   }
 
