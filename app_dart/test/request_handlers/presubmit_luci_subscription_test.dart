@@ -1,6 +1,7 @@
 // Copyright 2019 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import 'package:archive/archive.dart';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
@@ -106,6 +107,14 @@ void main() {
   });
 
   test('Requests when task failed but no need to reschedule', () async {
+    buildBucketClient.getBuildResponse = Future.value(
+      bbv2.Build(
+        id: Int64(1),
+        builder: bbv2.BuilderID(builder: 'Linux A'),
+        status: bbv2.Status.FAILURE,
+        summaryMarkdown: 'test summary',
+      ),
+    );
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
@@ -148,6 +157,14 @@ void main() {
   });
 
   test('Requests when task failed but need to reschedule', () async {
+    buildBucketClient.getBuildResponse = Future.value(
+      bbv2.Build(
+        id: Int64(1),
+        builder: bbv2.BuilderID(builder: 'Linux presubmit_max_attempts=2'),
+        status: bbv2.Status.FAILURE,
+        summaryMarkdown: 'test summary',
+      ),
+    );
     firestore.putDocument(
       PresubmitJob.init(
         slug: RepositorySlug('flutter', 'flutter'),
@@ -198,7 +215,14 @@ void main() {
     ).thenAnswer((_) async => true);
     when(
       mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
-    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
+    ).thenAnswer(
+      (_) async => bbv2.Build(
+        id: Int64(1),
+        builder: bbv2.BuilderID(builder: 'Linux A'),
+        status: bbv2.Status.INFRA_FAILURE,
+        summaryMarkdown: 'test summary',
+      ),
+    );
 
     tester.message = createPushMessage(
       Int64(1),
@@ -260,6 +284,14 @@ void main() {
   });
 
   test('Build not rescheduled if not found in ciYaml list.', () async {
+    buildBucketClient.getBuildResponse = Future.value(
+      bbv2.Build(
+        id: Int64(1),
+        builder: bbv2.BuilderID(builder: 'Linux C'),
+        status: bbv2.Status.FAILURE,
+        summaryMarkdown: 'test summary',
+      ),
+    );
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -314,6 +346,14 @@ void main() {
   });
 
   test('Build not rescheduled if ci.yaml fails validation.', () async {
+    buildBucketClient.getBuildResponse = Future.value(
+      bbv2.Build(
+        id: Int64(1),
+        builder: bbv2.BuilderID(builder: 'Linux C'),
+        status: bbv2.Status.FAILURE,
+        summaryMarkdown: 'test summary',
+      ),
+    );
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -413,9 +453,22 @@ void main() {
         rescheduled: anyNamed('rescheduled'),
       ),
     ).thenAnswer((_) async => true);
+    final fullBuild =
+        createBuild(
+            Int64(1),
+            status: bbv2.Status.FAILURE,
+            builder: 'Linux presubmit_max_attempts=2',
+          ).build
+          ..mergeFromBuffer(
+            const ZLibDecoder().decodeBytes(
+              createBuild(Int64(1)).buildLargeFields,
+            ),
+          )
+          ..summaryMarkdown = 'test summary';
+
     when(
       mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
-    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
+    ).thenAnswer((_) async => fullBuild);
 
     tester.message = createPushMessage(
       Int64(1),
