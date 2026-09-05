@@ -5745,10 +5745,7 @@ class MockScheduler extends _i1.Mock implements _i16.Scheduler {
                 Invocation.method(
                   #lockMergeGroupChecks,
                   [slug, headSha],
-                  {
-                    #detailsUrl: detailsUrl,
-                    #isUnifiedCheckRun: isPresubmit,
-                  },
+                  {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isPresubmit},
                 ),
               ),
             ),
