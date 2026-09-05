@@ -459,14 +459,11 @@ class Scheduler {
         // only understood by the Flutter CLI).
         //
         // See https://github.com/flutter/flutter/issues/165810.
-        //
-        // For non-flutter repos create a presubmit_guard document
-        // to track presubmit tests.
         final engineArtifacts = isFlutterRepo
             ? EngineArtifacts.usingExistingEngine(commitSha: sha)
             : const EngineArtifacts.noFrameworkTests(
-            reason: 'This is not the flutter/flutter repository',
-          );
+                reason: 'This is not the flutter/flutter repository',
+              );
 
         await _luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
@@ -1110,15 +1107,12 @@ detailsUrl: $detailsUrl
     final logCrumb =
         'checkCompleted(${check.name}, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
 
-    late CiStage stage;
-    late PresubmitGuardConclusion stagingConclusion;
-
-    stage =
+    final stage =
         check.stage ??
         (check.slug == Config.flutterSlug
             ? CiStage.fusionTests
             : CiStage.genericTests);
-    stagingConclusion = await _markUnifiedCheckRunConclusion(
+    final stagingConclusion = await _markUnifiedCheckRunConclusion(
       guardId: check.guardId,
       state: check.state,
     );

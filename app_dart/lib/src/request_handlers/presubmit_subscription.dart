@@ -144,19 +144,13 @@ base class PresubmitSubscription extends SubscriptionHandler {
     if (build.status.isTaskFailed()) {
       // If failed we need summaryMarkdown. For github check run flow this
       // called in [GithubChecksService.updateCheckStatus(...)]
-      final fullBuild = await _luciBuildService.getBuildById(
+      build = await _luciBuildService.getBuildById(
         build.id,
         buildMask: bbv2.BuildMask(
           // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
           allFields: true,
         ),
       );
-      if (fullBuild.hasStatus() &&
-          fullBuild.status != bbv2.Status.STATUS_UNSPECIFIED) {
-        build = fullBuild;
-      } else if (fullBuild.summaryMarkdown.isNotEmpty) {
-        build.summaryMarkdown = fullBuild.summaryMarkdown;
-      }
       final maxAttempt = await _getMaxAttempt(
         userData.commit,
         builderName,
