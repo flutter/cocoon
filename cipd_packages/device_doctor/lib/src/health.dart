@@ -17,7 +17,7 @@ import 'utils.dart';
 Future<HealthCheckResult> closeIosDialog({
   ProcessManager pm = const LocalProcessManager(),
   String? deviceId,
-  platform.Platform pl = const platform.Platform(),
+  platform.Platform pl = const platform.LocalPlatform(),
   String infraDialog = 'infra-dialog',
 }) async {
   var dialogDir = dir(path.dirname(Platform.script.path), 'tool', infraDialog);
@@ -36,16 +36,15 @@ Future<HealthCheckResult> closeIosDialog({
     // By default the above command relies on automatic code signing, while on devicelab machines
     // it should utilize manual code signing as that is more stable. Below overwrites the code
     // signing config if one exists in the environment.
-    if (pl.nativePlatform!.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] !=
-        null) {
+    if (pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
       command.add(
-        "CODE_SIGN_STYLE=${pl.nativePlatform!.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}",
+        "CODE_SIGN_STYLE=${pl.environment['FLUTTER_XCODE_CODE_SIGN_STYLE']}",
       );
       command.add(
-        "DEVELOPMENT_TEAM=${pl.nativePlatform!.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}",
+        "DEVELOPMENT_TEAM=${pl.environment['FLUTTER_XCODE_DEVELOPMENT_TEAM']}",
       );
       command.add(
-        "PROVISIONING_PROFILE_SPECIFIER=${pl.nativePlatform!.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}",
+        "PROVISIONING_PROFILE_SPECIFIER=${pl.environment['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}",
       );
     }
     final proc = await pm.start(command, workingDirectory: dialogDir.path);

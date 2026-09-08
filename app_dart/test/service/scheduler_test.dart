@@ -76,9 +76,10 @@ void main() {
           Config.flutterSlug,
           Config.packagesSlug,
         },
-        maxFilesChangedForSkippingEnginePhaseValue: 0,
       );
-      config.dynamicConfig = DynamicConfig();
+      config.dynamicConfig = DynamicConfig(
+        unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+      );
 
       fakeContentAwareHash = FakeContentAwareHashService(config: config);
 
@@ -92,8 +93,6 @@ void main() {
           any,
           any,
           output: anyNamed('output'),
-          conclusion: anyNamed('conclusion'),
-          detailsUrl: anyNamed('detailsUrl'),
         ),
       ).thenAnswer((Invocation invocation) async {
         return generateCheckRun(
@@ -674,7 +673,9 @@ void main() {
         final mockGithubClient = MockGitHub();
         config = FakeConfig(
           githubService: mockGithubService,
-          dynamicConfig: DynamicConfig(),
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+          ),
         );
         scheduler = Scheduler(
           githubService: config.githubService ?? FakeGithubService(),
@@ -727,7 +728,6 @@ void main() {
             any,
             any,
             output: anyNamed('output'),
-            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).thenAnswer((_) async {
           return CheckRun.fromJson(const <String, dynamic>{
@@ -757,16 +757,9 @@ void main() {
             output: anyNamed('output'),
           ),
         );
-        // Verifies Dashboard Checks was created
+        // Verfies Linux A was created
         verify(
-          mockGithubChecksUtil.createCheckRun(
-            any,
-            any,
-            any,
-            Config.kDashboardCheckName,
-            output: anyNamed('output'),
-            detailsUrl: anyNamed('detailsUrl'),
-          ),
+          mockGithubChecksUtil.createCheckRun(any, any, any, any),
         ).called(1);
       });
 
@@ -1624,6 +1617,15 @@ targets:
           test(
             'ignores default check runs that have no side effects',
             () async {
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'abc123',
+                stage: CiStage.fusionTests,
+                tasks: ['foo', 'bar'],
+                checkRunGuard: '{}',
+              );
+
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
                   await scheduler.processCheckRunCompleted(
@@ -1636,13 +1638,583 @@ targets:
                       checkRunId: 1,
                       checkSuiteId: 668083231,
                       headBranch: 'master',
+                      isUnifiedCheckRun: false,
                     ),
                   ),
                   isTrue,
                 );
               }
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasCheckRuns({
+                    'foo': TaskConclusion.scheduled,
+                    'bar': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
             },
           );
+
+          test('ignores invalid conclusions', () async {
+            final document = await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'abc123',
+              stage: CiStage.fusionTests,
+              tasks: ['Bar bar'],
+              checkRunGuard: '{}',
+            );
+
+            firestore.failOnWriteDocument(document);
+
+            expect(
+              await scheduler.processCheckRunCompleted(
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'abc123',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
+                ),
+              ),
+              isFalse,
+            );
+
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasCheckRuns({'Bar bar': TaskConclusion.scheduled}),
+              ]),
+            );
+
+            verifyNever(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
+                output: anyNamed('output'),
+              ),
+            );
+          });
+
+          test('does not complete with remaining tests', () async {
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'abc123',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Foo foo', 'Bar bar'],
+              checkRunGuard: '{}',
+            );
+
+            expect(
+              await scheduler.processCheckRunCompleted(
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'abc123',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
+                ),
+              ),
+              isFalse,
+            );
+
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasCheckRuns({
+                  'Foo foo': TaskConclusion.scheduled,
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
+
+            verifyNever(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
+                output: anyNamed('output'),
+              ),
+            );
+          });
+
+          // The merge guard is not closed until both engine build and tests
+          // complete and are successful.
+          // This behavior is explained here:
+          // https://github.com/flutter/flutter/issues/159898#issuecomment-2597209435
+          test(
+            'failed tests neither unlock merge queue guard nor schedule test stage',
+            () async {
+              await PrCheckRuns.initializeDocument(
+                firestoreService: firestore,
+                pullRequest: pullRequest,
+                checks: [createGithubCheckRun(name: 'Bar bar')],
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'abc123',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'abc123',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.succeeded,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
+                  ),
+                ),
+                isTrue,
+              );
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasCheckRuns({'Bar bar': TaskConclusion.success}),
+                ]),
+              );
+
+              verifyNever(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  output: anyNamed('output'),
+                ),
+              );
+            },
+          );
+
+          test('schedules tests after engine stage', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            when(githubService.github).thenReturn(githubClient);
+            when(
+              githubService.searchIssuesAndPRs(
+                any,
+                any,
+                sort: anyNamed('sort'),
+                pages: anyNamed('pages'),
+              ),
+            ).thenAnswer((_) async => [generateIssue(42)]);
+
+            final pullRequest = generatePullRequest();
+            when(
+              githubService.getPullRequest(any, any),
+            ).thenAnswer((_) async => pullRequest);
+            getFilesChanged.cannedFiles = ['abc/def'];
+            when(
+              mockGithubChecksUtil.listCheckSuitesForRef(
+                any,
+                any,
+                ref: anyNamed('ref'),
+              ),
+            ).thenAnswer(
+              (_) async => [
+                // From check_run.check_suite.id in [checkRunString].
+                generateCheckSuite(668083231),
+              ],
+            );
+
+            ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+            final luci = MockLuciBuildService();
+            when(
+              luci.scheduleTryBuilds(
+                targets: anyNamed('targets'),
+                pullRequest: anyNamed('pullRequest'),
+                engineArtifacts: anyNamed('engineArtifacts'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
+                stage: anyNamed('stage'),
+              ),
+            ).thenAnswer((inv) async {
+              return [];
+            });
+
+            final gitHubChecksService = MockGithubChecksService();
+            when(
+              gitHubChecksService.githubChecksUtil,
+            ).thenReturn(mockGithubChecksUtil);
+            when(
+              gitHubChecksService.findMatchingPullRequest(any, any, any),
+            ).thenAnswer((inv) async {
+              return pullRequest;
+            });
+
+            // Cocoon creates a Firestore document to track the tasks in the
+            // test stage.
+
+            scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
+              cache: cache,
+              config: config,
+              getFilesChanged: getFilesChanged,
+              githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
+              luciBuildService: luci,
+              contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
+            );
+
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
+
+            expect(
+              await scheduler.processCheckRunCompleted(
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
+                ),
+              ),
+              isTrue,
+            );
+
+            verify(
+              gitHubChecksService.findMatchingPullRequest(
+                Config.flutterSlug,
+                'testSha',
+                668083231,
+              ),
+            ).called(1);
+
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+                isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                  'Linux A': TaskConclusion.scheduled,
+                  'Linux Z': TaskConclusion.scheduled,
+                  'Linux engine_presubmit': TaskConclusion.scheduled,
+                }),
+              ]),
+            );
+
+            verifyNever(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: anyNamed('conclusion'),
+                output: anyNamed('output'),
+              ),
+            );
+
+            final result = verify(
+              luci.scheduleTryBuilds(
+                targets: captureAnyNamed('targets'),
+                pullRequest: captureAnyNamed('pullRequest'),
+                engineArtifacts: anyNamed('engineArtifacts'),
+                dashboardChecks: anyNamed('dashboardChecks'),
+                mergeQueueGuard: anyNamed('mergeQueueGuard'),
+                stage: anyNamed('stage'),
+              ),
+            );
+            expect(result.callCount, 1);
+            final captured = result.captured;
+            expect(captured[0], hasLength(3));
+            // see the blend of fusionCiYaml and singleCiYaml
+            expect(captured[0][0].name, 'Linux A');
+            expect(captured[0][1].name, 'Linux Z');
+            expect(captured[0][2].name, 'Linux engine_presubmit');
+            expect(captured[1], pullRequest);
+          });
+
+          test(
+            'processCheckRunCompleted not failed when check suite id is 0',
+            () async {
+              final githubService = config.githubService = MockGithubService();
+              final githubClient = MockGitHub();
+              when(githubService.github).thenReturn(githubClient);
+              when(
+                githubService.searchIssuesAndPRs(
+                  any,
+                  any,
+                  sort: anyNamed('sort'),
+                  pages: anyNamed('pages'),
+                ),
+              ).thenAnswer((_) async => [generateIssue(42)]);
+
+              final pullRequest = generatePullRequest();
+              when(
+                githubService.getPullRequest(any, any),
+              ).thenAnswer((_) async => pullRequest);
+              getFilesChanged.cannedFiles = ['abc/def'];
+              when(
+                mockGithubChecksUtil.listCheckSuitesForRef(
+                  any,
+                  any,
+                  ref: anyNamed('ref'),
+                ),
+              ).thenAnswer(
+                (_) async => [
+                  // From check_run.check_suite.id in [checkRunString].
+                  generateCheckSuite(668083231),
+                ],
+              );
+
+              ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+              final luci = MockLuciBuildService();
+              when(
+                luci.scheduleTryBuilds(
+                  targets: anyNamed('targets'),
+                  pullRequest: anyNamed('pullRequest'),
+                  engineArtifacts: anyNamed('engineArtifacts'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
+                  stage: anyNamed('stage'),
+                ),
+              ).thenAnswer((inv) async {
+                return [];
+              });
+
+              final gitHubChecksService = MockGithubChecksService();
+              when(
+                gitHubChecksService.githubChecksUtil,
+              ).thenReturn(mockGithubChecksUtil);
+              when(
+                gitHubChecksService.findMatchingPullRequest(any, any, any),
+              ).thenAnswer((inv) async {
+                return pullRequest;
+              });
+
+              // Cocoon creates a Firestore document to track the tasks in the
+              // test stage.
+
+              scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
+                cache: cache,
+                config: config,
+                getFilesChanged: getFilesChanged,
+                githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
+                luciBuildService: luci,
+                contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.succeeded,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 0,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
+                  ),
+                ),
+                isTrue,
+              );
+
+              verify(
+                gitHubChecksService.findMatchingPullRequest(
+                  Config.flutterSlug,
+                  'testSha',
+                  0,
+                ),
+              ).called(1);
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.success,
+                  }),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Linux A': TaskConclusion.scheduled,
+                    'Linux Z': TaskConclusion.scheduled,
+                    'Linux engine_presubmit': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
+
+              verifyNever(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  output: anyNamed('output'),
+                ),
+              );
+
+              final result = verify(
+                luci.scheduleTryBuilds(
+                  targets: captureAnyNamed('targets'),
+                  pullRequest: captureAnyNamed('pullRequest'),
+                  engineArtifacts: anyNamed('engineArtifacts'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
+                  stage: anyNamed('stage'),
+                ),
+              );
+              expect(result.callCount, 1);
+              final captured = result.captured;
+              expect(captured[0], hasLength(3));
+              // see the blend of fusionCiYaml and singleCiYaml
+              expect(captured[0][0].name, 'Linux A');
+              expect(captured[0][1].name, 'Linux Z');
+              expect(captured[0][2].name, 'Linux engine_presubmit');
+              expect(captured[1], pullRequest);
+            },
+          );
+
+          test('tracks test check runs in firestore', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            final luci = MockLuciBuildService();
+            final gitHubChecksService = MockGithubChecksService();
+
+            when(githubService.github).thenReturn(githubClient);
+            when(
+              gitHubChecksService.githubChecksUtil,
+            ).thenReturn(mockGithubChecksUtil);
+
+            scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
+              cache: cache,
+              config: config,
+              getFilesChanged: getFilesChanged,
+              githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
+              luciBuildService: luci,
+              contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
+            );
+
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: [],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
+
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionTests,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+            );
+
+            expect(
+              await scheduler.processCheckRunCompleted(
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: false,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: 'master',
+                  isUnifiedCheckRun: false,
+                ),
+              ),
+              isTrue,
+            );
+
+            // The first invocation looks in the fusionEngineBuild stage, which
+            // returns "missing" result.
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging
+                    .hasStage(CiStage.fusionEngineBuild)
+                    .hasCheckRuns(isEmpty),
+                isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
+
+            // Because tests completed, and completed successfully, the guard is
+            // unlocked, allowing the PR to land.
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                argThat(equals(RepositorySlug('flutter', 'flutter'))),
+                argThat(
+                  predicate<CheckRun>((arg) {
+                    expect(arg.name, 'GUARD TEST');
+                    return true;
+                  }),
+                ),
+                status: argThat(
+                  equals(CheckRunStatus.completed),
+                  named: 'status',
+                ),
+                conclusion: argThat(
+                  equals(CheckRunConclusion.success),
+                  named: 'conclusion',
+                ),
+                output: anyNamed('output'),
+              ),
+            ).called(1);
+          });
 
           test(
             'writes failure comment if moving to next phase fails',
@@ -1816,6 +2388,421 @@ targets:
             );
           });
 
+          test(
+            'does not fail the merge queue guard when a test check run fails (presubmit)',
+            () async {
+              final githubService = config.githubService = MockGithubService();
+              final githubClient = MockGitHub();
+              final luci = MockLuciBuildService();
+              final gitHubChecksService = MockGithubChecksService();
+
+              when(githubService.github).thenReturn(githubClient);
+              when(
+                gitHubChecksService.githubChecksUtil,
+              ).thenReturn(mockGithubChecksUtil);
+
+              scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
+                cache: cache,
+                config: config,
+                getFilesChanged: getFilesChanged,
+                githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
+                luciBuildService: luci,
+                contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: [],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionTests,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.failed,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
+                  ),
+                ),
+                isTrue,
+              );
+
+              // The first invocation looks in the fusionEngineBuild stage, which
+              // returns "missing" result.
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging
+                      .hasStage(CiStage.fusionEngineBuild)
+                      .hasCheckRuns(isEmpty),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Bar bar': TaskConclusion.failure,
+                  }),
+                ]),
+              );
+
+              // The test stage completed, but with failures. The merge queue
+              // guard should stay open to prevent the pull request from landing.
+              verifyNever(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  output: anyNamed('output'),
+                ),
+              );
+            },
+          );
+
+          test(
+            'fails the merge queue guard when a test check run fails (merge group)',
+            () async {
+              final githubService = config.githubService = MockGithubService();
+              final githubClient = MockGitHub();
+              final luci = MockLuciBuildService();
+              final gitHubChecksService = MockGithubChecksService();
+
+              when(githubService.github).thenReturn(githubClient);
+              when(
+                gitHubChecksService.githubChecksUtil,
+              ).thenReturn(mockGithubChecksUtil);
+
+              scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
+                cache: cache,
+                config: config,
+                getFilesChanged: getFilesChanged,
+                githubChecksService: gitHubChecksService,
+                ciYamlFetcher: ciYamlFetcher,
+                luciBuildService: luci,
+                contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
+              );
+
+              const headBranch =
+                  'gh-readonly-queue/master/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf';
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(
+                  name: 'GUARD TEST',
+                  headBranch: headBranch,
+                ),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.failed,
+                    isMergeGroup: true,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: headBranch,
+                    isUnifiedCheckRun: false,
+                  ),
+                ),
+                isTrue,
+              );
+
+              // The first invocation looks in the fusionEngineBuild stage, which
+              // returns "missing" result.
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.failure,
+                  }),
+                ]),
+              );
+
+              // The test stage completed, but with failures. The merge queue
+              // guard should stay open to prevent the pull request from landing.
+              verify(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: CheckRunConclusion.failure,
+                  output: anyNamed('output'),
+                ),
+              ).called(1);
+
+              expect(fakeContentAwareHash.completedShas, [
+                (commitSha: 'testSha', successful: false),
+              ]);
+            },
+          );
+
+          test('closes merge queue guard in merge group success', () async {
+            final githubService = config.githubService = MockGithubService();
+            final githubClient = MockGitHub();
+            final luci = MockLuciBuildService();
+            final gitHubChecksService = MockGithubChecksService();
+
+            when(githubService.github).thenReturn(githubClient);
+            when(
+              gitHubChecksService.githubChecksUtil,
+            ).thenReturn(mockGithubChecksUtil);
+
+            scheduler = Scheduler(
+              githubService: config.githubService ?? FakeGithubService(),
+              cache: cache,
+              config: config,
+              getFilesChanged: getFilesChanged,
+              githubChecksService: gitHubChecksService,
+              ciYamlFetcher: ciYamlFetcher,
+              luciBuildService: luci,
+              contentAwareHash: fakeContentAwareHash,
+              firestore: firestore,
+              bigQuery: bigQuery,
+            );
+
+            const headBranch =
+                'gh-readonly-queue/master/pr-15-c9affbbb12aa40cb3afbe94b9ea6b119a256bebf';
+            await CiStaging.initializeDocument(
+              firestoreService: firestore,
+              slug: Config.flutterSlug,
+              sha: 'testSha',
+              stage: CiStage.fusionEngineBuild,
+              tasks: ['Bar bar'],
+              checkRunGuard: checkRunFor(
+                name: 'GUARD TEST',
+                headBranch: headBranch,
+              ),
+            );
+
+            expect(
+              await scheduler.processCheckRunCompleted(
+                PresubmitCompletedJob(
+                  name: 'Bar bar',
+                  sha: 'testSha',
+                  slug: createGithubRepository().slug(),
+                  status: TaskStatus.succeeded,
+                  isMergeGroup: true,
+                  checkRunId: 1,
+                  checkSuiteId: 668083231,
+                  headBranch: headBranch,
+                  isUnifiedCheckRun: false,
+                ),
+              ),
+              isTrue,
+            );
+
+            // The first invocation looks in the fusionEngineBuild stage, which
+            // returns "missing" result.
+            expect(
+              firestore,
+              existsInStorage(CiStaging.metadata, [
+                isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                  'Bar bar': TaskConclusion.success,
+                }),
+              ]),
+            );
+
+            // The test stage completed, but with failures. The merge queue
+            // guard should stay open to prevent the pull request from landing.
+            verify(
+              mockGithubChecksUtil.updateCheckRun(
+                any,
+                any,
+                any,
+                status: anyNamed('status'),
+                conclusion: CheckRunConclusion.success,
+                output: anyNamed('output'),
+              ),
+            ).called(1);
+
+            expect(fakeContentAwareHash.completedShas, [
+              (commitSha: 'testSha', successful: true),
+            ]);
+          });
+
+          test(
+            'schedules tests after engine stage - with pr caching',
+            () async {
+              final githubService = config.githubService = MockGithubService();
+              final githubClient = MockGitHub();
+              when(githubService.github).thenReturn(githubClient);
+              when(
+                githubService.searchIssuesAndPRs(
+                  any,
+                  any,
+                  sort: anyNamed('sort'),
+                  pages: anyNamed('pages'),
+                ),
+              ).thenAnswer((_) async => [generateIssue(42)]);
+
+              final pullRequest = generatePullRequest();
+              when(
+                githubService.getPullRequest(any, any),
+              ).thenAnswer((_) async => pullRequest);
+              getFilesChanged.cannedFiles = ['abc/def'];
+              when(
+                mockGithubChecksUtil.listCheckSuitesForRef(
+                  any,
+                  any,
+                  ref: anyNamed('ref'),
+                ),
+              ).thenAnswer(
+                (_) async => [
+                  // From check_run.check_suite.id in [checkRunString].
+                  generateCheckSuite(668083231),
+                ],
+              );
+
+              await PrCheckRuns.initializeDocument(
+                firestoreService: firestore,
+                checks: [generateCheckRun(1, name: 'Bar bar')],
+                pullRequest: pullRequest,
+              );
+
+              ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
+              final luci = MockLuciBuildService();
+              when(
+                luci.scheduleTryBuilds(
+                  targets: anyNamed('targets'),
+                  pullRequest: anyNamed('pullRequest'),
+                  engineArtifacts: anyNamed('engineArtifacts'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
+                  stage: anyNamed('stage'),
+                ),
+              ).thenAnswer((inv) async {
+                return [];
+              });
+
+              final gitHubChecksService = MockGithubChecksService();
+              when(
+                gitHubChecksService.githubChecksUtil,
+              ).thenReturn(mockGithubChecksUtil);
+
+              scheduler = Scheduler(
+                githubService: config.githubService ?? FakeGithubService(),
+                cache: cache,
+                config: config,
+                githubChecksService: gitHubChecksService,
+                getFilesChanged: getFilesChanged,
+                ciYamlFetcher: ciYamlFetcher,
+                luciBuildService: luci,
+                contentAwareHash: fakeContentAwareHash,
+                firestore: firestore,
+                bigQuery: bigQuery,
+              );
+
+              await CiStaging.initializeDocument(
+                firestoreService: firestore,
+                slug: Config.flutterSlug,
+                sha: 'testSha',
+                stage: CiStage.fusionEngineBuild,
+                tasks: ['Bar bar'],
+                checkRunGuard: checkRunFor(name: 'GUARD TEST'),
+              );
+
+              expect(
+                await scheduler.processCheckRunCompleted(
+                  PresubmitCompletedJob(
+                    name: 'Bar bar',
+                    sha: 'testSha',
+                    slug: createGithubRepository().slug(),
+                    status: TaskStatus.succeeded,
+                    isMergeGroup: false,
+                    checkRunId: 1,
+                    checkSuiteId: 668083231,
+                    headBranch: 'master',
+                    isUnifiedCheckRun: false,
+                  ),
+                ),
+                isTrue,
+              );
+
+              verifyNever(
+                gitHubChecksService.findMatchingPullRequest(any, any, any),
+              );
+
+              expect(
+                firestore,
+                existsInStorage(CiStaging.metadata, [
+                  isCiStaging.hasStage(CiStage.fusionEngineBuild).hasCheckRuns({
+                    'Bar bar': TaskConclusion.success,
+                  }),
+                  isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+                    'Linux A': TaskConclusion.scheduled,
+                    'Linux Z': TaskConclusion.scheduled,
+                    'Linux engine_presubmit': TaskConclusion.scheduled,
+                  }),
+                ]),
+              );
+
+              verifyNever(
+                mockGithubChecksUtil.updateCheckRun(
+                  any,
+                  any,
+                  any,
+                  status: anyNamed('status'),
+                  conclusion: anyNamed('conclusion'),
+                  output: anyNamed('output'),
+                ),
+              );
+
+              final result = verify(
+                luci.scheduleTryBuilds(
+                  targets: captureAnyNamed('targets'),
+                  pullRequest: captureAnyNamed('pullRequest'),
+                  engineArtifacts: anyNamed('engineArtifacts'),
+                  dashboardChecks: anyNamed('dashboardChecks'),
+                  mergeQueueGuard: anyNamed('mergeQueueGuard'),
+                  stage: anyNamed('stage'),
+                ),
+              );
+              expect(result.callCount, 1);
+              final captured = result.captured;
+              expect(captured[0], hasLength(3));
+              // see the blend of fusionCiYaml and singleCiYaml
+              expect(captured[0][0].name, 'Linux A');
+              expect(captured[0][1].name, 'Linux Z');
+              expect(captured[0][2].name, 'Linux engine_presubmit');
+              expect(
+                captured[1],
+                isA<PullRequest>().having(
+                  (p) => p.number,
+                  'number',
+                  pullRequest.number,
+                ),
+              );
+            },
+          );
           // end of group
         });
       });
@@ -1909,7 +2896,6 @@ targets:
               any,
               captureAny,
               output: captureAnyNamed('output'),
-              detailsUrl: anyNamed('detailsUrl'),
             ),
           ).captured,
           <Object?>[
@@ -1929,6 +2915,9 @@ targets:
               summary:
                   'If this check is stuck pending, push an empty commit to retrigger the checks',
             ),
+            'Linux A',
+            null,
+            // Linux runIf is not run as this is for tip of tree and the files weren't affected
           ],
         );
       });
@@ -1937,7 +2926,9 @@ targets:
         'creates presubmit_guard document for flutter/packages when unified check run flow is enabled',
         () async {
           getFilesChanged.cannedFiles = ['README.md'];
-          config.dynamicConfig = DynamicConfig();
+          config.dynamicConfig = DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          );
 
           when(
             mockGithubChecksUtil.createCheckRun(
@@ -1996,7 +2987,9 @@ targets:
         'unlocks merge group for cocoon when unified check run flow is enabled',
         () async {
           getFilesChanged.cannedFiles = ['README.md'];
-          config.dynamicConfig = DynamicConfig();
+          config.dynamicConfig = DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+          );
 
           when(
             mockGithubChecksUtil.createCheckRun(
@@ -2063,7 +3056,7 @@ targets:
           final lockResult = await scheduler.lockMergeGroupChecks(
             Config.flutterSlug,
             'sha123',
-            isPresubmit: true,
+            isUnifiedCheckRun: true,
           );
 
           expect(lockResult.dashboardChecks.name, Config.kDashboardCheckName);
@@ -2157,7 +3150,9 @@ targets:
           final fakeConfig = FakeConfig(
             githubService: mockGithubService,
             githubClient: MockGitHub(),
-            dynamicConfig: DynamicConfig(),
+            dynamicConfig: DynamicConfig(
+              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+            ),
           );
           scheduler = Scheduler(
             githubService: fakeConfig.githubService ?? FakeGithubService(),
@@ -2192,7 +3187,6 @@ targets:
                 any,
                 captureAny,
                 output: captureAnyNamed('output'),
-                detailsUrl: anyNamed('detailsUrl'),
               ),
             ).captured,
             <Object?>[
@@ -2212,12 +3206,13 @@ targets:
                 summary:
                     'If this check is stuck pending, push an empty commit to retrigger the checks',
               ),
+              'Linux A',
+              null,
+              // runIf requires a diff in dev, so an error will cause it to be triggered
+              'Linux runIf',
+              null,
             ],
           );
-          final guards = await firestore.query(PresubmitGuard.collectionId, {});
-          expect(guards, isNotEmpty);
-          final guard = PresubmitGuard.fromDocument(guards.first);
-          expect(guard.jobs.keys, containsAll(['Linux A', 'Linux runIf']));
         },
       );
 
@@ -2238,7 +3233,6 @@ targets:
                 any,
                 captureAny,
                 output: captureAnyNamed('output'),
-                detailsUrl: anyNamed('detailsUrl'),
               ),
             ).captured,
             <Object?>[
@@ -2282,7 +3276,14 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <Object?>[CheckRunStatus.completed, CheckRunConclusion.success],
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+          ],
         );
       });
 
@@ -2314,6 +3315,11 @@ targets:
 
         expect(capturedUpdates, <(String, CheckRunStatus, CheckRunConclusion)>[
           (
+            Config.kDashboardCheckName,
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+          ),
+          (
             'ci.yaml validation',
             CheckRunStatus.completed,
             CheckRunConclusion.failure,
@@ -2335,7 +3341,12 @@ targets:
               output: anyNamed('output'),
             ),
           ).captured,
-          <Object?>[CheckRunStatus.completed, CheckRunConclusion.failure],
+          <Object?>[
+            CheckRunStatus.completed,
+            CheckRunConclusion.success,
+            CheckRunStatus.completed,
+            CheckRunConclusion.failure,
+          ],
         );
       });
 
@@ -2433,7 +3444,6 @@ targets:
             any,
             any,
             output: anyNamed('output'),
-            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).thenAnswer((inv) async {
           final slug = inv.positionalArguments[1] as RepositorySlug;
@@ -2457,7 +3467,9 @@ targets:
           githubService: mockGithubService,
           githubClient: MockGitHub(),
           maxFilesChangedForSkippingEnginePhaseValue: 0,
-          dynamicConfig: DynamicConfig(),
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+          ),
         );
         scheduler = Scheduler(
           githubService: fakeConfig.githubService ?? FakeGithubService(),
@@ -2482,7 +3494,6 @@ targets:
             any,
             captureAny,
             output: captureAnyNamed('output'),
-            detailsUrl: anyNamed('detailsUrl'),
           ),
         ).captured;
         stdout.writeAll(results);
@@ -2508,7 +3519,7 @@ targets:
           mockGithubChecksUtil.updateCheckRun(
             any,
             Config.flutterSlug,
-            checkRuns[2],
+            checkRuns[1],
             status: argThat(equals(CheckRunStatus.completed), named: 'status'),
             conclusion: argThat(
               equals(CheckRunConclusion.success),
@@ -2523,16 +3534,6 @@ targets:
             any,
             Config.flutterSlug,
             checkRuns[0],
-            status: anyNamed('status'),
-            conclusion: anyNamed('conclusion'),
-            output: anyNamed('output'),
-          ),
-        );
-        verifyNever(
-          mockGithubChecksUtil.updateCheckRun(
-            any,
-            Config.flutterSlug,
-            checkRuns[1],
             status: anyNamed('status'),
             conclusion: anyNamed('conclusion'),
             output: anyNamed('output'),
@@ -3125,7 +4126,9 @@ targets:
           githubService: mockGithubService,
           githubClient: MockGitHub(),
           maxFilesChangedForSkippingEnginePhaseValue: 29,
-          dynamicConfig: DynamicConfig(),
+          dynamicConfig: DynamicConfig(
+            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+          ),
         );
         scheduler = Scheduler(
           githubService: fakeConfig.githubService ?? FakeGithubService(),
@@ -3207,18 +4210,18 @@ targets:
           'Linux analyze',
         ], reason: 'Should skip Linux engine_build');
 
-        final guards = await firestore.query(PresubmitGuard.collectionId, {});
-        final engineGuard = guards
-            .map(PresubmitGuard.fromDocument)
-            .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
-        expect(engineGuard.jobs, isEmpty);
-        final testsGuard = guards
-            .map(PresubmitGuard.fromDocument)
-            .firstWhere((g) => g.stage == CiStage.fusionTests);
-        expect(testsGuard.jobs, {
-          'Linux A': TaskStatus.waitingForBackfill,
-          'Linux analyze': TaskStatus.waitingForBackfill,
-        });
+        expect(
+          firestore,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging
+                .hasStage(CiStage.fusionEngineBuild)
+                .hasCheckRuns(isEmpty),
+            isCiStaging.hasStage(CiStage.fusionTests).hasCheckRuns({
+              'Linux A': TaskConclusion.scheduled,
+              'Linux analyze': TaskConclusion.scheduled,
+            }),
+          ]),
+        );
       });
 
       // Regression test for https://github.com/flutter/flutter/issues/167124.
@@ -3303,7 +4306,9 @@ targets:
 
         // Enable fusion
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionCiYaml);
-        config.dynamicConfig = DynamicConfig();
+        config.dynamicConfig = DynamicConfig(
+          unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
+        );
 
         final userData = PresubmitUserData(
           commit: CommitRef(

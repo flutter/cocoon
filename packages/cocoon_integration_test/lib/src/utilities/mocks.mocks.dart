@@ -5731,13 +5731,13 @@ class MockScheduler extends _i1.Mock implements _i16.Scheduler {
     _i7.RepositorySlug? slug,
     String? headSha, {
     String? detailsUrl,
-    required bool? isPresubmit,
+    required bool? isUnifiedCheckRun,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #lockMergeGroupChecks,
               [slug, headSha],
-              {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isPresubmit},
+              {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isUnifiedCheckRun},
             ),
             returnValue: _i13.Future<_i16.CheckRunLockResult>.value(
               _FakeCheckRunLockResult_58(
@@ -5745,7 +5745,10 @@ class MockScheduler extends _i1.Mock implements _i16.Scheduler {
                 Invocation.method(
                   #lockMergeGroupChecks,
                   [slug, headSha],
-                  {#detailsUrl: detailsUrl, #isUnifiedCheckRun: isPresubmit},
+                  {
+                    #detailsUrl: detailsUrl,
+                    #isUnifiedCheckRun: isUnifiedCheckRun,
+                  },
                 ),
               ),
             ),
@@ -5782,7 +5785,7 @@ class MockScheduler extends _i1.Mock implements _i16.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<void> unlockCheckRun(
+  _i13.Future<void> unlockMergeQueueGuard(
     _i7.RepositorySlug? slug,
     String? headSha,
     _i7.CheckRun? lock,
