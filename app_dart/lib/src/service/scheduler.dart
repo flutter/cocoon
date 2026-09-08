@@ -380,8 +380,8 @@ class Scheduler {
     final isPackagesRepo = slug == Config.packagesSlug;
     do {
       try {
-        //if its not flutter or packages, unlock the merge group lock.
-        if (!(isFlutterRepo || isPackagesRepo)) {
+        // If it's not flutter or packages, unlock the merge group lock.
+        if (!isFlutterRepo && !isPackagesRepo) {
           unlockMergeGroup = true;
         }
 
