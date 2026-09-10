@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -15,6 +16,8 @@ enabled_branches:
   - main
 ''';
 void main() {
+  useTestLoggerPerTest();
+
   late MockClient mockClient;
 
   setUp(() {

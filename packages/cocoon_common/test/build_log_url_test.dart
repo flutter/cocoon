@@ -14,32 +14,11 @@ void main() {
       );
     });
 
-    test('generates luci staging url', () {
-      expect(
-        generatePostSubmitBuildLogUrl(
-          buildName: 'Linux',
-          buildNumber: 123,
-          isBringup: true,
-        ),
-        '$luciProdLogBase/staging/Linux/123',
-      );
-    });
-
     test('generates dart-internal url', () {
       expect(
         generatePostSubmitBuildLogUrl(
           buildName: 'Linux flutter_release_builder',
           buildNumber: 123,
-        ),
-        '$dartInternalLogBase/flutter/Linux%20flutter_release_builder/123',
-      );
-    });
-    test('generates dart-internal url with isBringup', () {
-      expect(
-        generatePostSubmitBuildLogUrl(
-          buildName: 'Linux flutter_release_builder',
-          buildNumber: 123,
-          isBringup: true,
         ),
         '$dartInternalLogBase/flutter/Linux%20flutter_release_builder/123',
       );

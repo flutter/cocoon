@@ -10,6 +10,8 @@ import 'package:github/github.dart' as github;
 import 'package:github/hooks.dart' show HookEvent;
 import 'package:json_annotation/json_annotation.dart';
 
+import '../common/json_converters.dart';
+
 part 'checks.g.dart';
 
 /// Data models for json messages coming from GitHub Checks API.
@@ -36,7 +38,10 @@ class CheckRunEvent extends HookEvent {
   }
 }
 
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable(
+  fieldRename: FieldRename.snake,
+  converters: [SafeCheckSuiteConverter()],
+)
 class CheckRun {
   const CheckRun({
     this.conclusion,

@@ -65,6 +65,29 @@ void main() {
       expect(githubCheckRun.conclusion.value, 'success');
       expect(githubCheckRun.checkSuiteId, isNull);
     });
+
+    test('fromJson parses check_suite with startup_failure conclusion', () {
+      final json = <String, dynamic>{
+        'id': 1234,
+        'name': 'Guard',
+        'head_sha': 'the_sha',
+        'conclusion': 'success',
+        'check_suite': <String, dynamic>{
+          'id': 5678,
+          'head_branch': 'main',
+          'head_sha': 'the_sha',
+          'conclusion': 'startup_failure',
+          'pull_requests': <dynamic>[],
+        },
+      };
+
+      final checkRun = CheckRun.fromJson(json);
+      expect(checkRun.checkSuite, isNotNull);
+      expect(
+        checkRun.checkSuite!.conclusion,
+        github.CheckRunConclusion.failure,
+      );
+    });
   });
 
   test('MergeGroupEvent', () {

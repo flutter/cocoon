@@ -77,9 +77,7 @@ class IssueBuilder {
   final double threshold;
   final bool bringup;
 
-  Bucket get buildBucket {
-    return bringup ? Bucket.staging : Bucket.prod;
-  }
+  Bucket get buildBucket => Bucket.prod;
 
   String get issueTitle {
     return '${statistic.name} is ${_formatRate(statistic.flakyRate)}% flaky';

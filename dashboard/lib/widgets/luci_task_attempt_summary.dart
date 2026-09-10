@@ -28,7 +28,6 @@ class LuciTaskAttemptSummary extends StatelessWidget {
             final url = generatePostSubmitBuildLogUrl(
               buildName: task.builderName,
               buildNumber: buildNumber,
-              isBringup: task.isBringup,
             );
             await launchUrl(Uri.parse(url));
           },

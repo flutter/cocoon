@@ -10,8 +10,8 @@ import 'base.dart';
 /// List of manual overrides for failing tests to flip the tree green.
 ///
 /// This should be used sparingly and only when a test is flaky or clearly
-/// breaking a roll. This is faster than moving the test to staging via
-/// the bringup:true method.
+/// breaking a roll. This is faster than marking the test as bringup: true in
+/// .ci.yaml.
 final class SuppressedTest extends AppDocument<SuppressedTest> {
   static const kCollectionId = 'suppressed_tests';
 

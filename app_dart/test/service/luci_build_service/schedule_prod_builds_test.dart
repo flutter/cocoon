@@ -199,7 +199,7 @@ void main() {
     expect(
       scheduleBuild.builder,
       isA<bbv2.BuilderID>()
-          .having((b) => b.bucket, 'bucket', 'staging')
+          .having((b) => b.bucket, 'bucket', 'prod')
           .having((b) => b.builder, 'builder', 'Linux 1'),
     );
 

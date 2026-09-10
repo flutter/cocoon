@@ -34,11 +34,11 @@ This is to enable the auto build and upload. Please follow the following example
     - .ci.yaml
 ```
 
-Start with `bringup: true`, same as any other regular new target. Once validated in CI, remove it to enable running
-in the `prod` environment so that artifacts are to be uploaded to CIPD.
+Start with `bringup: true`, same as any other regular new target. Once validated in CI, remove `bringup: true`
+so that artifacts are uploaded to CIPD.
 
-Note: with `bringup: true`, the target will be executed in a staging environment and it validates only the logic
-and will not upload to CIPD.
+Note: with `bringup: true`, the target validates only the logic and will not upload artifacts to CIPD or block
+the tree.
 
 ## Adding a reference to the CIPD package
 

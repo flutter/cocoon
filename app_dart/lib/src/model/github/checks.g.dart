@@ -46,9 +46,9 @@ CheckRun _$CheckRunFromJson(Map<String, dynamic> json) => CheckRun(
           .toList() ??
       [],
   name: json['name'] as String?,
-  checkSuite: json['check_suite'] == null
-      ? null
-      : CheckSuite.fromJson(json['check_suite'] as Map<String, dynamic>),
+  checkSuite: const SafeCheckSuiteConverter().fromJson(
+    json['check_suite'] as Map<String, dynamic>?,
+  ),
 );
 
 Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
@@ -56,7 +56,7 @@ Map<String, dynamic> _$CheckRunToJson(CheckRun instance) => <String, dynamic>{
   'head_sha': instance.headSha,
   'conclusion': instance.conclusion,
   'name': instance.name,
-  'check_suite': instance.checkSuite,
+  'check_suite': const SafeCheckSuiteConverter().toJson(instance.checkSuite),
   'pull_requests': instance.pullRequests,
 };
 

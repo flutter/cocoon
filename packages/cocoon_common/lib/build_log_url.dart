@@ -13,20 +13,16 @@ const String dartInternalLogBase =
 
 /// Generates a LUCI UI URL for a postsubmit build log.
 ///
-/// The [isBringup] flag configures the URL to target the staging builder pool
-/// (if true) rather than the default production pool. [buildName] and
-/// [buildNumber] are required to identify the specific build.
+/// Targets the production builder pool. [buildName] and [buildNumber] are
+/// required to identify the specific build.
 String generatePostSubmitBuildLogUrl({
   required String buildName,
   required int buildNumber,
-  bool isBringup = false,
 }) {
   return _generateBuildLogUrl(
     buildName: buildName,
     buildNumber: buildNumber,
-    buildersGroup: isBringup
-        ? BuildersGroup.flutterStaging
-        : BuildersGroup.flutter,
+    buildersGroup: BuildersGroup.flutter,
   );
 }
 
@@ -66,13 +62,10 @@ String _generateBuildLogUrl({
 /// Represents the group or pool of builders running the task.
 ///
 /// Corresponds to the segment in the LUCI URL path to target
-/// specific builder groups (like 'prod', 'staging', or 'try').
+/// specific builder groups (like 'prod' or 'try').
 enum BuildersGroup {
   /// The production builders pool.
   flutter('prod'),
-
-  /// The staging builders pool for bringup tasks.
-  flutterStaging('staging'),
 
   /// The try builders pool for presubmit tasks.
   flutterTryBuilders('try');

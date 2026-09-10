@@ -7,6 +7,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
+import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:github/github.dart' hide Team;
@@ -193,6 +194,33 @@ abc_test.sh @ghi @flutter/framework
 
     test('returns null when not matched', () async {
       expect(getTeamLabelFromTeam(Team.unknown), null);
+    });
+  });
+
+  group('IssueBuilder', () {
+    test('buildBucket is prod regardless of bringup', () {
+      final statistic = BuilderStatistic(
+        name: 'Linux abc',
+        flakyRate: 0.5,
+        flakyNumber: 5,
+        totalNumber: 10,
+      );
+      final ownership = TestOwnership('owner', Team.framework);
+      final issueBuilderBringupFalse = IssueBuilder(
+        statistic: statistic,
+        ownership: ownership,
+        threshold: 0.1,
+        bringup: false,
+      );
+      final issueBuilderBringupTrue = IssueBuilder(
+        statistic: statistic,
+        ownership: ownership,
+        threshold: 0.1,
+        bringup: true,
+      );
+
+      expect(issueBuilderBringupFalse.buildBucket, Bucket.prod);
+      expect(issueBuilderBringupTrue.buildBucket, Bucket.prod);
     });
   });
 }

@@ -24,6 +24,21 @@ void main() {
     );
   });
 
+  test('QualifiedTask.sourceConfigurationUrl for luci with bringup', () {
+    final luciBringupTask = generateTaskForTest(
+      status: TaskStatus.succeeded,
+      builderName: 'abc',
+      bringup: true,
+    );
+
+    expect(
+      QualifiedTask.fromTask(luciBringupTask).sourceConfigurationUrl,
+      Uri.parse(
+        'https://ci.chromium.org/p/flutter/builders/luci.flutter.prod/abc',
+      ),
+    );
+  });
+
   test('QualifiedTask.sourceConfigurationUrl for dart-internal', () {
     final dartInternalTask = generateTaskForTest(
       status: TaskStatus.succeeded,

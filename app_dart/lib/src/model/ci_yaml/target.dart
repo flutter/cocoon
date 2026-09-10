@@ -283,11 +283,6 @@ final class Target {
     return _value.name.split(' ').first.toLowerCase();
   }
 
-  /// Get the associated LUCI bucket to run this [Target] in.
-  String getBucket() {
-    return _value.bringup ? 'staging' : 'prod';
-  }
-
   /// Returns value of ignore_flakiness property.
   ///
   /// Returns the value of ignore_flakiness property if

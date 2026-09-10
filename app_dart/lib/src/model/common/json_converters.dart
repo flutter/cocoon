@@ -4,6 +4,7 @@
 
 import 'dart:convert' hide json;
 
+import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 /// A converter for a "binary" JSON field.
@@ -118,5 +119,60 @@ class GerritDateTimeConverter implements JsonConverter<DateTime?, String?> {
   @override
   String? toJson(DateTime? object) {
     return object?.toIso8601String();
+  }
+}
+
+/// A converter for [CheckSuite] that handles `startup_failure` conclusion as
+/// `failure` and other unknown conclusions as `empty`.
+class SafeCheckSuiteConverter
+    implements JsonConverter<CheckSuite?, Map<String, dynamic>?> {
+  const SafeCheckSuiteConverter();
+
+  @override
+  CheckSuite? fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return null;
+    }
+    final normalized = Map<String, Object?>.from(json);
+    if (normalized case {'conclusion': final String? conclusion}) {
+      normalized['conclusion'] = _safeCheckRunConclusionFromJson(
+        conclusion,
+      )?.value;
+    }
+    return CheckSuite.fromJson(normalized);
+  }
+
+  @override
+  Map<String, dynamic>? toJson(CheckSuite? object) {
+    if (object == null) {
+      return null;
+    }
+    return <String, dynamic>{
+      'id': object.id,
+      'head_sha': object.headSha,
+      'head_branch': object.headBranch,
+      'conclusion': object.conclusion.value,
+      'pull_requests': object.pullRequests.map((pr) => pr.toJson()).toList(),
+    };
+  }
+
+  static CheckRunConclusion? _safeCheckRunConclusionFromJson(String? value) {
+    if (value == 'startup_failure') {
+      return CheckRunConclusion.failure;
+    }
+    for (final level in const [
+      CheckRunConclusion.success,
+      CheckRunConclusion.failure,
+      CheckRunConclusion.neutral,
+      CheckRunConclusion.cancelled,
+      CheckRunConclusion.timedOut,
+      CheckRunConclusion.skipped,
+      CheckRunConclusion.actionRequired,
+    ]) {
+      if (level.value == value) {
+        return level;
+      }
+    }
+    return CheckRunConclusion.empty;
   }
 }

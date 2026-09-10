@@ -75,12 +75,6 @@ final class TargetMatcher extends Matcher {
     );
   }
 
-  TargetMatcher hasBucket(Object? valueOrMatcher) {
-    return TargetMatcher._(
-      _delegate.having((e) => e.getBucket(), 'getBucket()', valueOrMatcher),
-    );
-  }
-
   TargetMatcher hasIgnoreFlakiness(Object? valueOrMatcher) {
     return TargetMatcher._(
       _delegate.having(

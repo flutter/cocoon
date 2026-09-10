@@ -1038,7 +1038,7 @@ class LuciBuildService {
     return bbv2.ScheduleBuildRequest(
       builder: bbv2.BuilderID(
         project: 'flutter',
-        bucket: target.getBucket(),
+        bucket: 'prod',
         builder: target.name,
       ),
       dimensions: requestedDimensions,
@@ -1103,7 +1103,7 @@ class LuciBuildService {
     return bbv2.ScheduleBuildRequest(
       builder: bbv2.BuilderID(
         project: 'flutter',
-        bucket: target.getBucket(),
+        bucket: 'prod',
         builder: target.name,
       ),
       dimensions: requestedDimensions,
