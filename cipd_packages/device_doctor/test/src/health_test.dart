@@ -8,6 +8,7 @@ import 'package:device_doctor/src/health.dart';
 import 'package:device_doctor/src/utils.dart';
 import 'package:mockito/mockito.dart';
 import 'package:platform/platform.dart' as platform;
+import 'package:platform/testing.dart';
 import 'package:test/test.dart';
 
 import 'utils.dart';
@@ -36,7 +37,7 @@ void main() {
       when(
         pm.start(any, workingDirectory: anyNamed('workingDirectory')),
       ).thenAnswer((_) => Future.value(proc));
-      final platform.Platform pl = platform.FakePlatform(
+      final platform.Platform pl = TestPlatform.native(
         environment: <String, String>{
           'FLUTTER_XCODE_CODE_SIGN_STYLE': 'Manual',
           'FLUTTER_XCODE_DEVELOPMENT_TEAM': 'S8QB4VV633',
