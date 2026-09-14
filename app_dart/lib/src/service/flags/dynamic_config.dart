@@ -162,7 +162,10 @@ final class DynamicConfig {
     if (checkSuiteFlow.useForAll) {
       return true;
     }
-    return checkSuiteFlow.useForUsers.contains(githubUsername);
+    final usernameLower = githubUsername.toLowerCase();
+    return checkSuiteFlow.useForUsers.any(
+      (user) => user.toLowerCase() == usernameLower,
+    );
   }
 
   bool isOrderedPresubmitEnabledForUser(String githubUsername) {
