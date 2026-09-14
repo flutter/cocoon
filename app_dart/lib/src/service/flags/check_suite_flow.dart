@@ -36,7 +36,9 @@ final class CheckSuiteFlow {
   factory CheckSuiteFlow({bool? useForAll, List<String>? useForUsers}) {
     return CheckSuiteFlow._(
       useForAll: useForAll ?? defaultInstance.useForAll,
-      useForUsers: useForUsers ?? defaultInstance.useForUsers,
+      useForUsers: useForUsers != null
+          ? List<String>.unmodifiable(useForUsers)
+          : defaultInstance.useForUsers,
     );
   }
 
