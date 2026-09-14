@@ -32,19 +32,12 @@ dynamicTestSuppression: true
 # The Gemini model to use for log analysis.
 geminiModel: gemini-3-flash-preview
 
-# Whether to allow unified check run flow to specific users or to everyone.
-unifiedCheckRunFlow:
-  useForAll: true
+# Whether to allow check suite flow to specific users or to everyone.
+checkSuiteFlow:
+  useForAll: false
   useForUsers:
     - ievdokdm
     - eyebrowsoffire
-    - andywolff
-    - camsim99
-    - walley892
-    - loic-sharma
-    - vashworth
-    - mboetger
-    - justinmc
 
 # Whether to process LUCI notifications of builds progress ordered within check run.
 orderedPresubmit:
