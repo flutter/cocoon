@@ -47,11 +47,13 @@ base class PresubmitSubscription extends SubscriptionHandler {
     required super.subscriptionName,
     super.authProvider,
   }) : _ciYamlFetcher = ciYamlFetcher,
+       _githubChecksService = githubChecksService,
        _luciBuildService = luciBuildService,
        _scheduler = scheduler,
        _firestore = firestore;
 
   final LuciBuildService _luciBuildService;
+  final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
   final Scheduler _scheduler;
   final FirestoreService _firestore;
@@ -141,16 +143,20 @@ base class PresubmitSubscription extends SubscriptionHandler {
     tagSet ??= BuildTags.fromStringPairs(build.tags);
     final builderName = build.builder.builder;
     var rescheduled = false;
+    final isUnifiedCheckRun = userData.guardCheckRunId != null;
+    log.info('Unified Check Run ${isUnifiedCheckRun ? 'Enabled' : 'Disabled'}');
     if (build.status.isTaskFailed()) {
-      // If failed we need summaryMarkdown. For github check run flow this
-      // called in [GithubChecksService.updateCheckStatus(...)]
-      build = await _luciBuildService.getBuildById(
-        build.id,
-        buildMask: bbv2.BuildMask(
-          // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
-          allFields: true,
-        ),
-      );
+      if (isUnifiedCheckRun) {
+        // If failed we need summaryMarkdown. For github check run flow this
+        // called in [GithubChecksService.updateCheckStatus(...)]
+        build = await _luciBuildService.getBuildById(
+          build.id,
+          buildMask: bbv2.BuildMask(
+            // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
+            allFields: true,
+          ),
+        );
+      }
       final maxAttempt = await _getMaxAttempt(
         userData.commit,
         builderName,
@@ -159,14 +165,17 @@ base class PresubmitSubscription extends SubscriptionHandler {
       if (tagSet.currentAttempt < maxAttempt) {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
-        await UnifiedCheckRun.reInitializeInProgressJob(
-          firestoreService: _firestore,
-          completedJob: PresubmitCompletedJob.fromBuild(
-            build,
-            userData,
-            summaryPrepend: '### ⚠️ Test failed but automatically rescheduled',
-          ),
-        );
+        if (isUnifiedCheckRun) {
+          await UnifiedCheckRun.reInitializeInProgressJob(
+            firestoreService: _firestore,
+            completedJob: PresubmitCompletedJob.fromBuild(
+              build,
+              userData,
+              summaryPrepend:
+                  '### ⚠️ Test failed but automatically rescheduled',
+            ),
+          );
+        }
         await _luciBuildService.reschedulePresubmitBuild(
           builderName: builderName,
           build: build,
@@ -189,6 +198,21 @@ base class PresubmitSubscription extends SubscriptionHandler {
         suppressedMessage =
             '### ⚠️ Test failed but marked as suppressed on dashboard';
       }
+    }
+    if (!isUnifiedCheckRun) {
+      if (userData.checkRunId == null) {
+        log.error('checkRunId is null for non-unified check run');
+        return;
+      }
+      await _githubChecksService.updateCheckStatus(
+        checkRunId: userData.checkRunId!,
+        build: build,
+        luciBuildService: _luciBuildService,
+        slug: userData.commit.slug,
+        rescheduled: rescheduled,
+        conclusionOverride: override,
+        summaryPrepend: suppressedMessage,
+      );
     }
     if (!rescheduled) {
       final check = PresubmitCompletedJob.fromBuild(
