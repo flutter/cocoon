@@ -12,11 +12,11 @@ import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
+import 'package:cocoon_service/src/model/firestore/ci_staging.dart';
 import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' hide CheckRun;
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
-import 'package:cocoon_service/src/service/firestore/unified_check_run.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart' hide Branch;
@@ -96,7 +96,9 @@ void main() {
       wrongBaseBranchPullRequestMessageValue:
           '{{target_branch}} -> {{default_branch}}',
     );
-    config.dynamicConfig = DynamicConfig();
+    config.dynamicConfig = DynamicConfig(
+      unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
+    );
     issuesService = MockIssuesService();
     when(
       // ignore: discarded_futures
@@ -147,8 +149,6 @@ void main() {
         any,
         any,
         output: anyNamed('output'),
-        conclusion: anyNamed('conclusion'),
-        detailsUrl: anyNamed('detailsUrl'),
       ),
     ).thenAnswer((_) async {
       return CheckRun.fromJson(const <String, dynamic>{
@@ -2792,23 +2792,13 @@ void foo() {
       });
 
       test('Tries to schedule tests for a duplicate SHA warns', () async {
-        final pr = generatePullRequest(
-          number: 1,
-          headSha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
-        );
-        final checkRunGuard = generateCheckRun(
-          1,
-          name: Config.kDashboardCheckName,
-        );
-        await UnifiedCheckRun.initializeCiStagingDocument(
+        await CiStaging.initializeDocument(
           firestoreService: firestore,
           slug: Config.flutterSlug,
           sha: '66d6bd9a3f79a36fe4f5178ccefbc781488a596c',
           stage: CiStage.fusionEngineBuild,
           tasks: [],
-          config: config,
-          pullRequest: pr,
-          dashboardChecks: checkRunGuard,
+          checkRunGuard: '',
         );
         config.maxFilesChangedForSkippingEnginePhaseValue = 1;
         await testActions(

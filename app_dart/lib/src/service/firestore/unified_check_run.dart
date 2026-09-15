@@ -36,10 +36,14 @@ final class UnifiedCheckRun {
     CheckRun? mergeQueueGuard,
     @visibleForTesting DateTime Function() utcNow = DateTime.timestamp,
   }) async {
-    if (dashboardChecks != null && pullRequest != null) {
+    if (dashboardChecks != null &&
+        pullRequest != null &&
+        config.flags.isUnifiedCheckRunFlowEnabledForUser(
+          pullRequest.user!.login!,
+        )) {
       // Create the presubmit_guard and associated presubmit_job documents.
       log.info(
-        'Storing UnifiedCheckRun data for ${slug.fullName}#${pullRequest.number}.',
+        'Storing UnifiedCheckRun data for ${slug.fullName}#${pullRequest.number} as it enabled for user ${pullRequest.user!.login}.',
       );
       // We store the creation time of the guard since there might be several
       // guards for the same PR created and each new one created after previous
