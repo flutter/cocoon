@@ -47,11 +47,13 @@ base class PresubmitSubscription extends SubscriptionHandler {
     required super.subscriptionName,
     super.authProvider,
   }) : _ciYamlFetcher = ciYamlFetcher,
+       _githubChecksService = githubChecksService,
        _luciBuildService = luciBuildService,
        _scheduler = scheduler,
        _firestore = firestore;
 
   final LuciBuildService _luciBuildService;
+  final GithubChecksService _githubChecksService;
   final CiYamlFetcher _ciYamlFetcher;
   final Scheduler _scheduler;
   final FirestoreService _firestore;
@@ -141,6 +143,10 @@ base class PresubmitSubscription extends SubscriptionHandler {
     tagSet ??= BuildTags.fromStringPairs(build.tags);
     final builderName = build.builder.builder;
     var rescheduled = false;
+    final isMergeQueue = tagSet.containsType<InMergeQueueBuildTag>();
+    log.info(
+      'Processing Build for ${isMergeQueue ? 'Merge Queue' : 'Presubmit'}',
+    );
     if (build.status.isTaskFailed()) {
       // If failed we need summaryMarkdown. For github check run flow this
       // called in [GithubChecksService.updateCheckStatus(...)]
@@ -189,6 +195,21 @@ base class PresubmitSubscription extends SubscriptionHandler {
         suppressedMessage =
             '### ⚠️ Test failed but marked as suppressed on dashboard';
       }
+    }
+    if (isMergeQueue) {
+      if (userData.checkRunId == null) {
+        log.error('checkRunId is required for merge queue builds.');
+        return;
+      }
+      await _githubChecksService.updateCheckStatus(
+        checkRunId: userData.checkRunId!,
+        build: build,
+        luciBuildService: _luciBuildService,
+        slug: userData.commit.slug,
+        rescheduled: rescheduled,
+        conclusionOverride: override,
+        summaryPrepend: suppressedMessage,
+      );
     }
     if (!rescheduled) {
       final check = PresubmitCompletedJob.fromBuild(
