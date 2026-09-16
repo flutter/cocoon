@@ -11,7 +11,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:file/memory.dart';
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
-import 'package:platform/platform.dart';
+import 'package:platform/testing.dart';
 
 import 'package:test/test.dart';
 
@@ -102,8 +102,9 @@ Future<void> main() async {
       logger = TestLogger();
       fs = MemoryFileSystem();
       fs.directory(xcworkspacePath).createSync(recursive: true);
-      platform = MockPlatform();
-      platform.environment['HOME'] = '/User/username';
+      platform = TestPlatform.native(
+        environment: <String, String>{'HOME': '/User/username'},
+      );
     });
 
     test('diagnose logs output of xcdevice list', () async {

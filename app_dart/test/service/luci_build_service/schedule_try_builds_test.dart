@@ -16,7 +16,6 @@ import 'package:cocoon_service/src/service/cache_service.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/ordered_presubmit_flags.dart';
-import 'package:cocoon_service/src/service/flags/unified_check_run_flow_flags.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
@@ -420,11 +419,7 @@ void main() {
 
         // Enable Unified Check Run Flow
         luci = LuciBuildService(
-          config: FakeConfig(
-            dynamicConfig: DynamicConfig(
-              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-            ),
-          ),
+          config: FakeConfig(dynamicConfig: DynamicConfig()),
           cache: CacheService.inMemory(),
           buildBucketClient: mockBuildBucketClient,
           githubChecksUtil: mockGithubChecksUtil,
@@ -492,11 +487,7 @@ void main() {
 
       // Enable Unified Check Run Flow but provide NO guard
       luci = LuciBuildService(
-        config: FakeConfig(
-          dynamicConfig: DynamicConfig(
-            unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-          ),
-        ),
+        config: FakeConfig(dynamicConfig: DynamicConfig()),
         cache: CacheService.inMemory(),
         buildBucketClient: mockBuildBucketClient,
         githubChecksUtil: mockGithubChecksUtil,
@@ -554,79 +545,6 @@ void main() {
       expect(userData.checkRunId, 456);
       expect(userData.guardCheckRunId, isNull);
     });
-
-    test(
-      'does not update dashboard checks when unified flow is disabled',
-      () async {
-        final pullRequest = generatePullRequest(
-          id: 1,
-          repo: 'flutter',
-          headSha: 'headsha123',
-        );
-
-        final buildTarget = generateTarget(
-          1,
-          properties: {'os': 'abc'},
-          slug: RepositorySlug.full('flutter/flutter'),
-          name: 'Linux foo',
-        );
-
-        // Disable Unified Check Run Flow but provide a guard (unexpected but should be handled)
-        luci = LuciBuildService(
-          config: FakeConfig(
-            dynamicConfig: DynamicConfig(
-              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: false),
-            ),
-          ),
-          cache: CacheService.inMemory(),
-          buildBucketClient: mockBuildBucketClient,
-          githubChecksUtil: mockGithubChecksUtil,
-          pubsub: pubSub,
-          gerritService: gerritService,
-          firestore: firestore,
-        );
-
-        final checkRunGuard = generateCheckRun(1234, name: 'Guard');
-
-        when(
-          mockGithubChecksUtil.createCheckRun(any, any, any, any),
-        ).thenAnswer((_) async => generateCheckRun(456, name: 'Linux foo'));
-
-        await expectLater(
-          luci.scheduleTryBuilds(
-            pullRequest: pullRequest,
-            targets: [buildTarget],
-            engineArtifacts: EngineArtifacts.builtFromSource(
-              commitSha: pullRequest.head!.sha!,
-            ),
-            dashboardChecks: checkRunGuard, // Pass guard even though disabled
-          ),
-          completion([isTarget.hasName('Linux foo')]),
-        );
-
-        // Should NOT update dashboard checks
-        verifyNever(
-          mockGithubChecksUtil.updateCheckRun(
-            any,
-            any,
-            any,
-            status: anyNamed('status'),
-            conclusion: anyNamed('conclusion'),
-          ),
-        );
-
-        // Should create individual check run because unified flow is disabled
-        verify(
-          mockGithubChecksUtil.createCheckRun(
-            any,
-            RepositorySlug.full('flutter/flutter'),
-            'headsha123',
-            'Linux foo',
-          ),
-        ).called(1);
-      },
-    );
-
     test(
       'reRequests check run for re-run failed checks when failedJobs is 0',
       () async {
@@ -653,9 +571,7 @@ void main() {
         luci = LuciBuildService(
           config: FakeConfig(
             githubClient: mockGithubClient,
-            dynamicConfig: DynamicConfig(
-              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-            ),
+            dynamicConfig: DynamicConfig(),
           ),
           cache: CacheService.inMemory(),
           buildBucketClient: mockBuildBucketClient,
@@ -730,9 +646,7 @@ void main() {
         luci = LuciBuildService(
           config: FakeConfig(
             githubClient: mockGithubClient,
-            dynamicConfig: DynamicConfig(
-              unifiedCheckRunFlow: UnifiedCheckRunFlow(useForAll: true),
-            ),
+            dynamicConfig: DynamicConfig(),
           ),
           cache: CacheService.inMemory(),
           buildBucketClient: mockBuildBucketClient,
