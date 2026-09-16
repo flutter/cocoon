@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
@@ -78,7 +77,16 @@ void main() {
     config.githubClient = mockGitHubClient;
   });
 
-  test('Requests with repo_owner and repo_name update checks', () async {
+  test('In merge queue update check status', () async {
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).thenAnswer((_) async => true);
+
     when(
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
@@ -90,6 +98,7 @@ void main() {
       Int64(1),
       status: bbv2.Status.SUCCESS,
       builder: 'Linux Host Engine',
+      extraTags: [InMergeQueueBuildTag().toStringPair()],
       userData: PresubmitUserData(
         commit: CommitRef(
           sha: 'abc',
@@ -102,108 +111,62 @@ void main() {
     );
 
     await tester.post(handler);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+      ),
+    ).called(1);
 
     verify(mockScheduler.processCheckRunCompleted(any)).called(1);
   });
 
-  test('Requests when task failed but no need to reschedule', () async {
-    buildBucketClient.getBuildResponse = Future.value(
-      bbv2.Build(
-        id: Int64(1),
-        builder: bbv2.BuilderID(builder: 'Linux A'),
-        status: bbv2.Status.FAILURE,
-        summaryMarkdown: 'test summary',
-      ),
-    );
-    when(
-      mockGithubChecksService.conclusionForResult(any),
-    ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
-
-    final userData = PresubmitUserData(
-      commit: CommitRef(
-        sha: 'abc',
-        branch: 'master',
-        slug: RepositorySlug('flutter', 'flutter'),
-      ),
-      checkRunId: 1,
-      checkSuiteId: 2,
-    );
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux A',
-      userData: userData,
-    );
-
-    final buildsPubSub = createBuild(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux A',
-    );
-
-    await tester.post(handler);
-    verifyNever(
-      mockLuciBuildService.reschedulePresubmitBuild(
-        build: buildsPubSub.build,
-        builderName: 'Linux Coverage',
-        nextAttempt: 0,
-        userData: userData,
-      ),
-    );
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
-  });
-
-  test('Requests when task failed but need to reschedule', () async {
-    buildBucketClient.getBuildResponse = Future.value(
-      bbv2.Build(
-        id: Int64(1),
-        builder: bbv2.BuilderID(builder: 'Linux presubmit_max_attempts=2'),
-        status: bbv2.Status.FAILURE,
-        summaryMarkdown: 'test summary',
-      ),
-    );
-    firestore.putDocument(
-      PresubmitJob.init(
-        slug: RepositorySlug('flutter', 'flutter'),
-        jobName: 'Linux presubmit_max_attempts=2',
-        checkRunId: 1,
-        creationTime: 12345,
-        attemptNumber: 1,
-      ),
-    );
-
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux presubmit_max_attempts=2',
-      userData: PresubmitUserData(
-        commit: CommitRef(
-          sha: 'abc',
-          branch: 'master',
-          slug: RepositorySlug('flutter', 'flutter'),
+  test(
+    'In merge queue, update check status when task failed but need to reschedule',
+    () async {
+      when(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          rescheduled: true,
         ),
-        checkRunId: 1,
-        checkSuiteId: 2,
-      ),
-    );
-    await tester.post(handler);
+      ).thenAnswer((_) async => true);
 
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
-  });
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.FAILURE,
+        builder: 'Linux presubmit_max_attempts=2',
+        extraTags: [InMergeQueueBuildTag().toStringPair()],
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: RepositorySlug('flutter', 'flutter'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+      );
+      await tester.post(handler);
 
-  test('Build rescheduled when in merge queue', () async {
-    firestore.putDocument(
-      PresubmitJob.init(
-        slug: RepositorySlug('flutter', 'flutter'),
-        jobName: 'Linux A',
-        checkRunId: 1,
-        creationTime: 12345,
-        attemptNumber: 1,
-      ),
-    );
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          rescheduled: true,
+        ),
+      ).called(1);
+      verifyNever(mockScheduler.processCheckRunCompleted(any));
+    },
+  );
+
+  test('In merge queue build rescheduled', () async {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -215,14 +178,7 @@ void main() {
     ).thenAnswer((_) async => true);
     when(
       mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
-    ).thenAnswer(
-      (_) async => bbv2.Build(
-        id: Int64(1),
-        builder: bbv2.BuilderID(builder: 'Linux A'),
-        status: bbv2.Status.INFRA_FAILURE,
-        summaryMarkdown: 'test summary',
-      ),
-    );
+    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
 
     tester.message = createPushMessage(
       Int64(1),
@@ -280,130 +236,149 @@ void main() {
         userData: anyNamed('userData'),
       ),
     ).called(1);
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+      ),
+    ).called(1);
     verifyNever(mockScheduler.processCheckRunCompleted(any));
   });
 
-  test('Build not rescheduled if not found in ciYaml list.', () async {
-    buildBucketClient.getBuildResponse = Future.value(
-      bbv2.Build(
-        id: Int64(1),
-        builder: bbv2.BuilderID(builder: 'Linux C'),
+  test(
+    'In merge queue, build not rescheduled if not found in ciYaml list.',
+    () async {
+      when(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          rescheduled: false,
+        ),
+      ).thenAnswer((_) async => true);
+
+      when(
+        mockGithubChecksService.conclusionForResult(any),
+      ).thenAnswer((_) => github.CheckRunConclusion.empty);
+      when(
+        mockScheduler.processCheckRunCompleted(any),
+      ).thenAnswer((_) async => true);
+
+      final userData = PresubmitUserData(
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+        checkRunId: 1,
+        checkSuiteId: 2,
+      );
+
+      tester.message = createPushMessage(
+        Int64(1),
         status: bbv2.Status.FAILURE,
-        summaryMarkdown: 'test summary',
-      ),
-    );
-    when(
-      mockGithubChecksService.updateCheckStatus(
-        build: anyNamed('build'),
-        checkRunId: anyNamed('checkRunId'),
-        luciBuildService: anyNamed('luciBuildService'),
-        slug: anyNamed('slug'),
-        rescheduled: false,
-      ),
-    ).thenAnswer((_) async => true);
-
-    when(
-      mockGithubChecksService.conclusionForResult(any),
-    ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
-
-    final userData = PresubmitUserData(
-      commit: CommitRef(
-        sha: 'abc',
-        branch: 'master',
-        slug: RepositorySlug('flutter', 'flutter'),
-      ),
-      checkRunId: 1,
-      checkSuiteId: 2,
-    );
-
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux C',
-      userData: userData,
-    );
-
-    final buildsPubSub = createBuild(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux C',
-    );
-
-    await tester.post(handler);
-    verifyNever(
-      mockLuciBuildService.reschedulePresubmitBuild(
-        build: buildsPubSub.build,
-        builderName: 'Linux C',
+        builder: 'Linux C',
+        extraTags: [InMergeQueueBuildTag().toStringPair()],
         userData: userData,
-        nextAttempt: 1,
-      ),
-    );
+      );
 
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
-  });
-
-  test('Build not rescheduled if ci.yaml fails validation.', () async {
-    buildBucketClient.getBuildResponse = Future.value(
-      bbv2.Build(
-        id: Int64(1),
-        builder: bbv2.BuilderID(builder: 'Linux C'),
+      final buildsPubSub = createBuild(
+        Int64(1),
         status: bbv2.Status.FAILURE,
-        summaryMarkdown: 'test summary',
-      ),
-    );
-    when(
-      mockGithubChecksService.updateCheckStatus(
-        build: anyNamed('build'),
-        checkRunId: anyNamed('checkRunId'),
-        luciBuildService: anyNamed('luciBuildService'),
-        slug: anyNamed('slug'),
-        rescheduled: false,
-      ),
-    ).thenAnswer((_) async => true);
+        builder: 'Linux C',
+      );
 
-    when(
-      mockGithubChecksService.conclusionForResult(any),
-    ).thenAnswer((_) => github.CheckRunConclusion.empty);
-    when(
-      mockScheduler.processCheckRunCompleted(any),
-    ).thenAnswer((_) async => true);
+      await tester.post(handler);
+      verifyNever(
+        mockLuciBuildService.reschedulePresubmitBuild(
+          build: buildsPubSub.build,
+          builderName: 'Linux C',
+          userData: userData,
+          nextAttempt: 1,
+        ),
+      );
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          rescheduled: false,
+        ),
+      ).called(1);
 
-    final userData = PresubmitUserData(
-      checkRunId: 1,
-      checkSuiteId: 2,
-      commit: CommitRef(
-        sha: 'abc',
-        branch: 'master',
-        slug: RepositorySlug('flutter', 'flutter'),
-      ),
-    );
-    tester.message = createPushMessage(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux C',
-      userData: userData,
-    );
+      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    },
+  );
 
-    final buildsPubSub = createBuild(
-      Int64(1),
-      status: bbv2.Status.FAILURE,
-      builder: 'Linux C',
-    );
+  test(
+    'In merge queue, build not rescheduled if ci.yaml fails validation.',
+    () async {
+      when(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          rescheduled: false,
+        ),
+      ).thenAnswer((_) async => true);
 
-    await tester.post(handler);
-    verifyNever(
-      mockLuciBuildService.reschedulePresubmitBuild(
-        build: buildsPubSub.build,
-        builderName: 'Linux C',
+      when(
+        mockGithubChecksService.conclusionForResult(any),
+      ).thenAnswer((_) => github.CheckRunConclusion.empty);
+      when(
+        mockScheduler.processCheckRunCompleted(any),
+      ).thenAnswer((_) async => true);
+
+      final userData = PresubmitUserData(
+        checkRunId: 1,
+        checkSuiteId: 2,
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+      );
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.FAILURE,
+        builder: 'Linux C',
+        extraTags: [InMergeQueueBuildTag().toStringPair()],
         userData: userData,
-        nextAttempt: 1,
-      ),
-    );
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
-  });
+      );
+
+      final buildsPubSub = createBuild(
+        Int64(1),
+        status: bbv2.Status.FAILURE,
+        builder: 'Linux C',
+      );
+
+      await tester.post(handler);
+      verifyNever(
+        mockLuciBuildService.reschedulePresubmitBuild(
+          build: buildsPubSub.build,
+          builderName: 'Linux C',
+          userData: userData,
+          nextAttempt: 1,
+        ),
+      );
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+          rescheduled: false,
+        ),
+      ).called(1);
+      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    },
+  );
 
   test('Pubsub rejected if branch is not enabled.', () async {
     final userData = PresubmitUserData(
@@ -434,16 +409,7 @@ void main() {
     );
   });
 
-  test('Build contains data from build_large_fields', () async {
-    firestore.putDocument(
-      PresubmitJob.init(
-        slug: RepositorySlug('flutter', 'flutter'),
-        jobName: 'Linux presubmit_max_attempts=2',
-        checkRunId: 1,
-        creationTime: 12345,
-        attemptNumber: 1,
-      ),
-    );
+  test('In merge queue, build contains data from build_large_fields', () async {
     when(
       mockGithubChecksService.updateCheckStatus(
         build: anyNamed('build'),
@@ -453,27 +419,15 @@ void main() {
         rescheduled: anyNamed('rescheduled'),
       ),
     ).thenAnswer((_) async => true);
-    final fullBuild =
-        createBuild(
-            Int64(1),
-            status: bbv2.Status.FAILURE,
-            builder: 'Linux presubmit_max_attempts=2',
-          ).build
-          ..mergeFromBuffer(
-            const ZLibDecoder().decodeBytes(
-              createBuild(Int64(1)).buildLargeFields,
-            ),
-          )
-          ..summaryMarkdown = 'test summary';
-
     when(
       mockLuciBuildService.getBuildById(any, buildMask: anyNamed('buildMask')),
-    ).thenAnswer((_) async => fullBuild);
+    ).thenAnswer((_) async => bbv2.Build(summaryMarkdown: 'test summary'));
 
     tester.message = createPushMessage(
       Int64(1),
       status: bbv2.Status.FAILURE,
       builder: 'Linux presubmit_max_attempts=2',
+      extraTags: [InMergeQueueBuildTag().toStringPair()],
       userData: PresubmitUserData(
         checkRunId: 1,
         checkSuiteId: 2,
@@ -582,6 +536,95 @@ void main() {
           .having((e) => e.status, 'status', TaskStatus.succeeded)
           .having((e) => e.checkSuiteId, 'checkSuiteId', 2)
           .having((e) => e.headBranch, 'headBranch', 'master'),
+    );
+  });
+
+  test('In merge queue, requests when task failed and is suppressed', () async {
+    final userData = PresubmitUserData(
+      commit: CommitRef(
+        sha: 'abc',
+        branch: 'master',
+        slug: RepositorySlug('flutter', 'flutter'),
+      ),
+      checkRunId: 1,
+      checkSuiteId: 2,
+    );
+
+    // Setup Firestore
+    firestore.putDocument(
+      SuppressedTest(
+          name: 'Linux A',
+          repository: 'flutter/flutter',
+          issueLink: 'https://github.com/flutter/flutter/issues/123',
+          isSuppressed: true,
+          createTimestamp: DateTime.now(),
+        )
+        ..name = firestore.resolveDocumentName(
+          SuppressedTest.kCollectionId,
+          'suppressed_1',
+        ),
+    );
+
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        conclusionOverride: github.CheckRunConclusion.neutral,
+        summaryPrepend: argThat(
+          contains('marked as suppressed'),
+          named: 'summaryPrepend',
+        ),
+      ),
+    ).thenAnswer((_) async => true);
+
+    when(
+      mockScheduler.processCheckRunCompleted(any),
+    ).thenAnswer((_) async => true);
+
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux A',
+      extraTags: [
+        InMergeQueueBuildTag().toStringPair(),
+        CurrentAttemptBuildTag(attemptNumber: 4).toStringPair(),
+      ],
+      userData: userData,
+    );
+
+    await tester.post(handler);
+
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        conclusionOverride: github.CheckRunConclusion.neutral,
+        summaryPrepend: argThat(
+          contains('### ⚠️ Test failed but marked as suppressed on dashboard'),
+          named: 'summaryPrepend',
+        ),
+      ),
+    ).called(1);
+
+    final captured = verify(
+      mockScheduler.processCheckRunCompleted(captureAny),
+    ).captured;
+    expect(captured, hasLength(1));
+    expect(
+      captured[0],
+      isA<PresubmitCompletedJob>()
+          .having((e) => e.status, 'status', TaskStatus.neutral)
+          .having(
+            (e) => e.summary,
+            'summary',
+            contains(
+              '### ⚠️ Test failed but marked as suppressed on dashboard',
+            ),
+          ),
     );
   });
 
@@ -723,6 +766,50 @@ void main() {
     },
   );
 
+  test('In Merge Queue suppression check skipped when rescheduled', () async {
+    tester.message = createPushMessage(
+      Int64(1),
+      status: bbv2.Status.FAILURE,
+      builder: 'Linux presubmit_max_attempts=2',
+      extraTags: [InMergeQueueBuildTag().toStringPair()],
+      userData: PresubmitUserData(
+        commit: CommitRef(
+          sha: 'abc',
+          branch: 'master',
+          slug: RepositorySlug('flutter', 'flutter'),
+        ),
+        checkRunId: 1,
+        checkSuiteId: 2,
+      ),
+    );
+
+    when(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+        conclusionOverride: null,
+        summaryPrepend: null,
+      ),
+    ).thenAnswer((_) async => true);
+
+    await tester.post(handler);
+
+    verify(
+      mockGithubChecksService.updateCheckStatus(
+        build: anyNamed('build'),
+        checkRunId: anyNamed('checkRunId'),
+        luciBuildService: anyNamed('luciBuildService'),
+        slug: anyNamed('slug'),
+        rescheduled: true,
+        conclusionOverride: null,
+        summaryPrepend: null,
+      ),
+    ).called(1);
+  });
+
   test('Unified Suppression check skipped when rescheduled', () async {
     buildBucketClient.getBuildResponse = Future.value(
       bbv2.Build()
@@ -804,7 +891,7 @@ void main() {
   });
 
   test(
-    'publishes build message to ordered-presubmit topic with orderingKey when ordering_key flag exists',
+    'Publishes build message to ordered-presubmit topic with orderingKey when ordering_key flag exists',
     () async {
       tester.message = createPushMessage(
         Int64(1),
@@ -841,45 +928,4 @@ void main() {
     },
   );
 
-  test(
-    'does not publish to ordered-presubmit topic when orderingKey is empty',
-    () async {
-      when(
-        mockGithubChecksService.updateCheckStatus(
-          build: anyNamed('build'),
-          checkRunId: anyNamed('checkRunId'),
-          luciBuildService: anyNamed('luciBuildService'),
-          slug: anyNamed('slug'),
-        ),
-      ).thenAnswer((_) async => true);
-      when(
-        mockGithubChecksService.conclusionForResult(any),
-      ).thenAnswer((_) => github.CheckRunConclusion.empty);
-      when(
-        mockScheduler.processCheckRunCompleted(any),
-      ).thenAnswer((_) async => true);
-
-      tester.message = createPushMessage(
-        Int64(1),
-        status: bbv2.Status.SUCCESS,
-        builder: 'Linux Host Engine',
-        userData: PresubmitUserData(
-          commit: CommitRef(
-            sha: 'abc',
-            branch: 'master',
-            slug: RepositorySlug('flutter', 'cocoon'),
-          ),
-          checkRunId: 1,
-          checkSuiteId: 2,
-        ),
-        extraTags: [OrderingKeyTag(orderingKey: '').toStringPair()],
-      );
-
-      final response = await tester.post(handler);
-
-      expect(response, Response.emptyOk);
-      expect(pubSub.topics, isEmpty);
-      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
-    },
-  );
 }

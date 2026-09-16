@@ -148,15 +148,17 @@ base class PresubmitSubscription extends SubscriptionHandler {
       'Processing Build for ${isMergeQueue ? 'Merge Queue' : 'Presubmit'}',
     );
     if (build.status.isTaskFailed()) {
-      // If failed we need summaryMarkdown. For github check run flow this
-      // called in [GithubChecksService.updateCheckStatus(...)]
-      build = await _luciBuildService.getBuildById(
-        build.id,
-        buildMask: bbv2.BuildMask(
-          // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
-          allFields: true,
-        ),
-      );
+      if (!isMergeQueue) {
+        // If failed we need summaryMarkdown. For github check run flow this
+        // called in [GithubChecksService.updateCheckStatus(...)]
+        build = await _luciBuildService.getBuildById(
+          build.id,
+          buildMask: bbv2.BuildMask(
+            // Need to use allFields as there is a bug with fieldMask and summaryMarkdown.
+            allFields: true,
+          ),
+        );
+      }
       final maxAttempt = await _getMaxAttempt(
         userData.commit,
         builderName,
@@ -165,14 +167,17 @@ base class PresubmitSubscription extends SubscriptionHandler {
       if (tagSet.currentAttempt < maxAttempt) {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
-        await UnifiedCheckRun.reInitializeInProgressJob(
-          firestoreService: _firestore,
-          completedJob: PresubmitCompletedJob.fromBuild(
-            build,
-            userData,
-            summaryPrepend: '### ⚠️ Test failed but automatically rescheduled',
-          ),
-        );
+        if (!isMergeQueue) {
+          await UnifiedCheckRun.reInitializeInProgressJob(
+            firestoreService: _firestore,
+            completedJob: PresubmitCompletedJob.fromBuild(
+              build,
+              userData,
+              summaryPrepend:
+                  '### ⚠️ Test failed but automatically rescheduled',
+            ),
+          );
+        }
         await _luciBuildService.reschedulePresubmitBuild(
           builderName: builderName,
           build: build,
