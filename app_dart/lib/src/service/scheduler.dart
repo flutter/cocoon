@@ -1223,14 +1223,6 @@ detailsUrl: $detailsUrl
         }
         break;
       case CiStage.fusionTests:
-        await _closeSuccessfulTestStage(
-          dashboardChecks: stagingConclusion.dashboardChecks,
-          mergeQueueGuard: stagingConclusion.mergeQueueGuard,
-          slug: check.slug,
-          sha: check.sha,
-          logCrumb: logCrumb,
-        );
-        break;
       case CiStage.genericTests:
         await _closeSuccessfulTestStage(
           dashboardChecks: stagingConclusion.dashboardChecks,
