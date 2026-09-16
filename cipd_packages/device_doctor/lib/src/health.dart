@@ -38,12 +38,8 @@ Future<HealthCheckResult> closeIosDialog({
     // signing config if one exists in the environment.
     final env = pl.nativePlatform?.environment;
     if (env != null && env['FLUTTER_XCODE_CODE_SIGN_STYLE'] != null) {
-      command.add(
-        "CODE_SIGN_STYLE=${env['FLUTTER_XCODE_CODE_SIGN_STYLE']}",
-      );
-      command.add(
-        "DEVELOPMENT_TEAM=${env['FLUTTER_XCODE_DEVELOPMENT_TEAM']}",
-      );
+      command.add("CODE_SIGN_STYLE=${env['FLUTTER_XCODE_CODE_SIGN_STYLE']}");
+      command.add("DEVELOPMENT_TEAM=${env['FLUTTER_XCODE_DEVELOPMENT_TEAM']}");
       command.add(
         "PROVISIONING_PROFILE_SPECIFIER=${env['FLUTTER_XCODE_PROVISIONING_PROFILE_SPECIFIER']}",
       );
