@@ -105,6 +105,14 @@ void main() {
       final response = await tester.post(handler);
 
       expect(response, Response.emptyOk);
+      verify(
+        mockGithubChecksService.updateCheckStatus(
+          build: anyNamed('build'),
+          checkRunId: anyNamed('checkRunId'),
+          luciBuildService: anyNamed('luciBuildService'),
+          slug: anyNamed('slug'),
+        ),
+      ).called(1);
       verify(mockScheduler.processCheckRunCompleted(any)).called(1);
     },
   );

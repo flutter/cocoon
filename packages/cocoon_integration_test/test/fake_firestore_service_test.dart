@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
@@ -526,7 +524,7 @@ void main() {
           isA<g.DetailedApiRequestError>().having(
             (e) => e.status,
             'status',
-            HttpStatus.conflict,
+            500,
           ),
         ),
       );

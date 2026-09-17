@@ -64,7 +64,7 @@ class RecoverCommand extends Command<bool> {
     this.processManager = const LocalProcessManager(),
     Logger? loggerOverride,
     this.fs = const LocalFileSystem(),
-    this.platform = const Platform(),
+    this.platform = const LocalPlatform(),
   }) : logger = loggerOverride ?? Logger.root {
     argParser
       ..addOption(
@@ -197,7 +197,7 @@ class RecoverCommand extends Command<bool> {
   /// Xcode will regenerate this folder and symbols for connected devices
   /// when Xcode is opened.
   void _deleteSymbols() {
-    final home = platform.nativePlatform!.environment['HOME'];
+    final home = platform.environment['HOME'];
     if (home == null) {
       logger.warning('\$HOME path was not found');
       return;
