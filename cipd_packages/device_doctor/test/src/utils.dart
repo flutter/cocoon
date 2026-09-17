@@ -8,13 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:mockito/mockito.dart';
-import 'package:platform/platform.dart';
 import 'package:process/process.dart';
-
-class MockPlatform extends Mock implements Platform {
-  @override
-  Map<String, String> environment = <String, String>{};
-}
 
 class MockProcessManager extends Mock implements ProcessManager {
   @override
