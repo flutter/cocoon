@@ -48,11 +48,7 @@ void main() {
 
     group('initializeCiStagingDocument', () {
       test('creates PresubmitGuard and Checks when enabled for user', () async {
-        config.dynamicConfig = DynamicConfig.fromJson({
-          'unifiedCheckRunFlow': {
-            'useForUsers': ['dash'],
-          },
-        });
+        config.dynamicConfig = DynamicConfig();
 
         await UnifiedCheckRun.initializeCiStagingDocument(
           firestoreService: firestoreService,
@@ -86,37 +82,6 @@ void main() {
           'projects/flutter-dashboard/databases/cocoon/documents/presubmit_jobs/${checkId.documentId}',
         );
         expect(checkDoc.name, endsWith(checkId.documentId));
-      });
-
-      test('initializes CiStagingDocument when NOT enabled for user', () async {
-        config.dynamicConfig = DynamicConfig.fromJson({
-          'unifiedCheckRunFlow': {'useForUsers': <String>[]},
-        });
-
-        await UnifiedCheckRun.initializeCiStagingDocument(
-          firestoreService: firestoreService,
-          slug: slug,
-          sha: sha,
-          stage: CiStage.fusionEngineBuild,
-          tasks: ['linux', 'mac'],
-          config: config,
-          pullRequest: pullRequest,
-          mergeQueueGuard: checkRun,
-        );
-
-        // Verify PresubmitGuard is NOT created
-        final guardId = PresubmitGuard.documentIdFor(
-          slug: slug,
-          prNum: 1,
-          checkRunId: 123,
-          stage: CiStage.fusionEngineBuild,
-        );
-        expect(
-          () => firestoreService.getDocument(
-            'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
-          ),
-          throwsA(isA<Exception>()),
-        );
       });
     });
 
@@ -724,7 +689,6 @@ void main() {
           checkRunId: 123,
           checkSuiteId: 234,
           headBranch: 'master',
-          isUnifiedCheckRun: true,
           prNum: 567,
           attempt: 1,
           endTime: 2000,
