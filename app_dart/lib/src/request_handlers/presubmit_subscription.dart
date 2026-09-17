@@ -143,12 +143,10 @@ base class PresubmitSubscription extends SubscriptionHandler {
     tagSet ??= BuildTags.fromStringPairs(build.tags);
     final builderName = build.builder.builder;
     var rescheduled = false;
-    final isMergeQueue = tagSet.containsType<InMergeQueueBuildTag>();
-    log.info(
-      'Processing Build for ${isMergeQueue ? 'Merge Queue' : 'Presubmit'}',
-    );
+    final isUnifiedCheckRun = userData.guardCheckRunId != null;
+    log.info('Unified Check Run ${isUnifiedCheckRun ? 'Enabled' : 'Disabled'}');
     if (build.status.isTaskFailed()) {
-      if (!isMergeQueue) {
+      if (isUnifiedCheckRun) {
         // If failed we need summaryMarkdown. For github check run flow this
         // called in [GithubChecksService.updateCheckStatus(...)]
         build = await _luciBuildService.getBuildById(
@@ -167,7 +165,7 @@ base class PresubmitSubscription extends SubscriptionHandler {
       if (tagSet.currentAttempt < maxAttempt) {
         rescheduled = true;
         log.info('Rerunning failed task: $builderName');
-        if (!isMergeQueue) {
+        if (isUnifiedCheckRun) {
           await UnifiedCheckRun.reInitializeInProgressJob(
             firestoreService: _firestore,
             completedJob: PresubmitCompletedJob.fromBuild(
@@ -201,9 +199,9 @@ base class PresubmitSubscription extends SubscriptionHandler {
             '### ⚠️ Test failed but marked as suppressed on dashboard';
       }
     }
-    if (isMergeQueue) {
+    if (!isUnifiedCheckRun) {
       if (userData.checkRunId == null) {
-        log.error('checkRunId is required for merge queue builds.');
+        log.error('checkRunId is null for non-unified check run');
         return;
       }
       await _githubChecksService.updateCheckStatus(
