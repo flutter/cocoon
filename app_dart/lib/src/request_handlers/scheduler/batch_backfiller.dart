@@ -174,31 +174,23 @@ final class BatchBackfiller extends ApiRequestHandler {
     Iterable<BackfillTask> schedule,
     Iterable<SkippableTask> skip,
   ) async {
-    log.debug('Querying ${schedule.length} tasks in Firestore...');
-    await _firestore.writeViaTransaction([
-      ...schedule.map((toUpdate) {
-        final BackfillTask(:task) = toUpdate;
-        return fs.Task.patchStatus(
-          fs.TaskId(
-            commitSha: task.commitSha,
-            taskName: task.name,
-            currentAttempt: task.currentAttempt,
-          ),
-          TaskStatus.inProgress,
-        );
-      }),
-      ...skip.map((toSkip) {
-        final SkippableTask(:task) = toSkip;
-        return fs.Task.patchStatus(
-          fs.TaskId(
-            commitSha: task.commitSha,
-            taskName: task.name,
-            currentAttempt: task.currentAttempt,
-          ),
-          TaskStatus.skipped,
-        );
-      }),
-    ]);
+    final taskStatusMap = <fs.TaskId, TaskStatus>{
+      for (final item in schedule)
+        fs.TaskId(
+          commitSha: item.task.commitSha,
+          taskName: item.task.name,
+          currentAttempt: item.task.currentAttempt,
+        ): TaskStatus.inProgress,
+      for (final item in skip)
+        fs.TaskId(
+          commitSha: item.task.commitSha,
+          taskName: item.task.name,
+          currentAttempt: item.task.currentAttempt,
+        ): TaskStatus.skipped,
+    };
+    if (taskStatusMap.isEmpty) return;
+
+    await _firestore.updateTaskStatuses(taskStatusMap);
     log.debug('Wrote to Firestore for backfill');
   }
 

@@ -96,7 +96,7 @@ void main() {
         ),
       ).thenAnswer((Invocation invocation) async {
         return generateCheckRun(
-          invocation.positionalArguments[2].hashCode,
+          (invocation.positionalArguments[2] as Object).hashCode,
           name: invocation.positionalArguments[3] as String,
         );
       });
@@ -2942,7 +2942,7 @@ targets:
             ),
           ).thenAnswer((Invocation invocation) async {
             return generateCheckRun(
-              invocation.positionalArguments[2].hashCode,
+              (invocation.positionalArguments[2] as Object).hashCode,
               name: invocation.positionalArguments[3] as String,
             );
           });
@@ -3003,7 +3003,7 @@ targets:
             ),
           ).thenAnswer((Invocation invocation) async {
             return generateCheckRun(
-              invocation.positionalArguments[2].hashCode,
+              (invocation.positionalArguments[2] as Object).hashCode,
               name: invocation.positionalArguments[3] as String,
             );
           });
@@ -3048,7 +3048,7 @@ targets:
             ),
           ).thenAnswer((Invocation invocation) async {
             return generateCheckRun(
-              invocation.positionalArguments[2].hashCode,
+              (invocation.positionalArguments[2] as Object).hashCode,
               name: invocation.positionalArguments[3] as String,
             );
           });

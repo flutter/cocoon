@@ -9,7 +9,8 @@ import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
 import 'package:github/github.dart' as gh;
-import 'package:graphql/client.dart' hide JsonSerializable;
+import 'package:graphql/client.dart'
+    show AuthLink, GraphQLCache, GraphQLClient, HttpLink;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:retry/retry.dart';
