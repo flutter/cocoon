@@ -11,11 +11,11 @@ import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated_config.dart';
+import 'check_suite_flow.dart';
 import 'ci_yaml_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
 import 'ordered_presubmit_flags.dart';
-import 'unified_check_run_flow_flags.dart';
 
 part 'dynamic_config.g.dart';
 
@@ -39,7 +39,7 @@ final class DynamicConfig {
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
     enableGeminiLogAnalysis: false,
-    unifiedCheckRunFlow: UnifiedCheckRunFlow.defaultInstance,
+    checkSuiteFlow: CheckSuiteFlow.defaultInstance,
     orderedPresubmit: OrderedPresubmit.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
@@ -69,9 +69,9 @@ final class DynamicConfig {
   @JsonKey()
   final bool enableGeminiLogAnalysis;
 
-  /// Flags related tp unified check-run flow configuration.
+  /// Flags related to checks suite flow.
   @JsonKey()
-  final UnifiedCheckRunFlow unifiedCheckRunFlow;
+  final CheckSuiteFlow checkSuiteFlow;
 
   /// Flags related to ordered presubmit configuration.
   @JsonKey()
@@ -91,7 +91,7 @@ final class DynamicConfig {
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
     required this.enableGeminiLogAnalysis,
-    required this.unifiedCheckRunFlow,
+    required this.checkSuiteFlow,
     required this.orderedPresubmit,
     required this.dynamicTestSuppression,
     required this.geminiModel,
@@ -106,7 +106,7 @@ final class DynamicConfig {
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
     bool? enableGeminiLogAnalysis,
-    UnifiedCheckRunFlow? unifiedCheckRunFlow,
+    CheckSuiteFlow? checkSuiteFlow,
     OrderedPresubmit? orderedPresubmit,
     bool? dynamicTestSuppression,
     String? geminiModel,
@@ -122,8 +122,7 @@ final class DynamicConfig {
           defaultInstance.closeMqGuardAfterPresubmit,
       enableGeminiLogAnalysis:
           enableGeminiLogAnalysis ?? defaultInstance.enableGeminiLogAnalysis,
-      unifiedCheckRunFlow:
-          unifiedCheckRunFlow ?? defaultInstance.unifiedCheckRunFlow,
+      checkSuiteFlow: checkSuiteFlow ?? defaultInstance.checkSuiteFlow,
       orderedPresubmit: orderedPresubmit ?? defaultInstance.orderedPresubmit,
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
@@ -159,11 +158,14 @@ final class DynamicConfig {
   /// The inverse operation of [DynamicConfig.fromJson].
   Map<String, Object?> toJson() => _$DynamicConfigToJson(this);
 
-  bool isUnifiedCheckRunFlowEnabledForUser(String githubUsername) {
-    if (unifiedCheckRunFlow.useForAll) {
+  bool isCheckSuiteFlowEnabledForUser(String githubUsername) {
+    if (checkSuiteFlow.useForAll) {
       return true;
     }
-    return unifiedCheckRunFlow.useForUsers.contains(githubUsername);
+    final usernameLower = githubUsername.toLowerCase();
+    return checkSuiteFlow.useForUsers.any(
+      (user) => user.toLowerCase() == usernameLower,
+    );
   }
 
   bool isOrderedPresubmitEnabledForUser(String githubUsername) {

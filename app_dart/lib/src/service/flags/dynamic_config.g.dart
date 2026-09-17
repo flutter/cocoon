@@ -21,10 +21,10 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
             ),
       closeMqGuardAfterPresubmit: json['closeMqGuardAfterPresubmit'] as bool?,
       enableGeminiLogAnalysis: json['enableGeminiLogAnalysis'] as bool?,
-      unifiedCheckRunFlow: json['unifiedCheckRunFlow'] == null
+      checkSuiteFlow: json['checkSuiteFlow'] == null
           ? null
-          : UnifiedCheckRunFlow.fromJson(
-              json['unifiedCheckRunFlow'] as Map<String, dynamic>?,
+          : CheckSuiteFlow.fromJson(
+              json['checkSuiteFlow'] as Map<String, dynamic>?,
             ),
       orderedPresubmit: json['orderedPresubmit'] == null
           ? null
@@ -42,7 +42,7 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'ciYaml': instance.ciYaml.toJson(),
       'closeMqGuardAfterPresubmit': instance.closeMqGuardAfterPresubmit,
       'enableGeminiLogAnalysis': instance.enableGeminiLogAnalysis,
-      'unifiedCheckRunFlow': instance.unifiedCheckRunFlow.toJson(),
+      'checkSuiteFlow': instance.checkSuiteFlow.toJson(),
       'orderedPresubmit': instance.orderedPresubmit.toJson(),
       'dynamicTestSuppression': instance.dynamicTestSuppression,
       'geminiModel': instance.geminiModel,
