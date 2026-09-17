@@ -293,8 +293,6 @@ class LuciBuildService {
     final slug = pullRequest.base!.repo!.slug();
     final commitBranch = pullRequest.base!.ref!.replaceAll('refs/heads/', '');
     final isFusion = slug == Config.flutterSlug;
-    final isUnifiedCheckRunFlow = _config.flags
-        .isUnifiedCheckRunFlowEnabledForUser(pullRequest.user!.login!);
     final isOrderedPresubmit = _config.flags.isOrderedPresubmitEnabledForUser(
       pullRequest.user!.login!,
     );
@@ -307,7 +305,7 @@ class LuciBuildService {
     late PresubmitUserData userData;
     // If the unified check run flow is enabled, do not create individual
     // check runs for each target but use the guard check run instead.
-    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
+    if (dashboardChecks != null) {
       userData = PresubmitUserData(
         commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
         guardCheckRunId: dashboardChecks.id!,
@@ -326,7 +324,7 @@ class LuciBuildService {
     for (final MapEntry(key: target, value: attemptNumber) in targets.entries) {
       // If the unified check run flow is disabled create individual check runs
       // for each target.
-      if (!isUnifiedCheckRunFlow || dashboardChecks == null) {
+      if (dashboardChecks == null) {
         final checkRun = await _githubChecksUtil.createCheckRun(
           _config,
           target.slug,
@@ -396,7 +394,7 @@ class LuciBuildService {
             userData: userData,
             properties: properties,
             // if unified check run flow is enabled, use guard check run othervise check run id.
-            tags: isUnifiedCheckRunFlow && dashboardChecks != null
+            tags: dashboardChecks != null
                 ? BuildTags([
                     GuardCheckRunIdBuildTag(
                       guardCheckRunId: dashboardChecks.id!,
@@ -449,7 +447,7 @@ class LuciBuildService {
     // initial run. For Re-run Failed Checks, if all failed jobs were reset, we
     // need to re-request the check run before updating it to in progress.
     final isRerun = targets.values.first > 1;
-    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
+    if (dashboardChecks != null) {
       if (isRerun && stage != null) {
         try {
           final presubmitGuardDoc = await _firestore.getDocument(
