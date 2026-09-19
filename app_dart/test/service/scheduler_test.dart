@@ -3354,34 +3354,22 @@ targets:
             pullRequest: pullRequest,
           );
 
-          // Make it look like a merge group
-          // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
-
-          // Initialize presubmit guard for tests stage
-          firestore.putDocument(
-            PresubmitGuard(
-              checkRun: dashboardChecks,
-              checkRunGuard: mergeQueueGuard,
-              headSha: pullRequest.head!.sha!,
-              slug: pullRequest.base!.repo!.slug(),
-              prNum: pullRequest.number!,
-              stage: CiStage.fusionTests,
-              author: pullRequest.user!.login!,
-              creationTime: DateTime.now().millisecondsSinceEpoch,
-              jobs: {'Linux test': TaskStatus.waitingForBackfill},
-              remainingJobs: 1,
-              failedJobs: 0,
-            ),
+          await CiStaging.initializeDocument(
+            firestoreService: firestore,
+            slug: pullRequest.base!.repo!.slug(),
+            sha: pullRequest.head!.sha!,
+            stage: CiStage.fusionEngineBuild,
+            tasks: [],
+            checkRunGuard: '$mergeQueueGuard',
           );
 
-          // Initialize check run for the task
-          firestore.putDocument(
-            PresubmitJob.init(
-              slug: pullRequest.base!.repo!.slug(),
-              jobName: 'Linux test',
-              checkRunId: dashboardChecks.id!,
-              creationTime: DateTime.now().millisecondsSinceEpoch,
-            ),
+          await CiStaging.initializeDocument(
+            firestoreService: firestore,
+            slug: pullRequest.base!.repo!.slug(),
+            sha: pullRequest.head!.sha!,
+            stage: CiStage.fusionTests,
+            tasks: ['Linux test'],
+            checkRunGuard: '$mergeQueueGuard',
           );
 
           final userData = PresubmitUserData(
@@ -3441,9 +3429,16 @@ targets:
             ),
           );
 
-          final guards = await firestore.query(PresubmitGuard.collectionId, {});
-          final guard = PresubmitGuard.fromDocument(guards.single);
-          expect(guard.failedJobs, 1);
+          expect(
+            firestore,
+            existsInStorage(CiStaging.metadata, [
+              isCiStaging.hasStage(CiStage.fusionEngineBuild),
+              isCiStaging
+                  .hasStage(CiStage.fusionTests)
+                  .hasFailed(1)
+                  .hasCheckRuns({'Linux test': TaskConclusion.failure}),
+            ]),
+          );
         },
       );
 
@@ -3542,33 +3537,22 @@ targets:
           pullRequest: pullRequest,
         );
 
-        // Make it look like a merge group
-        // checkRunGuard.checkSuite!.headBranch = 'gh-readonly-queue/master/pr-123-abc';
-
-        // Initialize presubmit guard for tests stage
-        firestore.putDocument(
-          PresubmitGuard(
-            checkRun: checkRunGuard,
-            headSha: pullRequest.head!.sha!,
-            slug: pullRequest.base!.repo!.slug(),
-            prNum: pullRequest.number!,
-            stage: CiStage.fusionTests,
-            author: pullRequest.user!.login!,
-            creationTime: DateTime.now().millisecondsSinceEpoch,
-            jobs: {'Linux test': TaskStatus.waitingForBackfill},
-            remainingJobs: 1,
-            failedJobs: 0,
-          ),
+        await CiStaging.initializeDocument(
+          firestoreService: firestore,
+          slug: pullRequest.base!.repo!.slug(),
+          sha: pullRequest.head!.sha!,
+          stage: CiStage.fusionEngineBuild,
+          tasks: [],
+          checkRunGuard: '$checkRunGuard',
         );
 
-        // Initialize check run for the task
-        firestore.putDocument(
-          PresubmitJob.init(
-            slug: pullRequest.base!.repo!.slug(),
-            jobName: 'Linux test',
-            checkRunId: checkRunGuard.id!,
-            creationTime: DateTime.now().millisecondsSinceEpoch,
-          ),
+        await CiStaging.initializeDocument(
+          firestoreService: firestore,
+          slug: pullRequest.base!.repo!.slug(),
+          sha: pullRequest.head!.sha!,
+          stage: CiStage.fusionTests,
+          tasks: ['Linux test'],
+          checkRunGuard: '$checkRunGuard',
         );
 
         final userData = PresubmitUserData(
@@ -3611,9 +3595,16 @@ targets:
           ),
         ).called(1);
 
-        final guards = await firestore.query(PresubmitGuard.collectionId, {});
-        final guard = PresubmitGuard.fromDocument(guards.single);
-        expect(guard.remainingJobs, 0);
+        expect(
+          firestore,
+          existsInStorage(CiStaging.metadata, [
+            isCiStaging.hasStage(CiStage.fusionEngineBuild),
+            isCiStaging
+                .hasStage(CiStage.fusionTests)
+                .hasRemaining(0)
+                .hasCheckRuns({'Linux test': TaskConclusion.success}),
+          ]),
+        );
       });
 
       test(
