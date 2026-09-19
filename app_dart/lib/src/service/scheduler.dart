@@ -349,10 +349,6 @@ class Scheduler {
       return;
     }
 
-    final isUnifiedCheckRun = _config.flags.isUnifiedCheckRunFlowEnabledForUser(
-      pullRequest.user!.login!,
-    );
-
     // Always cancel running builds so we don't ever schedule duplicates.
     log.info(
       'Attempting to cancel existing presubmit targets for ${pullRequest.number}',
@@ -367,12 +363,9 @@ class Scheduler {
     final lockResult = await lockMergeGroupChecks(
       slug,
       sha,
-      // Override details url of merge queue guard check for users with unified
-      // check run flow enabled
-      detailsUrl: isUnifiedCheckRun
-          ? 'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha'
-          : null,
-      isUnifiedCheckRun: isUnifiedCheckRun,
+      detailsUrl:
+          'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha',
+      isPresubmit: true,
     );
     final dashboardChecks = lockResult.dashboardChecks;
     final mergeQueueGuard = lockResult.mergeQueueGuard;
@@ -385,11 +378,12 @@ class Scheduler {
 
     log.info('Creating presubmit targets for ${pullRequest.number}');
     Object? exception;
-    final isFusion = slug == Config.flutterSlug;
-    final isPackages = slug == Config.packagesSlug;
+    final isFlutterRepo = slug == Config.flutterSlug;
+    final isPackagesRepo = slug == Config.packagesSlug;
     do {
       try {
-        if (!isFusion && !(isPackages && isUnifiedCheckRun)) {
+        // If it's not flutter or packages, unlock the merge group lock.
+        if (!isFlutterRepo && !isPackagesRepo) {
           unlockMergeGroup = true;
         }
 
@@ -433,7 +427,7 @@ class Scheduler {
           );
           break;
         }
-        final presubmitTargets = isFusion
+        final presubmitTargets = isFlutterRepo
             ? await _getTestsForStage(pullRequest, CiStage.fusionEngineBuild)
             : await getPresubmitTargets(pullRequest);
         final presubmitTriggerTargets = filterTargets(
@@ -441,59 +435,45 @@ class Scheduler {
           builderTriggerList,
         );
 
+        final stage = isFlutterRepo
+            ? CiStage.fusionEngineBuild
+            : CiStage.genericTests;
+
         // When running presubmits for a fusion PR; create a new staging document to track tasks needed
         // to complete before we can schedule more tests (i.e. build engine artifacts before testing against them).
-        final EngineArtifacts engineArtifacts;
-        if (isFusion) {
-          await UnifiedCheckRun.initializeCiStagingDocument(
-            firestoreService: _firestore,
-            slug: slug,
-            sha: sha,
-            stage: CiStage.fusionEngineBuild,
-            tasks: [...presubmitTriggerTargets.map((t) => t.name)],
-            pullRequest: pullRequest,
-            config: _config,
-            dashboardChecks: dashboardChecks,
-            mergeQueueGuard: mergeQueueGuard,
-          );
+        await UnifiedCheckRun.initializeCiStagingDocument(
+          firestoreService: _firestore,
+          slug: slug,
+          sha: sha,
+          stage: stage,
+          tasks: [...presubmitTriggerTargets.map((t) => t.name)],
+          pullRequest: pullRequest,
+          config: _config,
+          dashboardChecks: dashboardChecks,
+          mergeQueueGuard: mergeQueueGuard,
+        );
+        // Even though this appears to be an engine build, it could be a
+        // release candidate build, where the engine artifacts are built
+        // via the dart-internal builder.
+        //
+        // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
+        // consequences for engine builds, as it just won't be used (it is
+        // only understood by the Flutter CLI).
+        //
+        // See https://github.com/flutter/flutter/issues/165810.
+        final engineArtifacts = isFlutterRepo
+            ? EngineArtifacts.usingExistingEngine(commitSha: sha)
+            : const EngineArtifacts.noFrameworkTests(
+                reason: 'This is not the flutter/flutter repository',
+              );
 
-          // Even though this appears to be an engine build, it could be a
-          // release candidate build, where the engine artifacts are built
-          // via the dart-internal builder.
-          //
-          // In either case, providing FLUTTER_PREBUILT_ENGINE_VERSION has no
-          // consequences for engine builds, as it just won't be used (it is
-          // only understood by the Flutter CLI).
-          //
-          // See https://github.com/flutter/flutter/issues/165810.
-          engineArtifacts = EngineArtifacts.usingExistingEngine(commitSha: sha);
-        } else {
-          // For non-flutter repos, if unified check run flow is enabled, create
-          // a presubmit_guard document to track presubmit tests.
-          if (isUnifiedCheckRun) {
-            await UnifiedCheckRun.initializeCiStagingDocument(
-              firestoreService: _firestore,
-              slug: slug,
-              sha: sha,
-              stage: CiStage.genericTests,
-              tasks: [...presubmitTriggerTargets.map((t) => t.name)],
-              pullRequest: pullRequest,
-              config: _config,
-              dashboardChecks: dashboardChecks,
-              mergeQueueGuard: mergeQueueGuard,
-            );
-          }
-          engineArtifacts = const EngineArtifacts.noFrameworkTests(
-            reason: 'This is not the flutter/flutter repository',
-          );
-        }
         await _luciBuildService.scheduleTryBuilds(
           targets: presubmitTriggerTargets,
           pullRequest: pullRequest,
           engineArtifacts: engineArtifacts,
           dashboardChecks: dashboardChecks,
           mergeQueueGuard: mergeQueueGuard,
-          stage: isFusion ? CiStage.fusionEngineBuild : CiStage.genericTests,
+          stage: stage,
         );
       } on FormatException catch (e, s) {
         log.warn(
@@ -529,12 +509,8 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      if (isUnifiedCheckRun) {
-        await unlockMergeQueueGuard(slug, sha, dashboardChecks);
-        if (mergeQueueGuard != null) {
-          await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
-        }
-      } else if (mergeQueueGuard != null) {
+      await unlockMergeQueueGuard(slug, sha, dashboardChecks);
+      if (mergeQueueGuard != null) {
         await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
       }
     }
@@ -658,7 +634,7 @@ class Scheduler {
     final lockResult = await lockMergeGroupChecks(
       slug,
       headSha,
-      isUnifiedCheckRun: false,
+      isPresubmit: false,
     );
     final dashboardChecks = lockResult.dashboardChecks;
     final mergeQueueGuard = lockResult.mergeQueueGuard!;
@@ -871,7 +847,7 @@ $s
     RepositorySlug slug,
     String headSha, {
     String? detailsUrl,
-    required bool isUnifiedCheckRun,
+    required bool isPresubmit,
   }) async {
     final mergeQueueGuard = await _githubChecksService.githubChecksUtil
         .createCheckRun(
@@ -883,7 +859,7 @@ $s
             title: Config.kMergeQueueLockName,
             summary: kMergeQueueLockDescription,
           ),
-          detailsUrl: isUnifiedCheckRun ? null : detailsUrl,
+          detailsUrl: isPresubmit ? null : detailsUrl,
         );
 
     final dashboardChecks = await _githubChecksService.githubChecksUtil
@@ -896,10 +872,10 @@ $s
             title: Config.kDashboardCheckName,
             summary: kDashboardChecksDescription,
           ),
-          detailsUrl: isUnifiedCheckRun ? detailsUrl : null,
+          detailsUrl: isPresubmit ? detailsUrl : null,
         );
 
-    if (!isUnifiedCheckRun) {
+    if (!isPresubmit) {
       // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
@@ -1129,26 +1105,19 @@ detailsUrl: $detailsUrl
     if (kCheckRunsToIgnore.contains(check.name)) {
       return true;
     }
-    final flow = check.isUnifiedCheckRun ? 'unified' : 'github';
     final requestor = check.isMergeGroup ? 'merge group' : 'pull request';
     final logCrumb =
-        'checkCompleted(${check.name}, $flow, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
+        'checkCompleted(${check.name}, $requestor, ${check.slug}, ${check.sha}, ${check.status})';
 
     final isFusion = check.slug == Config.flutterSlug;
-    if (!isFusion && !check.isUnifiedCheckRun) {
+    if (!isFusion && check.isMergeGroup) {
       return true;
     }
 
     late CiStage stage;
     late PresubmitGuardConclusion stagingConclusion;
 
-    if (check.isUnifiedCheckRun) {
-      stage = check.stage!;
-      stagingConclusion = await _markUnifiedCheckRunConclusion(
-        guardId: check.guardId,
-        state: check.state,
-      );
-    } else {
+    if (check.isMergeGroup) {
       // for github flow check runs are processed only if the build succeeded or
       // some kind of failure occurred.
       if (!check.status.isComplete) {
@@ -1178,7 +1147,14 @@ detailsUrl: $detailsUrl
           conclusion: check.status.toTaskConclusion(),
         );
       }
+    } else {
+      stage = check.stage!;
+      stagingConclusion = await _markUnifiedCheckRunConclusion(
+        guardId: check.guardId,
+        state: check.state,
+      );
     }
+
     // First; check if we even recorded anything. This can occur if we've already passed the check_run and
     // have moved on to running more tests (which wouldn't be present in our document).
     if (!stagingConclusion.isOk) {
@@ -1234,7 +1210,7 @@ detailsUrl: $detailsUrl
           summary: stagingConclusion.summary,
           details: stagingConclusion.details,
         );
-      } else if (check.isUnifiedCheckRun) {
+      } else {
         final guard = checkRunFromString(stagingConclusion.dashboardChecks!);
         final detailsUrl =
             'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
@@ -1283,30 +1259,15 @@ detailsUrl: $detailsUrl
             logCrumb: logCrumb,
           );
         }
+        break;
       case CiStage.fusionTests:
+      case CiStage.genericTests:
         await _closeSuccessfulTestStage(
+          check: check,
+          logCrumb: logCrumb,
           dashboardChecks: stagingConclusion.dashboardChecks,
           mergeQueueGuard: stagingConclusion.mergeQueueGuard,
-          slug: check.slug,
-          sha: check.sha,
-          logCrumb: logCrumb,
-          isUnifiedCheckRun: check.isUnifiedCheckRun,
         );
-      case CiStage.genericTests:
-        if (check.isUnifiedCheckRun) {
-          await _closeSuccessfulTestStage(
-            dashboardChecks: stagingConclusion.dashboardChecks,
-            mergeQueueGuard: stagingConclusion.mergeQueueGuard,
-            slug: check.slug,
-            sha: check.sha,
-            logCrumb: logCrumb,
-            isUnifiedCheckRun: check.isUnifiedCheckRun,
-          );
-        } else {
-          // generic tests do not have a staging document nor are associated
-          // with a merge group - they are only used to collect commit stats.
-          log.warn('$logCrumb: generic tests have no merge queue guard.');
-        }
         break;
     }
     return true;
@@ -1359,34 +1320,36 @@ detailsUrl: $detailsUrl
   }
 
   Future<void> _closeSuccessfulTestStage({
+    required PresubmitCompletedJob check,
+    required String logCrumb,
     String? dashboardChecks,
     String? mergeQueueGuard,
-    required RepositorySlug slug,
-    required String sha,
-    required String logCrumb,
-    required bool isUnifiedCheckRun,
   }) async {
     log.info('$logCrumb: Test stage completed');
-    if (isUnifiedCheckRun) {
+    if (check.isMergeGroup) {
+      if (check.stage != CiStage.fusionTests) {
+        // generic tests do not have a staging document nor are associated
+        // with a merge group - they are only used to collect commit stats.
+        log.warn('$logCrumb: generic tests have no merge queue guard.');
+      } else if (mergeQueueGuard != null) {
+        await unlockMergeQueueGuard(
+          check.slug,
+          check.sha,
+          checkRunFromString(mergeQueueGuard),
+        );
+      }
+    } else {
       if (dashboardChecks != null) {
         await unlockMergeQueueGuard(
-          slug,
-          sha,
+          check.slug,
+          check.sha,
           checkRunFromString(dashboardChecks),
         );
       }
       if (mergeQueueGuard != null) {
         await unlockMergeQueueGuard(
-          slug,
-          sha,
-          checkRunFromString(mergeQueueGuard),
-        );
-      }
-    } else {
-      if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(
-          slug,
-          sha,
+          check.slug,
+          check.sha,
           checkRunFromString(mergeQueueGuard),
         );
       }
