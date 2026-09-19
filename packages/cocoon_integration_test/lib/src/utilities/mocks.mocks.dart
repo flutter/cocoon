@@ -5783,7 +5783,7 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<void> unlockCheckRun(
+  _i13.Future<void> unlockMergeQueueGuard(
     _i7.RepositorySlug? slug,
     String? headSha,
     _i7.CheckRun? lock,
