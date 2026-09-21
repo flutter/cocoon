@@ -4344,7 +4344,7 @@ targets:
           slug: pullRequest.base!.repo!.slug(),
           sha: pullRequest.head!.sha!,
           stage: CiStage.fusionTests,
-          tasks: ['Linux test'],
+          tasks: ['Linux test', 'Mac test'],
           checkRunGuard: '$checkRunGuard',
         );
 
@@ -4360,7 +4360,7 @@ targets:
           pullRequestNumber: pullRequest.number,
         );
 
-        final build = generateBbv2Build(
+        final linuxBuild = generateBbv2Build(
           Int64(1),
           name: 'Linux test',
           status: bbv2.Status.SUCCESS,
@@ -4373,16 +4373,57 @@ targets:
           ],
         );
 
-        final check = PresubmitCompletedJob.fromBuild(build, userData);
-
-        expect(await scheduler.processCheckRunCompleted(check), isTrue);
-
-        verify(
+        // First test succeeds: merge queue guard remains locked while 'Mac test' is still pending.
+        expect(
+          await scheduler.processCheckRunCompleted(
+            PresubmitCompletedJob.fromBuild(linuxBuild, userData),
+          ),
+          isFalse,
+        );
+        verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
             any,
             any,
             status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            output: anyNamed('output'),
+          ),
+        );
+
+        final macBuild = generateBbv2Build(
+          Int64(2),
+          name: 'Mac test',
+          status: bbv2.Status.SUCCESS,
+          tags: [
+            bbv2.StringPair(key: 'current_attempt', value: '1'),
+            bbv2.StringPair(
+              key: 'buildset',
+              value: 'sha/git/${pullRequest.head!.sha!}',
+            ),
+          ],
+        );
+
+        // Second (final) test succeeds: all tests succeeded, so merge queue guard is unlocked.
+        expect(
+          await scheduler.processCheckRunCompleted(
+            PresubmitCompletedJob.fromBuild(macBuild, userData),
+          ),
+          isTrue,
+        );
+
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            pullRequest.base!.repo!.slug(),
+            argThat(
+              isA<CheckRun>().having(
+                (c) => c.name,
+                'name',
+                Config.kMergeQueueLockName,
+              ),
+            ),
+            status: CheckRunStatus.completed,
             conclusion: CheckRunConclusion.success, // Merge queue success
             output: anyNamed('output'),
           ),
@@ -4395,7 +4436,11 @@ targets:
             isCiStaging
                 .hasStage(CiStage.fusionTests)
                 .hasRemaining(0)
-                .hasCheckRuns({'Linux test': TaskConclusion.success}),
+                .hasFailed(0)
+                .hasCheckRuns({
+                  'Linux test': TaskConclusion.success,
+                  'Mac test': TaskConclusion.success,
+                }),
           ]),
         );
       });
