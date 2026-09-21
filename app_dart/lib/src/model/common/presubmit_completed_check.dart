@@ -34,7 +34,6 @@ class PresubmitCompletedJob {
   final int checkRunId;
   final int? checkSuiteId;
   final String? headBranch;
-  final bool isUnifiedCheckRun;
   final CiStage? stage;
   final int? prNum;
   final int attempt;
@@ -53,7 +52,6 @@ class PresubmitCompletedJob {
     required this.checkRunId,
     required this.checkSuiteId,
     required this.headBranch,
-    required this.isUnifiedCheckRun,
     this.stage,
     this.prNum,
     this.attempt = 1,
@@ -80,7 +78,6 @@ class PresubmitCompletedJob {
       checkRunId: userData.guardCheckRunId ?? userData.checkRunId!,
       checkSuiteId: userData.checkSuiteId,
       headBranch: userData.commit.branch,
-      isUnifiedCheckRun: userData.guardCheckRunId != null,
       stage: userData.stage,
       prNum: userData.pullRequestNumber,
       attempt: _getAttempt(build),
@@ -103,7 +100,7 @@ class PresubmitCompletedJob {
   cocoon_checks.CheckRun get checkRun {
     return cocoon_checks.CheckRun(
       id: checkRunId,
-      name: isUnifiedCheckRun ? Config.kDashboardCheckName : name,
+      name: Config.kDashboardCheckName,
       headSha: sha,
       conclusion: status.toConclusion(),
       checkSuite: CheckSuite(
@@ -121,7 +118,11 @@ class PresubmitCompletedJob {
       slug: slug,
       prNum: prNum ?? 0,
       checkRunId: checkRunId,
-      stage: stage ?? CiStage.fusionTests,
+      stage:
+          stage ??
+          (slug == Config.flutterSlug
+              ? CiStage.fusionTests
+              : CiStage.genericTests),
     );
   }
 

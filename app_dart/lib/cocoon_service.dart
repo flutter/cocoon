@@ -60,7 +60,6 @@ export 'src/service/config.dart';
 export 'src/service/firestore.dart';
 export 'src/service/flags/dynamic_config.dart';
 export 'src/service/flags/ordered_presubmit_flags.dart';
-export 'src/service/flags/unified_check_run_flow_flags.dart';
 export 'src/service/gerrit_service.dart';
 export 'src/service/github_checks_service.dart';
 export 'src/service/issue_service.dart';
