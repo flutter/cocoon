@@ -113,7 +113,7 @@ targets:
         ]
       $flutter/osx_sdk : >-
         {
-          "sdk_version": "15a240d"
+          "sdk_version": "17c52"
         }
     runIf:
       - cipd_packages/ruby/**
@@ -134,7 +134,7 @@ targets:
         ]
       $flutter/osx_sdk : >-
         {
-          "sdk_version": "15a240d"
+          "sdk_version": "17c52"
         }
     runIf:
       - cipd_packages/ruby/**
