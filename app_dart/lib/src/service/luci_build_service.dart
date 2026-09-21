@@ -445,43 +445,6 @@ class LuciBuildService {
       );
     }
 
-    // Set the dashboard check status to `CheckRunStatus.inProgress` for the
-    // initial run. For Re-run Failed Checks, if all failed jobs were reset, we
-    // need to re-request the check run before updating it to in progress.
-    final isRerun = targets.values.first > 1;
-    if (isUnifiedCheckRunFlow && dashboardChecks != null) {
-      if (isRerun && stage != null) {
-        try {
-          final presubmitGuardDoc = await _firestore.getDocument(
-            PresubmitGuard.documentNameFor(
-              slug: slug,
-              prNum: pullRequest.number!,
-              checkRunId: dashboardChecks.id!,
-              stage: stage,
-            ),
-          );
-          final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
-          if (guard.failedJobs == 0) {
-            log.info(
-              'Re-requesting dashboard checks id ${dashboardChecks.id} for Guard $guard',
-            );
-            final githubClient = await _config.createGitHubClient(slug: slug);
-            await githubClient.checks.checkRuns.reRequestCheckRun(
-              slug,
-              checkRunId: dashboardChecks.id!,
-            );
-          }
-        } catch (e, s) {
-          // We are not going to block on this error.
-          log.warn(
-            'Failed to re-request dashboard checks for PR# ${pullRequest.number}',
-            e,
-            s,
-          );
-        }
-      }
-    }
-
     return targets.keys.toList();
   }
 
