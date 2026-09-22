@@ -32,8 +32,8 @@ dynamicTestSuppression: true
 # The Gemini model to use for log analysis.
 geminiModel: gemini-3-flash-preview
 
-# Whether to allow check suite flow to specific users or to everyone.
-checkSuiteFlow:
+# Whether to allow reset failed check run back to in progress to specific users or to everyone.
+resetFailedCheckRun:
   useForAll: false
   useForUsers:
     - ievdokdm

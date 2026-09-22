@@ -11,11 +11,11 @@ import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated_config.dart';
-import 'check_suite_flow.dart';
 import 'ci_yaml_flags.dart';
 import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
 import 'ordered_presubmit_flags.dart';
+import 'reset_failed_check_run.dart';
 
 part 'dynamic_config.g.dart';
 
@@ -39,7 +39,7 @@ final class DynamicConfig {
     contentAwareHashing: ContentAwareHashing.defaultInstance,
     closeMqGuardAfterPresubmit: false,
     enableGeminiLogAnalysis: false,
-    checkSuiteFlow: CheckSuiteFlow.defaultInstance,
+    resetFailedCheckRun: ResetFailedCheckRun.defaultInstance,
     orderedPresubmit: OrderedPresubmit.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
@@ -71,7 +71,7 @@ final class DynamicConfig {
 
   /// Flags related to checks suite flow.
   @JsonKey()
-  final CheckSuiteFlow checkSuiteFlow;
+  final ResetFailedCheckRun resetFailedCheckRun;
 
   /// Flags related to ordered presubmit configuration.
   @JsonKey()
@@ -91,7 +91,7 @@ final class DynamicConfig {
     required this.contentAwareHashing,
     required this.closeMqGuardAfterPresubmit,
     required this.enableGeminiLogAnalysis,
-    required this.checkSuiteFlow,
+    required this.resetFailedCheckRun,
     required this.orderedPresubmit,
     required this.dynamicTestSuppression,
     required this.geminiModel,
@@ -106,7 +106,7 @@ final class DynamicConfig {
     ContentAwareHashing? contentAwareHashing,
     bool? closeMqGuardAfterPresubmit,
     bool? enableGeminiLogAnalysis,
-    CheckSuiteFlow? checkSuiteFlow,
+    ResetFailedCheckRun? resetFailedCheckRun,
     OrderedPresubmit? orderedPresubmit,
     bool? dynamicTestSuppression,
     String? geminiModel,
@@ -122,7 +122,8 @@ final class DynamicConfig {
           defaultInstance.closeMqGuardAfterPresubmit,
       enableGeminiLogAnalysis:
           enableGeminiLogAnalysis ?? defaultInstance.enableGeminiLogAnalysis,
-      checkSuiteFlow: checkSuiteFlow ?? defaultInstance.checkSuiteFlow,
+      resetFailedCheckRun:
+          resetFailedCheckRun ?? defaultInstance.resetFailedCheckRun,
       orderedPresubmit: orderedPresubmit ?? defaultInstance.orderedPresubmit,
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
@@ -158,12 +159,12 @@ final class DynamicConfig {
   /// The inverse operation of [DynamicConfig.fromJson].
   Map<String, Object?> toJson() => _$DynamicConfigToJson(this);
 
-  bool isCheckSuiteFlowEnabledForUser(String githubUsername) {
-    if (checkSuiteFlow.useForAll) {
+  bool isResetFailedCheckRunEnabledForUser(String githubUsername) {
+    if (resetFailedCheckRun.useForAll) {
       return true;
     }
     final usernameLower = githubUsername.toLowerCase();
-    return checkSuiteFlow.useForUsers.any(
+    return resetFailedCheckRun.useForUsers.any(
       (user) => user.toLowerCase() == usernameLower,
     );
   }
