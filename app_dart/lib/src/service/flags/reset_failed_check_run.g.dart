@@ -2,22 +2,22 @@
 
 // ignore_for_file: always_specify_types, implicit_dynamic_parameter
 
-part of 'unified_check_run_flow_flags.dart';
+part of 'reset_failed_check_run.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-UnifiedCheckRunFlow _$UnifiedCheckRunFlowFromJson(Map<String, dynamic> json) =>
-    UnifiedCheckRunFlow(
+ResetFailedCheckRun _$ResetFailedCheckRunFromJson(Map<String, dynamic> json) =>
+    ResetFailedCheckRun(
       useForAll: json['useForAll'] as bool?,
       useForUsers: (json['useForUsers'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
     );
 
-Map<String, dynamic> _$UnifiedCheckRunFlowToJson(
-  UnifiedCheckRunFlow instance,
+Map<String, dynamic> _$ResetFailedCheckRunToJson(
+  ResetFailedCheckRun instance,
 ) => <String, dynamic>{
   'useForAll': instance.useForAll,
   'useForUsers': instance.useForUsers,
