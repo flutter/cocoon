@@ -1984,11 +1984,12 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
 
   @override
   _i13.Future<Map<String, _i7.CheckRun>> allCheckRuns(
-    _i7.GitHub? gitHubClient,
-    _i21.CheckSuiteEvent? checkSuiteEvent,
+    _i2.Config? config,
+    _i7.RepositorySlug? slug,
+    int? checkSuiteId,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#allCheckRuns, [gitHubClient, checkSuiteEvent]),
+            Invocation.method(#allCheckRuns, [config, slug, checkSuiteId]),
             returnValue: _i13.Future<Map<String, _i7.CheckRun>>.value(
               <String, _i7.CheckRun>{},
             ),
@@ -5789,7 +5790,7 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
     _i7.CheckRun? lock,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#unlockCheckRun, [slug, headSha, lock]),
+            Invocation.method(#unlockMergeQueueGuard, [slug, headSha, lock]),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),
           )

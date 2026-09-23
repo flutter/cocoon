@@ -129,6 +129,23 @@ class Scheduler {
       'to merge your PR without presubmit checks (a rare situation, typically '
       'an emergency), then you can use the `emergency` label.';
 
+  /// Briefly describes what the "Presubmit" check is for.
+  ///
+  /// Find more details about this check at [kPresubmitCheckName].
+  ///
+  /// This description appears next to the Github check run in the pull request
+  /// and merge queue UI.
+  static const String kPresubmitCheckDescription =
+      'The presubmit check is a GitHub check that prevents a PR from being '
+      'merged or enqueued before it is ready. It becomes green automatically '
+      'when all tests pass. It will fail if at least one job is failed and '
+      'reset to in-progress when all the failed jobs are retried. If it fails, '
+      'you can view failure details, get execution logs, and re-run failed '
+      'jobs on the presubmit dashboard page. If you suspect that this check is '
+      'not working correctly, contact #hackers-infra on Discord. If you need '
+      'to merge your PR without presubmit checks (a rare situation, typically '
+      'an emergency), then you can use the `emergency` label.';
+
   /// Ensure [commits] exist in Cocoon.
   ///
   /// If the commit already exists, it is ignored.
@@ -874,8 +891,19 @@ $s
           ),
           detailsUrl: isPresubmit ? detailsUrl : null,
         );
-
-    if (!isPresubmit) {
+    if (isPresubmit) {
+      await _githubChecksService.githubChecksUtil.createCheckRun(
+        _config,
+        slug,
+        headSha,
+        Config.kPresubmitCheckName,
+        output: const CheckRunOutput(
+          title: Config.kPresubmitCheckName,
+          summary: kPresubmitCheckDescription,
+        ),
+        detailsUrl: detailsUrl,
+      );
+    } else {
       // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
@@ -993,30 +1021,41 @@ $s
     );
   }
 
-  Future<void> _requireActionForGuard({
+  Future<void> _requireActionForPresubmit({
     required RepositorySlug slug,
-    required CheckRun lock,
+    required int checkSuiteId,
     required String headSha,
     required String summary,
     required String details,
     String? detailsUrl,
   }) async {
     log.info('''
-Require action for merge group guard ${lock.id} for:
-head sha: $headSha
-slug: $slug
-summary: $summary
-details: $details
-detailsUrl: $detailsUrl
+Require action for ${Config.kPresubmitCheckName} 
+with:
+  summary: $summary
+  details: $details
+  detailsUrl: $detailsUrl
+defined in:
+  repository: $slug
+  check suite: $checkSuiteId
+  head sha: $headSha
 ''');
+    final checks = await _githubChecksService.githubChecksUtil.allCheckRuns(
+      _config,
+      slug,
+      checkSuiteId,
+    );
+    log.info('Found check runs: ${checks.keys.join(', ')}');
+    final presubmitChecks = checks[Config.kPresubmitCheckName]!;
+
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
       slug,
-      lock,
+      presubmitChecks,
       status: CheckRunStatus.completed,
       conclusion: CheckRunConclusion.actionRequired,
       output: CheckRunOutput(
-        title: Config.kDashboardCheckName,
+        title: Config.kPresubmitCheckName,
         summary: summary,
         text: details,
       ),
@@ -1214,9 +1253,9 @@ detailsUrl: $detailsUrl
         final guard = checkRunFromString(stagingConclusion.dashboardChecks!);
         final detailsUrl =
             'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
-        await _requireActionForGuard(
+        await _requireActionForPresubmit(
           slug: check.slug,
-          lock: guard,
+          checkSuiteId: guard.checkSuiteId!,
           headSha: check.sha,
           summary: _githubChecksService.getGithubSummaryWithHeader('''
 **[Failed Presubmit Jobs Details]($detailsUrl)**

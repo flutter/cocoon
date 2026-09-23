@@ -443,6 +443,54 @@ class LuciBuildService {
       );
     }
 
+    // Set the presubmit check run status to `CheckRunStatus.inProgress` if 
+    // Re-run all Failed Jobs.
+    final isRerun = targets.values.first > 1;
+    if (isRerun && stage != null && dashboardChecks != null) {
+      try {
+        final presubmitGuardDoc = await _firestore.getDocument(
+          PresubmitGuard.documentNameFor(
+            slug: slug,
+            prNum: pullRequest.number!,
+            checkRunId: dashboardChecks.id!,
+            stage: stage,
+          ),
+        );
+        final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
+        final checkRun = guard.checkRun;
+
+        if (guard.failedJobs == 0) {
+          log.info('Re-requesting presubmit check run for Guard $guard');
+          // final checks = await _githubChecksUtil.allCheckRuns(
+          //   _config,
+          //   slug,
+          //   checkRun.checkSuiteId!,
+          // );
+          // log.info('Found check runs: ${checks.keys.join(', ')}');
+          // final presubmitChecks = checks[Config.kPresubmitCheckName]!;
+
+          await _githubChecksUtil.createCheckRun(
+            _config,
+            slug,
+            checkRun.headSha!,
+            Config.kPresubmitCheckName,
+            output: const CheckRunOutput(
+              title: Config.kPresubmitCheckName,
+              summary: Scheduler.kPresubmitCheckDescription,
+            ),
+            detailsUrl: checkRun.detailsUrl,
+          );
+        }
+      } catch (e, s) {
+        // We are not going to block on this error.
+        log.warn(
+          'Failed to re-request dashboard checks for PR# ${pullRequest.number}',
+          e,
+          s,
+        );
+      }
+    }
+
     return targets.keys.toList();
   }
 

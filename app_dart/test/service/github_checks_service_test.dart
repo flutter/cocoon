@@ -46,7 +46,9 @@ void main() {
     );
     final checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
     // ignore: discarded_futures
-    when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
+    when(mockGithubChecksUtil.allCheckRuns(any, any, any)).thenAnswer((
+      _,
+    ) async {
       return checkRuns;
     });
   });

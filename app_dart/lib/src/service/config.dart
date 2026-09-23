@@ -85,6 +85,10 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// for users opted into the unified checkrun flow.
   static const String kDashboardCheckName = 'Dashboard Checks';
 
+  /// A required check that fails if at least one job is failed and reset to
+  /// in-progress when all the failed jobs are retried.
+  static const String kPresubmitCheckName = 'Presubmit';
+
   final CacheService _cache;
   final SecretManager _secrets;
   final http.Client _httpClient;
