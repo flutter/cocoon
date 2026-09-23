@@ -155,7 +155,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Error'),
-          content: Text(message),
+          content: SelectionArea(child: Text(message)),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
