@@ -35,13 +35,6 @@ class _FilterDialogState extends State<FilterDialog> {
       text: presubmitState.jobNameFilter,
     );
     _regexFocusNode.addListener(_onRegexFocusChange);
-    if (widget.autofocusRegex) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _regexFocusNode.requestFocus();
-        }
-      });
-    }
   }
 
   @override
