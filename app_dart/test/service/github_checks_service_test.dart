@@ -198,10 +198,7 @@ void main() {
     test('nonempty summaryMarkdown', () async {
       const summaryMarkdown = 'test';
       const expectedSummary = '$kCheckRunHeader$summaryMarkdown';
-      expect(
-        githubChecksService.getSummary(summaryMarkdown),
-        expectedSummary,
-      );
+      expect(githubChecksService.getSummary(summaryMarkdown), expectedSummary);
     });
 
     test('empty summaryMarkdown', () async {

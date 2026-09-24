@@ -13,13 +13,16 @@ import 'package:cocoon_service/src/model/firestore/base.dart';
 import 'package:cocoon_service/src/model/firestore/pr_check_runs.dart';
 import 'package:cocoon_service/src/model/firestore/presubmit_guard.dart';
 import 'package:cocoon_service/src/service/cache_service.dart';
+import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/firestore.dart';
 import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
 import 'package:cocoon_service/src/service/flags/ordered_presubmit_flags.dart';
+import 'package:cocoon_service/src/service/flags/reset_failed_check_run.dart';
 import 'package:cocoon_service/src/service/luci_build_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
+import 'package:cocoon_service/src/service/scheduler.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
@@ -625,6 +628,176 @@ void main() {
             any,
             status: anyNamed('status'),
             conclusion: anyNamed('conclusion'),
+          ),
+        );
+      },
+    );
+
+    test(
+      're-creates Presubmit check run on reScheduleTryBuilds when resetFailedCheckRun is enabled and failedJobs == 0',
+      () async {
+        final pullRequest = generatePullRequest(
+          id: 1,
+          repo: 'flutter',
+          headSha: 'headsha123',
+        );
+
+        final buildTarget = generateTarget(
+          1,
+          properties: {'os': 'abc'},
+          slug: RepositorySlug.full('flutter/flutter'),
+          name: 'Linux foo',
+        );
+
+        luci = LuciBuildService(
+          config: FakeConfig(
+            dynamicConfig: DynamicConfig(
+              resetFailedCheckRun: ResetFailedCheckRun(useForAll: true),
+            ),
+          ),
+          cache: CacheService.inMemory(),
+          buildBucketClient: mockBuildBucketClient,
+          githubChecksUtil: mockGithubChecksUtil,
+          pubsub: pubSub,
+          gerritService: gerritService,
+          firestore: firestore,
+        );
+
+        final checkRunGuard = generateCheckRun(
+          1234,
+          name: Config.kDashboardCheckName,
+        );
+
+        final guard = PresubmitGuard(
+          checkRun: checkRunGuard,
+          headSha: 'headsha123',
+          slug: RepositorySlug.full('flutter/flutter'),
+          prNum: pullRequest.number!,
+          stage: CiStage.fusionTests,
+          creationTime: 123456789,
+          author: pullRequest.user!.login!,
+          remainingJobs: 1,
+          failedJobs: 0,
+        );
+        await firestore.writeViaTransaction(
+          documentsToWrites([guard], exists: false),
+        );
+
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+          ),
+        ).thenAnswer(
+          (_) async => generateCheckRun(999, name: Config.kPresubmitCheckName),
+        );
+
+        await expectLater(
+          luci.reScheduleTryBuilds(
+            pullRequest: pullRequest,
+            targets: {buildTarget: 2},
+            engineArtifacts: EngineArtifacts.builtFromSource(
+              commitSha: pullRequest.head!.sha!,
+            ),
+            dashboardChecks: checkRunGuard,
+            stage: CiStage.fusionTests,
+          ),
+          completion([isTarget.hasName('Linux foo')]),
+        );
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            RepositorySlug.full('flutter/flutter'),
+            'headsha123',
+            Config.kPresubmitCheckName,
+            output: const CheckRunOutput(
+              title: Config.kPresubmitCheckName,
+              summary: Scheduler.kPresubmitCheckDescription,
+            ),
+            detailsUrl: checkRunGuard.detailsUrl,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'does not re-create Presubmit check run on reScheduleTryBuilds when resetFailedCheckRun is enabled and failedJobs > 0',
+      () async {
+        final pullRequest = generatePullRequest(
+          id: 1,
+          repo: 'flutter',
+          headSha: 'headsha123',
+        );
+
+        final buildTarget = generateTarget(
+          1,
+          properties: {'os': 'abc'},
+          slug: RepositorySlug.full('flutter/flutter'),
+          name: 'Linux foo',
+        );
+
+        luci = LuciBuildService(
+          config: FakeConfig(
+            dynamicConfig: DynamicConfig(
+              resetFailedCheckRun: ResetFailedCheckRun(useForAll: true),
+            ),
+          ),
+          cache: CacheService.inMemory(),
+          buildBucketClient: mockBuildBucketClient,
+          githubChecksUtil: mockGithubChecksUtil,
+          pubsub: pubSub,
+          gerritService: gerritService,
+          firestore: firestore,
+        );
+
+        final checkRunGuard = generateCheckRun(
+          1234,
+          name: Config.kDashboardCheckName,
+        );
+
+        final guard = PresubmitGuard(
+          checkRun: checkRunGuard,
+          headSha: 'headsha123',
+          slug: RepositorySlug.full('flutter/flutter'),
+          prNum: pullRequest.number!,
+          stage: CiStage.fusionTests,
+          creationTime: 123456789,
+          author: pullRequest.user!.login!,
+          remainingJobs: 1,
+          failedJobs: 1,
+        );
+        await firestore.writeViaTransaction(
+          documentsToWrites([guard], exists: false),
+        );
+
+        await expectLater(
+          luci.reScheduleTryBuilds(
+            pullRequest: pullRequest,
+            targets: {buildTarget: 2},
+            engineArtifacts: EngineArtifacts.builtFromSource(
+              commitSha: pullRequest.head!.sha!,
+            ),
+            dashboardChecks: checkRunGuard,
+            stage: CiStage.fusionTests,
+          ),
+          completion([isTarget.hasName('Linux foo')]),
+        );
+
+        verifyNever(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            Config.kPresubmitCheckName,
+            output: anyNamed('output'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
           ),
         );
       },

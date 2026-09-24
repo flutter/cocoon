@@ -261,7 +261,6 @@ final class AuthorBuildTag extends BuildTag {
   final String value;
 }
 
-
 /// Groups builds together, i.e. by a (Gerrit) CL, (GitHub) PR or (Git) commit.
 sealed class BuildSetBuildTag extends BuildTag {
   static const _keyName = 'buildset';

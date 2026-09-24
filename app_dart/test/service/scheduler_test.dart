@@ -20,6 +20,7 @@ import 'package:cocoon_service/src/model/firestore/commit.dart' as fs;
 import 'package:cocoon_service/src/model/firestore/task.dart' as fs;
 import 'package:cocoon_service/src/model/github/checks.dart' as cocoon_checks;
 import 'package:cocoon_service/src/service/big_query.dart';
+import 'package:cocoon_service/src/service/flags/reset_failed_check_run.dart';
 import 'package:cocoon_service/src/service/luci_build_service/engine_artifacts.dart';
 import 'package:cocoon_service/src/service/luci_build_service/pending_task.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
@@ -3540,10 +3541,7 @@ targets:
             ),
           );
 
-          expect(
-            await scheduler.processBuildCompleted(macCompleted),
-            isTrue,
-          );
+          expect(await scheduler.processBuildCompleted(macCompleted), isTrue);
           verify(
             mockGithubChecksUtil.updateCheckRun(
               any,
@@ -3714,12 +3712,26 @@ targets:
               checkSuiteId: linuxCheckRun.checkSuiteId,
             ),
           );
-          expect(
-            await scheduler.processBuildCompleted(linuxFailed),
-            isFalse,
-          );
+          expect(await scheduler.processBuildCompleted(linuxFailed), isTrue);
 
-          // 2. Mac engine_build succeeds -> stage finishes with 1 failed check, failing Merge Queue Guard
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              Config.flutterSlug,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kMergeQueueLockName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.failure,
+              output: anyNamed('output'),
+            ),
+          ).called(1);
+
+          // 2. Mac engine_build succeeds -> stage finishes with 1 failed check
           final macSucceeded = PresubmitCompletedJob.fromBuild(
             generateBbv2Build(
               Int64(102),
@@ -3737,10 +3749,7 @@ targets:
               checkSuiteId: macCheckRun.checkSuiteId,
             ),
           );
-          expect(
-            await scheduler.processBuildCompleted(macSucceeded),
-            isTrue,
-          );
+          expect(await scheduler.processBuildCompleted(macSucceeded), isTrue);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -4570,6 +4579,370 @@ targets:
           final guards = await firestore.query(PresubmitGuard.collectionId, {});
           final guard = PresubmitGuard.fromDocument(guards.single);
           expect(guard.remainingJobs, 0);
+        },
+      );
+
+      test(
+        'when resetFailedCheckRun is enabled, fails Presubmit immediately on first build failure and keeps Dashboard Checks in progress',
+        () async {
+          config = FakeConfig(
+            dynamicConfig: DynamicConfig(
+              resetFailedCheckRun: ResetFailedCheckRun(useForAll: true),
+            ),
+          );
+          scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
+            cache: cache,
+            config: config,
+            githubChecksService: GithubChecksService(
+              config,
+              githubChecksUtil: mockGithubChecksUtil,
+            ),
+            getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
+            luciBuildService: MockLuciBuildService(),
+            contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
+          );
+
+          final pullRequest = generatePullRequest(repo: 'packages');
+          final dashboardCheckRun = generateCheckRun(
+            1234,
+            name: Config.kDashboardCheckName,
+            checkSuite: 2,
+            startedAt: DateTime.now(),
+          );
+          final presubmitCheckRun = generateCheckRun(
+            5678,
+            name: Config.kPresubmitCheckName,
+            checkSuite: 2,
+            startedAt: DateTime.now(),
+          );
+
+          when(mockGithubChecksUtil.allCheckRuns(any, any, 2)).thenAnswer(
+            (_) async => {
+              Config.kDashboardCheckName: dashboardCheckRun,
+              Config.kPresubmitCheckName: presubmitCheckRun,
+            },
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [dashboardCheckRun],
+            pullRequest: pullRequest,
+          );
+
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: dashboardCheckRun,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.genericTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {
+                'Linux test': TaskStatus.waitingForBackfill,
+                'Mac test': TaskStatus.waitingForBackfill,
+              },
+              remainingJobs: 2,
+              failedJobs: 0,
+            ),
+          );
+
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test',
+              checkRunId: dashboardCheckRun.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Mac test',
+              checkRunId: dashboardCheckRun.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: dashboardCheckRun.id,
+            stage: CiStage.genericTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          // 1. First build ('Linux test') fails while 'Mac test' is still pending.
+          final linuxFailedBuild = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.FAILURE,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(key: 'author', value: pullRequest.user!.login!),
+            ],
+          );
+
+          expect(
+            await scheduler.processBuildCompleted(
+              PresubmitCompletedJob.fromBuild(linuxFailedBuild, userData),
+            ),
+            isTrue,
+          );
+
+          // Presubmit check run must be failed immediately on first failure.
+          final verification = verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              pullRequest.base!.repo!.slug(),
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kPresubmitCheckName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.actionRequired,
+              detailsUrl: anyNamed('detailsUrl'),
+              output: captureAnyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+          verification.called(1);
+          final output = verification.captured.single as CheckRunOutput;
+          expect(output.text, 'Failed presubmit jobs:\n- `Linux test`');
+
+          // Dashboard Checks must remain in progress (not updated).
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kDashboardCheckName,
+                ),
+              ),
+              status: anyNamed('status'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+
+          // 2. Second build ('Mac test') succeeds -> stage finishes with 1 failed check, Dashboard Checks still in progress.
+          final macSucceededBuild = generateBbv2Build(
+            Int64(2),
+            name: 'Mac test',
+            status: bbv2.Status.SUCCESS,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(key: 'author', value: pullRequest.user!.login!),
+            ],
+          );
+
+          expect(
+            await scheduler.processBuildCompleted(
+              PresubmitCompletedJob.fromBuild(macSucceededBuild, userData),
+            ),
+            isTrue,
+          );
+
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kDashboardCheckName,
+                ),
+              ),
+              status: anyNamed('status'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+        },
+      );
+
+      test(
+        'when resetFailedCheckRun is enabled, completes both Presubmit and Dashboard Checks when all tests pass',
+        () async {
+          config = FakeConfig(
+            dynamicConfig: DynamicConfig(
+              resetFailedCheckRun: ResetFailedCheckRun(useForAll: true),
+            ),
+          );
+          scheduler = Scheduler(
+            githubService: config.githubService ?? FakeGithubService(),
+            cache: cache,
+            config: config,
+            githubChecksService: GithubChecksService(
+              config,
+              githubChecksUtil: mockGithubChecksUtil,
+            ),
+            getFilesChanged: getFilesChanged,
+            ciYamlFetcher: ciYamlFetcher,
+            luciBuildService: MockLuciBuildService(),
+            contentAwareHash: fakeContentAwareHash,
+            firestore: firestore,
+            bigQuery: bigQuery,
+          );
+
+          final pullRequest = generatePullRequest(repo: 'packages');
+          final dashboardCheckRun = generateCheckRun(
+            1234,
+            name: Config.kDashboardCheckName,
+            checkSuite: 2,
+            startedAt: DateTime.now(),
+          );
+          final presubmitCheckRun = generateCheckRun(
+            5678,
+            name: Config.kPresubmitCheckName,
+            checkSuite: 2,
+            startedAt: DateTime.now(),
+          );
+          final mergeQueueGuard = generateCheckRun(
+            9012,
+            name: Config.kMergeQueueLockName,
+            checkSuite: 2,
+            startedAt: DateTime.now(),
+          );
+
+          when(mockGithubChecksUtil.allCheckRuns(any, any, 2)).thenAnswer(
+            (_) async => {
+              Config.kDashboardCheckName: dashboardCheckRun,
+              Config.kPresubmitCheckName: presubmitCheckRun,
+              Config.kMergeQueueLockName: mergeQueueGuard,
+            },
+          );
+
+          await PrCheckRuns.initializeDocument(
+            firestoreService: firestore,
+            checks: [dashboardCheckRun, mergeQueueGuard],
+            pullRequest: pullRequest,
+          );
+
+          firestore.putDocument(
+            PresubmitGuard(
+              checkRun: dashboardCheckRun,
+              checkRunGuard: mergeQueueGuard,
+              headSha: pullRequest.head!.sha!,
+              slug: pullRequest.base!.repo!.slug(),
+              prNum: pullRequest.number!,
+              stage: CiStage.genericTests,
+              author: pullRequest.user!.login!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+              jobs: {'Linux test': TaskStatus.waitingForBackfill},
+              remainingJobs: 1,
+              failedJobs: 0,
+            ),
+          );
+
+          firestore.putDocument(
+            PresubmitJob.init(
+              slug: pullRequest.base!.repo!.slug(),
+              jobName: 'Linux test',
+              checkRunId: dashboardCheckRun.id!,
+              creationTime: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+
+          final userData = PresubmitUserData(
+            commit: CommitRef(
+              slug: pullRequest.base!.repo!.slug(),
+              sha: pullRequest.head!.sha!,
+              branch: 'main',
+            ),
+            guardCheckRunId: dashboardCheckRun.id,
+            stage: CiStage.genericTests,
+            checkSuiteId: 2,
+            pullRequestNumber: pullRequest.number,
+          );
+
+          final build = generateBbv2Build(
+            Int64(1),
+            name: 'Linux test',
+            status: bbv2.Status.SUCCESS,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(key: 'author', value: pullRequest.user!.login!),
+              bbv2.StringPair(
+                key: 'buildset',
+                value: 'sha/git/${pullRequest.head!.sha!}',
+              ),
+            ],
+          );
+
+          expect(
+            await scheduler.processBuildCompleted(
+              PresubmitCompletedJob.fromBuild(build, userData),
+            ),
+            isTrue,
+          );
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              pullRequest.base!.repo!.slug(),
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kDashboardCheckName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+            ),
+          ).called(1);
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              pullRequest.base!.repo!.slug(),
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kPresubmitCheckName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+            ),
+          ).called(1);
+
+          verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              pullRequest.base!.repo!.slug(),
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kMergeQueueLockName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.success,
+            ),
+          ).called(1);
         },
       );
     });

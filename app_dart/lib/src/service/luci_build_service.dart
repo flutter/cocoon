@@ -303,7 +303,7 @@ class LuciBuildService {
 
     final checkRuns = <CheckRun>[];
     late PresubmitUserData userData;
-    // In presubmit do not create individual check runs for each target but use 
+    // In presubmit do not create individual check runs for each target but use
     // the guard check run instead.
     if (dashboardChecks != null) {
       userData = PresubmitUserData(
@@ -437,7 +437,7 @@ class LuciBuildService {
       );
     }
 
-    // Set the presubmit check run status to `CheckRunStatus.inProgress` if 
+    // Set the presubmit check run status to `CheckRunStatus.inProgress` if
     // Re-run all Failed Jobs.
     if (pullRequest.user?.login != null &&
         _config.flags.isResetFailedCheckRunEnabledForUser(
@@ -462,7 +462,7 @@ class LuciBuildService {
             await _githubChecksUtil.createCheckRun(
               _config,
               slug,
-              checkRun.headSha!,
+              checkRun.headSha ?? commitSha,
               Config.kPresubmitCheckName,
               output: const CheckRunOutput(
                 title: Config.kPresubmitCheckName,

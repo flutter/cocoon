@@ -391,6 +391,7 @@ class Scheduler {
     );
     final dashboardChecks = lockResult.dashboardChecks;
     final mergeQueueGuard = lockResult.mergeQueueGuard;
+    final presubmit = lockResult.presubmit;
 
     // Track if we should unlock the merge group lock in case of non-fusion or
     // revert bots.
@@ -534,6 +535,9 @@ class Scheduler {
       await unlockMergeQueueGuard(slug, sha, dashboardChecks);
       if (mergeQueueGuard != null) {
         await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
+      }
+      if (presubmit != null) {
+        await unlockMergeQueueGuard(slug, sha, presubmit);
       }
     }
     log.info(
@@ -898,6 +902,7 @@ $s
           detailsUrl: isMergeQueue ? null : detailsUrl,
         );
 
+    CheckRun? presubmit;
     if (isMergeQueue) {
       // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
@@ -908,7 +913,7 @@ $s
         conclusion: CheckRunConclusion.success,
       );
     } else if (isResetFailedCheckRunEnabled) {
-      await _githubChecksService.githubChecksUtil.createCheckRun(
+      presubmit = await _githubChecksService.githubChecksUtil.createCheckRun(
         _config,
         slug,
         headSha,
@@ -923,6 +928,7 @@ $s
     return CheckRunLockResult(
       dashboardChecks: dashboardChecks,
       mergeQueueGuard: mergeQueueGuard,
+      presubmit: presubmit,
     );
   }
 
@@ -1091,7 +1097,13 @@ defined in:
       checkSuiteId,
     );
     log.info('Found check runs: ${checks.keys.join(', ')}');
-    final presubmitCheck = checks[Config.kPresubmitCheckName]!;
+    final presubmitCheck = checks[Config.kPresubmitCheckName];
+    if (presubmitCheck == null) {
+      log.warn(
+        '${Config.kPresubmitCheckName} check run not found in check suite $checkSuiteId for $slug/$headSha',
+      );
+      return;
+    }
 
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
@@ -1268,22 +1280,17 @@ defined in:
       return false;
     }
 
-    // Are there tests remaining? Keep waiting.
-    if (stagingConclusion.isPending) {
-      log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
-      );
-      return false;
-    }
-
     if (stagingConclusion.isFailed) {
       // Something failed in the current CI stage:
       //
-      // * If this is a pull request: keep the merge guard open and do not proceed
-      //   to the next stage. Let the author sort out what's up.
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
-      // If its a unified check run we need to require action on the guard.
+      // * If this is a pull request and resetFailedCheckRun flag is enabled:
+      //   keep the `Merge Queue Guard` and `Dashboard Checks` open and require
+      //   action on the `Presubmit` check run.
+      // * If this is a pull request and resetFailedCheckRun flag is disabled:
+      //   keep the `Merge Queue Guard` open and require action on the
+      //   `Dashboard Checks` check run.
       if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.mergeQueueGuard!);
@@ -1329,6 +1336,13 @@ defined in:
       return true;
     }
 
+    // Are there tests remaining? Keep waiting.
+    if (stagingConclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
+      return false;
+    }
     // The logic for finishing a stage is different between build and test stages:
     //
     // * If this is a build stage, then:
@@ -1439,11 +1453,25 @@ defined in:
       }
     } else {
       if (dashboardChecks != null) {
-        await unlockMergeQueueGuard(
-          check.slug,
-          check.sha,
-          checkRunFromString(dashboardChecks),
-        );
+        final dashboardCheckRun = checkRunFromString(dashboardChecks);
+        await unlockMergeQueueGuard(check.slug, check.sha, dashboardCheckRun);
+        if (check.author != null &&
+            _config.flags.isResetFailedCheckRunEnabledForUser(check.author!)) {
+          final checkSuiteId =
+              check.checkSuiteId ?? dashboardCheckRun.checkSuiteId;
+          if (checkSuiteId != null) {
+            final checks = await _githubChecksService.githubChecksUtil
+                .allCheckRuns(_config, check.slug, checkSuiteId);
+            final presubmitCheck = checks[Config.kPresubmitCheckName];
+            if (presubmitCheck != null) {
+              await unlockMergeQueueGuard(
+                check.slug,
+                check.sha,
+                presubmitCheck,
+              );
+            }
+          }
+        }
       }
       if (mergeQueueGuard != null) {
         await unlockMergeQueueGuard(
@@ -1770,6 +1798,7 @@ $stacktrace
     switch (name) {
       case Config.kMergeQueueLockName:
       case Config.kDashboardCheckName:
+      case Config.kPresubmitCheckName:
         final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
         log.debug(
           '$logCrumb: Requested re-run of "$name" for '
@@ -1964,11 +1993,23 @@ $stacktrace
       checkRunEvent.checkRun!.checkSuite!.id!,
     );
 
+    var guardCheckRunId = checkRunEvent.checkRun!.id!;
+    if (checkRunEvent.checkRun!.name == Config.kPresubmitCheckName) {
+      final guard = await UnifiedCheckRun.getLatestPresubmitGuardForPrNum(
+        firestoreService: _firestore,
+        slug: slug,
+        prNum: pullRequest!.number!,
+      );
+      if (guard != null) {
+        guardCheckRunId = guard.checkRunId;
+      }
+    }
+
     final failedChecks = await UnifiedCheckRun.reInitializeFailedJobs(
       firestoreService: _firestore,
       slug: slug,
       prNum: pullRequest!.number!,
-      guardCheckRunId: checkRunEvent.checkRun!.id!,
+      guardCheckRunId: guardCheckRunId,
     );
 
     if (failedChecks == null || failedChecks.jobRetries.isEmpty) {
@@ -2132,9 +2173,11 @@ enum _TaskCommitScheduling {
 class CheckRunLockResult {
   final CheckRun dashboardChecks;
   final CheckRun? mergeQueueGuard;
+  final CheckRun? presubmit;
 
   const CheckRunLockResult({
     required this.dashboardChecks,
     this.mergeQueueGuard,
+    this.presubmit,
   });
 }
