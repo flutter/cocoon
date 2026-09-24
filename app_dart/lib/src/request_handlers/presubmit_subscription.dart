@@ -33,7 +33,7 @@ import '../service/scheduler/ci_yaml_fetcher.dart';
 /// * Checking remaining build attempts and rescheduling failed builds.
 /// * Suppressing failing conclusions if a test is marked as suppressed.
 /// * Updating GitHub Check Run statuses for individual presubmit builds.
-/// * Calling [Scheduler.processCheckRunCompleted] to progress CI stages or merge queues.
+/// * Calling [Scheduler.processBuildCompleted] to progress CI stages or merge queues.
 base class PresubmitSubscription extends SubscriptionHandler {
   /// Creates an endpoint for listening to LUCI status updates.
   const PresubmitSubscription({
@@ -134,7 +134,7 @@ base class PresubmitSubscription extends SubscriptionHandler {
   ///
   /// Evaluates whether a failing task should be automatically retried up to
   /// [_getMaxAttempt]. If the build is not rescheduled, updates GitHub check
-  /// run status and notifies [Scheduler.processCheckRunCompleted].
+  /// run status and notifies [Scheduler.processBuildCompleted].
   Future<void> _processBuild({
     required bbv2.Build build,
     required PresubmitUserData userData,
@@ -225,7 +225,7 @@ base class PresubmitSubscription extends SubscriptionHandler {
             : null,
         summaryPrepend: suppressedMessage,
       );
-      await _scheduler.processCheckRunCompleted(check);
+      await _scheduler.processBuildCompleted(check);
     }
   }
 

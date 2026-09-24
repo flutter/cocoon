@@ -11,7 +11,7 @@ import '../model/bbv2_extension.dart';
 import 'config.dart';
 import 'luci_build_service.dart';
 
-const String kGithubSummary = '''
+const String kCheckRunHeader = '''
 **[Understanding a LUCI build failure](https://github.com/flutter/flutter/blob/master/docs/infra/Understanding-a-LUCI-build-failure.md)**
 
 ''';
@@ -98,7 +98,7 @@ class GithubChecksService {
             allFields: true,
           ),
         );
-        var summary = getGithubSummary(buildbucketBuild.summaryMarkdown);
+        var summary = getSummary(buildbucketBuild.summaryMarkdown);
         if (summaryPrepend != null && summaryPrepend.isNotEmpty) {
           summary = '$summaryPrepend\n\n$summary';
         }
@@ -122,11 +122,11 @@ class GithubChecksService {
 
   /// Appends triage wiki page to `summaryMarkdown` from LUCI build so that people can easily
   /// reference from github check run page.
-  String getGithubSummary(String? summary) {
-    return getGithubSummaryWithHeader(kGithubSummary, summary);
+  String getSummary(String? summary) {
+    return getSummaryWithHeader(kCheckRunHeader, summary);
   }
 
-  String getGithubSummaryWithHeader(String header, String? summary) {
+  String getSummaryWithHeader(String header, String? summary) {
     if (summary == null) {
       return '${header}Empty summaryMarkdown';
     }

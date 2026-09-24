@@ -91,7 +91,7 @@ void main() {
       mockGithubChecksService.conclusionForResult(any),
     ).thenAnswer((_) => github.CheckRunConclusion.empty);
     when(
-      mockScheduler.processCheckRunCompleted(any),
+      mockScheduler.processBuildCompleted(any),
     ).thenAnswer((_) async => true);
 
     tester.message = createPushMessage(
@@ -120,7 +120,7 @@ void main() {
       ),
     ).called(1);
 
-    verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+    verify(mockScheduler.processBuildCompleted(any)).called(1);
   });
 
   test(
@@ -162,7 +162,7 @@ void main() {
           rescheduled: true,
         ),
       ).called(1);
-      verifyNever(mockScheduler.processCheckRunCompleted(any));
+      verifyNever(mockScheduler.processBuildCompleted(any));
     },
   );
 
@@ -245,7 +245,7 @@ void main() {
         rescheduled: true,
       ),
     ).called(1);
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
+    verifyNever(mockScheduler.processBuildCompleted(any));
   });
 
   test(
@@ -265,7 +265,7 @@ void main() {
         mockGithubChecksService.conclusionForResult(any),
       ).thenAnswer((_) => github.CheckRunConclusion.empty);
       when(
-        mockScheduler.processCheckRunCompleted(any),
+        mockScheduler.processBuildCompleted(any),
       ).thenAnswer((_) async => true);
 
       final userData = PresubmitUserData(
@@ -311,7 +311,7 @@ void main() {
         ),
       ).called(1);
 
-      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+      verify(mockScheduler.processBuildCompleted(any)).called(1);
     },
   );
 
@@ -332,7 +332,7 @@ void main() {
         mockGithubChecksService.conclusionForResult(any),
       ).thenAnswer((_) => github.CheckRunConclusion.empty);
       when(
-        mockScheduler.processCheckRunCompleted(any),
+        mockScheduler.processBuildCompleted(any),
       ).thenAnswer((_) async => true);
 
       final userData = PresubmitUserData(
@@ -376,7 +376,7 @@ void main() {
           rescheduled: false,
         ),
       ).called(1);
-      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+      verify(mockScheduler.processBuildCompleted(any)).called(1);
     },
   );
 
@@ -485,7 +485,7 @@ void main() {
     // Check that the build.input.properties extracted from build_large_fields
     // contains the git_ref property encoded in the test data.
     expect(build.input.properties.fields, contains('git_ref'));
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
+    verifyNever(mockScheduler.processBuildCompleted(any));
   });
 
   test('Close the MQ guard once presubmit compleated', () async {
@@ -518,13 +518,13 @@ void main() {
       mockGithubChecksService.conclusionForResult(bbv2.Status.SUCCESS),
     ).thenAnswer((_) => github.CheckRunConclusion.success);
     when(
-      mockScheduler.processCheckRunCompleted(any),
+      mockScheduler.processBuildCompleted(any),
     ).thenAnswer((_) async => true);
 
     await tester.post(handler);
 
     final captured = verify(
-      mockScheduler.processCheckRunCompleted(captureAny),
+      mockScheduler.processBuildCompleted(captureAny),
     ).captured;
     expect(captured, hasLength(1));
     expect(
@@ -580,7 +580,7 @@ void main() {
     ).thenAnswer((_) async => true);
 
     when(
-      mockScheduler.processCheckRunCompleted(any),
+      mockScheduler.processBuildCompleted(any),
     ).thenAnswer((_) async => true);
 
     tester.message = createPushMessage(
@@ -611,7 +611,7 @@ void main() {
     ).called(1);
 
     final captured = verify(
-      mockScheduler.processCheckRunCompleted(captureAny),
+      mockScheduler.processBuildCompleted(captureAny),
     ).captured;
     expect(captured, hasLength(1));
     expect(
@@ -663,7 +663,7 @@ void main() {
     );
 
     when(
-      mockScheduler.processCheckRunCompleted(any),
+      mockScheduler.processBuildCompleted(any),
     ).thenAnswer((_) async => true);
 
     tester.message = createPushMessage(
@@ -687,7 +687,7 @@ void main() {
     );
 
     final captured = verify(
-      mockScheduler.processCheckRunCompleted(captureAny),
+      mockScheduler.processBuildCompleted(captureAny),
     ).captured;
     expect(captured, hasLength(1));
     expect(
@@ -726,7 +726,7 @@ void main() {
       );
 
       when(
-        mockScheduler.processCheckRunCompleted(any),
+        mockScheduler.processBuildCompleted(any),
       ).thenAnswer((_) async => true);
 
       tester.message = createPushMessage(
@@ -750,7 +750,7 @@ void main() {
       );
 
       final captured = verify(
-        mockScheduler.processCheckRunCompleted(captureAny),
+        mockScheduler.processBuildCompleted(captureAny),
       ).captured;
       expect(captured, hasLength(1));
       expect(
@@ -858,7 +858,7 @@ void main() {
       ),
     );
 
-    verifyNever(mockScheduler.processCheckRunCompleted(any));
+    verifyNever(mockScheduler.processBuildCompleted(any));
 
     final updatedCurrentJob = await PresubmitJob.fromFirestore(
       firestore,

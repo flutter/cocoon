@@ -89,6 +89,12 @@ final class BuildTags {
     final prTag = getTagOfType<GitHubPullRequestBuildTag>();
     return prTag!.pullRequestNumber;
   }
+
+  /// GitHub Pull Request Author
+  String? get author {
+    final tag = getTagOfType<AuthorBuildTag>();
+    return tag?.value;
+  }
 }
 
 /// Valid tags for [bbv2.ScheduleBuildRequest.tags].
@@ -170,6 +176,8 @@ sealed class BuildTag {
         return TriggerdByBuildTag(email: pair.value);
       case OrderingKeyTag._keyName:
         return OrderingKeyTag(orderingKey: pair.value);
+      case AuthorBuildTag._keyName:
+        return AuthorBuildTag(value: pair.value);
     }
     return UnknownBuildTag(key: pair.key, value: pair.value);
   }
@@ -242,6 +250,17 @@ final class UserAgentBuildTag extends BuildTag {
   /// Value of the user-agent.
   final String value;
 }
+
+/// The author of the commit that triggered the build.
+final class AuthorBuildTag extends BuildTag {
+  static const _keyName = 'author';
+
+  AuthorBuildTag({required this.value}) : super(_keyName, value);
+
+  /// Name of the author.
+  final String value;
+}
+
 
 /// Groups builds together, i.e. by a (Gerrit) CL, (GitHub) PR or (Git) commit.
 sealed class BuildSetBuildTag extends BuildTag {

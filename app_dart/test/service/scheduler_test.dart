@@ -1614,7 +1614,7 @@ targets:
             () async {
               for (final ignored in Scheduler.kCheckRunsToIgnore) {
                 expect(
-                  await scheduler.processCheckRunCompleted(
+                  await scheduler.processBuildCompleted(
                     PresubmitCompletedJob(
                       name: ignored,
                       sha: 'abc123',
@@ -2029,7 +2029,7 @@ targets:
       );
 
       test(
-        'does not close Merge Queue Guard immediately for unified check run flow',
+        'create Presubmit check-run when not in merge queue and resetFailedCheckRun is enabled',
         () async {
           when(
             mockGithubChecksUtil.createCheckRun(
@@ -2051,21 +2051,20 @@ targets:
           final lockResult = await scheduler.lockMergeGroupChecks(
             Config.flutterSlug,
             'sha123',
-            isPresubmit: true,
+            isMergeQueue: false,
+            isResetFailedCheckRunEnabled: true,
           );
 
           expect(lockResult.dashboardChecks.name, Config.kDashboardCheckName);
-          expect(lockResult.mergeQueueGuard?.name, Config.kMergeQueueLockName);
 
-          verifyNever(
-            mockGithubChecksUtil.updateCheckRun(
+          verify(
+            mockGithubChecksUtil.createCheckRun(
               any,
               any,
               any,
-              status: CheckRunStatus.completed,
-              conclusion: CheckRunConclusion.success,
+              Config.kPresubmitCheckName,
               output: anyNamed('output'),
-              actions: anyNamed('actions'),
+              conclusion: anyNamed('conclusion'),
               detailsUrl: anyNamed('detailsUrl'),
             ),
           );
@@ -2539,6 +2538,47 @@ targets:
     });
 
     group('merge groups', () {
+      test('close Dashboard Checks immediately for merge groups', () async {
+        when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+          ),
+        ).thenAnswer((Invocation invocation) async {
+          return generateCheckRun(
+            invocation.positionalArguments[2].hashCode,
+            name: invocation.positionalArguments[3] as String,
+          );
+        });
+
+        final lockResult = await scheduler.lockMergeGroupChecks(
+          Config.flutterSlug,
+          'sha123',
+          isMergeQueue: true,
+          isResetFailedCheckRunEnabled: true,
+        );
+
+        expect(lockResult.dashboardChecks.name, Config.kDashboardCheckName);
+        expect(lockResult.mergeQueueGuard?.name, Config.kMergeQueueLockName);
+
+        verify(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: CheckRunStatus.completed,
+            conclusion: CheckRunConclusion.success,
+            output: anyNamed('output'),
+            actions: anyNamed('actions'),
+            detailsUrl: anyNamed('detailsUrl'),
+          ),
+        );
+      });
       test('schedule some work on prod', () async {
         ciYamlFetcher.setCiYamlFrom(singleCiYaml, engine: fusionDualCiYaml);
         final luci = MockLuciBuildService();
@@ -3467,7 +3507,7 @@ targets:
           );
 
           expect(
-            await scheduler.processCheckRunCompleted(linuxCompleted),
+            await scheduler.processBuildCompleted(linuxCompleted),
             isFalse,
           );
           verifyNever(
@@ -3501,7 +3541,7 @@ targets:
           );
 
           expect(
-            await scheduler.processCheckRunCompleted(macCompleted),
+            await scheduler.processBuildCompleted(macCompleted),
             isTrue,
           );
           verify(
@@ -3675,7 +3715,7 @@ targets:
             ),
           );
           expect(
-            await scheduler.processCheckRunCompleted(linuxFailed),
+            await scheduler.processBuildCompleted(linuxFailed),
             isFalse,
           );
 
@@ -3698,7 +3738,7 @@ targets:
             ),
           );
           expect(
-            await scheduler.processCheckRunCompleted(macSucceeded),
+            await scheduler.processBuildCompleted(macSucceeded),
             isTrue,
           );
 
@@ -4112,7 +4152,7 @@ targets:
 
         final check = PresubmitCompletedJob.fromBuild(build, userData);
 
-        expect(await scheduler.processCheckRunCompleted(check), isTrue);
+        expect(await scheduler.processBuildCompleted(check), isTrue);
 
         // Should schedule tests for the next stage (fusionTests)
         expect(fakeLuciBuildService.scheduledTryBuilds, isNotEmpty);
@@ -4186,7 +4226,7 @@ targets:
 
           final check = PresubmitCompletedJob.fromBuild(build, userData);
 
-          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+          expect(await scheduler.processBuildCompleted(check), isTrue);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -4296,7 +4336,7 @@ targets:
 
           final check = PresubmitCompletedJob.fromBuild(build, userData);
 
-          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+          expect(await scheduler.processBuildCompleted(check), isTrue);
 
           final verification = verify(
             mockGithubChecksUtil.updateCheckRun(
@@ -4375,7 +4415,7 @@ targets:
 
         // First test succeeds: merge queue guard remains locked while 'Mac test' is still pending.
         expect(
-          await scheduler.processCheckRunCompleted(
+          await scheduler.processBuildCompleted(
             PresubmitCompletedJob.fromBuild(linuxBuild, userData),
           ),
           isFalse,
@@ -4406,7 +4446,7 @@ targets:
 
         // Second (final) test succeeds: all tests succeeded, so merge queue guard is unlocked.
         expect(
-          await scheduler.processCheckRunCompleted(
+          await scheduler.processBuildCompleted(
             PresubmitCompletedJob.fromBuild(macBuild, userData),
           ),
           isTrue,
@@ -4514,7 +4554,7 @@ targets:
 
           final check = PresubmitCompletedJob.fromBuild(build, userData);
 
-          expect(await scheduler.processCheckRunCompleted(check), isTrue);
+          expect(await scheduler.processBuildCompleted(check), isTrue);
 
           verify(
             mockGithubChecksUtil.updateCheckRun(

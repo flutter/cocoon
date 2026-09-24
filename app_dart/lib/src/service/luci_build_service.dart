@@ -303,8 +303,8 @@ class LuciBuildService {
 
     final checkRuns = <CheckRun>[];
     late PresubmitUserData userData;
-    // If the unified check run flow is enabled, do not create individual
-    // check runs for each target but use the guard check run instead.
+    // In presubmit do not create individual check runs for each target but use 
+    // the guard check run instead.
     if (dashboardChecks != null) {
       userData = PresubmitUserData(
         commit: CommitRef(slug: slug, sha: commitSha, branch: commitBranch),
@@ -322,8 +322,7 @@ class LuciBuildService {
     }
 
     for (final MapEntry(key: target, value: attemptNumber) in targets.entries) {
-      // If the unified check run flow is disabled create individual check runs
-      // for each target.
+      // In merge queue create individual check runs for each target.
       if (dashboardChecks == null) {
         final checkRun = await _githubChecksUtil.createCheckRun(
           _config,
@@ -393,22 +392,17 @@ class LuciBuildService {
             cipdVersion: cipdVersion,
             userData: userData,
             properties: properties,
-            // if unified check run flow is enabled, use guard check run othervise check run id.
-            tags: dashboardChecks != null
-                ? BuildTags([
-                    GuardCheckRunIdBuildTag(
-                      guardCheckRunId: dashboardChecks.id!,
-                    ),
-                    if (attemptNumber > 1)
-                      CurrentAttemptBuildTag(attemptNumber: attemptNumber),
-                    if (isOrderedPresubmit)
-                      OrderingKeyTag(orderingKey: pullRequest.head!.sha!),
-                  ])
-                : BuildTags([
-                    GitHubCheckRunIdBuildTag(checkRunId: userData.checkRunId!),
-                    if (isOrderedPresubmit)
-                      OrderingKeyTag(orderingKey: pullRequest.head!.sha!),
-                  ]),
+            // In merge queue use check run id othervise guard check run.
+            tags: BuildTags([
+              if (pullRequest.user?.login != null)
+                AuthorBuildTag(value: pullRequest.user!.login!),
+              if (dashboardChecks != null)
+                GuardCheckRunIdBuildTag(guardCheckRunId: dashboardChecks.id!),
+              if (attemptNumber > 1)
+                CurrentAttemptBuildTag(attemptNumber: attemptNumber),
+              if (isOrderedPresubmit)
+                OrderingKeyTag(orderingKey: pullRequest.head!.sha!),
+            ]),
             dimensions: requestedDimensions,
           ),
         ),
@@ -445,52 +439,48 @@ class LuciBuildService {
 
     // Set the presubmit check run status to `CheckRunStatus.inProgress` if 
     // Re-run all Failed Jobs.
-    final isRerun = targets.values.first > 1;
-    if (isRerun && stage != null && dashboardChecks != null) {
-      try {
-        final presubmitGuardDoc = await _firestore.getDocument(
-          PresubmitGuard.documentNameFor(
-            slug: slug,
-            prNum: pullRequest.number!,
-            checkRunId: dashboardChecks.id!,
-            stage: stage,
-          ),
-        );
-        final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
-        final checkRun = guard.checkRun;
-
-        if (guard.failedJobs == 0) {
-          log.info('Re-requesting presubmit check run for Guard $guard');
-          // final checks = await _githubChecksUtil.allCheckRuns(
-          //   _config,
-          //   slug,
-          //   checkRun.checkSuiteId!,
-          // );
-          // log.info('Found check runs: ${checks.keys.join(', ')}');
-          // final presubmitChecks = checks[Config.kPresubmitCheckName]!;
-
-          await _githubChecksUtil.createCheckRun(
-            _config,
-            slug,
-            checkRun.headSha!,
-            Config.kPresubmitCheckName,
-            output: const CheckRunOutput(
-              title: Config.kPresubmitCheckName,
-              summary: Scheduler.kPresubmitCheckDescription,
+    if (pullRequest.user?.login != null &&
+        _config.flags.isResetFailedCheckRunEnabledForUser(
+          pullRequest.user!.login!,
+        )) {
+      final isRerun = targets.values.first > 1;
+      if (isRerun && stage != null && dashboardChecks != null) {
+        try {
+          final presubmitGuardDoc = await _firestore.getDocument(
+            PresubmitGuard.documentNameFor(
+              slug: slug,
+              prNum: pullRequest.number!,
+              checkRunId: dashboardChecks.id!,
+              stage: stage,
             ),
-            detailsUrl: checkRun.detailsUrl,
+          );
+          final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
+          final checkRun = guard.checkRun;
+
+          if (guard.failedJobs == 0) {
+            log.info('Re-creating Presubmit check run for Guard $guard');
+            await _githubChecksUtil.createCheckRun(
+              _config,
+              slug,
+              checkRun.headSha!,
+              Config.kPresubmitCheckName,
+              output: const CheckRunOutput(
+                title: Config.kPresubmitCheckName,
+                summary: Scheduler.kPresubmitCheckDescription,
+              ),
+              detailsUrl: checkRun.detailsUrl,
+            );
+          }
+        } catch (e, s) {
+          // We are not going to block on this error.
+          log.warn(
+            'Failed to re-create Presubmit check run for PR# ${pullRequest.number}',
+            e,
+            s,
           );
         }
-      } catch (e, s) {
-        // We are not going to block on this error.
-        log.warn(
-          'Failed to re-request dashboard checks for PR# ${pullRequest.number}',
-          e,
-          s,
-        );
       }
     }
-
     return targets.keys.toList();
   }
 

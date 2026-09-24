@@ -1914,7 +1914,7 @@ class MockGithubChecksService extends _i1.Mock
           as _i13.Future<bool>);
 
   @override
-  String getGithubSummary(String? summary) =>
+  String getSummary(String? summary) =>
       (super.noSuchMethod(
             Invocation.method(#getGithubSummary, [summary]),
             returnValue: _i19.dummyValue<String>(
@@ -1925,7 +1925,7 @@ class MockGithubChecksService extends _i1.Mock
           as String);
 
   @override
-  String getGithubSummaryWithHeader(String? header, String? summary) =>
+  String getSummaryWithHeader(String? header, String? summary) =>
       (super.noSuchMethod(
             Invocation.method(#getGithubSummaryWithHeader, [header, summary]),
             returnValue: _i19.dummyValue<String>(
@@ -5733,13 +5733,18 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
     _i7.RepositorySlug? slug,
     String? headSha, {
     String? detailsUrl,
-    required bool? isPresubmit,
+    required bool? isMergeQueue,
+    required bool? isResetFailedCheckRunEnabled,
   }) =>
       (super.noSuchMethod(
             Invocation.method(
               #lockMergeGroupChecks,
               [slug, headSha],
-              {#detailsUrl: detailsUrl, #isPresubmit: isPresubmit},
+              {
+                #detailsUrl: detailsUrl,
+                #isMergeQueue: isMergeQueue,
+                #isResetFailedCheckRunEnabled: isResetFailedCheckRunEnabled,
+              },
             ),
             returnValue: _i13.Future<_i2.CheckRunLockResult>.value(
               _FakeCheckRunLockResult_58(
@@ -5747,7 +5752,11 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
                 Invocation.method(
                   #lockMergeGroupChecks,
                   [slug, headSha],
-                  {#detailsUrl: detailsUrl, #isPresubmit: isPresubmit},
+                  {
+                    #detailsUrl: detailsUrl,
+                    #isMergeQueue: isMergeQueue,
+                    #isResetFailedCheckRunEnabled: isResetFailedCheckRunEnabled,
+                  },
                 ),
               ),
             ),
@@ -5849,9 +5858,7 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
           as _i13.Future<List<_i27.Target>>);
 
   @override
-  _i13.Future<bool> processCheckRunCompleted(
-    _i38.PresubmitCompletedJob? check,
-  ) =>
+  _i13.Future<bool> processBuildCompleted(_i38.PresubmitCompletedJob? check) =>
       (super.noSuchMethod(
             Invocation.method(#processCheckRunCompleted, [check]),
             returnValue: _i13.Future<bool>.value(false),

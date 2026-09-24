@@ -197,16 +197,16 @@ void main() {
   group('getGithubSummary', () {
     test('nonempty summaryMarkdown', () async {
       const summaryMarkdown = 'test';
-      const expectedSummary = '$kGithubSummary$summaryMarkdown';
+      const expectedSummary = '$kCheckRunHeader$summaryMarkdown';
       expect(
-        githubChecksService.getGithubSummary(summaryMarkdown),
+        githubChecksService.getSummary(summaryMarkdown),
         expectedSummary,
       );
     });
 
     test('empty summaryMarkdown', () async {
-      const expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
-      expect(githubChecksService.getGithubSummary(null), expectedSummary);
+      const expectedSummary = '${kCheckRunHeader}Empty summaryMarkdown';
+      expect(githubChecksService.getSummary(null), expectedSummary);
     });
 
     test('really large summaryMarkdown', () async {
@@ -215,11 +215,11 @@ void main() {
         summaryMarkdown += 'test ';
       }
       expect(
-        githubChecksService.getGithubSummary(summaryMarkdown),
-        startsWith('$kGithubSummary[TRUNCATED...]'),
+        githubChecksService.getSummary(summaryMarkdown),
+        startsWith('$kCheckRunHeader[TRUNCATED...]'),
       );
       expect(
-        githubChecksService.getGithubSummary(summaryMarkdown).length,
+        githubChecksService.getSummary(summaryMarkdown).length,
         lessThan(65535),
       );
     });

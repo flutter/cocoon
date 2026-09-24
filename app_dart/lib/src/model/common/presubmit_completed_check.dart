@@ -42,6 +42,7 @@ class PresubmitCompletedJob {
   final String? summary;
   final int? buildNumber;
   final Int64? buildId;
+  final String? author;
 
   const PresubmitCompletedJob({
     required this.name,
@@ -60,6 +61,7 @@ class PresubmitCompletedJob {
     this.summary,
     this.buildNumber,
     this.buildId,
+    this.author,
   });
 
   /// Creates a [PresubmitCompletedJob] from a BuildBucket [Build].
@@ -89,6 +91,7 @@ class PresubmitCompletedJob {
       ].join('\n---\n'),
       buildNumber: build.number,
       buildId: build.id,
+      author: BuildTags.fromStringPairs(build.tags).author,
     );
   }
 

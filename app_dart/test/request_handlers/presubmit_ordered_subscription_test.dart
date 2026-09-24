@@ -81,7 +81,7 @@ void main() {
         mockGithubChecksService.conclusionForResult(any),
       ).thenAnswer((_) => github.CheckRunConclusion.empty);
       when(
-        mockScheduler.processCheckRunCompleted(any),
+        mockScheduler.processBuildCompleted(any),
       ).thenAnswer((_) async => true);
 
       tester.message = createPushMessage(
@@ -105,7 +105,7 @@ void main() {
       final response = await tester.post(handler);
 
       expect(response, Response.emptyOk);
-      verify(mockScheduler.processCheckRunCompleted(any)).called(1);
+      verify(mockScheduler.processBuildCompleted(any)).called(1);
     },
   );
 }
