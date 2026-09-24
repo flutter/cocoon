@@ -1125,6 +1125,81 @@ void main() {
       expect(tester.widget<TextButton>(rerunAllButton).onPressed, isNotNull);
       expect(tester.widget<TextButton>(rerunButton).onPressed, isNotNull);
     });
+
+    testWidgets('error dialog message is wrapped in SelectionArea', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      when(mockAuthService.isAuthenticated).thenReturn(true);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.failed,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'Engine',
+            createdAt: 0,
+            jobs: {'linux_bot': TaskStatus.failed},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.rerunAllFailedJobs(
+          idToken: anyNamed('idToken'),
+          repo: anyNamed('repo'),
+          pr: anyNamed('pr'),
+        ),
+      ).thenAnswer(
+        (_) async => const CocoonResponse<void>.error(
+          'Sample error message',
+          statusCode: 500,
+        ),
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(
+          repo: 'flutter',
+          sha: 'decaf_3_real_sha',
+        ),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({
+            'repo': 'flutter',
+            'pr': '123',
+            'sha': 'decaf_3_real_sha',
+          }),
+        );
+        for (var i = 0; i < 20; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.textContaining('linux_bot').evaluate().isNotEmpty) break;
+        }
+      });
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Re-run failed'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is SelectionArea &&
+              widget.child is Text &&
+              (widget.child as Text).data == 'Sample error message',
+        ),
+        findsOneWidget,
+      );
+    });
   });
 
   group('PreSubmitView Sorting', () {

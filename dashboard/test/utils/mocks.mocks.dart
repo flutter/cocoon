@@ -1319,6 +1319,7 @@ class MockFirebaseAuth extends _i1.Mock implements _i7.FirebaseAuth {
     String? phoneNumber,
     String? smsCode,
     bool? forceRecaptchaFlow,
+    bool? migrateCurrentUser,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#setSettings, [], {
@@ -1328,6 +1329,7 @@ class MockFirebaseAuth extends _i1.Mock implements _i7.FirebaseAuth {
               #phoneNumber: phoneNumber,
               #smsCode: smsCode,
               #forceRecaptchaFlow: forceRecaptchaFlow,
+              #migrateCurrentUser: migrateCurrentUser,
             }),
             returnValue: _i8.Future<void>.value(),
             returnValueForMissingStub: _i8.Future<void>.value(),

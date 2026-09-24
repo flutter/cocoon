@@ -6,6 +6,7 @@ import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_app_icons/flutter_app_icons_platform_interface.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/build.dart';
@@ -230,4 +231,108 @@ void main() {
     expect(find.text('mac test'), findsOneWidget);
     expect(find.byIcon(Icons.filter_alt), findsOneWidget);
   });
+
+  testWidgets(
+    'Pressing / opens FilterDialog and focuses Job Name (Regex) field',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'stage1',
+            createdAt: 0,
+            jobs: {'linux test': TaskStatus.succeeded},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc'),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.byIcon(Icons.filter_alt_outlined).evaluate().isNotEmpty) {
+            break;
+          }
+        }
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilterDialog), findsNothing);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.slash);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilterDialog), findsOneWidget);
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.focusNode?.hasFocus, isTrue);
+    },
+  );
+
+  testWidgets(
+    'Pressing Ctrl+F opens FilterDialog and focuses Job Name (Regex) field',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(2000, 1080);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      const guardResponse = PresubmitGuardResponse(
+        prNum: 123,
+        author: 'dash',
+        guardStatus: GuardStatus.succeeded,
+        checkRunId: 456,
+        stages: [
+          PresubmitGuardStage(
+            name: 'stage1',
+            createdAt: 0,
+            jobs: {'linux test': TaskStatus.succeeded},
+          ),
+        ],
+      );
+
+      when(
+        mockCocoonService.fetchPresubmitGuard(repo: 'flutter', sha: 'abc'),
+      ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          createPreSubmitView({'repo': 'flutter', 'sha': 'abc'}),
+        );
+        for (var i = 0; i < 50; i++) {
+          await tester.pump();
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          if (find.byIcon(Icons.filter_alt_outlined).evaluate().isNotEmpty) {
+            break;
+          }
+        }
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilterDialog), findsNothing);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyF);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilterDialog), findsOneWidget);
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.focusNode?.hasFocus, isTrue);
+    },
+  );
 }

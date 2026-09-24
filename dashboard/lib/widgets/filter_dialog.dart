@@ -11,7 +11,9 @@ import 'task_box.dart';
 
 /// A dialog that allows users to filter jobs in the Presubmit Dashboard.
 class FilterDialog extends StatefulWidget {
-  const FilterDialog({super.key});
+  const FilterDialog({super.key, this.autofocusRegex = false});
+
+  final bool autofocusRegex;
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();
@@ -160,6 +162,7 @@ class _FilterDialogState extends State<FilterDialog> {
               TextField(
                 controller: _regexController,
                 focusNode: _regexFocusNode,
+                autofocus: widget.autofocusRegex,
                 decoration: const InputDecoration(
                   hintText: 'e.g. .*test.*',
                   border: OutlineInputBorder(),
