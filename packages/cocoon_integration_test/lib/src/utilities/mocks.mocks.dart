@@ -1916,10 +1916,10 @@ class MockGithubChecksService extends _i1.Mock
   @override
   String getSummary(String? summary) =>
       (super.noSuchMethod(
-            Invocation.method(#getGithubSummary, [summary]),
+            Invocation.method(#getSummary, [summary]),
             returnValue: _i19.dummyValue<String>(
               this,
-              Invocation.method(#getGithubSummary, [summary]),
+              Invocation.method(#getSummary, [summary]),
             ),
           )
           as String);
@@ -1927,10 +1927,10 @@ class MockGithubChecksService extends _i1.Mock
   @override
   String getSummaryWithHeader(String? header, String? summary) =>
       (super.noSuchMethod(
-            Invocation.method(#getGithubSummaryWithHeader, [header, summary]),
+            Invocation.method(#getSummaryWithHeader, [header, summary]),
             returnValue: _i19.dummyValue<String>(
               this,
-              Invocation.method(#getGithubSummaryWithHeader, [header, summary]),
+              Invocation.method(#getSummaryWithHeader, [header, summary]),
             ),
           )
           as String);
@@ -5793,13 +5793,13 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
           as _i13.Future<void>);
 
   @override
-  _i13.Future<void> unlockMergeQueueGuard(
+  _i13.Future<void> unlockCheckRun(
     _i7.RepositorySlug? slug,
     String? headSha,
     _i7.CheckRun? lock,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#unlockMergeQueueGuard, [slug, headSha, lock]),
+            Invocation.method(#unlockCheckRun, [slug, headSha, lock]),
             returnValue: _i13.Future<void>.value(),
             returnValueForMissingStub: _i13.Future<void>.value(),
           )
@@ -5860,7 +5860,7 @@ class MockScheduler extends _i1.Mock implements _i2.Scheduler {
   @override
   _i13.Future<bool> processBuildCompleted(_i38.PresubmitCompletedJob? check) =>
       (super.noSuchMethod(
-            Invocation.method(#processCheckRunCompleted, [check]),
+            Invocation.method(#processBuildCompleted, [check]),
             returnValue: _i13.Future<bool>.value(false),
           )
           as _i13.Future<bool>);

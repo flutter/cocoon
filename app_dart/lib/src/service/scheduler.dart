@@ -532,12 +532,12 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      await unlockMergeQueueGuard(slug, sha, dashboardChecks);
+      await unlockCheckRun(slug, sha, dashboardChecks);
       if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
+        await unlockCheckRun(slug, sha, mergeQueueGuard);
       }
       if (presubmit != null) {
-        await unlockMergeQueueGuard(slug, sha, presubmit);
+        await unlockCheckRun(slug, sha, presubmit);
       }
     }
     log.info(
@@ -669,7 +669,7 @@ class Scheduler {
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
     // close the merge group guard.
     if (!isFusion) {
-      await unlockMergeQueueGuard(slug, headSha, mergeQueueGuard);
+      await unlockCheckRun(slug, headSha, mergeQueueGuard);
       return;
     }
 
@@ -983,20 +983,13 @@ $s
     }
   }
 
-  /// Completes the "Merge Queue Guard" check run.
-  ///
-  /// If the guard is guarding a merge group, this immediately makes the merge
-  /// group eligible for landing onto the target branch (e.g. master), depending
-  /// on the success of the merge groups queued in front of this one.
-  ///
-  /// If the guard is guarding a pull request, this immediately makes the pull
-  /// request eligible for enqueuing into the merge queue.
-  Future<void> unlockMergeQueueGuard(
+  /// Completes the checkruns such as:
+  Future<void> unlockCheckRun(
     RepositorySlug slug,
     String headSha,
     CheckRun lock,
   ) async {
-    log.info('Unlocking Merge Queue Guard for $slug/$headSha');
+    log.info('Unlocking check-run: ${lock.name} for $slug/$headSha');
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
       slug,
@@ -1445,7 +1438,7 @@ defined in:
         // with a merge group - they are only used to collect commit stats.
         log.warn('$logCrumb: generic tests have no merge queue guard.');
       } else if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(
+        await unlockCheckRun(
           check.slug,
           check.sha,
           checkRunFromString(mergeQueueGuard),
@@ -1454,7 +1447,7 @@ defined in:
     } else {
       if (dashboardChecks != null) {
         final dashboardCheckRun = checkRunFromString(dashboardChecks);
-        await unlockMergeQueueGuard(check.slug, check.sha, dashboardCheckRun);
+        await unlockCheckRun(check.slug, check.sha, dashboardCheckRun);
         if (check.author != null &&
             _config.flags.isResetFailedCheckRunEnabledForUser(check.author!)) {
           final checkSuiteId =
@@ -1464,17 +1457,13 @@ defined in:
                 .allCheckRuns(_config, check.slug, checkSuiteId);
             final presubmitCheck = checks[Config.kPresubmitCheckName];
             if (presubmitCheck != null) {
-              await unlockMergeQueueGuard(
-                check.slug,
-                check.sha,
-                presubmitCheck,
-              );
+              await unlockCheckRun(check.slug, check.sha, presubmitCheck);
             }
           }
         }
       }
       if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(
+        await unlockCheckRun(
           check.slug,
           check.sha,
           checkRunFromString(mergeQueueGuard),
@@ -1518,7 +1507,7 @@ defined in:
 
     // Unlock the guarding check_run.
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
-    await unlockMergeQueueGuard(slug, sha, checkRunGuard);
+    await unlockCheckRun(slug, sha, checkRunGuard);
   }
 
   /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
