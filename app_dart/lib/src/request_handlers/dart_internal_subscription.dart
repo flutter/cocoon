@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:googleapis/firestore/v1.dart';
 
 import '../../cocoon_service.dart';
 import '../model/bbv2_extension.dart';
@@ -89,10 +88,7 @@ final class DartInternalSubscription extends SubscriptionHandler {
     }
 
     log.info('Inserting Task into Firestore: ${fsTask.toString()}');
-    await _firestore.batchWriteDocuments(
-      BatchWriteRequest(writes: documentsToWrites([fsTask])),
-      kDatabase,
-    );
+    await _firestore.updateTasks([fsTask]);
 
     return Response.json(fsTask.toString());
   }

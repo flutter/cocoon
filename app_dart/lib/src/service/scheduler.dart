@@ -214,7 +214,9 @@ class Scheduler {
       final priority = await target.schedulerPolicy.triggerPriority(
         taskName: task.taskName,
         commitSha: commit.sha,
-        recentTasks: await _firestore.queryRecentTasks(name: task.taskName),
+        recentTasks: await _firestore.queryRecentTasksByName(
+          name: task.taskName,
+        ),
       );
       if (priority != null) {
         // Mark task as in progress to ensure it isn't scheduled over
@@ -255,6 +257,7 @@ class Scheduler {
     await _firestore.writeViaTransaction(
       documentsToWrites([...tasks, commit], exists: false),
     );
+    await _firestore.updateCacheForCreatedTasks(tasks);
   }
 
   /// Schedule all builds in batch requests instead of a single request.
@@ -1726,11 +1729,11 @@ $stacktrace
             final checkName = name;
             final fs.Task fsTask;
 
-            // Query the lastest run of the `checkName` againt commit `sha`.
-            final fsTasks = await _firestore.queryRecentTasks(
-              limit: 1,
+            // Query the latest run of the `checkName` against commit `sha`.
+            final fsTasks = await _firestore.queryRecentTasksByCommit(
               commitSha: fsCommit.sha,
               name: checkName,
+              limit: 1,
             );
             if (fsTasks.isEmpty) {
               throw StateError('Expected 1+ tasks for $checkName');
