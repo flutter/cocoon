@@ -1074,7 +1074,7 @@ detailsUrl: $detailsUrl
     String? detailsUrl,
   }) async {
     log.info('''
-Require action for ${Config.kPresubmitCheckName} 
+Require action for ${Config.kPresubmitCheckName}
 with:
   summary: $summary
   details: $details
