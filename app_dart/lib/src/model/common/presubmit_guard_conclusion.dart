@@ -64,7 +64,7 @@ class PresubmitGuardConclusion {
 
   bool get isFailed => isOk && failed > 0;
 
-  bool get isSuccessed => isOk && !isPending && !isFailed;
+  bool get isSucceeded => isOk && !isPending && !isFailed;
 
   @override
   bool operator ==(Object other) =>

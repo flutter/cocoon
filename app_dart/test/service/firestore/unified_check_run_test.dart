@@ -189,7 +189,7 @@ void main() {
           expect(result1.remaining, 1);
           expect(result1.failed, 0);
           expect(result1.isOk, true);
-          expect(result1.isSuccessed, false);
+          expect(result1.isSucceeded, false);
           expect(result1.isPending, true);
 
           final result2 = await UnifiedCheckRun.markConclusion(
@@ -207,7 +207,7 @@ void main() {
           expect(result2.remaining, 0);
           expect(result2.failed, 0);
           expect(result2.isOk, true);
-          expect(result2.isSuccessed, true);
+          expect(result2.isSucceeded, true);
           expect(result2.isPending, false);
 
           final checkDoc = await PresubmitJob.fromFirestore(
