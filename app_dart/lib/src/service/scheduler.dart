@@ -129,6 +129,23 @@ class Scheduler {
       'to merge your PR without presubmit checks (a rare situation, typically '
       'an emergency), then you can use the `emergency` label.';
 
+  /// Briefly describes what the "Presubmit" check is for.
+  ///
+  /// Find more details about this check at [kPresubmitCheckName].
+  ///
+  /// This description appears next to the Github check run in the pull request
+  /// and merge queue UI.
+  static const String kPresubmitCheckDescription =
+      'The presubmit check is a GitHub check that prevents a PR from being '
+      'merged or enqueued before it is ready. It becomes green automatically '
+      'when all tests pass. It will fail if at least one job is failed and '
+      'reset to in-progress when all the failed jobs are retried. If it fails, '
+      'you can view failure details, get execution logs, and re-run failed '
+      'jobs on the presubmit dashboard page. If you suspect that this check is '
+      'not working correctly, contact #hackers-infra on Discord. If you need '
+      'to merge your PR without presubmit checks (a rare situation, typically '
+      'an emergency), then you can use the `emergency` label.';
+
   /// Ensure [commits] exist in Cocoon.
   ///
   /// If the commit already exists, it is ignored.
@@ -365,10 +382,16 @@ class Scheduler {
       sha,
       detailsUrl:
           'https://flutter-dashboard.appspot.com/#/presubmit?repo=${slug.name}&sha=$sha',
-      isPresubmit: true,
+      isMergeQueue: false,
+      isResetFailedCheckRunEnabled:
+          pullRequest.user?.login != null &&
+          _config.flags.isResetFailedCheckRunEnabledForUser(
+            pullRequest.user!.login!,
+          ),
     );
     final dashboardChecks = lockResult.dashboardChecks;
     final mergeQueueGuard = lockResult.mergeQueueGuard;
+    final presubmit = lockResult.presubmit;
 
     // Track if we should unlock the merge group lock in case of non-fusion or
     // revert bots.
@@ -509,9 +532,12 @@ class Scheduler {
     // there are situations (see code above) when it needs to be unlocked
     // immediately.
     if (unlockMergeGroup) {
-      await unlockMergeQueueGuard(slug, sha, dashboardChecks);
+      await unlockCheckRun(slug, sha, dashboardChecks);
       if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(slug, sha, mergeQueueGuard);
+        await unlockCheckRun(slug, sha, mergeQueueGuard);
+      }
+      if (presubmit != null) {
+        await unlockCheckRun(slug, sha, presubmit);
       }
     }
     log.info(
@@ -634,7 +660,8 @@ class Scheduler {
     final lockResult = await lockMergeGroupChecks(
       slug,
       headSha,
-      isPresubmit: false,
+      isMergeQueue: true,
+      isResetFailedCheckRunEnabled: false,
     );
     final dashboardChecks = lockResult.dashboardChecks;
     final mergeQueueGuard = lockResult.mergeQueueGuard!;
@@ -642,7 +669,7 @@ class Scheduler {
     // If the repo is not fusion, it doesn't run anything in the MQ, so just
     // close the merge group guard.
     if (!isFusion) {
-      await unlockMergeQueueGuard(slug, headSha, mergeQueueGuard);
+      await unlockCheckRun(slug, headSha, mergeQueueGuard);
       return;
     }
 
@@ -847,7 +874,8 @@ $s
     RepositorySlug slug,
     String headSha, {
     String? detailsUrl,
-    required bool isPresubmit,
+    required bool isMergeQueue,
+    required bool isResetFailedCheckRunEnabled,
   }) async {
     final mergeQueueGuard = await _githubChecksService.githubChecksUtil
         .createCheckRun(
@@ -859,9 +887,8 @@ $s
             title: Config.kMergeQueueLockName,
             summary: kMergeQueueLockDescription,
           ),
-          detailsUrl: isPresubmit ? null : detailsUrl,
         );
-
+    // TODO(ievdokdm): Remove dashboard check for merge groups.
     final dashboardChecks = await _githubChecksService.githubChecksUtil
         .createCheckRun(
           _config,
@@ -872,10 +899,11 @@ $s
             title: Config.kDashboardCheckName,
             summary: kDashboardChecksDescription,
           ),
-          detailsUrl: isPresubmit ? detailsUrl : null,
+          detailsUrl: isMergeQueue ? null : detailsUrl,
         );
 
-    if (!isPresubmit) {
+    CheckRun? presubmit;
+    if (isMergeQueue) {
       // Skip Dashboard Checks
       await _githubChecksService.githubChecksUtil.updateCheckRun(
         _config,
@@ -884,10 +912,23 @@ $s
         status: CheckRunStatus.completed,
         conclusion: CheckRunConclusion.success,
       );
+    } else if (isResetFailedCheckRunEnabled) {
+      presubmit = await _githubChecksService.githubChecksUtil.createCheckRun(
+        _config,
+        slug,
+        headSha,
+        Config.kPresubmitCheckName,
+        output: const CheckRunOutput(
+          title: Config.kPresubmitCheckName,
+          summary: kPresubmitCheckDescription,
+        ),
+        detailsUrl: detailsUrl,
+      );
     }
     return CheckRunLockResult(
       dashboardChecks: dashboardChecks,
       mergeQueueGuard: mergeQueueGuard,
+      presubmit: presubmit,
     );
   }
 
@@ -942,20 +983,13 @@ $s
     }
   }
 
-  /// Completes the "Merge Queue Guard" check run.
-  ///
-  /// If the guard is guarding a merge group, this immediately makes the merge
-  /// group eligible for landing onto the target branch (e.g. master), depending
-  /// on the success of the merge groups queued in front of this one.
-  ///
-  /// If the guard is guarding a pull request, this immediately makes the pull
-  /// request eligible for enqueuing into the merge queue.
-  Future<void> unlockMergeQueueGuard(
+  /// Completes the checkruns such as:
+  Future<void> unlockCheckRun(
     RepositorySlug slug,
     String headSha,
     CheckRun lock,
   ) async {
-    log.info('Unlocking Merge Queue Guard for $slug/$headSha');
+    log.info('Unlocking check-run: ${lock.name} for $slug/$headSha');
     await _githubChecksService.githubChecksUtil.updateCheckRun(
       _config,
       slug,
@@ -993,7 +1027,7 @@ $s
     );
   }
 
-  Future<void> _requireActionForGuard({
+  Future<void> _requireActionForDashboardChecks({
     required RepositorySlug slug,
     required CheckRun lock,
     required String headSha,
@@ -1017,6 +1051,61 @@ detailsUrl: $detailsUrl
       conclusion: CheckRunConclusion.actionRequired,
       output: CheckRunOutput(
         title: Config.kDashboardCheckName,
+        summary: summary,
+        text: details,
+      ),
+      detailsUrl: detailsUrl,
+      actions: [
+        const CheckRunAction(
+          label: 'Re-run Failed',
+          description: 'Re-run failed tests',
+          identifier: 're_run_failed',
+        ),
+      ],
+    );
+  }
+
+  Future<void> _requireActionForPresubmit({
+    required RepositorySlug slug,
+    required int checkSuiteId,
+    required String headSha,
+    required String summary,
+    required String details,
+    String? detailsUrl,
+  }) async {
+    log.info('''
+Require action for ${Config.kPresubmitCheckName}
+with:
+  summary: $summary
+  details: $details
+  detailsUrl: $detailsUrl
+defined in:
+  repository: $slug
+  check suite: $checkSuiteId
+  head sha: $headSha
+''');
+    final checks = await _githubChecksService.githubChecksUtil.allCheckRuns(
+      _config,
+      slug,
+      checkSuiteId,
+    );
+    log.info('Found check runs: ${checks.keys.join(', ')}');
+    final presubmitCheck = checks[Config.kPresubmitCheckName];
+    if (presubmitCheck == null) {
+      log.warn(
+        '${Config.kPresubmitCheckName} check run not found in check suite $checkSuiteId for $slug/$headSha',
+      );
+      return;
+    }
+
+    await _githubChecksService.githubChecksUtil.updateCheckRun(
+      _config,
+      slug,
+      presubmitCheck,
+      status: CheckRunStatus.completed,
+      conclusion: CheckRunConclusion.actionRequired,
+      output: CheckRunOutput(
+        title: Config.kPresubmitCheckName,
         summary: summary,
         text: details,
       ),
@@ -1097,11 +1186,11 @@ detailsUrl: $detailsUrl
     return getTargetsToRun(presubmitTargets, filesChanged);
   }
 
-  /// Process a completed GitHub `check_run`.
+  /// Process a completed LUCI Build.
   ///
   /// Handles both fusion engine build and test stages, and both pull requests
   /// and merge groups.
-  Future<bool> processCheckRunCompleted(PresubmitCompletedJob check) async {
+  Future<bool> processBuildCompleted(PresubmitCompletedJob check) async {
     if (kCheckRunsToIgnore.contains(check.name)) {
       return true;
     }
@@ -1184,22 +1273,17 @@ detailsUrl: $detailsUrl
       return false;
     }
 
-    // Are there tests remaining? Keep waiting.
-    if (stagingConclusion.isPending) {
-      log.info(
-        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
-      );
-      return false;
-    }
-
     if (stagingConclusion.isFailed) {
       // Something failed in the current CI stage:
       //
-      // * If this is a pull request: keep the merge guard open and do not proceed
-      //   to the next stage. Let the author sort out what's up.
       // * If this is a merge group: kick the pull request out of the queue, and
       //   let the author sort it out.
-      // If its a unified check run we need to require action on the guard.
+      // * If this is a pull request and resetFailedCheckRun flag is enabled:
+      //   keep the `Merge Queue Guard` and `Dashboard Checks` open and require
+      //   action on the `Presubmit` check run.
+      // * If this is a pull request and resetFailedCheckRun flag is disabled:
+      //   keep the `Merge Queue Guard` open and require action on the
+      //   `Dashboard Checks` check run.
       if (check.isMergeGroup) {
         await _completeArtifacts(check.sha, false);
         final guard = checkRunFromString(stagingConclusion.mergeQueueGuard!);
@@ -1214,22 +1298,44 @@ detailsUrl: $detailsUrl
         final guard = checkRunFromString(stagingConclusion.dashboardChecks!);
         final detailsUrl =
             'https://flutter-dashboard.appspot.com/#/presubmit?repo=${check.slug.name}&sha=${check.sha}';
-        await _requireActionForGuard(
-          slug: check.slug,
-          lock: guard,
-          headSha: check.sha,
-          summary: _githubChecksService.getGithubSummaryWithHeader('''
+        final summary = _githubChecksService.getSummaryWithHeader('''
 **[Failed Presubmit Jobs Details]($detailsUrl)**
-
-''', kDashboardChecksDescription),
-          details:
-              'Failed presubmit jobs:\n${stagingConclusion.failedJobNames.map((name) => "- `$name`").join("\n")}',
-          detailsUrl: detailsUrl,
-        );
+''', kDashboardChecksDescription);
+        final details =
+            'Failed presubmit jobs:\n${stagingConclusion.failedJobNames.map((name) => "- `$name`").join("\n")}';
+        // Require action for Dashboard Checks check run or Presubmit check run
+        // based on if the resetFailedCheckRun flag is enabled.
+        if (check.author != null &&
+            _config.flags.isResetFailedCheckRunEnabledForUser(check.author!)) {
+          await _requireActionForPresubmit(
+            slug: check.slug,
+            checkSuiteId: guard.checkSuiteId!,
+            headSha: check.sha,
+            summary: summary,
+            details: details,
+            detailsUrl: detailsUrl,
+          );
+        } else {
+          await _requireActionForDashboardChecks(
+            slug: check.slug,
+            lock: guard,
+            headSha: check.sha,
+            summary: summary,
+            details: details,
+            detailsUrl: detailsUrl,
+          );
+        }
       }
       return true;
     }
 
+    // Are there tests remaining? Keep waiting.
+    if (stagingConclusion.isPending) {
+      log.info(
+        '$logCrumb: not progressing, remaining work count: ${stagingConclusion.remaining}',
+      );
+      return false;
+    }
     // The logic for finishing a stage is different between build and test stages:
     //
     // * If this is a build stage, then:
@@ -1332,7 +1438,7 @@ detailsUrl: $detailsUrl
         // with a merge group - they are only used to collect commit stats.
         log.warn('$logCrumb: generic tests have no merge queue guard.');
       } else if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(
+        await unlockCheckRun(
           check.slug,
           check.sha,
           checkRunFromString(mergeQueueGuard),
@@ -1340,14 +1446,24 @@ detailsUrl: $detailsUrl
       }
     } else {
       if (dashboardChecks != null) {
-        await unlockMergeQueueGuard(
-          check.slug,
-          check.sha,
-          checkRunFromString(dashboardChecks),
-        );
+        final dashboardCheckRun = checkRunFromString(dashboardChecks);
+        await unlockCheckRun(check.slug, check.sha, dashboardCheckRun);
+        if (check.author != null &&
+            _config.flags.isResetFailedCheckRunEnabledForUser(check.author!)) {
+          final checkSuiteId =
+              check.checkSuiteId ?? dashboardCheckRun.checkSuiteId;
+          if (checkSuiteId != null) {
+            final checks = await _githubChecksService.githubChecksUtil
+                .allCheckRuns(_config, check.slug, checkSuiteId);
+            final presubmitCheck = checks[Config.kPresubmitCheckName];
+            if (presubmitCheck != null) {
+              await unlockCheckRun(check.slug, check.sha, presubmitCheck);
+            }
+          }
+        }
       }
       if (mergeQueueGuard != null) {
-        await unlockMergeQueueGuard(
+        await unlockCheckRun(
           check.slug,
           check.sha,
           checkRunFromString(mergeQueueGuard),
@@ -1391,7 +1507,7 @@ detailsUrl: $detailsUrl
 
     // Unlock the guarding check_run.
     final checkRunGuard = checkRunFromString(mergeQueueGuard);
-    await unlockMergeQueueGuard(slug, sha, checkRunGuard);
+    await unlockCheckRun(slug, sha, checkRunGuard);
   }
 
   /// Schedules post-engine build tests (i.e. engine tests, and framework tests).
@@ -1671,6 +1787,7 @@ $stacktrace
     switch (name) {
       case Config.kMergeQueueLockName:
       case Config.kDashboardCheckName:
+      case Config.kPresubmitCheckName:
         final checkSuiteId = checkRunEvent.checkRun!.checkSuite!.id!;
         log.debug(
           '$logCrumb: Requested re-run of "$name" for '
@@ -1780,6 +1897,7 @@ $stacktrace
   /// filters them by [names], and schedules them.
   ///
   /// It handles both fusion and non-fusion repositories.
+  @Deprecated('after unified check run flow is enabled')
   Future<ProcessCheckRunResult> reRunTargets(
     RepositorySlug slug,
     PullRequest pullRequest,
@@ -1864,11 +1982,23 @@ $stacktrace
       checkRunEvent.checkRun!.checkSuite!.id!,
     );
 
+    var guardCheckRunId = checkRunEvent.checkRun!.id!;
+    if (checkRunEvent.checkRun!.name == Config.kPresubmitCheckName) {
+      final guard = await UnifiedCheckRun.getLatestPresubmitGuardForPrNum(
+        firestoreService: _firestore,
+        slug: slug,
+        prNum: pullRequest!.number!,
+      );
+      if (guard != null) {
+        guardCheckRunId = guard.checkRunId;
+      }
+    }
+
     final failedChecks = await UnifiedCheckRun.reInitializeFailedJobs(
       firestoreService: _firestore,
       slug: slug,
       prNum: pullRequest!.number!,
-      guardCheckRunId: checkRunEvent.checkRun!.id!,
+      guardCheckRunId: guardCheckRunId,
     );
 
     if (failedChecks == null || failedChecks.jobRetries.isEmpty) {
@@ -2032,9 +2162,11 @@ enum _TaskCommitScheduling {
 class CheckRunLockResult {
   final CheckRun dashboardChecks;
   final CheckRun? mergeQueueGuard;
+  final CheckRun? presubmit;
 
   const CheckRunLockResult({
     required this.dashboardChecks,
     this.mergeQueueGuard,
+    this.presubmit,
   });
 }

@@ -3,13 +3,12 @@
 // found in the LICENSE file.
 
 import 'dart:core';
+import 'dart:io';
 
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
-import 'package:github/hooks.dart';
 import 'package:retry/retry.dart';
 
-import '../request_handling/http_utils.dart';
 import '../service/config.dart';
 
 /// Wrapper class for github checkrun service. This is used to simplify
@@ -17,18 +16,24 @@ import '../service/config.dart';
 class GithubChecksUtil {
   const GithubChecksUtil();
   Future<Map<String, github.CheckRun>> allCheckRuns(
-    github.GitHub gitHubClient,
-    CheckSuiteEvent checkSuiteEvent,
+    Config config,
+    github.RepositorySlug slug,
+    int checkSuiteId,
   ) async {
-    final allCheckRuns = await gitHubClient.checks.checkRuns
-        .listCheckRunsInSuite(
-          checkSuiteEvent.repository!.slug(),
-          checkSuiteId: checkSuiteEvent.checkSuite!.id!,
-        )
-        .toList();
-    return {
-      for (github.CheckRun check in allCheckRuns) check.name as String: check,
-    };
+    final gitHubClient = await config.createGitHubClient(slug: slug);
+    const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
+    return r.retry(
+      () async {
+        final allCheckRuns = await gitHubClient.checks.checkRuns
+            .listCheckRunsInSuite(slug, checkSuiteId: checkSuiteId)
+            .toList();
+        return {
+          for (github.CheckRun check in allCheckRuns)
+            check.name as String: check,
+        };
+      },
+      retryIf: (Exception e) => e is github.GitHubError || e is SocketException,
+    );
   }
 
   Future<github.CheckSuite> getCheckSuite(

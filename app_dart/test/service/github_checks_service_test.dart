@@ -46,7 +46,9 @@ void main() {
     );
     final checkRuns = <String, github.CheckRun>{'Cocoon': checkRun};
     // ignore: discarded_futures
-    when(mockGithubChecksUtil.allCheckRuns(any, any)).thenAnswer((_) async {
+    when(mockGithubChecksUtil.allCheckRuns(any, any, any)).thenAnswer((
+      _,
+    ) async {
       return checkRuns;
     });
   });
@@ -195,16 +197,13 @@ void main() {
   group('getGithubSummary', () {
     test('nonempty summaryMarkdown', () async {
       const summaryMarkdown = 'test';
-      const expectedSummary = '$kGithubSummary$summaryMarkdown';
-      expect(
-        githubChecksService.getGithubSummary(summaryMarkdown),
-        expectedSummary,
-      );
+      const expectedSummary = '$kCheckRunHeader$summaryMarkdown';
+      expect(githubChecksService.getSummary(summaryMarkdown), expectedSummary);
     });
 
     test('empty summaryMarkdown', () async {
-      const expectedSummary = '${kGithubSummary}Empty summaryMarkdown';
-      expect(githubChecksService.getGithubSummary(null), expectedSummary);
+      const expectedSummary = '${kCheckRunHeader}Empty summaryMarkdown';
+      expect(githubChecksService.getSummary(null), expectedSummary);
     });
 
     test('really large summaryMarkdown', () async {
@@ -213,11 +212,11 @@ void main() {
         summaryMarkdown += 'test ';
       }
       expect(
-        githubChecksService.getGithubSummary(summaryMarkdown),
-        startsWith('$kGithubSummary[TRUNCATED...]'),
+        githubChecksService.getSummary(summaryMarkdown),
+        startsWith('$kCheckRunHeader[TRUNCATED...]'),
       );
       expect(
-        githubChecksService.getGithubSummary(summaryMarkdown).length,
+        githubChecksService.getSummary(summaryMarkdown).length,
         lessThan(65535),
       );
     });

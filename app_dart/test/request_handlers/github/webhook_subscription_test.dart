@@ -150,9 +150,10 @@ void main() {
         conclusion: anyNamed('conclusion'),
         detailsUrl: anyNamed('detailsUrl'),
       ),
-    ).thenAnswer((_) async {
-      return CheckRun.fromJson(const <String, dynamic>{
+    ).thenAnswer((Invocation invocation) async {
+      return CheckRun.fromJson(<String, dynamic>{
         'id': 1,
+        'name': invocation.positionalArguments[3],
         'started_at': '2020-05-10T02:49:31Z',
         'check_suite': <String, dynamic>{'id': 2},
       });
@@ -3421,7 +3422,7 @@ void foo() {
             ),
             logThat(
               message: equals(
-                'Unlocking Merge Queue Guard for flutter/packages/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
+                'Unlocking check-run: Merge Queue Guard for flutter/packages/c9affbbb12aa40cb3afbe94b9ea6b119a256bebf',
               ),
             ),
           ]),
