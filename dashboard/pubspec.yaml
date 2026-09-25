@@ -42,6 +42,7 @@ dependencies:
   provider: ^6.1.5+1 # Rolled by dependabot
   sign_in_button: ^5.0.0
   truncate: 3.0.1 # Rolled by dependabot
+  two_dimensional_scrollables: ^0.3.0
   url_launcher: 6.3.2 # Rolled by dependabot
   url_launcher_platform_interface: 2.3.2 # Rolled by dependabot
   url_launcher_web: ^2.4.3 # Rolled by dependabot
