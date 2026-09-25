@@ -392,12 +392,14 @@ class LuciBuildService {
             cipdVersion: cipdVersion,
             userData: userData,
             properties: properties,
-            // In merge queue use check run id othervise guard check run.
+            // In merge queue use check run id otherwise guard check run id.
             tags: BuildTags([
               if (pullRequest.user?.login != null)
                 AuthorBuildTag(value: pullRequest.user!.login!),
               if (dashboardChecks != null)
                 GuardCheckRunIdBuildTag(guardCheckRunId: dashboardChecks.id!),
+              if (dashboardChecks == null && userData.checkRunId != null)
+                GitHubCheckRunIdBuildTag(checkRunId: userData.checkRunId!),
               if (attemptNumber > 1)
                 CurrentAttemptBuildTag(attemptNumber: attemptNumber),
               if (isOrderedPresubmit)
