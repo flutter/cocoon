@@ -139,7 +139,7 @@ class _PreSubmitViewState extends State<PreSubmitView>
     try {
       await showDialog<void>(
         context: context,
-        builder: (context) => const FilterDialog(autofocusRegex: true),
+        builder: (context) => const FilterDialog(),
       );
     } finally {
       _isFilterDialogOpen = false;
