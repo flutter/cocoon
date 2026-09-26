@@ -6,6 +6,7 @@ import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/rpc_model.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dashboard/service/cocoon.dart';
 import 'package:flutter_dashboard/state/presubmit.dart';
 import 'package:flutter_dashboard/widgets/filter_dialog.dart';
@@ -69,6 +70,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
   }
 
   testWidgets('FilterDialog shows all statuses and platforms', (
@@ -189,4 +191,49 @@ void main() {
       isEmpty,
     );
   });
+
+  testWidgets('Pressing Escape closes FilterDialog', (
+    WidgetTester tester,
+  ) async {
+    await pumpDialog(tester);
+    expect(find.byType(FilterDialog), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FilterDialog), findsNothing);
+  });
+
+  testWidgets('Pressing Enter closes FilterDialog and applies filters', (
+    WidgetTester tester,
+  ) async {
+    await pumpDialog(tester);
+    expect(find.byType(FilterDialog), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'linux');
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FilterDialog), findsNothing);
+    expect(presubmitState.jobNameFilter, 'linux');
+  });
+
+  testWidgets(
+    'Pressing Enter closes FilterDialog when focus is not on TextField',
+    (WidgetTester tester) async {
+      await pumpDialog(tester);
+      expect(find.byType(FilterDialog), findsOneWidget);
+
+      await tester.tap(find.text('linux'));
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FilterDialog), findsNothing);
+      expect(presubmitState.selectedPlatforms, {'mac'});
+    },
+  );
 }

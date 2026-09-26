@@ -4,6 +4,7 @@
 
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../state/presubmit.dart';
@@ -11,9 +12,7 @@ import 'task_box.dart';
 
 /// A dialog that allows users to filter jobs in the Presubmit Dashboard.
 class FilterDialog extends StatefulWidget {
-  const FilterDialog({super.key, this.autofocusRegex = false});
-
-  final bool autofocusRegex;
+  const FilterDialog({super.key});
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();
@@ -45,6 +44,8 @@ class _FilterDialogState extends State<FilterDialog> {
     super.dispose();
   }
 
+  bool _isClosing = false;
+
   void _onRegexFocusChange() {
     if (!_regexFocusNode.hasFocus) {
       _applyFilters();
@@ -58,6 +59,13 @@ class _FilterDialogState extends State<FilterDialog> {
       platforms: _selectedPlatforms,
       jobNameFilter: _regexController.text,
     );
+  }
+
+  void _closeDialog() {
+    if (_isClosing || !mounted) return;
+    _isClosing = true;
+    _applyFilters();
+    Navigator.of(context).pop();
   }
 
   void _onRegexChanged(String value) {
@@ -118,79 +126,87 @@ class _FilterDialogState extends State<FilterDialog> {
         ) ??
         0;
 
-    return AlertDialog(
-      title: const Text('Filter jobs'),
-      content: SizedBox(
-        width: 500,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Status', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: TaskStatus.values.map((status) {
-                  final isSelected = _selectedStatuses.contains(status);
-                  return FilterChip(
-                    label: Text(status.value),
-                    selected: isSelected,
-                    onSelected: (_) => _toggleStatus(status),
-                    avatar: _getStatusIcon(status),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              Text('Platform', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: availablePlatforms.map((platform) {
-                  return FilterChip(
-                    label: Text(platform),
-                    selected: _selectedPlatforms.contains(platform),
-                    onSelected: (_) => _togglePlatform(platform),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              Text('Job Name (Regex)', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _regexController,
-                focusNode: _regexFocusNode,
-                autofocus: widget.autofocusRegex,
-                decoration: const InputDecoration(
-                  hintText: 'e.g. .*test.*',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.enter): _closeDialog,
+        const SingleActivator(LogicalKeyboardKey.numpadEnter): _closeDialog,
+        const SingleActivator(LogicalKeyboardKey.escape): _closeDialog,
+      },
+      child: FocusScope(
+        autofocus: true,
+        child: AlertDialog(
+          title: const Text('Filter jobs'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Status', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: TaskStatus.values.map((status) {
+                      final isSelected = _selectedStatuses.contains(status);
+                      return FilterChip(
+                        label: Text(status.value),
+                        selected: isSelected,
+                        onSelected: (_) => _toggleStatus(status),
+                        avatar: _getStatusIcon(status),
+                      );
+                    }).toList(),
                   ),
-                ),
-                onChanged: _onRegexChanged,
-                onEditingComplete: _applyFilters,
+                  const SizedBox(height: 16),
+                  Text('Platform', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: availablePlatforms.map((platform) {
+                      return FilterChip(
+                        label: Text(platform),
+                        selected: _selectedPlatforms.contains(platform),
+                        onSelected: (_) => _togglePlatform(platform),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Job Name (Regex)', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _regexController,
+                    focusNode: _regexFocusNode,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. .*test.*',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    onChanged: _onRegexChanged,
+                    onEditingComplete: _applyFilters,
+                    onSubmitted: (_) => _closeDialog(),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: _clearAll,
+              child: const Text('Clear all filters'),
+            ),
+            ElevatedButton(
+              onPressed: _closeDialog,
+              child: Text('Show $filteredCount jobs'),
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _clearAll,
-          child: const Text('Clear all filters'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            _applyFilters();
-            Navigator.of(context).pop();
-          },
-          child: Text('Show $filteredCount jobs'),
-        ),
-      ],
     );
   }
 
