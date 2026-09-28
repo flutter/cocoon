@@ -51,7 +51,7 @@ echo "############################"
 cd $DIR/../cleanup/extracted_ruby/$RUBYDIR
 if [[ "$OS" == "darwin" ]]; then
   OPTS=""
-  OPTS+="$(brew --prefix openssl)"
+  OPTS+="$(brew --prefix openssl@3)"
   OPTS+=":$(brew --prefix readline)"
   OPTS+=":$(brew --prefix libyaml)"
   OPTS+=":$(brew --prefix gdbm)"
@@ -71,7 +71,7 @@ find $(brew --prefix gdbm)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bi
 find $(brew --prefix libffi)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 find $(brew --prefix libyaml)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 find $(brew --prefix openldap)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
-find $(brew --prefix openssl)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix openssl@3)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 find $(brew --prefix readline)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 
 # Setting up reference directories.
