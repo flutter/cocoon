@@ -1,4 +1,5 @@
 require "fileutils"
+require "shellwords"
 
 
 
@@ -9,12 +10,12 @@ FileUtils.mkdir_p(@new_dylib_path)
 
 # Extracts the LC_RPATH entries from `otool -l` output.
 def parse_rpaths(otool_l_output)
-	otool_l_output.scan(/cmd LC_RPATH\n\s*cmdsize \d+\n\s*path (.+?) \(offset \d+\)/).flatten
+	otool_l_output.scan(/cmd\s+LC_RPATH\s+cmdsize\s+\d+\s+path\s+(.+?)\s+\(offset\s+\d+\)/).flatten
 end
 
 # Returns the LC_RPATH entries of a Mach-O file.
 def rpaths_for_file(file)
-	parse_rpaths(`otool -l "#{file}" 2> /dev/null`)
+	parse_rpaths(`otool -l #{Shellwords.escape(file)} 2> /dev/null`)
 end
 
 # Resolves a dependency reported by `otool -L` to a real file on disk.
@@ -26,19 +27,24 @@ end
 # original location (source_dir), then in each of its LC_RPATH entries, then
 # among the dylibs that were already copied. Returns nil if nothing matches.
 #
+# `@loader_path` is expanded relative to source_dir. `@executable_path` depends
+# on whichever executable ends up loading the library, which is not known at
+# packaging time, so those references are only matched by basename.
+#
 # See https://github.com/flutter/flutter/issues/164665 and
 # https://ci.chromium.org/b/8669644619614462833.
 def resolve_dylib_path(libfile, source_dir, rpaths)
 	return libfile unless libfile.start_with?("@")
 
-	basename = File.split(libfile)[-1]
+	basename = File.basename(libfile)
 	candidates = []
-	if libfile.start_with?("@loader_path/", "@executable_path/")
-		candidates << File.expand_path(libfile.sub(/\A@(loader_path|executable_path)/, source_dir))
+	if libfile.start_with?("@loader_path/")
+		candidates << File.expand_path(libfile.sub(/\A@loader_path/, source_dir))
 	end
 	candidates << File.join(source_dir, basename)
 	rpaths.each do |rpath|
-		rpath = File.expand_path(rpath.sub(/\A@(loader_path|executable_path)/, source_dir))
+		next if rpath.start_with?("@executable_path")
+		rpath = File.expand_path(rpath.sub(/\A@loader_path/, source_dir))
 		candidates << File.join(rpath, basename)
 	end
 	candidates << File.join(@new_dylib_path, basename)
