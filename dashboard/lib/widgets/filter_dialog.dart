@@ -126,17 +126,17 @@ class _FilterDialogState extends State<FilterDialog> {
         ) ??
         0;
 
-    return CallbackShortcuts(
-      bindings: <ShortcutActivator, VoidCallback>{
-        const SingleActivator(LogicalKeyboardKey.enter): _closeDialog,
-        const SingleActivator(LogicalKeyboardKey.numpadEnter): _closeDialog,
-        const SingleActivator(LogicalKeyboardKey.escape): _closeDialog,
-      },
-      child: FocusScope(
-        autofocus: true,
-        child: AlertDialog(
-          title: const Text('Filter jobs'),
-          content: SizedBox(
+    return AlertDialog(
+      title: const Text('Filter jobs'),
+      content: CallbackShortcuts(
+        bindings: <ShortcutActivator, VoidCallback>{
+          const SingleActivator(LogicalKeyboardKey.enter): _closeDialog,
+          const SingleActivator(LogicalKeyboardKey.numpadEnter): _closeDialog,
+          const SingleActivator(LogicalKeyboardKey.escape): _closeDialog,
+        },
+        child: FocusScope(
+          autofocus: true,
+          child: SizedBox(
             width: 500,
             child: SingleChildScrollView(
               child: Column(
@@ -195,18 +195,18 @@ class _FilterDialogState extends State<FilterDialog> {
               ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: _clearAll,
-              child: const Text('Clear all filters'),
-            ),
-            ElevatedButton(
-              onPressed: _closeDialog,
-              child: Text('Show $filteredCount jobs'),
-            ),
-          ],
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: _clearAll,
+          child: const Text('Clear all filters'),
+        ),
+        ElevatedButton(
+          onPressed: _closeDialog,
+          child: Text('Show $filteredCount jobs'),
+        ),
+      ],
     );
   }
 
