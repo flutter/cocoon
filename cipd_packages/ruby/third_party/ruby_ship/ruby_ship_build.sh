@@ -239,7 +239,7 @@ codesign --force -s - $DIR/../build/bin/darwin_ruby/bin/ruby
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 # Install bundler
 $DIR/../build/bin/gem cleanup bundler
-$DIR/../build/bin/gem install -f bundler
+$DIR/../build/bin/gem install -f bundler -v '~> 2.5.0' # bundler >= 2.7 requires Ruby >= 3.2.
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 
 # Install cococoapods
