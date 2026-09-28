@@ -464,7 +464,7 @@ class LuciBuildService {
             await _githubChecksUtil.createCheckRun(
               _config,
               slug,
-              checkRun.headSha ?? commitSha,
+              guard.commitSha,
               Config.kPresubmitCheckName,
               output: const CheckRunOutput(
                 title: Config.kPresubmitCheckName,
