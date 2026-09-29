@@ -243,6 +243,7 @@ $DIR/../build/bin/gem install -f bundler -v '~> 2.5.0' # bundler >= 2.7 requires
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 
 # Install cococoapods
+$DIR/../build/bin/gem install concurrent-ruby -v 1.3.4 # 1.3.5+ dropped the implicit require "logger" that activesupport 7.0 relies on.
 $DIR/../build/bin/gem install activesupport -v 7.0.8 # Pin this dep version.
 $DIR/../build/bin/gem install cocoapods -v $COCOAPODS_VERSION
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
