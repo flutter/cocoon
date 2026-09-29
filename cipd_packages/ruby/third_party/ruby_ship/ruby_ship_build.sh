@@ -246,6 +246,10 @@ remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 $DIR/../build/bin/gem install concurrent-ruby -v 1.3.4 # 1.3.5+ dropped the implicit require "logger" that activesupport 7.0 relies on.
 $DIR/../build/bin/gem install activesupport -v 7.0.8 # Pin this dep version.
 $DIR/../build/bin/gem install cocoapods -v $COCOAPODS_VERSION
+# RubyGems 3.3 (bundled with Ruby 3.1) still upgrades already-satisfied dependencies to the newest
+# release, so activesupport/cocoapods pull in a second, newer concurrent-ruby that would be the one
+# activated at runtime. Remove anything other than the pinned 1.3.4 (no-op if nothing else is installed).
+$DIR/../build/bin/gem uninstall concurrent-ruby -a -x -I -v '> 1.3.4'
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 
 # Cleanup temp folder.
