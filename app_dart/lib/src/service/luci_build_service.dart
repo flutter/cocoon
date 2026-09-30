@@ -470,6 +470,7 @@ class LuciBuildService {
                 title: Config.kPresubmitCheckName,
                 summary: Scheduler.kPresubmitCheckDescription,
               ),
+              status: CheckRunStatus.inProgress,
               detailsUrl: checkRun.detailsUrl,
             );
           }

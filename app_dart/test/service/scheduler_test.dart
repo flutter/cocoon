@@ -2040,6 +2040,7 @@ targets:
               any,
               output: anyNamed('output'),
               conclusion: anyNamed('conclusion'),
+              status: anyNamed('status'),
               detailsUrl: anyNamed('detailsUrl'),
             ),
           ).thenAnswer((Invocation invocation) async {
@@ -2066,6 +2067,7 @@ targets:
               Config.kPresubmitCheckName,
               output: anyNamed('output'),
               conclusion: anyNamed('conclusion'),
+              status: CheckRunStatus.inProgress,
               detailsUrl: anyNamed('detailsUrl'),
             ),
           );
