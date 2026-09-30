@@ -691,6 +691,7 @@ void main() {
             any,
             output: anyNamed('output'),
             conclusion: anyNamed('conclusion'),
+            status: anyNamed('status'),
             detailsUrl: anyNamed('detailsUrl'),
           ),
         ).thenAnswer(
@@ -720,6 +721,7 @@ void main() {
               title: Config.kPresubmitCheckName,
               summary: Scheduler.kPresubmitCheckDescription,
             ),
+            status: CheckRunStatus.inProgress,
             detailsUrl: checkRunGuard.detailsUrl,
           ),
         ).called(1);
@@ -797,6 +799,7 @@ void main() {
             Config.kPresubmitCheckName,
             output: anyNamed('output'),
             conclusion: anyNamed('conclusion'),
+            status: anyNamed('status'),
             detailsUrl: anyNamed('detailsUrl'),
           ),
         );

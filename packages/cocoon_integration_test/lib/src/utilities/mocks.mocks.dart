@@ -2094,6 +2094,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
     String? name, {
     _i7.CheckRunOutput? output,
     _i7.CheckRunConclusion? conclusion,
+    _i7.CheckRunStatus? status = _i7.CheckRunStatus.queued,
     String? detailsUrl,
   }) =>
       (super.noSuchMethod(
@@ -2103,6 +2104,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
               {
                 #output: output,
                 #conclusion: conclusion,
+                #status: status,
                 #detailsUrl: detailsUrl,
               },
             ),
@@ -2115,6 +2117,7 @@ class MockGithubChecksUtil extends _i1.Mock implements _i10.GithubChecksUtil {
                   {
                     #output: output,
                     #conclusion: conclusion,
+                    #status: status,
                     #detailsUrl: detailsUrl,
                   },
                 ),

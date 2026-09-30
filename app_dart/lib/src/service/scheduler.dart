@@ -136,7 +136,7 @@ class Scheduler {
   /// This description appears next to the Github check run in the pull request
   /// and merge queue UI.
   static const String kPresubmitCheckDescription =
-      'The presubmit check is a GitHub check that prevents a PR from being '
+      'The Presubmit check is a GitHub check that prevents a PR from being '
       'merged or enqueued before it is ready. It becomes green automatically '
       'when all tests pass. It will fail if at least one job is failed and '
       'reset to in-progress when all the failed jobs are retried. If it fails, '
@@ -922,6 +922,7 @@ $s
           title: Config.kPresubmitCheckName,
           summary: kPresubmitCheckDescription,
         ),
+        status: CheckRunStatus.inProgress,
         detailsUrl: detailsUrl,
       );
     }
