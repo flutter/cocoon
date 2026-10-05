@@ -129,6 +129,7 @@ class GithubChecksUtil {
     String name, {
     github.CheckRunOutput? output,
     github.CheckRunConclusion? conclusion,
+    github.CheckRunStatus status = github.CheckRunStatus.queued,
     String? detailsUrl,
   }) async {
     const r = RetryOptions(maxAttempts: 3, delayFactor: Duration(seconds: 2));
@@ -141,6 +142,7 @@ class GithubChecksUtil {
           name,
           output: output,
           conclusion: conclusion,
+          status: status,
           detailsUrl: detailsUrl,
         );
       },
@@ -161,6 +163,7 @@ class GithubChecksUtil {
     String name, {
     github.CheckRunOutput? output,
     github.CheckRunConclusion? conclusion,
+    github.CheckRunStatus status = github.CheckRunStatus.queued,
     String? detailsUrl,
   }) async {
     final gitHubClient = await config.createGitHubClient(slug: slug);
@@ -170,6 +173,7 @@ class GithubChecksUtil {
       headSha: sha,
       output: output,
       conclusion: conclusion,
+      status: status,
       detailsUrl: detailsUrl,
     );
   }
