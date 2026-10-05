@@ -73,7 +73,7 @@ function config_minion() {
 
 function set_deviceos_grains() {
   if [ -n "$1" ]; then
-    sudo PATH="/opt/salt/bin:/opt/salt:/usr/local/sbin:$PATH" salt-call grains.set 'device_os' "$1"
+    sudo PATH="/opt/salt/bin:/usr/local/sbin:$PATH" /opt/salt/bin/salt-call grains.set 'device_os' "$1"
   fi
 }
 
