@@ -73,8 +73,7 @@ function config_minion() {
 
 function set_deviceos_grains() {
   if [ -n "$1" ]; then
-    export PATH="/opt/salt/bin:/opt/salt:/usr/local/sbin:$PATH" 
-    sudo salt-call grains.set 'device_os' "$1"
+      sudo PATH="/opt/salt/bin:/usr/local/sbin:$PATH" salt-call grains.set 'device_os' "$1"
   fi
 }
 
@@ -89,8 +88,7 @@ function reboot_salt() {
 }
 
 function verify_provision() {
-  export PATH="/opt/salt/bin:/opt/salt:/usr/local/sbin:$PATH"
-  if sudo salt-minion --version; then
+  if sudo PATH="$PATH:/opt/salt/bin:/usr/bin" salt-minion --version; then
     echo 'Succeed!'
   else
     echo 'Failed!'
