@@ -38,6 +38,7 @@ resetFailedCheckRun:
   useForUsers:
     - ievdokdm
     - eyebrowsoffire
+    - vashworth
 
 # Whether to process LUCI notifications of builds progress ordered within check run.
 orderedPresubmit:
