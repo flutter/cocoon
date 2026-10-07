@@ -10,6 +10,7 @@ import 'base_commit_date_allowed.dart';
 import 'ci_successful.dart';
 import 'empty_checks.dart';
 import 'mergeable.dart';
+import 'test_exemption.dart';
 import 'validation.dart';
 
 /// The [ValidationFilter] allows us to pick and choose and the validations to
@@ -54,6 +55,7 @@ class PullRequestValidationFilter implements ValidationFilter {
       validationsToRun.add(EmptyChecks(config: config));
     }
     validationsToRun.add(Mergeable(config: config));
+    validationsToRun.add(TestExemption(config: config));
 
     return validationsToRun;
   }

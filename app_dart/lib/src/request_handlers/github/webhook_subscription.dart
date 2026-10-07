@@ -214,8 +214,13 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       case 'synchronize':
         await PullRequestManager.handleSynchronize(pullRequestEvent, context);
         break;
-      // Ignore the rest of the events.
       case 'ready_for_review':
+        await PullRequestManager.handleReadyForReview(
+          pullRequestEvent,
+          context,
+        );
+        break;
+      // Ignore the rest of the events.
       case 'unlabeled':
       case 'assigned':
       case 'locked':

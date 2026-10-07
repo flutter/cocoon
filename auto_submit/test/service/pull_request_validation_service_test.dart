@@ -352,6 +352,163 @@ void main() {
       },
     );
 
+    test(
+      'Removes label and post comment when missing-tests label is present without test-exempt label',
+      () async {
+        final flutterRequest = PullRequestHelper(
+          prNumber: 0,
+          lastCommitHash: oid,
+          reviews: <PullRequestReviewHelper>[
+            const PullRequestReviewHelper(
+              authorName: 'member',
+              state: ReviewState.APPROVED,
+              memberType: MemberType.OWNER,
+            ),
+          ],
+        );
+        githubService.checkRunsData = checkRunsMock;
+        githubService.checkRunsMock = checkRunsMock;
+        githubService.useRealComment = true;
+        githubService.isTeamMemberMockMap['author1'] = true;
+        githubService.isTeamMemberMockMap['member'] = true;
+        final pubsub = FakePubSub();
+        final pullRequest = generatePullRequest(
+          prNumber: 0,
+          repoName: slug.name,
+          baseRef: 'feature_a',
+          mergeable: true,
+          labelName: 'missing-tests',
+        );
+        githubService.pullRequestData = pullRequest;
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+        final queryResult = createQueryResult(flutterRequest);
+
+        await validationService.processPullRequest(
+          config: config,
+          result: queryResult,
+          pullRequest: pullRequest,
+          ackId: 'test',
+          pubsub: pubsub,
+        );
+
+        expect(githubService.issueComment, isNotNull);
+        expect(
+          githubService.issueComment!.body,
+          contains('This pull request has the `missing-tests` label'),
+        );
+        expect(githubService.labelRemoved, isTrue);
+        assert(pubsub.messagesQueue.isEmpty);
+      },
+    );
+
+    test(
+      'Processes successfully when both missing-tests and test-exempt labels are present',
+      () async {
+        final flutterRequest = PullRequestHelper(
+          prNumber: 0,
+          lastCommitHash: oid,
+          reviews: <PullRequestReviewHelper>[
+            const PullRequestReviewHelper(
+              authorName: 'member',
+              state: ReviewState.APPROVED,
+              memberType: MemberType.OWNER,
+            ),
+          ],
+        );
+        githubService.checkRunsData = checkRunsMock;
+        githubService.checkRunsMock = checkRunsMock;
+        githubService.createCommentData = createCommentMock;
+        githubService.isTeamMemberMockMap['author1'] = true;
+        githubService.isTeamMemberMockMap['member'] = true;
+        final pubsub = FakePubSub();
+        final pullRequest = generatePullRequest(
+          prNumber: 0,
+          repoName: slug.name,
+          baseRef: 'feature_a',
+          mergeable: true,
+        );
+        pullRequest.labels = <IssueLabel>[
+          IssueLabel(name: 'autosubmit'),
+          IssueLabel(name: 'missing-tests'),
+          IssueLabel(name: 'test-exempt'),
+        ];
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+        final queryResult = createQueryResult(flutterRequest);
+        githubService.pullRequestMock = pullRequest;
+        githubService.mergeRequestMock = PullRequestMerge(
+          merged: true,
+          sha: 'asdfioefmasdf',
+          message: 'Merged successfully.',
+        );
+
+        await validationService.processPullRequest(
+          config: config,
+          result: queryResult,
+          pullRequest: pullRequest,
+          ackId: 'test',
+          pubsub: pubsub,
+        );
+
+        expect(githubService.issueComment, isNull);
+        expect(githubService.labelRemoved, isFalse);
+        assert(pubsub.messagesQueue.isEmpty);
+      },
+    );
+
+    test(
+      'Processes successfully when missing-tests and emergency labels are present without test-exempt',
+      () async {
+        final flutterRequest = PullRequestHelper(
+          prNumber: 0,
+          lastCommitHash: oid,
+          reviews: <PullRequestReviewHelper>[
+            const PullRequestReviewHelper(
+              authorName: 'member',
+              state: ReviewState.APPROVED,
+              memberType: MemberType.OWNER,
+            ),
+          ],
+        );
+        githubService.checkRunsData = checkRunsMock;
+        githubService.checkRunsMock = checkRunsMock;
+        githubService.createCommentData = createCommentMock;
+        githubService.isTeamMemberMockMap['author1'] = true;
+        githubService.isTeamMemberMockMap['member'] = true;
+        final pubsub = FakePubSub();
+        final pullRequest = generatePullRequest(
+          prNumber: 0,
+          repoName: slug.name,
+          baseRef: 'feature_a',
+          mergeable: true,
+        );
+        pullRequest.labels = <IssueLabel>[
+          IssueLabel(name: 'autosubmit'),
+          IssueLabel(name: 'missing-tests'),
+          IssueLabel(name: 'emergency'),
+        ];
+        unawaited(pubsub.publish('auto-submit-queue-sub', pullRequest));
+        final queryResult = createQueryResult(flutterRequest);
+        githubService.pullRequestMock = pullRequest;
+        githubService.mergeRequestMock = PullRequestMerge(
+          merged: true,
+          sha: 'asdfioefmasdf',
+          message: 'Merged successfully.',
+        );
+
+        await validationService.processPullRequest(
+          config: config,
+          result: queryResult,
+          pullRequest: pullRequest,
+          ackId: 'test',
+          pubsub: pubsub,
+        );
+
+        expect(githubService.issueComment, isNull);
+        expect(githubService.labelRemoved, isFalse);
+        assert(pubsub.messagesQueue.isEmpty);
+      },
+    );
+
     // This tests for valid pull request where tree status was not ready for
     // processing, meaning no issueComment was created and the 'autosubmit' label
     // is not removed and we do not ack the message.

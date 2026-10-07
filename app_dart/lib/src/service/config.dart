@@ -43,6 +43,16 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// Keep this in sync with the similar `Config` class in `auto_submit`.
   static const String kEmergencyLabel = 'emergency';
 
+  /// Applied by the bot when a pull request appears to be missing tests.
+  ///
+  /// Keep this in sync with the similar `Config` class in `auto_submit`.
+  static const String kMissingTestsLabel = 'missing-tests';
+
+  /// Applied by a tech lead to grant a test exemption to a pull request.
+  ///
+  /// Keep this in sync with the similar `Config` class in `auto_submit`.
+  static const String kTestExemptLabel = 'test-exempt';
+
   /// Label required to schedule CI tasks on pull requests as a security stop-gap.
   static const String kCicdLabel = 'CICD';
 
@@ -314,12 +324,10 @@ interface class Config extends DynamicallyUpdatedConfig {
       '__Reviewers__: Read the [Tree Hygiene page]'
       '(https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing. '
-      'If you believe this PR qualifies for a test exemption, contact '
-      '"@test-exemption-reviewer" in the #hackers channel in [Discord](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
-      '(don\'t just cc them here, they won\'t see it!). The test '
-      'exemption team is a small volunteer group, so _all_ reviewers should feel '
-      'empowered to ask for tests, without delegating that responsibility '
-      'entirely to the test exemption group.';
+      'If both you and the PR author believe this PR qualifies for a test '
+      'exemption, escalate to the tech lead for the changed area to review '
+      'and apply the `$kTestExemptLabel` label. _All_ reviewers should feel '
+      'empowered to ask for tests before escalating.';
 
   static String newCommitIsNeeded({required String sha}) =>
       'An existing Git SHA, `$sha`, was detected, and no actions were taken.\n'

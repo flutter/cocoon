@@ -76,6 +76,16 @@ class Config {
   /// Keep this in sync with the similar `Config` class in `app_dart`.
   static const String kEmergencyLabel = 'emergency';
 
+  /// Applied by the bot when a pull request appears to be missing tests.
+  ///
+  /// Keep this in sync with the similar `Config` class in `app_dart`.
+  static const String kMissingTestsLabel = 'missing-tests';
+
+  /// Applied by a tech lead to grant a test exemption to a pull request.
+  ///
+  /// Keep this in sync with the similar `Config` class in `app_dart`.
+  static const String kTestExemptLabel = 'test-exempt';
+
   /// Validates that CI tasks were successfully created from the .ci.yaml file.
   ///
   /// If this check fails, it means Cocoon failed to fully populate the list of
