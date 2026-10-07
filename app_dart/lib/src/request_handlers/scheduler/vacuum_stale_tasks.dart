@@ -9,7 +9,7 @@ import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as gh;
-import 'package:googleapis/firestore/v1.dart';
+
 import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
@@ -139,10 +139,7 @@ final class VacuumStaleTasks extends ApiRequestHandler {
       }
       tasks.add(task);
     }
-    await _firestore.batchWriteDocuments(
-      BatchWriteRequest(writes: documentsToWrites(tasks)),
-      kDatabase,
-    );
+    await _firestore.updateTasks(tasks);
   }
 }
 

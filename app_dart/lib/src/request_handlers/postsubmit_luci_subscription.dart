@@ -8,7 +8,6 @@ import 'package:archive/archive.dart';
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:googleapis/firestore/v1.dart' hide Status;
 
 import '../../ci_yaml.dart';
 import '../model/firestore/commit.dart' as fs;
@@ -150,10 +149,7 @@ final class PostsubmitLuciSubscription extends SubscriptionHandler {
 
   Future<void> _updateFirestore(fs.Task fsTask, bbv2.Build build) async {
     fsTask.updateFromBuild(build);
-    await _firestore.batchWriteDocuments(
-      BatchWriteRequest(writes: documentsToWrites([fsTask], exists: true)),
-      kDatabase,
-    );
+    await _firestore.updateTasks([fsTask]);
   }
 
   // No need to update task in Firestore if
