@@ -538,7 +538,7 @@ class PullRequestManager {
           Config.kMissingTestsLabel,
         ]);
       }
-      if (!pr.draft!) {
+      if (pr.draft != true) {
         final body = config.missingTestsPullRequestMessage;
         if (!await _alreadyCommented(gitHubClient, pr, body)) {
           await gitHubClient.issues.createComment(slug, pr.number!, body);
