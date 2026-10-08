@@ -8,10 +8,10 @@ import 'dart:core';
 import 'package:auto_submit/configuration/repository_configuration.dart';
 import 'package:auto_submit/model/auto_submit_query_result.dart';
 import 'package:auto_submit/model/pull_request_data_types.dart';
-import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/validations/ci_successful.dart';
 import 'package:auto_submit/validations/validation.dart';
 import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server_test/mocks.dart';
@@ -335,7 +335,7 @@ void main() {
         final author = Author(login: 'ricardoamador');
 
         final labelNames = <String>[];
-        labelNames.add(Config.kEmergencyLabel);
+        labelNames.add(kEmergencyLabel);
         labelNames.add('Other label');
 
         convertContextNodeStatuses(contextNodeList);
@@ -783,7 +783,7 @@ void main() {
         expect(commit, isNotNull);
         expect(commit.status, isNotNull);
 
-        final npr = generatePullRequest(labelName: Config.kEmergencyLabel);
+        final npr = generatePullRequest(labelName: kEmergencyLabel);
         githubService.checkRunsData = checkRunsMock;
 
         final value = await ciSuccessful.validate(queryResult, npr);

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
@@ -123,7 +124,7 @@ class CiSuccessful extends Validation {
         );
       }
     }
-    final action = labelNames.contains(Config.kEmergencyLabel)
+    final action = labelNames.contains(kEmergencyLabel)
         ? Action.IGNORE_FAILURE
         : Action.REMOVE_LABEL;
     return ValidationResult(allSuccess, action, buffer.toString());
@@ -191,7 +192,7 @@ class CiSuccessful extends Validation {
 
       if (status.state != STATUS_SUCCESS) {
         if (notInAuthorsControl.contains(name) &&
-            labelNames.contains(Config.kEmergencyLabel)) {
+            labelNames.contains(kEmergencyLabel)) {
           continue;
         }
         allSuccess = false;

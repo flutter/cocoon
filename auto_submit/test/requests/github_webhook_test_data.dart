@@ -4,7 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:auto_submit/service/config.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:github/github.dart';
 
 String generateWebhookEvent({
@@ -82,7 +82,7 @@ String generateWebhookEvent({
 
 PullRequest generatePullRequest({
   String labelName = 'cla: yes',
-  String? autosubmitLabel = Config.kAutosubmitLabel,
+  String? autosubmitLabel = kAutosubmitLabel,
   String repoName = 'flutter',
   String login = 'flutter',
   String authorAssociation = 'OWNER',

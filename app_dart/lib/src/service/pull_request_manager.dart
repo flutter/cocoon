@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
@@ -177,6 +178,31 @@ class PullRequestManager {
           event: event,
         );
         await manager._handleEdited(event);
+        await manager.persist();
+      },
+    );
+  }
+
+  static Future<void> handleReadyForReview(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final manager = await PullRequestManager._create(
+          slug: event.repository!.slug(),
+          prNumber: event.pullRequest!.number!,
+          firestore: context.firestore,
+          config: context.config,
+          scheduler: context.scheduler,
+          gerritService: context.gerritService,
+          pullRequestLabelProcessorProvider:
+              context.pullRequestLabelProcessorProvider,
+          event: event,
+        );
+        await manager._handleReadyForReview(event);
         await manager.persist();
       },
     );
@@ -407,10 +433,17 @@ class PullRequestManager {
       }
       await scheduler.createAwaitingCicdLabelCheckRun(slug, sha);
     }
+
+    await checkForTests(event);
   }
 
   /// Handles PR edited event.
   Future<void> _handleEdited(PullRequestEvent event) async {
+    await checkForTests(event);
+  }
+
+  /// Handles PR ready_for_review event.
+  Future<void> _handleReadyForReview(PullRequestEvent event) async {
     await checkForTests(event);
   }
 
@@ -448,7 +481,6 @@ class PullRequestManager {
     if (config.rollerAccounts.contains(pr.user!.login)) {
       return;
     }
-    final eventAction = pullRequestEvent.action;
     final isTipOfTree = pr.base!.ref == Config.defaultBranch(slug);
     final gitHubClient = await config.createGitHubClient(pullRequest: pr);
     await _validateRefs(gitHubClient, pr);
@@ -456,43 +488,79 @@ class PullRequestManager {
       log.info(
         'Applying framework repo labels for: owner=${slug.owner} repo=${slug.name} and pr=${pr.number}',
       );
+      var isMissingTests = false;
       switch (slug.name) {
         case 'flutter':
           final isFusion = slug == Config.flutterSlug;
           final files = await gitHubClient.pullRequests
               .listFiles(slug, pr.number!)
               .toList();
-          await _applyFrameworkRepoLabels(
+          final frameworkMissingTests = await _applyFrameworkRepoLabels(
             gitHubClient,
-            eventAction,
             pr,
             files,
             slug,
           );
+          var engineMissingTests = false;
           if (isFusion) {
-            await _applyEngineRepoLabels(
+            engineMissingTests = await _applyEngineRepoLabels(
               gitHubClient,
-              eventAction,
               pr,
               files,
               slug,
             );
           }
+          isMissingTests = frameworkMissingTests || engineMissingTests;
         case 'packages':
-          return _applyPackageTestChecks(gitHubClient, eventAction, pr);
+          isMissingTests = await _applyPackageTestChecks(gitHubClient, pr);
       }
+      await _updateMissingTestsLabelAndComment(
+        gitHubClient,
+        pr,
+        slug,
+        isMissingTests: isMissingTests,
+      );
     }
   }
 
-  Future<void> _applyFrameworkRepoLabels(
+  Future<void> _updateMissingTestsLabelAndComment(
     GitHub gitHubClient,
-    String? eventAction,
+    PullRequest pr,
+    RepositorySlug slug, {
+    required bool isMissingTests,
+  }) async {
+    final hasMissingTestsLabel =
+        pr.labels?.any((IssueLabel l) => l.name == kMissingTestsLabel) ?? false;
+
+    if (isMissingTests) {
+      if (!hasMissingTestsLabel) {
+        await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, <String>[
+          kMissingTestsLabel,
+        ]);
+      }
+      if (pr.draft != true) {
+        final body = config.missingTestsPullRequestMessage;
+        if (!await _alreadyCommented(gitHubClient, pr, body)) {
+          await gitHubClient.issues.createComment(slug, pr.number!, body);
+        }
+      }
+    } else if (hasMissingTestsLabel) {
+      await gitHubClient.issues.removeLabelForIssue(
+        slug,
+        pr.number!,
+        kMissingTestsLabel,
+      );
+    }
+  }
+
+  Future<bool> _applyFrameworkRepoLabels(
+    GitHub gitHubClient,
     PullRequest pr,
     List<PullRequestFile> files,
     RepositorySlug slug,
   ) async {
     if (pr.user!.login == 'engine-flutter-autoroll') {
-      return;
+      return false;
     }
 
     final labels = <String>{};
@@ -504,15 +572,16 @@ class PullRequestManager {
     for (var file in files) {
       final filename = file.filename!;
 
-      if (!_isFusionEnginePath(filename)) {
-        frameworkFiles++;
+      if (_isFusionEnginePath(filename)) {
+        continue;
       }
+      frameworkFiles++;
 
       if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
           !filename.startsWith('dev/bots/') &&
           !filename.endsWith('.gitignore')) {
-        needsTests = !_allChangesAreCodeComments(file);
+        needsTests = needsTests || !_allChangesAreCodeComments(file);
       }
 
       // Check to see if tests were submitted with this PR.
@@ -523,7 +592,7 @@ class PullRequestManager {
 
     if (frameworkFiles == 0) {
       // a fusion / engine only change.
-      return;
+      return false;
     }
 
     if (pr.user!.login == 'fluttergithubbot') {
@@ -539,15 +608,7 @@ class PullRequestManager {
       );
     }
 
-    if (!hasTests &&
-        needsTests &&
-        !pr.draft! &&
-        !_isPrUpdatingReleaseBranch(pr)) {
-      final body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, body)) {
-        await gitHubClient.issues.createComment(slug, pr.number!, body);
-      }
-    }
+    return !hasTests && needsTests && !_isPrUpdatingReleaseBranch(pr);
   }
 
   bool _isAFrameworkTest(String filename) {
@@ -617,16 +678,15 @@ class PullRequestManager {
   bool _isFusionEnginePath(String path) =>
       path.startsWith('engine/') || path == 'DEPS';
 
-  Future<void> _applyEngineRepoLabels(
+  Future<bool> _applyEngineRepoLabels(
     GitHub gitHubClient,
-    String? eventAction,
     PullRequest pr,
     List<PullRequestFile> files,
     RepositorySlug slug,
   ) async {
     // Do not apply the test labels for the autoroller accounts.
     if (pr.user!.login == 'skia-flutter-autoroll') {
-      return;
+      return false;
     }
 
     var hasTests = false;
@@ -640,7 +700,10 @@ class PullRequestManager {
 
     for (var file in files) {
       final path = file.filename!;
-      if (isFusion && _isFusionEnginePath(path)) {
+      if (isFusion) {
+        if (!_isFusionEnginePath(path)) {
+          continue;
+        }
         engineFiles++;
       }
 
@@ -650,7 +713,7 @@ class PullRequestManager {
           !path.startsWith('${engineBasePath}ci/licenses_golden/') &&
           // Build configuration files tell CI what to run.
           !path.startsWith('${engineBasePath}ci/builders/')) {
-        needsTests = !_allChangesAreCodeComments(file);
+        needsTests = needsTests || !_allChangesAreCodeComments(file);
       }
 
       if (_isAnEngineTest(path)) {
@@ -660,18 +723,10 @@ class PullRequestManager {
 
     if (isFusion && engineFiles == 0) {
       // framework only change
-      return;
+      return false;
     }
 
-    if (!hasTests &&
-        needsTests &&
-        !pr.draft! &&
-        !_isPrUpdatingReleaseBranch(pr)) {
-      final body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, body)) {
-        await gitHubClient.issues.createComment(slug, pr.number!, body);
-      }
-    }
+    return !hasTests && needsTests && !_isPrUpdatingReleaseBranch(pr);
   }
 
   bool _isAnEngineTest(String filename) {
@@ -693,9 +748,8 @@ class PullRequestManager {
   }
 
   // Runs automated test checks for both flutter/packages.
-  Future<void> _applyPackageTestChecks(
+  Future<bool> _applyPackageTestChecks(
     GitHub gitHubClient,
-    String? eventAction,
     PullRequest pr,
   ) async {
     final slug = pr.base!.repo!.slug();
@@ -715,7 +769,7 @@ class PullRequestManager {
           // coverage.
           !filename.endsWith('tool/run_tests.dart') &&
           !filename.endsWith('run_tests.sh')) {
-        needsTests = !_allChangesAreCodeComments(file);
+        needsTests = needsTests || !_allChangesAreCodeComments(file);
       }
       // See https://github.com/flutter/flutter/blob/master/docs/ecosystem/testing/Plugin-Tests.md for discussion
       // of various plugin test types and locations.
@@ -740,15 +794,7 @@ class PullRequestManager {
       }
     }
 
-    if (!hasTests &&
-        needsTests &&
-        !pr.draft! &&
-        !_isPrUpdatingReleaseBranch(pr)) {
-      final body = config.missingTestsPullRequestMessage;
-      if (!await _alreadyCommented(gitHubClient, pr, body)) {
-        await gitHubClient.issues.createComment(slug, pr.number!, body);
-      }
-    }
+    return !hasTests && needsTests && !_isPrUpdatingReleaseBranch(pr);
   }
 
   /// Validate the base and head refs of the PR.
@@ -1045,9 +1091,7 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
 
   Future<void> processLabels() async {
     final hasEmergencyLabel =
-        pullRequest.labels?.any(
-          (label) => label.name == Config.kEmergencyLabel,
-        ) ??
+        pullRequest.labels?.any((label) => label.name == kEmergencyLabel) ??
         false;
     if (hasEmergencyLabel) {
       // The merge queue guard and dashboard checks can be unlocked without approval checks because:

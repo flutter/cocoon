@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:crypto/crypto.dart';
 import 'package:github/github.dart';
@@ -13,7 +14,6 @@ import 'package:shelf/shelf.dart';
 import '../request_handling/pubsub.dart';
 import '../requests/exceptions.dart';
 import '../server/request_handler.dart';
-import '../service/config.dart';
 
 /// Handler for processing GitHub webhooks.
 ///
@@ -69,7 +69,7 @@ class GithubWebhook extends RequestHandler {
     );
 
     hasAutosubmit = pullRequest.labels!.any(
-      (label) => label.name == Config.kAutosubmitLabel,
+      (label) => label.name == kAutosubmitLabel,
     );
 
     if (hasAutosubmit) {

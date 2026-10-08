@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
@@ -30,18 +31,6 @@ interface class Config extends DynamicallyUpdatedConfig {
     required super.initialConfig,
     http.Client? httpClient,
   }) : _httpClient = httpClient ?? http.Client();
-
-  /// When present on a pull request, instructs Cocoon to submit it
-  /// automatically as soon as all the required checks pass.
-  ///
-  /// Keep this in sync with the similar `Config` class in `auto_submit`.
-  static const String kAutosubmitLabel = 'autosubmit';
-
-  /// When present on a pull request, allows it to land without passing all the
-  /// checks, and jumps the merge queue.
-  ///
-  /// Keep this in sync with the similar `Config` class in `auto_submit`.
-  static const String kEmergencyLabel = 'emergency';
 
   /// Label required to schedule CI tasks on pull requests as a security stop-gap.
   static const String kCicdLabel = 'CICD';
@@ -314,12 +303,10 @@ interface class Config extends DynamicallyUpdatedConfig {
       '__Reviewers__: Read the [Tree Hygiene page]'
       '(https://github.com/flutter/flutter/blob/master/docs/contributing/Tree-hygiene.md#how-to-review-code) '
       'and make sure this patch meets those guidelines before LGTMing. '
-      'If you believe this PR qualifies for a test exemption, contact '
-      '"@test-exemption-reviewer" in the #hackers channel in [Discord](https://github.com/flutter/flutter/blob/master/docs/contributing/Chat.md) '
-      '(don\'t just cc them here, they won\'t see it!). The test '
-      'exemption team is a small volunteer group, so _all_ reviewers should feel '
-      'empowered to ask for tests, without delegating that responsibility '
-      'entirely to the test exemption group.';
+      'If both you and the PR author believe this PR qualifies for a test '
+      'exemption, escalate to the tech lead for the changed area to review '
+      'and apply the `$kTestExemptLabel` label. _All_ reviewers should feel '
+      'empowered to ask for tests before escalating.';
 
   static String newCommitIsNeeded({required String sha}) =>
       'An existing Git SHA, `$sha`, was detected, and no actions were taken.\n'

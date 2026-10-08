@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/big_query_pull_request_record.dart';
 import 'package:cocoon_server/bigquery.dart';
 import 'package:cocoon_server/logging.dart';
@@ -106,7 +107,7 @@ ${pullRequest.title!.replaceFirst('Revert "Revert', 'Reland')}
     final graphQlService = await GraphQlService.forRepo(config, slug);
     final isEmergencyPullRequest =
         restPullRequest.labels
-            ?.where((label) => label.name == Config.kEmergencyLabel)
+            ?.where((label) => label.name == kEmergencyLabel)
             .isNotEmpty ??
         false;
 
