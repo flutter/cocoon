@@ -10,14 +10,15 @@ MINION_PLIST_PATH=/Library/LaunchDaemons/com.saltstack.salt.minion.plist
 LINUX_SALT_CLIENT_PATH="$HOME/salt-client"
 # NOTE: https://github.com/flutter/flutter/issues/142627#issuecomment-1919922724
 # before increasing this
-SALT_VERSION='3006.3'
+SALT_VERSION='3006.9'
 
 # Installs salt minion.
 # Pins the version to 2019.2.0 and Python 2 to be compatible with Fuchsia salt master.
 function install_salt() {
   OS="$(uname)"
   if [[ "$OS" == 'Darwin' ]]; then
-    curl -L "https://packages.broadcom.com/artifactory/saltproject-generic/macos/$SALT_VERSION/salt-$SALT_VERSION-py3-x86_64.pkg" -o /tmp/salt.pkg
+    ARCH="$(uname -m)"
+    curl -L "https://packages.broadcom.com/artifactory/saltproject-generic/macos/$SALT_VERSION/salt-$SALT_VERSION-py3-$ARCH.pkg" -o /tmp/salt.pkg
     sudo installer -pkg /tmp/salt.pkg -target /
   elif [[ "$OS" == 'Linux' ]]; then
     DISTRO="$(lsb_release -is)"
