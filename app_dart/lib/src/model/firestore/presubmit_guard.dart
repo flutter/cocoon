@@ -7,6 +7,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart' hide Status;
@@ -57,8 +58,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   static const fieldHeadSha = 'head_sha';
   static const fieldAuthor = 'author';
   static const fieldCreationTime = 'creation_time';
-  static const fieldRemainingJobs = 'remaining_jobs';
-  static const fieldFailedJobs = 'failed_jobs';
   static const fieldJobs = 'jobs';
 
   static AppDocumentId<PresubmitGuard> documentIdFor({
@@ -92,15 +91,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     return '$kDocumentParent/$collectionId/${docId.documentId}';
   }
 
-  /// Returns the document ID for the given parameters.
-  // static String documentId({
-  //   required RepositorySlug slug,
-  //   required int prNum,
-  //   required int checkRunId,
-  //   required CiStage stage,
-  // }) =>
-  //     '${slug.owner}_${slug.name}_${prNum}_${checkRunId}_${stage.name}';
-
   @override
   AppDocumentMetadata<PresubmitGuard> get runtimeMetadata => metadata;
 
@@ -117,7 +107,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     required String headSha,
     required int creationTime,
     required String author,
-    required int jobCount,
     CheckRun? checkRunGuard,
   }) {
     return PresubmitGuard(
@@ -128,8 +117,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
       stage: stage,
       author: author,
       creationTime: creationTime,
-      remainingJobs: jobCount,
-      failedJobs: 0,
       checkRunGuard: checkRunGuard,
     );
   }
@@ -146,8 +133,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     required CiStage stage,
     required int creationTime,
     required String author,
-    required int remainingJobs,
-    required int failedJobs,
     CheckRun? checkRunGuard,
     Map<String, TaskStatus>? jobs,
   }) {
@@ -161,8 +146,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
         fieldCreationTime: creationTime.toValue(),
         fieldAuthor: author.toValue(),
         fieldCheckRun: json.encode(checkRun.toJson()).toValue(),
-        fieldRemainingJobs: remainingJobs.toValue(),
-        fieldFailedJobs: failedJobs.toValue(),
         if (checkRunGuard != null)
           fieldCheckRunGuard: json.encode(checkRunGuard.toJson()).toValue(),
         if (jobs != null)
@@ -189,13 +172,12 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
   String get commitSha => fields[fieldHeadSha]!.stringValue!;
   String get author => fields[fieldAuthor]!.stringValue!;
   int get creationTime => int.parse(fields[fieldCreationTime]!.integerValue!);
-  int get remainingJobs => int.parse(fields[fieldRemainingJobs]!.integerValue!);
-  int get failedJobs => int.parse(fields[fieldFailedJobs]!.integerValue!);
   Map<String, TaskStatus> get jobs =>
       fields[fieldJobs]?.mapValue?.fields?.map<String, TaskStatus>(
         (k, v) => MapEntry(k, TaskStatus.from(v.stringValue!)),
       ) ??
       <String, TaskStatus>{};
+  GuardStatus get status => GuardStatus.calculate(jobs.values);
   CheckRun get checkRun {
     final jsonData =
         jsonDecode(fields[fieldCheckRun]!.stringValue!) as Map<String, Object?>;
@@ -269,14 +251,6 @@ final class PresubmitGuard extends AppDocument<PresubmitGuard> {
     for (final MapEntry(:key, :value) in jobs.entries)
       if (value.isFailure) key,
   ];
-
-  set remainingJobs(int remainingJobs) {
-    fields[fieldRemainingJobs] = remainingJobs.toValue();
-  }
-
-  set failedJobs(int failedJobs) {
-    fields[fieldFailedJobs] = failedJobs.toValue();
-  }
 
   set jobs(Map<String, TaskStatus> jobs) {
     fields[fieldJobs] = Value(

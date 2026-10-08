@@ -109,8 +109,6 @@ void main() {
             for (final task in ['linux', 'mac'])
               task: TaskStatus.waitingForBackfill,
           },
-          remainingJobs: 2,
-          failedJobs: 0,
         );
 
         final check1 = PresubmitJob.init(
@@ -292,51 +290,6 @@ void main() {
         expect(checkDoc.buildNumber, 456);
         expect(checkDoc.buildId, Int64.MAX_VALUE);
       });
-      test('keeps remaining jobs at 0 if it is already 0', () async {
-        final guardDoc = await firestoreService.getDocument(
-          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
-        );
-        final guard = PresubmitGuard.fromDocument(guardDoc);
-        guard.remainingJobs = 0;
-        await firestoreService.writeViaTransaction(
-          documentsToWrites([guard], exists: true),
-        );
-
-        final state = const PresubmitJobState(
-          jobName: 'linux',
-          status: TaskStatus.succeeded,
-          attemptNumber: 1,
-          startTime: 2000,
-          endTime: 3000,
-        );
-
-        final result = await UnifiedCheckRun.markConclusion(
-          firestoreService: firestoreService,
-          guardId: guardId,
-          state: state,
-        );
-
-        expect(result.result, PresubmitGuardConclusionResult.ok);
-        expect(result.remaining, 0);
-
-        final updatedGuardDoc = await firestoreService.getDocument(
-          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${guardId.documentId}',
-        );
-        final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
-        expect(updatedGuard.remainingJobs, 0);
-        expect(updatedGuard.jobs['linux'], TaskStatus.succeeded);
-
-        final checkDoc = await PresubmitJob.fromFirestore(
-          firestoreService,
-          PresubmitJobId(
-            slug: slug,
-            checkRunId: 123,
-            jobName: 'linux',
-            attemptNumber: 1,
-          ),
-        );
-        expect(checkDoc.status, TaskStatus.succeeded);
-      });
     });
     group('reInitializeFailedChecks', () {
       late PresubmitGuardId fusionGuardId;
@@ -359,8 +312,6 @@ void main() {
           creationTime: 1000,
           author: 'dash',
           jobs: {'linux': TaskStatus.failed, 'mac': TaskStatus.succeeded},
-          remainingJobs: 0,
-          failedJobs: 1,
         );
 
         final check1 = PresubmitJob(
@@ -407,8 +358,6 @@ void main() {
         );
         final guard = PresubmitGuard.fromDocument(guardDoc);
 
-        expect(guard.failedJobs, 0);
-        expect(guard.remainingJobs, 1);
         expect(guard.jobs['linux'], TaskStatus.waitingForBackfill);
         expect(guard.jobs['mac'], TaskStatus.succeeded);
 
@@ -444,8 +393,6 @@ void main() {
           creationTime: 1000,
           author: 'dash',
           jobs: {'win': TaskStatus.succeeded, 'ios': TaskStatus.succeeded},
-          remainingJobs: 0,
-          failedJobs: 0,
         );
 
         final check1 = PresubmitJob(
@@ -490,8 +437,6 @@ void main() {
         );
         final restartedGuard = PresubmitGuard.fromDocument(guardDoc);
 
-        expect(restartedGuard.failedJobs, 0);
-        expect(restartedGuard.remainingJobs, 1);
         expect(restartedGuard.jobs['linux'], TaskStatus.waitingForBackfill);
         expect(restartedGuard.jobs['mac'], TaskStatus.succeeded);
 
@@ -511,14 +456,13 @@ void main() {
 
       test('returns null when no failed checks', () async {
         // Update setup to have no failed checks
-        var guardDoc = await firestoreService.getDocument(
+        final guardDoc = await firestoreService.getDocument(
           'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${fusionGuardId.documentId}',
         );
         final guard = PresubmitGuard.fromDocument(guardDoc);
         final builds = guard.jobs;
         builds['linux'] = TaskStatus.succeeded;
         guard.jobs = builds;
-        guard.failedJobs = 0;
         await firestoreService.writeViaTransaction(
           documentsToWrites([guard], exists: true),
         );
@@ -530,14 +474,6 @@ void main() {
           guardCheckRunId: 123,
         );
         expect(result, isNull);
-
-        guardDoc = await firestoreService.getDocument(
-          'projects/flutter-dashboard/databases/cocoon/documents/presubmit_guards/${fusionGuardId.documentId}',
-        );
-        final updatedGuard = PresubmitGuard.fromDocument(guardDoc);
-        // Should remain unchanged
-        expect(updatedGuard.failedJobs, 0);
-        expect(updatedGuard.remainingJobs, 0);
       });
     });
 
@@ -559,8 +495,6 @@ void main() {
         stage: CiStage.fusionEngineBuild,
         creationTime: 1000,
         author: 'dash',
-        remainingJobs: 1,
-        failedJobs: 0,
         jobs: {'linux': TaskStatus.succeeded},
       );
 
@@ -572,8 +506,6 @@ void main() {
         stage: CiStage.fusionTests,
         creationTime: 2000,
         author: 'dash',
-        remainingJobs: 1,
-        failedJobs: 0,
         jobs: {'mac': TaskStatus.succeeded},
       );
 

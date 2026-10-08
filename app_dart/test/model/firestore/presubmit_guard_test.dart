@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/base.dart';
@@ -46,7 +47,6 @@ void main() {
         headSha: 'abc',
         creationTime: 1000,
         author: 'author',
-        jobCount: 2,
       );
 
       expect(guard.slug, slug);
@@ -56,8 +56,6 @@ void main() {
       expect(guard.commitSha, 'abc');
       expect(guard.creationTime, 1000);
       expect(guard.author, 'author');
-      expect(guard.remainingJobs, 2);
-      expect(guard.failedJobs, 0);
       expect(guard.checkRun.id, 456);
       expect(guard.fields[PresubmitGuard.fieldCheckRunId]!.integerValue, '456');
       expect(guard.fields[PresubmitGuard.fieldPrNum]!.integerValue, '123');
@@ -80,7 +78,6 @@ void main() {
         headSha: 'abc',
         creationTime: 1000,
         author: 'author',
-        jobCount: 2,
       );
       guard.jobs = {'linux': TaskStatus.succeeded};
 
@@ -93,7 +90,7 @@ void main() {
       expect(loadedGuard.checkRunId, 456);
       expect(loadedGuard.stage, CiStage.fusionEngineBuild);
       expect(loadedGuard.jobs, {'linux': TaskStatus.succeeded});
-      expect(loadedGuard.remainingJobs, 2);
+      expect(loadedGuard.status, GuardStatus.succeeded);
     });
 
     test('updates fields correctly', () {
@@ -105,16 +102,12 @@ void main() {
         headSha: 'abc',
         creationTime: 1000,
         author: 'author',
-        jobCount: 2,
       );
 
-      guard.remainingJobs = 1;
-      guard.failedJobs = 1;
       guard.jobs = {'linux': TaskStatus.failed};
 
-      expect(guard.remainingJobs, 1);
-      expect(guard.failedJobs, 1);
       expect(guard.jobs, {'linux': TaskStatus.failed});
+      expect(guard.status, GuardStatus.failed);
     });
 
     test('parses properties from document name', () {
@@ -127,8 +120,6 @@ void main() {
         stage: CiStage.fusionEngineBuild,
         creationTime: 1000,
         author: 'author',
-        remainingJobs: 0,
-        failedJobs: 0,
       );
 
       expect(guard.slug, slug);
