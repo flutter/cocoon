@@ -6,6 +6,7 @@
 library;
 
 import 'package:json_annotation/json_annotation.dart';
+import 'task_status.dart';
 
 @JsonEnum(valueField: 'value')
 enum GuardStatus {
@@ -27,20 +28,14 @@ enum GuardStatus {
   /// Returns the JSON representation of `this`.
   Object? toJson() => value;
 
-  /// Calculates the [GuardStatus] based on build counts.
-  static GuardStatus calculate({
-    required int failedBuilds,
-    required int remainingBuilds,
-    required int totalBuilds,
-  }) {
-    if (failedBuilds == 0 && remainingBuilds == 0) {
+  /// Calculates the [GuardStatus] based on job [statuses].
+  static GuardStatus calculate(Iterable<TaskStatus> statuses) {
+    if (statuses.every((s) => s.isSuccess)) {
       return GuardStatus.succeeded;
-    } else if (remainingBuilds == totalBuilds) {
-      return GuardStatus.waitingForBackfill;
-    } else if (remainingBuilds > 0) {
-      return GuardStatus.inProgress;
-    } else {
+    } else if (statuses.any((s) => s.isFailure)) {
       return GuardStatus.failed;
+    } else {
+      return GuardStatus.inProgress;
     }
   }
 }

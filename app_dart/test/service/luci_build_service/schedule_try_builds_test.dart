@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
@@ -594,8 +595,7 @@ void main() {
           stage: CiStage.fusionTests,
           creationTime: 123456789,
           author: 'dash',
-          remainingJobs: 1,
-          failedJobs: 1,
+          jobs: {'Linux foo': TaskStatus.failed},
         );
         await firestore.writeViaTransaction(
           documentsToWrites([guard], exists: false),
@@ -676,8 +676,7 @@ void main() {
           stage: CiStage.fusionTests,
           creationTime: 123456789,
           author: pullRequest.user!.login!,
-          remainingJobs: 1,
-          failedJobs: 0,
+          jobs: {'Linux foo': TaskStatus.waitingForBackfill},
         );
         await firestore.writeViaTransaction(
           documentsToWrites([guard], exists: false),
@@ -771,8 +770,10 @@ void main() {
           stage: CiStage.fusionTests,
           creationTime: 123456789,
           author: pullRequest.user!.login!,
-          remainingJobs: 1,
-          failedJobs: 1,
+          jobs: {
+            'Linux foo': TaskStatus.waitingForBackfill,
+            'Linux bar': TaskStatus.failed,
+          },
         );
         await firestore.writeViaTransaction(
           documentsToWrites([guard], exists: false),

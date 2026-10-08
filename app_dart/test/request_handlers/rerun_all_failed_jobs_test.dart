@@ -57,7 +57,6 @@ void main() {
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
       jobs: {'Linux A': TaskStatus.failed, 'Linux B': TaskStatus.succeeded},
-      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 
@@ -129,7 +128,6 @@ void main() {
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
       jobs: {'Linux A': TaskStatus.failed},
-      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 

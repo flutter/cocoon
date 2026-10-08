@@ -7,6 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
+import 'package:cocoon_common/guard_status.dart';
 import 'package:cocoon_common/is_release_branch.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
@@ -459,7 +460,7 @@ class LuciBuildService {
           final guard = PresubmitGuard.fromDocument(presubmitGuardDoc);
           final checkRun = guard.checkRun;
 
-          if (guard.failedJobs == 0) {
+          if (guard.status == GuardStatus.inProgress) {
             log.info('Re-creating Presubmit check run for Guard $guard');
             await _githubChecksUtil.createCheckRun(
               _config,

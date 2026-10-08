@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/common/firestore_extensions.dart';
@@ -144,8 +145,7 @@ void main() {
           slug: Config.flutterSlug,
           headSha: 'abc123',
           stage: CiStage.fusionEngineBuild,
-          remainingJobs: 0,
-          failedJobs: 0,
+          jobs: {'linux': TaskStatus.succeeded},
         );
 
         firestore.putDocuments([guard]);
@@ -169,8 +169,7 @@ void main() {
           slug: Config.flutterSlug,
           headSha: 'abc123',
           stage: CiStage.fusionEngineBuild,
-          remainingJobs: 1,
-          failedJobs: 0,
+          jobs: {'linux': TaskStatus.inProgress},
         );
 
         firestore.putDocuments([guard]);
@@ -194,8 +193,7 @@ void main() {
           slug: Config.flutterSlug,
           headSha: 'abc123',
           stage: CiStage.fusionEngineBuild,
-          remainingJobs: 0,
-          failedJobs: 1,
+          jobs: {'linux': TaskStatus.failed},
         );
 
         firestore.putDocuments([guard]);
@@ -219,8 +217,7 @@ void main() {
           slug: Config.flutterSlug,
           headSha: 'abc123',
           stage: CiStage.fusionTests,
-          remainingJobs: 1,
-          failedJobs: 0,
+          jobs: {'linux': TaskStatus.inProgress},
         );
 
         firestore.putDocuments([guard]);

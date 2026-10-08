@@ -108,19 +108,8 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
     // Consolidate metadata from the first record.
     final first = guards.first;
 
-    var totalFailed = 0;
-    var totalRemaining = 0;
-    var totalBuilds = 0;
-    for (final g in guards) {
-      totalFailed += g.failedJobs;
-      totalRemaining += g.remainingJobs;
-      totalBuilds += g.jobs.length;
-    }
-
     final guardStatus = GuardStatus.calculate(
-      failedBuilds: totalFailed,
-      remainingBuilds: totalRemaining,
-      totalBuilds: totalBuilds,
+      guards.expand((g) => g.jobs.values),
     );
 
     final response = rpc_model.PresubmitGuardResponse(
@@ -162,58 +151,23 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
       }, statusCode: HttpStatus.notFound);
     }
 
-    var totalFailed = 0;
-    var totalRemaining = 0;
-    var totalBuilds = 0;
-    for (final stage in ciStagings) {
-      totalFailed += stage.failed;
-      totalRemaining += stage.remaining;
-      totalBuilds += stage.total;
-    }
-
     /// Sort oldest first using a Schwartzian Transform with records to parse createTimestamp exactly once.
     final tasksWithTime = [
       for (final t in tasks) (task: t, time: t.createTimestamp),
     ]..sort((a, b) => a.time.compareTo(b.time));
     final sortedTasks = [for (final entry in tasksWithTime) entry.task];
 
+    final nonBringupTasks = <String, TaskStatus>{};
     final taskStatusMap = <String, TaskStatus>{};
     for (final t in sortedTasks) {
       final taskName = t.taskName;
-      final oldStatus = taskStatusMap[taskName];
       final newStatus = t.status;
 
       taskStatusMap[taskName] = newStatus;
 
       // Do not count bringup towards success/failure.
-      if (t.bringup) continue;
-      if (oldStatus == null) {
-        totalBuilds++;
-        if (newStatus.isFailure) {
-          totalFailed++;
-        } else if (newStatus.isBuildInProgress) {
-          totalRemaining++;
-        }
-      } else {
-        // Adjust failed builds count.
-        switch ((oldStatus.isFailure, newStatus.isFailure)) {
-          case (true, false):
-            totalFailed--;
-          case (false, true):
-            totalFailed++;
-          case _:
-            break;
-        }
-
-        // Adjust remaining builds count.
-        switch ((oldStatus.isBuildInProgress, newStatus.isBuildInProgress)) {
-          case (true, false):
-            totalRemaining--;
-          case (false, true):
-            totalRemaining++;
-          case _:
-            break;
-        }
+      if (!t.bringup) {
+        nonBringupTasks[taskName] = newStatus;
       }
     }
 
@@ -243,11 +197,11 @@ final class GetPresubmitGuard extends PublicApiRequestHandler {
         ),
     ];
 
-    final guardStatus = GuardStatus.calculate(
-      failedBuilds: totalFailed,
-      remainingBuilds: totalRemaining,
-      totalBuilds: totalBuilds,
-    );
+    final guardStatus = GuardStatus.calculate([
+      for (final ciStage in ciStagings)
+        ...ciStage.checkRuns.values.map(ChecksExtension.fromTaskConclusion),
+      ...nonBringupTasks.values,
+    ]);
 
     var checkRunId = -1;
     if (ciStagings.isNotEmpty) {
