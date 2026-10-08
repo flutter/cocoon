@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/core_extensions.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
@@ -102,6 +103,10 @@ void main() {
       // ignore: discarded_futures
       issuesService.addLabelsToIssue(any, any, any),
     ).thenAnswer((_) async => <IssueLabel>[]);
+    when(
+      // ignore: discarded_futures
+      issuesService.removeLabelForIssue(any, any, any),
+    ).thenAnswer((_) async => true);
     when(
       // ignore: discarded_futures
       issuesService.createComment(any, any, any),
@@ -719,7 +724,7 @@ void main() {
 
       verify(
         issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-          Config.kMissingTestsLabel,
+          kMissingTestsLabel,
         ]),
       ).called(1);
 
@@ -759,7 +764,7 @@ void main() {
 
       verify(
         issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-          Config.kMissingTestsLabel,
+          kMissingTestsLabel,
         ]),
       ).called(1);
 
@@ -799,7 +804,7 @@ void main() {
 
       verify(
         issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-          Config.kMissingTestsLabel,
+          kMissingTestsLabel,
         ]),
       ).called(1);
 
@@ -2338,7 +2343,7 @@ void foo() {
 
       verify(
         issuesService.addLabelsToIssue(Config.packagesSlug, issueNumber, [
-          Config.kMissingTestsLabel,
+          kMissingTestsLabel,
         ]),
       ).called(1);
 
@@ -2567,7 +2572,7 @@ void foo() {
 
         verify(
           issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-            Config.kMissingTestsLabel,
+            kMissingTestsLabel,
           ]),
         ).called(1);
 
@@ -2587,7 +2592,7 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
-        additionalLabels: [Config.kMissingTestsLabel],
+        additionalLabels: [kMissingTestsLabel],
       );
 
       when(
@@ -2651,7 +2656,7 @@ void foo() {
 
         verify(
           issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-            Config.kMissingTestsLabel,
+            kMissingTestsLabel,
           ]),
         ).called(1);
 
@@ -2673,7 +2678,7 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'synchronize',
           number: issueNumber,
-          additionalLabels: [Config.kMissingTestsLabel],
+          additionalLabels: [kMissingTestsLabel],
         );
 
         when(
@@ -2687,9 +2692,13 @@ void foo() {
 
         await tester.post(webhook);
 
-        expect(githubService.removedLabels, [
-          (Config.flutterSlug, issueNumber, Config.kMissingTestsLabel),
-        ]);
+        verify(
+          issuesService.removeLabelForIssue(
+            Config.flutterSlug,
+            issueNumber,
+            kMissingTestsLabel,
+          ),
+        ).called(1);
       },
     );
 
@@ -2701,7 +2710,7 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'synchronize',
           number: issueNumber,
-          additionalLabels: [Config.kMissingTestsLabel],
+          additionalLabels: [kMissingTestsLabel],
         );
 
         when(
@@ -2714,9 +2723,13 @@ void foo() {
 
         await tester.post(webhook);
 
-        expect(githubService.removedLabels, [
-          (Config.flutterSlug, issueNumber, Config.kMissingTestsLabel),
-        ]);
+        verify(
+          issuesService.removeLabelForIssue(
+            Config.flutterSlug,
+            issueNumber,
+            kMissingTestsLabel,
+          ),
+        ).called(1);
       },
     );
 
@@ -2728,7 +2741,7 @@ void foo() {
         tester.message = generateGithubWebhookMessage(
           action: 'ready_for_review',
           number: issueNumber,
-          additionalLabels: [Config.kMissingTestsLabel],
+          additionalLabels: [kMissingTestsLabel],
         );
 
         when(
@@ -2751,7 +2764,7 @@ void foo() {
 
         verifyNever(
           issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-            Config.kMissingTestsLabel,
+            kMissingTestsLabel,
           ]),
         );
 
@@ -2813,7 +2826,7 @@ void foo() {
 
         verify(
           issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-            Config.kMissingTestsLabel,
+            kMissingTestsLabel,
           ]),
         ).called(1);
 
@@ -2852,7 +2865,7 @@ void foo() {
 
         verifyNever(
           issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
-            Config.kMissingTestsLabel,
+            kMissingTestsLabel,
           ]),
         );
 

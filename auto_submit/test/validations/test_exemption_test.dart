@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:auto_submit/service/config.dart';
 import 'package:auto_submit/validations/test_exemption.dart';
 import 'package:auto_submit/validations/validation.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:github/github.dart';
@@ -62,9 +62,9 @@ void main() {
       final queryResult = createQueryResult(flutterRequest);
       final pullRequest = generatePullRequest();
       pullRequest.labels = <IssueLabel>[
-        IssueLabel(name: Config.kAutosubmitLabel),
-        IssueLabel(name: Config.kMissingTestsLabel),
-        IssueLabel(name: Config.kTestExemptLabel),
+        IssueLabel(name: kAutosubmitLabel),
+        IssueLabel(name: kMissingTestsLabel),
+        IssueLabel(name: kTestExemptLabel),
       ];
 
       final validationResult = await testExemption.validate(
@@ -87,8 +87,8 @@ void main() {
       final queryResult = createQueryResult(flutterRequest);
       final pullRequest = generatePullRequest();
       pullRequest.labels = <IssueLabel>[
-        IssueLabel(name: Config.kAutosubmitLabel),
-        IssueLabel(name: Config.kMissingTestsLabel),
+        IssueLabel(name: kAutosubmitLabel),
+        IssueLabel(name: kMissingTestsLabel),
       ];
 
       final validationResult = await testExemption.validate(
@@ -117,9 +117,9 @@ void main() {
       final queryResult = createQueryResult(flutterRequest);
       final pullRequest = generatePullRequest();
       pullRequest.labels = <IssueLabel>[
-        IssueLabel(name: Config.kAutosubmitLabel),
-        IssueLabel(name: Config.kMissingTestsLabel),
-        IssueLabel(name: Config.kEmergencyLabel),
+        IssueLabel(name: kAutosubmitLabel),
+        IssueLabel(name: kMissingTestsLabel),
+        IssueLabel(name: kEmergencyLabel),
       ];
 
       final validationResult = await testExemption.validate(

@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:github/hooks.dart';
@@ -529,13 +530,12 @@ class PullRequestManager {
     required bool isMissingTests,
   }) async {
     final hasMissingTestsLabel =
-        pr.labels?.any((IssueLabel l) => l.name == Config.kMissingTestsLabel) ??
-        false;
+        pr.labels?.any((IssueLabel l) => l.name == kMissingTestsLabel) ?? false;
 
     if (isMissingTests) {
       if (!hasMissingTestsLabel) {
         await gitHubClient.issues.addLabelsToIssue(slug, pr.number!, <String>[
-          Config.kMissingTestsLabel,
+          kMissingTestsLabel,
         ]);
       }
       if (pr.draft != true) {
@@ -545,11 +545,10 @@ class PullRequestManager {
         }
       }
     } else if (hasMissingTestsLabel) {
-      final githubService = await config.createGithubService(slug);
-      await githubService.removeLabel(
+      await gitHubClient.issues.removeLabelForIssue(
         slug,
         pr.number!,
-        Config.kMissingTestsLabel,
+        kMissingTestsLabel,
       );
     }
   }
@@ -1092,9 +1091,7 @@ The "Merge" button is also unlocked. To bypass presubmits as well as the tree st
 
   Future<void> processLabels() async {
     final hasEmergencyLabel =
-        pullRequest.labels?.any(
-          (label) => label.name == Config.kEmergencyLabel,
-        ) ??
+        pullRequest.labels?.any((label) => label.name == kEmergencyLabel) ??
         false;
     if (hasEmergencyLabel) {
       // The merge queue guard and dashboard checks can be unlocked without approval checks because:

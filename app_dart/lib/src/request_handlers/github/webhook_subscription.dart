@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:cocoon_common/is_release_branch.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:github/github.dart' as github;
@@ -364,14 +365,9 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     // repeating the process, until a human looks at the PR, decides that it's
     // ready again, and manually adds the `autosubmit` label on it.
     final hasAutosubmitLabel =
-        pr.labels?.any((label) => label.name == Config.kAutosubmitLabel) ??
-        false;
+        pr.labels?.any((label) => label.name == kAutosubmitLabel) ?? false;
     if (hasAutosubmitLabel) {
-      await githubService.removeLabel(
-        slug,
-        pr.number!,
-        Config.kAutosubmitLabel,
-      );
+      await githubService.removeLabel(slug, pr.number!, kAutosubmitLabel);
     }
   }
 

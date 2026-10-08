@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/generate_github_jws.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:cocoon_server/secret_manager.dart';
@@ -30,28 +31,6 @@ interface class Config extends DynamicallyUpdatedConfig {
     required super.initialConfig,
     http.Client? httpClient,
   }) : _httpClient = httpClient ?? http.Client();
-
-  /// When present on a pull request, instructs Cocoon to submit it
-  /// automatically as soon as all the required checks pass.
-  ///
-  /// Keep this in sync with the similar `Config` class in `auto_submit`.
-  static const String kAutosubmitLabel = 'autosubmit';
-
-  /// When present on a pull request, allows it to land without passing all the
-  /// checks, and jumps the merge queue.
-  ///
-  /// Keep this in sync with the similar `Config` class in `auto_submit`.
-  static const String kEmergencyLabel = 'emergency';
-
-  /// Applied by the bot when a pull request appears to be missing tests.
-  ///
-  /// Keep this in sync with the similar `Config` class in `auto_submit`.
-  static const String kMissingTestsLabel = 'missing-tests';
-
-  /// Applied by a tech lead to grant a test exemption to a pull request.
-  ///
-  /// Keep this in sync with the similar `Config` class in `auto_submit`.
-  static const String kTestExemptLabel = 'test-exempt';
 
   /// Label required to schedule CI tasks on pull requests as a security stop-gap.
   static const String kCicdLabel = 'CICD';

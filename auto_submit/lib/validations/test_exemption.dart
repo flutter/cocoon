@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/labels.dart';
 import 'package:github/github.dart' as github;
 
 import '../model/auto_submit_query_result.dart';
-import '../service/config.dart';
 import '../service/validation_service.dart';
 import 'validation.dart';
 
@@ -23,18 +23,18 @@ class TestExemption extends Validation {
     github.PullRequest messagePullRequest,
   ) async {
     final labelNames = messagePullRequest.labelNames;
-    final isMissingTests = labelNames.contains(Config.kMissingTestsLabel);
-    final isTestExempt = labelNames.contains(Config.kTestExemptLabel);
+    final isMissingTests = labelNames.contains(kMissingTestsLabel);
+    final isTestExempt = labelNames.contains(kTestExemptLabel);
 
     if (isMissingTests && !isTestExempt) {
-      final action = labelNames.contains(Config.kEmergencyLabel)
+      final action = labelNames.contains(kEmergencyLabel)
           ? Action.IGNORE_FAILURE
           : Action.REMOVE_LABEL;
       const message =
-          '- This pull request has the `${Config.kMissingTestsLabel}` label and '
-          'does not have the `${Config.kTestExemptLabel}` label. Please add '
+          '- This pull request has the `$kMissingTestsLabel` label and '
+          'does not have the `$kTestExemptLabel` label. Please add '
           'tests or obtain a test exemption from a tech lead before '
-          're-applying the `${Config.kAutosubmitLabel}` label.';
+          're-applying the `$kAutosubmitLabel` label.';
       return ValidationResult(false, action, message);
     }
 
