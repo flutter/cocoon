@@ -94,18 +94,6 @@ final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
       final sha = entry.key;
       final shaGuards = entry.value;
 
-      final totalFailed = shaGuards.fold<int>(
-        0,
-        (int sum, PresubmitGuard g) => sum + g.failedJobs,
-      );
-      final totalRemaining = shaGuards.fold<int>(
-        0,
-        (int sum, PresubmitGuard g) => sum + g.remainingJobs,
-      );
-      final totalBuilds = shaGuards.fold<int>(
-        0,
-        (int sum, PresubmitGuard g) => sum + g.jobs.length,
-      );
       final earliestCreationTime = shaGuards.fold<int>(
         // assuming creation time is always in the past :)
         DateTime.now().millisecondsSinceEpoch,
@@ -117,9 +105,7 @@ final class GetPresubmitGuardSummaries extends PublicApiRequestHandler {
           headSha: sha,
           creationTime: earliestCreationTime,
           guardStatus: GuardStatus.calculate(
-            failedBuilds: totalFailed,
-            remainingBuilds: totalRemaining,
-            totalBuilds: totalBuilds,
+            shaGuards.expand((g) => g.jobs.values),
           ),
         ),
       );

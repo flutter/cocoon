@@ -80,7 +80,6 @@ void main() {
       checkRun: generateCheckRun(1),
       creationTime: 100,
       jobs: {'test1': TaskStatus.succeeded},
-      remainingJobs: 0,
     );
 
     final guard1b = generatePresubmitGuard(
@@ -90,7 +89,6 @@ void main() {
       checkRun: generateCheckRun(2),
       creationTime: 110,
       jobs: {'test2': TaskStatus.succeeded},
-      remainingJobs: 0,
     );
 
     // SHA2: One stage, failed.
@@ -101,8 +99,6 @@ void main() {
       checkRun: generateCheckRun(3),
       creationTime: 200,
       jobs: {'test3': TaskStatus.failed},
-      failedJobs: 1,
-      remainingJobs: 0,
     );
 
     firestore.putDocuments([guard1a, guard1b, guard2]);

@@ -3,50 +3,43 @@
 // found in the LICENSE file.
 
 import 'package:cocoon_common/guard_status.dart';
+import 'package:cocoon_common/task_status.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('GuardStatus.calculate', () {
-    test('returns failed if there are failed builds', () {
+    test('returns succeeded if all statuses are success', () {
       expect(
-        GuardStatus.calculate(
-          failedBuilds: 1,
-          remainingBuilds: 0,
-          totalBuilds: 10,
-        ),
-        GuardStatus.failed,
-      );
-    });
-
-    test('returns succeeded if no failures and no remaining builds', () {
-      expect(
-        GuardStatus.calculate(
-          failedBuilds: 0,
-          remainingBuilds: 0,
-          totalBuilds: 10,
-        ),
+        GuardStatus.calculate([
+          TaskStatus.succeeded,
+          TaskStatus.skipped,
+          TaskStatus.neutral,
+        ]),
         GuardStatus.succeeded,
       );
     });
 
-    test('returns waitingForBackfill if all builds are remaining', () {
+    test('returns failed if at least one status is failure', () {
       expect(
-        GuardStatus.calculate(
-          failedBuilds: 0,
-          remainingBuilds: 10,
-          totalBuilds: 10,
-        ),
-        GuardStatus.waitingForBackfill,
+        GuardStatus.calculate([
+          TaskStatus.failed,
+          TaskStatus.inProgress,
+          TaskStatus.succeeded,
+        ]),
+        GuardStatus.failed,
       );
     });
 
-    test('returns inProgress if some builds are done and no failures yet', () {
+    test('returns inProgress otherwise', () {
       expect(
-        GuardStatus.calculate(
-          failedBuilds: 0,
-          remainingBuilds: 5,
-          totalBuilds: 10,
-        ),
+        GuardStatus.calculate([
+          TaskStatus.waitingForBackfill,
+          TaskStatus.succeeded,
+        ]),
+        GuardStatus.inProgress,
+      );
+      expect(
+        GuardStatus.calculate([TaskStatus.waitingForBackfill]),
         GuardStatus.inProgress,
       );
     });

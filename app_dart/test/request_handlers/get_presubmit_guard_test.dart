@@ -78,7 +78,6 @@ void main() {
       headSha: sha,
       stage: CiStage.fusionTests,
       jobs: {'test1': TaskStatus.succeeded},
-      remainingJobs: 0,
     );
 
     final guard2 = generatePresubmitGuard(
@@ -122,8 +121,6 @@ void main() {
       slug: slug,
       headSha: sha,
       jobs: {'test1': TaskStatus.failed},
-      failedJobs: 1,
-      remainingJobs: 0,
     );
 
     firestore.putDocuments([guard]);
@@ -150,7 +147,6 @@ void main() {
         slug: slug,
         headSha: sha,
         jobs: {'test1': TaskStatus.succeeded},
-        remainingJobs: 0,
       );
 
       firestore.putDocuments([guard]);
@@ -168,29 +164,32 @@ void main() {
     },
   );
 
-  test('guardStatus is New if all stages are waiting for backfill', () async {
-    final slug = RepositorySlug('flutter', 'flutter');
-    const sha = 'abc';
+  test(
+    'guardStatus is In Progress if all stages are waiting for backfill',
+    () async {
+      final slug = RepositorySlug('flutter', 'flutter');
+      const sha = 'abc';
 
-    final guard = generatePresubmitGuard(
-      slug: slug,
-      headSha: sha,
-      jobs: {'test1': TaskStatus.waitingForBackfill},
-    );
+      final guard = generatePresubmitGuard(
+        slug: slug,
+        headSha: sha,
+        jobs: {'test1': TaskStatus.waitingForBackfill},
+      );
 
-    firestore.putDocuments([guard]);
+      firestore.putDocuments([guard]);
 
-    tester.request = FakeHttpRequest(
-      queryParametersValue: {
-        GetPresubmitGuard.kOwnerParam: 'flutter',
-        GetPresubmitGuard.kRepoParam: 'flutter',
-        GetPresubmitGuard.kShaParam: sha,
-      },
-    );
+      tester.request = FakeHttpRequest(
+        queryParametersValue: {
+          GetPresubmitGuard.kOwnerParam: 'flutter',
+          GetPresubmitGuard.kRepoParam: 'flutter',
+          GetPresubmitGuard.kShaParam: sha,
+        },
+      );
 
-    final result = (await getResponse())!;
-    expect(result.guardStatus, GuardStatus.waitingForBackfill);
-  });
+      final result = (await getResponse())!;
+      expect(result.guardStatus, GuardStatus.inProgress);
+    },
+  );
 
   test('is accessible without authentication', () async {
     final slug = RepositorySlug('flutter', 'flutter');
@@ -200,7 +199,6 @@ void main() {
       slug: slug,
       headSha: sha,
       jobs: {'test1': TaskStatus.succeeded},
-      remainingJobs: 0,
     );
 
     firestore.putDocuments([guard]);

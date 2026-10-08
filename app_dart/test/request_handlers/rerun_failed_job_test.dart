@@ -57,7 +57,6 @@ void main() {
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
       jobs: {'Linux A': TaskStatus.failed},
-      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 
@@ -122,7 +121,6 @@ void main() {
       await firestore.getDocument(guard.name!),
     );
     expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
-    expect(updatedGuard.remainingJobs, 1);
   });
 
   test('Re-run successful failed job with default owner/repo', () async {
@@ -130,7 +128,6 @@ void main() {
     final guard = generatePresubmitGuard(
       checkRun: checkRun,
       jobs: {'Linux A': TaskStatus.failed},
-      remainingJobs: 0,
     );
     firestore.putDocument(guard);
 

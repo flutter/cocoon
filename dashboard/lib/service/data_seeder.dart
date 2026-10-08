@@ -612,11 +612,6 @@ class DataSeeder {
     RepositorySlug? slug,
   }) {
     final effectiveSlug = slug ?? RepositorySlug('flutter', 'flutter');
-    final failedJobs = jobs.values.where((status) => status.isFailure).length;
-    final remainingJobs = jobs.values
-        .where((status) => !status.isComplete)
-        .length;
-
     return PresubmitGuard(
       checkRun: generateCheckRun(
         checkRunId,
@@ -629,8 +624,6 @@ class DataSeeder {
       stage: stage,
       creationTime: creationTime,
       author: author,
-      remainingJobs: remainingJobs,
-      failedJobs: failedJobs,
       jobs: jobs,
     );
   }
