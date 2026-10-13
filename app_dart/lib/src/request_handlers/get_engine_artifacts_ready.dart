@@ -78,9 +78,7 @@ final class GetEngineArtifactsReady extends PublicApiRequestHandler {
         null || GuardStatus.succeeded => Response.json(
           _GetEngineArtifactsResponse.complete,
         ),
-        GuardStatus.failed => Response.json(
-          _GetEngineArtifactsResponse.failed,
-        ),
+        GuardStatus.failed => Response.json(_GetEngineArtifactsResponse.failed),
         GuardStatus.inProgress || GuardStatus.waitingForBackfill =>
           Response.json(_GetEngineArtifactsResponse.pending),
       };
