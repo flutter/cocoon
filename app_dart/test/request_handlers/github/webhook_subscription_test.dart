@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/core_extensions.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_common_test/cocoon_common_test.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server/logging.dart';
@@ -102,6 +103,10 @@ void main() {
       // ignore: discarded_futures
       issuesService.addLabelsToIssue(any, any, any),
     ).thenAnswer((_) async => <IssueLabel>[]);
+    when(
+      // ignore: discarded_futures
+      issuesService.removeLabelForIssue(any, any, any),
+    ).thenAnswer((_) async => true);
     when(
       // ignore: discarded_futures
       issuesService.createComment(any, any, any),
@@ -718,6 +723,12 @@ void main() {
       await tester.post(webhook);
 
       verify(
+        issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+          kMissingTestsLabel,
+        ]),
+      ).called(1);
+
+      verify(
         issuesService.createComment(
           Config.flutterSlug,
           issueNumber,
@@ -727,7 +738,6 @@ void main() {
     });
 
     test('Fusion labels engine PRs, comment if no tests', () async {
-      // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -751,6 +761,12 @@ void main() {
       );
 
       await tester.post(webhook);
+
+      verify(
+        issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+          kMissingTestsLabel,
+        ]),
+      ).called(1);
 
       verify(
         issuesService.createComment(
@@ -787,6 +803,12 @@ void main() {
       await tester.post(webhook);
 
       verify(
+        issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+          kMissingTestsLabel,
+        ]),
+      ).called(1);
+
+      verify(
         issuesService.createComment(
           Config.flutterSlug,
           issueNumber,
@@ -796,7 +818,6 @@ void main() {
     });
 
     test('Fusion labels engine PRs, no comment for tests', () async {
-      // Note: engine doesn't add any labels, so we're only looking for comments
       const issueNumber = 123;
 
       tester.message = generateGithubWebhookMessage(
@@ -821,6 +842,10 @@ void main() {
       );
 
       await tester.post(webhook);
+
+      verifyNever(
+        issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, any),
+      );
 
       verifyNever(
         issuesService.createComment(
@@ -2317,6 +2342,12 @@ void foo() {
       await tester.post(webhook);
 
       verify(
+        issuesService.addLabelsToIssue(Config.packagesSlug, issueNumber, [
+          kMissingTestsLabel,
+        ]),
+      ).called(1);
+
+      verify(
         issuesService.createComment(
           Config.packagesSlug,
           issueNumber,
@@ -2519,7 +2550,7 @@ void foo() {
     );
 
     test(
-      'Does not comment about needing tests on draft pull requests.',
+      'Labels draft pull requests with missing-tests but does not comment.',
       () async {
         const issueNumber = 123;
 
@@ -2539,6 +2570,12 @@ void foo() {
 
         await tester.post(webhook);
 
+        verify(
+          issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+            kMissingTestsLabel,
+          ]),
+        ).called(1);
+
         verifyNever(
           issuesService.createComment(
             Config.flutterSlug,
@@ -2555,6 +2592,7 @@ void foo() {
       tester.message = generateGithubWebhookMessage(
         action: 'opened',
         number: issueNumber,
+        additionalLabels: [kMissingTestsLabel],
       );
 
       when(
@@ -2587,6 +2625,259 @@ void foo() {
         ),
       );
     });
+
+    test(
+      'Synchronize adds missing-tests label and comments when push has no tests',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'synchronize',
+          number: issueNumber,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'packages/flutter/blah.dart',
+          ),
+        );
+
+        when(
+          issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+            kMissingTestsLabel,
+          ]),
+        ).called(1);
+
+        verify(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'Synchronize removes missing-tests label when tests are added',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'synchronize',
+          number: issueNumber,
+          additionalLabels: [kMissingTestsLabel],
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()..filename = 'packages/flutter/blah.dart',
+            PullRequestFile()..filename = 'packages/flutter/blah_test.dart',
+          ]),
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          issuesService.removeLabelForIssue(
+            Config.flutterSlug,
+            issueNumber,
+            kMissingTestsLabel,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'Synchronize removes missing-tests label when untested code is removed',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'synchronize',
+          number: issueNumber,
+          additionalLabels: [kMissingTestsLabel],
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'packages/flutter/blah.md',
+          ),
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          issuesService.removeLabelForIssue(
+            Config.flutterSlug,
+            issueNumber,
+            kMissingTestsLabel,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'Ready for review comments on PR when missing-tests label is already present',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'ready_for_review',
+          number: issueNumber,
+          additionalLabels: [kMissingTestsLabel],
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.value(
+            PullRequestFile()..filename = 'packages/flutter/blah.dart',
+          ),
+        );
+
+        when(
+          issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
+
+        await tester.post(webhook);
+
+        verifyNever(
+          issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+            kMissingTestsLabel,
+          ]),
+        );
+
+        verify(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'Requires tests when a code change is followed by a comment-only change',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+        );
+
+        const commentPatch = '''
+@@ -128,7 +128,7 @@
+
+ /// Insert interesting comment here.
+ ///
+-/// More details here, but some of them are wrong.
++/// These are the right details!
+ void foo() {
+   int bar = 0;
+   String baz = '';
+''';
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()..filename = 'packages/flutter/blah.dart',
+            PullRequestFile()
+              ..filename = 'packages/flutter/comment_only.dart'
+              ..additionsCount = 1
+              ..deletionsCount = 1
+              ..changesCount = 2
+              ..patch = commentPatch,
+          ]),
+        );
+
+        when(
+          issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+            kMissingTestsLabel,
+          ]),
+        ).called(1);
+
+        verify(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'Does not mark missing-tests when engine code has engine tests and framework has only exempt files',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()..filename = 'engine/src/flutter/fml/blah.cc',
+            PullRequestFile()
+              ..filename = 'engine/src/flutter/fml/blah_unittests.cc',
+            PullRequestFile()..filename = 'packages/flutter/README.md',
+          ]),
+        );
+
+        await tester.post(webhook);
+
+        verifyNever(
+          issuesService.addLabelsToIssue(Config.flutterSlug, issueNumber, [
+            kMissingTestsLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      },
+    );
 
     test('Skips labeling or commenting on autorolls', () async {
       const issueNumber = 123;

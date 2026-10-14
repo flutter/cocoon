@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
@@ -10,7 +11,6 @@ import 'package:cocoon_service/src/request_handlers/push_build_status_to_github.
 import 'package:cocoon_service/src/request_handling/response.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
-import 'package:cocoon_service/src/service/config.dart' show Config;
 import 'package:github/github.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
@@ -201,7 +201,7 @@ void main() {
     final pr = generatePullRequest(
       id: 1,
       headSha: 'sha1',
-      labels: [IssueLabel(name: Config.kEmergencyLabel)],
+      labels: [IssueLabel(name: kEmergencyLabel)],
     );
     when(
       pullRequestsService.list(any, base: anyNamed('base')),

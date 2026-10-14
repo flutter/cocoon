@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart' as github;
 
@@ -57,8 +58,8 @@ class PullRequestValidationService extends ValidationService {
   bool shouldProcess(github.PullRequest pullRequest) {
     final labelNames = pullRequest.labelNames;
     final containsLabelsNeedingValidation =
-        labelNames.contains(Config.kAutosubmitLabel) ||
-        labelNames.contains(Config.kEmergencyLabel);
+        labelNames.contains(kAutosubmitLabel) ||
+        labelNames.contains(kEmergencyLabel);
     return pullRequest.state == 'open' && containsLabelsNeedingValidation;
   }
 
@@ -139,7 +140,7 @@ class _PullRequestValidationProcessor {
 
   Future<void> process() async {
     final hasAutosubmitLabel = pullRequest.labelNames.contains(
-      Config.kAutosubmitLabel,
+      kAutosubmitLabel,
     );
 
     if (hasAutosubmitLabel) {
@@ -151,7 +152,7 @@ class _PullRequestValidationProcessor {
   }
 
   Future<void> _processAutosubmit() async {
-    logInfo('processing "${Config.kAutosubmitLabel}" label');
+    logInfo('processing "$kAutosubmitLabel" label');
     final repositoryConfiguration = await config.getRepositoryConfiguration(
       slug,
     );
@@ -211,7 +212,7 @@ class _PullRequestValidationProcessor {
     if (!processed.result) {
       final message =
           'auto label is removed for ${slug.fullName}/$prNumber, ${processed.message}.';
-      await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
+      await githubService.removeLabel(slug, prNumber, kAutosubmitLabel);
       await githubService.createComment(slug, prNumber, message);
       logInfo(message);
     } else {
@@ -231,8 +232,8 @@ class _PullRequestValidationProcessor {
 
   Future<void> _removeAutosubmitLabel(String reason) async {
     final message =
-        '${Config.kAutosubmitLabel} label was removed for ${slug.fullName}/$prNumber, because $reason';
-    await githubService.removeLabel(slug, prNumber, Config.kAutosubmitLabel);
+        '$kAutosubmitLabel label was removed for ${slug.fullName}/$prNumber, because $reason';
+    await githubService.removeLabel(slug, prNumber, kAutosubmitLabel);
     await githubService.createComment(slug, prNumber, message);
     logInfo(message);
   }

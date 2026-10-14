@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:cocoon_common/cocoon_common.dart';
+import 'package:cocoon_common/labels.dart';
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:googleapis/firestore/v1.dart';
@@ -88,8 +89,7 @@ final class PushBuildStatusToGithub extends ApiRequestHandler {
       // Look at the labels on the PR to figure out if we need to turn a failing status into a neutral one.
       // This will have the side effect of flipping a neutral to (success|failure) if the emergency label is removed.
       final hasEmergencyLabel =
-          pr.labels?.any((label) => label.name == Config.kEmergencyLabel) ??
-          false;
+          pr.labels?.any((label) => label.name == kEmergencyLabel) ?? false;
       final status =
           (realStatus != GithubBuildStatus.statusSuccess && hasEmergencyLabel)
           ? GithubBuildStatus.statusNeutral
