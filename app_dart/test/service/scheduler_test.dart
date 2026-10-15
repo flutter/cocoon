@@ -1337,8 +1337,6 @@ targets:
           creationTime: 1000,
           author: 'dash',
           jobs: {'Linux A': TaskStatus.failed},
-          failedJobs: 1,
-          remainingJobs: 0,
         );
 
         final check = PresubmitJob(
@@ -1445,7 +1443,6 @@ targets:
 
         final updatedGuardDoc = await firestore.getDocument(guard.name!);
         final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
-        expect(updatedGuard.failedJobs, 0);
         expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
       });
 
@@ -1470,8 +1467,6 @@ targets:
           stage: CiStage.fusionEngineBuild,
           creationTime: 1000,
           author: 'dash',
-          failedJobs: 0,
-          remainingJobs: 0,
         );
 
         final fusionGuard = PresubmitGuard(
@@ -1483,8 +1478,6 @@ targets:
           creationTime: 2000,
           author: 'dash',
           jobs: {'Linux A': TaskStatus.failed},
-          failedJobs: 1,
-          remainingJobs: 0,
         );
 
         final check = PresubmitJob(
@@ -1592,7 +1585,6 @@ targets:
 
         final updatedGuardDoc = await firestore.getDocument(fusionGuard.name!);
         final updatedGuard = PresubmitGuard.fromDocument(updatedGuardDoc);
-        expect(updatedGuard.failedJobs, 0);
         expect(updatedGuard.jobs['Linux A'], TaskStatus.waitingForBackfill);
       });
 
@@ -4118,8 +4110,6 @@ targets:
             author: pullRequest.user!.login!,
             creationTime: DateTime.now().millisecondsSinceEpoch,
             jobs: {'Linux engine_build': TaskStatus.waitingForBackfill},
-            remainingJobs: 1,
-            failedJobs: 0,
           ),
         );
 
@@ -4174,7 +4164,6 @@ targets:
             .map(PresubmitGuard.fromDocument)
             .firstWhere((g) => g.stage == CiStage.fusionEngineBuild);
         expect(guard.jobs['Linux engine_build'], TaskStatus.succeeded);
-        expect(guard.remainingJobs, 0);
       });
 
       test(
@@ -4312,8 +4301,6 @@ targets:
               author: pullRequest.user!.login!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
               jobs: {'Linux test': TaskStatus.waitingForBackfill},
-              remainingJobs: 1,
-              failedJobs: 0,
             ),
           );
 
@@ -4523,8 +4510,6 @@ targets:
               author: pullRequest.user!.login!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
               jobs: {'Linux test': TaskStatus.waitingForBackfill},
-              remainingJobs: 1,
-              failedJobs: 0,
             ),
           );
 
@@ -4580,7 +4565,7 @@ targets:
 
           final guards = await firestore.query(PresubmitGuard.collectionId, {});
           final guard = PresubmitGuard.fromDocument(guards.single);
-          expect(guard.remainingJobs, 0);
+          expect(guard.jobs['Linux test'], TaskStatus.succeeded);
         },
       );
 
@@ -4648,8 +4633,6 @@ targets:
                 'Linux test': TaskStatus.waitingForBackfill,
                 'Mac test': TaskStatus.waitingForBackfill,
               },
-              remainingJobs: 2,
-              failedJobs: 0,
             ),
           );
 
@@ -4851,8 +4834,6 @@ targets:
               author: pullRequest.user!.login!,
               creationTime: DateTime.now().millisecondsSinceEpoch,
               jobs: {'Linux test': TaskStatus.waitingForBackfill},
-              remainingJobs: 1,
-              failedJobs: 0,
             ),
           );
 

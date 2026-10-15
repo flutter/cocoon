@@ -54,8 +54,6 @@ final class UnifiedCheckRun {
         stage: stage,
         creationTime: creationTime,
         author: pullRequest.user!.login!,
-        remainingJobs: tasks.length,
-        failedJobs: 0,
         jobs: {for (final task in tasks) task: TaskStatus.waitingForBackfill},
       );
       final jobs = [
@@ -126,8 +124,6 @@ final class UnifiedCheckRun {
     final creationTime = utcNow().millisecondsSinceEpoch;
     final failedJobNames = latestGuard.failedJobNames;
     if (failedJobNames.isNotEmpty) {
-      latestGuard.failedJobs = 0;
-      latestGuard.remainingJobs = failedJobNames.length;
       final jobs = latestGuard.jobs;
       for (final jobName in failedJobNames) {
         jobs[jobName] = TaskStatus.waitingForBackfill;
@@ -205,20 +201,6 @@ final class UnifiedCheckRun {
 
     final creationTime = utcNow().millisecondsSinceEpoch;
     final jobs = guard.jobs;
-    final currentStatus = jobs[jobName]!;
-
-    // If job is failed we increment remain jobs and decrement failed.
-    // If job succeeded re-run is not possible but if some how they manage to
-    // request re-run we have to only increment remaining jobs.
-    // If job is still in progress re-run is not possible but if some how they
-    // manage to request re-run we should not touch any counters.
-    if (currentStatus.isComplete) {
-      guard.remainingJobs += 1;
-      if (currentStatus.isFailure && guard.failedJobs > 0) {
-        guard.failedJobs -= 1;
-      }
-    }
-
     jobs[jobName] = TaskStatus.waitingForBackfill;
     guard.jobs = jobs;
 
@@ -603,18 +585,20 @@ final class UnifiedCheckRun {
       );
       presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
 
+      final jobs = presubmitGuard.jobs;
+
       // Check if the build is present in the guard before trying to load it.
-      if (presubmitGuard.jobs[state.jobName] == null) {
+      if (jobs[state.jobName] == null) {
         log.info(
           '$logCrumb: ${state.jobName} with attemptNumber ${state.attemptNumber} not present for $transaction / ${presubmitGuardDocument.fields}',
         );
         await firestoreService.rollback(transaction);
         return PresubmitGuardConclusion(
           result: PresubmitGuardConclusionResult.missing,
-          remaining: presubmitGuard.remainingJobs,
+          remaining: jobs.values.where((s) => !s.isComplete).length,
           dashboardChecks: presubmitGuard.checkRunJson,
           mergeQueueGuard: presubmitGuard.checkRunGuardJson,
-          failed: presubmitGuard.failedJobs,
+          failed: jobs.values.where((s) => s.isFailure).length,
           summary:
               'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
@@ -633,9 +617,6 @@ final class UnifiedCheckRun {
       );
       presubmitJob = PresubmitJob.fromDocument(presubmitJobDocument);
 
-      remaining = presubmitGuard.remainingJobs;
-      failed = presubmitGuard.failedJobs;
-      final jobs = presubmitGuard.jobs;
       var status = jobs[state.jobName]!;
 
       // If job is waiting for backfill, that means its initiated by github
@@ -657,51 +638,20 @@ final class UnifiedCheckRun {
         }
         valid = true;
       } else {
-        // If job already compleated remaining and failed should not updated.
         if (!status.isComplete) {
-          // "remaining" should go down if job is succeeded or failed.
-          // "failed_count" can go up or down depending on:
-          //   attemptNumber > 1 && jobSuccessed: down (-1)
-          //   attemptNumber = 1 && jobFailed: up (+1)
-          // So if the test existed and either remaining or failed_count is changed;
-          // the response is valid.
-          if (state.status.isComplete) {
-            // If remaining is 0 we should not decrement it and we should log
-            // this fact.
-            if (remaining > 0) {
-              remaining -= 1;
-            } else {
-              log.error(
-                '$logCrumb: field "${PresubmitGuard.fieldRemainingJobs}" is already zero for $transaction / ${presubmitGuardDocument.fields}',
-              );
-            }
-            valid = true;
-          }
-
-          if (state.status.isFailure) {
-            log.info('$logCrumb: test failed');
-            failed += 1;
-            valid = true;
-          }
-          status = state.status;
-          // All checks pass. "valid" is only set to true if there was a change in either the remaining or failed count.
-          log.info(
-            '$logCrumb: setting remaining to $remaining, failed to $failed',
-          );
-          presubmitGuard.remainingJobs = remaining;
-          presubmitGuard.failedJobs = failed;
           presubmitJob.endTime = state.endTime!;
           presubmitJob.summary = state.summary;
           presubmitJob.buildNumber = state.buildNumber;
           presubmitJob.buildId = state.buildId;
-        } else {
-          status = state.status;
-          valid = true;
         }
+        status = state.status;
+        valid = true;
       }
       jobs[state.jobName] = status;
       presubmitGuard.jobs = jobs;
       presubmitJob.status = status;
+      remaining = jobs.values.where((s) => !s.isComplete).length;
+      failed = jobs.values.where((s) => s.isFailure).length;
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.

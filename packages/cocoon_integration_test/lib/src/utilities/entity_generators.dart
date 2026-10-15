@@ -320,8 +320,6 @@ PresubmitGuard generatePresubmitGuard({
   String headSha = 'abc',
   int creationTime = 1,
   String author = 'dash',
-  int remainingJobs = -1,
-  int failedJobs = 0,
   Map<String, TaskStatus>? jobs,
 }) {
   return PresubmitGuard(
@@ -333,8 +331,6 @@ PresubmitGuard generatePresubmitGuard({
     headSha: headSha,
     creationTime: creationTime,
     author: author,
-    remainingJobs: remainingJobs >= 0 ? remainingJobs : (jobs?.length ?? 0),
-    failedJobs: failedJobs,
     jobs: jobs,
   );
 }
