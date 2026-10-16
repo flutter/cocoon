@@ -115,6 +115,89 @@ void main() {
       expect(await cache.get(testSubcacheName, testKey), val1);
     });
 
+    group('set operations', () {
+      test('getSet returns empty set when key does not exist', () async {
+        final result = await cache.getSet(testSubcacheName, 'non_existent_key');
+        expect(result, isEmpty);
+      });
+
+      test(
+        'updateSet creates set if not exists and adds to existing',
+        () async {
+          await cache.updateSet(testSubcacheName, 'setKey', {'val1', 'val2'});
+          var set = await cache.getSet(testSubcacheName, 'setKey');
+          expect(set, containsAll(['val1', 'val2']));
+
+          await cache.updateSet(testSubcacheName, 'setKey', {'val3'});
+          set = await cache.getSet(testSubcacheName, 'setKey');
+          expect(set, containsAll(['val1', 'val2', 'val3']));
+        },
+      );
+
+      test('addToSetIfExists adds values only if set exists', () async {
+        final resMissing = await cache.addToSetIfExists(
+          testSubcacheName,
+          'missingSetKey',
+          {'val1', 'val2'},
+        );
+        expect(resMissing, isFalse);
+        expect(await cache.getSet(testSubcacheName, 'missingSetKey'), isEmpty);
+
+        await cache.updateSet(testSubcacheName, 'existingSetKey', {'val1'});
+        final resExisting = await cache.addToSetIfExists(
+          testSubcacheName,
+          'existingSetKey',
+          {'val2', 'val3'},
+        );
+        expect(resExisting, isTrue);
+        expect(
+          await cache.getSet(testSubcacheName, 'existingSetKey'),
+          containsAll(['val1', 'val2', 'val3']),
+        );
+      });
+    });
+
+    group('insertVersioned', () {
+      test('inserts entries and enforces revision ordering', () async {
+        final val1 = Uint8List.fromList('payload_v1'.codeUnits);
+        final val2 = Uint8List.fromList('payload_v2'.codeUnits);
+        final valStale = Uint8List.fromList('payload_stale'.codeUnits);
+
+        // Initial insert at revision 2
+        await cache.insertVersioned(testSubcacheName, [
+          VersionedCacheEntry(
+            key: 'doc1',
+            value: val1,
+            revisionId: 2,
+            ttl: const Duration(minutes: 5),
+          ),
+        ]);
+        expect(await cache.get(testSubcacheName, 'doc1'), val1);
+
+        // Stale insert at revision 1 (or 2) should NOT overwrite
+        await cache.insertVersioned(testSubcacheName, [
+          VersionedCacheEntry(
+            key: 'doc1',
+            value: valStale,
+            revisionId: 1,
+            ttl: const Duration(minutes: 5),
+          ),
+        ]);
+        expect(await cache.get(testSubcacheName, 'doc1'), val1);
+
+        // Newer insert at revision 3 SHOULD overwrite
+        await cache.insertVersioned(testSubcacheName, [
+          VersionedCacheEntry(
+            key: 'doc1',
+            value: val2,
+            revisionId: 3,
+            ttl: const Duration(minutes: 5),
+          ),
+        ]);
+        expect(await cache.get(testSubcacheName, 'doc1'), val2);
+      });
+    });
+
     group('tryLock distributed lock', () {
       test('successfully acquires lock and executes block', () async {
         var executed = false;

@@ -43,7 +43,6 @@ Future<void> main() async {
     }
 
     final cache = CacheService.redis();
-    final firestore = await FirestoreService.from(const GoogleAuthProvider());
     final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
 
     // Start with a fresh copy of the DynamicConfig. If this throws, the server
@@ -62,6 +61,12 @@ Future<void> main() async {
     // Start updating the config to loop forever. If this fails, it will log
     // every ~1 minute.
     configUpdater.startUpdateLoop(config);
+
+    final firestore = await FirestoreService.from(
+      const GoogleAuthProvider(),
+      cache: cache,
+      config: config,
+    );
 
     final geminiKey = await config.geminiLogAnalyzerKey;
     final ai = Genkit(plugins: [googleAI(apiKey: geminiKey)]);
