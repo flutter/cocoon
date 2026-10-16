@@ -36,7 +36,10 @@ Usage: cocoon [--use-production-service | --no-use-production-service]
 }
 
 void main([List<String> args = const <String>[]]) async {
-  var useProductionService = kReleaseMode;
+  var useProductionService = const bool.fromEnvironment(
+    'USE_PRODUCTION_SERVICE',
+    defaultValue: kReleaseMode,
+  );
   if (args.contains('--help')) {
     usage();
     if (!kIsWeb) {

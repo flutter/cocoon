@@ -79,7 +79,10 @@ void main() {
     await tester.pump();
 
     final commitCount = tester.elementList(find.byType(CommitBox)).length;
-    expect(commitCount, 16); // based on screen size this is how many show up
+    expect(
+      commitCount,
+      23,
+    ); // based on screen size + cacheExtent this is how many show up
 
     final xPosition = tester.getTopLeft(find.byType(CommitBox).first).dx;
 
@@ -146,7 +149,10 @@ void main() {
     await tester.pump();
 
     final commitCount = tester.elementList(find.byType(CommitBox)).length;
-    expect(commitCount, 16); // based on screen size this is how many show up
+    expect(
+      commitCount,
+      23,
+    ); // based on screen size + cacheExtent this is how many show up
 
     final xPosition = tester.getTopLeft(find.byType(CommitBox).first).dx;
 
@@ -236,7 +242,10 @@ void main() {
     await tester.pump();
 
     final commitCount = tester.elementList(find.byType(CommitBox)).length;
-    expect(commitCount, 16); // based on screen size this is how many show up
+    expect(
+      commitCount,
+      23,
+    ); // based on screen size + cacheExtent this is how many show up
 
     final xPosition = tester.getTopLeft(find.byType(CommitBox).first).dx;
 
@@ -336,7 +345,7 @@ void main() {
     await testGrid(
       tester,
       TaskGridFilter()..authorFilter = RegExp('yegor'),
-      4,
+      5,
       101,
     );
     await testGrid(
@@ -349,7 +358,7 @@ void main() {
       tester,
       TaskGridFilter()
         ..hashFilter = RegExp('fb75b2b671c7702b549a80a420144097f4fab5a9'),
-      2, // codefu: these are magic numbers and this test is bad.
+      3, // codefu: these are magic numbers and this test is bad.
       101,
     );
   });

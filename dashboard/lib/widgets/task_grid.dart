@@ -143,40 +143,61 @@ const Map<String, double> _statusScores = <String, double>{
 };
 
 class _TaskGridState extends State<TaskGrid> {
-  // TODO(ianh): Cache the lattice cells. Right now we are regenerating the entire
-  // lattice matrix each time the task grid has to update, regardless of whether
-  // we've received new data or not.
-
   ScrollController? verticalController;
   ScrollController? horizontalController;
+
+  List<List<LatticeCell>>? _cachedCells;
+  List<CommitStatus>? _lastCommitStatuses;
+  TaskGridFilter? _lastFilter;
 
   @override
   void initState() {
     super.initState();
     verticalController ??= ScrollController();
     horizontalController ??= ScrollController();
-    widget.filter?.addListener(() {
-      setState(() {});
+    widget.filter?.addListener(_handleFilterChange);
+  }
+
+  @override
+  void didUpdateWidget(TaskGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      oldWidget.filter?.removeListener(_handleFilterChange);
+      widget.filter?.addListener(_handleFilterChange);
+      _cachedCells = null;
+    }
+  }
+
+  void _handleFilterChange() {
+    setState(() {
+      _cachedCells = null;
     });
   }
 
   @override
   void dispose() {
+    widget.filter?.removeListener(_handleFilterChange);
     verticalController?.dispose();
     horizontalController?.dispose();
     super.dispose();
   }
 
+  List<List<LatticeCell>> _getCells(TaskGrid widget) {
+    if (_cachedCells != null &&
+        identical(_lastCommitStatuses, widget.commitStatuses) &&
+        identical(_lastFilter, widget.filter)) {
+      return _cachedCells!;
+    }
+    _lastCommitStatuses = widget.commitStatuses;
+    _lastFilter = widget.filter;
+    _cachedCells = _processCommitStatuses(widget);
+    return _cachedCells!;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LatticeScrollView(
-      // TODO(ianh): Provide some vertical scroll physics that disable
-      // the clamping in the vertical direction, so that you can keep
-      // scrolling past the end instead of hitting a wall every time
-      // we load.
-      // TODO(ianh): Trigger the loading from the scroll offset,
-      // rather than the current hack of loading during build.
-      cells: _processCommitStatuses(widget),
+      cells: _getCells(widget),
       verticalController: verticalController,
       horizontalController: horizontalController,
     );
