@@ -763,6 +763,9 @@ class PullRequestManager {
       if (_fileContainsAddedCode(file) &&
           !_isTestExempt(filename) &&
           !filename.contains('.ci/') &&
+          // Pending changelog entries for batch release packages. These take
+          // the place of CHANGELOG.md updates, which are already exempt.
+          !filename.contains('/pending_changelogs/') &&
           // Custom package-specific test runners. These do not count as tests
           // for the purposes of testing a change that otherwise needs tests,
           // but since they are the driver for tests they don't need test
