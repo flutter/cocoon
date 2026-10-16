@@ -51,7 +51,7 @@ echo "############################"
 cd $DIR/../cleanup/extracted_ruby/$RUBYDIR
 if [[ "$OS" == "darwin" ]]; then
   OPTS=""
-  OPTS+="$(brew --prefix openssl)"
+  OPTS+="$(brew --prefix openssl@3)"
   OPTS+=":$(brew --prefix readline)"
   OPTS+=":$(brew --prefix libyaml)"
   OPTS+=":$(brew --prefix gdbm)"
@@ -71,7 +71,7 @@ find $(brew --prefix gdbm)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bi
 find $(brew --prefix libffi)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 find $(brew --prefix libyaml)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 find $(brew --prefix openldap)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
-find $(brew --prefix openssl)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
+find $(brew --prefix openssl@3)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 find $(brew --prefix readline)/lib/ -name '*.dylib' -exec cp {} -f "$DIR/../build/bin/darwin_ruby/dylibs/" \;
 
 # Setting up reference directories.
@@ -239,12 +239,17 @@ codesign --force -s - $DIR/../build/bin/darwin_ruby/bin/ruby
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 # Install bundler
 $DIR/../build/bin/gem cleanup bundler
-$DIR/../build/bin/gem install -f bundler
+$DIR/../build/bin/gem install -f bundler -v '~> 2.5.0' # bundler >= 2.7 requires Ruby >= 3.2.
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 
 # Install cococoapods
+$DIR/../build/bin/gem install concurrent-ruby -v 1.3.4 # 1.3.5+ dropped the implicit require "logger" that activesupport 7.0 relies on.
 $DIR/../build/bin/gem install activesupport -v 7.0.8 # Pin this dep version.
 $DIR/../build/bin/gem install cocoapods -v $COCOAPODS_VERSION
+# RubyGems 3.3 (bundled with Ruby 3.1) still upgrades already-satisfied dependencies to the newest
+# release, so activesupport/cocoapods pull in a second, newer concurrent-ruby that would be the one
+# activated at runtime. Remove anything other than the pinned 1.3.4 (no-op if nothing else is installed).
+$DIR/../build/bin/gem uninstall concurrent-ruby -a -x -I -v '> 1.3.4'
 remove_dylib_signatures "$DIR/../build/bin/darwin_ruby/dylibs"
 
 # Cleanup temp folder.
