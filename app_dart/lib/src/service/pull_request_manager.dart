@@ -621,10 +621,10 @@ class PullRequestManager {
     return filename.endsWith('_test.dart') ||
         filename.endsWith('.expect') ||
         filename.contains('test_fixes') ||
-        // Include updates to test utilities or test data
-        filename.contains('packages/flutter_tools/test/') ||
-        // Kotlin source tests, used in the Flutter Gradle Plugin.
-        filename.startsWith('packages/flutter_tools/gradle/src/test/') ||
+        // Include updates to test utilities, test data, conditionally imported
+        // test libraries (e.g. `_foo_test_web.dart`), and Kotlin source tests
+        // used in the Flutter Gradle Plugin (`packages/flutter_tools/gradle/src/test/`).
+        _isInTestDirectory(filename) ||
         filename.startsWith('dev/bots/analyze.dart') ||
         filename.startsWith('dev/bots/test.dart') ||
         filename.startsWith('dev/devicelab/bin/tasks') ||
@@ -632,6 +632,11 @@ class PullRequestManager {
         filename.startsWith('dev/benchmarks') ||
         objectiveCTestRegex.hasMatch(filename);
   }
+
+  /// Returns true if [filename] is inside a `test/` directory, the canonical
+  /// location for tests in a Dart package (e.g. `packages/flutter/test/`).
+  bool _isInTestDirectory(String filename) =>
+      filename.startsWith('test/') || filename.contains('/test/');
 
   /// Returns true if changes to [filename] are exempt from the testing
   /// requirement, across repositories.
@@ -774,6 +779,9 @@ class PullRequestManager {
       // See https://github.com/flutter/flutter/blob/master/docs/ecosystem/testing/Plugin-Tests.md for discussion
       // of various plugin test types and locations.
       if (filename.endsWith('_test.dart') ||
+          // Test utilities, test data, and conditionally imported test
+          // libraries in a package's `test/` directory.
+          _isInTestDirectory(filename) ||
           // Native iOS/macOS tests.
           filename.contains('RunnerTests/') ||
           filename.contains('RunnerUITests/') ||

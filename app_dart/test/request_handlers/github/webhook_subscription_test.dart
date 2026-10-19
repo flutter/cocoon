@@ -1705,6 +1705,84 @@ void foo() {
     );
 
     test(
+      'Framework labels PRs, no comment if tests (file in test/ directory without _test.dart suffix)',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()
+              ..additionsCount = 10
+              ..changesCount = 10
+              ..filename = 'packages/flutter/lib/src/painting/foo_web.dart',
+            PullRequestFile()
+              ..additionsCount = 10
+              ..changesCount = 10
+              ..filename = 'packages/flutter/test/painting/_foo_test_web.dart',
+          ]),
+        );
+
+        await tester.post(webhook);
+
+        verifyNever(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      },
+    );
+
+    test(
+      'Framework labels PRs, comment if no tests (flutter_test/lib is not a test/ directory)',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.value(
+            PullRequestFile()
+              ..additionsCount = 10
+              ..changesCount = 10
+              ..filename = 'packages/flutter_test/lib/src/foo.dart',
+          ),
+        );
+
+        when(
+          issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<IssueComment>.value(
+            IssueComment()..body = 'some other comment',
+          ),
+        );
+
+        await tester.post(webhook);
+
+        verify(
+          issuesService.createComment(
+            Config.flutterSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
       'Framework labels PRs, apply label but no comment when rolling engine version',
       () async {
         const issueNumber = 123;
@@ -2429,6 +2507,38 @@ void foo() {
         ),
       );
     });
+
+    test(
+      'Packages does not comment if file in test/ directory without _test.dart suffix',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+          slug: Config.packagesSlug,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.packagesSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()..filename = 'packages/foo/lib/foo.dart',
+            PullRequestFile()..filename = 'packages/foo/test/test_utils.dart',
+          ]),
+        );
+
+        await tester.post(webhook);
+
+        verifyNever(
+          issuesService.createComment(
+            Config.packagesSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      },
+    );
 
     test('Packages does not comment for custom test driver', () async {
       const issueNumber = 123;
