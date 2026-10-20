@@ -1308,14 +1308,16 @@ defined in:
         // based on if the resetFailedCheckRun flag is enabled.
         if (check.author != null &&
             _config.flags.isResetFailedCheckRunEnabledForUser(check.author!)) {
-          await _requireActionForPresubmit(
-            slug: check.slug,
-            checkSuiteId: guard.checkSuiteId!,
-            headSha: check.sha,
-            summary: summary,
-            details: details,
-            detailsUrl: detailsUrl,
-          );
+          if (stagingConclusion.failedCountChanged) {
+            await _requireActionForPresubmit(
+              slug: check.slug,
+              checkSuiteId: guard.checkSuiteId!,
+              headSha: check.sha,
+              summary: summary,
+              details: details,
+              detailsUrl: detailsUrl,
+            );
+          }
         } else {
           await _requireActionForDashboardChecks(
             slug: check.slug,
