@@ -240,7 +240,27 @@ void main() {
         expect(result.result, PresubmitGuardConclusionResult.ok);
         expect(result.remaining, 1);
         expect(result.failed, 1);
+        expect(result.failedCountChanged, isTrue);
         expect(result.failedJobNames, ['linux']);
+
+        // Subsequent non-failing update does not change failed count.
+        final result2 = await UnifiedCheckRun.markConclusion(
+          firestoreService: firestoreService,
+          guardId: guardId,
+          state: const PresubmitJobState(
+            jobName: 'mac',
+            status: TaskStatus.succeeded,
+            attemptNumber: 1,
+            startTime: 2000,
+            endTime: 3000,
+          ),
+        );
+
+        expect(result2.result, PresubmitGuardConclusionResult.ok);
+        expect(result2.remaining, 0);
+        expect(result2.failed, 1);
+        expect(result2.failedCountChanged, isFalse);
+        expect(result2.failedJobNames, ['linux']);
       });
 
       test('handles missing check gracefully', () async {
