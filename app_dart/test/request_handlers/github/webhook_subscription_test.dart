@@ -2459,6 +2459,45 @@ void foo() {
       );
     });
 
+    test(
+      'Packages does not comment or label for pending changelog entries',
+      () async {
+        const issueNumber = 123;
+
+        tester.message = generateGithubWebhookMessage(
+          action: 'opened',
+          number: issueNumber,
+          slug: Config.packagesSlug,
+        );
+
+        when(
+          pullRequestsService.listFiles(Config.packagesSlug, issueNumber),
+        ).thenAnswer(
+          (_) => Stream<PullRequestFile>.fromIterable(<PullRequestFile>[
+            PullRequestFile()..filename = 'packages/foo/README.md',
+            PullRequestFile()
+              ..filename = 'packages/foo/pending_changelogs/fix_readme.yaml',
+          ]),
+        );
+
+        await tester.post(webhook);
+
+        verifyNever(
+          issuesService.addLabelsToIssue(Config.packagesSlug, issueNumber, [
+            kMissingTestsLabel,
+          ]),
+        );
+
+        verifyNever(
+          issuesService.createComment(
+            Config.packagesSlug,
+            issueNumber,
+            argThat(contains(config.missingTestsPullRequestMessageValue)),
+          ),
+        );
+      },
+    );
+
     test('Schedule tasks when pull request is closed and merged', () async {
       const issueNumber = 123;
 
