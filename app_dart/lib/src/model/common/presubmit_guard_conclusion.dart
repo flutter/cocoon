@@ -43,6 +43,7 @@ class PresubmitGuardConclusion {
   final String? dashboardChecks;
   final String? mergeQueueGuard;
   final int failed;
+  final bool failedCountChanged;
   final List<String> failedJobNames;
   final String summary;
   final String details;
@@ -53,6 +54,7 @@ class PresubmitGuardConclusion {
     this.dashboardChecks,
     required this.mergeQueueGuard,
     required this.failed,
+    this.failedCountChanged = false,
     this.failedJobNames = const [],
     required this.summary,
     required this.details,
@@ -75,6 +77,7 @@ class PresubmitGuardConclusion {
           other.dashboardChecks == dashboardChecks &&
           other.mergeQueueGuard == mergeQueueGuard &&
           other.failed == failed &&
+          other.failedCountChanged == failedCountChanged &&
           const ListEquality<String>().equals(
             other.failedJobNames,
             failedJobNames,
@@ -89,6 +92,7 @@ class PresubmitGuardConclusion {
     dashboardChecks,
     mergeQueueGuard,
     failed,
+    failedCountChanged,
     Object.hashAll(failedJobNames),
     summary,
     details,
@@ -96,5 +100,5 @@ class PresubmitGuardConclusion {
 
   @override
   String toString() =>
-      'BuildConclusion("$result", "$remaining", "$failed", "$failedJobNames", "$summary", "$details", "$dashboardChecks", "$mergeQueueGuard")';
+      'BuildConclusion("$result", "$remaining", "$failed", "$failedCountChanged", "$failedJobNames", "$summary", "$details", "$dashboardChecks", "$mergeQueueGuard")';
 }

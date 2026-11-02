@@ -566,6 +566,7 @@ final class UnifiedCheckRun {
 
     var remaining = -1;
     var failed = -1;
+    var failedCountChanged = false;
     var valid = false;
 
     late final PresubmitGuard presubmitGuard;
@@ -586,6 +587,7 @@ final class UnifiedCheckRun {
       presubmitGuard = PresubmitGuard.fromDocument(presubmitGuardDocument);
 
       final jobs = presubmitGuard.jobs;
+      final previousFailedCount = jobs.values.where((s) => s.isFailure).length;
 
       // Check if the build is present in the guard before trying to load it.
       if (jobs[state.jobName] == null) {
@@ -598,7 +600,7 @@ final class UnifiedCheckRun {
           remaining: jobs.values.where((s) => !s.isComplete).length,
           dashboardChecks: presubmitGuard.checkRunJson,
           mergeQueueGuard: presubmitGuard.checkRunGuardJson,
-          failed: jobs.values.where((s) => s.isFailure).length,
+          failed: previousFailedCount,
           summary:
               'Check run "${state.jobName}" not present in ${guardId.stage} CI stage',
           details: 'Change $changeCrumb',
@@ -652,6 +654,7 @@ final class UnifiedCheckRun {
       presubmitJob.status = status;
       remaining = jobs.values.where((s) => !s.isComplete).length;
       failed = jobs.values.where((s) => s.isFailure).length;
+      failedCountChanged = failed != previousFailedCount;
     } on DetailedApiRequestError catch (e, stack) {
       if (e.status == 404) {
         // An attempt to read a document not in firestore should not be retried.
@@ -701,6 +704,7 @@ $stack
         dashboardChecks: presubmitGuard.checkRunJson,
         mergeQueueGuard: presubmitGuard.checkRunGuardJson,
         failed: failed,
+        failedCountChanged: valid && failedCountChanged,
         failedJobNames: valid ? presubmitGuard.failedJobNames : const [],
         summary: valid
             ? 'Successfully updated presubmit guard status'

@@ -4726,7 +4726,8 @@ targets:
             ),
           );
 
-          // 2. Second build ('Mac test') succeeds -> stage finishes with 1 failed check, Dashboard Checks still in progress.
+          // 2. Second build ('Mac test') succeeds -> stage finishes with 1 failed check,
+          // neither Presubmit nor Dashboard Checks is updated since failed count did not change.
           final macSucceededBuild = generateBbv2Build(
             Int64(2),
             name: 'Mac test',
@@ -4752,6 +4753,25 @@ targets:
                 isA<CheckRun>().having(
                   (c) => c.name,
                   'name',
+                  Config.kPresubmitCheckName,
+                ),
+              ),
+              status: anyNamed('status'),
+              conclusion: anyNamed('conclusion'),
+              detailsUrl: anyNamed('detailsUrl'),
+              output: anyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+
+          verifyNever(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              any,
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
                   Config.kDashboardCheckName,
                 ),
               ),
@@ -4761,6 +4781,50 @@ targets:
               output: anyNamed('output'),
               actions: anyNamed('actions'),
             ),
+          );
+
+          // 3. If 'Mac test' fails, failed count changes from 1 to 2 -> Presubmit check is updated.
+          final macFailedBuild = generateBbv2Build(
+            Int64(3),
+            name: 'Mac test',
+            status: bbv2.Status.FAILURE,
+            tags: [
+              bbv2.StringPair(key: 'current_attempt', value: '1'),
+              bbv2.StringPair(key: 'author', value: pullRequest.user!.login!),
+            ],
+          );
+
+          expect(
+            await scheduler.processBuildCompleted(
+              PresubmitCompletedJob.fromBuild(macFailedBuild, userData),
+            ),
+            isTrue,
+          );
+
+          final secondVerification = verify(
+            mockGithubChecksUtil.updateCheckRun(
+              any,
+              pullRequest.base!.repo!.slug(),
+              argThat(
+                isA<CheckRun>().having(
+                  (c) => c.name,
+                  'name',
+                  Config.kPresubmitCheckName,
+                ),
+              ),
+              status: CheckRunStatus.completed,
+              conclusion: CheckRunConclusion.actionRequired,
+              detailsUrl: anyNamed('detailsUrl'),
+              output: captureAnyNamed('output'),
+              actions: anyNamed('actions'),
+            ),
+          );
+          secondVerification.called(1);
+          final secondOutput =
+              secondVerification.captured.single as CheckRunOutput;
+          expect(
+            secondOutput.text,
+            'Failed presubmit jobs:\n- `Linux test`\n- `Mac test`',
           );
         },
       );
