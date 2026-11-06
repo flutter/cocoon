@@ -115,8 +115,6 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
         '${githubGoldStatus.head}...',
       );
       final gitHubGraphQLClient = await config.createGitHubGraphQLClient();
-      final incompleteChecks = <String>[];
-      var runsGoldenFileTests = false;
       final data = (await _queryGraphQL(
         gitHubGraphQLClient,
         slug,
@@ -125,32 +123,10 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
       final prData = data['repository']['pullRequest'] as Map<String, dynamic>;
       final commit =
           prData['commits']['nodes'].single['commit'] as Map<String, dynamic>;
-      List<Map<String, dynamic>>? checkRuns;
-      if (commit['checkSuites']['nodes'] != null &&
-          (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
-        checkRuns =
-            (commit['checkSuites']['nodes']?.first['checkRuns']['nodes']
-                    as List<dynamic>)
-                .cast<Map<String, dynamic>>();
-      }
-      checkRuns = checkRuns ?? <Map<String, dynamic>>[];
-      log.debug('This PR has ${checkRuns.length} checks.');
-      for (var checkRun in checkRuns) {
-        final name = checkRun['name'].toLowerCase() as String;
-        if (slug == Config.flutterSlug &&
-            name.contains(Config.kDashboardCheckName.toLowerCase())) {
-          runsGoldenFileTests = true;
-        }
-        const successfulConclusion = {'SUCCESS', 'NEUTRAL'};
-
-        if (checkRun['status']?.toUpperCase() != 'COMPLETED' ||
-            !successfulConclusion.contains(
-              checkRun['conclusion']?.toUpperCase(),
-            )) {
-          log.debug('Incomplete check run: $checkRun');
-          incompleteChecks.add(name);
-        }
-      }
+      final (:incompleteChecks, :runsGoldenFileTests) = _evaluateCheckRuns(
+        slug,
+        commit,
+      );
 
       if (runsGoldenFileTests) {
         log.debug('This PR executes golden file tests.');
@@ -257,6 +233,43 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
       firestoreService,
     );
     log.debug('Saved all updates to firestore for $slug');
+  }
+
+  ({List<String> incompleteChecks, bool runsGoldenFileTests})
+  _evaluateCheckRuns(RepositorySlug slug, Map<String, dynamic> commit) {
+    List<Map<String, dynamic>>? checkRuns;
+    if (commit['checkSuites']['nodes'] != null &&
+        (commit['checkSuites']['nodes'] as List<dynamic>).isNotEmpty) {
+      checkRuns =
+          (commit['checkSuites']['nodes']?.first['checkRuns']['nodes']
+                  as List<dynamic>)
+              .cast<Map<String, dynamic>>();
+    }
+    checkRuns = checkRuns ?? <Map<String, dynamic>>[];
+    log.debug('This PR has ${checkRuns.length} checks.');
+
+    final incompleteChecks = <String>[];
+    var runsGoldenFileTests = false;
+    for (var checkRun in checkRuns) {
+      final name = checkRun['name'].toLowerCase() as String;
+      if (slug == Config.flutterSlug &&
+          name.contains(Config.kDashboardCheckName.toLowerCase())) {
+        runsGoldenFileTests = true;
+      }
+      const successfulConclusion = {'SUCCESS', 'NEUTRAL'};
+
+      if (checkRun['status']?.toUpperCase() != 'COMPLETED' ||
+          !successfulConclusion.contains(
+            checkRun['conclusion']?.toUpperCase(),
+          )) {
+        log.debug('Incomplete check run: $checkRun');
+        incompleteChecks.add(name);
+      }
+    }
+    return (
+      incompleteChecks: incompleteChecks,
+      runsGoldenFileTests: runsGoldenFileTests,
+    );
   }
 
   Future<void> _updateGithubGoldStatusDocuments(

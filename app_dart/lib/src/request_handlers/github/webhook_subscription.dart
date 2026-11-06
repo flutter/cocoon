@@ -90,10 +90,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         );
         return result.toResponse();
       case 'check_run':
-        final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
-        final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-        final result = await scheduler.processCheckRun(checkRunEvent);
-        return result.toResponse();
+        return _handleCheckRun(webhook.payload);
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final branch = (event['ref'] as String).split(
@@ -234,6 +231,13 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     return Response.emptyOk;
   }
 
+  Future<Response> _handleCheckRun(String rawRequest) async {
+    final event = jsonDecode(rawRequest) as Map<String, dynamic>;
+    final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
+    final result = await scheduler.processCheckRun(checkRunEvent);
+    return result.toResponse();
+  }
+
   /// Handles a GitHub webhook with the event type "merge_group".
   ///
   /// A merge group contains commits from multiple pull requests. Each pull
@@ -258,74 +262,87 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     }
 
     final mergeGroupEvent = cocoon_checks.MergeGroupEvent.fromJson(request);
-    final cocoon_checks.MergeGroupEvent(:mergeGroup, :action, :reason) =
-        mergeGroupEvent;
+    final cocoon_checks.MergeGroupEvent(:mergeGroup, :action) = mergeGroupEvent;
     final headSha = mergeGroup.headSha;
-    final slug = mergeGroupEvent.repository!.slug();
 
     // See the API reference:
     // https://docs.github.com/en/webhooks/webhook-events-and-payloads#merge_group
     log.info('Processing $action for merge queue @ $headSha');
-    switch (action) {
-      // A merge group (a group of PRs to be tested a merged together) was
-      // created and Github is requesting checks to be performed before merging
-      // into the main branch. Cocoon should kick off CI jobs needed to verify
-      // the PR group.
-      case 'checks_requested':
-        log.info('Checks requests for merge queue @ $headSha');
+    return switch (action) {
+      'checks_requested' => _handleMergeGroupChecksRequested(
+        mergeGroupEvent,
+        messagePublishedOn: messagePublishedOn,
+      ),
+      'destroyed' => _handleMergeGroupDestroyed(mergeGroupEvent),
+      _ => const ProcessCheckRunResult.success(),
+    };
+  }
 
-        if (!await _shaExistsInGob(slug, headSha)) {
-          // There is a chance the branch has been deleted, and this is a stale
-          // merge queue pub-sub message that will *never* complete. Check and
-          // see if the message is a tad-old (>=15m), and if it is, check if
-          // the cooresponding branch on GitHub has been deleted.
-          //
-          // See https://github.com/flutter/flutter/issues/166078.
-          final duration = _now().difference(messagePublishedOn);
-          if (duration >= _estimatedGitOnBorgMaximumSyncDuration) {
-            // Check GitHub.
-            final githubService = await config.createGithubService(slug);
-            try {
-              await githubService.getReference(slug, mergeGroup.headRef);
-              log.info(
-                '$slug/$headSha was not found on GoB, but was found on GitHub.',
-              );
-            } on github.NotFound {
-              final message =
-                  '$slug/$headSha was not found on GoB and appears deleted on '
-                  'GitHub.';
-              log.info(message);
-              return ProcessCheckRunResult.missingEntity(message);
-            }
-          }
-          return ProcessCheckRunResult.retrySoon(
-            '$slug/$headSha was not found on GoB. Failing so this event can be retried',
-          );
-        }
-        log.info(
-          '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
-        );
-        await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
+  Future<ProcessCheckRunResult> _handleMergeGroupChecksRequested(
+    cocoon_checks.MergeGroupEvent mergeGroupEvent, {
+    required DateTime messagePublishedOn,
+  }) async {
+    final cocoon_checks.MergeGroupEvent(:mergeGroup) = mergeGroupEvent;
+    final headSha = mergeGroup.headSha;
+    final slug = mergeGroupEvent.repository!.slug();
 
-      // A merge group was deleted. This can happen when a PR is pulled from the
-      // merge queue. All CI jobs pertaining to this merge group should be
-      // stopped to save CI resources, as Github will no longer merge this group
-      // into the main branch.
-      case 'destroyed':
-        log.info(
-          'Merge group destroyed for $slug/$headSha because it was $reason.',
-        );
-        if (reason == 'invalidated' || reason == 'dequeued') {
-          await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
-        } else if (reason == 'merged') {
-          log.info('Merge group for $slug/$headSha was merged successfully.');
-        } else {
-          log.warn(
-            'Unrecognized reason for merge group destroyed event: $reason',
+    log.info('Checks requests for merge queue @ $headSha');
+
+    if (!await _shaExistsInGob(slug, headSha)) {
+      // There is a chance the branch has been deleted, and this is a stale
+      // merge queue pub-sub message that will *never* complete. Check and
+      // see if the message is a tad-old (>=15m), and if it is, check if
+      // the corresponding branch on GitHub has been deleted.
+      //
+      // See https://github.com/flutter/flutter/issues/166078.
+      final duration = _now().difference(messagePublishedOn);
+      if (duration >= _estimatedGitOnBorgMaximumSyncDuration) {
+        // Check GitHub.
+        final githubService = await config.createGithubService(slug);
+        try {
+          await githubService.getReference(slug, mergeGroup.headRef);
+          log.info(
+            '$slug/$headSha was not found on GoB, but was found on GitHub.',
           );
+        } on github.NotFound {
+          final message =
+              '$slug/$headSha was not found on GoB and appears deleted on '
+              'GitHub.';
+          log.info(message);
+          return ProcessCheckRunResult.missingEntity(message);
         }
+      }
+      return ProcessCheckRunResult.retrySoon(
+        '$slug/$headSha was not found on GoB. Failing so this event can be retried',
+      );
     }
+    log.info(
+      '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
+    );
+    await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
+    return const ProcessCheckRunResult.success();
+  }
 
+  Future<ProcessCheckRunResult> _handleMergeGroupDestroyed(
+    cocoon_checks.MergeGroupEvent mergeGroupEvent,
+  ) async {
+    final cocoon_checks.MergeGroupEvent(:mergeGroup, :reason) = mergeGroupEvent;
+    final headSha = mergeGroup.headSha;
+    final slug = mergeGroupEvent.repository!.slug();
+
+    log.info(
+      'Merge group destroyed for $slug/$headSha because it was $reason.',
+    );
+    switch (reason) {
+      case 'invalidated' || 'dequeued':
+        await scheduler.cancelDestroyedMergeGroupTargets(headSha: headSha);
+      case 'merged':
+        log.info('Merge group for $slug/$headSha was merged successfully.');
+      default:
+        log.warn(
+          'Unrecognized reason for merge group destroyed event: $reason',
+        );
+    }
     return const ProcessCheckRunResult.success();
   }
 
