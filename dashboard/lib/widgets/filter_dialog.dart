@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:cocoon_common/task_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +30,13 @@ class _FilterDialogState extends State<FilterDialog> {
   void initState() {
     super.initState();
     final presubmitState = Provider.of<PresubmitState>(context, listen: false);
+    unawaited(
+      presubmitState.analyticsService.logFilterDialogOpened(
+        repo: presubmitState.repo,
+        pr: presubmitState.pr,
+        sha: presubmitState.sha,
+      ),
+    );
     _selectedStatuses = Set.from(presubmitState.selectedStatuses);
     _selectedPlatforms = Set.from(presubmitState.selectedPlatforms);
     _regexController = TextEditingController(
