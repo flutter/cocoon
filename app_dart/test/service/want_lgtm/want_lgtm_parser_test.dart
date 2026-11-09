@@ -93,31 +93,31 @@ WANT_LGTM=alice
       );
     });
 
-    test('distinguishes "all" keyword from user "@all"', () {
-      const bodyAll = 'WANT_LGTM=all';
-      expect(
-        parseWantLgtmDirective(bodyAll, authorLogin: 'author'),
-        const ValidWantLgtmDirective(requiresAll: true, explicitLogins: []),
-      );
+    test(
+      'treats "all" and "@all" as the special requiresAll keyword, never a user',
+      () {
+        const bodyAll = 'WANT_LGTM=all';
+        expect(
+          parseWantLgtmDirective(bodyAll, authorLogin: 'author'),
+          const ValidWantLgtmDirective(requiresAll: true, explicitLogins: []),
+        );
 
-      const bodyAtAll = 'WANT_LGTM=@all';
-      expect(
-        parseWantLgtmDirective(bodyAtAll, authorLogin: 'author'),
-        const ValidWantLgtmDirective(
-          requiresAll: false,
-          explicitLogins: ['all'],
-        ),
-      );
+        const bodyAtAll = 'WANT_LGTM=@all';
+        expect(
+          parseWantLgtmDirective(bodyAtAll, authorLogin: 'author'),
+          const ValidWantLgtmDirective(requiresAll: true, explicitLogins: []),
+        );
 
-      const bodyCombined = 'WANT_LGTM=all, @all, bob';
-      expect(
-        parseWantLgtmDirective(bodyCombined, authorLogin: 'author'),
-        const ValidWantLgtmDirective(
-          requiresAll: true,
-          explicitLogins: ['all', 'bob'],
-        ),
-      );
-    });
+        const bodyCombined = 'WANT_LGTM=all, @all, @ALL, bob';
+        expect(
+          parseWantLgtmDirective(bodyCombined, authorLogin: 'author'),
+          const ValidWantLgtmDirective(
+            requiresAll: true,
+            explicitLogins: ['bob'],
+          ),
+        );
+      },
+    );
 
     test('merges multiple WANT_LGTM lines and deduplicates logins', () {
       const body = '''

@@ -56,12 +56,12 @@ _classifyTokens(List<String> rawTokens, String normalizedAuthor) {
   final invalidTokens = <String>[];
 
   for (final token in rawTokens) {
-    if (token.toLowerCase() == 'all') {
+    final candidate = token.startsWith('@') ? token.substring(1) : token;
+    if (candidate.toLowerCase() == 'all') {
       requiresAll = true;
       continue;
     }
 
-    final candidate = token.startsWith('@') ? token.substring(1) : token;
     if (!_kGitHubLoginRegExp.hasMatch(candidate)) {
       invalidTokens.add(token);
       continue;
