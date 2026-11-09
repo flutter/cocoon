@@ -3,10 +3,14 @@
 // found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'package:gql/ast.dart';
 import 'package:gql/language.dart' as lang;
-import 'package:graphql/client.dart';
+import 'package:graphql/client.dart' hide JsonSerializable;
+import 'package:json_annotation/json_annotation.dart';
 
 import 'want_lgtm_models.dart';
+
+part 'want_lgtm_graphql.g.dart';
 
 /// Exception thrown when a GraphQL operation fails or returns invalid data.
 final class WantLgtmGraphQLException implements Exception {
@@ -21,6 +25,17 @@ final class WantLgtmGraphQLException implements Exception {
 final class WantLgtmGraphQLClient {
   const WantLgtmGraphQLClient(this._client);
 
+  static final DocumentNode _initialQuery = lang.parseString(_kInitialQuery);
+  static final DocumentNode _reviewRequestsPageQuery = lang.parseString(
+    _kReviewRequestsPageQuery,
+  );
+  static final DocumentNode _reviewsPageQuery = lang.parseString(
+    _kReviewsPageQuery,
+  );
+  static final DocumentNode _timelinePageQuery = lang.parseString(
+    _kTimelinePageQuery,
+  );
+
   final GraphQLClient _client;
 
   /// Fetches a [WantLgtmGraphQLSnapshot] for the given pull request.
@@ -28,68 +43,44 @@ final class WantLgtmGraphQLClient {
     RepositorySlug slug,
     int prNumber,
   ) async {
-    var queryCount = 0;
-    final initialData = await _execute(_kInitialQuery, <String, Object?>{
-      'owner': slug.owner,
-      'name': slug.name,
-      'number': prNumber,
-    });
-    queryCount++;
-
-    final pr = _extractPr(initialData, slug, prNumber);
+    var queryCount = 1;
+    final pr = await _fetchPr(_initialQuery, slug, prNumber);
     final openRequests = <String>{};
     final reviews = <WantLgtmReviewRecord>[];
     final timelineEvents = <WantLgtmTimelineEvent>[];
 
-    final requestsConn = pr['reviewRequests'] as Map<String, Object?>?;
-    if (requestsConn != null) {
-      _parseReviewRequests(requestsConn, openRequests);
-      queryCount += await _paginateConnection(
-        slug: slug,
-        prNumber: prNumber,
-        query: _kReviewRequestsPageQuery,
-        connectionKey: 'reviewRequests',
-        initialConn: requestsConn,
-        onPage: (conn) => _parseReviewRequests(conn, openRequests),
-      );
-    }
+    queryCount += await _paginateConnection<_GraphQLReviewRequestNode>(
+      slug: slug,
+      prNumber: prNumber,
+      query: _reviewRequestsPageQuery,
+      initialConn: pr.reviewRequests,
+      selectConn: (nextPr) => nextPr.reviewRequests,
+      onNodes: (nodes) => _collectReviewRequests(nodes, openRequests),
+    );
 
-    final reviewsConn = pr['reviews'] as Map<String, Object?>?;
-    if (reviewsConn != null) {
-      _parseReviews(reviewsConn, reviews);
-      queryCount += await _paginateConnection(
-        slug: slug,
-        prNumber: prNumber,
-        query: _kReviewsPageQuery,
-        connectionKey: 'reviews',
-        initialConn: reviewsConn,
-        onPage: (conn) => _parseReviews(conn, reviews),
-      );
-    }
+    queryCount += await _paginateConnection<_GraphQLReviewNode>(
+      slug: slug,
+      prNumber: prNumber,
+      query: _reviewsPageQuery,
+      initialConn: pr.reviews,
+      selectConn: (nextPr) => nextPr.reviews,
+      onNodes: (nodes) => _collectReviews(nodes, reviews),
+    );
 
-    final timelineConn = pr['timelineItems'] as Map<String, Object?>?;
-    if (timelineConn != null) {
-      _parseTimeline(timelineConn, timelineEvents);
-      queryCount += await _paginateConnection(
-        slug: slug,
-        prNumber: prNumber,
-        query: _kTimelinePageQuery,
-        connectionKey: 'timelineItems',
-        initialConn: timelineConn,
-        onPage: (conn) => _parseTimeline(conn, timelineEvents),
-      );
-    }
-
-    final author = pr['author'] as Map<String, Object?>?;
-    final authorLogin = (author?['login'] as String? ?? '')
-        .trim()
-        .toLowerCase();
+    queryCount += await _paginateConnection<_GraphQLTimelineNode>(
+      slug: slug,
+      prNumber: prNumber,
+      query: _timelinePageQuery,
+      initialConn: pr.timelineItems,
+      selectConn: (nextPr) => nextPr.timelineItems,
+      onNodes: (nodes) => _collectTimeline(nodes, timelineEvents),
+    );
 
     return WantLgtmGraphQLSnapshot(
-      prState: (pr['state'] as String? ?? 'OPEN').toUpperCase(),
-      body: pr['body'] as String? ?? '',
-      headRefOid: pr['headRefOid'] as String? ?? '',
-      authorLogin: authorLogin,
+      prState: (pr.state ?? 'OPEN').toUpperCase(),
+      body: pr.body ?? '',
+      headRefOid: pr.headRefOid ?? '',
+      authorLogin: pr.author?.normalizedLogin ?? '',
       openReviewRequestLogins: openRequests,
       reviews: reviews,
       timelineEvents: timelineEvents,
@@ -97,42 +88,66 @@ final class WantLgtmGraphQLClient {
     );
   }
 
-  Future<int> _paginateConnection({
+  Future<int> _paginateConnection<T>({
     required RepositorySlug slug,
     required int prNumber,
-    required String query,
-    required String connectionKey,
-    required Map<String, Object?> initialConn,
-    required void Function(Map<String, Object?> conn) onPage,
+    required DocumentNode query,
+    required _GraphQLConnection<T>? initialConn,
+    required _GraphQLConnection<T>? Function(_GraphQLPullRequest pr) selectConn,
+    required void Function(List<T?> nodes) onNodes,
   }) async {
+    if (initialConn == null) {
+      return 0;
+    }
+    onNodes(initialConn.nodes);
     var count = 0;
-    var (hasNext, cursor) = _extractPageInfo(initialConn);
-    while (hasNext && cursor != null) {
-      final data = await _execute(query, <String, Object?>{
-        'owner': slug.owner,
-        'name': slug.name,
-        'number': prNumber,
-        'cursor': cursor,
-      });
+    var pageInfo = initialConn.pageInfo;
+    while ((pageInfo?.hasNextPage ?? false) && pageInfo?.endCursor != null) {
+      final pr = await _fetchPr(
+        query,
+        slug,
+        prNumber,
+        cursor: pageInfo!.endCursor,
+      );
       count++;
-      final pr = _extractPr(data, slug, prNumber);
-      final conn = pr[connectionKey] as Map<String, Object?>?;
-      if (conn == null) {
+      final nextConn = selectConn(pr);
+      if (nextConn == null) {
         break;
       }
-      onPage(conn);
-      (hasNext, cursor) = _extractPageInfo(conn);
+      onNodes(nextConn.nodes);
+      pageInfo = nextConn.pageInfo;
     }
     return count;
   }
 
+  Future<_GraphQLPullRequest> _fetchPr(
+    DocumentNode document,
+    RepositorySlug slug,
+    int prNumber, {
+    String? cursor,
+  }) async {
+    final data = await _execute(document, <String, Object?>{
+      'owner': slug.owner,
+      'name': slug.name,
+      'number': prNumber,
+      'cursor': ?cursor,
+    });
+    final pr = _GraphQLResponse.fromJson(data).repository?.pullRequest;
+    if (pr == null) {
+      throw WantLgtmGraphQLException(
+        'Pull request ${slug.fullName} #$prNumber not found',
+      );
+    }
+    return pr;
+  }
+
   Future<Map<String, Object?>> _execute(
-    String query,
+    DocumentNode document,
     Map<String, Object?> variables,
   ) async {
     final result = await _client.query(
       QueryOptions(
-        document: lang.parseString(query),
+        document: document,
         fetchPolicy: FetchPolicy.noCache,
         variables: variables,
       ),
@@ -147,103 +162,213 @@ final class WantLgtmGraphQLClient {
     return data;
   }
 
-  static Map<String, Object?> _extractPr(
-    Map<String, Object?> data,
-    RepositorySlug slug,
-    int prNumber,
-  ) {
-    final repo = data['repository'] as Map<String, Object?>?;
-    final pr = repo?['pullRequest'] as Map<String, Object?>?;
-    if (pr == null) {
-      throw WantLgtmGraphQLException(
-        'Pull request ${slug.fullName} #$prNumber not found',
-      );
-    }
-    return pr;
-  }
-
-  static (bool, String?) _extractPageInfo(Map<String, Object?> connection) {
-    final pageInfo = connection['pageInfo'] as Map<String, Object?>?;
-    final hasNext = pageInfo?['hasNextPage'] as bool? ?? false;
-    final endCursor = pageInfo?['endCursor'] as String?;
-    return (hasNext, endCursor);
-  }
-
-  static void _parseReviewRequests(
-    Map<String, Object?> connection,
+  static void _collectReviewRequests(
+    List<_GraphQLReviewRequestNode?> nodes,
     Set<String> openRequests,
   ) {
-    final nodes = connection['nodes'] as List<Object?>? ?? const [];
-    for (final node in nodes.whereType<Map<String, Object?>>()) {
-      final reviewer = node['requestedReviewer'] as Map<String, Object?>?;
-      final login = (reviewer?['login'] as String?)?.trim().toLowerCase();
-      if (login != null && login.isNotEmpty) {
+    for (final node in nodes) {
+      final login = node?.requestedReviewer?.normalizedLogin;
+      if (login != null) {
         openRequests.add(login);
       }
     }
   }
 
-  static void _parseReviews(
-    Map<String, Object?> connection,
+  static void _collectReviews(
+    List<_GraphQLReviewNode?> nodes,
     List<WantLgtmReviewRecord> reviews,
   ) {
-    final nodes = connection['nodes'] as List<Object?>? ?? const [];
-    for (final node in nodes.whereType<Map<String, Object?>>()) {
-      final author = node['author'] as Map<String, Object?>?;
-      final login = (author?['login'] as String?)?.trim().toLowerCase();
-      final stateStr = node['state'] as String?;
-      final submittedAtStr = node['submittedAt'] as String?;
-      final state = switch (stateStr) {
-        'APPROVED' => WantLgtmReviewState.approved,
-        'CHANGES_REQUESTED' => WantLgtmReviewState.changesRequested,
-        'DISMISSED' => WantLgtmReviewState.dismissed,
-        _ => null,
-      };
-      if (login != null && state != null) {
-        final submittedAt = submittedAtStr != null
-            ? DateTime.tryParse(submittedAtStr)?.toUtc()
-            : null;
-        reviews.add(
-          WantLgtmReviewRecord(
-            authorLogin: login,
-            state: state,
-            submittedAt: submittedAt,
-          ),
-        );
+    for (final node in nodes) {
+      final record = node?.toRecord();
+      if (record != null) {
+        reviews.add(record);
       }
     }
   }
 
-  static void _parseTimeline(
-    Map<String, Object?> connection,
+  static void _collectTimeline(
+    List<_GraphQLTimelineNode?> nodes,
     List<WantLgtmTimelineEvent> events,
   ) {
-    final nodes = connection['nodes'] as List<Object?>? ?? const [];
-    for (final node in nodes.whereType<Map<String, Object?>>()) {
-      final type = node['__typename'] as String?;
-      final action = switch (type) {
-        'ReviewRequestedEvent' => TimelineReviewAction.requested,
-        'ReviewRequestRemovedEvent' => TimelineReviewAction.removed,
-        _ => null,
-      };
-      final reviewer = node['requestedReviewer'] as Map<String, Object?>?;
-      final login = (reviewer?['login'] as String?)?.trim().toLowerCase();
-      final createdAtStr = node['createdAt'] as String?;
-      if (action != null && login != null && login.isNotEmpty) {
-        final createdAt = createdAtStr != null
-            ? DateTime.tryParse(createdAtStr)?.toUtc()
-            : null;
-        events.add(
-          WantLgtmTimelineEvent(
-            reviewerLogin: login,
-            action: action,
-            createdAt: createdAt,
-          ),
-        );
+    for (final node in nodes) {
+      final event = node?.toEvent();
+      if (event != null) {
+        events.add(event);
       }
     }
   }
 }
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLResponse {
+  const _GraphQLResponse({this.repository});
+
+  factory _GraphQLResponse.fromJson(Map<String, Object?> json) =>
+      _$GraphQLResponseFromJson(json);
+
+  final _GraphQLRepository? repository;
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLRepository {
+  const _GraphQLRepository({this.pullRequest});
+
+  factory _GraphQLRepository.fromJson(Map<String, Object?> json) =>
+      _$GraphQLRepositoryFromJson(json);
+
+  final _GraphQLPullRequest? pullRequest;
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLPullRequest {
+  const _GraphQLPullRequest({
+    this.state,
+    this.body,
+    this.headRefOid,
+    this.author,
+    this.reviewRequests,
+    this.reviews,
+    this.timelineItems,
+  });
+
+  factory _GraphQLPullRequest.fromJson(Map<String, Object?> json) =>
+      _$GraphQLPullRequestFromJson(json);
+
+  final String? state;
+  final String? body;
+  final String? headRefOid;
+  final _GraphQLActor? author;
+  final _GraphQLConnection<_GraphQLReviewRequestNode>? reviewRequests;
+  final _GraphQLConnection<_GraphQLReviewNode>? reviews;
+  final _GraphQLConnection<_GraphQLTimelineNode>? timelineItems;
+}
+
+@JsonSerializable(
+  anyMap: true,
+  createToJson: false,
+  genericArgumentFactories: true,
+)
+final class _GraphQLConnection<T> {
+  const _GraphQLConnection({this.pageInfo, this.nodes = const []});
+
+  factory _GraphQLConnection.fromJson(
+    Map<String, Object?> json,
+    T Function(Object? json) fromJsonT,
+  ) => _$GraphQLConnectionFromJson(json, fromJsonT);
+
+  final _GraphQLPageInfo? pageInfo;
+  final List<T?> nodes;
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLPageInfo {
+  const _GraphQLPageInfo({this.hasNextPage = false, this.endCursor});
+
+  factory _GraphQLPageInfo.fromJson(Map<String, Object?> json) =>
+      _$GraphQLPageInfoFromJson(json);
+
+  final bool hasNextPage;
+  final String? endCursor;
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLActor {
+  const _GraphQLActor({this.login});
+
+  factory _GraphQLActor.fromJson(Map<String, Object?> json) =>
+      _$GraphQLActorFromJson(json);
+
+  final String? login;
+
+  String? get normalizedLogin {
+    final normalized = login?.trim().toLowerCase();
+    return (normalized == null || normalized.isEmpty) ? null : normalized;
+  }
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLReviewRequestNode {
+  const _GraphQLReviewRequestNode({this.requestedReviewer});
+
+  factory _GraphQLReviewRequestNode.fromJson(Map<String, Object?> json) =>
+      _$GraphQLReviewRequestNodeFromJson(json);
+
+  final _GraphQLActor? requestedReviewer;
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLReviewNode {
+  const _GraphQLReviewNode({
+    this.author,
+    @JsonKey(fromJson: _parseReviewState) this.state,
+    @JsonKey(fromJson: _tryParseUtcDateTime) this.submittedAt,
+  });
+
+  factory _GraphQLReviewNode.fromJson(Map<String, Object?> json) =>
+      _$GraphQLReviewNodeFromJson(json);
+
+  final _GraphQLActor? author;
+  final WantLgtmReviewState? state;
+  final DateTime? submittedAt;
+
+  WantLgtmReviewRecord? toRecord() {
+    final login = author?.normalizedLogin;
+    final reviewState = state;
+    if (login == null || reviewState == null) {
+      return null;
+    }
+    return WantLgtmReviewRecord(
+      authorLogin: login,
+      state: reviewState,
+      submittedAt: submittedAt,
+    );
+  }
+}
+
+@JsonSerializable(anyMap: true, createToJson: false)
+final class _GraphQLTimelineNode {
+  const _GraphQLTimelineNode({
+    @JsonKey(name: '__typename', fromJson: _parseTimelineAction) this.action,
+    @JsonKey(fromJson: _tryParseUtcDateTime) this.createdAt,
+    this.requestedReviewer,
+  });
+
+  factory _GraphQLTimelineNode.fromJson(Map<String, Object?> json) =>
+      _$GraphQLTimelineNodeFromJson(json);
+
+  final TimelineReviewAction? action;
+  final DateTime? createdAt;
+  final _GraphQLActor? requestedReviewer;
+
+  WantLgtmTimelineEvent? toEvent() {
+    final timelineAction = action;
+    final login = requestedReviewer?.normalizedLogin;
+    if (timelineAction == null || login == null) {
+      return null;
+    }
+    return WantLgtmTimelineEvent(
+      reviewerLogin: login,
+      action: timelineAction,
+      createdAt: createdAt,
+    );
+  }
+}
+
+WantLgtmReviewState? _parseReviewState(Object? value) => switch (value) {
+  'APPROVED' => WantLgtmReviewState.approved,
+  'CHANGES_REQUESTED' => WantLgtmReviewState.changesRequested,
+  'DISMISSED' => WantLgtmReviewState.dismissed,
+  _ => null,
+};
+
+TimelineReviewAction? _parseTimelineAction(Object? value) => switch (value) {
+  'ReviewRequestedEvent' => TimelineReviewAction.requested,
+  'ReviewRequestRemovedEvent' => TimelineReviewAction.removed,
+  _ => null,
+};
+
+DateTime? _tryParseUtcDateTime(Object? value) =>
+    value is String ? DateTime.tryParse(value)?.toUtc() : null;
 
 const String _kInitialQuery = r'''
 query WantLgtmInitialSnapshot($owner: String!, $name: String!, $number: Int!) {

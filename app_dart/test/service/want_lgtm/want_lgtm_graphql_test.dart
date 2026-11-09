@@ -328,4 +328,19 @@ void main() {
     expect(snapshot.reviews.first.submittedAt, isNull);
     expect(snapshot.timelineEvents.first.createdAt, isNull);
   });
+
+  test('reuses pre-parsed DocumentNode instances across queries', () async {
+    final slug = RepositorySlug('flutter', 'flutter');
+    final capturedDocuments = <Object>[];
+    fakeClient.queryResultForOptions = (QueryOptions options) {
+      capturedDocuments.add(options.document);
+      return createFakeQueryResult(data: createPrNode());
+    };
+
+    await client.fetchSnapshot(slug, 1);
+    await client.fetchSnapshot(slug, 2);
+
+    expect(capturedDocuments, hasLength(2));
+    expect(identical(capturedDocuments[0], capturedDocuments[1]), isTrue);
+  });
 }
