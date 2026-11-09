@@ -217,6 +217,49 @@ final class WantLgtmGraphQLSnapshot {
 
   /// Total number of GraphQL query round-trips used to fetch this snapshot.
   final int queryCount;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is WantLgtmGraphQLSnapshot &&
+            other.prState == prState &&
+            other.body == body &&
+            other.headRefOid == headRefOid &&
+            other.authorLogin == authorLogin &&
+            const SetEquality<String>().equals(
+              other.openReviewRequestLogins,
+              openReviewRequestLogins,
+            ) &&
+            const ListEquality<WantLgtmReviewRecord>().equals(
+              other.reviews,
+              reviews,
+            ) &&
+            const ListEquality<WantLgtmTimelineEvent>().equals(
+              other.timelineEvents,
+              timelineEvents,
+            ) &&
+            other.queryCount == queryCount);
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    prState,
+    body,
+    headRefOid,
+    authorLogin,
+    const SetEquality<String>().hash(openReviewRequestLogins),
+    Object.hashAll(reviews),
+    Object.hashAll(timelineEvents),
+    queryCount,
+  );
+
+  @override
+  String toString() =>
+      'WantLgtmGraphQLSnapshot(prState: $prState, body: $body, '
+      'headRefOid: $headRefOid, authorLogin: $authorLogin, '
+      'openReviewRequestLogins: $openReviewRequestLogins, '
+      'reviews: $reviews, timelineEvents: $timelineEvents, '
+      'queryCount: $queryCount)';
 }
 
 /// Sealed hierarchy representing the verdict of evaluating a PR's review status.

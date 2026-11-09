@@ -104,6 +104,67 @@ void main() {
       expect(inv1, isNot(equals(inv3)));
       expect(inv1.toString(), contains('InvalidWantLgtmDirective'));
     });
+
+    test('WantLgtmGraphQLSnapshot equality and string representation', () {
+      final s1 = WantLgtmGraphQLSnapshot.empty(prState: 'OPEN');
+      final s2 = WantLgtmGraphQLSnapshot.empty(prState: 'OPEN');
+      final s3 = WantLgtmGraphQLSnapshot.empty(prState: 'CLOSED');
+
+      expect(s1, equals(s2));
+      expect(s1.hashCode, equals(s2.hashCode));
+      expect(s1, isNot(equals(s3)));
+      expect(s1.toString(), contains('WantLgtmGraphQLSnapshot'));
+
+      final now = DateTime.utc(2026, 11, 9, 12);
+      final populatedA = WantLgtmGraphQLSnapshot(
+        prState: 'OPEN',
+        body: 'WANT_LGTM=alice,bob',
+        headRefOid: 'abc123',
+        authorLogin: 'author',
+        openReviewRequestLogins: {'alice', 'bob'},
+        reviews: [
+          WantLgtmReviewRecord(
+            authorLogin: 'alice',
+            state: WantLgtmReviewState.approved,
+            submittedAt: now,
+          ),
+        ],
+        timelineEvents: [
+          WantLgtmTimelineEvent(
+            reviewerLogin: 'bob',
+            action: TimelineReviewAction.requested,
+            createdAt: now,
+          ),
+        ],
+        queryCount: 1,
+      );
+      final populatedB = WantLgtmGraphQLSnapshot(
+        prState: 'OPEN',
+        body: 'WANT_LGTM=alice,bob',
+        headRefOid: 'abc123',
+        authorLogin: 'author',
+        openReviewRequestLogins: {'bob', 'alice'},
+        reviews: [
+          WantLgtmReviewRecord(
+            authorLogin: 'alice',
+            state: WantLgtmReviewState.approved,
+            submittedAt: now,
+          ),
+        ],
+        timelineEvents: [
+          WantLgtmTimelineEvent(
+            reviewerLogin: 'bob',
+            action: TimelineReviewAction.requested,
+            createdAt: now,
+          ),
+        ],
+        queryCount: 1,
+      );
+
+      expect(populatedA, equals(populatedB));
+      expect(populatedA.hashCode, equals(populatedB.hashCode));
+      expect(populatedA, isNot(equals(s1)));
+    });
   });
 
   group('WantLgtmVerdict models', () {
