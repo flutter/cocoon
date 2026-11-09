@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 
 import '../../foundation/github_checks_util.dart';
@@ -245,5 +246,48 @@ final class WantLgtmCheckWriter {
     state.updatedAt = DateTime.now().toUtc();
     await state.save(_firestoreService);
     return state;
+  }
+
+  /// Sweeps in-progress WANT_LGTM states on disabled repositories and waives
+  /// them as neutral.
+  ///
+  /// States belonging to repositories where `flags.wantLgtm` is currently
+  /// enabled are skipped so per-repository rollbacks do not disturb active
+  /// repositories.
+  Future<int> sweepInProgressRuns({
+    RepositorySlug? slug,
+    bool dryRun = false,
+  }) async {
+    final states = await WantLgtmState.queryInProgress(
+      firestoreService: _firestoreService,
+      slug: slug,
+    );
+    var sweptCount = 0;
+    for (final state in states) {
+      if (_config.flags.wantLgtm.isEnabledForRepo(state.slug)) {
+        continue;
+      }
+      if (dryRun) {
+        sweptCount++;
+        continue;
+      }
+      try {
+        await writeRolledBackCheckRun(
+          slug: state.slug,
+          prNumber: state.pr,
+          checkRunId: state.checkRunId,
+          headSha: state.headSha,
+          existingState: state,
+        );
+        sweptCount++;
+      } catch (e, s) {
+        log.error(
+          'Failed to sweep WANT_LGTM check run on ${state.slug.fullName}#${state.pr}',
+          e,
+          s,
+        );
+      }
+    }
+    return sweptCount;
   }
 }
