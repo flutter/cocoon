@@ -252,6 +252,9 @@ final class PushGoldStatusToGithub extends ApiRequestHandler {
     var runsGoldenFileTests = false;
     for (var checkRun in checkRuns) {
       final name = checkRun['name'].toLowerCase() as String;
+      if (name == Config.kWantLgtmCheckName.toLowerCase()) {
+        continue;
+      }
       if (slug == Config.flutterSlug &&
           name.contains(Config.kDashboardCheckName.toLowerCase())) {
         runsGoldenFileTests = true;

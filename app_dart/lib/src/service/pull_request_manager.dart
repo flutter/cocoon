@@ -24,6 +24,7 @@ import 'gerrit_service.dart';
 import 'github_service.dart';
 import 'scheduler.dart';
 import 'scheduler/process_check_run_result.dart';
+import 'want_lgtm/want_lgtm_reconciler.dart';
 
 // Filenames which are not actually tests.
 const List<String> kNotActuallyATest = <String>[
@@ -59,6 +60,7 @@ class PullRequestManager {
   final Scheduler scheduler;
   final GerritService gerritService;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
+  final WantLgtmReconciler? wantLgtmReconciler;
 
   final bool _isPrivileged;
   String _latestSha;
@@ -73,6 +75,7 @@ class PullRequestManager {
     required this.scheduler,
     required this.gerritService,
     required this.pullRequestLabelProcessorProvider,
+    this.wantLgtmReconciler,
     required bool isPrivileged,
     required String latestSha,
     String? scheduledSha,
@@ -141,6 +144,7 @@ class PullRequestManager {
           pullRequestLabelProcessorProvider:
               context.pullRequestLabelProcessorProvider,
           event: event,
+          wantLgtmReconciler: context.wantLgtmReconciler,
         );
         await manager._handleOpened(event);
         await manager.persist();
@@ -166,6 +170,7 @@ class PullRequestManager {
           pullRequestLabelProcessorProvider:
               context.pullRequestLabelProcessorProvider,
           event: event,
+          wantLgtmReconciler: context.wantLgtmReconciler,
         );
         await manager._handleSynchronize(event);
         await manager.persist();
@@ -191,6 +196,7 @@ class PullRequestManager {
           pullRequestLabelProcessorProvider:
               context.pullRequestLabelProcessorProvider,
           event: event,
+          wantLgtmReconciler: context.wantLgtmReconciler,
         );
         await manager._handleEdited(event);
         await manager.persist();
@@ -216,6 +222,7 @@ class PullRequestManager {
           pullRequestLabelProcessorProvider:
               context.pullRequestLabelProcessorProvider,
           event: event,
+          wantLgtmReconciler: context.wantLgtmReconciler,
         );
         await manager._handleReadyForReview(event);
         await manager.persist();
@@ -241,6 +248,7 @@ class PullRequestManager {
           pullRequestLabelProcessorProvider:
               context.pullRequestLabelProcessorProvider,
           event: event,
+          wantLgtmReconciler: context.wantLgtmReconciler,
         );
         await manager._handleReopened(event);
         await manager.persist();
@@ -268,6 +276,7 @@ class PullRequestManager {
           pullRequestLabelProcessorProvider:
               context.pullRequestLabelProcessorProvider,
           event: event,
+          wantLgtmReconciler: context.wantLgtmReconciler,
         );
         await manager._handleLabeled(event, labelName, labelId);
         await manager.persist();
@@ -284,8 +293,48 @@ class PullRequestManager {
       event: event,
       cache: context.cache,
       action: () async {
+        final slug = event.repository!.slug();
+        final prNumber = event.pullRequest!.number!;
+        try {
+          await context.wantLgtmReconciler?.reconcilePullRequest(
+            slug,
+            prNumber,
+            pullRequest: event.pullRequest,
+            triggerReason: 'closed',
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on closed PR $slug #$prNumber: $e\n$s',
+          );
+        }
         final result = await processClosedFn(event);
         return result.toResponse();
+      },
+    );
+  }
+
+  static Future<void> handleReviewRequestChanged(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    await _runWithLock(
+      event: event,
+      cache: context.cache,
+      action: () async {
+        final slug = event.repository!.slug();
+        final prNumber = event.pullRequest!.number!;
+        try {
+          await context.wantLgtmReconciler?.reconcilePullRequest(
+            slug,
+            prNumber,
+            pullRequest: event.pullRequest,
+            triggerReason: event.action,
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on review request change $slug #$prNumber: $e\n$s',
+          );
+        }
       },
     );
   }
@@ -301,6 +350,7 @@ class PullRequestManager {
     required PullRequestLabelProcessorProvider
     pullRequestLabelProcessorProvider,
     required PullRequestEvent event,
+    WantLgtmReconciler? wantLgtmReconciler,
   }) async {
     final documentId = PullRequestState.getDocumentId(slug, prNumber);
     final name =
@@ -357,6 +407,7 @@ class PullRequestManager {
       scheduler: scheduler,
       gerritService: gerritService,
       pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
+      wantLgtmReconciler: wantLgtmReconciler,
       isPrivileged: isPrivileged,
       latestSha: latestSha,
       scheduledSha: scheduledSha,
@@ -405,6 +456,26 @@ class PullRequestManager {
     }
   }
 
+  Future<void> _reconcileWantLgtm(
+    String trigger, [
+    PullRequest? pullRequest,
+  ]) async {
+    if (wantLgtmReconciler != null) {
+      try {
+        await wantLgtmReconciler!.reconcilePullRequest(
+          slug,
+          prNumber,
+          pullRequest: pullRequest,
+          triggerReason: trigger,
+        );
+      } catch (e, s) {
+        log.error(
+          'Error reconciling WANT_LGTM in PullRequestManager ($trigger): $e\n$s',
+        );
+      }
+    }
+  }
+
   /// Handles PR opened event.
   Future<void> _handleOpened(PullRequestEvent event) async {
     final pr = event.pullRequest!;
@@ -422,6 +493,7 @@ class PullRequestManager {
 
     await checkForTests(event);
     await _tryReleaseApproval(event);
+    await _reconcileWantLgtm('opened', pr);
   }
 
   /// Handles PR synchronize event.
@@ -450,16 +522,19 @@ class PullRequestManager {
     }
 
     await checkForTests(event);
+    await _reconcileWantLgtm('synchronize', pr);
   }
 
   /// Handles PR edited event.
   Future<void> _handleEdited(PullRequestEvent event) async {
     await checkForTests(event);
+    await _reconcileWantLgtm('edited', event.pullRequest);
   }
 
   /// Handles PR ready_for_review event.
   Future<void> _handleReadyForReview(PullRequestEvent event) async {
     await checkForTests(event);
+    await _reconcileWantLgtm('ready_for_review', event.pullRequest);
   }
 
   /// Handles PR reopened event.
@@ -468,6 +543,7 @@ class PullRequestManager {
     await _warnThatANewCommitIsNeeded(event);
     await _processLabels(pr);
     await _updatePullRequest(pr);
+    await _reconcileWantLgtm('reopened', pr);
   }
 
   /// Handles PR labeled event.
@@ -1057,6 +1133,7 @@ class PullRequestEventContext {
   final Scheduler scheduler;
   final GerritService gerritService;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
+  final WantLgtmReconciler? wantLgtmReconciler;
 
   PullRequestEventContext({
     required this.cache,
@@ -1065,6 +1142,7 @@ class PullRequestEventContext {
     required this.scheduler,
     required this.gerritService,
     required this.pullRequestLabelProcessorProvider,
+    this.wantLgtmReconciler,
   });
 }
 
