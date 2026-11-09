@@ -35,14 +35,26 @@ void main() {
     });
 
     test('throws FormatException on invalid document ID format', () {
-      expect(
-        () => WantLgtmStateId.fromDocumentId('invalid_id'),
-        throwsFormatException,
-      );
-      expect(
-        () => WantLgtmStateId.fromDocumentId('flutter flutter 1 2'),
-        throwsFormatException,
-      );
+      for (final invalid in [
+        'invalid_id',
+        'flutter flutter 1 2',
+        'flutter  123',
+        '  123',
+        'flutter engine abc',
+        'flutter engine 0',
+        'flutter engine -5',
+      ]) {
+        expect(
+          () => WantLgtmStateId.fromDocumentId(invalid),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid WantLgtmState document ID:'),
+            ),
+          ),
+        );
+      }
     });
 
     test('equality and hashCode match for identical identifiers', () {

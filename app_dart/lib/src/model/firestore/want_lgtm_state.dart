@@ -17,13 +17,14 @@ final class WantLgtmStateId extends AppDocumentId<WantLgtmState> {
   /// The document ID format is `<owner> <name> <prNumber>` (space-delimited).
   factory WantLgtmStateId.fromDocumentId(String documentId) {
     final parts = documentId.split(' ');
-    if (parts.length != 3) {
+    if (parts.length != 3 || parts.any((part) => part.isEmpty)) {
       throw FormatException('Invalid WantLgtmState document ID: "$documentId"');
     }
-    return WantLgtmStateId(
-      slug: RepositorySlug(parts[0], parts[1]),
-      pr: int.parse(parts[2]),
-    );
+    final pr = int.tryParse(parts[2]);
+    if (pr == null || pr <= 0) {
+      throw FormatException('Invalid WantLgtmState document ID: "$documentId"');
+    }
+    return WantLgtmStateId(slug: RepositorySlug(parts[0], parts[1]), pr: pr);
   }
 
   final RepositorySlug slug;

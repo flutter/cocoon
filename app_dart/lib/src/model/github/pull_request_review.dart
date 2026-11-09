@@ -28,11 +28,11 @@ final class PullRequestReviewEvent extends HookEvent {
   factory PullRequestReviewEvent.fromJson(Map<String, dynamic> input) =>
       _$PullRequestReviewEventFromJson(input);
 
-  String? action;
-  PullRequestReview? review;
-  PullRequest? pullRequest;
-  Repository? repository;
-  User? sender;
+  final String? action;
+  final PullRequestReview? review;
+  final PullRequest? pullRequest;
+  final Repository? repository;
+  final User? sender;
 
   Map<String, dynamic> toJson() => _$PullRequestReviewEventToJson(this);
 
