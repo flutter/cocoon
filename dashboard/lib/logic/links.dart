@@ -60,6 +60,13 @@ List<CocoonLink> createCocoonLinks(BuildContext context) {
         await launchUrl(Uri.parse('https://github.com/flutter/cocoon'));
       },
     ),
+    CocoonLink(
+      name: 'Privacy Policy',
+      icon: const Icon(Icons.privacy_tip),
+      action: () async {
+        await launchUrl(Uri.parse('https://policies.google.com/privacy'));
+      },
+    ),
   ];
 }
 

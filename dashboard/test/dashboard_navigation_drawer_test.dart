@@ -37,6 +37,7 @@ void main() {
       expect(find.text('Framework Benchmarks'), findsOneWidget);
       expect(find.text('Engine Benchmarks'), findsOneWidget);
       expect(find.text('Source Code'), findsOneWidget);
+      expect(find.text('Privacy Policy'), findsOneWidget);
       await tester.drag(find.text('Source Code'), const Offset(0.0, -100));
       await tester.pump();
       expect(find.text('About Test'), findsOneWidget);
@@ -108,6 +109,25 @@ void main() {
 
       expect(urlLauncher.launches, isNotEmpty);
       expect(urlLauncher.launches.single, 'https://github.com/flutter/cocoon');
+    });
+
+    testWidgets('privacy policy opens google privacy policy url', (
+      WidgetTester tester,
+    ) async {
+      configureView(tester.view);
+      await tester.pumpWidget(
+        const MaterialApp(home: DashboardNavigationDrawer()),
+      );
+
+      expect(find.text('Privacy Policy'), findsOneWidget);
+      await tester.tap(find.text('Privacy Policy'));
+      await tester.pump();
+
+      expect(urlLauncher.launches, isNotEmpty);
+      expect(
+        urlLauncher.launches.single,
+        'https://policies.google.com/privacy',
+      );
     });
 
     testWidgets('current route shows highlighted', (WidgetTester tester) async {
