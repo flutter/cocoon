@@ -6,7 +6,7 @@ import 'want_lgtm_models.dart';
 
 const int _kMaxTitleLength = 255;
 
-String _capTitle(String title) {
+String _clampTitleLength(String title) {
   if (title.length <= _kMaxTitleLength) {
     return title;
   }
@@ -28,7 +28,7 @@ WantLgtmVerdict evaluateWantLgtm({
     ),
     InvalidWantLgtmDirective(:final invalidTokens) => WantLgtmInvalid(
       invalidTokens: invalidTokens,
-      title: _capTitle(
+      title: _clampTitleLength(
         'Invalid WANT_LGTM directive: ${invalidTokens.join(', ')}',
       ),
       summary:
@@ -51,22 +51,23 @@ Set<String> _resolveAllCohort(
   Set<String> rollerAccounts,
 ) {
   final normalizedAuthor = snapshot.authorLogin.trim().toLowerCase();
-  final normalizedRollers = rollerAccounts
-      .map((s) => s.trim().toLowerCase())
-      .toSet();
+  final normalizedRollers = <String>{
+    for (final s in rollerAccounts) s.trim().toLowerCase(),
+  };
 
   final timelineRequested = <String>{};
   for (final event in snapshot.timelineEvents) {
     final login = event.reviewerLogin.toLowerCase();
-    if (event.action == TimelineReviewAction.requested) {
-      timelineRequested.add(login);
-    } else {
-      timelineRequested.remove(login);
+    switch (event.action) {
+      case TimelineReviewAction.requested:
+        timelineRequested.add(login);
+      case TimelineReviewAction.removed:
+        timelineRequested.remove(login);
     }
   }
 
   return <String>{
-    ...snapshot.openReviewRequestLogins.map((s) => s.toLowerCase()),
+    for (final s in snapshot.openReviewRequestLogins) s.toLowerCase(),
     ...timelineRequested,
   }..removeWhere(
     (login) => login == normalizedAuthor || normalizedRollers.contains(login),
@@ -142,7 +143,7 @@ WantLgtmVerdict _buildVerdict({
     return WantLgtmPending(
       waitingOn: waitingOn,
       changesRequestedBy: changesRequestedBy,
-      title: _capTitle(title),
+      title: _clampTitleLength(title),
       summary: summaryBuffer.toString().trim(),
     );
   }
@@ -150,7 +151,7 @@ WantLgtmVerdict _buildVerdict({
   return WantLgtmSatisfied(
     approvedBy: approvedBy,
     latestApprovalAt: latestApprovalAt,
-    title: _capTitle('Approved by ${approvedBy.join(', ')}'),
+    title: _clampTitleLength('Approved by ${approvedBy.join(', ')}'),
     summary: 'All required reviewers have approved: ${approvedBy.join(', ')}',
   );
 }
@@ -161,7 +162,9 @@ WantLgtmVerdict _evaluateValidDirective({
   required WantLgtmGraphQLSnapshot snapshot,
   required Set<String> rollerAccounts,
 }) {
-  final requiredUsers = <String>{...explicitLogins.map((s) => s.toLowerCase())};
+  final requiredUsers = <String>{
+    for (final s in explicitLogins) s.toLowerCase(),
+  };
 
   if (requiresAll) {
     requiredUsers.addAll(_resolveAllCohort(snapshot, rollerAccounts));
@@ -226,12 +229,13 @@ WantLgtmReviewRecord? _findLatestReview(
     if (event.reviewerLogin.toLowerCase() != user) {
       continue;
     }
-    if (event.action == TimelineReviewAction.requested) {
-      isRequested = true;
-      latestRequestTime = event.createdAt;
-    } else if (event.action == TimelineReviewAction.removed) {
-      isRequested = false;
-      latestRequestTime = null;
+    switch (event.action) {
+      case TimelineReviewAction.requested:
+        isRequested = true;
+        latestRequestTime = event.createdAt;
+      case TimelineReviewAction.removed:
+        isRequested = false;
+        latestRequestTime = null;
     }
   }
 
