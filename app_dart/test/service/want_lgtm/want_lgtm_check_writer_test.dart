@@ -487,6 +487,111 @@ void main() {
     );
 
     test(
+      'writeWaivedCheckRun updates existingState checkRunId, headSha, and clears directive',
+      () async {
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final existingState = WantLgtmState.initialize(
+          slug: slug,
+          pr: prNumber,
+          headSha: 'old_sha_111',
+          checkRunId: 111222,
+          checkRunStatus: 'in_progress',
+          checkRunTitle: 'Waiting on alice',
+          directive: 'alice',
+        );
+        firestoreService.putDocument(existingState);
+
+        final state = await checkWriter.writeWaivedCheckRun(
+          slug: slug,
+          prNumber: prNumber,
+          checkRunId: 333444,
+          headSha: 'new_sha_222',
+          reason: 'PR closed',
+          existingState: existingState,
+        );
+
+        expect(state.checkRunId, 333444);
+        expect(state.headSha, 'new_sha_222');
+        expect(state.checkRunStatus, 'completed');
+        expect(state.checkRunConclusion, 'neutral');
+        expect(state.checkRunTitle, 'WANT_LGTM: waived (PR closed)');
+        expect(state.directive, isNull);
+
+        final saved = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: prNumber,
+        );
+        expect(saved, isNotNull);
+        expect(saved!.checkRunId, 333444);
+        expect(saved.headSha, 'new_sha_222');
+        expect(saved.directive, isNull);
+      },
+    );
+
+    test(
+      'writeRolledBackCheckRun updates existingState checkRunId and headSha',
+      () async {
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final existingState = WantLgtmState.initialize(
+          slug: slug,
+          pr: prNumber,
+          headSha: 'old_sha_111',
+          checkRunId: 111222,
+          checkRunStatus: 'in_progress',
+          checkRunTitle: 'Waiting on alice',
+          directive: 'alice',
+        );
+        firestoreService.putDocument(existingState);
+
+        final state = await checkWriter.writeRolledBackCheckRun(
+          slug: slug,
+          prNumber: prNumber,
+          checkRunId: 555666,
+          headSha: 'new_sha_222',
+          existingState: existingState,
+        );
+
+        expect(state.checkRunId, 555666);
+        expect(state.headSha, 'new_sha_222');
+        expect(state.checkRunStatus, 'completed');
+        expect(state.checkRunConclusion, 'neutral');
+        expect(state.checkRunTitle, 'WANT_LGTM: waived (feature rolled back)');
+
+        final saved = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: prNumber,
+        );
+        expect(saved, isNotNull);
+        expect(saved!.checkRunId, 555666);
+        expect(saved.headSha, 'new_sha_222');
+      },
+    );
+
+    test(
       'writeRolledBackCheckRun patches check run to completed neutral waived',
       () async {
         when(

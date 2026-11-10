@@ -38,6 +38,7 @@ final class WantLgtmCheckWriter {
       'id': checkRunId,
       'name': Config.kWantLgtmCheckName,
       'check_suite': const {'id': null},
+      // Required by CheckRun.fromJson (non-nullable DateTime); updateCheckRun only reads CheckRun.id.
       'started_at': DateTime.now().toUtc().toIso8601String(),
       'conclusion': null,
     });
@@ -112,6 +113,8 @@ final class WantLgtmCheckWriter {
       return existingState;
     }
 
+    // We cannot update in place when headSha changed or when reopening a
+    // terminal (completed) check run; terminal check runs must be re-created.
     final checkRun = await _githubChecksUtil.createCheckRun(
       _config,
       slug,
@@ -191,6 +194,8 @@ final class WantLgtmCheckWriter {
           checkRunTitle: title,
           checkRunConclusion: 'neutral',
         );
+    state.checkRunId = checkRunId;
+    state.headSha = headSha;
     state.checkRunStatus = 'completed';
     state.checkRunConclusion = 'neutral';
     state.checkRunTitle = title;
@@ -232,6 +237,8 @@ final class WantLgtmCheckWriter {
           checkRunTitle: title,
           checkRunConclusion: 'neutral',
         );
+    state.checkRunId = checkRunId;
+    state.headSha = headSha;
     state.checkRunStatus = 'completed';
     state.checkRunConclusion = 'neutral';
     state.checkRunTitle = title;
