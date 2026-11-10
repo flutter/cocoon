@@ -623,14 +623,7 @@ abstract base class _FakeInMemoryFirestoreService
   static void _validateFilterMap(Map<String, Object> filters) {
     for (final MapEntry(key: fieldAndOp, value: value) in filters.entries) {
       final [..., operator] = fieldAndOp.trim().split(' ');
-      if (operator == 'not-in' &&
-          (value is! List || value.isEmpty || value.length > 10)) {
-        throw ArgumentError.value(
-          value,
-          fieldAndOp,
-          'not-in requires a non-empty List of at most 10 elements.',
-        );
-      }
+      FirestoreService.validateNotInOrFail(operator, value, fieldAndOp);
     }
   }
 

@@ -46,7 +46,7 @@ const Map<String, String> kRelationMapping = <String, String>{
 };
 
 final kFieldMapRegExp = RegExp(
-  r'^([a-zA-Z0-9_\t ]+?)\s+('
+  r'^([\w\t ]+?)\s+('
   '${kRelationMapping.keys.map(RegExp.escape).join("|")}'
   r')\s*$',
 );
@@ -475,6 +475,25 @@ class FirestoreService with FirestoreQueries {
     return (comparisonOject as String).toValue();
   }
 
+  /// Validates Cloud Firestore's `NOT_IN` query limitation (non-empty [List] of
+  /// at most 10 comparison values) when [operator] is `'not-in'` or
+  /// [kFieldFilterOpNotIn].
+  static void validateNotInOrFail(
+    String operator,
+    Object? value, [
+    String? filterString,
+  ]) {
+    // Cloud Firestore limits `NOT_IN` filters to 1..10 comparison values.
+    if ((operator == 'not-in' || operator == kFieldFilterOpNotIn) &&
+        (value is! List || value.isEmpty || value.length > 10)) {
+      throw ArgumentError.value(
+        value,
+        filterString ?? operator,
+        'not-in requires a non-empty List of at most 10 elements.',
+      );
+    }
+  }
+
   /// Generates Firestore query filter based on "human" read conditions.
   Filter _generateFilter(
     Map<String, Object> filterMap,
@@ -491,16 +510,7 @@ class FirestoreService with FirestoreQueries {
       if (op == null) {
         throw ArgumentError("Invalid filter comparison in '$filterString'.");
       }
-      if (op == kFieldFilterOpNotIn &&
-          (comparisonOject is! List ||
-              comparisonOject.isEmpty ||
-              comparisonOject.length > 10)) {
-        throw ArgumentError.value(
-          comparisonOject,
-          filterString,
-          'not-in requires a non-empty List of at most 10 elements.',
-        );
-      }
+      validateNotInOrFail(op, comparisonOject, filterString);
 
       final value = _getValueFromFilter(comparisonOject);
       filters.add(
