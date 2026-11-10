@@ -251,24 +251,27 @@ final class WantLgtmCheckWriter {
   /// Sweeps in-progress WANT_LGTM states on disabled repositories and waives
   /// them as neutral.
   ///
-  /// States belonging to repositories where `flags.wantLgtm` is currently
-  /// enabled are skipped so per-repository rollbacks do not disturb active
-  /// repositories.
-  Future<int> sweepInProgressRuns({
-    RepositorySlug? slug,
-    bool dryRun = false,
-  }) async {
+  /// Active repositories in `flags.wantLgtm` are excluded at the Firestore
+  /// query layer via `not-in` so per-repository rollbacks do not read or
+  /// disturb active repositories.
+  Future<int> sweepInProgressRuns({bool dryRun = false}) async {
+    final wantLgtmFlags = _config.flags.wantLgtm;
+    if (wantLgtmFlags.enabled && wantLgtmFlags.useForAllRepos) {
+      return 0;
+    }
     final states = await WantLgtmState.queryInProgress(
       firestoreService: _firestoreService,
-      slug: slug,
+      excludedSlugs: wantLgtmFlags.enabled
+          ? wantLgtmFlags.enabledRepos
+          : const <String>[],
     );
     var sweptCount = 0;
     for (final state in states) {
-      if (_config.flags.wantLgtm.isEnabledForRepo(state.slug)) {
+      if (wantLgtmFlags.isEnabledForRepo(state.slug)) {
         continue;
       }
+      sweptCount++;
       if (dryRun) {
-        sweptCount++;
         continue;
       }
       try {
@@ -279,7 +282,6 @@ final class WantLgtmCheckWriter {
           headSha: state.headSha,
           existingState: state,
         );
-        sweptCount++;
       } catch (e, s) {
         log.error(
           'Failed to sweep WANT_LGTM check run on ${state.slug.fullName}#${state.pr}',

@@ -818,7 +818,7 @@ void main() {
         ]);
 
         final count = await checkWriter.sweepInProgressRuns();
-        expect(count, 1);
+        expect(count, 2);
 
         final pr1 = await WantLgtmState.fromFirestoreOrNull(
           firestoreService: firestoreService,

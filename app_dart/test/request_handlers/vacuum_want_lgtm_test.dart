@@ -71,7 +71,7 @@ void main() {
   });
 
   test(
-    'sweeps disabled repo in_progress runs and skips enabled repo',
+    'sweeps disabled repo in_progress runs and skips enabled and closed states',
     () async {
       firestore.putDocuments([
         WantLgtmState.initialize(
@@ -81,6 +81,14 @@ void main() {
           checkRunId: 7001,
           checkRunStatus: 'in_progress',
           checkRunTitle: 'Waiting on alice',
+        ),
+        WantLgtmState.initialize(
+          slug: flutterSlug,
+          pr: 102,
+          headSha: 'sha_closed',
+          checkRunId: 7003,
+          checkRunStatus: 'closed',
+          checkRunTitle: 'Waiting on carol',
         ),
         WantLgtmState.initialize(
           slug: cocoonSlug,
@@ -104,6 +112,13 @@ void main() {
       expect(flutterState?.checkRunStatus, 'completed');
       expect(flutterState?.checkRunConclusion, 'neutral');
 
+      final closedState = await WantLgtmState.fromFirestoreOrNull(
+        firestoreService: firestore,
+        slug: flutterSlug,
+        pr: 102,
+      );
+      expect(closedState?.checkRunStatus, 'closed');
+
       final cocoonState = await WantLgtmState.fromFirestoreOrNull(
         firestoreService: firestore,
         slug: cocoonSlug,
@@ -126,11 +141,11 @@ void main() {
     },
   );
 
-  test('filters sweep by specific repo query parameter', () async {
-    final packagesSlug = RepositorySlug('flutter', 'packages');
-    config.supportedReposValue = {flutterSlug, packagesSlug, cocoonSlug};
-
-    firestore.putDocuments([
+  test('returns 0 without querying when useForAllRepos is enabled', () async {
+    config.dynamicConfig = DynamicConfig(
+      wantLgtm: WantLgtmFlags(enabled: true, useForAllRepos: true),
+    );
+    firestore.putDocument(
       WantLgtmState.initialize(
         slug: flutterSlug,
         pr: 101,
@@ -139,34 +154,12 @@ void main() {
         checkRunStatus: 'in_progress',
         checkRunTitle: 'Waiting on alice',
       ),
-      WantLgtmState.initialize(
-        slug: packagesSlug,
-        pr: 303,
-        headSha: 'sha_packages',
-        checkRunId: 7003,
-        checkRunStatus: 'in_progress',
-        checkRunTitle: 'Waiting on carol',
-      ),
-    ]);
-
-    tester.request.uri = tester.request.uri.replace(
-      queryParameters: {'repo': 'flutter/flutter'},
     );
 
     final response = await tester.get(handler);
     expect(response.statusCode, 200);
-    expect(await decodeBody(response.body), {
-      'swept': 1,
-      'dry_run': false,
-      'repo': 'flutter/flutter',
-    });
-
-    final packagesState = await WantLgtmState.fromFirestoreOrNull(
-      firestoreService: firestore,
-      slug: packagesSlug,
-      pr: 303,
-    );
-    expect(packagesState?.checkRunStatus, 'in_progress');
+    expect(await decodeBody(response.body), {'swept': 0, 'dry_run': false});
+    verifyZeroInteractions(mockGithubChecksUtil);
   });
 
   test('supports dry_run=true without mutating GitHub or Firestore', () async {
@@ -209,30 +202,6 @@ void main() {
     expect(flutterState?.checkRunStatus, 'in_progress');
   });
 
-  test('returns 404 for unsupported repo', () async {
-    tester.request.uri = tester.request.uri.replace(
-      queryParameters: {'repo': 'flutter/unknown'},
-    );
-
-    final response = await tester.get(handler);
-    expect(response.statusCode, 404);
-    expect(await decodeBody(response.body), {
-      'error': 'repo not found: flutter/unknown',
-    });
-  });
-
-  test('returns 400 for malformed repo parameter', () async {
-    tester.request.uri = tester.request.uri.replace(
-      queryParameters: {'repo': 'invalid-slug'},
-    );
-
-    final response = await tester.get(handler);
-    expect(response.statusCode, 400);
-    expect(await decodeBody(response.body), {
-      'error': 'Invalid repo parameter: invalid-slug',
-    });
-  });
-
   test(
     'continues sweeping remaining PRs when one check run update fails',
     () async {
@@ -269,7 +238,7 @@ void main() {
 
       final response = await tester.get(handler);
       expect(response.statusCode, 200);
-      expect(await decodeBody(response.body), {'swept': 1, 'dry_run': false});
+      expect(await decodeBody(response.body), {'swept': 2, 'dry_run': false});
 
       final failedState = await WantLgtmState.fromFirestoreOrNull(
         firestoreService: firestore,
