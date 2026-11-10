@@ -25,6 +25,7 @@ const String kDatabase =
 const String kDocumentParent = '$kDatabase/documents';
 const String kFieldFilterOpEqual = 'EQUAL';
 const String kFieldFilterOpNotEqual = 'NOT_EQUAL';
+const String kFieldFilterOpNotIn = 'NOT_IN';
 const String kCompositeFilterOpAnd = 'AND';
 const String kCompositeFilterOpOr = 'OR';
 const String kQueryOrderDescending = 'DESCENDING';
@@ -35,17 +36,19 @@ const int kFilterStringSpaceSplitOpIndex = 1;
 
 const Map<String, String> kRelationMapping = <String, String>{
   '=': 'EQUAL',
-  '<': 'LESS_THAN',
   '<=': 'LESS_THAN_OR_EQUAL',
-  '>': 'GREATER_THAN',
+  '<': 'LESS_THAN',
   '>=': 'GREATER_THAN_OR_EQUAL',
+  '>': 'GREATER_THAN',
   '!=': 'NOT_EQUAL',
   '@>': 'ARRAY_CONTAINS',
+  'not-in': kFieldFilterOpNotIn,
 };
 
 final kFieldMapRegExp = RegExp(
-  r'([a-zA-Z0-9_\t ]+)'
-  '(${kRelationMapping.keys.join("|")})',
+  r'^([a-zA-Z0-9_\t ]+?)\s+('
+  '${kRelationMapping.keys.map(RegExp.escape).join("|")}'
+  r')\s*$',
 );
 
 @visibleForTesting
@@ -343,6 +346,10 @@ class FirestoreService with FirestoreQueries {
   }
 
   const FirestoreService._(this._api);
+
+  @visibleForTesting
+  const FirestoreService.forTesting(this._api);
+
   final FirestoreApi _api;
 
   /// Gets a document based on name.
@@ -462,6 +469,8 @@ class FirestoreService with FirestoreQueries {
       return comparisonOject.toValue();
     } else if (comparisonOject is bool) {
       return comparisonOject.toValue();
+    } else if (comparisonOject is List) {
+      return comparisonOject.toValue();
     }
     return (comparisonOject as String).toValue();
   }
@@ -478,8 +487,19 @@ class FirestoreService with FirestoreQueries {
         throw ArgumentError("Invalid filter string '$filterString'.");
       }
       final [name!, comparison!] = match.groups([1, 2]);
-      if (!kRelationMapping.containsKey(comparison)) {
+      final op = kRelationMapping[comparison];
+      if (op == null) {
         throw ArgumentError("Invalid filter comparison in '$filterString'.");
+      }
+      if (op == kFieldFilterOpNotIn &&
+          (comparisonOject is! List ||
+              comparisonOject.isEmpty ||
+              comparisonOject.length > 10)) {
+        throw ArgumentError.value(
+          comparisonOject,
+          filterString,
+          'not-in requires a non-empty List of at most 10 elements.',
+        );
       }
 
       final value = _getValueFromFilter(comparisonOject);
@@ -487,7 +507,7 @@ class FirestoreService with FirestoreQueries {
         Filter(
           fieldFilter: FieldFilter(
             field: FieldReference(fieldPath: '`${name.trim()}`'),
-            op: kRelationMapping[comparison],
+            op: op,
             value: value,
           ),
         ),
