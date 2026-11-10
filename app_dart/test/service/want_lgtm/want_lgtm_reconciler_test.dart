@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/want_lgtm_state.dart';
@@ -99,26 +97,6 @@ void main() {
     const prNumber = 123;
     const headSha = 'head_sha_123';
 
-    test('serializes operations for identical PR via withLock', () async {
-      final order = <int>[];
-      final completer = Completer<void>();
-
-      final op1 = reconciler.withLock(slug, prNumber, () async {
-        await completer.future;
-        order.add(1);
-      });
-
-      final op2 = reconciler.withLock(slug, prNumber, () async {
-        order.add(2);
-      });
-
-      // Complete op1 after op2 has been queued
-      completer.complete();
-      await Future.wait([op1, op2]);
-
-      expect(order, [1, 2]);
-    });
-
     test('skips when rollout flag is disabled and no existing state', () async {
       config.dynamicConfig = DynamicConfig(
         wantLgtm: WantLgtmFlags(
@@ -136,46 +114,44 @@ void main() {
       );
     });
 
-    test(
-      'waives active check run when rollout flag is disabled (rollback)',
-      () async {
-        config.dynamicConfig = DynamicConfig(
-          wantLgtm: WantLgtmFlags(enabled: false),
-        );
-        final existingState = WantLgtmState.initialize(
-          slug: slug,
-          pr: prNumber,
-          headSha: 'head_sha',
-          checkRunId: 888,
-          checkRunStatus: 'in_progress',
-          checkRunTitle: 'Waiting on alice',
-        );
-        firestoreService.putDocument(existingState);
+    test('waives active check run when rollout flag is disabled', () async {
+      config.dynamicConfig = DynamicConfig(
+        wantLgtm: WantLgtmFlags(enabled: false),
+      );
+      final existingState = WantLgtmState.initialize(
+        slug: slug,
+        pr: prNumber,
+        headSha: 'head_sha',
+        checkRunId: 888,
+        checkRunStatus: 'in_progress',
+        checkRunTitle: 'Waiting on alice',
+      );
+      firestoreService.putDocument(existingState);
 
-        when(
-          mockGithubChecksUtil.updateCheckRun(
-            any,
-            any,
-            any,
-            status: anyNamed('status'),
-            conclusion: anyNamed('conclusion'),
-            detailsUrl: anyNamed('detailsUrl'),
-            output: anyNamed('output'),
-          ),
-        ).thenAnswer((_) async {});
+      when(
+        mockGithubChecksUtil.updateCheckRun(
+          any,
+          any,
+          any,
+          status: anyNamed('status'),
+          conclusion: anyNamed('conclusion'),
+          detailsUrl: anyNamed('detailsUrl'),
+          output: anyNamed('output'),
+        ),
+      ).thenAnswer((_) async {});
 
-        final result = await reconciler.reconcilePullRequest(slug, prNumber);
-        expect(result, isA<WantLgtmReconcileSuccess>());
-        final success = result as WantLgtmReconcileSuccess;
-        expect(success.verdict, isA<WantLgtmSatisfied>());
-        expect(success.state.checkRunStatus, 'completed');
-        expect(success.state.checkRunConclusion, 'neutral');
-        expect(
-          success.state.checkRunTitle,
-          'WANT_LGTM: waived (feature rolled back)',
-        );
-      },
-    );
+      final result = await reconciler.reconcilePullRequest(slug, prNumber);
+      expect(result, isA<WantLgtmReconcileSuccess>());
+      final success = result as WantLgtmReconcileSuccess;
+      expect(success.verdict, isA<WantLgtmSatisfied>());
+      expect(success.verdict.title, 'WANT_LGTM: waived (feature disabled)');
+      expect(success.state.checkRunStatus, 'completed');
+      expect(success.state.checkRunConclusion, 'neutral');
+      expect(
+        success.state.checkRunTitle,
+        'WANT_LGTM: waived (feature disabled)',
+      );
+    });
 
     test('skips closed or merged pull requests', () async {
       fakeGraphQLClient.queryResultForOptions = (QueryOptions options) {
@@ -317,6 +293,14 @@ void main() {
           detailsUrl: 'https://github.com/flutter/flutter/pull/123',
         ),
       ).called(1);
+
+      // Reconciling a second time when already completed/neutral skips GitHub PATCH.
+      final secondResult = await reconciler.reconcilePullRequest(
+        slug,
+        prNumber,
+      );
+      expect(secondResult, isA<WantLgtmReconcileSuccess>());
+      verifyNoMoreInteractions(mockGithubChecksUtil);
     });
 
     test(

@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:cocoon_server/logging.dart';
 import 'package:github/github.dart';
 import 'package:meta/meta.dart';
@@ -55,64 +53,40 @@ interface class WantLgtmReconciler {
   final WantLgtmCheckWriter _checkWriter;
   final FirestoreService _firestoreService;
 
-  final Map<String, Future<void>> _locks = <String, Future<void>>{};
-
-  /// Serializes operations on the same pull request within this process.
-  @visibleForTesting
-  Future<T> withLock<T>(
-    RepositorySlug slug,
-    int prNumber,
-    Future<T> Function() action,
-  ) async {
-    final key = '${slug.fullName}/$prNumber';
-    final current = _locks[key] ?? Future<void>.value();
-    final completer = Completer<void>();
-    _locks[key] = completer.future;
-    try {
-      await current;
-      return await action();
-    } finally {
-      completer.complete();
-      if (identical(_locks[key], completer.future)) {
-        unawaited(_locks.remove(key));
-      }
-    }
-  }
-
   /// Reconciles the WANT_LGTM check run for a pull request.
+  ///
+  /// Callers should hold the distributed PR lock via `PullRequestManager.runWithPrLock`.
   Future<WantLgtmReconcileResult> reconcilePullRequest(
     RepositorySlug slug,
     int prNumber, {
     PullRequest? pullRequest,
     String? triggerReason,
   }) async {
-    return withLock(slug, prNumber, () async {
-      final isEnabled = _config.flags.wantLgtm.isEnabledForRepo(slug);
+    final isEnabled = _config.flags.wantLgtm.isEnabledForRepo(slug);
 
-      final existingState = await WantLgtmState.fromFirestoreOrNull(
-        firestoreService: _firestoreService,
-        slug: slug,
-        pr: prNumber,
+    final existingState = await WantLgtmState.fromFirestoreOrNull(
+      firestoreService: _firestoreService,
+      slug: slug,
+      pr: prNumber,
+    );
+
+    if (!isEnabled) {
+      return _reconcileDisabled(slug, prNumber, existingState);
+    }
+
+    if (pullRequest != null) {
+      final fastPathResult = await _tryFastPath(
+        slug,
+        prNumber,
+        pullRequest,
+        existingState,
       );
-
-      if (!isEnabled) {
-        return _reconcileDisabled(slug, prNumber, existingState);
+      if (fastPathResult != null) {
+        return fastPathResult;
       }
+    }
 
-      if (pullRequest != null) {
-        final fastPathResult = await _tryFastPath(
-          slug,
-          prNumber,
-          pullRequest,
-          existingState,
-        );
-        if (fastPathResult != null) {
-          return fastPathResult;
-        }
-      }
-
-      return _reconcileSnapshot(slug, prNumber, existingState);
-    });
+    return _reconcileSnapshot(slug, prNumber, existingState);
   }
 
   Future<WantLgtmReconcileResult> _reconcileDisabled(
@@ -125,18 +99,19 @@ interface class WantLgtmReconciler {
       log.info(
         'WANT_LGTM disabled for $slug. Waiving open check run on #$prNumber',
       );
-      final state = await _checkWriter.writeRolledBackCheckRun(
+      final state = await _checkWriter.writeWaivedCheckRun(
         slug: slug,
         prNumber: prNumber,
         checkRunId: existingState.checkRunId,
         headSha: existingState.headSha,
+        reason: 'feature disabled',
         existingState: existingState,
       );
       return WantLgtmReconcileSuccess(
         verdict: const WantLgtmSatisfied(
           approvedBy: [],
           latestApprovalAt: null,
-          title: 'WANT_LGTM: waived (feature rolled back)',
+          title: 'WANT_LGTM: waived (feature disabled)',
           summary:
               'WANT_LGTM rollout flag is disabled for this repository. Check run waived.',
         ),
@@ -202,6 +177,19 @@ interface class WantLgtmReconciler {
     WantLgtmState? existingState,
   ) async {
     if (existingState != null) {
+      if (existingState.checkRunStatus == 'completed' &&
+          existingState.checkRunConclusion == 'neutral') {
+        return WantLgtmReconcileSuccess(
+          verdict: const WantLgtmSatisfied(
+            approvedBy: [],
+            latestApprovalAt: null,
+            title: 'WANT_LGTM: waived (directive removed)',
+            summary: 'WANT_LGTM directive was removed.',
+          ),
+          state: existingState,
+        );
+      }
+
       log.info(
         'WANT_LGTM directive removed on $slug #$prNumber; waiving check run to neutral',
       );
