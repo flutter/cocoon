@@ -306,7 +306,7 @@ void main() {
           message: 'Checks requested for merge group',
           repository: 'flutter/flutter',
           headSha: headSha,
-          headRef: 'refs/heads/gh-readonly-queue/master/pr-42-sha123',
+          headRef: 'refs/heads/gh-readonly-queue/master/pr-42-deadbeef1234',
         );
 
         final response = await tester.post(webhook);
@@ -336,7 +336,7 @@ void main() {
           message: 'Checks requested for merge group',
           repository: 'flutter/flutter',
           headSha: headSha,
-          headRef: 'refs/heads/gh-readonly-queue/master/pr-42-sha123',
+          headRef: 'refs/heads/gh-readonly-queue/master/pr-42-deadbeef1234',
         );
 
         final response = await tester.post(webhook);

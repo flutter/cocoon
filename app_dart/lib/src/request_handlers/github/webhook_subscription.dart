@@ -23,8 +23,6 @@ import '../../request_handling/subscription_handler.dart';
 import '../../service/commit_service.dart';
 import '../../service/scheduler/process_check_run_result.dart';
 
-final _kMergeGroupPrRegex = RegExp(r'/pr-(\d+)-');
-
 /// Subscription for processing GitHub webhooks.
 ///
 /// The PubSub subscription is set up here:
@@ -177,7 +175,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       scheduler: scheduler,
       gerritService: gerritService,
       pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
-      wantLgtmReconciler: await _getReconciler(slug),
+      wantLgtmReconciler: await _getReconciler(slug, prNumber: pr.number),
     );
 
     // See the API reference:
@@ -247,35 +245,40 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   Future<Response> _handleCheckRun(String rawRequest) async {
     final event = jsonDecode(rawRequest) as Map<String, dynamic>;
     final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
-    if (checkRunEvent.checkRun?.name == Config.kWantLgtmCheckName) {
+    final checkRun = checkRunEvent.checkRun;
+    if (checkRun?.name == Config.kWantLgtmCheckName) {
       if (checkRunEvent.action == 'rerequested') {
-        var prNumber =
-            checkRunEvent.checkRun?.pullRequests?.firstOrNull?.number;
-        if (prNumber == null && checkRunEvent.checkRun?.id != null) {
+        final checkRunId = checkRun?.id;
+        var prNumber = checkRun?.pullRequests?.firstOrNull?.number;
+        if (prNumber == null && checkRunId != null) {
           final state = await WantLgtmState.findByCheckRunId(
             firestoreService: firestore,
-            checkRunId: checkRunEvent.checkRun!.id!,
+            checkRunId: checkRunId,
           );
           prNumber = state?.pr;
         }
         final repository = checkRunEvent.repository;
         if (prNumber != null && repository != null) {
           final slug = repository.slug();
+          final targetPrNumber = prNumber;
           await PullRequestManager.runWithPrLock<void>(
             slug: slug,
-            prNumber: prNumber,
+            prNumber: targetPrNumber,
             cache: cache,
             action: () async {
               try {
-                final reconciler = await _getReconciler(slug);
+                final reconciler = await _getReconciler(
+                  slug,
+                  prNumber: targetPrNumber,
+                );
                 await reconciler?.reconcilePullRequest(
                   slug,
-                  prNumber!,
+                  targetPrNumber,
                   triggerReason: 'check_run_rerequested',
                 );
               } catch (e, s) {
                 log.error(
-                  'Error reconciling WANT_LGTM on check_run rerequested $slug #$prNumber: $e\n$s',
+                  'Error reconciling WANT_LGTM on check_run rerequested $slug #$targetPrNumber: $e\n$s',
                 );
               }
             },
@@ -372,8 +375,10 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
     if (config.flags.wantLgtm.isEnabledForRepo(slug)) {
       try {
-        final match = _kMergeGroupPrRegex.firstMatch(mergeGroup.headRef);
-        final prNumber = match != null ? int.parse(match.group(1)!) : 0;
+        final headBranch = mergeGroup.headRef.replaceFirst('refs/heads/', '');
+        final (:parsed, :pullRequestNumber, branch: _) =
+            tryParseGitHubMergeQueueBranch(headBranch);
+        final prNumber = parsed ? pullRequestNumber : 0;
         final reconciler = await _getReconciler(slug);
         await reconciler?.reconcileMergeGroup(
           slug: slug,
@@ -536,11 +541,15 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     }
   }
 
-  Future<WantLgtmReconciler?> _getReconciler(RepositorySlug slug) async {
+  Future<WantLgtmReconciler?> _getReconciler(
+    RepositorySlug slug, {
+    int? prNumber,
+  }) async {
     if (wantLgtmReconciler != null) {
       return wantLgtmReconciler;
     }
-    if (!config.flags.wantLgtm.isEnabledForRepo(slug)) {
+    if (!config.flags.wantLgtm.isEnabledForRepo(slug) &&
+        !await _hasInProgressWantLgtmState(slug, prNumber)) {
       return null;
     }
     final graphQLClient = await config.createGitHubGraphQLClient();
@@ -556,6 +565,21 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     );
   }
 
+  Future<bool> _hasInProgressWantLgtmState(
+    RepositorySlug slug,
+    int? prNumber,
+  ) async {
+    if (prNumber == null) {
+      return false;
+    }
+    final existing = await WantLgtmState.fromFirestoreOrNull(
+      firestoreService: firestore,
+      slug: slug,
+      pr: prNumber,
+    );
+    return existing != null && existing.checkRunStatus == 'in_progress';
+  }
+
   Future<Response> _handlePullRequestReview(String rawRequest) async {
     final event = jsonDecode(rawRequest) as Map<String, dynamic>;
     final reviewEvent = PullRequestReviewEvent.fromJson(event);
@@ -565,7 +589,8 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     }
     final repository = reviewEvent.repository;
     final pr = reviewEvent.pullRequest;
-    if (repository == null || pr == null || pr.number == null) {
+    final prNumber = pr?.number;
+    if (repository == null || pr == null || prNumber == null) {
       log.warn(
         '$GithubWebhookSubscription._handlePullRequestReview: missing repo or pr',
       );
@@ -574,18 +599,17 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     final slug = repository.slug();
     if (!config.supportedRepos.contains(slug)) {
       log.warn(
-        '$GithubWebhookSubscription._handlePullRequestReview: asked to handle unsupported repo $slug for pr ${pr.number}',
+        '$GithubWebhookSubscription._handlePullRequestReview: asked to handle unsupported repo $slug for pr $prNumber',
       );
       throw const InternalServerError('Unsupported repository');
     }
-    final prNumber = pr.number!;
     return await PullRequestManager.runWithPrLock<Response>(
       slug: slug,
       prNumber: prNumber,
       cache: cache,
       action: () async {
         try {
-          final reconciler = await _getReconciler(slug);
+          final reconciler = await _getReconciler(slug, prNumber: prNumber);
           await reconciler?.reconcilePullRequest(
             slug,
             prNumber,
