@@ -293,48 +293,8 @@ class PullRequestManager {
       event: event,
       cache: context.cache,
       action: () async {
-        final slug = event.repository!.slug();
-        final prNumber = event.pullRequest!.number!;
-        try {
-          await context.wantLgtmReconciler?.reconcilePullRequest(
-            slug,
-            prNumber,
-            pullRequest: event.pullRequest,
-            triggerReason: 'closed',
-          );
-        } catch (e, s) {
-          log.error(
-            'Error reconciling WANT_LGTM on closed PR $slug #$prNumber: $e\n$s',
-          );
-        }
         final result = await processClosedFn(event);
         return result.toResponse();
-      },
-    );
-  }
-
-  static Future<void> handleReviewRequestChanged(
-    PullRequestEvent event,
-    PullRequestEventContext context,
-  ) async {
-    await _runWithLock(
-      event: event,
-      cache: context.cache,
-      action: () async {
-        final slug = event.repository!.slug();
-        final prNumber = event.pullRequest!.number!;
-        try {
-          await context.wantLgtmReconciler?.reconcilePullRequest(
-            slug,
-            prNumber,
-            pullRequest: event.pullRequest,
-            triggerReason: event.action,
-          );
-        } catch (e, s) {
-          log.error(
-            'Error reconciling WANT_LGTM on review request change $slug #$prNumber: $e\n$s',
-          );
-        }
       },
     );
   }

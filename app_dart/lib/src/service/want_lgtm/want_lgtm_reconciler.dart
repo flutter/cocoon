@@ -74,19 +74,29 @@ interface class WantLgtmReconciler {
       return _reconcileDisabled(slug, prNumber, existingState);
     }
 
+    // Recreate a fresh check run when a closed PR is reopened rather than
+    // updating a stale pre-close check run in place.
+    final stateForUpdate = triggerReason == 'reopened' ? null : existingState;
+
     if (pullRequest != null) {
       final fastPathResult = await _tryFastPath(
         slug,
         prNumber,
         pullRequest,
-        existingState,
+        existingState: existingState,
+        stateForUpdate: stateForUpdate,
       );
       if (fastPathResult != null) {
         return fastPathResult;
       }
     }
 
-    return _reconcileSnapshot(slug, prNumber, existingState);
+    return _reconcileSnapshot(
+      slug,
+      prNumber,
+      existingState: existingState,
+      stateForUpdate: stateForUpdate,
+    );
   }
 
   Future<WantLgtmReconcileResult> _reconcileDisabled(
@@ -124,16 +134,12 @@ interface class WantLgtmReconciler {
   Future<WantLgtmReconcileResult?> _tryFastPath(
     RepositorySlug slug,
     int prNumber,
-    PullRequest pullRequest,
-    WantLgtmState? existingState,
-  ) async {
+    PullRequest pullRequest, {
+    required WantLgtmState? existingState,
+    required WantLgtmState? stateForUpdate,
+  }) async {
     if (pullRequest.state == 'closed') {
-      return _handleClosedPr(
-        slug,
-        prNumber,
-        pullRequest.head?.sha,
-        existingState,
-      );
+      return const WantLgtmReconcileSkipped(reason: 'PR is closed or merged');
     }
 
     final authorLogin = pullRequest.user?.login ?? '';
@@ -159,7 +165,7 @@ interface class WantLgtmReconciler {
         prNumber: prNumber,
         headSha: pullRequest.head?.sha ?? '',
         verdict: verdict,
-        existingState: existingState,
+        existingState: stateForUpdate,
       );
       return WantLgtmReconcileSuccess(verdict: verdict, state: state);
     }
@@ -218,18 +224,14 @@ interface class WantLgtmReconciler {
 
   Future<WantLgtmReconcileResult> _reconcileSnapshot(
     RepositorySlug slug,
-    int prNumber,
-    WantLgtmState? existingState,
-  ) async {
+    int prNumber, {
+    required WantLgtmState? existingState,
+    required WantLgtmState? stateForUpdate,
+  }) async {
     final snapshot = await _graphQLClient.fetchSnapshot(slug, prNumber);
 
     if (snapshot.prState == 'CLOSED' || snapshot.prState == 'MERGED') {
-      return _handleClosedPr(
-        slug,
-        prNumber,
-        snapshot.headRefOid,
-        existingState,
-      );
+      return const WantLgtmReconcileSkipped(reason: 'PR is closed or merged');
     }
 
     final directive = parseWantLgtmDirective(
@@ -263,43 +265,11 @@ interface class WantLgtmReconciler {
       prNumber: prNumber,
       headSha: snapshot.headRefOid,
       verdict: verdict,
-      existingState: existingState,
+      existingState: stateForUpdate,
       directive: directiveStr,
     );
 
     return WantLgtmReconcileSuccess(verdict: verdict, state: state);
-  }
-
-  Future<WantLgtmReconcileResult> _handleClosedPr(
-    RepositorySlug slug,
-    int prNumber,
-    String? headSha,
-    WantLgtmState? existingState,
-  ) async {
-    if (existingState != null &&
-        existingState.checkRunStatus == 'in_progress') {
-      log.info(
-        'PR $slug #$prNumber closed/merged; waiving open WANT_LGTM check run to neutral',
-      );
-      final state = await _checkWriter.writeWaivedCheckRun(
-        slug: slug,
-        prNumber: prNumber,
-        checkRunId: existingState.checkRunId,
-        headSha: headSha ?? existingState.headSha,
-        reason: 'PR closed',
-        existingState: existingState,
-      );
-      return WantLgtmReconcileSuccess(
-        verdict: const WantLgtmSatisfied(
-          approvedBy: [],
-          latestApprovalAt: null,
-          title: 'WANT_LGTM: waived (PR closed)',
-          summary: 'Pull request was closed or merged.',
-        ),
-        state: state,
-      );
-    }
-    return const WantLgtmReconcileSkipped(reason: 'PR is closed or merged');
   }
 
   /// Automatically waives the WANT_LGTM check run for a merge group commit.

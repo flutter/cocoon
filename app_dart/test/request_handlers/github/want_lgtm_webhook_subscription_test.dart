@@ -180,7 +180,7 @@ void main() {
       });
     }
 
-    test('routes action closed to reconciler', () async {
+    test('ignores action closed without invoking reconciler', () async {
       tester.message = generateGithubWebhookMessage(
         action: 'closed',
         number: prNumber,
@@ -191,11 +191,7 @@ void main() {
 
       final response = await tester.post(webhook);
       expect(response, same(Response.emptyOk));
-      expect(fakeReconciler.prCalls, hasLength(1));
-      final call = fakeReconciler.prCalls.single;
-      expect(call.slug, slug);
-      expect(call.prNumber, prNumber);
-      expect(call.triggerReason, 'closed');
+      expect(fakeReconciler.prCalls, isEmpty);
     });
   });
 
@@ -295,6 +291,33 @@ void main() {
       expect(fakeReconciler.prCalls, isEmpty);
       verify(scheduler.processCheckRun(any)).called(1);
     });
+
+    test(
+      'rerequested WANT_LGTM on disabled repo with prNumber 0 skips Firestore lookup',
+      () async {
+        config.dynamicConfig = DynamicConfig(
+          wantLgtm: WantLgtmFlags(enabled: false),
+        );
+        final uninjectedWebhook = GithubWebhookSubscription(
+          cache: CacheService.inMemory(),
+          config: config,
+          scheduler: scheduler,
+          gerritService: gerritService,
+          commitService: commitService,
+          firestore: firestore,
+        );
+        tester.message = _createCheckRunMessage(
+          action: 'rerequested',
+          checkName: Config.kWantLgtmCheckName,
+          slug: slug,
+          prNumber: 0,
+        );
+
+        final response = await tester.post(uninjectedWebhook);
+        expect(response, same(Response.emptyOk));
+        verifyNever(scheduler.processCheckRun(any));
+      },
+    );
   });
 
   group('merge_group routing with WANT_LGTM', () {

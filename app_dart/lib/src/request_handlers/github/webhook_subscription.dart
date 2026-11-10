@@ -226,10 +226,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         break;
       case 'review_request_removed':
       case 'review_requested':
-        await PullRequestManager.handleReviewRequestChanged(
-          pullRequestEvent,
-          context,
-        );
+        await _handleReviewRequestChanged(pullRequestEvent, context);
         break;
       // Ignore the rest of the events.
       case 'unlabeled':
@@ -242,53 +239,93 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     return Response.emptyOk;
   }
 
+  Future<void> _handleReviewRequestChanged(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    final prNumber = event.pullRequest?.number;
+    final repository = event.repository;
+    if (prNumber == null || repository == null) {
+      return;
+    }
+    final slug = repository.slug();
+    await PullRequestManager.runWithPrLock<void>(
+      slug: slug,
+      prNumber: prNumber,
+      cache: cache,
+      action: () async {
+        try {
+          await context.wantLgtmReconciler?.reconcilePullRequest(
+            slug,
+            prNumber,
+            pullRequest: event.pullRequest,
+            triggerReason: event.action,
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on review request change $slug #$prNumber: $e\n$s',
+          );
+        }
+      },
+    );
+  }
+
   Future<Response> _handleCheckRun(String rawRequest) async {
     final event = jsonDecode(rawRequest) as Map<String, dynamic>;
     final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
     final checkRun = checkRunEvent.checkRun;
     if (checkRun?.name == Config.kWantLgtmCheckName) {
-      if (checkRunEvent.action == 'rerequested') {
-        final checkRunId = checkRun?.id;
-        var prNumber = checkRun?.pullRequests?.firstOrNull?.number;
-        if (prNumber == null && checkRunId != null) {
-          final state = await WantLgtmState.findByCheckRunId(
-            firestoreService: firestore,
-            checkRunId: checkRunId,
-          );
-          prNumber = state?.pr;
-        }
-        final repository = checkRunEvent.repository;
-        if (prNumber != null && repository != null) {
-          final slug = repository.slug();
-          final targetPrNumber = prNumber;
-          await PullRequestManager.runWithPrLock<void>(
-            slug: slug,
-            prNumber: targetPrNumber,
-            cache: cache,
-            action: () async {
-              try {
-                final reconciler = await _getReconciler(
-                  slug,
-                  prNumber: targetPrNumber,
-                );
-                await reconciler?.reconcilePullRequest(
-                  slug,
-                  targetPrNumber,
-                  triggerReason: 'check_run_rerequested',
-                );
-              } catch (e, s) {
-                log.error(
-                  'Error reconciling WANT_LGTM on check_run rerequested $slug #$targetPrNumber: $e\n$s',
-                );
-              }
-            },
-          );
-        }
-      }
-      return Response.emptyOk;
+      return _handleWantLgtmCheckRun(checkRunEvent);
     }
     final result = await scheduler.processCheckRun(checkRunEvent);
     return result.toResponse();
+  }
+
+  Future<Response> _handleWantLgtmCheckRun(
+    cocoon_checks.CheckRunEvent checkRunEvent,
+  ) async {
+    if (checkRunEvent.action != 'rerequested') {
+      return Response.emptyOk;
+    }
+    final checkRun = checkRunEvent.checkRun;
+    final checkRunId = checkRun?.id;
+    var prNumber = checkRun?.pullRequests?.firstOrNull?.number;
+    if (prNumber == null && checkRunId != null) {
+      final state = await WantLgtmState.findByCheckRunId(
+        firestoreService: firestore,
+        checkRunId: checkRunId,
+      );
+      prNumber = state?.pr;
+    }
+    final repository = checkRunEvent.repository;
+    if (prNumber == null || repository == null) {
+      return Response.emptyOk;
+    }
+    final slug = repository.slug();
+    final targetPrNumber = prNumber;
+    await PullRequestManager.runWithPrLock<void>(
+      slug: slug,
+      prNumber: targetPrNumber,
+      cache: cache,
+      action: () async {
+        try {
+          final reconciler = await _getReconciler(
+            slug,
+            prNumber: targetPrNumber,
+          );
+          await reconciler?.reconcilePullRequest(
+            slug,
+            targetPrNumber,
+            triggerReason: 'check_run_rerequested',
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on check_run rerequested $slug #$targetPrNumber: $e\n$s',
+          );
+        }
+      },
+    );
+    return Response.emptyOk;
   }
 
   /// Handles a GitHub webhook with the event type "merge_group".
@@ -569,7 +606,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     RepositorySlug slug,
     int? prNumber,
   ) async {
-    if (prNumber == null) {
+    if (prNumber == null || prNumber <= 0) {
       return false;
     }
     final existing = await WantLgtmState.fromFirestoreOrNull(
