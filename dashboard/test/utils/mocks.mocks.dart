@@ -995,6 +995,67 @@ class MockFirebaseAnalyticsService extends _i1.Mock
   }
 
   @override
+  bool get showConsentBanner =>
+      (super.noSuchMethod(
+            Invocation.getter(#showConsentBanner),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get isConsentGranted =>
+      (super.noSuchMethod(
+            Invocation.getter(#isConsentGranted),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get hasListeners =>
+      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
+          as bool);
+
+  @override
+  _i8.Future<void> setDefaultConsent() =>
+      (super.noSuchMethod(
+            Invocation.method(#setDefaultConsent, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> acceptConsent() =>
+      (super.noSuchMethod(
+            Invocation.method(#acceptConsent, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> rejectConsent() =>
+      (super.noSuchMethod(
+            Invocation.method(#rejectConsent, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> setConsent({
+    required bool? analyticsStorageConsentGranted,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setConsent, [], {
+              #analyticsStorageConsentGranted: analyticsStorageConsentGranted,
+            }),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
   _i8.Future<void> logPresubmitPageOpen({
     required String? repo,
     String? pr,
@@ -1094,6 +1155,30 @@ class MockFirebaseAnalyticsService extends _i1.Mock
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+    Invocation.method(#addListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
+    Invocation.method(#removeListener, [listener]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void dispose() => super.noSuchMethod(
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+    Invocation.method(#notifyListeners, []),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [FirebaseAnalytics].

@@ -20,6 +20,7 @@ import 'state/presubmit.dart';
 import 'views/build_dashboard_page.dart';
 import 'views/presubmit_view.dart';
 import 'views/tree_status_page.dart';
+import 'widgets/cookie_consent_banner.dart';
 import 'widgets/now.dart';
 import 'widgets/state_provider.dart';
 import 'widgets/task_box.dart';
@@ -72,6 +73,7 @@ void main([List<String> args = const <String>[]]) async {
   }
 
   final analyticsService = FirebaseAnalyticsService();
+  await analyticsService.setDefaultConsent();
 
   final cocoonService = CocoonService(
     useProductionService: useProductionService,
@@ -79,6 +81,7 @@ void main([List<String> args = const <String>[]]) async {
   runApp(
     StateProvider(
       signInService: authService,
+      analyticsService: analyticsService,
       buildState: BuildState(
         authService: authService,
         cocoonService: cocoonService,
@@ -113,6 +116,19 @@ class MyApp extends StatelessWidget {
           ),
         ),
         darkTheme: ThemeData.dark(),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              ?child,
+              const Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: CookieConsentBanner(),
+              ),
+            ],
+          );
+        },
 
         // The default page is the build dashboard.
         initialRoute: BuildDashboardPage.routeName,

@@ -4,17 +4,108 @@
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service class for logging analytics events to Firebase Analytics.
 ///
 /// Operations with the plugin are caught to prevent analytics errors from
 /// crashing the application.
-class FirebaseAnalyticsService {
-  FirebaseAnalyticsService({FirebaseAnalytics? analytics})
-    : _analytics = analytics;
+class FirebaseAnalyticsService extends ChangeNotifier {
+  FirebaseAnalyticsService({
+    FirebaseAnalytics? analytics,
+    SharedPreferences? preferences,
+  }) : _analytics = analytics,
+       _preferences = preferences;
+
+  static const String consentPreferenceKey = 'analytics_consent_granted';
 
   final FirebaseAnalytics? _analytics;
+  SharedPreferences? _preferences;
+
+  bool _showConsentBanner = true;
+  bool _consentGranted = false;
+
+  /// Whether the cookie consent banner should be displayed to the user.
+  bool get showConsentBanner => _showConsentBanner;
+
+  /// Whether the user has explicitly granted analytics consent.
+  bool get isConsentGranted => _consentGranted;
+
+  Future<SharedPreferences> _getPreferences() async {
+    return _preferences ??= await SharedPreferences.getInstance();
+  }
+
+  /// Loads any persisted consent decision, or sets the default consent state
+  /// to 'denied' and disables the analytics SDK when the app first loads.
+  ///
+  /// This ensures no analytics telemetry or cookies are collected before the
+  /// user explicitly clicks "Accept".
+  Future<void> setDefaultConsent() async {
+    bool? storedConsent;
+    try {
+      final prefs = await _getPreferences();
+      storedConsent = prefs.getBool(consentPreferenceKey);
+    } catch (error) {
+      debugPrint('analytics failed to read consent preference: $error');
+    }
+
+    if (storedConsent != null) {
+      _showConsentBanner = false;
+      notifyListeners();
+      await setConsent(analyticsStorageConsentGranted: storedConsent);
+    } else {
+      await setConsent(analyticsStorageConsentGranted: false);
+    }
+  }
+
+  /// Enables the analytics SDK and data collection after the user explicitly
+  /// clicks "Accept", and persists the choice.
+  Future<void> acceptConsent() async {
+    _showConsentBanner = false;
+    notifyListeners();
+    await _saveConsentPreference(true);
+    await setConsent(analyticsStorageConsentGranted: true);
+  }
+
+  /// Keeps the analytics SDK disabled and consent denied after the user clicks
+  /// "Reject", and persists the choice.
+  Future<void> rejectConsent() async {
+    _showConsentBanner = false;
+    notifyListeners();
+    await _saveConsentPreference(false);
+    await setConsent(analyticsStorageConsentGranted: false);
+  }
+
+  Future<void> _saveConsentPreference(bool granted) async {
+    try {
+      final prefs = await _getPreferences();
+      await prefs.setBool(consentPreferenceKey, granted);
+    } catch (error) {
+      debugPrint('analytics failed to save consent preference: $error');
+    }
+  }
+
+  /// Updates the Firebase Analytics consent state and enables or disables the
+  /// analytics SDK accordingly.
+  Future<void> setConsent({
+    required bool analyticsStorageConsentGranted,
+  }) async {
+    _consentGranted = analyticsStorageConsentGranted;
+    try {
+      final analytics =
+          _analytics ??
+          (Firebase.apps.isNotEmpty ? FirebaseAnalytics.instance : null);
+      await analytics?.setAnalyticsCollectionEnabled(
+        analyticsStorageConsentGranted,
+      );
+      await analytics?.setConsent(
+        analyticsStorageConsentGranted: analyticsStorageConsentGranted,
+      );
+    } catch (error) {
+      debugPrint('analytics setConsent failed: $error');
+    }
+  }
 
   Future<void> logPresubmitPageOpen({
     required String repo,
@@ -98,6 +189,9 @@ class FirebaseAnalyticsService {
     required String name,
     Map<String, Object>? parameters,
   }) async {
+    if (!_consentGranted) {
+      return;
+    }
     try {
       final analytics =
           _analytics ??
