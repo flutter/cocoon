@@ -46,7 +46,7 @@ const Map<String, String> kRelationMapping = <String, String>{
 };
 
 final kFieldMapRegExp = RegExp(
-  r'^([\w\t ]+?)\s+('
+  r'^\s*(\w+)\s+('
   '${kRelationMapping.keys.map(RegExp.escape).join("|")}'
   r')\s*$',
 );
@@ -516,7 +516,7 @@ class FirestoreService with FirestoreQueries {
       filters.add(
         Filter(
           fieldFilter: FieldFilter(
-            field: FieldReference(fieldPath: '`${name.trim()}`'),
+            field: FieldReference(fieldPath: '`$name`'),
             op: op,
             value: value,
           ),

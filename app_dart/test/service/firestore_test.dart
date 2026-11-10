@@ -188,6 +188,12 @@ void main() {
           }),
           throwsArgumentError,
         );
+        expect(
+          () => realService.query('wantLgtmStates', {
+            'field with spaces =': 'val',
+          }),
+          throwsArgumentError,
+        );
       },
     );
   });
