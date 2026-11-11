@@ -47,4 +47,10 @@ orderedPresubmit:
   useForAll: true
   useForUsers:
     - ievdokdm
+
+# Whether to block PR merge until all requested or explicit reviewers have approved.
+wantLgtm:
+  enabled: false
+  useForAllRepos: false
+  enabledRepos: []
 ''';
