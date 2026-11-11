@@ -20,6 +20,7 @@ import 'src/request_handlers/trigger_workflow.dart';
 import 'src/request_handlers/update_discord_status.dart';
 import 'src/request_handlers/update_suppressed_test.dart';
 import 'src/request_handlers/update_tree_status.dart';
+import 'src/request_handlers/vacuum_want_lgtm.dart';
 import 'src/service/big_query.dart';
 import 'src/service/build_status_service.dart';
 import 'src/service/commit_service.dart';
@@ -293,6 +294,11 @@ Server createServer({
       config: config,
       authenticationProvider: cronAuthProvider,
       scheduler: scheduler,
+    ),
+    '/api/vacuum-want-lgtm': VacuumWantLgtm(
+      config: config,
+      authenticationProvider: cronAuthProvider,
+      firestore: firestore,
     ),
 
     /// Temporary API to trigger a dispatch-able workflow from Cocoon.
