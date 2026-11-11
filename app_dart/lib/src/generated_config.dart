@@ -34,7 +34,7 @@ geminiModel: gemini-3-flash-preview
 
 # Whether to allow reset failed check run back to in progress to specific users or to everyone.
 resetFailedCheckRun:
-  useForAll: false
+  useForAll: true
   useForUsers:
     - ievdokdm
     - eyebrowsoffire
