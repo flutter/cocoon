@@ -304,7 +304,7 @@ void main() {
     });
 
     test(
-      'waives check run to neutral when PR is closed while in_progress',
+      'skips without mutating check run when PR is closed while in_progress',
       () async {
         final existingState = WantLgtmState.initialize(
           slug: slug,
@@ -326,7 +326,73 @@ void main() {
           );
         };
 
+        final result = await reconciler.reconcilePullRequest(slug, prNumber);
+        expect(result, isA<WantLgtmReconcileSkipped>());
+        final skipped = result as WantLgtmReconcileSkipped;
+        expect(skipped.reason, 'PR is closed or merged');
+        verifyZeroInteractions(mockGithubChecksUtil);
+      },
+    );
+
+    test(
+      'recreates check run when PR is reopened even if headSha matches existingState',
+      () async {
+        final existingState = WantLgtmState.initialize(
+          slug: slug,
+          pr: prNumber,
+          headSha: headSha,
+          checkRunId: 555010,
+          checkRunStatus: 'in_progress',
+          checkRunTitle: 'Waiting on alice',
+          directive: 'alice',
+        );
+        firestoreService.putDocument(existingState);
+
+        fakeGraphQLClient.queryResultForOptions = (QueryOptions options) {
+          return createFakeQueryResult(
+            data: createSnapshotResponse(
+              state: 'OPEN',
+              body: 'WANT_LGTM=alice',
+              headRefOid: headSha,
+            ),
+          );
+        };
+
         when(
+          mockGithubChecksUtil.createCheckRun(
+            any,
+            any,
+            any,
+            any,
+            output: anyNamed('output'),
+            conclusion: anyNamed('conclusion'),
+            status: anyNamed('status'),
+            detailsUrl: anyNamed('detailsUrl'),
+          ),
+        ).thenAnswer((_) async => WantLgtmCheckWriter.checkRunWithId(555099));
+
+        final result = await reconciler.reconcilePullRequest(
+          slug,
+          prNumber,
+          triggerReason: 'reopened',
+        );
+        expect(result, isA<WantLgtmReconcileSuccess>());
+        final success = result as WantLgtmReconcileSuccess;
+        expect(success.state.checkRunId, 555099);
+
+        verify(
+          mockGithubChecksUtil.createCheckRun(
+            config,
+            slug,
+            headSha,
+            Config.kWantLgtmCheckName,
+            status: github.CheckRunStatus.inProgress,
+            conclusion: argThat(isNull, named: 'conclusion'),
+            detailsUrl: 'https://github.com/flutter/flutter/pull/123',
+            output: anyNamed('output'),
+          ),
+        ).called(1);
+        verifyNever(
           mockGithubChecksUtil.updateCheckRun(
             any,
             any,
@@ -336,26 +402,7 @@ void main() {
             status: anyNamed('status'),
             detailsUrl: anyNamed('detailsUrl'),
           ),
-        ).thenAnswer((_) async {});
-
-        final result = await reconciler.reconcilePullRequest(slug, prNumber);
-        expect(result, isA<WantLgtmReconcileSuccess>());
-        final success = result as WantLgtmReconcileSuccess;
-        expect(success.verdict.title, 'WANT_LGTM: waived (PR closed)');
-        expect(success.state.checkRunStatus, 'completed');
-        expect(success.state.checkRunConclusion, 'neutral');
-
-        verify(
-          mockGithubChecksUtil.updateCheckRun(
-            config,
-            slug,
-            argThat(isA<github.CheckRun>().having((c) => c.id, 'id', 555010)),
-            output: anyNamed('output'),
-            conclusion: github.CheckRunConclusion.neutral,
-            status: github.CheckRunStatus.completed,
-            detailsUrl: 'https://github.com/flutter/flutter/pull/123',
-          ),
-        ).called(1);
+        );
       },
     );
 

@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 
 import '../../../cocoon_service.dart';
 import '../../../protos.dart' as pb;
+import '../../foundation/github_checks_util.dart';
 import '../../model/github/checks.dart' as cocoon_checks;
 import '../../model/github/labels.dart';
 import '../../model/github/workflow_job.dart' as workflow_job;
@@ -45,6 +46,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     required this.commitService,
     required this.firestore,
     this.issueService,
+    this.wantLgtmReconciler,
     super.authProvider,
     this.pullRequestLabelProcessorProvider = PullRequestLabelProcessor.new,
     @visibleForTesting DateTime Function() now = DateTime.now,
@@ -66,6 +68,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
   final FirestoreService firestore;
   final PullRequestLabelProcessorProvider pullRequestLabelProcessorProvider;
   final IssueService? issueService;
+  final WantLgtmReconciler? wantLgtmReconciler;
 
   @override
   Future<Response> post(Request request) async {
@@ -91,6 +94,8 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
         return result.toResponse();
       case 'check_run':
         return _handleCheckRun(webhook.payload);
+      case 'pull_request_review':
+        return _handlePullRequestReview(webhook.payload);
       case 'push':
         final event = jsonDecode(webhook.payload) as Map<String, dynamic>;
         final branch = (event['ref'] as String).split(
@@ -170,6 +175,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       scheduler: scheduler,
       gerritService: gerritService,
       pullRequestLabelProcessorProvider: pullRequestLabelProcessorProvider,
+      wantLgtmReconciler: await _getReconciler(slug, prNumber: pr.number),
     );
 
     // See the API reference:
@@ -218,12 +224,14 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
           context,
         );
         break;
+      case 'review_request_removed':
+      case 'review_requested':
+        await _handleReviewRequestChanged(pullRequestEvent, context);
+        break;
       // Ignore the rest of the events.
       case 'unlabeled':
       case 'assigned':
       case 'locked':
-      case 'review_request_removed':
-      case 'review_requested':
       case 'unassigned':
       case 'unlocked':
         break;
@@ -231,11 +239,93 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     return Response.emptyOk;
   }
 
+  Future<void> _handleReviewRequestChanged(
+    PullRequestEvent event,
+    PullRequestEventContext context,
+  ) async {
+    final prNumber = event.pullRequest?.number;
+    final repository = event.repository;
+    if (prNumber == null || repository == null) {
+      return;
+    }
+    final slug = repository.slug();
+    await PullRequestManager.runWithPrLock<void>(
+      slug: slug,
+      prNumber: prNumber,
+      cache: cache,
+      action: () async {
+        try {
+          await context.wantLgtmReconciler?.reconcilePullRequest(
+            slug,
+            prNumber,
+            pullRequest: event.pullRequest,
+            triggerReason: event.action,
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on review request change $slug #$prNumber: $e\n$s',
+          );
+        }
+      },
+    );
+  }
+
   Future<Response> _handleCheckRun(String rawRequest) async {
     final event = jsonDecode(rawRequest) as Map<String, dynamic>;
     final checkRunEvent = cocoon_checks.CheckRunEvent.fromJson(event);
+    final checkRun = checkRunEvent.checkRun;
+    if (checkRun?.name == Config.kWantLgtmCheckName) {
+      return _handleWantLgtmCheckRun(checkRunEvent);
+    }
     final result = await scheduler.processCheckRun(checkRunEvent);
     return result.toResponse();
+  }
+
+  Future<Response> _handleWantLgtmCheckRun(
+    cocoon_checks.CheckRunEvent checkRunEvent,
+  ) async {
+    if (checkRunEvent.action != 'rerequested') {
+      return Response.emptyOk;
+    }
+    final checkRun = checkRunEvent.checkRun;
+    final checkRunId = checkRun?.id;
+    var prNumber = checkRun?.pullRequests?.firstOrNull?.number;
+    if (prNumber == null && checkRunId != null) {
+      final state = await WantLgtmState.findByCheckRunId(
+        firestoreService: firestore,
+        checkRunId: checkRunId,
+      );
+      prNumber = state?.pr;
+    }
+    final repository = checkRunEvent.repository;
+    if (prNumber == null || repository == null) {
+      return Response.emptyOk;
+    }
+    final slug = repository.slug();
+    final targetPrNumber = prNumber;
+    await PullRequestManager.runWithPrLock<void>(
+      slug: slug,
+      prNumber: targetPrNumber,
+      cache: cache,
+      action: () async {
+        try {
+          final reconciler = await _getReconciler(
+            slug,
+            prNumber: targetPrNumber,
+          );
+          await reconciler?.reconcilePullRequest(
+            slug,
+            targetPrNumber,
+            triggerReason: 'check_run_rerequested',
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on check_run rerequested $slug #$targetPrNumber: $e\n$s',
+          );
+        }
+      },
+    );
+    return Response.emptyOk;
   }
 
   /// Handles a GitHub webhook with the event type "merge_group".
@@ -320,6 +410,24 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       '$slug/$headSha was found on GoB mirror. Scheduling merge group tasks',
     );
     await scheduler.handleMergeGroupEvent(mergeGroupEvent: mergeGroupEvent);
+    if (config.flags.wantLgtm.isEnabledForRepo(slug)) {
+      try {
+        final headBranch = mergeGroup.headRef.replaceFirst('refs/heads/', '');
+        final (:parsed, :pullRequestNumber, branch: _) =
+            tryParseGitHubMergeQueueBranch(headBranch);
+        final prNumber = parsed ? pullRequestNumber : 0;
+        final reconciler = await _getReconciler(slug);
+        await reconciler?.reconcileMergeGroup(
+          slug: slug,
+          prNumber: prNumber,
+          mergeGroupSha: headSha,
+        );
+      } catch (e, s) {
+        log.error(
+          'Error reconciling WANT_LGTM in merge group for $slug: $e\n$s',
+        );
+      }
+    }
     return const ProcessCheckRunResult.success();
   }
 
@@ -468,5 +576,90 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       log.warn('_getLabeledEvent: Failed to parse $request', e, s);
       return null;
     }
+  }
+
+  Future<WantLgtmReconciler?> _getReconciler(
+    RepositorySlug slug, {
+    int? prNumber,
+  }) async {
+    if (wantLgtmReconciler != null) {
+      return wantLgtmReconciler;
+    }
+    if (!config.flags.wantLgtm.isEnabledForRepo(slug) &&
+        !await _hasInProgressWantLgtmState(slug, prNumber)) {
+      return null;
+    }
+    final graphQLClient = await config.createGitHubGraphQLClient();
+    return WantLgtmReconciler(
+      config: config,
+      graphQLClient: WantLgtmGraphQLClient(graphQLClient),
+      checkWriter: WantLgtmCheckWriter(
+        config: config,
+        githubChecksUtil: const GithubChecksUtil(),
+        firestoreService: firestore,
+      ),
+      firestoreService: firestore,
+    );
+  }
+
+  Future<bool> _hasInProgressWantLgtmState(
+    RepositorySlug slug,
+    int? prNumber,
+  ) async {
+    if (prNumber == null || prNumber <= 0) {
+      return false;
+    }
+    final existing = await WantLgtmState.fromFirestoreOrNull(
+      firestoreService: firestore,
+      slug: slug,
+      pr: prNumber,
+    );
+    return existing != null && existing.checkRunStatus == 'in_progress';
+  }
+
+  Future<Response> _handlePullRequestReview(String rawRequest) async {
+    final event = jsonDecode(rawRequest) as Map<String, dynamic>;
+    final reviewEvent = PullRequestReviewEvent.fromJson(event);
+    final action = reviewEvent.action;
+    if (action != 'submitted' && action != 'dismissed') {
+      return Response.emptyOk;
+    }
+    final repository = reviewEvent.repository;
+    final pr = reviewEvent.pullRequest;
+    final prNumber = pr?.number;
+    if (repository == null || pr == null || prNumber == null) {
+      log.warn(
+        '$GithubWebhookSubscription._handlePullRequestReview: missing repo or pr',
+      );
+      return Response.emptyOk;
+    }
+    final slug = repository.slug();
+    if (!config.supportedRepos.contains(slug)) {
+      log.warn(
+        '$GithubWebhookSubscription._handlePullRequestReview: asked to handle unsupported repo $slug for pr $prNumber',
+      );
+      throw const InternalServerError('Unsupported repository');
+    }
+    return await PullRequestManager.runWithPrLock<Response>(
+      slug: slug,
+      prNumber: prNumber,
+      cache: cache,
+      action: () async {
+        try {
+          final reconciler = await _getReconciler(slug, prNumber: prNumber);
+          await reconciler?.reconcilePullRequest(
+            slug,
+            prNumber,
+            pullRequest: pr,
+            triggerReason: 'review_$action',
+          );
+        } catch (e, s) {
+          log.error(
+            'Error reconciling WANT_LGTM on review_$action for $slug #$prNumber: $e\n$s',
+          );
+        }
+        return Response.emptyOk;
+      },
+    );
   }
 }

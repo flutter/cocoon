@@ -443,6 +443,68 @@ void main() {
       );
 
       test(
+        'ignores in_progress WANT_LGTM check run and evaluates gold status',
+        () async {
+          final pr = newPullRequest(123, 'abc', 'master');
+          prsFromGitHub = <PullRequest>[pr];
+
+          firestore.putDocument(
+            newGithubGoldStatus(
+              slug,
+              pr,
+              GithubGoldStatus.statusRunning,
+              'abc',
+              config.flutterGoldChangesValue!,
+            ),
+          );
+
+          checkRuns = <dynamic>[
+            <String, String>{
+              'name': Config.kDashboardCheckName,
+              'status': 'completed',
+              'conclusion': 'success',
+            },
+            <String, String>{
+              'name': Config.kWantLgtmCheckName,
+              'status': 'in_progress',
+              'conclusion': '',
+            },
+          ];
+
+          mockHttpClient = MockClient((http.Request request) async {
+            if (request.url.toString() ==
+                'https://flutter-gold.skia.org/json/v1/changelist_summary/github/${pr.number}') {
+              return http.Response(tryjobDigests(pr), HttpStatus.ok);
+            }
+            throw const HttpException('Unexpected http request');
+          });
+          handler = PushGoldStatusToGithub(
+            config: config,
+            authenticationProvider: auth,
+            goldClient: mockHttpClient,
+            ingestionDelay: Duration.zero,
+            firestore: firestore,
+          );
+
+          when(issuesService.listCommentsByIssue(slug, pr.number!)).thenAnswer(
+            (_) => Stream<IssueComment>.value(
+              IssueComment()..body = config.flutterGoldCommentID(pr),
+            ),
+          );
+
+          final body = await tester.get(handler);
+          expect(body, same(Response.emptyOk));
+          expect(
+            firestore,
+            existsInStorage(fs.GithubGoldStatus.metadata, [
+              isGithubGoldStatus.hasUpdates(0),
+            ]),
+          );
+          expect(log, hasNoWarningsOrHigher);
+        },
+      );
+
+      test(
         'does nothing for branches not staged to land on main/master',
         () async {
           // New commit
