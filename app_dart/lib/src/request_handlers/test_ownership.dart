@@ -34,6 +34,24 @@ Team teamFromString(String teamString) {
       return Team.tool;
     case 'flutter/web':
       return Team.web;
+    case 'flutter/infra':
+    case 'flutter/releases':
+      return Team.infra;
+    case 'flutter/android':
+      return Team.android;
+    case 'flutter/ios':
+      return Team.ios;
+    case 'flutter/linux':
+      return Team.linux;
+    case 'flutter/macos':
+      return Team.macos;
+    case 'flutter/windows':
+      return Team.windows;
+    case 'flutter/plugin':
+    case 'flutter/plugins':
+    case 'flutter/ecosystem':
+    case 'flutter/packages':
+      return Team.plugins;
   }
   return Team.unknown;
 }

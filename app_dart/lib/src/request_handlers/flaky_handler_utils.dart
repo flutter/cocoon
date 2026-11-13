@@ -23,7 +23,9 @@ const String kWebLabel = 'team-web';
 const String kInfraLabel = 'team-infra';
 const String kAndroidLabel = 'team-android';
 const String kIosLabel = 'team-ios';
-const String kReleaseLabel = 'team-release';
+const String kLinuxLabel = 'team-linux';
+const String kMacosLabel = 'team-macos';
+const String kWindowsLabel = 'team-windows';
 const String kEcosystemLabel = 'team-ecosystem';
 const String kP0Label = 'P0';
 const String kP1Label = 'P1';
@@ -443,7 +445,9 @@ String? getTeamLabelFromTeam(Team? team) {
     Team.infra => kInfraLabel,
     Team.android => kAndroidLabel,
     Team.ios => kIosLabel,
-    Team.release => kReleaseLabel,
+    Team.linux => kLinuxLabel,
+    Team.macos => kMacosLabel,
+    Team.windows => kWindowsLabel,
     Team.plugins => kEcosystemLabel,
     Team.unknown || null => null,
   };
@@ -461,7 +465,9 @@ enum Team {
   infra,
   android,
   ios,
-  release,
+  linux,
+  macos,
+  windows,
   plugins,
   unknown,
 }
