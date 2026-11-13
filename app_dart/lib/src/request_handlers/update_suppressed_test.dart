@@ -104,13 +104,24 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       }
 
       issueLink = canonicalUrl;
-      final issueNumber = int.parse(Uri.parse(canonicalUrl).pathSegments.last);
+      final canonicalUri = Uri.parse(canonicalUrl);
+      if (canonicalUri.pathSegments.length < 4) {
+        throw const BadRequestException('Invalid issue link format.');
+      }
+      final issueSlug = RepositorySlug(
+        canonicalUri.pathSegments[0],
+        canonicalUri.pathSegments[1],
+      );
+      final issueNumber = int.tryParse(canonicalUri.pathSegments.last);
+      if (issueNumber == null) {
+        throw const BadRequestException('Invalid issue number in issue link.');
+      }
 
-      final githubService = await config.createGithubService(repository);
+      final githubService = await config.createGithubService(issueSlug);
       final Issue? issue;
       try {
         issue = await githubService.getIssue(
-          repository,
+          issueSlug,
           issueNumber: issueNumber,
         );
       } catch (e) {
