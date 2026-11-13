@@ -5,7 +5,6 @@
 import 'package:cocoon_common/is_dart_internal.dart';
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_server/logging.dart';
-import 'package:googleapis/firestore/v1.dart' as g;
 import 'package:meta/meta.dart';
 
 import '../model/ci_yaml/ci_yaml.dart';
@@ -184,9 +183,9 @@ final class RerunProdTask extends ApiRequestHandler {
     ).withMostRecentTaskOnly().tasks;
 
     final wasMarkedNew = <String>[];
-    final documentWrites = <g.Write>[];
+    final updatedTasks = <fs.Task>[];
+    final createdTasks = <fs.Task>[];
 
-    // Wait for cancellations?
     final Future<void> cancelRunningTasks;
     if (statusesToRerun.contains(TaskStatus.inProgress)) {
       cancelRunningTasks = _luciBuildService.cancelBuildsBySha(
@@ -208,32 +207,29 @@ final class RerunProdTask extends ApiRequestHandler {
       }
 
       // If it appears the task was in progress, cancel any running builders
-      // and crease a _new_ task (to represent a new run).
+      // and create a _new_ task (to represent a new run).
       if (task.status == TaskStatus.inProgress) {
-        // Mark cancelled.
-        documentWrites.add(
-          fs.Task.patchStatus(
-            fs.TaskId(
-              commitSha: task.commitSha,
-              currentAttempt: task.currentAttempt,
-              taskName: task.taskName,
-            ),
-            TaskStatus.cancelled,
-          ),
-        );
+        // Mark current attempt cancelled with incremented revisionId
+        task.setStatus(TaskStatus.cancelled);
+        updatedTasks.add(task);
       }
 
-      // Start a new task.
-      task.resetAsRetry(now: _now());
-      documentWrites.add(
-        g.Write(currentDocument: g.Precondition(exists: false), update: task),
-      );
+      // Start a new task attempt
+      final retryTask = task.createRetry(now: _now());
+      createdTasks.add(retryTask);
     }
 
+    final writes = documentsToWrites([...updatedTasks, ...createdTasks]);
     await Future.wait([
       cancelRunningTasks,
-      _firestore.commit(transaction, documentWrites),
+      _firestore.commit(transaction, writes),
     ]);
+    if (updatedTasks.isNotEmpty) {
+      await _firestore.cacheTaskPayloads(updatedTasks);
+    }
+    if (createdTasks.isNotEmpty) {
+      await _firestore.updateCacheForCreatedTasks(createdTasks);
+    }
 
     return wasMarkedNew;
   }
