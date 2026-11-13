@@ -7,6 +7,7 @@ import 'package:cocoon_server_test/mocks.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/protos.dart' as pb;
 import 'package:cocoon_service/src/request_handlers/flaky_handler_utils.dart';
+import 'package:cocoon_service/src/request_handlers/test_ownership.dart';
 import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/config.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
@@ -189,11 +190,40 @@ abc_test.sh @ghi @flutter/framework
   });
   group('Gets team label', () {
     test('returns correct label when matched', () async {
+      expect(getTeamLabelFromTeam(Team.framework), kFrameworkLabel);
+      expect(getTeamLabelFromTeam(Team.engine), kEngineLabel);
+      expect(getTeamLabelFromTeam(Team.tool), kToolLabel);
+      expect(getTeamLabelFromTeam(Team.web), kWebLabel);
       expect(getTeamLabelFromTeam(Team.infra), kInfraLabel);
+      expect(getTeamLabelFromTeam(Team.android), kAndroidLabel);
+      expect(getTeamLabelFromTeam(Team.ios), kIosLabel);
+      expect(getTeamLabelFromTeam(Team.linux), kLinuxLabel);
+      expect(getTeamLabelFromTeam(Team.macos), kMacosLabel);
+      expect(getTeamLabelFromTeam(Team.windows), kWindowsLabel);
+      expect(getTeamLabelFromTeam(Team.plugins), kEcosystemLabel);
     });
 
     test('returns null when not matched', () async {
       expect(getTeamLabelFromTeam(Team.unknown), null);
+    });
+
+    test('teamFromString maps all supported teams', () {
+      expect(teamFromString('flutter/framework'), Team.framework);
+      expect(teamFromString('flutter/engine'), Team.engine);
+      expect(teamFromString('flutter/tool'), Team.tool);
+      expect(teamFromString('flutter/web'), Team.web);
+      expect(teamFromString('flutter/infra'), Team.infra);
+      expect(teamFromString('flutter/releases'), Team.infra);
+      expect(teamFromString('flutter/android'), Team.android);
+      expect(teamFromString('flutter/ios'), Team.ios);
+      expect(teamFromString('flutter/linux'), Team.linux);
+      expect(teamFromString('flutter/macos'), Team.macos);
+      expect(teamFromString('flutter/windows'), Team.windows);
+      expect(teamFromString('flutter/plugin'), Team.plugins);
+      expect(teamFromString('flutter/plugins'), Team.plugins);
+      expect(teamFromString('flutter/ecosystem'), Team.plugins);
+      expect(teamFromString('flutter/packages'), Team.plugins);
+      expect(teamFromString('flutter/nonexistent'), Team.unknown);
     });
   });
 

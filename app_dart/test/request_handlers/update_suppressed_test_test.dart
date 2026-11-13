@@ -211,6 +211,11 @@ void main() {
 
     // Verify document created
     expect(
+      githubService.requestedIssueSlug,
+      RepositorySlug('flutter', 'flutter'),
+    );
+    expect(githubService.requestedIssueNumber, 123);
+    expect(
       firestore,
       existsInStorage(SuppressedTest.metadata, [
         isSuppressedTest
@@ -230,6 +235,39 @@ void main() {
       ]),
     );
   });
+
+  test(
+    'queries issue from issueLink repository when suppressing flutter/packages test',
+    () async {
+      githubService.issueResponse = Issue(state: 'open');
+
+      tester.request.body = jsonEncode({
+        'testName': 'Linux repo_checks',
+        'repository': 'flutter/packages',
+        'action': 'SUPPRESS',
+        'issueLink': 'https://github.com/flutter/flutter/issues/456',
+        'note': 'Flaky in packages',
+      });
+
+      await tester.post(handler);
+
+      expect(
+        githubService.requestedIssueSlug,
+        RepositorySlug('flutter', 'flutter'),
+      );
+      expect(githubService.requestedIssueNumber, 456);
+      expect(
+        firestore,
+        existsInStorage(SuppressedTest.metadata, [
+          isSuppressedTest
+              .hasIssueLink('https://github.com/flutter/flutter/issues/456')
+              .hasTestName('Linux repo_checks')
+              .hasRepository('flutter/packages')
+              .hasIsSuppressed(isTrue),
+        ]),
+      );
+    },
+  );
 
   test('creates new suppression when issueLink has trailing slash', () async {
     githubService.issueResponse = Issue(state: 'open');
@@ -507,9 +545,13 @@ void main() {
 class FakeGithubServiceWithIssue extends FakeGithubService {
   Issue? issueResponse;
   Object? error;
+  RepositorySlug? requestedIssueSlug;
+  int? requestedIssueNumber;
 
   @override
   Future<Issue>? getIssue(RepositorySlug slug, {int? issueNumber}) {
+    requestedIssueSlug = slug;
+    requestedIssueNumber = issueNumber;
     if (error != null) {
       throw error!;
     }

@@ -104,13 +104,18 @@ final class UpdateSuppressedTest extends ApiRequestHandler {
       }
 
       issueLink = canonicalUrl;
-      final issueNumber = int.parse(Uri.parse(canonicalUrl).pathSegments.last);
+      final canonicalUri = Uri.parse(canonicalUrl);
+      final issueSlug = RepositorySlug(
+        canonicalUri.pathSegments[0],
+        canonicalUri.pathSegments[1],
+      );
+      final issueNumber = int.parse(canonicalUri.pathSegments.last);
 
-      final githubService = await config.createGithubService(repository);
+      final githubService = await config.createGithubService(issueSlug);
       final Issue? issue;
       try {
         issue = await githubService.getIssue(
-          repository,
+          issueSlug,
           issueNumber: issueNumber,
         );
       } catch (e) {
