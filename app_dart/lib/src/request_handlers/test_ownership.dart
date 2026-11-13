@@ -25,7 +25,7 @@ abstract class TestOwner {
 }
 
 Team teamFromString(String teamString) {
-  switch (teamString) {
+  switch (teamString.trim().toLowerCase()) {
     case 'flutter/framework':
       return Team.framework;
     case 'flutter/engine':
