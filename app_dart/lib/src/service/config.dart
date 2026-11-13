@@ -417,7 +417,6 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// These accounts should not need reviews before merging. See
   /// https://github.com/flutter/flutter/blob/master/docs/infra/Autorollers.md
   Set<String> get rollerAccounts => const <String>{
-    'skia-flutter-autoroll',
     'engine-flutter-autoroll',
     'dependabot',
     'dependabot[bot]',

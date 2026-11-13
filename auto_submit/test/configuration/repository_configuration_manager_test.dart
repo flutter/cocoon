@@ -41,7 +41,6 @@ void main() {
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
-        - DartDevtoolWorkflowBot
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
@@ -57,7 +56,7 @@ void main() {
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 2);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
@@ -90,7 +89,6 @@ void main() {
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
-        - DartDevtoolWorkflowBot
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
@@ -103,7 +101,7 @@ void main() {
       expect(repositoryConfiguration.allowConfigOverride, isFalse);
       expect(repositoryConfiguration.defaultBranch, 'main');
       expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
-      expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
+      expect(repositoryConfiguration.autoApprovalAccounts.length, 2);
       expect(repositoryConfiguration.approvingReviews, 2);
       expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
       expect(repositoryConfiguration.runCi, isTrue);
@@ -115,7 +113,6 @@ void main() {
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
-        - DartDevtoolWorkflowBot
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
@@ -129,7 +126,7 @@ void main() {
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'master');
     expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 2);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
@@ -141,7 +138,6 @@ void main() {
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
-        - DartDevtoolWorkflowBot
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
@@ -158,7 +154,7 @@ void main() {
     expect(repositoryConfiguration.allowConfigOverride, isFalse);
     expect(repositoryConfiguration.defaultBranch, 'main');
     expect(repositoryConfiguration.autoApprovalAccounts.isNotEmpty, isTrue);
-    expect(repositoryConfiguration.autoApprovalAccounts.length, 3);
+    expect(repositoryConfiguration.autoApprovalAccounts.length, 2);
     expect(repositoryConfiguration.approvingReviews, 2);
     expect(repositoryConfiguration.approvalGroup, 'flutter-hackers');
     expect(repositoryConfiguration.runCi, isTrue);
@@ -190,7 +186,6 @@ void main() {
       auto_approval_accounts:
         - dependabot[bot]
         - dependabot
-        - DartDevtoolWorkflowBot
       approving_reviews: 2
       approval_group: flutter-hackers
       run_ci: true
@@ -211,7 +206,7 @@ void main() {
           );
       expect(mergedRepositoryConfiguration.defaultBranch, 'main');
       expect(mergedRepositoryConfiguration.allowConfigOverride, isTrue);
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 3);
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 2);
       expect(
         mergedRepositoryConfiguration.autoApprovalAccounts.contains(
           'dependabot[bot]',
@@ -221,12 +216,6 @@ void main() {
       expect(
         mergedRepositoryConfiguration.autoApprovalAccounts.contains(
           'dependabot',
-        ),
-        isTrue,
-      );
-      expect(
-        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
-          'DartDevtoolWorkflowBot',
         ),
         isTrue,
       );
@@ -266,47 +255,6 @@ void main() {
             globalRepositoryConfiguration,
             localRepositoryConfiguration,
           );
-      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 4);
-      expect(
-        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
-          'dependabot[bot]',
-        ),
-        isTrue,
-      );
-      expect(
-        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
-          'dependabot',
-        ),
-        isTrue,
-      );
-      expect(
-        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
-          'DartDevtoolWorkflowBot',
-        ),
-        isTrue,
-      );
-      expect(
-        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
-          expectedAddedApprovalAccount,
-        ),
-        isTrue,
-      );
-    });
-
-    test('Duplicate auto approval account is not added', () {
-      const expectedAddedApprovalAccount = 'DartDevtoolWorkflowBot';
-      const localAutoApprovalAccounts = <String>{expectedAddedApprovalAccount};
-      final localRepositoryConfiguration = RepositoryConfiguration(
-        autoApprovalAccounts: localAutoApprovalAccounts,
-      );
-      final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
-        sampleConfigWithOverride,
-      );
-      final mergedRepositoryConfiguration = repositoryConfigurationManager
-          .mergeConfigurations(
-            globalRepositoryConfiguration,
-            localRepositoryConfiguration,
-          );
       expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 3);
       expect(
         mergedRepositoryConfiguration.autoApprovalAccounts.contains(
@@ -322,7 +270,36 @@ void main() {
       );
       expect(
         mergedRepositoryConfiguration.autoApprovalAccounts.contains(
-          'DartDevtoolWorkflowBot',
+          expectedAddedApprovalAccount,
+        ),
+        isTrue,
+      );
+    });
+
+    test('Duplicate auto approval account is not added', () {
+      const expectedAddedApprovalAccount = 'dependabot';
+      const localAutoApprovalAccounts = <String>{expectedAddedApprovalAccount};
+      final localRepositoryConfiguration = RepositoryConfiguration(
+        autoApprovalAccounts: localAutoApprovalAccounts,
+      );
+      final globalRepositoryConfiguration = RepositoryConfiguration.fromYaml(
+        sampleConfigWithOverride,
+      );
+      final mergedRepositoryConfiguration = repositoryConfigurationManager
+          .mergeConfigurations(
+            globalRepositoryConfiguration,
+            localRepositoryConfiguration,
+          );
+      expect(mergedRepositoryConfiguration.autoApprovalAccounts.length, 2);
+      expect(
+        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
+          'dependabot[bot]',
+        ),
+        isTrue,
+      );
+      expect(
+        mergedRepositoryConfiguration.autoApprovalAccounts.contains(
+          'dependabot',
         ),
         isTrue,
       );

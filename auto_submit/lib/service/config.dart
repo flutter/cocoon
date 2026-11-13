@@ -98,13 +98,11 @@ class Config {
   /// These accounts should not need reviews before merging. See
   /// https://github.com/flutter/flutter/blob/master/docs/infra/Autorollers.md
   Set<String> get rollerAccounts => const <String>{
-    'skia-flutter-autoroll',
     'engine-flutter-autoroll',
     // REST API returns dependabot[bot] as author while GraphQL returns dependabot. We need
     // both as we use graphQL to merge the PR and REST API to approve the PR.
     'dependabot[bot]',
     'dependabot',
-    'DartDevtoolWorkflowBot',
     'flutter-pub-roller-bot',
   };
 

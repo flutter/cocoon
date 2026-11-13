@@ -684,11 +684,6 @@ class PullRequestManager {
     List<PullRequestFile> files,
     RepositorySlug slug,
   ) async {
-    // Do not apply the test labels for the autoroller accounts.
-    if (pr.user!.login == 'skia-flutter-autoroll') {
-      return false;
-    }
-
     var hasTests = false;
     var needsTests = false;
 

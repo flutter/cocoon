@@ -66,7 +66,6 @@ class FakeConfig extends Config {
   Set<String> get rollerAccounts =>
       rollerAccountsValue ??
       const <String>{
-        'skia-flutter-autoroll',
         'engine-flutter-autoroll',
         'dependabot[bot]',
         'dependabot',
