@@ -54,6 +54,7 @@ class DefaultFirebaseOptions {
     projectId: 'flutter-dashboard',
     authDomain: 'flutter-dashboard.firebaseapp.com',
     storageBucket: 'flutter-dashboard.firebasestorage.app',
+    measurementId: 'G-C5GK4RLM75',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
