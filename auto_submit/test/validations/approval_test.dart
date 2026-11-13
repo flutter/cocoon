@@ -512,7 +512,6 @@ void main() {
         auto_approval_accounts:
           - dependabot[bot]
           - dependabot
-          - DartDevtoolWorkflowBot
         approving_reviews: 2
         approval_group: custom-group
         run_ci: true
