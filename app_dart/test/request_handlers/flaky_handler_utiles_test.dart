@@ -224,6 +224,8 @@ abc_test.sh @ghi @flutter/framework
       expect(teamFromString('flutter/ecosystem'), Team.plugins);
       expect(teamFromString('flutter/packages'), Team.plugins);
       expect(teamFromString('flutter/nonexistent'), Team.unknown);
+      expect(teamFromString('  flutter/framework  '), Team.framework);
+      expect(teamFromString('Flutter/Engine'), Team.engine);
     });
   });
 
