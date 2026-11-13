@@ -559,10 +559,6 @@ class PullRequestManager {
     List<PullRequestFile> files,
     RepositorySlug slug,
   ) async {
-    if (pr.user!.login == 'engine-flutter-autoroll') {
-      return false;
-    }
-
     final labels = <String>{};
     var hasTests = false;
     var needsTests = false;
