@@ -66,10 +66,20 @@ class _PreSubmitViewState extends State<PreSubmitView>
     super.didChangeDependencies();
     final newState = Provider.of<PresubmitState>(context);
     if (_presubmitState != newState) {
+      final isFirstInit = _presubmitState == null;
       _presubmitState?.removeListener(_onStateChanged);
       _presubmitState = newState;
       _presubmitState?.addListener(_onStateChanged);
       _triggerUpdate();
+      if (isFirstInit) {
+        unawaited(
+          newState.analyticsService.logPresubmitPageOpen(
+            repo: newState.repo,
+            pr: newState.pr,
+            sha: newState.sha,
+          ),
+        );
+      }
     }
   }
 
@@ -699,14 +709,24 @@ class _JobDetailsViewerPaneState extends State<_JobDetailsViewerPane> {
                     ElevatedButton(
                       onPressed: selectedJob.buildNumber == null
                           ? null
-                          : () async => await launchUrl(
-                              Uri.parse(
-                                generatePreSubmitBuildLogUrl(
-                                  buildName: selectedJob.jobName,
+                          : () async {
+                              unawaited(
+                                presubmitState.analyticsService.logViewLuciUi(
+                                  repo: repo,
+                                  pr: presubmitState.pr,
+                                  jobName: selectedJob.jobName,
                                   buildNumber: selectedJob.buildNumber!,
                                 ),
-                              ),
-                            ),
+                              );
+                              await launchUrl(
+                                Uri.parse(
+                                  generatePreSubmitBuildLogUrl(
+                                    buildName: selectedJob.jobName,
+                                    buildNumber: selectedJob.buildNumber!,
+                                  ),
+                                ),
+                              );
+                            },
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
