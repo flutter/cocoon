@@ -60,47 +60,37 @@ void main() {
     const prNumber = 123;
     const headSha = 'head_sha_123';
 
-    test('closed PR with in_progress state waives check run', () async {
-      final existing = WantLgtmState.initialize(
-        slug: slug,
-        pr: prNumber,
-        headSha: headSha,
-        checkRunId: 777001,
-        checkRunStatus: 'in_progress',
-        checkRunTitle: 'Waiting on alice',
-        directive: 'alice',
-      );
-      firestoreService.putDocument(existing);
+    test(
+      'closed PR with in_progress state skips without mutating check run',
+      () async {
+        final existing = WantLgtmState.initialize(
+          slug: slug,
+          pr: prNumber,
+          headSha: headSha,
+          checkRunId: 777001,
+          checkRunStatus: 'in_progress',
+          checkRunTitle: 'Waiting on alice',
+          directive: 'alice',
+        );
+        firestoreService.putDocument(existing);
 
-      final pr = github.PullRequest(
-        number: prNumber,
-        state: 'closed',
-        head: github.PullRequestHead(sha: headSha),
-      );
+        final pr = github.PullRequest(
+          number: prNumber,
+          state: 'closed',
+          head: github.PullRequestHead(sha: headSha),
+        );
 
-      final result = await reconciler.reconcilePullRequest(
-        slug,
-        prNumber,
-        pullRequest: pr,
-      );
-      expect(result, isA<WantLgtmReconcileSuccess>());
-      final success = result as WantLgtmReconcileSuccess;
-      expect(success.verdict.title, 'WANT_LGTM: waived (PR closed)');
-      expect(success.state.checkRunStatus, 'completed');
-      expect(success.state.checkRunConclusion, 'neutral');
-
-      verify(
-        mockGithubChecksUtil.updateCheckRun(
-          config,
+        final result = await reconciler.reconcilePullRequest(
           slug,
-          argThat(isA<github.CheckRun>().having((c) => c.id, 'id', 777001)),
-          output: anyNamed('output'),
-          conclusion: github.CheckRunConclusion.neutral,
-          status: github.CheckRunStatus.completed,
-          detailsUrl: anyNamed('detailsUrl'),
-        ),
-      ).called(1);
-    });
+          prNumber,
+          pullRequest: pr,
+        );
+        expect(result, isA<WantLgtmReconcileSkipped>());
+        final skipped = result as WantLgtmReconcileSkipped;
+        expect(skipped.reason, 'PR is closed or merged');
+        verifyZeroInteractions(mockGithubChecksUtil);
+      },
+    );
 
     test('closed PR without existing state returns skipped', () async {
       final pr = github.PullRequest(number: prNumber, state: 'closed');
