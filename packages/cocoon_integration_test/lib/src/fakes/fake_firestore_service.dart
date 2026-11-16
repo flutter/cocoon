@@ -545,6 +545,7 @@ abstract base class _FakeInMemoryFirestoreService
     // TODO(matanlurey): Consider implementing read transactions.
     Transaction? transaction,
   }) async {
+    _validateFilterMap(filterMap);
     var results = documents.where((document) {
       // Manual parsing of the collection ID from the document name.
       // Expected format: projects/.../databases/.../documents/<collectionId>/<documentId>
@@ -619,6 +620,13 @@ abstract base class _FakeInMemoryFirestoreService
     return sorted;
   }
 
+  static void _validateFilterMap(Map<String, Object> filters) {
+    for (final MapEntry(key: fieldAndOp, value: value) in filters.entries) {
+      final [..., operator] = fieldAndOp.trim().split(' ');
+      FirestoreService.validateNotInOrFail(operator, value, fieldAndOp);
+    }
+  }
+
   static bool _matchesFilter(
     Map<String, Value> fields,
     Map<String, Object> filters,
@@ -636,6 +644,11 @@ abstract base class _FakeInMemoryFirestoreService
           continue;
         case '!=':
           if (_equals(fieldValue, value)) {
+            return false;
+          }
+          continue;
+        case 'not-in':
+          if (!_matchesNotIn(fieldValue, value as List)) {
             return false;
           }
           continue;
@@ -670,6 +683,25 @@ abstract base class _FakeInMemoryFirestoreService
     }
 
     return true;
+  }
+
+  static bool _matchesNotIn(Value? fieldValue, List<Object?> excluded) {
+    if (!_hasNonNullScalarValue(fieldValue)) {
+      return false;
+    }
+    return !excluded.any(
+      (Object? item) => item != null && _equals(fieldValue, item),
+    );
+  }
+
+  static bool _hasNonNullScalarValue(Value? fieldValue) {
+    if (fieldValue == null) {
+      return false;
+    }
+    return fieldValue.stringValue != null ||
+        fieldValue.integerValue != null ||
+        fieldValue.booleanValue != null ||
+        fieldValue.timestampValue != null;
   }
 
   static bool _equals(Value? fieldValue, Object rawValue) {

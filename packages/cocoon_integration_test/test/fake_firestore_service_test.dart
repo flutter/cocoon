@@ -792,6 +792,49 @@ void main() {
         final query = await firestore.query('items', {'an_array @>': 1});
         expect(query.map((q) => q.name), [endsWith('1')]);
       });
+
+      test('not-in excludes matching values and missing/null fields', () async {
+        firestore.putDocuments([
+          g.Document(
+            name: firestore.resolveDocumentName('items', '1'),
+            fields: {'slug': 'flutter/flutter'.toValue()},
+          ),
+          g.Document(
+            name: firestore.resolveDocumentName('items', '2'),
+            fields: {'slug': 'flutter/cocoon'.toValue()},
+          ),
+          g.Document(
+            name: firestore.resolveDocumentName('items', '3'),
+            fields: {'slug': 'flutter/packages'.toValue()},
+          ),
+          g.Document(
+            name: firestore.resolveDocumentName('items', '4'),
+            fields: {'slug': g.Value(stringValue: null)},
+          ),
+          g.Document(
+            name: firestore.resolveDocumentName('items', '5'),
+            fields: {},
+          ),
+        ]);
+
+        final query = await firestore.query('items', {
+          'slug not-in': ['flutter/cocoon'],
+        });
+        expect(query.map((q) => q.name), [endsWith('1'), endsWith('3')]);
+      });
+
+      test('not-in rejects empty or >10 element lists', () async {
+        expect(
+          () => firestore.query('items', {'slug not-in': <String>[]}),
+          throwsArgumentError,
+        );
+        expect(
+          () => firestore.query('items', {
+            'slug not-in': List.generate(11, (i) => 'repo/$i'),
+          }),
+          throwsArgumentError,
+        );
+      });
     });
 
     group('limit', () {
