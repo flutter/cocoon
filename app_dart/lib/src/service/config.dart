@@ -78,6 +78,10 @@ interface class Config extends DynamicallyUpdatedConfig {
   /// in-progress when all the failed jobs are retried.
   static const String kPresubmitCheckName = 'Presubmit';
 
+  /// A required check that blocks merging until all requested or explicitly
+  /// specified reviewers have approved the pull request.
+  static const String kWantLgtmCheckName = 'WANT_LGTM';
+
   final CacheService _cache;
   final SecretManager _secrets;
   final http.Client _httpClient;

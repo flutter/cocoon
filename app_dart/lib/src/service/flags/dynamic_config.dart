@@ -6,6 +6,7 @@
 /// @docImport 'dynamic_config_updater.dart';
 library;
 
+import 'package:github/github.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
@@ -16,6 +17,7 @@ import 'content_aware_hashing_flags.dart';
 import 'dynamic_config_updater.dart';
 import 'ordered_presubmit_flags.dart';
 import 'reset_failed_check_run.dart';
+import 'want_lgtm_flags.dart';
 
 part 'dynamic_config.g.dart';
 
@@ -43,6 +45,7 @@ final class DynamicConfig {
     orderedPresubmit: OrderedPresubmit.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
+    wantLgtm: WantLgtmFlags.defaultInstance,
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -85,6 +88,10 @@ final class DynamicConfig {
   @JsonKey()
   final String geminiModel;
 
+  /// Flags related to WANT_LGTM pull request merge blocking.
+  @JsonKey()
+  final WantLgtmFlags wantLgtm;
+
   const DynamicConfig._({
     required this.backfillerCommitLimit,
     required this.ciYaml,
@@ -95,6 +102,7 @@ final class DynamicConfig {
     required this.orderedPresubmit,
     required this.dynamicTestSuppression,
     required this.geminiModel,
+    required this.wantLgtm,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -110,6 +118,7 @@ final class DynamicConfig {
     OrderedPresubmit? orderedPresubmit,
     bool? dynamicTestSuppression,
     String? geminiModel,
+    WantLgtmFlags? wantLgtm,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -128,6 +137,7 @@ final class DynamicConfig {
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
       geminiModel: geminiModel ?? defaultInstance.geminiModel,
+      wantLgtm: wantLgtm ?? defaultInstance.wantLgtm,
     );
   }
 
@@ -175,6 +185,10 @@ final class DynamicConfig {
     }
     return orderedPresubmit.useForUsers.contains(githubUsername);
   }
+
+  /// Returns whether WANT_LGTM is enabled for the given [slug].
+  bool isWantLgtmEnabledForRepo(RepositorySlug slug) =>
+      wantLgtm.isEnabledForRepo(slug);
 }
 
 extension _YamlMapToMap on YamlMap {
