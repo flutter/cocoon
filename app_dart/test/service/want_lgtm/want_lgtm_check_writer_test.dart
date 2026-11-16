@@ -6,6 +6,8 @@ import 'package:cocoon_integration_test/testing.dart';
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/src/model/firestore/want_lgtm_state.dart';
 import 'package:cocoon_service/src/service/config.dart';
+import 'package:cocoon_service/src/service/flags/dynamic_config.dart';
+import 'package:cocoon_service/src/service/flags/want_lgtm_flags.dart';
 import 'package:cocoon_service/src/service/want_lgtm/want_lgtm_check_writer.dart';
 import 'package:cocoon_service/src/service/want_lgtm/want_lgtm_models.dart';
 import 'package:github/github.dart' as github;
@@ -628,6 +630,210 @@ void main() {
             output: anyNamed('output'),
           ),
         ).called(1);
+      },
+    );
+
+    test(
+      'sweepInProgressRuns sweeps in-progress runs on disabled repos as neutral',
+      () async {
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final doc = WantLgtmState.initialize(
+          slug: slug,
+          pr: prNumber,
+          headSha: headSha,
+          checkRunId: 555777,
+          checkRunStatus: 'in_progress',
+          checkRunTitle: 'Waiting on bob',
+        );
+        firestoreService.putDocument(doc);
+
+        final count = await checkWriter.sweepInProgressRuns();
+        expect(count, 1);
+
+        final updated = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: prNumber,
+        );
+        expect(updated?.checkRunStatus, 'completed');
+        expect(updated?.checkRunConclusion, 'neutral');
+      },
+    );
+
+    test(
+      'sweepInProgressRuns skips repositories where wantLgtm is still enabled',
+      () async {
+        config.dynamicConfig = DynamicConfig(
+          wantLgtm: WantLgtmFlags(
+            enabled: true,
+            useForAllRepos: false,
+            enabledRepos: ['flutter/cocoon'],
+          ),
+        );
+
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final cocoonSlug = RepositorySlug('flutter', 'cocoon');
+        firestoreService.putDocuments([
+          WantLgtmState.initialize(
+            slug: cocoonSlug,
+            pr: 100,
+            headSha: 'sha_cocoon',
+            checkRunId: 555888,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on alice',
+          ),
+          WantLgtmState.initialize(
+            slug: slug,
+            pr: prNumber,
+            headSha: headSha,
+            checkRunId: 555999,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on bob',
+          ),
+        ]);
+
+        final count = await checkWriter.sweepInProgressRuns();
+        expect(count, 1);
+
+        final cocoonState = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: cocoonSlug,
+          pr: 100,
+        );
+        expect(cocoonState?.checkRunStatus, 'in_progress');
+
+        final flutterState = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: prNumber,
+        );
+        expect(flutterState?.checkRunStatus, 'completed');
+        expect(flutterState?.checkRunConclusion, 'neutral');
+      },
+    );
+
+    test(
+      'sweepInProgressRuns supports dryRun without mutating GitHub or Firestore',
+      () async {
+        firestoreService.putDocument(
+          WantLgtmState.initialize(
+            slug: slug,
+            pr: prNumber,
+            headSha: headSha,
+            checkRunId: 555777,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on bob',
+          ),
+        );
+
+        final count = await checkWriter.sweepInProgressRuns(dryRun: true);
+        expect(count, 1);
+
+        verifyNever(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            any,
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        );
+
+        final unchanged = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: prNumber,
+        );
+        expect(unchanged?.checkRunStatus, 'in_progress');
+      },
+    );
+
+    test(
+      'sweepInProgressRuns continues sweeping remaining PRs when one fails',
+      () async {
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            argThat(isA<github.CheckRun>().having((c) => c.id, 'id', 600001)),
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        ).thenThrow(Exception('GitHub 500'));
+        when(
+          mockGithubChecksUtil.updateCheckRun(
+            any,
+            any,
+            argThat(isA<github.CheckRun>().having((c) => c.id, 'id', 600002)),
+            status: anyNamed('status'),
+            conclusion: anyNamed('conclusion'),
+            detailsUrl: anyNamed('detailsUrl'),
+            output: anyNamed('output'),
+          ),
+        ).thenAnswer((_) async {});
+
+        firestoreService.putDocuments([
+          WantLgtmState.initialize(
+            slug: slug,
+            pr: 1,
+            headSha: 'sha_1',
+            checkRunId: 600001,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on alice',
+          ),
+          WantLgtmState.initialize(
+            slug: slug,
+            pr: 2,
+            headSha: 'sha_2',
+            checkRunId: 600002,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on bob',
+          ),
+        ]);
+
+        final count = await checkWriter.sweepInProgressRuns();
+        expect(count, 2);
+
+        final pr1 = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: 1,
+        );
+        expect(pr1?.checkRunStatus, 'in_progress');
+
+        final pr2 = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestoreService,
+          slug: slug,
+          pr: 2,
+        );
+        expect(pr2?.checkRunStatus, 'completed');
+        expect(pr2?.checkRunConclusion, 'neutral');
       },
     );
   });

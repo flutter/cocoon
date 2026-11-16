@@ -511,6 +511,7 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
       pullRequest: pr,
       reason: (!pr.merged!) ? 'Pull request closed' : 'Pull request merged',
     );
+    await _markWantLgtmClosedInFirestore(pr);
 
     if (!pr.merged!) {
       return const ProcessCheckRunResult.success();
@@ -534,6 +535,33 @@ final class GithubWebhookSubscription extends SubscriptionHandler {
     return ProcessCheckRunResult.missingEntity(
       '${pr.mergeCommitSha!} was not found on GoB (duration=$duration).',
     );
+  }
+
+  /// Marks any open `in_progress` [WantLgtmState] for [pr] as `'closed'` in
+  /// Firestore without calling GitHub's Check Runs API so closed PRs do not
+  /// accumulate in rollback sweeps if the repository is later disabled.
+  Future<void> _markWantLgtmClosedInFirestore(PullRequest pr) async {
+    final slug = pr.base?.repo?.slug();
+    final prNumber = pr.number;
+    if (slug == null || prNumber == null || prNumber <= 0) {
+      return;
+    }
+    try {
+      final state = await WantLgtmState.fromFirestoreOrNull(
+        firestoreService: firestore,
+        slug: slug,
+        pr: prNumber,
+      );
+      if (state != null && state.checkRunStatus == 'in_progress') {
+        state.checkRunStatus = 'closed';
+        state.updatedAt = _now().toUtc();
+        await state.save(firestore);
+      }
+    } catch (e, s) {
+      log.error(
+        'Error marking WANT_LGTM closed in Firestore for $slug #$prNumber: $e\n$s',
+      );
+    }
   }
 
   PullRequestEvent? _getPullRequestEvent(String request) {

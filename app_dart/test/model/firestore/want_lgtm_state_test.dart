@@ -240,5 +240,39 @@ void main() {
       expect(inProgressList.length, 1);
       expect(inProgressList.first.pr, 1);
     });
+
+    test(
+      'queryInProgress excludes enabled repository slugs via not-in',
+      () async {
+        firestoreService.putDocuments([
+          WantLgtmState.initialize(
+            slug: RepositorySlug('flutter', 'flutter'),
+            pr: 1,
+            headSha: 'sha1',
+            checkRunId: 101,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on alice',
+          ),
+          WantLgtmState.initialize(
+            slug: RepositorySlug('flutter', 'cocoon'),
+            pr: 2,
+            headSha: 'sha2',
+            checkRunId: 102,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on bob',
+          ),
+        ]);
+
+        final inProgressList = await WantLgtmState.queryInProgress(
+          firestoreService: firestoreService,
+          excludedSlugs: const <String>['flutter/cocoon'],
+        );
+        expect(inProgressList, hasLength(1));
+        expect(
+          inProgressList.single.slug,
+          RepositorySlug('flutter', 'flutter'),
+        );
+      },
+    );
   });
 }

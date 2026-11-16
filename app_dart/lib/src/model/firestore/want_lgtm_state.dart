@@ -109,19 +109,32 @@ final class WantLgtmState extends AppDocument<WantLgtmState> {
     return WantLgtmState.fromDocument(documents.first);
   }
 
-  /// Queries all [WantLgtmState] documents with status `in_progress`.
+  /// Queries [WantLgtmState] documents with status `in_progress`, optionally
+  /// excluding [excludedSlugs] via Firestore `not-in` when `1..10` slugs are
+  /// provided (and filtering in memory if more than 10 slugs are provided).
   static Future<List<WantLgtmState>> queryInProgress({
     required FirestoreService firestoreService,
-    RepositorySlug? slug,
+    List<String> excludedSlugs = const <String>[],
   }) async {
+    final normalizedExcluded = {
+      for (final slug in excludedSlugs)
+        if (slug.trim().isNotEmpty) slug.trim().toLowerCase(),
+    }.toList();
     final filterMap = <String, Object>{
       '$kCheckRunStatusField =': 'in_progress',
+      if (normalizedExcluded.isNotEmpty && normalizedExcluded.length <= 10)
+        '$kSlugField not-in': normalizedExcluded,
     };
-    if (slug != null) {
-      filterMap['$kSlugField ='] = slug.fullName;
-    }
     final documents = await firestoreService.query(kCollectionId, filterMap);
-    return documents.map(WantLgtmState.fromDocument).toList();
+    final states = documents.map(WantLgtmState.fromDocument);
+    if (normalizedExcluded.length > 10) {
+      final excludedSet = normalizedExcluded.toSet();
+      return [
+        for (final state in states)
+          if (!excludedSet.contains(state.slug.fullName.toLowerCase())) state,
+      ];
+    }
+    return states.toList();
   }
 
   /// Initializes a new [WantLgtmState] instance.

@@ -180,19 +180,40 @@ void main() {
       });
     }
 
-    test('ignores action closed without invoking reconciler', () async {
-      tester.message = generateGithubWebhookMessage(
-        action: 'closed',
-        number: prNumber,
-        slug: slug,
-        headSha: headSha,
-        merged: false,
-      );
+    test(
+      'marks in_progress state closed in Firestore without invoking reconciler on closed event',
+      () async {
+        firestore.putDocument(
+          WantLgtmState.initialize(
+            slug: slug,
+            pr: prNumber,
+            headSha: headSha,
+            checkRunId: 9001,
+            checkRunStatus: 'in_progress',
+            checkRunTitle: 'Waiting on alice',
+          ),
+        );
 
-      final response = await tester.post(webhook);
-      expect(response, same(Response.emptyOk));
-      expect(fakeReconciler.prCalls, isEmpty);
-    });
+        tester.message = generateGithubWebhookMessage(
+          action: 'closed',
+          number: prNumber,
+          slug: slug,
+          headSha: headSha,
+          merged: false,
+        );
+
+        final response = await tester.post(webhook);
+        expect(response, same(Response.emptyOk));
+        expect(fakeReconciler.prCalls, isEmpty);
+
+        final state = await WantLgtmState.fromFirestoreOrNull(
+          firestoreService: firestore,
+          slug: slug,
+          pr: prNumber,
+        );
+        expect(state?.checkRunStatus, 'closed');
+      },
+    );
   });
 
   group('pull_request_review routing to WANT_LGTM reconciler', () {
