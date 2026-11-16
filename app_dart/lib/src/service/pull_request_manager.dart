@@ -89,6 +89,21 @@ class PullRequestManager {
     final pr = event.pullRequest!;
     final slug = event.repository!.slug();
     final prNumber = pr.number!;
+    return runWithPrLock<T>(
+      slug: slug,
+      prNumber: prNumber,
+      cache: cache,
+      action: action,
+    );
+  }
+
+  /// Runs an action with a distributed lock on the pull request identified by [slug] and [prNumber].
+  static Future<T> runWithPrLock<T>({
+    required RepositorySlug slug,
+    required int prNumber,
+    required CacheService cache,
+    required Future<T> Function() action,
+  }) async {
     final lockKey = 'pr_lock_${slug.owner}_${slug.name}_$prNumber';
 
     T? result;
