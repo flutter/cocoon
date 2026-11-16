@@ -22,7 +22,10 @@ import 'package:intl/intl.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
+
 import '../utils/fake_flutter_app_icons.dart';
+import '../utils/fake_url_launcher.dart';
 import '../utils/golden.dart';
 import '../utils/mocks.dart';
 import '../utils/task_icons.dart';
@@ -30,6 +33,7 @@ import '../utils/task_icons.dart';
 void main() {
   late MockCocoonService mockCocoonService;
   late MockFirebaseAuthService mockAuthService;
+  late MockFirebaseAnalyticsService mockAnalyticsService;
   late BuildState buildState;
   late PresubmitState presubmitState;
 
@@ -37,6 +41,7 @@ void main() {
     Intl.defaultLocale = 'en_US';
     mockCocoonService = MockCocoonService();
     mockAuthService = MockFirebaseAuthService();
+    mockAnalyticsService = MockFirebaseAnalyticsService();
 
     FlutterAppIconsPlatform.instance = FakeFlutterAppIcons();
 
@@ -136,6 +141,7 @@ void main() {
     presubmitState = PresubmitState(
       cocoonService: mockCocoonService,
       authService: mockAuthService,
+      analyticsService: mockAnalyticsService,
     );
   });
 
@@ -1788,5 +1794,166 @@ void main() {
         expect(formatDuration(Duration.zero), 'Duration: Planck time');
       });
     });
+  });
+
+  group('Firebase Analytics', () {
+    testWidgets(
+      'logs page open, filter dialog, re-run, re-run failed, LUCI UI, and Gemini log analysis',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(2000, 1080);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final urlLauncher = FakeUrlLauncher();
+        UrlLauncherPlatform.instance = urlLauncher;
+
+        when(mockAuthService.isAuthenticated).thenReturn(true);
+
+        const mockSha = 'decaf_3_real_sha';
+        const guardResponse = PresubmitGuardResponse(
+          prNum: 123,
+          author: 'dash',
+          guardStatus: GuardStatus.failed,
+          checkRunId: 456,
+          enableGeminiLogAnalysis: true,
+          stages: [
+            PresubmitGuardStage(
+              name: 'Engine',
+              createdAt: 0,
+              jobs: {'Mac mac_host_engine 1': TaskStatus.failed},
+            ),
+          ],
+        );
+
+        when(
+          mockCocoonService.fetchPresubmitGuard(
+            repo: anyNamed('repo'),
+            sha: mockSha,
+          ),
+        ).thenAnswer((_) async => const CocoonResponse.data(guardResponse));
+
+        when(
+          mockCocoonService.fetchPresubmitJobDetails(
+            checkRunId: anyNamed('checkRunId'),
+            jobName: argThat(contains('mac_host_engine'), named: 'jobName'),
+          ),
+        ).thenAnswer(
+          (_) async => CocoonResponse.data([
+            PresubmitJobResponse(
+              attemptNumber: 1,
+              jobName: 'Mac mac_host_engine 1',
+              creationTime: 0,
+              status: TaskStatus.failed,
+              summary: 'Test failed: Unit Tests',
+              buildNumber: 42,
+              buildId: '789',
+            ),
+          ]),
+        );
+
+        when(
+          mockCocoonService.analyzeLogs(
+            idToken: anyNamed('idToken'),
+            repo: anyNamed('repo'),
+            pr: anyNamed('pr'),
+            buildId: Int64(789),
+          ),
+        ).thenAnswer((_) async => const CocoonResponse.data(null));
+
+        await tester.runAsync(() async {
+          await tester.pumpWidget(
+            createPreSubmitView({
+              'repo': 'flutter',
+              'pr': '123',
+              'sha': mockSha,
+            }),
+          );
+          for (var i = 0; i < 50; i++) {
+            await tester.pump();
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+            if (find.textContaining('by dash').evaluate().isNotEmpty) break;
+          }
+        });
+        await tester.pumpAndSettle();
+
+        // 1. Page open metric
+        verify(
+          mockAnalyticsService.logPresubmitPageOpen(
+            repo: 'flutter',
+            pr: '123',
+            sha: mockSha,
+          ),
+        ).called(1);
+
+        // 2. Filter dialog metric
+        await tester.tap(find.text('Filter jobs'));
+        await tester.pumpAndSettle();
+        verify(
+          mockAnalyticsService.logFilterDialogOpened(
+            repo: 'flutter',
+            pr: '123',
+            sha: mockSha,
+          ),
+        ).called(1);
+        await tester.tap(find.textContaining('Show 1 jobs'));
+        await tester.pumpAndSettle();
+
+        // 3. Re-run job metric
+        await tester.tap(find.widgetWithText(TextButton, 'Re-run'));
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+        verify(
+          mockAnalyticsService.logRerunJob(
+            repo: 'flutter',
+            pr: '123',
+            jobName: 'Mac mac_host_engine 1',
+          ),
+        ).called(1);
+
+        // 4. Re-run failed metric
+        await tester.tap(find.widgetWithText(TextButton, 'Re-run failed'));
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pumpAndSettle();
+        verify(
+          mockAnalyticsService.logRerunAllFailedJobs(
+            repo: 'flutter',
+            pr: '123',
+          ),
+        ).called(1);
+
+        // Select job to view details buttons
+        await tester.tap(find.textContaining('mac_host_engine').first);
+        await tester.pumpAndSettle();
+
+        // 5. View more details on LUCI UI metric
+        await tester.tap(
+          find.widgetWithText(ElevatedButton, 'View more details on LUCI UI'),
+        );
+        await tester.pumpAndSettle();
+        verify(
+          mockAnalyticsService.logViewLuciUi(
+            repo: 'flutter',
+            pr: '123',
+            jobName: 'Mac mac_host_engine 1',
+            buildNumber: 42,
+          ),
+        ).called(1);
+
+        // 6. Analyze Logs with Gemini metric
+        await tester.tap(
+          find.widgetWithText(ElevatedButton, 'Analyze Logs with Gemini'),
+        );
+        await tester.pumpAndSettle();
+        verify(
+          mockAnalyticsService.logAnalyzeLogsWithGemini(
+            repo: 'flutter',
+            pr: '123',
+            jobName: 'Mac mac_host_engine 1',
+            buildId: '789',
+          ),
+        ).called(1);
+      },
+    );
   });
 }

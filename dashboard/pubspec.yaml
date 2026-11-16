@@ -22,6 +22,7 @@ dependencies:
   cocoon_service: ^0.0.0
   collection: any # Match Flutter SDK
   crypto: ^3.0.7
+  firebase_analytics: ^12.0.0
   firebase_auth: ^6.0.0
   firebase_core: ^4.4.0 # Rolled by dependabot
   firebase_crashlytics: ^5.2.7 # Rolled by dependabot

@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'firebase_options.dart';
 import 'service/cocoon.dart';
 import 'service/fake_firebase_auth.dart';
+import 'service/firebase_analytics.dart';
 import 'service/firebase_auth.dart';
 import 'state/build.dart';
 import 'state/presubmit.dart';
@@ -70,6 +71,8 @@ void main([List<String> args = const <String>[]]) async {
     authService = FirebaseAuthService();
   }
 
+  final analyticsService = FirebaseAnalyticsService();
+
   final cocoonService = CocoonService(
     useProductionService: useProductionService,
   );
@@ -83,6 +86,7 @@ void main([List<String> args = const <String>[]]) async {
       presubmitState: PresubmitState(
         authService: authService,
         cocoonService: cocoonService,
+        analyticsService: analyticsService,
       ),
       child: Now(child: const MyApp()),
     ),

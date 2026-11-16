@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 
 import '../logic/task_sorting.dart';
 import '../service/cocoon.dart';
+import '../service/firebase_analytics.dart';
 import '../service/firebase_auth.dart';
 
 const String kFlutterRepo = 'flutter';
@@ -41,12 +42,17 @@ enum PresubmitParams implements Comparable<PresubmitParams> {
 /// This state manages the data for a specific Pull Request (PR) or commit SHA,
 /// including available SHAs, guard status, and individual job results.
 class PresubmitState extends ChangeNotifier {
-  PresubmitState({required this.cocoonService, required this.authService}) {
+  PresubmitState({
+    required this.cocoonService,
+    required this.authService,
+    FirebaseAnalyticsService? analyticsService,
+  }) : analyticsService = analyticsService ?? FirebaseAnalyticsService() {
     authService.addListener(onAuthChanged);
   }
 
   final CocoonService cocoonService;
   final FirebaseAuthService authService;
+  final FirebaseAnalyticsService analyticsService;
 
   String get insufficientPermissionMessage =>
       'User has no write permission to $repo github repo.';
@@ -639,6 +645,10 @@ class PresubmitState extends ChangeNotifier {
     _isJobsLoading = true;
     notifyListeners();
 
+    unawaited(
+      analyticsService.logRerunJob(repo: repo, pr: pr, jobName: jobName),
+    );
+
     final response = await cocoonService.rerunFailedJob(
       idToken: await authService.idToken,
       repo: repo,
@@ -664,6 +674,8 @@ class PresubmitState extends ChangeNotifier {
     if (pr == null) return kNoPRSelectedErrorMessage;
     _isRerunningAll = true;
     notifyListeners();
+
+    unawaited(analyticsService.logRerunAllFailedJobs(repo: repo, pr: pr));
 
     final response = await cocoonService.rerunAllFailedJobs(
       idToken: await authService.idToken,
@@ -717,6 +729,15 @@ class PresubmitState extends ChangeNotifier {
   /// Triggers log analysis for a job.
   Future<String?> analyzeLogs(PresubmitJobResponse job) async {
     if (pr == null) return kNoPRSelectedErrorMessage;
+
+    unawaited(
+      analyticsService.logAnalyzeLogsWithGemini(
+        repo: repo,
+        pr: pr,
+        jobName: job.jobName,
+        buildId: job.buildId,
+      ),
+    );
 
     final response = await cocoonService.analyzeLogs(
       idToken: await authService.idToken,
