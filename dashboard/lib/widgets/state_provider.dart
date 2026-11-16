@@ -5,6 +5,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../service/firebase_analytics.dart';
 import '../service/firebase_auth.dart';
 import '../state/build.dart';
 import '../state/presubmit.dart';
@@ -13,12 +14,15 @@ class StateProvider extends StatelessWidget {
   const StateProvider({
     super.key,
     this.signInService,
+    this.analyticsService,
     this.buildState,
     this.presubmitState,
     this.child,
   });
 
   final FirebaseAuthService? signInService;
+
+  final FirebaseAnalyticsService? analyticsService;
 
   final BuildState? buildState;
 
@@ -31,6 +35,7 @@ class StateProvider extends StatelessWidget {
     return MultiProvider(
       providers: <ValueProvider<Object?>>[
         ValueProvider<FirebaseAuthService?>(value: signInService),
+        ValueProvider<FirebaseAnalyticsService?>(value: analyticsService),
         ValueProvider<BuildState?>(value: buildState),
         ValueProvider<PresubmitState?>(value: presubmitState),
       ],
