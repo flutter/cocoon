@@ -26,6 +26,7 @@ dependencies:
   corsac_jwt: ^2.0.2
   crypto: ^3.0.6
   dbcrypt: 2.0.0
+  ed25519_edwards: ^0.3.2
   file: ^7.0.1
   fixnum: 1.1.1
   gcloud: ^0.9.0

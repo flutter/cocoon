@@ -47,4 +47,8 @@ orderedPresubmit:
   useForAll: true
   useForUsers:
     - ievdokdm
+
+# Active Ed25519 Key IDs (RFC 7638 JWK Thumbprints) exposed by GET /api/v1/jwks.
+# Each entry maps to APP_DART_JWKS_PUBLIC_{kid} in GCP Secret Manager.
+jwksPublicKids: []
 ''';

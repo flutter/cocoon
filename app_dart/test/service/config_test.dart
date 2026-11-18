@@ -103,5 +103,30 @@ void main() {
       expect(config.isOrderedPresubmitEnabledForUser('testuser'), isTrue);
       expect(config.isOrderedPresubmitEnabledForUser('otheruser'), isFalse);
     });
+
+    test('jwksPublicKids defaults to empty and parses configured list', () {
+      expect(DynamicConfig.fromJson(const {}).jwksPublicKids, isEmpty);
+      final parsed = DynamicConfig.fromJson(const <String, Object?>{
+        'jwksPublicKids': <String>['kid-1', 'kid-2'],
+      });
+      expect(parsed.jwksPublicKids, <String>['kid-1', 'kid-2']);
+    });
+  });
+
+  group('JWKS secrets', () {
+    test('formats secret names and fetches public/private PEMs', () async {
+      const kid = 'kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k';
+      expect(
+        Config.jwksPrivateKeySecretName(kid),
+        'APP_DART_JWKS_PRIVATE_$kid',
+      );
+      expect(Config.jwksPublicKeySecretName(kid), 'APP_DART_JWKS_PUBLIC_$kid');
+
+      secrets.putString('APP_DART_JWKS_PRIVATE_$kid', 'private-pem');
+      secrets.putString('APP_DART_JWKS_PUBLIC_$kid', 'public-pem');
+
+      expect(await config.getJwksPrivateKeyPem(kid), 'private-pem');
+      expect(await config.getJwksPublicKeyPem(kid), 'public-pem');
+    });
   });
 }

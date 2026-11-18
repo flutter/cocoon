@@ -196,6 +196,33 @@ interface class Config extends DynamicallyUpdatedConfig {
     return jsonDecode(installations) as Map<String, dynamic>;
   }
 
+  // Pluggable CI JWKS properties.
+
+  /// Secret Manager name prefix for Pluggable CI Ed25519 PKCS#8 private keys.
+  static const String jwksPrivateKeySecretPrefix = 'APP_DART_JWKS_PRIVATE_';
+
+  /// Secret Manager name prefix for Pluggable CI Ed25519 SPKI public keys.
+  static const String jwksPublicKeySecretPrefix = 'APP_DART_JWKS_PUBLIC_';
+
+  /// Cache TTL for JWKS keys and responses (aligns with RFC 610.0002 10-minute key rotation window).
+  static const Duration jwksCacheTtl = Duration(minutes: 5);
+
+  /// Returns the Secret Manager secret name `APP_DART_JWKS_PRIVATE_{kid}`.
+  static String jwksPrivateKeySecretName(String kid) =>
+      '$jwksPrivateKeySecretPrefix$kid';
+
+  /// Returns the Secret Manager secret name `APP_DART_JWKS_PUBLIC_{kid}`.
+  static String jwksPublicKeySecretName(String kid) =>
+      '$jwksPublicKeySecretPrefix$kid';
+
+  /// Returns the PKCS#8 PEM-encoded Ed25519 private key for [kid].
+  Future<String> getJwksPrivateKeyPem(String kid) =>
+      _getSingleValue(jwksPrivateKeySecretName(kid), ttl: jwksCacheTtl);
+
+  /// Returns the SPKI PEM-encoded Ed25519 public key for [kid].
+  Future<String> getJwksPublicKeyPem(String kid) =>
+      _getSingleValue(jwksPublicKeySecretName(kid), ttl: jwksCacheTtl);
+
   // Default recipe bundle used when the PR's base branch name does not exist in
   // the recipes GoB project.
   CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');

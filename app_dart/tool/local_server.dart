@@ -24,10 +24,19 @@ Future<void> main() async {
   final cache = CacheService.redis();
   final secretManager = FakeSecretManager();
   secretManager.putString('APP_DART_GEMINI_LOG_ANALYZER_KEY', 'dummy_key');
+  final localJwksKey = Ed25519KeyPair.generate();
+  secretManager.putString(
+    Config.jwksPrivateKeySecretName(localJwksKey.kid),
+    localJwksKey.toPrivateKeyPem(),
+  );
+  secretManager.putString(
+    Config.jwksPublicKeySecretName(localJwksKey.kid),
+    localJwksKey.toPublicKeyPem(),
+  );
   final config = Config(
     cache,
     secretManager,
-    initialConfig: DynamicConfig.fromJson({}),
+    initialConfig: DynamicConfig(jwksPublicKids: <String>[localJwksKey.kid]),
     httpClient: MappingHttpClient(http.Client()),
   );
   final firestore = FakeFirestoreService();
