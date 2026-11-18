@@ -7,11 +7,29 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:googleapis/secretmanager/v1.dart' as gapis;
-import 'package:googleapis_auth/auth_io.dart' as gauth;
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+
+/// Result of executing a `gcloud` CLI command.
+@immutable
+final class GcloudResult {
+  const GcloudResult({
+    required this.exitCode,
+    required this.stdout,
+    required this.stderr,
+  });
+
+  final int exitCode;
+  final String stdout;
+  final String stderr;
+}
+
+/// Signature for invoking `gcloud` commands, optionally piping [stdinBytes].
+typedef GcloudRunner =
+    Future<GcloudResult> Function(
+      List<String> arguments, {
+      List<int>? stdinBytes,
+    });
 
 Future<void> main(List<String> args) async {
   final exitCodeValue = await run(args);
@@ -25,8 +43,7 @@ Future<int> run(
   List<String> args, {
   StringSink? out,
   StringSink? err,
-  @visibleForTesting
-  Future<gapis.SecretManagerApi> Function()? secretManagerApiFactory,
+  @visibleForTesting GcloudRunner gcloudRunner = defaultGcloudRunner,
   @visibleForTesting Ed25519KeyPair Function()? keyPairFactory,
 }) async {
   final stdoutSink = out ?? stdout;
@@ -53,13 +70,16 @@ Secret Manager naming convention:
 
 Examples:
   # Preview generated key pair and JWK locally (dry-run):
-  dart run bin/generate_jwks_key.dart
+  dart run app_dart/bin/generate_jwks_key.dart
 
   # Generate and upload directly to GCP Secret Manager (flutter-dashboard):
-  dart run bin/generate_jwks_key.dart --upload
+  dart run app_dart/bin/generate_jwks_key.dart --upload
+
+  # Generate and upload to the dev project (flutter-dashboard-dev):
+  dart run app_dart/bin/generate_jwks_key.dart --upload --project flutter-dashboard-dev
 
   # Generate and save PEM files locally:
-  dart run bin/generate_jwks_key.dart --output-dir /tmp/cocoon-jwks
+  dart run app_dart/bin/generate_jwks_key.dart --output-dir /tmp/cocoon-jwks
 
 Options:
 ${parser.usage}''');
@@ -71,6 +91,24 @@ ${parser.usage}''');
   final outputDir = parsedArgs['output-dir'] as String?;
   final printPrivateKey = parsedArgs['print-private-key'] as bool;
 
+  // Verify GCP connectivity and authentication BEFORE generating keys.
+  // Uses `gcloud` CLI so Google corp BeyondCorp / ECP mTLS credentials work natively.
+  if (upload) {
+    stdoutSink.writeln(
+      'Connecting to GCP Secret Manager (project: $projectId)...',
+    );
+    try {
+      await verifyGcpConnection(gcloudRunner, projectId: projectId);
+    } on GcloudCommandException catch (e) {
+      stderrSink.writeln(
+        'Failed to connect to GCP Secret Manager (project: $projectId): '
+        '${e.message}',
+      );
+      _writeRemediationHint(stderrSink, e.message, projectId: projectId);
+      return 1;
+    }
+  }
+
   final keyPair = (keyPairFactory ?? Ed25519KeyPair.generate)();
   final kid = keyPair.kid;
   final privateSecretName = Config.jwksPrivateKeySecretName(kid);
@@ -80,6 +118,27 @@ ${parser.usage}''');
   final publicJwkJson = const JsonEncoder.withIndent(
     '  ',
   ).convert(keyPair.publicJwk.toJson());
+
+  if (upload) {
+    stdoutSink.writeln(
+      'Uploading secrets to GCP Secret Manager (project: $projectId)...',
+    );
+    try {
+      await uploadKeyPairToSecretManager(
+        gcloudRunner,
+        projectId: projectId,
+        keyPair: keyPair,
+        out: stdoutSink,
+      );
+    } on GcloudCommandException catch (e) {
+      stderrSink.writeln(
+        'Failed to upload secrets to Secret Manager: ${e.message}',
+      );
+      _writeRemediationHint(stderrSink, e.message, projectId: projectId);
+      return 1;
+    }
+    stdoutSink.writeln('');
+  }
 
   stdoutSink.writeln('Generated Ed25519 key pair:');
   stdoutSink.writeln('  kid (RFC 7638 thumbprint): $kid');
@@ -103,26 +162,6 @@ ${parser.usage}''');
     stdoutSink.writeln('Wrote PEM files:');
     stdoutSink.writeln('  Private key: ${privateFile.path}');
     stdoutSink.writeln('  Public key:  ${publicFile.path}');
-  }
-
-  if (upload) {
-    stdoutSink.writeln('');
-    stdoutSink.writeln(
-      'Uploading secrets to GCP Secret Manager (project: $projectId)...',
-    );
-    try {
-      final api = await (secretManagerApiFactory ?? _createSecretManagerApi)();
-      await uploadKeyPairToSecretManager(
-        api,
-        projectId: projectId,
-        keyPair: keyPair,
-        out: stdoutSink,
-      );
-    } catch (e, s) {
-      stderrSink.writeln('Failed to upload secrets to Secret Manager: $e');
-      stderrSink.writeln(s);
-      return 1;
-    }
   }
 
   final shouldPrintPems = (!upload && outputDir == null) || printPrivateKey;
@@ -149,24 +188,81 @@ ${parser.usage}''');
   return 0;
 }
 
-/// Uploads [keyPair]'s public and private PEM secrets to Google Cloud Secret Manager.
+void _writeRemediationHint(
+  StringSink stderrSink,
+  String errorMessage, {
+  required String projectId,
+}) {
+  if (errorMessage.contains('IAM_PERMISSION_DENIED') ||
+      errorMessage.contains('does not have permission')) {
+    stderrSink.writeln(
+      'Your account lacks Secret Manager write permissions (`roles/secretmanager.admin`) '
+      'on project `$projectId`.',
+    );
+    if (projectId == Config.flutterGcpProjectId) {
+      stderrSink.writeln(
+        'For `flutter-dashboard`, request temporary write access to '
+        '`flutter-infra-gcp-writers` via go/grants (or use '
+        '`--project flutter-dashboard-dev` for dev).',
+      );
+    }
+    return;
+  }
+  stderrSink.writeln(
+    'Please run `gcloud auth login` to authenticate and try again.',
+  );
+}
+
+/// Verifies connectivity and authentication against GCP Secret Manager for [projectId].
+@visibleForTesting
+Future<void> verifyGcpConnection(
+  GcloudRunner gcloudRunner, {
+  required String projectId,
+}) async {
+  final GcloudResult result;
+  try {
+    result = await gcloudRunner(<String>[
+      'secrets',
+      'list',
+      '--project=$projectId',
+      '--limit=1',
+      '--format=value(name)',
+      '--quiet',
+    ]);
+  } on ProcessException catch (e) {
+    throw GcloudCommandException(
+      'Could not execute `gcloud` (${e.message}). Ensure Google Cloud SDK is installed and on PATH.',
+    );
+  }
+  if (result.exitCode != 0) {
+    final details = result.stderr.trim();
+    throw GcloudCommandException(
+      details.isNotEmpty
+          ? details
+          : '`gcloud secrets list` exited with code ${result.exitCode}.',
+    );
+  }
+}
+
+/// Uploads [keyPair]'s public and private PEM secrets to Google Cloud Secret Manager
+/// via `gcloud secrets` (supporting BeyondCorp / ECP device-bound mTLS credentials).
 @visibleForTesting
 Future<void> uploadKeyPairToSecretManager(
-  gapis.SecretManagerApi api, {
+  GcloudRunner gcloudRunner, {
   required String projectId,
   required Ed25519KeyPair keyPair,
   StringSink? out,
 }) async {
   final kid = keyPair.kid;
-  await _createAndAddSecretVersion(
-    api,
+  await _createOrAddSecretVersion(
+    gcloudRunner,
     projectId: projectId,
     secretId: Config.jwksPublicKeySecretName(kid),
     pemValue: keyPair.toPublicKeyPem(),
     out: out,
   );
-  await _createAndAddSecretVersion(
-    api,
+  await _createOrAddSecretVersion(
+    gcloudRunner,
     projectId: projectId,
     secretId: Config.jwksPrivateKeySecretName(kid),
     pemValue: keyPair.toPrivateKeyPem(),
@@ -174,63 +270,113 @@ Future<void> uploadKeyPairToSecretManager(
   );
 }
 
-Future<void> _createAndAddSecretVersion(
-  gapis.SecretManagerApi api, {
+Future<void> _createOrAddSecretVersion(
+  GcloudRunner gcloudRunner, {
   required String projectId,
   required String secretId,
   required String pemValue,
   StringSink? out,
 }) async {
-  final projectParent = 'projects/$projectId';
-  final secretName = '$projectParent/secrets/$secretId';
+  final pemBytes = utf8.encode(pemValue);
+  final secretPath = 'projects/$projectId/secrets/$secretId';
 
-  try {
-    await api.projects.secrets.create(
-      gapis.Secret(
-        replication: gapis.Replication(automatic: gapis.Automatic()),
-      ),
-      projectParent,
-      secretId: secretId,
-    );
-    out?.writeln('  Created secret $secretName');
-  } on gapis.DetailedApiRequestError catch (e) {
-    // HTTP 409 ALREADY_EXISTS means the secret container exists; add a new version.
-    if (e.status != 409) {
-      rethrow;
+  final describeResult = await gcloudRunner(<String>[
+    'secrets',
+    'describe',
+    secretId,
+    '--project=$projectId',
+    '--format=value(name)',
+    '--quiet',
+  ]);
+
+  if (describeResult.exitCode != 0) {
+    final createResult = await gcloudRunner(<String>[
+      'secrets',
+      'create',
+      secretId,
+      '--project=$projectId',
+      '--replication-policy=automatic',
+      '--data-file=-',
+      '--format=value(name)',
+      '--quiet',
+    ], stdinBytes: pemBytes);
+    if (createResult.exitCode != 0) {
+      final details = createResult.stderr.trim();
+      throw GcloudCommandException(
+        details.isNotEmpty
+            ? details
+            : 'Failed to create secret $secretPath (exit code ${createResult.exitCode}).',
+      );
     }
-    out?.writeln('  Secret $secretName already exists; adding new version');
+    out?.writeln('  Created secret and added version for $secretPath');
+    return;
   }
 
-  final version = await api.projects.secrets.addVersion(
-    gapis.AddSecretVersionRequest(
-      payload: gapis.SecretPayload()..dataAsBytes = utf8.encode(pemValue),
-    ),
-    secretName,
+  out?.writeln('  Secret $secretPath already exists; adding new version');
+  final addResult = await gcloudRunner(<String>[
+    'secrets',
+    'versions',
+    'add',
+    secretId,
+    '--project=$projectId',
+    '--data-file=-',
+    '--format=value(name)',
+    '--quiet',
+  ], stdinBytes: pemBytes);
+  if (addResult.exitCode != 0) {
+    final details = addResult.stderr.trim();
+    throw GcloudCommandException(
+      details.isNotEmpty
+          ? details
+          : 'Failed to add version for $secretPath (exit code ${addResult.exitCode}).',
+    );
+  }
+  final versionName = addResult.stdout.trim();
+  out?.writeln(
+    '  Added secret version ${versionName.isNotEmpty ? versionName : secretPath}',
   );
-  out?.writeln('  Added secret version ${version.name ?? secretName}');
 }
 
-Future<gapis.SecretManagerApi> _createSecretManagerApi() async {
-  const scopes = <String>[gapis.SecretManagerApi.cloudPlatformScope];
-  final accessToken = Platform.environment['ACCESS_TOKEN'];
-  final http.Client client;
-  if (accessToken != null && accessToken.isNotEmpty) {
-    client = gauth.authenticatedClient(
-      http.Client(),
-      gauth.AccessCredentials(
-        gauth.AccessToken(
-          'Bearer',
-          accessToken,
-          DateTime.now().toUtc().add(const Duration(hours: 1)),
-        ),
-        null,
-        scopes,
-      ),
+/// Default [GcloudRunner] invoking the `gcloud` CLI process.
+Future<GcloudResult> defaultGcloudRunner(
+  List<String> arguments, {
+  List<int>? stdinBytes,
+}) async {
+  if (stdinBytes == null) {
+    final result = await Process.run('gcloud', arguments);
+    return GcloudResult(
+      exitCode: result.exitCode,
+      stdout: '${result.stdout}',
+      stderr: '${result.stderr}',
     );
-  } else {
-    client = await gauth.clientViaApplicationDefaultCredentials(scopes: scopes);
   }
-  return gapis.SecretManagerApi(client);
+
+  final process = await Process.start('gcloud', arguments);
+  final stdoutFuture = utf8.decoder.bind(process.stdout).join();
+  final stderrFuture = utf8.decoder.bind(process.stderr).join();
+  process.stdin.done.ignore();
+  try {
+    process.stdin.add(stdinBytes);
+    await process.stdin.close();
+  } on IOException {
+    // Process exited before consuming all stdin; exitCode and stderr report why.
+  }
+
+  return GcloudResult(
+    exitCode: await process.exitCode,
+    stdout: await stdoutFuture,
+    stderr: await stderrFuture,
+  );
+}
+
+/// Exception thrown when a `gcloud` command fails.
+final class GcloudCommandException implements Exception {
+  const GcloudCommandException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 ArgParser _buildArgParser() {

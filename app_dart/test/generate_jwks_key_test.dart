@@ -8,7 +8,6 @@ import 'dart:math';
 
 import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
-import 'package:googleapis/secretmanager/v1.dart' as gapis;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -93,9 +92,10 @@ void main() {
   );
 
   test(
-    '--upload creates APP_DART_JWKS_PUBLIC_<kid> and APP_DART_JWKS_PRIVATE_<kid> in Secret Manager',
+    '--upload verifies GCP connection before generating keys and creates secrets via stdin',
     () async {
-      final fakeApi = _FakeSecretManagerApi();
+      final events = <String>[];
+      final uploadedPayloads = <String, String>{};
       final out = StringBuffer();
       final err = StringBuffer();
 
@@ -103,8 +103,40 @@ void main() {
         const <String>['--upload', '--project', 'my-gcp-project'],
         out: out,
         err: err,
-        keyPairFactory: () => deterministicKeyPair,
-        secretManagerApiFactory: () async => fakeApi,
+        keyPairFactory: () {
+          events.add('generate_key');
+          return deterministicKeyPair;
+        },
+        gcloudRunner: (args, {stdinBytes}) async {
+          if (args.length >= 2 && args[0] == 'secrets' && args[1] == 'list') {
+            events.add('list:${args.join(' ')}');
+            return const cli.GcloudResult(exitCode: 0, stdout: '', stderr: '');
+          }
+          if (args.length >= 3 &&
+              args[0] == 'secrets' &&
+              args[1] == 'describe') {
+            events.add('describe:${args[2]}');
+            return const cli.GcloudResult(
+              exitCode: 1,
+              stdout: '',
+              stderr: 'NOT_FOUND',
+            );
+          }
+          if (args.length >= 3 && args[0] == 'secrets' && args[1] == 'create') {
+            final secretId = args[2];
+            events.add('create:$secretId');
+            expect(args, contains('--project=my-gcp-project'));
+            expect(args, contains('--replication-policy=automatic'));
+            expect(args, contains('--data-file=-'));
+            uploadedPayloads[secretId] = utf8.decode(stdinBytes!);
+            return cli.GcloudResult(
+              exitCode: 0,
+              stdout: 'projects/my-gcp-project/secrets/$secretId\n',
+              stderr: '',
+            );
+          }
+          fail('Unexpected gcloud args: $args');
+        },
       );
 
       expect(exitCode, 0);
@@ -115,35 +147,30 @@ void main() {
       final publicSecretId = 'APP_DART_JWKS_PUBLIC_$kid';
       final privateSecretId = 'APP_DART_JWKS_PRIVATE_$kid';
 
-      expect(fakeApi.secretsResource.createdSecrets, <String>[
-        'projects/my-gcp-project/$publicSecretId',
-        'projects/my-gcp-project/$privateSecretId',
+      // Verify GCP connection check happened strictly BEFORE key generation.
+      expect(events, <String>[
+        'list:secrets list --project=my-gcp-project --limit=1 --format=value(name) --quiet',
+        'generate_key',
+        'describe:$publicSecretId',
+        'create:$publicSecretId',
+        'describe:$privateSecretId',
+        'create:$privateSecretId',
       ]);
       expect(
-        fakeApi
-            .secretsResource
-            .addedVersions['projects/my-gcp-project/secrets/$publicSecretId'],
+        uploadedPayloads[publicSecretId],
         deterministicKeyPair.toPublicKeyPem(),
       );
       expect(
-        fakeApi
-            .secretsResource
-            .addedVersions['projects/my-gcp-project/secrets/$privateSecretId'],
+        uploadedPayloads[privateSecretId],
         deterministicKeyPair.toPrivateKeyPem(),
       );
     },
   );
 
   test(
-    '--upload adds new secret version when secret container already exists (409)',
+    '--upload adds new secret version when secret container already exists',
     () async {
-      final kid = deterministicKeyPair.kid;
-      final fakeApi = _FakeSecretManagerApi(
-        existingSecretIds: <String>{
-          'APP_DART_JWKS_PUBLIC_$kid',
-          'APP_DART_JWKS_PRIVATE_$kid',
-        },
-      );
+      final addedVersions = <String, String>{};
       final out = StringBuffer();
       final err = StringBuffer();
 
@@ -152,13 +179,140 @@ void main() {
         out: out,
         err: err,
         keyPairFactory: () => deterministicKeyPair,
-        secretManagerApiFactory: () async => fakeApi,
+        gcloudRunner: (args, {stdinBytes}) async {
+          if (args[1] == 'list' || args[1] == 'describe') {
+            return const cli.GcloudResult(
+              exitCode: 0,
+              stdout: 'projects/my-gcp-project/secrets/existing\n',
+              stderr: '',
+            );
+          }
+          if (args[1] == 'versions' && args[2] == 'add') {
+            final secretId = args[3];
+            expect(args, contains('--data-file=-'));
+            addedVersions[secretId] = utf8.decode(stdinBytes!);
+            return cli.GcloudResult(
+              exitCode: 0,
+              stdout: 'projects/my-gcp-project/secrets/$secretId/versions/2\n',
+              stderr: '',
+            );
+          }
+          fail('Unexpected gcloud args: $args');
+        },
       );
 
       expect(exitCode, 0);
       expect(err.toString(), isEmpty);
       expect(out.toString(), contains('already exists; adding new version'));
-      expect(fakeApi.secretsResource.addedVersions, hasLength(2));
+      expect(addedVersions, hasLength(2));
+    },
+  );
+
+  test(
+    '--upload does not generate keys and notifies user to run `gcloud auth login` when GCP connection fails',
+    () async {
+      var keyGenerated = false;
+      final out = StringBuffer();
+      final err = StringBuffer();
+
+      final exitCode = await cli.run(
+        const <String>['--upload', '--project', 'my-gcp-project'],
+        out: out,
+        err: err,
+        keyPairFactory: () {
+          keyGenerated = true;
+          return deterministicKeyPair;
+        },
+        gcloudRunner: (args, {stdinBytes}) async {
+          return const cli.GcloudResult(
+            exitCode: 1,
+            stdout: '',
+            stderr:
+                'ERROR: (gcloud.secrets.list) You do not currently have an active account selected.',
+          );
+        },
+      );
+
+      expect(exitCode, 1);
+      expect(keyGenerated, isFalse);
+      expect(out.toString(), isNot(contains('Generated Ed25519 key pair')));
+      expect(
+        err.toString(),
+        allOf(
+          contains('Failed to connect to GCP Secret Manager'),
+          contains('gcloud auth login'),
+        ),
+      );
+    },
+  );
+
+  test(
+    '--upload does not generate keys and notifies user when gcloud binary is missing',
+    () async {
+      var keyGenerated = false;
+      final out = StringBuffer();
+      final err = StringBuffer();
+
+      final exitCode = await cli.run(
+        const <String>['--upload', '--project', 'my-gcp-project'],
+        out: out,
+        err: err,
+        keyPairFactory: () {
+          keyGenerated = true;
+          return deterministicKeyPair;
+        },
+        gcloudRunner: (args, {stdinBytes}) async =>
+            throw const ProcessException('gcloud', <String>[]),
+      );
+
+      expect(exitCode, 1);
+      expect(keyGenerated, isFalse);
+      expect(out.toString(), isNot(contains('Generated Ed25519 key pair')));
+      expect(err.toString(), contains('gcloud auth login'));
+    },
+  );
+
+  test(
+    '--upload prints roles/secretmanager.admin and go/grants hint on IAM_PERMISSION_DENIED without printing generated keys',
+    () async {
+      final out = StringBuffer();
+      final err = StringBuffer();
+
+      final exitCode = await cli.run(
+        const <String>['--upload'],
+        out: out,
+        err: err,
+        keyPairFactory: () => deterministicKeyPair,
+        gcloudRunner: (args, {stdinBytes}) async {
+          if (args[1] == 'list') {
+            return const cli.GcloudResult(exitCode: 0, stdout: '', stderr: '');
+          }
+          if (args[1] == 'describe') {
+            return const cli.GcloudResult(
+              exitCode: 1,
+              stdout: '',
+              stderr: 'NOT_FOUND',
+            );
+          }
+          return const cli.GcloudResult(
+            exitCode: 1,
+            stdout: '',
+            stderr:
+                "Permission 'secretmanager.secrets.create' denied (reason: IAM_PERMISSION_DENIED)",
+          );
+        },
+      );
+
+      expect(exitCode, 1);
+      expect(out.toString(), isNot(contains('Generated Ed25519 key pair')));
+      expect(
+        err.toString(),
+        allOf(
+          contains('roles/secretmanager.admin'),
+          contains('flutter-infra-gcp-writers'),
+          isNot(contains('gcloud auth login')),
+        ),
+      );
     },
   );
 
@@ -171,69 +325,4 @@ void main() {
     expect(await cli.run(const <String>['--unknown-flag'], err: badErr), 64);
     expect(badErr.toString(), contains('Error parsing arguments'));
   });
-}
-
-final class _FakeSecretManagerApi implements gapis.SecretManagerApi {
-  _FakeSecretManagerApi({Set<String>? existingSecretIds})
-    : secretsResource = _FakeProjectsSecretsResource(
-        existingSecretIds ?? const <String>{},
-      );
-
-  final _FakeProjectsSecretsResource secretsResource;
-
-  @override
-  late final gapis.ProjectsResource projects = _FakeProjectsResource(
-    secretsResource,
-  );
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final class _FakeProjectsResource implements gapis.ProjectsResource {
-  const _FakeProjectsResource(this.secrets);
-
-  @override
-  final gapis.ProjectsSecretsResource secrets;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final class _FakeProjectsSecretsResource
-    implements gapis.ProjectsSecretsResource {
-  _FakeProjectsSecretsResource(this._existingSecretIds);
-
-  final Set<String> _existingSecretIds;
-  final List<String> createdSecrets = <String>[];
-  final Map<String, String> addedVersions = <String, String>{};
-
-  @override
-  Future<gapis.Secret> create(
-    gapis.Secret request,
-    String parent, {
-    String? secretId,
-    String? $fields,
-  }) async {
-    expect(request.replication?.automatic, isNotNull);
-    if (_existingSecretIds.contains(secretId)) {
-      throw gapis.DetailedApiRequestError(409, 'Secret already exists');
-    }
-    createdSecrets.add('$parent/$secretId');
-    return gapis.Secret(name: '$parent/secrets/$secretId');
-  }
-
-  @override
-  Future<gapis.SecretVersion> addVersion(
-    gapis.AddSecretVersionRequest request,
-    String parent, {
-    String? $fields,
-  }) async {
-    final pem = utf8.decode(request.payload!.dataAsBytes);
-    addedVersions[parent] = pem;
-    return gapis.SecretVersion(name: '$parent/versions/1');
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
