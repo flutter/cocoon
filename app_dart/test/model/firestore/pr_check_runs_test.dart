@@ -83,28 +83,92 @@ void main() {
     expect(pr.id, 1234);
   });
 
-  test('updatePullRequestForSha updates pullRequest', () async {
-    final pr1 = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
-    await PrCheckRuns.initializeDocument(
-      firestoreService: firestoreService,
-      pullRequest: pr1,
-      checks: [],
-    );
+  group('updatePullRequestForSha', () {
+    test('updates pullRequest for the same PR', () async {
+      final pr1 = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestoreService,
+        pullRequest: pr1,
+        checks: [],
+      );
 
-    final pr2 = generatePullRequest(id: 1234, number: 9999, headSha: 'abc');
-    final updated = await PrCheckRuns.updatePullRequestForSha(
-      firestoreService,
-      'abc',
-      pr2,
-    );
+      final pr1Updated = generatePullRequest(
+        id: 1234,
+        number: 5678,
+        headSha: 'abc',
+        labels: [IssueLabel(name: 'CICD')],
+      );
+      final updated = await PrCheckRuns.updatePullRequestForSha(
+        firestoreService,
+        'abc',
+        pr1Updated,
+      );
 
-    expect(updated, isTrue);
+      expect(updated, isTrue);
 
-    final result = await PrCheckRuns.findPullRequestForSha(
-      firestoreService,
-      'abc',
-    );
-    expect(result!.number, 9999);
+      final result = await PrCheckRuns.findPullRequestForSha(
+        firestoreService,
+        'abc',
+      );
+      expect(result!.number, 5678);
+      expect(result.labels!.map((l) => l.name), ['CICD']);
+    });
+
+    test('does not overwrite a different PR with the same sha', () async {
+      final pr1 = generatePullRequest(id: 1234, number: 5678, headSha: 'abc');
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestoreService,
+        pullRequest: pr1,
+        checks: [generateCheckRun(42, name: 'guard')],
+      );
+
+      final pr2 = generatePullRequest(id: 4321, number: 9999, headSha: 'abc');
+      final updated = await PrCheckRuns.updatePullRequestForSha(
+        firestoreService,
+        'abc',
+        pr2,
+      );
+
+      expect(updated, isFalse);
+
+      final result = await PrCheckRuns.findPullRequestFor(
+        firestoreService,
+        42,
+        'guard',
+      );
+      expect(result.number, 5678);
+    });
+
+    test('does not overwrite the same PR number in a different repo', () async {
+      final pr1 = generatePullRequest(number: 5678, headSha: 'abc');
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestoreService,
+        pullRequest: pr1,
+        checks: [],
+      );
+
+      final pr2 = generatePullRequest(
+        number: 5678,
+        headSha: 'abc',
+        repo: 'packages',
+      );
+      final updated = await PrCheckRuns.updatePullRequestForSha(
+        firestoreService,
+        'abc',
+        pr2,
+      );
+
+      expect(updated, isFalse);
+    });
+
+    test('returns false when no document exists', () async {
+      final updated = await PrCheckRuns.updatePullRequestForSha(
+        firestoreService,
+        'abc',
+        generatePullRequest(headSha: 'abc'),
+      );
+      expect(updated, isFalse);
+    });
   });
 
   // Regression test for https://github.com/flutter/flutter/issues/166014.

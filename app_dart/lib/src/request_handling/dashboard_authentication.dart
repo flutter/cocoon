@@ -35,8 +35,9 @@ import 'exceptions.dart';
 ///     @google.com accounts can call APIs using curl and gcloud.
 ///     E.g. curl '<api_url>' -H "X-Flutter-IdToken: $(gcloud auth print-identity-token)"
 ///
-///     User accounts are only authorized if the user is either a "@google.com"
-///     account or is an [AllowedAccount] in Cocoon's Firestore.
+///     User accounts are only authorized if the token's email is verified and
+///     the user is either a "@google.com" account with a linked Google identity
+///     or is an [AllowedAccount] in Cocoon's Firestore.
 ///
 ///  3. If the request has github.com token, then the request will be authenticated
 ///     as a GitHub user account.
@@ -129,13 +130,14 @@ class DashboardFirebaseAuthentication implements AuthenticationProvider {
     TokenInfo token, {
     required ClientContext clientContext,
   }) async {
-    if (token.email case final email?) {
-      if (email.endsWith('@google.com') ||
-          await _isAllowedCached(token.email)) {
-        return AuthenticatedContext(
-          clientContext: clientContext,
-          email: token.email!,
-        );
+    // Authorization below is keyed on the email address, so the email must be
+    // one that Firebase has verified. Emails supplied by third-party identity
+    // providers (e.g. GitHub, including GitHub Enterprise Managed Users) can be
+    // arbitrary strings and are reported with `email_verified: false`.
+    if (token.email case final email? when isVerifiedEmail(token)) {
+      if ((email.endsWith('@google.com') && hasGoogleIdentity(token)) ||
+          await _isAllowedCached(email)) {
+        return AuthenticatedContext(clientContext: clientContext, email: email);
       }
     }
     throw Unauthenticated(
@@ -203,7 +205,7 @@ class DashboardFirebaseAdminAuthentication implements AuthenticationProvider {
     TokenInfo token, {
     required ClientContext clientContext,
   }) async {
-    if (token.email case final email?) {
+    if (token.email case final email? when isVerifiedEmail(token)) {
       if (await AdminAccount.getByEmail(_firestore, email: email) != null) {
         return AuthenticatedContext(clientContext: clientContext, email: email);
       }
@@ -213,6 +215,16 @@ class DashboardFirebaseAdminAuthentication implements AuthenticationProvider {
     );
   }
 }
+
+/// Whether Firebase has verified that the user controls [TokenInfo.email].
+bool isVerifiedEmail(TokenInfo token) => token.emailIsVerified == true;
+
+/// Whether the Firebase account has a linked Google (`google.com`) identity.
+///
+/// A `@google.com` email address alone is not proof of a Google account; the
+/// address may have been supplied by another identity provider.
+bool hasGoogleIdentity(TokenInfo token) =>
+    token.firebase?.identities?['google.com']?.isNotEmpty ?? false;
 
 class DashboardCronAuthentication implements AuthenticationProvider {
   const DashboardCronAuthentication({
