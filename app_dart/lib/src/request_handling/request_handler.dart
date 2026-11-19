@@ -30,22 +30,24 @@ abstract base class RequestHandler {
     Request request, {
     Future<void> Function(HttpStatusException)? onError,
   }) async {
-    final response = request.response;
+    final responseBody = await dispatch(request, onError: onError);
+    await respond(request.response, responseBody);
+  }
+
+  /// Dispatches [request] to [get] or [post], converting any thrown exceptions
+  /// into an error [Response] without writing to [Request.response].
+  @protected
+  Future<Response> dispatch(
+    Request request, {
+    Future<void> Function(HttpStatusException)? onError,
+  }) async {
     try {
       try {
-        Response body;
-        switch (request.method) {
-          case 'GET':
-            body = await get(request);
-            break;
-          case 'POST':
-            body = await post(request);
-            break;
-          default:
-            throw MethodNotAllowed(request.method);
-        }
-        await _respond(response, body);
-        return;
+        return switch (request.method) {
+          'GET' => await get(request),
+          'POST' => await post(request),
+          _ => throw MethodNotAllowed(request.method),
+        };
       } on HttpStatusException {
         rethrow;
       } catch (e, s) {
@@ -56,17 +58,17 @@ abstract base class RequestHandler {
       if (onError != null) {
         await onError(error);
       }
-      await _respond(
-        response,
-        Response.json({'error': error.message}, statusCode: error.statusCode),
-      );
+      return Response.json({
+        'error': error.message,
+      }, statusCode: error.statusCode);
     }
   }
 
   /// Responds (using [response]).
   ///
   /// Returns a future that completes when [response] has been closed.
-  Future<void> _respond(RequestResponse response, Response body) async {
+  @protected
+  Future<void> respond(RequestResponse response, Response body) async {
     response.contentType = body.contentType;
     response.statusCode = body.statusCode;
     await response.addStream(body.body);

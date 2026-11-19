@@ -26,21 +26,25 @@ class PubSub {
     final Client httpClient = await clientViaApplicationDefaultCredentials(
       scopes: <String>[PubsubApi.pubsubScope],
     );
-    final pubsubApi = PubsubApi(httpClient);
-    final messageData = json is String ? json : jsonEncode(json);
-    final List<int> messageBytes = utf8.encode(messageData);
-    final messageBase64 = base64Encode(messageBytes);
-    final request = PublishRequest(
-      messages: <PubsubMessage>[
-        PubsubMessage(data: messageBase64, orderingKey: orderingKey),
-      ],
-    );
-    final fullTopicName = 'projects/flutter-dashboard/topics/$topic';
-    final response = await pubsubApi.projects.topics.publish(
-      request,
-      fullTopicName,
-    );
-    log.info('pubsub response messageId=${response.messageIds}');
-    return response.messageIds!;
+    try {
+      final pubsubApi = PubsubApi(httpClient);
+      final messageData = json is String ? json : jsonEncode(json);
+      final List<int> messageBytes = utf8.encode(messageData);
+      final messageBase64 = base64Encode(messageBytes);
+      final request = PublishRequest(
+        messages: <PubsubMessage>[
+          PubsubMessage(data: messageBase64, orderingKey: orderingKey),
+        ],
+      );
+      final fullTopicName = 'projects/flutter-dashboard/topics/$topic';
+      final response = await pubsubApi.projects.topics.publish(
+        request,
+        fullTopicName,
+      );
+      log.info('pubsub response messageId=${response.messageIds}');
+      return response.messageIds!;
+    } finally {
+      httpClient.close();
+    }
   }
 }

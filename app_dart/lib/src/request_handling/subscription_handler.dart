@@ -17,6 +17,7 @@ import 'exceptions.dart';
 import 'http_utils.dart';
 import 'pubsub_authentication.dart';
 import 'request_handler.dart';
+import 'response.dart';
 
 /// An [ApiRequestHandler] that handles PubSub subscription messages.
 ///
@@ -32,6 +33,15 @@ abstract base class SubscriptionHandler extends RequestHandler {
     this.authProvider,
     required this.subscriptionName,
   });
+
+  static final Uint8List _processingLockValue = Uint8List.fromList(
+    'p'.codeUnits,
+  );
+  static final Uint8List _processedLockValue = Uint8List.fromList(
+    'l'.codeUnits,
+  );
+  static const Duration _processingLockTtl = Duration(minutes: 10);
+  static const Duration _processedLockTtl = Duration(days: 1);
 
   final CacheService cache;
 
@@ -108,22 +118,42 @@ abstract base class SubscriptionHandler extends RequestHandler {
 
     final messageId = pubSubPushMessage.message!.messageId!;
 
-    // Create a write lock in the cache to ensure requests are only processed once
-    final lockValue = Uint8List.fromList('l'.codeUnits);
+    // Acquire an in-progress write lock in the cache to ensure requests are
+    // only processed once concurrently.
     final lockAcquired = await cache.setIfNotExists(
       subscriptionName,
       messageId,
-      lockValue,
-      ttl: const Duration(days: 1),
+      _processingLockValue,
+      ttl: _processingLockTtl,
     );
 
     if (!lockAcquired) {
-      // No-op - There's already a write lock for this message
-      log.info('Ignoring $messageId, we already are/were writing a message');
+      final existingLock = await cache.get(subscriptionName, messageId);
+      if (existingLock != null &&
+          existingLock.length == 1 &&
+          existingLock.first == _processedLockValue.first) {
+        // No-op - This message has already finished processing.
+        log.info('Ignoring $messageId, message was already processed');
+        final response = request.response;
+        response.statusCode = HttpStatus.ok;
+        await response.addStream(
+          Stream.value(utf8.encode('$messageId was already processed')),
+        );
+        await response.flush();
+        await response.close();
+        return;
+      }
+
+      // Another request is still processing this message (or the lock could not
+      // be acquired). Return 503 (NACK) instead of 200 (ACK) so Pub/Sub does
+      // not acknowledge and delete the message if the in-flight attempt fails.
+      log.info(
+        'Message $messageId is currently being processed; returning 503 for retry',
+      );
       final response = request.response;
-      response.statusCode = HttpStatus.ok;
+      response.statusCode = HttpStatus.serviceUnavailable;
       await response.addStream(
-        Stream.value(utf8.encode('$messageId was already processed')),
+        Stream.value(utf8.encode('$messageId is currently being processed')),
       );
       await response.flush();
       await response.close();
@@ -131,32 +161,46 @@ abstract base class SubscriptionHandler extends RequestHandler {
     }
 
     log.info('Processing message $messageId');
-    await runZoned<Future<void>>(
-      // Note: super.service(...) sets response.statusCode when an error occurs.
-      () async => super.service(
-        request,
-        onError: (e) async {
-          log.warn(
-            'Failed to process $message. (${e.statusCode}) ${e.message}',
-            e,
-          );
+    final Response responseBody;
+    try {
+      responseBody = await runZoned<Future<Response>>(
+        () => dispatch(
+          request,
+          onError: (e) async {
+            log.warn(
+              'Failed to process $message. (${e.statusCode}) ${e.message}',
+              e,
+            );
+          },
+        ),
+        zoneValues: <RequestKey<dynamic>, Object?>{
+          PubSubKey.message: pubSubPushMessage.message!,
+          ApiKey.authContext: authContext,
         },
-      ),
-      zoneValues: <RequestKey<dynamic>, Object?>{
-        PubSubKey.message: pubSubPushMessage.message!,
-        ApiKey.authContext: authContext,
-      },
-    );
-
-    // If an uncaught error was received, or if we marked the response as 5XX
-    // class error, which is considered retriable, then we need to clear the
-    // lock so that a subsequent request is actually retried.
-    //
-    // See https://github.com/flutter/flutter/issues/166475.
-    if (request.response.statusCode >= HttpStatus.internalServerError) {
+      );
+    } catch (_) {
       await cache.purge(subscriptionName, messageId);
       log.info('Purged write lock from cache');
+      rethrow;
     }
+
+    // Update or clear the lock BEFORE sending the HTTP response so that an
+    // immediate Pub/Sub retry never observes a stale in-progress lock.
+    //
+    // See https://github.com/flutter/flutter/issues/166475.
+    if (responseBody.statusCode >= HttpStatus.internalServerError) {
+      await cache.purge(subscriptionName, messageId);
+      log.info('Purged write lock from cache');
+    } else {
+      await cache.set(
+        subscriptionName,
+        messageId,
+        _processedLockValue,
+        ttl: _processedLockTtl,
+      );
+    }
+
+    await respond(request.response, responseBody);
   }
 }
 

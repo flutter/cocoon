@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:buildbucket/buildbucket_pb.dart' as bbv2;
 import 'package:cocoon_common/task_status.dart';
 import 'package:cocoon_integration_test/testing.dart';
@@ -10,7 +12,9 @@ import 'package:cocoon_server_test/test_logging.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/model/commit_ref.dart';
 import 'package:cocoon_service/src/model/common/presubmit_completed_check.dart';
+import 'package:cocoon_service/src/model/luci/pubsub_message.dart';
 import 'package:cocoon_service/src/request_handling/exceptions.dart';
+import 'package:cocoon_service/src/request_handling/http_io.dart';
 import 'package:cocoon_service/src/service/luci_build_service/build_tags.dart';
 import 'package:cocoon_service/src/service/luci_build_service/user_data.dart';
 import 'package:fixnum/fixnum.dart';
@@ -925,6 +929,90 @@ void main() {
           slug: anyNamed('slug'),
         ),
       );
+    },
+  );
+
+  test(
+    'Throws InternalServerError when publishing to ordered-presubmit fails',
+    () async {
+      pubSub.exceptionFlag = true;
+      pubSub.exceptionRepetition = 1;
+
+      tester.message = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: RepositorySlug('flutter', 'cocoon'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+        extraTags: [
+          OrderingKeyTag(orderingKey: 'abc123ordering').toStringPair(),
+        ],
+      );
+
+      await expectLater(
+        tester.post(handler),
+        throwsA(isA<InternalServerError>()),
+      );
+      expect(pubSub.topics, isEmpty);
+      verifyNever(mockScheduler.processBuildCompleted(any));
+    },
+  );
+
+  test(
+    'NACKs (HTTP 500) and retries successfully when publishing to ordered-presubmit fails',
+    () async {
+      pubSub.exceptionFlag = true;
+      pubSub.exceptionRepetition = 1;
+
+      final pushMessage = createPushMessage(
+        Int64(1),
+        status: bbv2.Status.SUCCESS,
+        builder: 'Linux Host Engine',
+        userData: PresubmitUserData(
+          commit: CommitRef(
+            sha: 'abc',
+            branch: 'master',
+            slug: RepositorySlug('flutter', 'cocoon'),
+          ),
+          checkRunId: 1,
+          checkSuiteId: 2,
+        ),
+        extraTags: [
+          OrderingKeyTag(orderingKey: 'abc123ordering').toStringPair(),
+        ],
+      );
+      final envelopeJson = jsonEncode(
+        PubSubPushMessage(
+          message: PushMessage(
+            data: pushMessage.data,
+            messageId: 'msg-retry-1',
+          ),
+          subscription: 'build-bucket-presubmit-sub',
+        ).toJson(),
+      );
+
+      // 1st delivery fails to publish to ordered-presubmit -> must NACK (500)
+      // and purge write lock before responding.
+      final firstRequest = FakeHttpRequest(method: 'POST', body: envelopeJson);
+      await handler.service(firstRequest.toRequest());
+      expect(firstRequest.response.statusCode, HttpStatus.internalServerError);
+      expect(pubSub.topics, isEmpty);
+
+      // 2nd delivery (Pub/Sub retry with same messageId) must succeed (200)
+      // and publish to ordered-presubmit.
+      final retryRequest = FakeHttpRequest(method: 'POST', body: envelopeJson);
+      await handler.service(retryRequest.toRequest());
+      expect(retryRequest.response.statusCode, HttpStatus.ok);
+      expect(pubSub.topics, ['ordered-presubmit']);
+      expect(pubSub.orderingKeys, ['abc123ordering']);
+      expect(pubSub.messages, [pushMessage.data!]);
     },
   );
 }

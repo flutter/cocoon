@@ -136,6 +136,87 @@ void main() {
       expect(response.statusCode, HttpStatus.serviceUnavailable);
       expect(messageLock, isNull);
     });
+
+    test(
+      'purges write lock before sending 5XX response so immediate retry succeeds',
+      () async {
+        final cache = _DelayedPurgeCacheService(
+          const Duration(milliseconds: 50),
+        );
+        subscription = FailOnceThenSucceedTest(cache);
+
+        // First attempt fails with 500; when response arrives, lock must
+        // already be purged even though purge() took 50ms.
+        final firstResponse = await issueRequest(
+          body: jsonEncode(testEnvelope),
+        );
+        expect(firstResponse.statusCode, HttpStatus.internalServerError);
+        await firstResponse.drain<void>();
+
+        // Immediate retry must succeed and execute the handler rather than
+        // returning "123 was already processed".
+        final retryResponse = await issueRequest(
+          body: jsonEncode(testEnvelope),
+        );
+        final retryBody = await utf8.decoder.bind(retryResponse).join();
+        expect(retryResponse.statusCode, HttpStatus.ok);
+        expect(retryBody, 'processed:test');
+      },
+    );
+
+    test(
+      'returns 503 NACK (not 200 ACK) for concurrent redelivery while message is still in progress',
+      () async {
+        final cache = CacheService.inMemory();
+        final firstAttemptStarted = Completer<void>();
+        final completeFirstAttempt = Completer<Response>();
+        subscription = ControlledAsyncTest(
+          cache: cache,
+          onFirstCallStarted: firstAttemptStarted,
+          firstCallResult: completeFirstAttempt,
+        );
+
+        // Start first delivery and wait until it is actively processing.
+        final firstResponseFuture = issueRequest(
+          body: jsonEncode(testEnvelope),
+        );
+        await firstAttemptStarted.future;
+
+        // Simulate Pub/Sub ack-deadline redelivery while first request is in flight.
+        final concurrentResponse = await issueRequest(
+          body: jsonEncode(testEnvelope),
+        );
+        final concurrentBody = await utf8.decoder
+            .bind(concurrentResponse)
+            .join();
+        expect(concurrentResponse.statusCode, HttpStatus.serviceUnavailable);
+        expect(concurrentBody, '123 is currently being processed');
+
+        // Now fail the first delivery with a retriable 500 error.
+        completeFirstAttempt.completeError(
+          const InternalServerError('Transient failure'),
+        );
+        final firstResponse = await firstResponseFuture;
+        expect(firstResponse.statusCode, HttpStatus.internalServerError);
+        await firstResponse.drain<void>();
+
+        // Subsequent Pub/Sub retry should now acquire the lock and succeed.
+        final retryResponse = await issueRequest(
+          body: jsonEncode(testEnvelope),
+        );
+        final retryBody = await utf8.decoder.bind(retryResponse).join();
+        expect(retryResponse.statusCode, HttpStatus.ok);
+        expect(retryBody, 'recovered:test');
+
+        // Any duplicate after success should be ACKed as already processed.
+        final duplicateResponse = await issueRequest(
+          body: jsonEncode(testEnvelope),
+        );
+        final duplicateBody = await utf8.decoder.bind(duplicateResponse).join();
+        expect(duplicateResponse.statusCode, HttpStatus.ok);
+        expect(duplicateBody, '123 was already processed');
+      },
+    );
   });
 }
 
@@ -210,4 +291,65 @@ final class ReadMessageTest extends SubscriptionHandler {
 
   @override
   Future<Response> get(_) async => Response.string(message.data!);
+}
+
+class _DelayedPurgeCacheService extends InMemoryCacheService {
+  _DelayedPurgeCacheService(this.purgeDelay);
+
+  final Duration purgeDelay;
+
+  @override
+  Future<void> purge(String subcacheName, String key) async {
+    await Future<void>.delayed(purgeDelay);
+    await super.purge(subcacheName, key);
+  }
+}
+
+// ignore: must_be_immutable
+final class FailOnceThenSucceedTest extends SubscriptionHandler {
+  FailOnceThenSucceedTest(CacheService cache)
+    : super(
+        cache: cache,
+        config: FakeConfig(),
+        authProvider: FakeDashboardAuthentication(),
+        subscriptionName: 'fail-once',
+      );
+
+  int _attempts = 0;
+
+  @override
+  Future<Response> get(_) async {
+    _attempts++;
+    if (_attempts == 1) {
+      throw const InternalServerError('Transient publish failure');
+    }
+    return Response.string('processed:${message.data}');
+  }
+}
+
+// ignore: must_be_immutable
+final class ControlledAsyncTest extends SubscriptionHandler {
+  ControlledAsyncTest({
+    required super.cache,
+    required this.onFirstCallStarted,
+    required this.firstCallResult,
+  }) : super(
+         config: FakeConfig(),
+         authProvider: FakeDashboardAuthentication(),
+         subscriptionName: 'controlled',
+       );
+
+  final Completer<void> onFirstCallStarted;
+  final Completer<Response> firstCallResult;
+  int _calls = 0;
+
+  @override
+  Future<Response> get(_) async {
+    _calls++;
+    if (_calls == 1) {
+      onFirstCallStarted.complete();
+      return firstCallResult.future;
+    }
+    return Response.string('recovered:${message.data}');
+  }
 }
