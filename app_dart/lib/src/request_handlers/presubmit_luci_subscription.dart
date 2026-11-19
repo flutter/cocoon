@@ -51,8 +51,6 @@ final class PresubmitLuciSubscription extends PresubmitSubscription {
           message.data!,
           orderingKey: orderingKey,
         );
-      } on HttpStatusException {
-        rethrow;
       } catch (e, s) {
         log.error(
           'Failed to publish message to ordered-presubmit topic for ordering key $orderingKey',

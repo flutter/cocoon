@@ -134,13 +134,13 @@ abstract base class SubscriptionHandler extends RequestHandler {
           existingLock.first == _processedLockValue.first) {
         // No-op - This message has already finished processing.
         log.info('Ignoring $messageId, message was already processed');
-        final response = request.response;
-        response.statusCode = HttpStatus.ok;
-        await response.addStream(
-          Stream.value(utf8.encode('$messageId was already processed')),
+        await respond(
+          request.response,
+          Response.string(
+            '$messageId was already processed',
+            statusCode: HttpStatus.ok,
+          ),
         );
-        await response.flush();
-        await response.close();
         return;
       }
 
@@ -150,13 +150,13 @@ abstract base class SubscriptionHandler extends RequestHandler {
       log.info(
         'Message $messageId is currently being processed; returning 503 for retry',
       );
-      final response = request.response;
-      response.statusCode = HttpStatus.serviceUnavailable;
-      await response.addStream(
-        Stream.value(utf8.encode('$messageId is currently being processed')),
+      await respond(
+        request.response,
+        Response.string(
+          '$messageId is currently being processed',
+          statusCode: HttpStatus.serviceUnavailable,
+        ),
       );
-      await response.flush();
-      await response.close();
       return;
     }
 
@@ -179,8 +179,12 @@ abstract base class SubscriptionHandler extends RequestHandler {
         },
       );
     } catch (_) {
-      await cache.purge(subscriptionName, messageId);
-      log.info('Purged write lock from cache');
+      try {
+        await cache.purge(subscriptionName, messageId);
+        log.info('Purged write lock from cache');
+      } catch (e, s) {
+        log.error('Failed to purge write lock from cache', e, s);
+      }
       rethrow;
     }
 
@@ -188,16 +192,20 @@ abstract base class SubscriptionHandler extends RequestHandler {
     // immediate Pub/Sub retry never observes a stale in-progress lock.
     //
     // See https://github.com/flutter/flutter/issues/166475.
-    if (responseBody.statusCode >= HttpStatus.internalServerError) {
-      await cache.purge(subscriptionName, messageId);
-      log.info('Purged write lock from cache');
-    } else {
-      await cache.set(
-        subscriptionName,
-        messageId,
-        _processedLockValue,
-        ttl: _processedLockTtl,
-      );
+    try {
+      if (responseBody.statusCode >= HttpStatus.internalServerError) {
+        await cache.purge(subscriptionName, messageId);
+        log.info('Purged write lock from cache');
+      } else {
+        await cache.set(
+          subscriptionName,
+          messageId,
+          _processedLockValue,
+          ttl: _processedLockTtl,
+        );
+      }
+    } catch (e, s) {
+      log.error('Failed to update cache lock', e, s);
     }
 
     await respond(request.response, responseBody);
