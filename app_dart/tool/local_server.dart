@@ -23,10 +23,20 @@ Future<void> main() async {
     ..putString('APP_DART_GEMINI_LOG_ANALYZER_KEY', 'dummy_key')
     ..putString('APP_DART_WEBHOOK_KEY', 'dummy_webhook_key')
     ..putString('APP_DART_FROB_WEBHOOK_KEY', 'dummy_frob_webhook_key');
+  final localKmsKeyName = Config.jwksKmsCryptoKeyName();
+  final cloudKms = FakeCloudKmsService()
+    ..putKeyVersion(
+      '$localKmsKeyName/cryptoKeyVersions/1',
+      // RFC 8037 Appendix A.1 Ed25519 test public key for local development.
+      pem:
+          '-----BEGIN PUBLIC KEY-----\n'
+          'MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=\n'
+          '-----END PUBLIC KEY-----',
+    );
   final config = Config(
     cache,
     secretManager,
-    initialConfig: DynamicConfig.fromJson({}),
+    initialConfig: DynamicConfig(jwksKmsKeyName: localKmsKeyName),
     httpClient: MappingHttpClient(http.Client()),
   );
   final firestore = FakeFirestoreService();
@@ -124,6 +134,7 @@ Future<void> main() async {
     firestore: firestore,
     bigQuery: bigQuery,
     cache: cache,
+    cloudKms: cloudKms,
     dashboardAuthProvider: dashboardAuthProvider,
     cronAuthProvider: cronAuthProvider,
     presubmitAuthProvider: presubmitAuthProvider,

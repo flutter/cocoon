@@ -29,6 +29,7 @@ class IntegrationServer {
     FakeContentAwareHashService? contentAwareHashService,
     CacheService? cache,
     FakeGithubService? githubService,
+    FakeCloudKmsService? cloudKms,
   }) {
     this.githubService = githubService ?? FakeGithubService();
     this.config =
@@ -66,12 +67,14 @@ class IntegrationServer {
         contentAwareHashService ??
         FakeContentAwareHashService(config: this.config);
     this.cache = cache ?? FakeCacheService();
+    this.cloudKms = cloudKms ?? FakeCloudKmsService();
 
     server = createServer(
       config: this.config,
       firestore: this.firestore,
       bigQuery: this.bigQuery,
       cache: this.cache,
+      cloudKms: this.cloudKms,
       dashboardAuthProvider: this.dashboardAuthProvider,
       cronAuthProvider: this.cronAuthProvider,
       presubmitAuthProvider: this.presubmitAuthProvider,
@@ -114,4 +117,5 @@ class IntegrationServer {
   late final FakeContentAwareHashService contentAwareHashService;
   late final CacheService cache;
   late final FakeGithubService githubService;
+  late final FakeCloudKmsService cloudKms;
 }
