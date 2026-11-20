@@ -4,14 +4,11 @@
 
 import 'dart:io' as io;
 
-import 'package:appengine/appengine.dart';
 import 'package:cocoon_integration_test/testing.dart';
-import 'package:cocoon_server/google_auth_provider.dart';
 import 'package:cocoon_server_test/fake_secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/server.dart';
 import 'package:cocoon_service/src/request_handling/http_io.dart';
-import 'package:cocoon_service/src/service/big_query.dart';
 import 'package:cocoon_service/src/service/build_status_service.dart';
 import 'package:cocoon_service/src/service/commit_service.dart';
 import 'package:cocoon_service/src/service/firebase_jwt_validator.dart';
@@ -21,9 +18,11 @@ import 'package:cocoon_service/src/service/scheduler/ci_yaml_fetcher.dart';
 import 'package:http/http.dart' as http;
 
 Future<void> main() async {
-  final cache = CacheService.redis();
-  final secretManager = FakeSecretManager();
-  secretManager.putString('APP_DART_GEMINI_LOG_ANALYZER_KEY', 'dummy_key');
+  final cache = CacheService.inMemory();
+  final secretManager = FakeSecretManager()
+    ..putString('APP_DART_GEMINI_LOG_ANALYZER_KEY', 'dummy_key')
+    ..putString('APP_DART_WEBHOOK_KEY', 'dummy_webhook_key')
+    ..putString('APP_DART_FROB_WEBHOOK_KEY', 'dummy_frob_webhook_key');
   final config = Config(
     cache,
     secretManager,
@@ -31,11 +30,7 @@ Future<void> main() async {
     httpClient: MappingHttpClient(http.Client()),
   );
   final firestore = FakeFirestoreService();
-
-  // TODO(matanlurey): This will not work, but matches the behavior of what
-  // the default FakeConfig service did before refactoring.
-  // https://github.com/flutter/cocoon/blob/2995f3a4b8c778bf41df5cd1a42dce966202a6b9/app_dart/lib/src/service/config.dart#L505-L507
-  final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
+  final bigQuery = FakeBigQueryService();
 
   final firebaseJwtValidator = FirebaseJwtValidator(cache: cache);
 
@@ -103,7 +98,7 @@ Future<void> main() async {
     cache: cache,
     config: config,
     githubChecksService: githubChecksService,
-    githubService: await config.createDefaultGitHubService(),
+    githubService: FakeGithubService(),
     getFilesChanged: GithubApiGetFilesChanged(config),
     luciBuildService: luciBuildService,
     ciYamlFetcher: ciYamlFetcher,
@@ -146,13 +141,24 @@ Future<void> main() async {
     logAnalyzer: FakeLogAnalyzer(),
   );
 
-  return runAppEngine(
-    (io.HttpRequest request) async {
+  final port = int.tryParse(io.Platform.environment['PORT'] ?? '') ?? 8080;
+  final httpServer = await io.HttpServer.bind(io.InternetAddress.anyIPv6, port);
+  print('Serving requests at http://localhost:${httpServer.port}/');
+  await for (final request in httpServer) {
+    try {
       await server(request.toRequest());
-    },
-    onAcceptingConnections: (io.InternetAddress address, int port) {
-      final host = address.isLoopback ? 'localhost' : address.host;
-      print('Serving requests at http://$host:$port/');
-    },
-  );
+    } catch (e, s) {
+      io.stderr.writeln('Error processing request: $e\n$s');
+      try {
+        request.response.statusCode = io.HttpStatus.internalServerError;
+      } catch (_) {
+        // Headers may already have been sent.
+      }
+      try {
+        await request.response.close();
+      } catch (_) {
+        // Response may already be closed or the client disconnected.
+      }
+    }
+  }
 }
