@@ -12,6 +12,7 @@ export 'src/model/firestore/presubmit_job.dart';
 export 'src/model/firestore/suppressed_test.dart';
 export 'src/model/firestore/task.dart';
 export 'src/model/firestore/tree_status_change.dart';
+export 'src/model/jwks/ed25519_jwk.dart';
 export 'src/request_handlers/check_flaky_builders.dart';
 export 'src/request_handlers/create_branch.dart';
 export 'src/request_handlers/dart_internal_subscription.dart';
