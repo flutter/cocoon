@@ -86,7 +86,6 @@ void main() {
       missingTestsPullRequestMessageValue: 'missingTestPullRequestMessage',
       releaseBranchPullRequestMessageValue: 'releaseBranchPullRequestMessage',
       rollerAccountsValue: const <String>{
-        'skia-flutter-autoroll',
         'engine-flutter-autoroll',
         'dependabot',
         'dependabot[bot]',
@@ -900,7 +899,6 @@ void main() {
       'Auto-roller accounts label Framework PR with CICD label, but no comment',
       () {
         final inputs = <String>{
-          'skia-flutter-autoroll',
           'dependabot',
           'engine-flutter-autoroll',
           'flutter-pub-roller-bot',
@@ -1800,48 +1798,6 @@ void foo() {
             },
           );
         }
-      },
-    );
-
-    test(
-      'Engine does not label PR for no tests if author is skia-flutter-autoroll',
-      () async {
-        const issueNumber = 123;
-
-        tester.message = generateGithubWebhookMessage(
-          action: 'opened',
-          number: issueNumber,
-          slug: Config.flutterSlug,
-          login: 'skia-flutter-autoroll',
-        );
-
-        when(
-          pullRequestsService.listFiles(Config.flutterSlug, issueNumber),
-        ).thenAnswer(
-          (_) => Stream<PullRequestFile>.value(
-            PullRequestFile()
-              ..filename =
-                  'engine/src/flutter/shell/platform/darwin/ios/framework/Source/boost.mm',
-          ),
-        );
-
-        when(
-          issuesService.listCommentsByIssue(Config.flutterSlug, issueNumber),
-        ).thenAnswer(
-          (_) => Stream<IssueComment>.value(
-            IssueComment()..body = 'some other comment',
-          ),
-        );
-
-        await tester.post(webhook);
-
-        verifyNever(
-          issuesService.createComment(
-            Config.flutterSlug,
-            issueNumber,
-            argThat(contains(config.missingTestsPullRequestMessageValue)),
-          ),
-        );
       },
     );
 

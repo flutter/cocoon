@@ -458,7 +458,7 @@ void main() {
           repositoryStatusesWithGoldMock,
         );
         const allSuccess = true;
-        final author = Author(login: 'skia-flutter-autoroll');
+        final author = Author(login: 'engine-flutter-autoroll');
         slug = github.RepositorySlug('flutter', 'flutter');
 
         final labelNames = <String>[];
@@ -491,7 +491,7 @@ void main() {
           repositoryStatusesWithFailedGoldMock,
         );
         const allSuccess = true;
-        final author = Author(login: 'skia-flutter-autoroll');
+        final author = Author(login: 'engine-flutter-autoroll');
         slug = github.RepositorySlug('flutter', 'flutter');
 
         final labelNames = <String>[];

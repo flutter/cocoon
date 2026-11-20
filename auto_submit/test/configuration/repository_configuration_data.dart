@@ -8,7 +8,6 @@ const String sampleConfigNoOverride = '''
   auto_approval_accounts:
     - dependabot[bot]
     - dependabot
-    - DartDevtoolWorkflowBot
   approving_reviews: 2
   approval_group: flutter-hackers
   run_ci: true
@@ -20,7 +19,6 @@ const String sampleConfigWithOverride = '''
   auto_approval_accounts:
     - dependabot[bot]
     - dependabot
-    - DartDevtoolWorkflowBot
   approving_reviews: 2
   approval_group: flutter-hackers
   run_ci: true
