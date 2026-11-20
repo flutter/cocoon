@@ -4,11 +4,14 @@
 
 import 'dart:io';
 
+import 'package:cocoon_server_test/test_logging.dart';
 import 'package:test/test.dart';
 
 import '../bin/generate_jwks_key.dart' as cli;
 
 void main() {
+  useTestLoggerPerTest();
+
   const defaultCryptoKeyName =
       'projects/flutter-dashboard/locations/global/keyRings/cocoon-jwks/cryptoKeys/pluggable-ci';
   const rfcPublicPem =
