@@ -174,9 +174,13 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     return PrCheckRuns.fromDocument(docs.first);
   }
 
-  /// Updates the [PullRequest] for the given [sha].
+  /// Updates the stored [PullRequest] for documents at [sha] that belong to [pr].
   ///
-  /// If no pull request is found, returns `false`.
+  /// A SHA can be the head of multiple pull requests, so only documents whose
+  /// stored pull request has the same repository and number as [pr] are
+  /// updated; documents created for other pull requests are left untouched.
+  ///
+  /// If no matching document is found, returns `false`.
   @useResult
   static Future<bool> updatePullRequestForSha(
     FirestoreService firestore,
@@ -184,13 +188,33 @@ final class PrCheckRuns extends AppDocument<PrCheckRuns> {
     PullRequest pr,
   ) async {
     final tx = await firestore.beginTransaction();
-    final prcr = await findPrCheckRunsForSha(firestore, sha, transaction: tx);
-    if (prcr == null) {
+    final docs = await firestore.query(kCollectionId, <String, Object>{
+      '$kShaField =': sha,
+    }, transaction: tx);
+    final prSlug = pr.base?.repo?.slug();
+    final matching = [
+      for (final doc in docs)
+        if (PrCheckRuns.fromDocument(doc) case final prcr
+            when _isSamePullRequest(prcr.pullRequest, pr.number, prSlug))
+          prcr..pullRequest = pr,
+    ];
+    if (matching.isEmpty) {
+      await firestore.rollback(tx);
       return false;
     }
-    prcr.pullRequest = pr;
-    await firestore.commit(tx, documentsToWrites([prcr]));
+    await firestore.commit(tx, documentsToWrites(matching));
     return true;
+  }
+
+  static bool _isSamePullRequest(
+    PullRequest stored,
+    int? number,
+    RepositorySlug? slug,
+  ) {
+    return number != null &&
+        slug != null &&
+        stored.number == number &&
+        stored.base?.repo?.slug() == slug;
   }
 
   /// Retrieve the [PullRequest] for a given [sha] or throw an error.

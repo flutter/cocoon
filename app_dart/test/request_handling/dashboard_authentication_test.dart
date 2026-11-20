@@ -71,26 +71,149 @@ void main() {
 
     test('succeeds for firebase jwt for googler', () async {
       validator.jwts.add(
-        TokenInfo(email: 'abc123@google.com', issued: DateTime.now()),
+        TokenInfo(
+          email: 'abc123@google.com',
+          emailIsVerified: true,
+          issued: DateTime.now(),
+          firebase: const FirebaseJwtClaim(
+            identities: {
+              'google.com': ['1234'],
+            },
+            signInProvider: 'google.com',
+          ),
+        ),
       );
       request.headers.set('X-Flutter-IdToken', 'trustmebro');
       final result = await auth.authenticate(request.toRequest());
       expect(result.email, 'abc123@google.com');
     });
 
+    test(
+      'succeeds for googler signed in with github with linked google identity',
+      () async {
+        validator.jwts.add(
+          TokenInfo(
+            email: 'abc123@google.com',
+            emailIsVerified: true,
+            issued: DateTime.now(),
+            firebase: const FirebaseJwtClaim(
+              identities: {
+                'google.com': ['1234'],
+                'github.com': ['5678'],
+                'email': ['abc123@google.com'],
+              },
+              signInProvider: 'github.com',
+            ),
+          ),
+        );
+        request.headers.set('X-Flutter-IdToken', 'trustmebro');
+        final result = await auth.authenticate(request.toRequest());
+        expect(result.email, 'abc123@google.com');
+      },
+    );
+
+    // Regression test for the reported GitHub EMU / SCIM email bypass.
+    test('fails for unverified @google.com email from github', () async {
+      validator.jwts.add(
+        TokenInfo(
+          email: 'cocoon-probe@google.com',
+          emailIsVerified: false,
+          issued: DateTime.now(),
+          firebase: const FirebaseJwtClaim(
+            identities: {
+              'github.com': ['5678'],
+            },
+            signInProvider: 'github.com',
+          ),
+        ),
+      );
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      expect(
+        auth.authenticate(request.toRequest()),
+        throwsA(isA<Unauthenticated>()),
+      );
+    });
+
+    test('fails for @google.com email with missing email_verified', () async {
+      validator.jwts.add(
+        TokenInfo(
+          email: 'abc123@google.com',
+          issued: DateTime.now(),
+          firebase: const FirebaseJwtClaim(
+            identities: {
+              'google.com': ['1234'],
+            },
+          ),
+        ),
+      );
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      expect(
+        auth.authenticate(request.toRequest()),
+        throwsA(isA<Unauthenticated>()),
+      );
+    });
+
+    test(
+      'fails for verified @google.com email without google identity',
+      () async {
+        validator.jwts.add(
+          TokenInfo(
+            email: 'abc123@google.com',
+            emailIsVerified: true,
+            issued: DateTime.now(),
+            firebase: const FirebaseJwtClaim(
+              identities: {
+                'github.com': ['5678'],
+              },
+              signInProvider: 'github.com',
+            ),
+          ),
+        );
+        request.headers.set('X-Flutter-IdToken', 'trustmebro');
+        expect(
+          auth.authenticate(request.toRequest()),
+          throwsA(isA<Unauthenticated>()),
+        );
+      },
+    );
+
     test('succeeds for firebase jwt with allowed non-googler', () async {
       firestore.putDocument(Account(email: 'abc123@gmail.com'));
       validator.jwts.add(
-        TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now()),
+        TokenInfo(
+          email: 'abc123@gmail.com',
+          emailIsVerified: true,
+          issued: DateTime.now(),
+        ),
       );
       request.headers.set('X-Flutter-IdToken', 'trustmebro');
       final result = await auth.authenticate(request.toRequest());
       expect(result.email, 'abc123@gmail.com');
     });
 
+    test('fails for allowed non-googler with unverified email', () async {
+      firestore.putDocument(Account(email: 'abc123@gmail.com'));
+      validator.jwts.add(
+        TokenInfo(
+          email: 'abc123@gmail.com',
+          emailIsVerified: false,
+          issued: DateTime.now(),
+        ),
+      );
+      request.headers.set('X-Flutter-IdToken', 'trustmebro');
+      expect(
+        auth.authenticate(request.toRequest()),
+        throwsA(isA<Unauthenticated>()),
+      );
+    });
+
     test('fails for firebase jwt with non-allowed non-googler', () async {
       validator.jwts.add(
-        TokenInfo(email: 'abc123@gmail.com', issued: DateTime.now()),
+        TokenInfo(
+          email: 'abc123@gmail.com',
+          emailIsVerified: true,
+          issued: DateTime.now(),
+        ),
       );
       request.headers.set('X-Flutter-IdToken', 'trustmebro');
       expect(

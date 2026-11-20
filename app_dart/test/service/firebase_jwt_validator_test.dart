@@ -72,6 +72,20 @@ void main() {
     );
   });
 
+  test('verifies audience is present', () {
+    expect(
+      () => FirebaseJwtValidator.verifyJwtClaims(
+        JsonWebTokenClaims.fromJson({
+          'exp': afterNow,
+          'iat': beforeNow,
+          'auth_time': beforeNow,
+        }),
+        rightNow,
+      ),
+      jwtException('JWT aud does not include flutter-dashboard'),
+    );
+  });
+
   test(
     'verifies issuer is `https://securetoken.google.com/flutter-dashboard`',
     () {

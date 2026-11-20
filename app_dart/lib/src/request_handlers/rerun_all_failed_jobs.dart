@@ -12,6 +12,7 @@ import '../model/ci_yaml/target.dart';
 import '../request_handling/api_request_handler.dart';
 import '../request_handling/exceptions.dart';
 import '../service/firestore/unified_check_run.dart';
+import 'rerun_validation.dart';
 
 /// Re-runs all failed jobs for a unified check run.
 ///
@@ -72,6 +73,13 @@ final class RerunAllFailedJobs extends ApiRequestHandler {
         'No pull request found for ${Config.kDashboardCheckName} with ${guard.checkRunId} id',
       );
     }
+
+    ensurePullRequestMatchesGuard(
+      slug: slug,
+      prNumber: prNumber,
+      guard: guard,
+      pullRequest: pullRequest,
+    );
 
     // We're doing a transactional update, which could fail if multiple tasks
     // are running at the same time so retry a sane amount of times before

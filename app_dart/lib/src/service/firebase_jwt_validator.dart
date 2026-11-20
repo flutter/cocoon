@@ -116,8 +116,7 @@ interface class FirebaseJwtValidator {
     if (claims.getTyped<DateTime>('auth_time')?.isAfter(now) ?? true) {
       throw JwtException('JWT auth_time in the future');
     }
-    if (claims.audience != null &&
-        !claims.audience!.contains('flutter-dashboard')) {
+    if (!(claims.audience?.contains('flutter-dashboard') ?? false)) {
       throw JwtException('JWT aud does not include flutter-dashboard');
     }
     if ('${claims.issuer}' != issuer) {

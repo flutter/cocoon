@@ -203,6 +203,68 @@ void main() {
       throwsA(isA<BadRequestException>()),
     );
   });
+
+  // Regression test: a second PR at the same head SHA overwrote the
+  // PrCheckRuns entry, so the re-run scheduled refs/pull/<other>/head.
+  test('Re-run all failed jobs fails when stored PR differs', () async {
+    final guard = generatePresubmitGuard(
+      checkRun: generateCheckRun(1, name: 'Guard'),
+      jobs: {'Linux A': TaskStatus.failed},
+    );
+    firestore.putDocument(guard);
+    firestore.putDocument(
+      PresubmitJob(
+        slug: Config.flutterSlug,
+        checkRunId: 1,
+        jobName: 'Linux A',
+        status: TaskStatus.failed,
+        attemptNumber: 1,
+        creationTime: 1,
+        buildNumber: 456,
+      ),
+    );
+    scheduler.targets = [generateTarget(1, name: 'Linux A')];
+    scheduler.engineArtifacts = const EngineArtifacts.noFrameworkTests(
+      reason: '',
+    );
+
+    await PrCheckRuns.initializeDocument(
+      firestoreService: firestore,
+      pullRequest: generatePullRequest(
+        number: guard.prNum + 1,
+        headSha: guard.commitSha,
+      ),
+      checks: [
+        generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
+      ],
+    );
+
+    tester.requestData = {
+      'owner': 'flutter',
+      'repo': 'flutter',
+      'pr': guard.prNum,
+    };
+
+    await expectLater(
+      tester.post(handler),
+      throwsA(isA<BadRequestException>()),
+    );
+
+    verifyNever(
+      mockLuciBuildService.reScheduleTryBuilds(
+        targets: anyNamed('targets'),
+        pullRequest: anyNamed('pullRequest'),
+        engineArtifacts: anyNamed('engineArtifacts'),
+        dashboardChecks: anyNamed('dashboardChecks'),
+        stage: anyNamed('stage'),
+      ),
+    );
+
+    final unchanged = PresubmitGuard.fromDocument(
+      await firestore.getDocument(guard.name!),
+    );
+    expect(unchanged.jobs['Linux A'], TaskStatus.failed);
+  });
 }
 
 class TestScheduler extends FakeScheduler {

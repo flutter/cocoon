@@ -227,6 +227,95 @@ void main() {
       throwsA(isA<BadRequestException>()),
     );
   });
+
+  group('Re-run fails when stored PR does not match the guard', () {
+    late PresubmitGuard guard;
+
+    setUp(() {
+      guard = generatePresubmitGuard(
+        checkRun: generateCheckRun(1, name: 'Linux A'),
+        jobs: {'Linux A': TaskStatus.failed},
+      );
+      firestore.putDocument(guard);
+      firestore.putDocument(
+        PresubmitJob(
+          slug: Config.flutterSlug,
+          checkRunId: 1,
+          jobName: 'Linux A',
+          status: TaskStatus.failed,
+          attemptNumber: 1,
+          creationTime: 1,
+          buildNumber: 456,
+        ),
+      );
+      scheduler.targets = [generateTarget(1, name: 'Linux A')];
+      scheduler.engineArtifacts = const EngineArtifacts.noFrameworkTests(
+        reason: '',
+      );
+    });
+
+    Future<void> expectRejected(PullRequest storedPullRequest) async {
+      await PrCheckRuns.initializeDocument(
+        firestoreService: firestore,
+        pullRequest: storedPullRequest,
+        checks: [
+          generateCheckRun(guard.checkRunId, name: Config.kDashboardCheckName),
+        ],
+      );
+
+      tester.requestData = {
+        'owner': 'flutter',
+        'repo': 'flutter',
+        'pr': guard.prNum,
+        'job_name': 'Linux A',
+      };
+
+      await expectLater(
+        tester.post(handler),
+        throwsA(isA<BadRequestException>()),
+      );
+
+      verifyNever(
+        mockLuciBuildService.reScheduleTryBuilds(
+          targets: anyNamed('targets'),
+          pullRequest: anyNamed('pullRequest'),
+          engineArtifacts: anyNamed('engineArtifacts'),
+          dashboardChecks: anyNamed('dashboardChecks'),
+          stage: anyNamed('stage'),
+        ),
+      );
+
+      // The guard must not have been modified.
+      final unchanged = PresubmitGuard.fromDocument(
+        await firestore.getDocument(guard.name!),
+      );
+      expect(unchanged.jobs['Linux A'], TaskStatus.failed);
+    }
+
+    // Regression test: a second PR at the same head SHA overwrote the
+    // PrCheckRuns entry, so the re-run scheduled refs/pull/<other>/head.
+    test('different PR number at the same sha', () async {
+      await expectRejected(
+        generatePullRequest(number: guard.prNum + 1, headSha: guard.commitSha),
+      );
+    });
+
+    test('different head sha', () async {
+      await expectRejected(
+        generatePullRequest(number: guard.prNum, headSha: 'not-the-guard-sha'),
+      );
+    });
+
+    test('different repository', () async {
+      await expectRejected(
+        generatePullRequest(
+          number: guard.prNum,
+          headSha: guard.commitSha,
+          repo: 'packages',
+        ),
+      );
+    });
+  });
 }
 
 class TestScheduler extends FakeScheduler {
