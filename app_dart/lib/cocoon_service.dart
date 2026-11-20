@@ -58,6 +58,7 @@ export 'src/service/access_token_provider.dart';
 export 'src/service/branch_service.dart';
 export 'src/service/build_bucket_client.dart';
 export 'src/service/cache_service.dart';
+export 'src/service/cloud_kms_service.dart';
 export 'src/service/config.dart';
 export 'src/service/firestore.dart';
 export 'src/service/flags/dynamic_config.dart';

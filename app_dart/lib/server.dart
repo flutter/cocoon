@@ -36,6 +36,7 @@ Server createServer({
   required FirestoreService firestore,
   required BigQueryService bigQuery,
   required CacheService cache,
+  required CloudKmsService cloudKms,
   required AuthenticationProvider dashboardAuthProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required AuthenticationProvider cronAuthProvider,
@@ -458,7 +459,7 @@ Server createServer({
     ///
     /// Response: Status 200 OK
     ///   {"keys": [{"kty": "OKP", "crv": "Ed25519", "use": "sig", "alg": "EdDSA", "kid": "...", "x": "..."}]}
-    '/api/v1/jwks': GetJwks(config: config, cache: cache),
+    '/api/v1/jwks': GetJwks(config: config, cache: cache, cloudKms: cloudKms),
 
     /// Handler for AppEngine to identify when dart server is ready to serve requests.
     '/readiness_check': ReadinessCheck(config: config),

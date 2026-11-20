@@ -43,7 +43,7 @@ final class DynamicConfig {
     orderedPresubmit: OrderedPresubmit.defaultInstance,
     dynamicTestSuppression: false,
     geminiModel: 'gemini-3-flash-preview',
-    jwksPublicKids: [],
+    jwksKmsKeyName: null,
   );
 
   /// Upper limit of commit rows to be backfilled in API call.
@@ -86,11 +86,11 @@ final class DynamicConfig {
   @JsonKey()
   final String geminiModel;
 
-  /// Active Ed25519 Key IDs (RFC 7638 JWK Thumbprints) exposed by `GET /api/v1/jwks`.
+  /// Cloud KMS CryptoKey resource name storing Ed25519 signing keys exposed by `GET /api/v1/jwks`.
   ///
-  /// Each entry maps to `APP_DART_JWKS_PUBLIC_{kid}` in GCP Secret Manager.
+  /// Format: `projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{cryptoKey}`.
   @JsonKey()
-  final List<String> jwksPublicKids;
+  final String? jwksKmsKeyName;
 
   const DynamicConfig._({
     required this.backfillerCommitLimit,
@@ -102,7 +102,7 @@ final class DynamicConfig {
     required this.orderedPresubmit,
     required this.dynamicTestSuppression,
     required this.geminiModel,
-    required this.jwksPublicKids,
+    required this.jwksKmsKeyName,
   });
 
   /// Creates [DynamicConfig] flags from a [json] object.
@@ -118,7 +118,7 @@ final class DynamicConfig {
     OrderedPresubmit? orderedPresubmit,
     bool? dynamicTestSuppression,
     String? geminiModel,
-    List<String>? jwksPublicKids,
+    String? jwksKmsKeyName,
   }) {
     return DynamicConfig._(
       backfillerCommitLimit:
@@ -137,9 +137,7 @@ final class DynamicConfig {
       dynamicTestSuppression:
           dynamicTestSuppression ?? defaultInstance.dynamicTestSuppression,
       geminiModel: geminiModel ?? defaultInstance.geminiModel,
-      jwksPublicKids: jwksPublicKids != null
-          ? List<String>.unmodifiable(jwksPublicKids)
-          : defaultInstance.jwksPublicKids,
+      jwksKmsKeyName: jwksKmsKeyName ?? defaultInstance.jwksKmsKeyName,
     );
   }
 

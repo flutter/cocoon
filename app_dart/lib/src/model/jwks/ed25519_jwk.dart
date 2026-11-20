@@ -8,17 +8,17 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:jose_plus/jose.dart';
 import 'package:meta/meta.dart';
 
-/// Size in bytes of an Ed25519 private key seed (`d`) and public key (`x`).
+/// Size in bytes of an Ed25519 public key (`x`).
 const int kEd25519KeyLength = 32;
+
+/// Size in bytes of an Ed25519 signature.
+const int kEd25519SignatureLength = 64;
 
 const String _kPublicKeyPemHeader = '-----BEGIN PUBLIC KEY-----';
 const String _kPublicKeyPemFooter = '-----END PUBLIC KEY-----';
-const String _kPrivateKeyPemHeader = '-----BEGIN PRIVATE KEY-----';
-const String _kPrivateKeyPemFooter = '-----END PRIVATE KEY-----';
 
 /// DER encoding of OID `1.3.101.112` (`id-Ed25519`, RFC 8410 Section 3).
 const List<int> _kEd25519OidBytes = <int>[0x2b, 0x65, 0x70];
@@ -31,20 +31,10 @@ const List<int> _kEd25519SpkiPrefix = <int>[
   0x03, 0x21, 0x00, // BIT STRING (33 bytes, 0 unused bits)
 ];
 
-/// Fixed 16-byte RFC 8410 Section 7 PKCS#8 v1 PrivateKeyInfo DER prefix for Ed25519.
-const List<int> _kEd25519Pkcs8Prefix = <int>[
-  0x30, 0x2e, // SEQUENCE (46 bytes)
-  0x02, 0x01, 0x00, // INTEGER 0 (v1)
-  0x30, 0x05, // SEQUENCE (5 bytes) - AlgorithmIdentifier
-  0x06, 0x03, 0x2b, 0x65, 0x70, // OID 1.3.101.112 (id-Ed25519)
-  0x04, 0x22, // OCTET STRING (34 bytes) - privateKey
-  0x04, 0x20, // OCTET STRING (32 bytes) - CurvePrivateKey
-];
-
-/// Pattern for valid Key IDs (base64url characters, safe for Secret Manager IDs).
+/// Pattern for valid Key IDs (unpadded base64url characters).
 final RegExp _validKidPattern = RegExp(r'^[A-Za-z0-9_-]+$');
 
-/// Returns whether [kid] contains only valid base64url / Secret Manager ID characters.
+/// Returns whether [kid] contains only valid base64url Key ID characters.
 bool isValidJwksKeyId(String kid) =>
     kid.isNotEmpty && _validKidPattern.hasMatch(kid);
 
@@ -75,6 +65,9 @@ final class Ed25519PublicJwk {
   }
 
   /// Parses an RFC 8410 SubjectPublicKeyInfo (`PUBLIC KEY`) [pem] into an [Ed25519PublicJwk].
+  ///
+  /// Compatible with the SPKI PEM returned by Google Cloud KMS
+  /// `cryptoKeyVersions.getPublicKey` for `EC_SIGN_ED25519` keys.
   ///
   /// If [expectedKid] is provided, throws a [FormatException] if the computed
   /// RFC 7638 thumbprint does not match [expectedKid].
@@ -192,157 +185,6 @@ final class Ed25519PublicJwk {
 
   @override
   int get hashCode => Object.hash(kid, x);
-}
-
-/// An Ed25519 asymmetric key pair supporting RFC 8410 PKCS#8/SPKI PEM and RFC 8037 JWK.
-@immutable
-final class Ed25519KeyPair {
-  const Ed25519KeyPair._({
-    required Uint8List seedBytes,
-    required this.publicJwk,
-  }) : _seedBytes = seedBytes;
-
-  /// Generates a new cryptographically random Ed25519 key pair.
-  factory Ed25519KeyPair.generate([Random? random]) {
-    final rng = random ?? Random.secure();
-    final seed = Uint8List.fromList(
-      List<int>.generate(kEd25519KeyLength, (_) => rng.nextInt(256)),
-    );
-    return Ed25519KeyPair.fromSeed(seed);
-  }
-
-  /// Constructs an [Ed25519KeyPair] deterministically from a 32-byte Ed25519 [seed].
-  factory Ed25519KeyPair.fromSeed(List<int> seed) {
-    if (seed.length != kEd25519KeyLength) {
-      throw FormatException(
-        'Ed25519 private key seed must be $kEd25519KeyLength bytes, '
-        'got ${seed.length}.',
-      );
-    }
-    final seedBytes = Uint8List.fromList(seed);
-    final privateKey = ed.newKeyFromSeed(seedBytes);
-    final publicKey = ed.public(privateKey);
-    return Ed25519KeyPair._(
-      seedBytes: seedBytes,
-      publicJwk: Ed25519PublicJwk.fromPublicKeyBytes(publicKey.bytes),
-    );
-  }
-
-  /// Parses an RFC 8410 / RFC 5958 PKCS#8 (`PRIVATE KEY`) [pem] into an [Ed25519KeyPair].
-  ///
-  /// If [expectedKid] is provided, throws a [FormatException] if the derived
-  /// RFC 7638 thumbprint does not match [expectedKid].
-  factory Ed25519KeyPair.fromPrivateKeyPem(String pem, {String? expectedKid}) {
-    final der = _decodePem(
-      pem,
-      expectedHeader: _kPrivateKeyPemHeader,
-      expectedFooter: _kPrivateKeyPemFooter,
-    );
-    final outer = _readDerTlv(der, 0);
-    if (outer.tag != 0x30 || outer.nextOffset != der.length) {
-      throw const FormatException(
-        'Invalid PKCS#8 DER structure for Ed25519 private key.',
-      );
-    }
-
-    final version = _readDerTlv(outer.value, 0);
-    if (version.tag != 0x02 ||
-        version.value.length != 1 ||
-        (version.value[0] != 0x00 && version.value[0] != 0x01)) {
-      throw const FormatException('Unsupported PKCS#8 version for Ed25519.');
-    }
-
-    final algSeq = _readDerTlv(outer.value, version.nextOffset);
-    _validateEd25519AlgorithmIdentifier(algSeq);
-
-    final privateKeyOctet = _readDerTlv(outer.value, algSeq.nextOffset);
-    if (privateKeyOctet.tag != 0x04) {
-      throw const FormatException('Invalid PKCS#8 privateKey OCTET STRING.');
-    }
-
-    final curvePrivateKey = _readDerTlv(privateKeyOctet.value, 0);
-    if (curvePrivateKey.tag != 0x04 ||
-        curvePrivateKey.nextOffset != privateKeyOctet.value.length ||
-        curvePrivateKey.value.length != kEd25519KeyLength) {
-      throw const FormatException(
-        'Invalid RFC 8410 CurvePrivateKey inner OCTET STRING.',
-      );
-    }
-
-    final keyPair = Ed25519KeyPair.fromSeed(curvePrivateKey.value);
-
-    // Handle optional OneAsymmetricKey attributes [0] and publicKey [1] (RFC 5958 / RFC 8410 §7).
-    var cursor = privateKeyOctet.nextOffset;
-    if (cursor < outer.value.length && outer.value[cursor] == 0xa0) {
-      cursor = _readDerTlv(outer.value, cursor).nextOffset;
-    }
-    if (cursor < outer.value.length &&
-        version.value[0] == 0x01 &&
-        outer.value[cursor] == 0x81) {
-      final embeddedPublic = _readDerTlv(outer.value, cursor);
-      if (embeddedPublic.value.length != kEd25519KeyLength + 1 ||
-          embeddedPublic.value[0] != 0x00 ||
-          !const ListEquality<int>().equals(
-            Uint8List.sublistView(embeddedPublic.value, 1),
-            keyPair.publicJwk._publicKeyBytes,
-          )) {
-        throw const FormatException(
-          'Embedded OneAsymmetricKey public key does not match private seed.',
-        );
-      }
-      cursor = embeddedPublic.nextOffset;
-    }
-    if (cursor != outer.value.length) {
-      throw const FormatException(
-        'Unexpected trailing fields in PKCS#8 Ed25519 private key.',
-      );
-    }
-
-    if (expectedKid != null && keyPair.kid != expectedKid) {
-      throw FormatException(
-        'Computed RFC 7638 JWK thumbprint (${keyPair.kid}) does not match '
-        'expected kid ($expectedKid).',
-      );
-    }
-    return keyPair;
-  }
-
-  final Uint8List _seedBytes;
-
-  /// Raw 32-byte Ed25519 private key seed bytes (`d`).
-  Uint8List get seedBytes => Uint8List.fromList(_seedBytes);
-
-  /// Corresponding [Ed25519PublicJwk] derived from [seedBytes].
-  final Ed25519PublicJwk publicJwk;
-
-  /// Key ID calculated as the RFC 7638 SHA-256 JWK Thumbprint.
-  String get kid => publicJwk.kid;
-
-  /// Base64url-encoded (unpadded) 32-byte Ed25519 private seed (`d`).
-  String get d => _base64UrlUnpadded(_seedBytes);
-
-  /// Encodes the private key as an RFC 8410 PKCS#8 v1 (`PRIVATE KEY`) PEM string.
-  String toPrivateKeyPem() {
-    final der = Uint8List(_kEd25519Pkcs8Prefix.length + _seedBytes.length)
-      ..setRange(0, _kEd25519Pkcs8Prefix.length, _kEd25519Pkcs8Prefix)
-      ..setRange(
-        _kEd25519Pkcs8Prefix.length,
-        _kEd25519Pkcs8Prefix.length + _seedBytes.length,
-        _seedBytes,
-      );
-    return _encodePem(
-      der,
-      header: _kPrivateKeyPemHeader,
-      footer: _kPrivateKeyPemFooter,
-    );
-  }
-
-  /// Encodes the public key as an RFC 8410 SubjectPublicKeyInfo (`PUBLIC KEY`) PEM string.
-  String toPublicKeyPem() => publicJwk.toPublicKeyPem();
-
-  /// Converts this key pair to a private [JsonWebKey] for `jose_plus` EdDSA signing.
-  JsonWebKey toPrivateJoseKey() =>
-      JsonWebKey.fromJson(<String, Object>{...publicJwk.toJson(), 'd': d})!;
 }
 
 String _base64UrlUnpadded(List<int> bytes) =>

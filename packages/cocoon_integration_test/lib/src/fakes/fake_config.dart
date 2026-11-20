@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:cocoon_server/secret_manager.dart';
 import 'package:cocoon_service/cocoon_service.dart';
 import 'package:cocoon_service/src/service/github_service.dart';
 import 'package:cocoon_service/src/service/luci_build_service/cipd_version.dart';
@@ -55,8 +54,6 @@ class FakeConfig implements Config {
     this.issueAndPRLimitValue,
     this.githubRequestDelayValue,
     this.httpClientValue,
-    this.jwksPublicKeyPemsValue,
-    this.jwksPrivateKeyPemsValue,
     DynamicConfig? dynamicConfig,
   }) : dynamicConfig = dynamicConfig ?? DynamicConfig.fromLocalFileSystem();
 
@@ -64,8 +61,6 @@ class FakeConfig implements Config {
   GraphQLClient? githubGraphQLClient;
   GithubService? githubService;
   http.Client? httpClientValue;
-  Map<String, String>? jwksPublicKeyPemsValue;
-  Map<String, String>? jwksPrivateKeyPemsValue;
   int? maxTaskRetriesValue;
   int? maxFilesChangedForSkippingEnginePhaseValue;
   int? maxLuciTaskRetriesValue;
@@ -239,24 +234,6 @@ class FakeConfig implements Config {
 
   @override
   Future<String> get githubPublicKey => throw UnimplementedError();
-
-  @override
-  Future<String> getJwksPrivateKeyPem(String kid) async {
-    final pem = jwksPrivateKeyPemsValue?[kid];
-    if (pem == null) {
-      throw SecretException(Config.jwksPrivateKeySecretName(kid));
-    }
-    return pem;
-  }
-
-  @override
-  Future<String> getJwksPublicKeyPem(String kid) async {
-    final pem = jwksPublicKeyPemsValue?[kid];
-    if (pem == null) {
-      throw SecretException(Config.jwksPublicKeySecretName(kid));
-    }
-    return pem;
-  }
 
   @override
   Future<GithubService> createDefaultGitHubService() async => githubService!;

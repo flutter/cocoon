@@ -44,8 +44,6 @@ orderedPresubmit:
   useForUsers:
     - ievdokdm
 
-# Active Ed25519 Key IDs (RFC 7638 JWK Thumbprints) exposed by GET /api/v1/jwks.
-# Each entry maps to APP_DART_JWKS_PUBLIC_{kid} in GCP Secret Manager.
-jwksPublicKids:
-  - hiocSW3lVq9Sju3llsfCBOZgnoXMNvPanikVgj9kPZY
-  - mRBNK3ML6gvGQGzN1ZQYQZ22kVZuRxImQIYQE8rmtjM
+# Cloud KMS CryptoKey resource storing Ed25519 signing keys exposed by GET /api/v1/jwks.
+# All ENABLED EC_SIGN_ED25519 versions of this key are published in the JWKS response.
+jwksKmsKeyName: projects/flutter-dashboard/locations/global/keyRings/cocoon-jwks/cryptoKeys/pluggable-ci

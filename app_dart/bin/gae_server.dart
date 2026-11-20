@@ -45,6 +45,7 @@ Future<void> main() async {
     final cache = CacheService.redis();
     final firestore = await FirestoreService.from(const GoogleAuthProvider());
     final bigQuery = await BigQueryService.from(const GoogleAuthProvider());
+    final cloudKms = await CloudKmsService.from(const GoogleAuthProvider());
 
     // Start with a fresh copy of the DynamicConfig. If this throws, the server
     // will not start - which is a good thing.
@@ -170,6 +171,7 @@ Future<void> main() async {
       firestore: firestore,
       bigQuery: bigQuery,
       cache: cache,
+      cloudKms: cloudKms,
       dashboardAuthProvider: dashboardAuthProvider,
       cronAuthProvider: cronAuthProvider,
       presubmitAuthProvider: presubmitAuthProvider,
