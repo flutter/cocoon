@@ -492,13 +492,15 @@ Future<String> fetchPublicKeyPem(
       return result.stdout.trim();
     }
     final isPending = result.stderr.contains('PENDING_GENERATION');
-    if (!isPending || attempt == maxAttempts) {
+    if (!isPending) {
       throw GcloudCommandException(
         'Failed to fetch public key for version `$versionId`: '
         '${result.stderr.trim()}',
       );
     }
-    await Future<void>.delayed(retryDelay);
+    if (attempt < maxAttempts) {
+      await Future<void>.delayed(retryDelay);
+    }
   }
   throw GcloudCommandException(
     'Timed out waiting for key version `$versionId` generation.',

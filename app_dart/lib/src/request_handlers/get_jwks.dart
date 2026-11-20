@@ -157,10 +157,10 @@ final class GetJwks extends PublicApiRequestHandler {
       return null;
     }
 
+    final pems = await Future.wait(versionNames.map(_cloudKms.getPublicKeyPem));
     final seenKids = <String>{};
     final keys = <Map<String, Object>>[];
-    for (final versionName in versionNames) {
-      final pem = await _cloudKms.getPublicKeyPem(versionName);
+    for (final pem in pems) {
       final jwk = Ed25519PublicJwk.fromPublicKeyPem(pem);
       if (seenKids.add(jwk.kid)) {
         keys.add(jwk.toJson());

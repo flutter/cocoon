@@ -320,6 +320,40 @@ void main() {
     );
 
     test(
+      'fetchPublicKeyPem throws timeout error after exhausting PENDING_GENERATION retries',
+      () async {
+        var attempts = 0;
+        await expectLater(
+          cli.fetchPublicKeyPem(
+            (_) async {
+              attempts++;
+              return const cli.GcloudResult(
+                exitCode: 1,
+                stdout: '',
+                stderr: 'Key version is in state PENDING_GENERATION',
+              );
+            },
+            projectId: 'flutter-dashboard',
+            location: 'global',
+            keyRing: 'cocoon-jwks',
+            cryptoKey: 'pluggable-ci',
+            versionId: '1',
+            maxAttempts: 3,
+            retryDelay: Duration.zero,
+          ),
+          throwsA(
+            isA<cli.GcloudCommandException>().having(
+              (e) => e.message,
+              'message',
+              contains('Timed out waiting for key version `1` generation.'),
+            ),
+          ),
+        );
+        expect(attempts, 3);
+      },
+    );
+
+    test(
       'returns exit code 64 on invalid arguments or invalid resource IDs',
       () async {
         final err = StringBuffer();
