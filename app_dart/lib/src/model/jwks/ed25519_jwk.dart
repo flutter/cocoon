@@ -210,13 +210,30 @@ Uint8List _decodePem(
   required String expectedHeader,
   required String expectedFooter,
 }) {
-  final trimmed = pem.trim();
-  if (!trimmed.startsWith(expectedHeader) ||
-      !trimmed.endsWith(expectedFooter)) {
+  final lines = const LineSplitter().convert(pem);
+  final headerLineIndex = lines.indexWhere(
+    (line) => line.trim() == expectedHeader,
+  );
+  if (headerLineIndex == -1) {
     throw FormatException('Expected PEM block with $expectedHeader.');
   }
-  final body = trimmed
-      .substring(expectedHeader.length, trimmed.length - expectedFooter.length)
+  final footerLineIndex = lines.indexWhere(
+    (line) => line.trim() == expectedFooter,
+    headerLineIndex + 1,
+  );
+  if (footerLineIndex == -1) {
+    throw FormatException('Expected PEM block with $expectedFooter.');
+  }
+  if (lines.indexWhere(
+        (line) => line.trim() == expectedHeader,
+        footerLineIndex + 1,
+      ) !=
+      -1) {
+    throw const FormatException('Expected a single PEM block, found multiple.');
+  }
+  final body = lines
+      .sublist(headerLineIndex + 1, footerLineIndex)
+      .join()
       .replaceAll(RegExp(r'\s+'), '');
   if (body.isEmpty) {
     throw const FormatException('PEM body is empty.');
