@@ -19,6 +19,7 @@ void main() {
     createServer(
       config: FakeConfig(webhookKeyValue: 'fake-secret'),
       cache: CacheService.inMemory(),
+      cloudKms: FakeCloudKmsService(),
       dashboardAuthProvider: FakeDashboardAuthentication(),
       cronAuthProvider: FakeDashboardAuthentication(),
       presubmitAuthProvider: FakeDashboardAuthentication(),
