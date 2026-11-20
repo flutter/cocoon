@@ -145,6 +145,20 @@ Future<void> main() async {
   final httpServer = await io.HttpServer.bind(io.InternetAddress.anyIPv6, port);
   print('Serving requests at http://localhost:${httpServer.port}/');
   await for (final request in httpServer) {
-    await server(request.toRequest());
+    try {
+      await server(request.toRequest());
+    } catch (e, s) {
+      io.stderr.writeln('Error processing request: $e\n$s');
+      try {
+        request.response.statusCode = io.HttpStatus.internalServerError;
+      } catch (_) {
+        // Headers may already have been sent.
+      }
+      try {
+        await request.response.close();
+      } catch (_) {
+        // Response may already be closed or the client disconnected.
+      }
+    }
   }
 }
