@@ -6,6 +6,7 @@ import 'package:cocoon_server/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../../cocoon_service.dart';
+import '../request_handling/exceptions.dart';
 import '../service/luci_build_service/build_tags.dart';
 
 /// An endpoint for listening to LUCI status updates for scheduled builds.
@@ -44,11 +45,20 @@ final class PresubmitLuciSubscription extends PresubmitSubscription {
       log.info(
         'Ordering key $orderingKey found, forwarding message to ordered-presubmit topic',
       );
-      await pubsub.publish(
-        'ordered-presubmit',
-        message.data!,
-        orderingKey: orderingKey,
-      );
+      try {
+        await pubsub.publish(
+          'ordered-presubmit',
+          message.data!,
+          orderingKey: orderingKey,
+        );
+      } catch (e, s) {
+        log.error(
+          'Failed to publish message to ordered-presubmit topic for ordering key $orderingKey',
+          e,
+          s,
+        );
+        throw InternalServerError('$e\n$s');
+      }
       return true;
     }
     return false;
