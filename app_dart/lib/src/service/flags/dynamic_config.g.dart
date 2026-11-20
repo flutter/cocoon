@@ -33,6 +33,7 @@ DynamicConfig _$DynamicConfigFromJson(Map<String, dynamic> json) =>
             ),
       dynamicTestSuppression: json['dynamicTestSuppression'] as bool?,
       geminiModel: json['geminiModel'] as String?,
+      jwksKmsKeyName: json['jwksKmsKeyName'] as String?,
     );
 
 Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
@@ -46,4 +47,5 @@ Map<String, dynamic> _$DynamicConfigToJson(DynamicConfig instance) =>
       'orderedPresubmit': instance.orderedPresubmit.toJson(),
       'dynamicTestSuppression': instance.dynamicTestSuppression,
       'geminiModel': instance.geminiModel,
+      'jwksKmsKeyName': instance.jwksKmsKeyName,
     };

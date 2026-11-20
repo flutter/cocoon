@@ -58,10 +58,19 @@ abstract base class RequestHandler {
       }
       await _respond(
         response,
-        Response.json({'error': error.message}, statusCode: error.statusCode),
+        Response.json(
+          createErrorBody(error.message),
+          statusCode: error.statusCode,
+        ),
       );
     }
   }
+
+  /// Creates the JSON response body for an [HttpStatusException].
+  @protected
+  Map<String, Object?> createErrorBody(String message) => <String, Object?>{
+    'error': message,
+  };
 
   /// Responds (using [response]).
   ///
