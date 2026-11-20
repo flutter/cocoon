@@ -36,6 +36,7 @@ Server createServer({
   required FirestoreService firestore,
   required BigQueryService bigQuery,
   required CacheService cache,
+  required CloudKmsService cloudKms,
   required AuthenticationProvider dashboardAuthProvider,
   required AuthenticationProvider swarmingAuthProvider,
   required AuthenticationProvider cronAuthProvider,
@@ -451,6 +452,14 @@ Server createServer({
       delegate: GithubRateLimitStatus(config: config, bigQuery: bigQuery),
     ),
     '/api/public/repos': GetRepos(config: config),
+
+    /// Returns Cocoon's active Ed25519 public keys in RFC 7517 JWKS format.
+    ///
+    /// GET: /api/v1/jwks
+    ///
+    /// Response: Status 200 OK
+    ///   {"keys": [{"kty": "OKP", "crv": "Ed25519", "use": "sig", "alg": "EdDSA", "kid": "...", "x": "..."}]}
+    '/api/v1/jwks': GetJwks(config: config, cache: cache, cloudKms: cloudKms),
 
     /// Handler for AppEngine to identify when dart server is ready to serve requests.
     '/readiness_check': ReadinessCheck(config: config),

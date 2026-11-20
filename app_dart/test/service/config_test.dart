@@ -103,5 +103,33 @@ void main() {
       expect(config.isOrderedPresubmitEnabledForUser('testuser'), isTrue);
       expect(config.isOrderedPresubmitEnabledForUser('otheruser'), isFalse);
     });
+
+    test('jwksKmsKeyName defaults to null and parses configured key', () {
+      expect(DynamicConfig.fromJson(const {}).jwksKmsKeyName, isNull);
+      const keyName =
+          'projects/flutter-dashboard/locations/global/keyRings/cocoon-jwks/cryptoKeys/pluggable-ci';
+      final parsed = DynamicConfig.fromJson(const <String, Object?>{
+        'jwksKmsKeyName': keyName,
+      });
+      expect(parsed.jwksKmsKeyName, keyName);
+    });
+  });
+
+  group('JWKS Cloud KMS config', () {
+    test('builds Cloud KMS CryptoKey resource name', () {
+      expect(
+        Config.jwksKmsCryptoKeyName(),
+        'projects/flutter-dashboard/locations/global/keyRings/cocoon-jwks/cryptoKeys/pluggable-ci',
+      );
+      expect(
+        Config.jwksKmsCryptoKeyName(
+          projectId: 'flutter-dashboard-dev',
+          location: 'us-central1',
+          keyRing: 'custom-ring',
+          cryptoKey: 'custom-key',
+        ),
+        'projects/flutter-dashboard-dev/locations/us-central1/keyRings/custom-ring/cryptoKeys/custom-key',
+      );
+    });
   });
 }
