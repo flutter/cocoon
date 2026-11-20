@@ -8,6 +8,7 @@ export 'src/fakes/fake_build_bucket_client.dart';
 export 'src/fakes/fake_build_status_service.dart';
 export 'src/fakes/fake_cache_service.dart';
 export 'src/fakes/fake_ci_yaml_fetcher.dart';
+export 'src/fakes/fake_cloud_kms_service.dart';
 export 'src/fakes/fake_config.dart';
 export 'src/fakes/fake_content_aware_hash_service.dart';
 export 'src/fakes/fake_dashboard_authentication.dart';

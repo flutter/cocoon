@@ -196,6 +196,29 @@ interface class Config extends DynamicallyUpdatedConfig {
     return jsonDecode(installations) as Map<String, dynamic>;
   }
 
+  // Pluggable CI JWKS properties (Google Cloud KMS).
+
+  /// Default Cloud KMS location for Pluggable CI JWKS keys.
+  static const String jwksDefaultKmsLocation = 'global';
+
+  /// Default Cloud KMS key ring name for Pluggable CI JWKS keys.
+  static const String jwksDefaultKmsKeyRing = 'cocoon-jwks';
+
+  /// Default Cloud KMS CryptoKey name for Pluggable CI JWKS keys.
+  static const String jwksDefaultKmsCryptoKey = 'pluggable-ci';
+
+  /// Cache TTL for JWKS responses (aligns with RFC 610.0002 10-minute key rotation window).
+  static const Duration jwksCacheTtl = Duration(minutes: 5);
+
+  /// Builds a Cloud KMS CryptoKey resource name for Pluggable CI JWKS keys.
+  static String jwksKmsCryptoKeyName({
+    String projectId = flutterGcpProjectId,
+    String location = jwksDefaultKmsLocation,
+    String keyRing = jwksDefaultKmsKeyRing,
+    String cryptoKey = jwksDefaultKmsCryptoKey,
+  }) =>
+      'projects/$projectId/locations/$location/keyRings/$keyRing/cryptoKeys/$cryptoKey';
+
   // Default recipe bundle used when the PR's base branch name does not exist in
   // the recipes GoB project.
   CipdVersion get defaultRecipeBundleRef => const CipdVersion(branch: 'main');

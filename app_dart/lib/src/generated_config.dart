@@ -47,4 +47,8 @@ orderedPresubmit:
   useForAll: true
   useForUsers:
     - ievdokdm
+
+# Cloud KMS CryptoKey resource storing Ed25519 signing keys exposed by GET /api/v1/jwks.
+# All ENABLED EC_SIGN_ED25519 versions of this key are published in the JWKS response.
+jwksKmsKeyName: projects/flutter-dashboard/locations/global/keyRings/cocoon-jwks/cryptoKeys/pluggable-ci
 ''';
